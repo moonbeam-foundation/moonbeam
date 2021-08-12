@@ -29,11 +29,10 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
-use currencies::TokenSymbol;
 use fp_rpc::TransactionStatus;
 use frame_support::traits::Filter;
 use frame_support::{
-	construct_runtime, match_type, parameter_types,
+	construct_runtime, parameter_types,
 	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -41,6 +40,9 @@ use frame_support::{
 	},
 	PalletId,
 };
+
+use xcm_builder::{ConvertedConcreteAssetId, FungiblesAdapter};
+use xcm_executor::traits::JustTry;
 
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
@@ -62,11 +64,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
-use sp_std::marker::PhantomData;
 use xcm::v0::{BodyId, Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
 
 use sp_std::{
@@ -220,8 +221,10 @@ impl Filter<Call> for BaseFilter {
 	fn filter(c: &Call) -> bool {
 		match c {
 			Call::Assets(method) => match method {
-				pallet_assets::Call::force_create(..) => true,
-				_ => false,
+				pallet_assets::Call::create(..) => false,
+				pallet_assets::Call::set_metadata(..) => false,
+				pallet_assets::Call::destroy(..) => false,
+				_ => true,
 			},
 			_ => true,
 		}
@@ -263,30 +266,6 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
-}
-
-type KsmInstance = pallet_balances::Instance1;
-
-// Virtual-KSM balances.
-impl pallet_balances::Config<KsmInstance> for Runtime {
-	type MaxLocks = MaxLocks;
-	type ReserveIdentifier = [u8; 4];
-	type MaxReserves = MaxReserves;
-	/// The type for recording an account's balance.
-	type Balance = Balance;
-	/// The ubiquitous event type.
-	type Event = Event;
-	type DustRemoval = ();
-	type ExistentialDeposit = ExistentialDeposit;
-	// This uses the pallets internal storage
-	// TODO: explain this (Storedmap, etc..)
-	type AccountStore = frame_support::traits::StorageMapShim<
-		pallet_balances::Account<Runtime, KsmInstance>,
-		(),
-		AccountId,
-		pallet_balances::AccountData<Balance>,
-	>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -822,35 +801,12 @@ parameter_types! {
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = MultiLocation::Null;
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 }
 
 parameter_types! {
 	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwr");
 	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
 	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
-}
-pub struct NativeToRelay;
-impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
-	for NativeToRelay
-{
-	fn convert(val: u128) -> cumulus_primitives_core::relay_chain::Balance {
-		// native is 18
-		// relay is 12
-		val / 1_000_000
-	}
-}
-
-pub struct RelayToNative;
-impl sp_runtime::traits::Convert<cumulus_primitives_core::relay_chain::Balance, Balance>
-	for RelayToNative
-{
-	fn convert(val: u128) -> Balance {
-		// native is 18
-		// relay is 12
-		val * 1_000_000
-	}
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -864,63 +820,23 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<MoonbeamNetwork, AccountId>,
 );
 
-/// Matcher associated type for MultiCurrencyAdapter to convert assets into local types
-pub struct IsConcreteWithAdjustment<T, FromRelayChainBalance>(
-	PhantomData<(T, FromRelayChainBalance)>,
-);
-impl<T: Get<MultiLocation>, B, FromRelayChainBalance> xcm_executor::traits::MatchesFungible<B>
-	for IsConcreteWithAdjustment<T, FromRelayChainBalance>
-where
-	B: TryFrom<u128>,
-	FromRelayChainBalance: sp_runtime::traits::Convert<u128, u128>,
-{
-	fn matches_fungible(a: &MultiAsset) -> Option<B> {
-		if let MultiAsset::ConcreteFungible { id, amount } = a {
-			if id == &T::get() {
-				// Convert relay chain decimals to local chain
-				let local_amount = FromRelayChainBalance::convert(*amount);
-				return sp_runtime::traits::CheckedConversion::checked_from(local_amount);
-			}
-		}
-		None
-	}
-}
-
-/// Means for transacting assets on this chain.
-pub type KsmAssetTransactor = xcm_builder::CurrencyAdapter<
-	// Use this currency:
-	BalancesKsm,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcreteWithAdjustment<KsmLocation, RelayToNative>,
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports.
-	(),
->;
-
-use frame_support::traits::{fungibles, Contains};
-use sp_runtime::traits::Zero;
-use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId, FungiblesAdapter};
-use xcm_executor::traits::JustTry;
-
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
 /// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
 /// `PalletInstance` junction.
 use sp_std::borrow::Borrow;
-pub struct AsCurrencyId;
-impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsCurrencyId {
+pub struct AsParachainId;
+impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		match id.borrow() {
-			MultiLocation::X1(Junction::Parent) => Ok(1u32.into()),
+			MultiLocation::X1(Junction::Parent) => Ok(0u32.into()),
+			MultiLocation::X1(Junction::Parachain(para_id)) => Ok(*para_id),
 			_ => Err(()),
 		}
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
 		match what.borrow() {
-			1u32 => Ok(MultiLocation::X1(Junction::Parent)),
-			_ => Err(()),
+			0u32 => Ok(MultiLocation::X1(Junction::Parent)),
+			para_id => Ok(MultiLocation::X1(Junction::Parachain(*para_id))),
 		}
 	}
 }
@@ -929,7 +845,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	(ConvertedConcreteAssetId<AssetId, Balance, AsCurrencyId, JustTry>,),
+	(ConvertedConcreteAssetId<AssetId, Balance, AsParachainId, JustTry>,),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -939,8 +855,6 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// We dont track any teleports
 	(),
 >;
-/// Means for transacting assets on this chain.
-// pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
 
 pub type AssetTransactors = FungiblesTransactor;
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -970,17 +884,9 @@ parameter_types! {
 	pub UnitWeightCost: Weight = 1_000_000_000;
 }
 
-match_type! {
-	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
-		MultiLocation::X1(Junction::Parent) |
-		MultiLocation::X2(Junction::Parent, Junction::Plurality { id: xcm::v0::BodyId::Executive, .. })
-	};
-}
-
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
 	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
-	xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 	// ^^^ Parent and its exec plurality get free execution
 );
 
@@ -992,7 +898,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = xcm_builder::NativeAsset;
-	type IsTeleporter = xcm_builder::NativeAsset; // <- should be enough to allow teleportation of KSM
+	type IsTeleporter = (); // No teleport
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -1071,33 +977,14 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-pub struct AccountKey20Convert;
-impl
-	sp_runtime::traits::Convert<
-		<<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
-		[u8; 20],
-	> for AccountKey20Convert
-{
-	fn convert(
-		from: <<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
-	) -> [u8; 20] {
-		from.into()
-	}
-}
-
 parameter_types! {
-	pub const AssetDeposit: Balance = 100 * currency::UNIT; // 100 DOLLARS deposit to create asset
+	pub const AssetDeposit: Balance = 0; // Does not really matter as this is forbidden
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
-	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
-	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
-	pub const MetadataDepositBase: Balance = currency::deposit(1, 68);
-	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
+	pub const MetadataDepositBase: Balance = 0;
+	pub const MetadataDepositPerByte: Balance = 0;
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 }
-
-use pallet_xcm::EnsureXcm;
-use pallet_xcm::IsMajorityOfBody;
 
 /// We allow root and the Relay Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
@@ -1151,7 +1038,7 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = AssetIdtoMultiLocation<AsCurrencyId>;
+	type CurrencyIdConvert = AssetIdtoMultiLocation<AsParachainId>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = Ancestry;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -1179,7 +1066,6 @@ construct_runtime! {
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
-		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>},
 
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
@@ -1197,7 +1083,6 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
-
 		}
 }
 
