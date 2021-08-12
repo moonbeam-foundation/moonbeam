@@ -5058,6 +5058,9 @@ name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "sp-externalities",
