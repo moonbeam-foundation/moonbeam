@@ -1056,7 +1056,6 @@ construct_runtime! {
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
-
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
 		TechComitteeCollective:
