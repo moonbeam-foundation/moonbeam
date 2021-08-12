@@ -18,13 +18,39 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
 	Precompiles, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
 };
-use crate::PrecompileOutput;
+use crate::{Action, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable};
+use num_enum::TryFromPrimitive;
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
+
+#[test]
+fn test_selector_enum() {
+	let mut buffer = [0u8; 4];
+	buffer.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::IsContributor,
+	);
+	buffer.copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::Claim,
+	);
+	buffer.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::RewardInfo,
+	);
+	buffer.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::UpdateRewardAddress,
+	);
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
