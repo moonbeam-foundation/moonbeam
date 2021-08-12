@@ -522,6 +522,30 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 }
 
+parameter_types! {
+	pub const BasicDeposit: Balance = 1 * currency::MILLIUNIT;
+	pub const FieldDeposit: Balance = 1 * currency::MILLIUNIT;
+	pub const SubAccountDeposit: Balance = 1 * currency::MILLIUNIT;
+	pub const MaxSubAccounts: u32 = 5;
+	pub const MaxAdditionalFields: u32 = 5;
+	pub const MaxRegistrars: u32 = 5;
+}
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type RegistrarOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -797,6 +821,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 23,
 	}
 }
 
