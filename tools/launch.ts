@@ -10,7 +10,7 @@
  *
  */
 
-import yargs from "yargs";
+import yargs, { strict } from "yargs";
 import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
@@ -125,6 +125,8 @@ const relays: { [name: string]: NetworkConfig } = {
 };
 const relayNames = Object.keys(relays);
 
+const collatorNames = ["Alice", "Bob", "Charlie", "Eve"];
+
 function start() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run launch [args]")
@@ -171,11 +173,43 @@ function start() {
 
   const portPrefix = argv["port-prefix"] || 34;
   const startingPort = portPrefix * 1000;
-  const parachainName = argv.parachain.toString();
-  const parachain = parachains[parachainName];
-  const parachainChain = argv["parachain-chain"] || parachain.chain;
+  let paras  = [];
+  let parasNames = [];
+  let parachainsChains = [];
+  let paraIds = [];
 
-  const relayName = argv.relay || parachain.relay;
+  if (Array.isArray(argv["parachain-id"])) {
+    for (let i = 0; i < argv["parachain-id"].length; i++) {
+      paraIds.push(argv["parachain-id"][i]);
+    }
+  }
+
+  if (Array.isArray(argv.parachain)) {
+    for (let i = 0; i < argv.parachain.length; i++) {
+      if (i >= paraIds.length) {
+        if (paraIds.includes(1000 + i)) {
+          console.error(`Expected one of: ${relayNames.join(", ")}`);
+          return;
+        }
+        else{
+          paraIds.push(1000 + i)
+        }
+      }
+      const parachainName = argv.parachain[i].toString();
+      parasNames.push(parachainName)
+      paras.push(parachains[parachainName])
+      parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain)
+    }
+  }
+  else {
+    paraIds.push(argv["parachain-id"] || 1000);
+    const parachainName = argv.parachain.toString();
+    parasNames.push(parachainName)
+    paras.push(parachains[parachainName])
+    parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain)
+  }
+
+ const relayName = argv.relay || paras[0].relay;
 
   if (!relayName || !relayNames.includes(relayName)) {
     console.error(`Invalid relay name: ${relayName}`);
@@ -190,37 +224,45 @@ function start() {
     `🚀 Relay:     ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayChain})`
   );
 
-  let parachainBinary;
-  if (parachain.binary) {
-    parachainBinary = parachain.binary;
-    const parachainPath = path.join(__dirname, parachain.binary);
-    if (!fs.existsSync(parachainPath)) {
-      console.log(`     Missing ${parachainPath}`);
-      return;
+  let parachainBinaries = [];
+  let parachainPaths = [];
+
+  for (let i = 0; i < paras.length; i++) {
+
+    if (paras[i].binary) {
+      parachainBinaries.push(paras[i].binary)
+      const parachainPath = path.join(__dirname, paras[i].binary);
+      if (!fs.existsSync(parachainPath)) {
+        console.log(`     Missing ${parachainPath}`);
+        return;
+      }
+      parachainPaths.push(parachainPath)
+    } else {
+      if (process.platform != "linux") {
+        console.log(
+          `docker binaries are only supported on linux. Use "local" config for compiled binaries`
+        );
+        return;
+      }
+      const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
+      const parachainPath = path.join(__dirname, `build/${paras[i].parachainName}/moonbeam`);
+      if (!fs.existsSync(parachainPath)) {
+        console.log(`     Missing ${parachainBinary} locally, downloading it...`);
+        child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
+            docker create --name moonbeam-tmp ${paras[i].docker} && \
+            docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
+            docker rm moonbeam-tmp`);
+        console.log(`${parachainBinary} downloaded !`);
+        parachainBinaries.push(parachainBinary);
+        parachainPaths.push(parachainPath);
+      }
     }
-  } else {
-    if (process.platform != "linux") {
-      console.log(
-        `docker binaries are only supported on linux. Use "local" config for compiled binaries`
-      );
-      return;
-    }
-    parachainBinary = `build/${parachainName}/moonbeam`;
-    const parachainPath = path.join(__dirname, `build/${parachainName}/moonbeam`);
-    if (!fs.existsSync(parachainPath)) {
-      console.log(`     Missing ${parachainBinary} locally, downloading it...`);
-      child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
-          docker create --name moonbeam-tmp ${parachain.docker} && \
-          docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
-          docker rm moonbeam-tmp`);
-      console.log(`     ${parachainBinary} downloaded !`);
-    }
+    console.log(
+      `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${
+        paras[i].docker || paras[i].binary
+      } (${parachainsChains[i]})`
+    );
   }
-  console.log(
-    `🚀 Parachain: ${parachainName.padEnd(20)} - ${
-      parachain.docker || parachain.binary
-    } (${parachainChain})`
-  );
 
   let relayBinary;
   if (relay.binary) {
@@ -251,28 +293,40 @@ function start() {
   console.log("");
 
   let launchConfig = launchTemplate;
+
+  let relay_nodes = [];
+  for (let i = 0; i < parachainBinaries.length; i++) {
+    let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
+    let parachainConfig = JSON.parse(JSON.stringify(parachainTemplate));
+
+    parachainConfig.bin = parachainBinaries[i];
+    parachainConfig.chain = parachainsChains[i];
+    parachainConfig.id = paraIds[i];
+    parachainConfig.nodes[0].port = startingPort + 100 + i*10*2;
+    parachainConfig.nodes[0].rpcPort = startingPort + 101 + i*10*2;
+    parachainConfig.nodes[0].wsPort = startingPort + 102 + i*10*2;
+  
+    parachainConfig.nodes[1].port = startingPort + 110 + i*10*2;
+    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i*10*2;
+    parachainConfig.nodes[1].wsPort = startingPort + 112 + i*10*2;
+    launchConfig.parachains.push(parachainConfig);
+
+    relayNodeConfig[0].name = collatorNames[i*2]
+    relayNodeConfig[0].port = startingPort + i*20
+    relayNodeConfig[0].rpcPort = startingPort +1 + i*20
+    relayNodeConfig[0].wsPort = startingPort +2 + i*20
+    relayNodeConfig[1].name = collatorNames[i*2 +1]
+    relayNodeConfig[1].port = startingPort + 10 + i*20
+    relayNodeConfig[1].rpcPort = startingPort + 11 + i*20
+    relayNodeConfig[1].wsPort = startingPort + 12 + i*20
+    relay_nodes.push(relayNodeConfig[0])
+    relay_nodes.push(relayNodeConfig[1])
+  }
+
+  launchConfig.relaychain.nodes = relay_nodes;
+  console.log(launchConfig.relaychain.nodes)
   launchConfig.relaychain.bin = relayBinary;
   launchConfig.relaychain.chain = relayChain;
-  launchConfig.parachains[0].bin = parachainBinary;
-  launchConfig.parachains[0].chain = parachainChain;
-
-  launchConfig.parachains[0].id = argv["parachain-id"] || 1000;
-
-  launchConfig.relaychain.nodes[0].port = startingPort;
-  launchConfig.relaychain.nodes[0].rpcPort = startingPort + 1;
-  launchConfig.relaychain.nodes[0].wsPort = startingPort + 2;
-
-  launchConfig.relaychain.nodes[1].port = startingPort + 10;
-  launchConfig.relaychain.nodes[1].rpcPort = startingPort + 11;
-  launchConfig.relaychain.nodes[1].wsPort = startingPort + 12;
-
-  launchConfig.parachains[0].nodes[0].port = startingPort + 100;
-  launchConfig.parachains[0].nodes[0].rpcPort = startingPort + 101;
-  launchConfig.parachains[0].nodes[0].wsPort = startingPort + 102;
-
-  launchConfig.parachains[0].nodes[1].port = startingPort + 110;
-  launchConfig.parachains[0].nodes[1].rpcPort = startingPort + 111;
-  launchConfig.parachains[0].nodes[1].wsPort = startingPort + 112;
 
   const knownRelayChains = ["kusama", "westend", "rococo", "polkadot"]
     .map((network) => [`${network}`, `${network}-local`, `${network}-dev`])
@@ -293,6 +347,7 @@ function start() {
     }
   }
 
+  console.log(__dirname)
   // Kill all processes when exiting.
   process.on("exit", function () {
     killAll();
@@ -303,6 +358,8 @@ function start() {
     process.exit(2);
   });
 
+  console.log(launchConfig)
+
   run(__dirname, launchConfig);
 }
 
@@ -310,20 +367,7 @@ const launchTemplate = {
   relaychain: {
     bin: "...",
     chain: "...",
-    nodes: [
-      {
-        name: "alice",
-        port: 0,
-        rpcPort: 1,
-        wsPort: 2,
-      },
-      {
-        name: "bob",
-        port: 10,
-        rpcPort: 11,
-        wsPort: 12,
-      },
-    ],
+    nodes: [],
     genesis: {
       runtime: {
         parachainsConfiguration: {
@@ -335,42 +379,7 @@ const launchTemplate = {
       },
     },
   },
-  parachains: [
-    {
-      bin: "...",
-      id: 1000,
-      balance: "1000000000000000000000",
-      chain: "...",
-      nodes: [
-        {
-          port: 100,
-          rpcPort: 101,
-          wsPort: 102,
-          name: "alice",
-          flags: [
-            "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--unsafe-rpc-external",
-            "--rpc-cors=all",
-            "--",
-            "--execution=wasm",
-          ],
-        },
-        {
-          port: 110,
-          rpcPort: 111,
-          wsPort: 112,
-          name: "bob",
-          flags: [
-            "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--unsafe-rpc-external",
-            "--rpc-cors=all",
-            "--",
-            "--execution=wasm",
-          ],
-        },
-      ],
-    },
-  ],
+  parachains: [],
   simpleParachains: [],
   hrmpChannels: [],
   types: {
@@ -380,5 +389,55 @@ const launchTemplate = {
   },
   finalization: true,
 };
+
+const relayNodeTemplate = [{
+  name: "alice",
+  port: 0,
+  rpcPort: 1,
+  wsPort: 2,
+},
+{
+  name: "bob",
+  port: 10,
+  rpcPort: 11,
+  wsPort: 12,
+}]
+
+const parachainTemplate = {
+
+  bin: "...",
+  id: 1000,
+  balance: "1000000000000000000000",
+  chain: "...",
+  nodes: [
+    {
+      port: 100,
+      rpcPort: 101,
+      wsPort: 102,
+      name: "alice",
+      flags: [
+      "--log=info,rpc=trace,evm=trace,ethereum=trace",
+      "--unsafe-rpc-external",
+      "--rpc-cors=all",
+      "--",
+      "--execution=wasm"
+      ],
+    },
+    {
+      port: 110,
+      rpcPort: 111,
+      wsPort: 112,
+      name: "bob",
+      flags: [
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--unsafe-rpc-external",
+        "--rpc-cors=all",
+        "--",
+        "--execution=wasm"
+      ],
+    },
+  ],
+};
+
 
 start();
