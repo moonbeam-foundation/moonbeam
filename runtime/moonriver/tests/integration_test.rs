@@ -1848,34 +1848,6 @@ fn points_precompile_non_zero() {
 		})
 }
 
-#[test]
-fn points_precompile_round_too_big_error() {
-	ExtBuilder::default().build().execute_with(|| {
-		let staking_precompile_address = H160::from_low_u64_be(2048);
-
-		// We accept the round as a 256-bit integer for easy compatibility with
-		// solidity. But the underlying Rust type is `u32`. So here we test that
-		// the precompile fails gracefully when too large of a round is passed in.
-
-		// Construct the input data to check points so far this round
-		let mut input_data = Vec::<u8>::from([0u8; 36]);
-		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
-		U256::max_value().to_big_endian(&mut input_data[4..36]);
-
-		assert_eq!(
-			Precompiles::execute(
-				staking_precompile_address,
-				&input_data,
-				None,
-				&evm_test_context(),
-			),
-			Some(Err(ExitError::Other(
-				"Round is too large. 32 bit maximum".into()
-			)))
-		);
-	})
-}
-
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
 	F: FnMut() -> (),
