@@ -44,6 +44,23 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
+#[precompile_utils::generate_function_selector]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+enum Action {
+	PublicPropCount = "public_prop_count()",
+	DepositOf = "deposit_of(uint256)",
+	LowestUnbaked = "lowest_unbaked()",
+	OngoingReferendumInfo = "ongoing_referendum_info(uint256)",
+	FinishedReferendumInfo = "finished_referendum_info(uint256)",
+	Propose = "propose(bytes32,uint256)",
+	Second = "second(uint256,uint256)",
+	StandardVote = "stardard_vote(uint256,bool,uint256,uint256)",
+	RemoveVote = "remove_vote(uint256)",
+	Delegate = "delegate(address,uint256,uint256)",
+	UnDelegate = "un_delegate()",
+	Unlock = "unlock(address)",
+}
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -75,26 +92,21 @@ where
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match &input.read_selector()? {
-			// Check for accessor methods first. These return results immediately
-			[0x56, 0xfd, 0xf5, 0x47] => Self::public_prop_count(target_gas),
-			// [0xb0, 0x89, 0xf2, 0x02] => Self::public_props(target_gas),
-			[0xa3, 0x03, 0x05, 0xe9] => Self::deposit_of(input, target_gas),
-			[0x03, 0x88, 0xf2, 0x82] => Self::lowest_unbaked(target_gas),
-			[0x8b, 0x93, 0xd1, 0x1a] => Self::ongoing_referendum_info(input, target_gas),
-			[0xb1, 0xfd, 0x38, 0x37] => Self::finished_referendum_info(input, target_gas),
+			// Storage Accessors
+			Action::PublicPropCount => Self::public_prop_count(target_gas),
+			Action::DepositOf => Self::deposit_of(input, target_gas),
+			Action::LowestUnbaked => Self::lowest_unbaked(target_gas),
+			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(input, target_gas),
+			Action::FinishedReferendumInfo => Self::finished_referendum_info(input, target_gas),
 			
-			// Now the dispatchables
-			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(input, target_gas, context),
-			[0xc7, 0xa7, 0x66, 0x01] => Self::second(input, target_gas, context),
-			[0x35, 0xcd, 0xe7, 0xae] => Self::standard_vote(input, target_gas, context),
-			[0x20, 0x42, 0xf5, 0x0b] => Self::remove_vote(input, target_gas, context),
-			[0x01, 0x85, 0x92, 0x1e] => Self::delegate(input, target_gas, context),
-			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(target_gas, context),
-			[0x2f, 0x6c, 0x49, 0x3c] => Self::unlock(input, target_gas, context),
-			_ => {
-				println!("Failed to match function selector in democracy precompile");
-				Err(error("No democracy wrapper method at given selector"))
-			}
+			// Dispatchables
+			Action::Propose => Self::propose(input, target_gas, context),
+			Action::Second => Self::second(input, target_gas, context),
+			Action::StandardVote => Self::standard_vote(input, target_gas, context),
+			Action::RemoveVote => Self::remove_vote(input, target_gas, context),
+			Action::Delegate => Self::delegate(input, target_gas, context),
+			Action::UnDelegate => Self::un_delegate(target_gas, context),
+			Action::Unlock => Self::unlock(input, target_gas, context),
 		}
 	}
 }
@@ -111,8 +123,7 @@ where
 	// The accessors are first. They directly return their result.
 
 	fn public_prop_count(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		// TODO Ensure there is no additional input passed
-
+		
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Fetch data from pallet
@@ -126,10 +137,6 @@ where
 			output: EvmDataWriter::new().write(prop_count).build(),
 			logs: Default::default(),
 		})
-	}
-
-	fn public_props(_target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		todo!()
 	}
 
 	fn deposit_of(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
