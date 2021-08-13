@@ -105,8 +105,7 @@ fn on_runtime_upgrade_emits_events() {
 
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
-			Event::RuntimeUpgradeStepped(0u64.into()),
-			Event::RuntimeUpgradeCompleted(),
+			Event::RuntimeUpgradeCompleted(0u64.into()),
 		];
 		assert_eq!(events(), expected);
 	});
@@ -189,10 +188,8 @@ fn migration_should_only_be_invoked_once() {
 				let mut expected = vec![
 					Event::RuntimeUpgradeStarted(),
 					Event::MigrationStarted("migration1".into()),
-					Event::MigrationStepped("migration1".into(), Perbill::one(), 1),
-					Event::MigrationCompleted("migration1".into()),
-					Event::RuntimeUpgradeStepped(1),
-					Event::RuntimeUpgradeCompleted(),
+					Event::MigrationCompleted("migration1".into(), 1u32.into()),
+					Event::RuntimeUpgradeCompleted(1u32.into()),
 				];
 				assert_eq!(events(), expected);
 
@@ -214,8 +211,7 @@ fn migration_should_only_be_invoked_once() {
 				);
 				expected.append(&mut vec![
 					Event::RuntimeUpgradeStarted(),
-					Event::RuntimeUpgradeStepped(0),
-					Event::RuntimeUpgradeCompleted(),
+					Event::RuntimeUpgradeCompleted(0u32.into()),
 				]);
 				assert_eq!(events(), expected);
 

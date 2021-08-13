@@ -70,7 +70,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(),
+		RuntimeUpgradeCompleted(Weight),
 		MigrationStarted(Vec<u8>),
 		MigrationCompleted(Vec<u8>, Weight),
 	}
@@ -195,9 +195,9 @@ pub mod pallet {
 			}
 		}
 
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());
 		<FullyUpgraded<T>>::put(true);
 		weight += T::DbWeight::get().writes(1);
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
 
 		weight
 	}
