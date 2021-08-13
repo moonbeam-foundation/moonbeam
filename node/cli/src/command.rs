@@ -414,15 +414,6 @@ pub fn run() -> Result<()> {
 			}
 		}
 		#[cfg(feature = "try-runtime")]
-		/*
-		Some(Subcommand::CheckBlock(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
-				Ok((cmd.run(client, import_queue), task_manager))
-			})
-		}
-		*/
 		Some(Subcommand::TryRuntime(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
