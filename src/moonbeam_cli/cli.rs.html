@@ -344,8 +344,8 @@
 	<span class="kw">pub</span> <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Id of the parachain this state is for.</span>
-	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;1000&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">parachain_id</span>: <span class="ident">u32</span>,
+	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>)]</span>
+	<span class="kw">pub</span> <span class="ident">parachain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Write output in binary. Default is to write in hex.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
