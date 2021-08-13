@@ -319,7 +319,12 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let chain_spec = cli.load_spec(&params.chain.clone().unwrap_or_default())?;
+			// Cumulus approach here, we directly call the generic load_spec func
+			let chain_spec = load_spec(
+				&params.chain.clone().unwrap_or_default(),
+				params.parachain_id.unwrap_or(1000).into(),
+				&cli.run,
+			)?;
 			let output_buf = if chain_spec.is_moonbeam() {
 				let block: service::moonbeam_runtime::Block =
 					generate_genesis_block(&chain_spec).map_err(|e| format!("{:?}", e))?;
