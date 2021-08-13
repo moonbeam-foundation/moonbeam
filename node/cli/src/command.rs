@@ -432,7 +432,7 @@ pub fn run() -> Result<()> {
 		},
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
-				You can enable it with `--features try-runtime`."
+				You can enable it at build time with `--features try-runtime`."
 			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
