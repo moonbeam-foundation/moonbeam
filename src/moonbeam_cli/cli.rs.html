@@ -252,6 +252,14 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -315,6 +323,14 @@
 	<span class="doccomment">/// The custom benchmark subcommmand benchmarking runtime pallets.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;benchmark&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;Benchmark runtime pallets.&quot;</span>)]</span>
 	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli::BenchmarkCmd</span>),
+
+	<span class="doccomment">/// Try some command against runtime state.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="ident">TryRuntime</span>(<span class="ident">try_runtime_cli::TryRuntimeCmd</span>),
+
+	<span class="doccomment">/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>))]</span>
+	<span class="ident">TryRuntime</span>,
 
 	<span class="doccomment">/// Key management cli utilities</span>
 	<span class="ident">Key</span>(<span class="ident">KeyCmd</span>),

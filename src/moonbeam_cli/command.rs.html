@@ -638,6 +638,28 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1054,6 +1076,28 @@
 					.<span class="ident">into</span>())
 			}
 		}
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+		<span class="prelude-val">Some</span>(<span class="ident">Subcommand::TryRuntime</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
+			<span class="ident">runner</span>.<span class="ident">async_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
+				<span class="comment">// we don&#39;t need any of the components of new_partial, just a runtime, or a task</span>
+				<span class="comment">// manager to do `async_run`.</span>
+				<span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">prometheus_config</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cfg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">registry</span>);
+				<span class="kw">let</span> <span class="ident">task_manager</span> <span class="op">=</span>
+					<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
+						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">sc_cli::Error::Service</span>(<span class="ident">sc_service::Error::Prometheus</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
+
+				<span class="comment">// TODO: support all runtimes</span>
+				<span class="prelude-val">Ok</span>((
+					<span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">service::moonbase_runtime::Block</span>, <span class="ident">service::MoonbaseExecutor</span><span class="op">&gt;</span>(<span class="ident">config</span>),
+					<span class="ident">task_manager</span>,
+				))
+			})
+		}
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>))]</span>
+		<span class="prelude-val">Some</span>(<span class="ident">Subcommand::TryRuntime</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="string">&quot;TryRuntime wasn&#39;t enabled when building the node. \
+				You can enable it at build time with `--features try-runtime`.&quot;</span>
+			.<span class="ident">into</span>()),
 		<span class="prelude-val">Some</span>(<span class="ident">Subcommand::Key</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">cli</span>)<span class="question-mark">?</span>),
 		<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">cli</span>.<span class="ident">run</span>).<span class="ident">normalize</span>())<span class="question-mark">?</span>;
