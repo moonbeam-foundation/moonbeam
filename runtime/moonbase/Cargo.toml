@@ -185,5 +185,4 @@ try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-try-runtime",
 	"frame-system/try-runtime",
-	"pallet-migrations/try-runtime",
 ]
