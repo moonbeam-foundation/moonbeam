@@ -90,6 +90,30 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "kusama-local",
   },
+  "kusama-9050": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.5",
+    chain: "kusama-local",
+  },
+  "kusama-9070": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.7",
+    chain: "kusama-local",
+  },
+  "rococo-9070": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.7",
+    chain: "rococo-local",
+  },
+  "rococo-9080": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.8",
+    chain: "rococo-local",
+  },
+  "rococo-9050": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.5",
+    chain: "rococo-local",
+  },
+  "kusama-9080": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.8",
+    chain: "kusama-local",
+  },
   "kusama-9030-fast": {
     docker: "purestake/moonbase-relay-testnet:sha-832cc0af",
     chain: "kusama-local",
@@ -295,9 +319,20 @@ function start() {
   let launchConfig = launchTemplate;
 
   let relay_nodes = [];
+
   for (let i = 0; i < parachainBinaries.length; i++) {
     let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
     let parachainConfig = JSON.parse(JSON.stringify(parachainTemplate));
+    // HRMP is not configurable in Kusama and Westend thorugh genesis. We should detect this here
+    for (let j = 0; j < paraIds.length; j++) {
+      let hrmpConfig =  JSON.parse(JSON.stringify(hrmpTemplate));
+      if (j!=i) {
+        hrmpConfig.sender = paraIds[i];
+        hrmpConfig.recipient = paraIds[j];
+        launchConfig.hrmpChannels.push(hrmpConfig);
+      }
+    }
+    // Create HRMP channels
 
     parachainConfig.bin = parachainBinaries[i];
     parachainConfig.chain = parachainsChains[i];
@@ -324,7 +359,6 @@ function start() {
   }
 
   launchConfig.relaychain.nodes = relay_nodes;
-  console.log(launchConfig.relaychain.nodes)
   launchConfig.relaychain.bin = relayBinary;
   launchConfig.relaychain.chain = relayChain;
 
@@ -347,7 +381,6 @@ function start() {
     }
   }
 
-  console.log(__dirname)
   // Kill all processes when exiting.
   process.on("exit", function () {
     killAll();
@@ -358,7 +391,6 @@ function start() {
     process.exit(2);
   });
 
-  console.log(launchConfig)
 
   run(__dirname, launchConfig);
 }
@@ -439,5 +471,11 @@ const parachainTemplate = {
   ],
 };
 
+const hrmpTemplate = {
+  "sender": "200",
+  "recipient": "300",
+  "maxCapacity": 8,
+  "maxMessageSize": 32768
+}
 
 start();
