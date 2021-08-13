@@ -140,7 +140,28 @@ where
 	}
 
 	fn deposit_of(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		todo!()
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(1)?;
+		let prop_index: u32 = input.read()?;
+
+		// Fetch data from pallet
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let deposit = match DemocracyOf::<Runtime>::deposit_of(prop_index) {
+			None => {
+				return Err(error("No such proposal in pallet democracy"));
+			},
+			Some((_, deposit)) => deposit,
+		};
+		log::trace!(target: "democracy-precompile", "Deposit of proposal {:?} is {:?}", prop_index, deposit);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(deposit).build(),
+			logs: Default::default(),
+		})
 	}
 
 	fn lowest_unbaked(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
@@ -201,7 +222,6 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		// Woah! I do't even need type annotations!
 		let proposal_index = input.read()?;
 		let seconds_upper_bound = input.read()?;
 
