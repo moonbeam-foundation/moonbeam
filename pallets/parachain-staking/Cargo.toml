@@ -20,8 +20,8 @@ substrate-fixed = { default-features = false, git = "https://github.com/encointe
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8"}
 similar-asserts = "1.1.0"
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
 default = ["std"]
