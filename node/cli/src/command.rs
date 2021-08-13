@@ -422,14 +422,15 @@ pub fn run() -> Result<()> {
 				let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 				let task_manager =
 					sc_service::TaskManager::new(config.task_executor.clone(), registry)
-					.map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+						.map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
 				// TODO: support all runtimes
-				Ok((cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
-					config,
-				), task_manager))
+				Ok((
+					cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config),
+					task_manager,
+				))
 			})
-		},
+		}
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
 				You can enable it at build time with `--features try-runtime`."
