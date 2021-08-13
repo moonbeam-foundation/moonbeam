@@ -25,7 +25,6 @@ mod mock;
 mod tests;
 
 use frame_support::{pallet, weights::Weight};
-use sp_runtime::Perbill;
 
 pub use pallet::*;
 
@@ -38,21 +37,13 @@ pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
 	fn friendly_name(&self) -> &str;
 
-	/// Step through this migration, taking up to `available_weight` of execution time and providing
-	/// a status on the progress as well as the consumed weight. This allows a migration to perform
-	/// its logic in small batches across as many blocks as needed.
-	///
-	/// Implementations should perform as much migration work as possible and then leave their
-	/// pallet in a valid state from which another 'step' of migration work can be performed.
-	/// Consuming more weight than `available_weight` is dangerous and can lead to invalid blocks
-	/// for parachains.
-	///
-	/// This should return a perbill indicating the aggregate progress of the migration. If
-	/// `Perbill::one()` is returned, the migration is considered complete and no further calls to
-	/// `step()` will be made. Any value less than `Perbill::one()` will result in another future
-	/// call to `step()`. Indeed, values < 1 are arbitrary, but the intent is to indicate progress
-	/// (so they should at least be monotonically increasing).
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight);
+	/// Perform the required migration and return the weight consumed.
+	/// 
+	/// Currently there is no way to migrate across blocks, so this method must (1) perform its full
+	/// migration and (2) not produce a block that has gone over-weight. Not meeting these strict
+	/// constraints will lead to a bricked chain upon a runtime upgrade because the parachain will
+	/// not be able to produce a block that the relay chain will accept.
+	fn migrate(&self, available_weight: Weight) -> Weight;
 }
 
 #[pallet]
@@ -73,19 +64,15 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
 		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
-		/// Whether or not multi-block migrations are supported
-		type MultiBlockMigrationsSupported: Get<bool>;
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeStepped(Weight),
 		RuntimeUpgradeCompleted(),
 		MigrationStarted(Vec<u8>),
-		MigrationStepped(Vec<u8>, Perbill, Weight),
-		MigrationCompleted(Vec<u8>),
+		MigrationCompleted(Vec<u8>, Weight),
 	}
 
 	#[pallet::hooks]
@@ -93,9 +80,6 @@ pub mod pallet {
 		/// on_runtime_upgrade is expected to be called exactly once after a runtime upgrade.
 		/// We use this as a chance to flag that we are now in upgrade-mode and begin our
 		/// migrations.
-		///
-		/// In the event that a migration is expected to take more than one block, ongoing migration
-		/// work could continue from block-to-block in this pallet's on_initialize function.
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
 
@@ -104,41 +88,17 @@ pub mod pallet {
 			let available_weight: Weight = T::BlockWeights::get().max_block;
 
 			// start by flagging that we are not fully upgraded
-			// TODO: case where this is already false (e.g. we started an upgrade while one was
-			// already in progress)
-			//		notably, we might have started an individual migration and the list of
-			//		migrations might change on our next on_runtime_upgrade()
 			<FullyUpgraded<T>>::put(false);
 			weight += T::DbWeight::get().writes(1);
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += process_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
 
-			// at least emit a warning if we aren't going to end up finishing our migrations...
-			if !T::MultiBlockMigrationsSupported::get() {
-				if !<FullyUpgraded<T>>::get() {
-					log::error!(
-						"migrations weren't completed in on_runtime_upgrade(), but we're not
-					configured for multi-block migrations; state is potentially inconsistent!"
-					);
-				}
-			}
-
-			weight
-		}
-
-		/// on_initialize implementation. Calls process_runtime_upgrades() if we are still in the
-		/// middle of a runtime upgrade.
-		fn on_initialize(_: T::BlockNumber) -> Weight {
-			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
-
-			// TODO: derive a suitable value here, which is probably something < max_block
-			let available_weight: Weight = T::BlockWeights::get().max_block;
-
-			if T::MultiBlockMigrationsSupported::get() {
-				if !<FullyUpgraded<T>>::get() {
-					weight += process_runtime_upgrades::<T>(available_weight);
-				}
+			if !<FullyUpgraded<T>>::get() {
+				log::error!(
+					"migrations weren't completed in on_runtime_upgrade(), but we're not
+				configured for multi-block migrations; state is potentially inconsistent!"
+				);
 			}
 
 			weight
@@ -153,8 +113,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
-	/// Maps name (Vec<u8>) -> migration progress (Perbill)
-	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, Perbill, OptionQuery>;
+	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
+	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, OptionQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
@@ -176,45 +136,33 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			for migration_name in &self.completed_migrations {
-				<MigrationState<T>>::insert(migration_name, Perbill::one());
+				<MigrationState<T>>::insert(migration_name, true);
 			}
 		}
 	}
 
-	fn process_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
-		log::info!("stepping runtime upgrade");
-
+	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
 		let mut weight: Weight = 0u64.into();
-		let mut done: bool = true;
 
 		for migration in &T::MigrationsList::get() {
-			// let migration_name = migration.friendly_name();
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_state =
-				<MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(Perbill::zero());
+			let migration_done =
+				<MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(false);
 
-			if migration_state < Perbill::one() {
-				if migration_state.is_zero() {
-					<Pallet<T>>::deposit_event(Event::MigrationStarted(
-						migration_name_as_bytes.into(),
-					));
-				}
+			if ! migration_done {
+				<Pallet<T>>::deposit_event(Event::MigrationStarted(
+					migration_name_as_bytes.into(),
+				));
 
-				// TODO: here we allow migrations to go overweight because that's "safer" than not
-				// doing so in the case of MultiBlockMigrationsSupported == false. In this case, any
-				// migrations not handled in this pass will not occur at all, which will leave
-				// pallets unmigrated.
-				//
-				// Options for handling this more gracefully:
-				// 1) make this particular logic (whether or not we tolerate this) configurable
-				// 2) only follow this logic when MultiBlockMigrationsSupported == false
+				// when we go overweight, leave a warning... there's nothing we can really do about
+				// this scenario other than hope that the block is actually accepted.
 				let available_for_step = if available_weight > weight {
 					available_weight - weight
 				} else {
-					log::warn!(
+					log::error!(
 						"previous migration went overweight;
 						ignoring and providing migration {} 0 weight.",
 						migration_name,
@@ -224,18 +172,14 @@ pub mod pallet {
 				};
 
 				log::trace!(
-					"stepping migration {}, prev: {:?}, avail weight: {}",
+					"performing migration {}, avail weight: {}",
 					migration_name,
-					migration_state,
 					available_for_step
 				);
 
-				// perform a step of this migration
-				let (updated_progress, consumed_weight) =
-					migration.step(migration_state, available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationStepped(
+				let consumed_weight = migration.migrate(available_for_step);
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
 					migration_name_as_bytes.into(),
-					updated_progress,
 					consumed_weight,
 				));
 
@@ -248,30 +192,12 @@ pub mod pallet {
 						available_for_step
 					);
 				}
-
-				if migration_state != updated_progress {
-					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
-				}
-
-				// if we encounter any migrations which are incomplete, we're done for this block
-				if updated_progress < Perbill::one() {
-					done = false;
-					break;
-				} else {
-					<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-						migration_name_as_bytes.into(),
-					));
-				}
 			}
 		}
 
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeStepped(weight));
-
-		if done {
-			<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());
-			<FullyUpgraded<T>>::put(true);
-			weight += T::DbWeight::get().writes(1);
-		}
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());
+		<FullyUpgraded<T>>::put(true);
+		weight += T::DbWeight::get().writes(1);
 
 		weight
 	}
