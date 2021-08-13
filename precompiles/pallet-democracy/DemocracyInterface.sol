@@ -24,8 +24,6 @@ interface Democracy {
     /**
      * Get details about all public porposals.
      * @return (prop index, proposal hash, proposer)
-     * TODO The best type for the hash is bytes32. https://ethereum.stackexchange.com/a/92124/9963
-     * https://purestake.atlassian.net/browse/MOON-774
      * TODO This is supposed to be a vec. Let's save this one for later.
      */
     // function public_props()
@@ -33,7 +31,7 @@ interface Democracy {
     //     view
     //     returns (
     //         uint256,
-    //         uint256,
+    //         bytes32,
     //         address
     //     );
 
@@ -61,10 +59,10 @@ interface Democracy {
      * @param ref_index The index of the referendum you are interested in
      * @return A tuple including:
      * * The block in which the referendum ended
-     * * The proposal hash (Should use bytes20 when it is available)
+     * * The proposal hash
      * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 3-SimpleMajority
      * * The delay between passing and launching
-     * * The total ayevote (including conviction)
+     * * The total aye vote (including conviction)
      * * The total nay vote (including conviction)
      * * The total turnout (not including conviction)
      */
@@ -73,7 +71,7 @@ interface Democracy {
         view
         returns (
             uint256,
-            uint256,
+            bytes32,
             uint256,
             uint256,
             uint256,
