@@ -24,7 +24,6 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
-use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{error, Address, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper};
 use sp_core::{H160, U256};
@@ -32,7 +31,6 @@ use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 use sp_std::vec;
-use sp_std::vec::Vec;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -105,9 +103,6 @@ where
 			Action::RevokeNomination => Self::revoke_nomination(input, target_gas, context),
 			Action::NominatorBondLess => Self::nominator_bond_less(input, target_gas, context),
 			Action::NominatorBondMore => Self::nominator_bond_more(input, target_gas, context),
-			_ => Err(error(
-				"No parachain-staking wrapper method at given selector",
-			)),
 		}
 		// TODO: share for all dispatchables...
 		// let outer_call: Runtime::Call = inner_call.into();
@@ -148,69 +143,6 @@ where
 		// 	}
 		// }
 	}
-}
-
-/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
-fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
-	const PADDING_SIZE_BYTES: usize = 12;
-	const ACCOUNT_SIZE_BYTES: usize = 20;
-	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
-
-	if input.len() != TOTAL_SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse address. Got {} bytes, expected {}",
-			input.len(),
-			TOTAL_SIZE_BYTES,
-		);
-		return Err(error("Incorrect input length for account parsing"));
-	}
-
-	Ok(H160::from_slice(
-		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
-	))
-}
-
-/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
-	Ok(parse_uint256(input)?
-		.try_into()
-		.map_err(|_| error("Amount is too large for provided balance type"))?)
-}
-
-/// Parses a uint256 value
-fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
-	// In solidity all values are encoded to this width
-	const SIZE_BYTES: usize = 32;
-
-	if input.len() != SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse uint256. Got {} bytes, expected {}",
-			input.len(),
-			SIZE_BYTES,
-		);
-		return Err(error("Incorrect input length for uint256 parsing"));
-	}
-
-	Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
-}
-
-/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.
-fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
-	const WEIGHT_HINT_SIZE_BYTES: usize = 32;
-
-	if input.len() != WEIGHT_HINT_SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse weight hint. Got {} bytes, expected {}",
-			input.len(),
-			WEIGHT_HINT_SIZE_BYTES,
-		);
-		return Err(error("Incorrect input length for weight hint parsing"));
-	}
-
-	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
-		.try_into()
-		.map_err(|_| error("Weight hint is too large for u32"))?;
-	Ok(weight_hint)
 }
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
@@ -735,17 +667,4 @@ where
 			logs: vec![],
 		})
 	}
-}
-
-// Solidity's bool type is 256 bits as shown by these examples
-// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-// This utility function converts a Rust bool into the corresponding Solidity type
-fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-
-	if b {
-		result_bytes[31] = 1;
-	}
-
-	result_bytes.to_vec()
 }
