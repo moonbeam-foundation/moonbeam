@@ -21,7 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote, ReferendumInfo};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
@@ -182,6 +182,44 @@ where
 
 	fn ongoing_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		todo!()
+		// let mut gasometer = Gasometer::new(target_gas);
+
+		// // Bound check
+		// input.expect_arguments(1)?;
+		// let ref_index: u32 = input.read()?;
+
+		// // Fetch data from pallet
+		// gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// let ref_status = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
+		// 	Some(ReferendumInfo::Ongoing(ref_status)) => ref_status,
+		// 	Some(ReferendumInfo::Finished{..}) => Err(error("Referendum is finished"))?,
+		// 	None => Err(error("failed to get ongoing (or finished for that matter) referendum"))?,
+		// };
+		// log::trace!(target: "democracy-precompile", "Ongoing Referendum info for ref {:?} is {:?}", ref_index, ref_status);
+
+		// // Write data
+		// //TODO woof, between private fields and generic types, this is pretty complicated
+		// let threshold_u8: u8 = match ref_status.threshold {
+		// 	VoteThreshold::SuperMajorityApprove => 0,
+		// 	VoteThreshold::SuperMajorityAgainst => 1,
+		// 	VoteThreshold::SimpleMajority => 2,
+		// };
+
+		// let output = EvmDataWriter::new()
+		// 	.write(ref_status.end)
+		// 	.write(ref_status.proposal_hash)
+		// 	.write(threshold_u8)
+		// 	.write(ref_status.delay)
+		// 	.write(ref_status.tally.ayes)
+		// 	.write(ref_status.tally.nays)
+		// 	.write(ref_status.tally.turnout);
+		
+		// Ok(PrecompileOutput {
+		// 	exit_status: ExitSucceed::Returned,
+		// 	cost: gasometer.used_gas(),
+		// 	output: output.build(),
+		// 	logs: Default::default(),
+		// })
 	}
 
 	fn finished_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {

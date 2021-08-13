@@ -60,7 +60,7 @@ interface Democracy {
      * @return A tuple including:
      * * The block in which the referendum ended
      * * The proposal hash
-     * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 3-SimpleMajority
+     * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority
      * * The delay between passing and launching
      * * The total aye vote (including conviction)
      * * The total nay vote (including conviction)
