@@ -90,30 +90,6 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "kusama-local",
   },
-  "kusama-9050": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.5",
-    chain: "kusama-local",
-  },
-  "kusama-9070": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.7",
-    chain: "kusama-local",
-  },
-  "rococo-9070": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.7",
-    chain: "rococo-local",
-  },
-  "rococo-9080": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.8",
-    chain: "rococo-local",
-  },
-  "rococo-9050": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.5",
-    chain: "rococo-local",
-  },
-  "kusama-9080": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.8",
-    chain: "kusama-local",
-  },
   "kusama-9030-fast": {
     docker: "purestake/moonbase-relay-testnet:sha-832cc0af",
     chain: "kusama-local",
