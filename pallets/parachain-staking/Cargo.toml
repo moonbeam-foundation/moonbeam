@@ -18,10 +18,10 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed" }
 
 [dev-dependencies]
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8"}
 similar-asserts = "1.1.0"
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
 default = ["std"]
@@ -30,7 +30,6 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
-	"pallet-balances/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-runtime/std",
