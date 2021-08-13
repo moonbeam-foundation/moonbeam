@@ -57,9 +57,9 @@ fn mock_migrations_static_hack_works() {
 					"hello, world"
 				},
 				// mock Migration::step()
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					*step_fn_called.lock().unwrap() = true;
-					(Perbill::one(), 0u64.into())
+					0u64.into()
 				},
 			);
 		},
@@ -122,13 +122,13 @@ fn step_called_until_done() {
 
 			mgr.register_callback(
 				move || "migration1",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					let mut num_step_calls = num_step_calls.lock().unwrap();
 					*num_step_calls += 1;
 					if *num_step_calls == 10 {
-						(Perbill::one(), 0u64.into())
+						0u64.into()
 					} else {
-						(Perbill::zero(), 0u64.into())
+						0u64.into()
 					}
 				},
 			);
@@ -143,67 +143,6 @@ fn step_called_until_done() {
 	assert_eq!(
 		*num_step_calls.lock().unwrap(),
 		10,
-		"migration step should be called until done"
-	);
-}
-
-#[test]
-fn migration_progress_should_emit_events() {
-	let num_steps = Arc::new(Mutex::new(0usize));
-
-	crate::mock::execute_with_mock_migrations(
-		&mut |mgr: &mut MockMigrationManager| {
-			let num_steps = Arc::clone(&num_steps);
-
-			mgr.register_callback(
-				move || "migration1",
-				move |_, _| -> (Perbill, Weight) {
-					let mut num_steps = num_steps.lock().unwrap();
-
-					let result: (Perbill, Weight) = match *num_steps {
-						0 => (Perbill::from_percent(50), 50),
-						1 => (Perbill::from_percent(60), 51),
-						2 => (Perbill::from_percent(70), 52),
-						3 => (Perbill::from_percent(80), 53),
-						4 => (Perbill::from_percent(100), 1),
-						_ => {
-							unreachable!();
-						}
-					};
-
-					*num_steps += 1;
-					result
-				},
-			);
-		},
-		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				crate::mock::roll_until_upgraded(true);
-
-				let expected = vec![
-					Event::RuntimeUpgradeStarted(),
-					Event::MigrationStarted("migration1".into()),
-					Event::MigrationStepped("migration1".into(), Perbill::from_percent(50), 50),
-					Event::RuntimeUpgradeStepped(50),
-					Event::MigrationStepped("migration1".into(), Perbill::from_percent(60), 51),
-					Event::RuntimeUpgradeStepped(51),
-					Event::MigrationStepped("migration1".into(), Perbill::from_percent(70), 52),
-					Event::RuntimeUpgradeStepped(52),
-					Event::MigrationStepped("migration1".into(), Perbill::from_percent(80), 53),
-					Event::RuntimeUpgradeStepped(53),
-					Event::MigrationStepped("migration1".into(), Perbill::from_percent(100), 1),
-					Event::MigrationCompleted("migration1".into()),
-					Event::RuntimeUpgradeStepped(1),
-					Event::RuntimeUpgradeCompleted(),
-				];
-				assert_eq!(events(), expected);
-			});
-		},
-	);
-
-	assert_eq!(
-		*num_steps.lock().unwrap(),
-		5,
 		"migration step should be called until done"
 	);
 }
@@ -224,10 +163,10 @@ fn migration_should_only_be_invoked_once() {
 					*num_name_fn_calls += 1;
 					"migration1"
 				},
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					let mut num_step_fn_calls = num_step_fn_calls.lock().unwrap();
 					*num_step_fn_calls += 1;
-					(Perbill::one(), 1) // immediately done
+					1u32.into()
 				},
 			);
 		},
@@ -339,25 +278,25 @@ fn only_one_outstanding_test_at_a_time() {
 
 			mgr.register_callback(
 				move || "migration1",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					let mut num_migration1_calls = num_migration1_calls.lock().unwrap();
 					*num_migration1_calls += 1;
 
 					// this migration is done on its 3rd step
 					if *num_migration1_calls < 3 {
-						(Perbill::zero(), 0u64.into())
+						0u64.into()
 					} else {
-						(Perbill::one(), 0u64.into())
+						0u64.into()
 					}
 				},
 			);
 
 			mgr.register_callback(
 				move || "migration2",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					let mut num_migration2_calls = num_migration2_calls.lock().unwrap();
 					*num_migration2_calls += 1;
-					(Perbill::one(), 0u64.into())
+					0u64.into()
 				},
 			);
 		},
@@ -380,38 +319,6 @@ fn only_one_outstanding_test_at_a_time() {
 
 				// and both should be done now
 				assert_eq!(Migrations::is_fully_upgraded(), true);
-			});
-		},
-	);
-}
-
-#[test]
-fn multi_block_migration_flag_works() {
-	let num_migration_calls = Arc::new(Mutex::new(0u32));
-
-	// we create a single migration that wants to take more than one block and ensure that it's only
-	// called once
-
-	crate::mock::execute_with_mock_migrations(
-		&mut |mgr: &mut MockMigrationManager| {
-			let num_migration_calls = Arc::clone(&num_migration_calls);
-
-			mgr.is_multi_block = false;
-
-			mgr.register_callback(
-				move || "migration1",
-				move |_, _| -> (Perbill, Weight) {
-					*num_migration_calls.lock().unwrap() += 1;
-					(Perbill::zero(), 0u64.into())
-				},
-			);
-		},
-		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				crate::mock::roll_to(5, true);
-
-				assert_eq!(*num_migration_calls.lock().unwrap(), 1);
-				assert_eq!(Migrations::is_fully_upgraded(), false);
 			});
 		},
 	);
@@ -442,31 +349,32 @@ fn overweight_migrations_tolerated() {
 			let num_migration2_calls = Arc::clone(&num_migration2_calls);
 			let num_migration3_calls = Arc::clone(&num_migration3_calls);
 
-			mgr.is_multi_block = false;
+			panic!("fix me"); // this is a valid test but needs adapting to no-multi-block-support
+			// mgr.is_multi_block = false;
 
 			mgr.register_callback(
 				move || "migration1",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					*num_migration1_calls.lock().unwrap() += 1;
 					// TODO: this is brittle because it assumes it is larger than the value used at
 					// the top of process_runtime_upgrades()
-					(Perbill::one(), 1_000_000_000_000u64.into())
+					1_000_000_000_000u64.into()
 				},
 			);
 
 			mgr.register_callback(
 				move || "migration2",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					*num_migration2_calls.lock().unwrap() += 1;
-					(Perbill::one(), 1_000_000_000_000u64.into())
+					1_000_000_000_000u64.into()
 				},
 			);
 
 			mgr.register_callback(
 				move || "migration3",
-				move |_, _| -> (Perbill, Weight) {
+				move |_| -> Weight {
 					*num_migration3_calls.lock().unwrap() += 1;
-					(Perbill::one(), 1_000_000_000_000u64.into())
+					1_000_000_000_000u64.into()
 				},
 			);
 		},

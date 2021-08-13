@@ -94,41 +94,38 @@ impl frame_system::Config for Test {
 /// a custom implementation of the Migration trait just as a normal Pallet would.
 pub struct MockMigrationManager<'test> {
 	name_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> &'static str>>,
-	step_fn_callbacks: Vec<Box<dyn 'test + FnMut(Perbill, Weight) -> (Perbill, Weight)>>,
-	pub is_multi_block: bool, // corresponds to MultiBlockMigrationsSupported. defaults to true.
+	migrate_fn_callbacks: Vec<Box<dyn 'test + FnMut(Weight) -> Weight>>,
 }
 
 impl Default for MockMigrationManager<'_> {
 	fn default() -> Self {
 		Self {
 			name_fn_callbacks: Default::default(),
-			step_fn_callbacks: Default::default(),
-			is_multi_block: true,
+			migrate_fn_callbacks: Default::default(),
 		}
 	}
 }
 
 impl<'test> MockMigrationManager<'test> {
-	pub fn register_callback<FN, FS>(&mut self, name_fn: FN, step_fn: FS)
+	pub fn register_callback<FN, FM>(&mut self, name_fn: FN, migrate_fn: FM)
 	where
 		FN: 'test + FnMut() -> &'static str,
-		FS: 'test + FnMut(Perbill, Weight) -> (Perbill, Weight),
+		FM: 'test + FnMut(Weight) -> Weight,
 	{
 		self.name_fn_callbacks.push(Box::new(name_fn));
-		self.step_fn_callbacks.push(Box::new(step_fn));
+		self.migrate_fn_callbacks.push(Box::new(migrate_fn));
 	}
 
 	pub(crate) fn invoke_name_fn(&mut self, index: usize) -> &'static str {
 		self.name_fn_callbacks[index]()
 	}
 
-	pub(crate) fn invoke_step_fn(
+	pub(crate) fn invoke_migrate_fn(
 		&mut self,
 		index: usize,
-		previous_progress: Perbill,
 		available_weight: Weight,
-	) -> (Perbill, Weight) {
-		self.step_fn_callbacks[index](previous_progress, available_weight)
+	) -> Weight {
+		self.migrate_fn_callbacks[index](available_weight)
 	}
 
 	fn generate_migrations_list(&self) -> Vec<Box<dyn Migration>> {
@@ -177,10 +174,10 @@ impl Migration for MockMigration {
 		});
 		result
 	}
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
-		let mut result: (Perbill, Weight) = (Perbill::zero(), 0u64.into());
+	fn migrate(&self, available_weight: Weight) -> Weight {
+		let mut result: Weight = 0u64.into();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
-			result = mgr.invoke_step_fn(self.index, previous_progress, available_weight);
+			result = mgr.invoke_migrate_fn(self.index, available_weight);
 		});
 		result
 	}
@@ -199,22 +196,9 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	}
 }
 
-/// Similar to the impl for Get<Vec<Box<dyn Migration>>> but we return a value suitable for
-/// MultiBlockMigrationsSupported
-impl Get<bool> for MockMigrations {
-	fn get() -> bool {
-		let mut supported = false;
-		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
-			supported = mgr.is_multi_block;
-		});
-		supported
-	}
-}
-
 impl Config for Test {
 	type Event = Event;
 	type MigrationsList = MockMigrations;
-	type MultiBlockMigrationsSupported = MockMigrations;
 }
 
 /// Externality builder for pallet migration's mock runtime
