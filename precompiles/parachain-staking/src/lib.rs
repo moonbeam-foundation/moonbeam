@@ -18,12 +18,15 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+use alloc::format;
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
+use precompile_utils::error;
 use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
@@ -147,14 +150,11 @@ where
 				})
 			}
 			Err(e) => {
-				log::trace!(
-					target: "staking-precompile",
-					"Parachain staking call via evm failed {:?}",
+				let error_message = format!(
+					"Parachain staking call via EVM failed with dispatch error: {:?}",
 					e
 				);
-				Err(ExitError::Other(
-					"Parachain staking call via EVM failed".into(),
-				))
+				Err(error(error_message))
 			}
 		}
 	}
@@ -172,9 +172,7 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 			input.len(),
 			TOTAL_SIZE_BYTES,
 		);
-		return Err(ExitError::Other(
-			"Incorrect input length for account parsing".into(),
-		));
+		return Err(error("Incorrect input length for account parsing"));
 	}
 
 	Ok(H160::from_slice(
@@ -186,7 +184,7 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
 	Ok(parse_uint256(input)?
 		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?)
+		.map_err(|_| error("Amount is too large for provided balance type"))?)
 }
 
 /// Parses a uint256 value
@@ -200,9 +198,7 @@ fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
 			input.len(),
 			SIZE_BYTES,
 		);
-		return Err(ExitError::Other(
-			"Incorrect input length for uint256 parsing".into(),
-		));
+		return Err(error("Incorrect input length for uint256 parsing"));
 	}
 
 	Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
@@ -218,14 +214,12 @@ fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
 			input.len(),
 			WEIGHT_HINT_SIZE_BYTES,
 		);
-		return Err(ExitError::Other(
-			"Incorrect input length for weight hint parsing".into(),
-		));
+		return Err(error("Incorrect input length for weight hint parsing"));
 	}
 
 	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
 		.try_into()
-		.map_err(|_| ExitError::Other("Weight hint is too large for u32".into()))?;
+		.map_err(|_| error("Weight hint is too large for u32"))?;
 	Ok(weight_hint)
 }
 
@@ -329,7 +323,7 @@ where
 				as Get<BalanceOf<Runtime>>
 			>::get().try_into()
 				.map_err(|_|
-					ExitError::Other("Amount is too large for provided balance type".into())
+					error("Amount is too large for provided balance type")
 				)?;
 		let min_nomination: U256 = raw_min_nomination.into();
 
@@ -357,9 +351,7 @@ where
 
 		// Make sure the round number fits in a u32
 		if round_u256.leading_zeros() < 256 - 32 {
-			return Err(ExitError::Other(
-				"Round is too large. 32 bit maximum".into(),
-			));
+			return Err(error("Round is too large. 32 bit maximum"));
 		}
 		let round: u32 = round_u256.low_u32();
 

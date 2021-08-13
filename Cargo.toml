@@ -8,6 +8,7 @@ members = [
     'node/service',
     'bin/utils/moonkey',
     'precompiles/pallet-democracy',
+    'precompiles/utils/macro',
 ]
 exclude = [
     'bin/utils/moonkey'
