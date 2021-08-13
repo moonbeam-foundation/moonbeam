@@ -54,7 +54,7 @@ fn write_u64() {
 	let writer_output = EvmDataWriter::new().write(value).build();
 
 	let mut expected_output = [0u8; 32];
-	expected_output[..8].copy_from_slice(&value.to_be_bytes());
+	expected_output[24..].copy_from_slice(&value.to_be_bytes());
 
 	assert_eq!(writer_output, expected_output);
 }
@@ -77,7 +77,7 @@ fn write_u128() {
 	let writer_output = EvmDataWriter::new().write(value).build();
 
 	let mut expected_output = [0u8; 32];
-	expected_output[..16].copy_from_slice(&value.to_be_bytes());
+	expected_output[16..].copy_from_slice(&value.to_be_bytes());
 
 	assert_eq!(writer_output, expected_output);
 }
