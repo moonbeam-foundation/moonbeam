@@ -24,6 +24,7 @@ interface Democracy {
      * Get details about all public porposals.
      * @return (prop index, proposal hash, proposer)
      * TODO The best type for the hash is bytes32. https://ethereum.stackexchange.com/a/92124/9963
+     * https://purestake.atlassian.net/browse/MOON-774
      * TODO This is supposed to be a vec. Let's save this one for later.
      */
     // function public_props()
