@@ -31,6 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::traits::Filter;
+
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
@@ -794,7 +795,7 @@ impl pallet_proxy::Config for Runtime {
 
 parameter_types! {
 	pub const KsmLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
-	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
+	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
@@ -808,7 +809,7 @@ pub type LocationToAccountId = (
 	xcm_builder::ParentIsDefault<AccountId>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	xcm_builder::SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
-	xcm_builder::AccountKey20Aliases<MoonbeamNetwork, AccountId>,
+	xcm_builder::AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
@@ -846,7 +847,21 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-pub type AssetTransactors = FungiblesTransactor;
+/// The transactor for our own chain currency.
+pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	xcm_builder::IsConcrete<Ancestry>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We track our teleports in/out to keep total issuance correct.
+	(),
+>;
+
+pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
@@ -866,18 +881,27 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	xcm_builder::ParentAsSuperuser<Origin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	pallet_xcm::XcmPassthrough<Origin>,
-	xcm_builder::SignedAccountKey20AsNative<MoonbeamNetwork, Origin>,
+	xcm_builder::SignedAccountKey20AsNative<RelayNetwork, Origin>,
 );
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 1_000_000_000;
+	pub UnitWeightCost: Weight = 200_000_000;
 }
 
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
 	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
 );
+
+use xcm_executor::traits::FilterAssetLocation;
+// Change
+pub struct MultiNativeAsset;
+impl FilterAssetLocation for MultiNativeAsset {
+	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+		return true;
+	}
+}
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
@@ -886,7 +910,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = xcm_builder::NativeAsset;
+	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
@@ -926,7 +950,7 @@ where
 	}
 }
 
-pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, MoonbeamNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
