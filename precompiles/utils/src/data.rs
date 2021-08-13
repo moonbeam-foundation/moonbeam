@@ -262,13 +262,13 @@ macro_rules! impl_evmdata_for_uints {
 						)))?;
 
 					let mut buffer = [0u8; core::mem::size_of::<Self>()];
-					buffer.copy_from_slice(&data[..core::mem::size_of::<Self>()]);
+					buffer.copy_from_slice(&data[32 - core::mem::size_of::<Self>()..]);
 					Ok(Self::from_be_bytes(buffer))
 				}
 
 				fn write(writer: &mut EvmDataWriter, value: Self) {
 					let mut buffer = [0u8; 32];
-					buffer[..core::mem::size_of::<Self>()].copy_from_slice(&value.to_be_bytes());
+					buffer[32 - core::mem::size_of::<Self>()..].copy_from_slice(&value.to_be_bytes());
 					writer.data.extend_from_slice(&buffer);
 				}
 			}
@@ -287,12 +287,12 @@ impl EvmData for u8 {
 			.get(range)
 			.ok_or_else(|| error("tried to parse u64 out of bounds"))?;
 
-		Ok(data[0])
+		Ok(data[31])
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
-		buffer[0] = value;
+		buffer[31] = value;
 
 		writer.data.extend_from_slice(&buffer);
 	}
