@@ -16,6 +16,7 @@ interface Democracy {
 
     /**
      * Get The total number of public proposals past and present
+     *
      * @return The total number of public proposals past and present
      */
     function public_prop_count() external view returns (uint256);
