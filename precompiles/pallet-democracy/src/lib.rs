@@ -165,7 +165,19 @@ where
 	}
 
 	fn lowest_unbaked(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		todo!()
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Fetch data from pallet
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let lowest_unbaked = DemocracyOf::<Runtime>::lowest_unbaked();
+		log::trace!(target: "democracy-precompile", "lowest unbaked referendum is {:?}", lowest_unbaked);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(lowest_unbaked).build(),
+			logs: Default::default(),
+		})
 	}
 
 	fn ongoing_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
