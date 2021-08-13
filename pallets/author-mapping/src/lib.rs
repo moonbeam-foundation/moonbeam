@@ -315,7 +315,8 @@ pub mod pallet {
 			// Return the weight used.
 			let db_weights = T::DbWeight::get();
 			// One read and one write for each entry migrated
-			migrated_entries.saturating_mul(db_weights.write + db_weights.read)
+			migrated_entries
+				.saturating_mul(db_weights.write + db_weights.read)
 				// One more write to clear the old entries
 				.saturating_add(db_weights.write)
 		}
