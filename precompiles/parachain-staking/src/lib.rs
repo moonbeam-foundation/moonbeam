@@ -126,10 +126,10 @@ where
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: EvmData,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo>,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
