@@ -72,7 +72,7 @@ where
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	R: parachain_staking::Config + pallet_evm::Config + pallet_crowdloan_rewards::Config,
 	R::AccountId: From<H160>,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
+	BalanceOf<R>: TryFrom<sp_core::U256> + Debug + precompile_utils::EvmData,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>> + From<pallet_crowdloan_rewards::Call<R>>,
 {

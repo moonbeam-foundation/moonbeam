@@ -25,6 +25,7 @@ pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", bran
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version="0.27.0", default-features=false, features=["with-codec"] }
+precompile-utils = { path = "../../precompiles/utils", default-features = false }
 pallet-evm-precompile-bn128 = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-polkadot-pre" }
 pallet-evm-precompile-dispatch = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-polkadot-pre" }
 pallet-evm-precompile-modexp = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-polkadot-pre" }
@@ -124,6 +125,7 @@ std = [
 	"pallet-utility/std",
 	"pallet-ethereum/std",
 	"pallet-evm/std",
+	"precompile-utils/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"fp-rpc/std",
