@@ -6786,19 +6786,25 @@ dependencies = [
 name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
+ "derive_more",
  "evm",
  "frame-support",
  "frame-system",
- "hex",
  "log",
+ "max-encoded-len",
  "num_enum",
+ "pallet-balances",
  "pallet-evm",
+ "pallet-timestamp",
  "parachain-staking",
  "parity-scale-codec",
  "precompile-utils",
  "rustc-hex",
+ "serde",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
