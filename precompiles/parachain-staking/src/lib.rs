@@ -28,9 +28,11 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
-use precompile_utils::{error, Address, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper};
-use sp_core::{H160, U256};
-use sp_std::convert::{TryFrom, TryInto};
+use precompile_utils::{
+	error, Address, EvmData, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper,
+};
+use sp_core::H160;
+use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 use sp_std::vec;
@@ -73,7 +75,7 @@ impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
-	BalanceOf<Runtime>: TryFrom<U256> + Debug,
+	BalanceOf<Runtime>: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -126,8 +128,8 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::AccountId: From<H160>,
-	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	BalanceOf<Runtime>: EvmData,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
@@ -142,7 +144,7 @@ where
 			BalanceOf<Runtime>,
 		>>::get()
 		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
+		.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -188,8 +190,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let address: Runtime::AccountId = raw_address.into();
+		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -212,8 +213,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let address: Runtime::AccountId = raw_address.into();
+		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -236,8 +236,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let address: Runtime::AccountId = raw_address.into();
+		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -266,10 +265,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let amount: BalanceOf<Runtime> = input.read()?;
 		let collator_candidate_count = input.read()?;
 
 		// Build call with origin.
@@ -349,10 +345,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -374,10 +367,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -399,12 +389,8 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(4)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let collator: Runtime::AccountId = raw_address.into();
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let amount: BalanceOf<Runtime> = input.read()?;
 		let collator_nomination_count = input.read()?;
 		let nominator_nomination_count = input.read()?;
 
@@ -455,8 +441,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let collator: Runtime::AccountId = raw_address.into();
+		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -478,12 +463,8 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let collator: Runtime::AccountId = raw_address.into();
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -505,12 +486,8 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let raw_address: H160 = input.read::<Address>()?.into();
-		let collator: Runtime::AccountId = raw_address.into();
-		let raw_amount = input.read::<u128>()?;
-		let amount: BalanceOf<Runtime> = raw_amount
-			.try_into()
-			.map_err(|_| error("balance type conversion failed"))?;
+		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);

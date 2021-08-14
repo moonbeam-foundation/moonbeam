@@ -171,7 +171,7 @@ where
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	R: parachain_staking::Config + pallet_evm::Config,
 	R::AccountId: From<H160>,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
+	BalanceOf<R>: EvmData,
 	R::Call: From<parachain_staking::Call<R>>,
 {
 	fn execute(
