@@ -206,7 +206,18 @@ function start() {
       const parachainName = argv.parachain[i].toString();
       parasNames.push(parachainName);
       paras.push(parachains[parachainName]);
-      parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+      // If it is an array, push the position at which we are
+      if (Array.isArray(argv["parachain-chain"])) {
+        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+      }
+      // Else, push the value to the first parachain if it exists, else the default
+      else {
+        if (i == 0) {
+          parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        } else {
+          parachainsChains.push(parachains[parachainName].chain);
+        }
+      }
     }
   }
   // If it is not an array, we just simply push it
