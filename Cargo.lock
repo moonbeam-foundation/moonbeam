@@ -2107,8 +2107,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#b6fed7e830103dcea12c71974c5cbc052d1b97dd"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2126,8 +2125,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908739da31125d17a69533c290a6c818b494176e59a2ce8accbf122f7d76835c"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#b6fed7e830103dcea12c71974c5cbc052d1b97dd"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2138,8 +2136,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#b6fed7e830103dcea12c71974c5cbc052d1b97dd"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2150,8 +2147,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#b6fed7e830103dcea12c71974c5cbc052d1b97dd"
 dependencies = [
  "environmental",
  "evm-core",

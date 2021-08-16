@@ -115,6 +115,10 @@ impl CallListTracer {
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
+		evm::tracing::enable_tracing(true);
+		evm_gasometer::tracing::enable_tracing(true);
+		evm_runtime::tracing::enable_tracing(true);
+
 		let wrapped = Rc::new(RefCell::new(self));
 
 		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
@@ -128,6 +132,11 @@ impl CallListTracer {
 		let f = || gasometer_using(&mut gasometer, f);
 		let f = || evm_using(&mut evm, f);
 		f();
+
+		
+		evm::tracing::enable_tracing(false);
+		evm_gasometer::tracing::enable_tracing(false);
+		evm_runtime::tracing::enable_tracing(false);
 	}
 
 	/// Each extrinsic represents a Call stack in the host and thus a block - a collection of
