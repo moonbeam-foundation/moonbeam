@@ -54,7 +54,7 @@ fn write_u64() {
 	let writer_output = EvmDataWriter::new().write(value).build();
 
 	let mut expected_output = [0u8; 32];
-	expected_output[..8].copy_from_slice(&value.to_be_bytes());
+	expected_output[24..].copy_from_slice(&value.to_be_bytes());
 
 	assert_eq!(writer_output, expected_output);
 }
@@ -77,7 +77,7 @@ fn write_u128() {
 	let writer_output = EvmDataWriter::new().write(value).build();
 
 	let mut expected_output = [0u8; 32];
-	expected_output[..16].copy_from_slice(&value.to_be_bytes());
+	expected_output[16..].copy_from_slice(&value.to_be_bytes());
 
 	assert_eq!(writer_output, expected_output);
 }
@@ -114,6 +114,25 @@ fn read_u256() {
 	let parsed: U256 = reader.read().expect("to correctly parse U256");
 
 	assert_eq!(value, parsed);
+}
+
+#[test]
+fn read_selector() {
+	use sha3::{Digest, Keccak256};
+
+	#[precompile_utils_macro::generate_function_selector]
+	#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+	enum FakeAction {
+		Action1 = "action1()",
+	}
+
+	let selector = &Keccak256::digest(b"action1()")[0..4];
+	let mut reader = EvmDataReader::new(selector);
+
+	assert_eq!(
+		reader.read_selector::<FakeAction>().unwrap(),
+		FakeAction::Action1
+	)
 }
 
 #[test]

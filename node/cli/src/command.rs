@@ -319,6 +319,7 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
+			// Cumulus approach here, we directly call the generic load_spec func
 			let chain_spec = load_spec(
 				&params.chain.clone().unwrap_or_default(),
 				params.parachain_id.unwrap_or(1000).into(),

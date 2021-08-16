@@ -149,7 +149,8 @@ const relays: { [name: string]: NetworkConfig } = {
 };
 const relayNames = Object.keys(relays);
 
-const collatorNames = ["Alice", "Bob", "Charlie", "Eve"];
+// We support 3 parachains for now
+const validatorNames = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 
 function start() {
   const argv = yargs(process.argv.slice(2))
@@ -197,12 +198,18 @@ function start() {
 
   const portPrefix = argv["port-prefix"] || 34;
   const startingPort = portPrefix * 1000;
-  let paras  = [];
+  let paras = [];
   let parasNames = [];
   let parachainsChains = [];
   let paraIds = [];
 
+  // We start gathering all the information about the parachains
   if (Array.isArray(argv["parachain-id"])) {
+    // We need two validators per parachain, so there is a maximum we can support
+    if (argv["parachain-id"].length * 2 > validatorNames.length) {
+      console.error(`Exceeded max number of paras: ${validatorNames.length / 2}`);
+      return;
+    }
     for (let i = 0; i < argv["parachain-id"].length; i++) {
       paraIds.push(argv["parachain-id"][i]);
     }
@@ -211,29 +218,42 @@ function start() {
   if (Array.isArray(argv.parachain)) {
     for (let i = 0; i < argv.parachain.length; i++) {
       if (i >= paraIds.length) {
+        // If no paraId was provided for all of them, we just start assigning defaults
+        // But if one of the defaults was assigned to a previous para, we error
         if (paraIds.includes(1000 + i)) {
-          console.error(`Expected one of: ${relayNames.join(", ")}`);
+          console.error(`Para id already included as default: ${1000 + i}`);
           return;
-        }
-        else{
-          paraIds.push(1000 + i)
+        } else {
+          paraIds.push(1000 + i);
         }
       }
       const parachainName = argv.parachain[i].toString();
-      parasNames.push(parachainName)
-      paras.push(parachains[parachainName])
-      parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain)
+      parasNames.push(parachainName);
+      paras.push(parachains[parachainName]);
+      // If it is an array, push the position at which we are
+      if (Array.isArray(argv["parachain-chain"])) {
+        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+      }
+      // Else, push the value to the first parachain if it exists, else the default
+      else {
+        if (i == 0) {
+          parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        } else {
+          parachainsChains.push(parachains[parachainName].chain);
+        }
+      }
     }
   }
+  // If it is not an array, we just simply push it
   else {
     paraIds.push(argv["parachain-id"] || 1000);
     const parachainName = argv.parachain.toString();
-    parasNames.push(parachainName)
-    paras.push(parachains[parachainName])
-    parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain)
+    parasNames.push(parachainName);
+    paras.push(parachains[parachainName]);
+    parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
   }
 
- const relayName = argv.relay || paras[0].relay;
+  const relayName = argv.relay || paras[0].relay;
 
   if (!relayName || !relayNames.includes(relayName)) {
     console.error(`Invalid relay name: ${relayName}`);
@@ -251,16 +271,16 @@ function start() {
   let parachainBinaries = [];
   let parachainPaths = [];
 
+  // We retrieve the binaries and paths for all parachains
   for (let i = 0; i < paras.length; i++) {
-
     if (paras[i].binary) {
-      parachainBinaries.push(paras[i].binary)
+      parachainBinaries.push(paras[i].binary);
       const parachainPath = path.join(__dirname, paras[i].binary);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainPath}`);
         return;
       }
-      parachainPaths.push(parachainPath)
+      parachainPaths.push(parachainPath);
     } else {
       if (process.platform != "linux") {
         console.log(
@@ -282,9 +302,9 @@ function start() {
       }
     }
     console.log(
-      `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${
-        paras[i].docker || paras[i].binary
-      } (${parachainsChains[i]})`
+      `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${paras[i].docker || paras[i].binary} (${
+        parachainsChains[i]
+      })`
     );
   }
 
@@ -317,50 +337,56 @@ function start() {
   console.log("");
 
   let launchConfig = launchTemplate;
+  launchConfig.relaychain.bin = relayBinary;
+  launchConfig.relaychain.chain = relayChain;
 
   let relay_nodes = [];
 
+  // We need to build the configuration for each of the paras
   for (let i = 0; i < parachainBinaries.length; i++) {
     let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
     let parachainConfig = JSON.parse(JSON.stringify(parachainTemplate));
     // HRMP is not configurable in Kusama and Westend thorugh genesis. We should detect this here
-    for (let j = 0; j < paraIds.length; j++) {
-      let hrmpConfig =  JSON.parse(JSON.stringify(hrmpTemplate));
-      if (j!=i) {
-        hrmpConfig.sender = paraIds[i];
-        hrmpConfig.recipient = paraIds[j];
-        launchConfig.hrmpChannels.push(hrmpConfig);
+    // Maybe there is a nicer way of doing this
+    if (launchConfig.relaychain.chain.startsWith("rococo")) {
+      // Create HRMP channels
+      // HRMP channels are uni-directonal, we need to create both ways
+      for (let j = 0; j < paraIds.length; j++) {
+        let hrmpConfig = JSON.parse(JSON.stringify(hrmpTemplate));
+        if (j != i) {
+          hrmpConfig.sender = paraIds[i];
+          hrmpConfig.recipient = paraIds[j];
+          launchConfig.hrmpChannels.push(hrmpConfig);
+        }
       }
     }
-    // Create HRMP channels
 
     parachainConfig.bin = parachainBinaries[i];
     parachainConfig.chain = parachainsChains[i];
     parachainConfig.id = paraIds[i];
-    parachainConfig.nodes[0].port = startingPort + 100 + i*10*2;
-    parachainConfig.nodes[0].rpcPort = startingPort + 101 + i*10*2;
-    parachainConfig.nodes[0].wsPort = startingPort + 102 + i*10*2;
-  
-    parachainConfig.nodes[1].port = startingPort + 110 + i*10*2;
-    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i*10*2;
-    parachainConfig.nodes[1].wsPort = startingPort + 112 + i*10*2;
+    parachainConfig.nodes[0].port = startingPort + 100 + i * 100;
+    parachainConfig.nodes[0].rpcPort = startingPort + 101 + i * 100;
+    parachainConfig.nodes[0].wsPort = startingPort + 102 + i * 100;
+
+    parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
+    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
+    parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
     launchConfig.parachains.push(parachainConfig);
 
-    relayNodeConfig[0].name = collatorNames[i*2]
-    relayNodeConfig[0].port = startingPort + i*20
-    relayNodeConfig[0].rpcPort = startingPort +1 + i*20
-    relayNodeConfig[0].wsPort = startingPort +2 + i*20
-    relayNodeConfig[1].name = collatorNames[i*2 +1]
-    relayNodeConfig[1].port = startingPort + 10 + i*20
-    relayNodeConfig[1].rpcPort = startingPort + 11 + i*20
-    relayNodeConfig[1].wsPort = startingPort + 12 + i*20
-    relay_nodes.push(relayNodeConfig[0])
-    relay_nodes.push(relayNodeConfig[1])
+    // Two relay nodes per para
+    relayNodeConfig[0].name = validatorNames[i * 2];
+    relayNodeConfig[0].port = startingPort + i * 10;
+    relayNodeConfig[0].rpcPort = startingPort + 1 + i * 10;
+    relayNodeConfig[0].wsPort = startingPort + 2 + i * 10;
+    relayNodeConfig[1].name = validatorNames[i * 2 + 1];
+    relayNodeConfig[1].port = startingPort + i * 10;
+    relayNodeConfig[1].rpcPort = startingPort + 1 + i * 10;
+    relayNodeConfig[1].wsPort = startingPort + 1 + i * 10;
+    relay_nodes.push(relayNodeConfig[0]);
+    relay_nodes.push(relayNodeConfig[1]);
   }
 
   launchConfig.relaychain.nodes = relay_nodes;
-  launchConfig.relaychain.bin = relayBinary;
-  launchConfig.relaychain.chain = relayChain;
 
   const knownRelayChains = ["kusama", "westend", "rococo", "polkadot"]
     .map((network) => [`${network}`, `${network}-local`, `${network}-dev`])
@@ -422,21 +448,22 @@ const launchTemplate = {
   finalization: true,
 };
 
-const relayNodeTemplate = [{
-  name: "alice",
-  port: 0,
-  rpcPort: 1,
-  wsPort: 2,
-},
-{
-  name: "bob",
-  port: 10,
-  rpcPort: 11,
-  wsPort: 12,
-}]
+const relayNodeTemplate = [
+  {
+    name: "alice",
+    port: 0,
+    rpcPort: 1,
+    wsPort: 2,
+  },
+  {
+    name: "bob",
+    port: 10,
+    rpcPort: 11,
+    wsPort: 12,
+  },
+];
 
 const parachainTemplate = {
-
   bin: "...",
   id: 1000,
   balance: "1000000000000000000000",
@@ -448,11 +475,11 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-      "--log=info,rpc=trace,evm=trace,ethereum=trace",
-      "--unsafe-rpc-external",
-      "--rpc-cors=all",
-      "--",
-      "--execution=wasm"
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--unsafe-rpc-external",
+        "--rpc-cors=all",
+        "--",
+        "--execution=wasm",
       ],
     },
     {
@@ -465,17 +492,17 @@ const parachainTemplate = {
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
-        "--execution=wasm"
+        "--execution=wasm",
       ],
     },
   ],
 };
 
 const hrmpTemplate = {
-  "sender": "200",
-  "recipient": "300",
-  "maxCapacity": 8,
-  "maxMessageSize": 32768
-}
+  sender: "200",
+  recipient: "300",
+  maxCapacity: 8,
+  maxMessageSize: 32768,
+};
 
 start();
