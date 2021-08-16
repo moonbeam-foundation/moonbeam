@@ -497,24 +497,6 @@
 <span id="497">497</span>
 <span id="498">498</span>
 <span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -536,24 +518,49 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
-<span class="kw">use</span> <span class="ident">alloc::format</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">mock</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
+
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm::GasWeightMapping</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm::Precompile</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::error</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
+	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+};
+<span class="kw">use</span> <span class="ident">sp_core::H160</span>;
+<span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+<span class="kw">use</span> <span class="ident">sp_std::vec</span>;
 
 <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::Currency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span>
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
 <span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
+
+<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">num_enum::TryFromPrimitive</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Action</span> {
+	<span class="ident">MinNomination</span> <span class="op">=</span> <span class="string">&quot;min_nomination()&quot;</span>,
+	<span class="ident">Points</span> <span class="op">=</span> <span class="string">&quot;points(uint256)&quot;</span>,
+	<span class="ident">IsNominator</span> <span class="op">=</span> <span class="string">&quot;is_nominator(address)&quot;</span>,
+	<span class="ident">IsCandidate</span> <span class="op">=</span> <span class="string">&quot;is_candidate(address)&quot;</span>,
+	<span class="ident">IsSelectedCandidate</span> <span class="op">=</span> <span class="string">&quot;is_selected_candidate(address)&quot;</span>,
+	<span class="ident">JoinCandidates</span> <span class="op">=</span> <span class="string">&quot;join_candidates(uint256,uint256)&quot;</span>,
+	<span class="ident">LeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;leave_candidates(uint256)&quot;</span>,
+	<span class="ident">GoOffline</span> <span class="op">=</span> <span class="string">&quot;go_offline()&quot;</span>,
+	<span class="ident">GoOnline</span> <span class="op">=</span> <span class="string">&quot;go_online()&quot;</span>,
+	<span class="ident">CandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;candidate_bond_less(uint256)&quot;</span>,
+	<span class="ident">CandidateBondMore</span> <span class="op">=</span> <span class="string">&quot;candidate_bond_more(uint256)&quot;</span>,
+	<span class="ident">Nominate</span> <span class="op">=</span> <span class="string">&quot;nominate(address,uint256,uint256,uint256)&quot;</span>,
+	<span class="ident">LeaveNominators</span> <span class="op">=</span> <span class="string">&quot;leave_nominators(uint256)&quot;</span>,
+	<span class="ident">RevokeNomination</span> <span class="op">=</span> <span class="string">&quot;revoke_nomination(address)&quot;</span>,
+	<span class="ident">NominatorBondLess</span> <span class="op">=</span> <span class="string">&quot;nominator_bond_less(address,uint256)&quot;</span>,
+	<span class="ident">NominatorBondMore</span> <span class="op">=</span> <span class="string">&quot;nominator_bond_more(address,uint256)&quot;</span>,
+}
 
 <span class="doccomment">/// A precompile to wrap the functionality from parachain_staking.</span>
 <span class="doccomment">///</span>
@@ -568,7 +575,7 @@
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
 	<span class="ident">Runtime::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">EvmData</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -578,460 +585,417 @@
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;In parachain staking wrapper&quot;</span>);
-
-		<span class="comment">// Basic sanity checking for length</span>
-		<span class="comment">// https://solidity-by-example.org/primitives/</span>
-
-		<span class="kw">const</span> <span class="ident">SELECTOR_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
-
-		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ExitError::Other</span>(<span class="string">&quot;input length less than 4 bytes&quot;</span>.<span class="ident">into</span>()));
-		}
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Made it past preliminary length check&quot;</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;context.caller is {:?}&quot;</span>, <span class="ident">context</span>.<span class="ident">caller</span>);
-
-		<span class="comment">// Parse the function selector</span>
-		<span class="comment">// These are the four-byte function selectors calculated from the StakingInterface.sol</span>
-		<span class="comment">// according to the solidity specification</span>
-		<span class="comment">// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector</span>
-		<span class="kw">let</span> <span class="ident">inner_call</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>[<span class="number">0</span>..<span class="ident">SELECTOR_SIZE_BYTES</span>] {
-			<span class="comment">// Check for accessor methods first. These return results immediately</span>
-			[<span class="number">0x8e</span>, <span class="number">0x50</span>, <span class="number">0x80</span>, <span class="number">0xe7</span>] <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_nominator</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..]);
-			}
-			[<span class="number">0x85</span>, <span class="number">0x45</span>, <span class="number">0xc8</span>, <span class="number">0x33</span>] <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..]);
-			}
-			[<span class="number">0x8f</span>, <span class="number">0x6d</span>, <span class="number">0x27</span>, <span class="number">0xc7</span>] <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_selected_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..]);
-			}
-			[<span class="number">0xc9</span>, <span class="number">0xf5</span>, <span class="number">0x93</span>, <span class="number">0xb2</span>] <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="comment">//TODO Do we need to verify that there were no additional bytes passed in here?</span>
-				<span class="kw">return</span> <span class="self">Self</span><span class="ident">::min_nomination</span>();
-			}
-			[<span class="number">0x97</span>, <span class="number">0x99</span>, <span class="number">0xb4</span>, <span class="number">0xe7</span>] <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="self">Self</span><span class="ident">::points</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..]);
-			}
-
-			<span class="comment">// If not an accessor, check for dispatchables. These calls ready for dispatch below.</span>
-			[<span class="number">0x0a</span>, <span class="number">0x1b</span>, <span class="number">0xff</span>, <span class="number">0x60</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::join_candidates</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0x72</span>, <span class="number">0xb0</span>, <span class="number">0x2a</span>, <span class="number">0x31</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::leave_candidates</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0x76</span>, <span class="number">0x7e</span>, <span class="number">0x04</span>, <span class="number">0x50</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::go_offline</span>()<span class="question-mark">?</span>,
-			[<span class="number">0xd2</span>, <span class="number">0xf7</span>, <span class="number">0x3c</span>, <span class="number">0xeb</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::go_online</span>()<span class="question-mark">?</span>,
-			[<span class="number">0x28</span>, <span class="number">0x9b</span>, <span class="number">0x6b</span>, <span class="number">0xa7</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::candidate_bond_less</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0xc5</span>, <span class="number">0x7b</span>, <span class="number">0xd3</span>, <span class="number">0xa8</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::candidate_bond_more</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0x49</span>, <span class="number">0xdf</span>, <span class="number">0x6e</span>, <span class="number">0xb3</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominate</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0xb7</span>, <span class="number">0x1d</span>, <span class="number">0x21</span>, <span class="number">0x53</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::leave_nominators</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0x4b</span>, <span class="number">0x65</span>, <span class="number">0xc3</span>, <span class="number">0x4b</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::revoke_nomination</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0xf6</span>, <span class="number">0xa5</span>, <span class="number">0x25</span>, <span class="number">0x69</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominator_bond_less</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			[<span class="number">0x97</span>, <span class="number">0x1d</span>, <span class="number">0x44</span>, <span class="number">0xc8</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominator_bond_more</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">SELECTOR_SIZE_BYTES</span>..])<span class="question-mark">?</span>,
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="macro">log::trace!</span>(
-					<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-					<span class="string">&quot;Failed to match function selector in staking wrapper precompile&quot;</span>
-				);
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ExitError::Other</span>(
-					<span class="string">&quot;No staking wrapper method at selector given selector&quot;</span>.<span class="ident">into</span>(),
-				));
-			}
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">EvmDataReader::new</span>(<span class="ident">input</span>);
+		<span class="comment">// Return early if storage getter; return (origin, call) if dispatchable</span>
+		<span class="kw">let</span> (<span class="ident">origin</span>, <span class="ident">call</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span> {
+			<span class="comment">// constants</span>
+			<span class="ident">Action::MinNomination</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::min_nomination</span>(<span class="ident">target_gas</span>),
+			<span class="comment">// storage getters</span>
+			<span class="ident">Action::Points</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::points</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
+			<span class="comment">// role verifiers</span>
+			<span class="ident">Action::IsNominator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_nominator</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
+			<span class="ident">Action::IsCandidate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_candidate</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
+			<span class="ident">Action::IsSelectedCandidate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::is_selected_candidate</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
+			<span class="comment">// runtime methods (dispatchables)</span>
+			<span class="ident">Action::JoinCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::join_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::LeaveCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::leave_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::GoOffline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::go_offline</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::GoOnline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::go_online</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::CandidateBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::CandidateBondMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::candidate_bond_more</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::Nominate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominate</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::LeaveNominators</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::leave_nominators</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::RevokeNomination</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::revoke_nomination</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::NominatorBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominator_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::NominatorBondMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::nominator_bond_more</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
 		};
-
-		<span class="kw">let</span> <span class="ident">outer_call</span>: <span class="ident">Runtime::Call</span> <span class="op">=</span> <span class="ident">inner_call</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">outer_call</span>.<span class="ident">get_dispatch_info</span>();
-
-		<span class="comment">// Make sure enough gas</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>) <span class="op">=</span> <span class="ident">target_gas</span> {
-			<span class="kw">let</span> <span class="ident">required_gas</span> <span class="op">=</span> <span class="ident">Runtime::GasWeightMapping::weight_to_gas</span>(<span class="ident">info</span>.<span class="ident">weight</span>);
-			<span class="kw">if</span> <span class="ident">required_gas</span> <span class="op">&gt;</span> <span class="ident">gas_limit</span> {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ExitError::OutOfGas</span>);
-			}
-		}
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Made it past gas check&quot;</span>);
-
-		<span class="comment">// Dispatch that call</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Gonna call with origin {:?}&quot;</span>, <span class="ident">origin</span>);
-
-		<span class="kw">match</span> <span class="ident">outer_call</span>.<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>()) {
-			<span class="prelude-val">Ok</span>(<span class="ident">post_info</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">let</span> <span class="ident">gas_used</span> <span class="op">=</span> <span class="ident">Runtime::GasWeightMapping::weight_to_gas</span>(
-					<span class="ident">post_info</span>.<span class="ident">actual_weight</span>.<span class="ident">unwrap_or</span>(<span class="ident">info</span>.<span class="ident">weight</span>),
-				);
-				<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-					<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-					<span class="ident">cost</span>: <span class="ident">gas_used</span>,
-					<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-					<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-				})
-			}
-			<span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">let</span> <span class="ident">error_message</span> <span class="op">=</span> <span class="macro">format!</span>(
-					<span class="string">&quot;Parachain staking call via EVM failed with dispatch error: {:?}&quot;</span>,
-					<span class="ident">e</span>
-				);
-				<span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="ident">error_message</span>))
-			}
-		}
+		<span class="comment">// Initialize gasometer</span>
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+		<span class="comment">// Dispatch call (if enough gas).</span>
+		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span>
+			<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">origin</span>, <span class="ident">call</span>, <span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="macro">vec!</span>[],
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
+		})
 	}
-}
-
-<span class="doccomment">/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.</span>
-<span class="kw">fn</span> <span class="ident">parse_account</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H160</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-	<span class="kw">const</span> <span class="ident">PADDING_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">12</span>;
-	<span class="kw">const</span> <span class="ident">ACCOUNT_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">20</span>;
-	<span class="kw">const</span> <span class="ident">TOTAL_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">PADDING_SIZE_BYTES</span> <span class="op">+</span> <span class="ident">ACCOUNT_SIZE_BYTES</span>;
-
-	<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">TOTAL_SIZE_BYTES</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Unable to parse address. Got {} bytes, expected {}&quot;</span>,
-			<span class="ident">input</span>.<span class="ident">len</span>(),
-			<span class="ident">TOTAL_SIZE_BYTES</span>,
-		);
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;Incorrect input length for account parsing&quot;</span>));
-	}
-
-	<span class="prelude-val">Ok</span>(<span class="ident">H160::from_slice</span>(
-		<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">PADDING_SIZE_BYTES</span>..<span class="ident">TOTAL_SIZE_BYTES</span>],
-	))
-}
-
-<span class="doccomment">/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.</span>
-<span class="kw">fn</span> <span class="ident">parse_amount</span><span class="op">&lt;</span><span class="ident">Balance</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Balance</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-	<span class="prelude-val">Ok</span>(<span class="ident">parse_uint256</span>(<span class="ident">input</span>)<span class="question-mark">?</span>
-		.<span class="ident">try_into</span>()
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>)
-}
-
-<span class="doccomment">/// Parses a uint256 value</span>
-<span class="kw">fn</span> <span class="ident">parse_uint256</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-	<span class="comment">// In solidity all values are encoded to this width</span>
-	<span class="kw">const</span> <span class="ident">SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
-
-	<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">SIZE_BYTES</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Unable to parse uint256. Got {} bytes, expected {}&quot;</span>,
-			<span class="ident">input</span>.<span class="ident">len</span>(),
-			<span class="ident">SIZE_BYTES</span>,
-		);
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;Incorrect input length for uint256 parsing&quot;</span>));
-	}
-
-	<span class="prelude-val">Ok</span>(<span class="ident">U256::from_big_endian</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">0</span>..<span class="ident">SIZE_BYTES</span>]))
-}
-
-<span class="doccomment">/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.</span>
-<span class="kw">fn</span> <span class="ident">parse_weight_hint</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-	<span class="kw">const</span> <span class="ident">WEIGHT_HINT_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
-
-	<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">WEIGHT_HINT_SIZE_BYTES</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Unable to parse weight hint. Got {} bytes, expected {}&quot;</span>,
-			<span class="ident">input</span>.<span class="ident">len</span>(),
-			<span class="ident">WEIGHT_HINT_SIZE_BYTES</span>,
-		);
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;Incorrect input length for weight hint parsing&quot;</span>));
-	}
-
-	<span class="kw">let</span> <span class="ident">weight_hint</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">U256::from_big_endian</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">0</span>..<span class="ident">WEIGHT_HINT_SIZE_BYTES</span>])
-		.<span class="ident">try_into</span>()
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Weight hint is too large for u32&quot;</span>))<span class="question-mark">?</span>;
-	<span class="prelude-val">Ok</span>(<span class="ident">weight_hint</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
+	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
 	<span class="ident">Runtime::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">EvmData</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-	<span class="comment">// The accessors are first. They directly return their result.</span>
+	<span class="comment">// Constants</span>
 
-	<span class="kw">fn</span> <span class="ident">is_nominator</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">nominator</span> <span class="op">=</span> <span class="ident">H160::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">12</span>..<span class="number">32</span>]);
+	<span class="kw">fn</span> <span class="ident">min_nomination</span>(<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Checking whether {:?} is a nominator&quot;</span>,
-			<span class="ident">nominator</span>
-		);
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">min_nomination</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::MinNomination</span> <span class="kw">as</span> <span class="ident">Get</span><span class="op">&lt;</span>
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>()
+		.<span class="ident">try_into</span>()
+		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="comment">// fetch data from pallet</span>
-		<span class="kw">let</span> <span class="ident">is_nominator</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_nominator</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>.<span class="ident">into</span>());
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}&quot;</span>, <span class="ident">is_nominator</span>);
-
-		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
-		);
-
+		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
-			<span class="ident">output</span>: <span class="ident">bool_to_solidity_bytes</span>(<span class="ident">is_nominator</span>),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">min_nomination</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">H160::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">12</span>..<span class="number">32</span>]);
+	<span class="comment">// Storage Getters</span>
 
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Checking whether {:?} is a collator candidate&quot;</span>,
-			<span class="ident">candidate</span>
-		);
+	<span class="kw">fn</span> <span class="ident">points</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 
-		<span class="comment">// fetch data from pallet</span>
-		<span class="kw">let</span> <span class="ident">is_candidate</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>.<span class="ident">into</span>());
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">round</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}&quot;</span>, <span class="ident">is_candidate</span>);
-
-		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
-		);
-
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
-			<span class="ident">output</span>: <span class="ident">bool_to_solidity_bytes</span>(<span class="ident">is_candidate</span>),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
-	}
-
-	<span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">H160::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">12</span>..<span class="number">32</span>]);
-
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Checking whether {:?} is a selected collator&quot;</span>,
-			<span class="ident">candidate</span>
-		);
-
-		<span class="comment">// fetch data from pallet</span>
-		<span class="kw">let</span> <span class="ident">is_selected</span> <span class="op">=</span>
-			<span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_selected_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>.<span class="ident">into</span>());
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}&quot;</span>, <span class="ident">is_selected</span>);
-
-		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
-		);
-
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
-			<span class="ident">output</span>: <span class="ident">bool_to_solidity_bytes</span>(<span class="ident">is_selected</span>),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
-	}
-
-	<span class="kw">fn</span> <span class="ident">min_nomination</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="comment">// fetch data from pallet</span>
-		<span class="kw">let</span> <span class="ident">raw_min_nomination</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="op">&lt;</span>
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::MinNomination</span>
-				<span class="kw">as</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>
-			<span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">try_into</span>()
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span>
-					<span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>)
-				)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">min_nomination</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">raw_min_nomination</span>.<span class="ident">into</span>();
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}&quot;</span>, <span class="ident">min_nomination</span>);
-
-		<span class="comment">// TODO find cost of Config associated type read</span>
-		<span class="comment">// For now assume it is as bad as a storage read in the worst case</span>
-		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
-		);
-
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-		<span class="ident">min_nomination</span>.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>);
-
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
-			<span class="ident">output</span>: <span class="ident">buffer</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
-	}
-
-	<span class="kw">fn</span> <span class="ident">points</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">round_u256</span> <span class="op">=</span> <span class="ident">parse_uint256</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// Make sure the round number fits in a u32</span>
-		<span class="kw">if</span> <span class="ident">round_u256</span>.<span class="ident">leading_zeros</span>() <span class="op">&lt;</span> <span class="number">256</span> <span class="op">-</span> <span class="number">32</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;Round is too large. 32 bit maximum&quot;</span>));
-		}
-		<span class="kw">let</span> <span class="ident">round</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">round_u256</span>.<span class="ident">low_u32</span>();
-
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;🥩round is {}&quot;</span>, <span class="ident">round</span>);
-		<span class="comment">// Read the point value and format it for Solidity</span>
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">points</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::points</span>(<span class="ident">round</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;🥩points is {}&quot;</span>, <span class="ident">points</span>);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-		<span class="ident">U256::from</span>(<span class="ident">points</span>).<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">output</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;🥩output is {:?}&quot;</span>, <span class="ident">output</span>);
 
-		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
-		);
-
+		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
-			<span class="ident">output</span>: <span class="ident">output</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">points</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
 		})
 	}
 
-	<span class="comment">// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.</span>
+	<span class="comment">// Role Verifiers</span>
 
-	<span class="kw">fn</span> <span class="ident">join_candidates</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">32</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">parse_weight_hint</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">32</span>..])<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">is_nominator</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator stake amount is {:?}&quot;</span>, <span class="ident">amount</span>);
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Weight Hint: collator candidate count is {:?}&quot;</span>,
-			<span class="ident">collator_candidate_count</span>
-		);
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::join_candidates</span>(
-			<span class="ident">amount</span>,
-			<span class="ident">collator_candidate_count</span>,
-		))
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">is_nominator</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_nominator</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>);
+
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">is_nominator</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
+		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">leave_candidates</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">parse_weight_hint</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_candidates</span>(
-			<span class="ident">collator_candidate_count</span>,
-		))
+	<span class="kw">fn</span> <span class="ident">is_candidate</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">is_candidate</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>);
+
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">is_candidate</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
+		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">go_offline</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span>())
+	<span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">is_selected</span> <span class="op">=</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_selected_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>);
+
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">is_selected</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
+		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">go_online</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span>())
+	<span class="comment">// Runtime Methods (dispatchables)</span>
+
+	<span class="kw">fn</span> <span class="ident">join_candidates</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
+			<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::join_candidates</span>(<span class="ident">amount</span>, <span class="ident">collator_candidate_count</span>);
+
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">leave_candidates</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator bond increment is {:?}&quot;</span>, <span class="ident">amount</span>);
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_candidates</span>(<span class="ident">collator_candidate_count</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_more</span>(
-			<span class="ident">amount</span>,
-		))
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">candidate_bond_less</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">go_offline</span>(
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span>();
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator bond decrement is {:?}&quot;</span>, <span class="ident">amount</span>);
-
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_less</span>(
-			<span class="ident">amount</span>,
-		))
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">nominate</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;In nominate dispatchable wrapper&quot;</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;input is {:?}&quot;</span>, <span class="ident">input</span>);
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">parse_account</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">32</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">32</span>..<span class="number">64</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator_nomination_count</span> <span class="op">=</span> <span class="ident">parse_weight_hint</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">64</span>..<span class="number">96</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">nominator_nomination_count</span> <span class="op">=</span> <span class="ident">parse_weight_hint</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">96</span>..])<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">go_online</span>(
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span>();
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator account is {:?}&quot;</span>, <span class="ident">collator</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Nomination amount is {:?}&quot;</span>, <span class="ident">amount</span>);
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Weight Hint: collator nominations count is {:?}&quot;</span>,
-			<span class="ident">collator_nomination_count</span>
-		);
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-			<span class="string">&quot;Weight Hint: nominator nominations count is {:?}&quot;</span>,
-			<span class="ident">nominator_nomination_count</span>
-		);
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
+	}
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span>(
-			<span class="ident">collator</span>.<span class="ident">into</span>(),
+	<span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_more</span>(<span class="ident">amount</span>);
+
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
+	}
+
+	<span class="kw">fn</span> <span class="ident">candidate_bond_less</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_less</span>(<span class="ident">amount</span>);
+
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
+	}
+
+	<span class="kw">fn</span> <span class="ident">nominate</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">nominator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span>(
+			<span class="ident">collator</span>,
 			<span class="ident">amount</span>,
 			<span class="ident">collator_nomination_count</span>,
 			<span class="ident">nominator_nomination_count</span>,
-		))
+		);
+
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">leave_nominators</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">nomination_count</span> <span class="op">=</span> <span class="ident">parse_weight_hint</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..])<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_nominators</span>(
-			<span class="ident">nomination_count</span>,
-		))
+	<span class="kw">fn</span> <span class="ident">leave_nominators</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_nominators</span>(<span class="ident">nomination_count</span>);
+
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">revoke_nomination</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;In revoke nomination dispatchable wrapper&quot;</span>);
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">parse_account</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">32</span>])<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">revoke_nomination</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator account is {:?}&quot;</span>, <span class="ident">collator</span>);
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::revoke_nomination</span>(<span class="ident">collator</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::revoke_nomination</span>(
-			<span class="ident">collator</span>.<span class="ident">into</span>(),
-		))
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">nominator_bond_more</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">parse_account</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">32</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">32</span>..])<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">nominator_bond_more</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator account is {:?}&quot;</span>, <span class="ident">collator</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Nomination increment is {:?}&quot;</span>, <span class="ident">amount</span>);
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_more</span>(<span class="ident">collator</span>, <span class="ident">amount</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_more</span>(
-			<span class="ident">collator</span>.<span class="ident">into</span>(),
-			<span class="ident">amount</span>,
-		))
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
 
-	<span class="kw">fn</span> <span class="ident">nominator_bond_less</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">parse_account</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">32</span>])<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">parse_amount</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">32</span>..])<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">nominator_bond_less</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+		(
+			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		),
+		<span class="ident">ExitError</span>,
+	<span class="op">&gt;</span> {
+		<span class="comment">// Read input.</span>
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Collator account is {:?}&quot;</span>, <span class="ident">collator</span>);
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;Nomination decrement is {:?}&quot;</span>, <span class="ident">amount</span>);
+		<span class="comment">// Build call with origin.</span>
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_less</span>(<span class="ident">collator</span>, <span class="ident">amount</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_less</span>(
-			<span class="ident">collator</span>.<span class="ident">into</span>(),
-			<span class="ident">amount</span>,
-		))
+		<span class="comment">// Return call information</span>
+		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
 	}
-}
-
-<span class="comment">// Solidity&#39;s bool type is 256 bits as shown by these examples</span>
-<span class="comment">// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html</span>
-<span class="comment">// This utility function converts a Rust bool into the corresponding Solidity type</span>
-<span class="kw">fn</span> <span class="ident">bool_to_solidity_bytes</span>(<span class="ident">b</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-
-	<span class="kw">if</span> <span class="ident">b</span> {
-		<span class="ident">result_bytes</span>[<span class="number">31</span>] <span class="op">=</span> <span class="number">1</span>;
-	}
-
-	<span class="ident">result_bytes</span>.<span class="ident">to_vec</span>()
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parachain_staking_precompiles" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

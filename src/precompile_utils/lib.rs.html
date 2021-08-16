@@ -456,7 +456,7 @@
 {
 	<span class="doccomment">/// Try to dispatch a Substrate call.</span>
 	<span class="doccomment">/// Return an error if there are not enough gas, or if the call fails.</span>
-	<span class="doccomment">/// If succesful returns the used gas using the Runtime GasWeightMapping.</span>
+	<span class="doccomment">/// If successful returns the used gas using the Runtime GasWeightMapping.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_dispatch</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span>(
 		<span class="ident">origin</span>: <span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
 		<span class="ident">call</span>: <span class="ident">Call</span>,
@@ -477,13 +477,13 @@
 		}
 
 		<span class="comment">// Dispatch call.</span>
-		<span class="comment">// It may be possible to not record gas cost if the call returnes Pays::No.</span>
+		<span class="comment">// It may be possible to not record gas cost if the call returns Pays::No.</span>
 		<span class="comment">// However while Substrate handle checking weight while not making the sender pay for it,</span>
 		<span class="comment">// the EVM doesn&#39;t. It seems this safer to always record the costs to avoid unmetered</span>
 		<span class="comment">// computations.</span>
 		<span class="kw">let</span> <span class="ident">used_weight</span> <span class="op">=</span> <span class="ident">call</span>
 			.<span class="ident">dispatch</span>(<span class="ident">origin</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;dispatched call failed&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">error</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;Dispatched call failed with error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
 			.<span class="ident">actual_weight</span>;
 
 		<span class="comment">// Return used weight by converting weight to gas.</span>
