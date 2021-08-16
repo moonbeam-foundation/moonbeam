@@ -10,7 +10,7 @@
  *
  */
 
-import yargs, { strict } from "yargs";
+import yargs from "yargs";
 import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
