@@ -133,7 +133,6 @@ impl CallListTracer {
 		let f = || evm_using(&mut evm, f);
 		f();
 
-		
 		evm::tracing::enable_tracing(false);
 		evm_gasometer::tracing::enable_tracing(false);
 		evm_runtime::tracing::enable_tracing(false);
