@@ -93,7 +93,7 @@ pub mod pallet {
 			// mode automatically.
 
 			// Idea: It might be nice to configure which pallets' on init and on _finalize hooks get called
-			// This would allow to determine whether eg staking elections should still occur and 
+			// This would allow to determine whether eg staking elections should still occur and
 			// democracy referenda still mature
 
 			0
@@ -108,9 +108,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Place the chain in maintenance mode
 		#[pallet::weight(0)]
-		pub fn enter_maintenance_mode(
-			origin: OriginFor<T>,
-		) -> DispatchResultWithPostInfo {
+		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
 
@@ -119,15 +117,13 @@ pub mod pallet {
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::EnteredMaintenanceMode);
-			
+
 			Ok(().into())
 		}
 
 		/// Return the chain to normal operating mode
 		#[pallet::weight(0)]
-		pub fn resume_normal_operation(
-			origin: OriginFor<T>,
-		) -> DispatchResultWithPostInfo {
+		pub fn resume_normal_operation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
 
@@ -137,7 +133,6 @@ pub mod pallet {
 			// Event
 			<Pallet<T>>::deposit_event(Event::NormalOperationResumed);
 
-			
 			Ok(().into())
 		}
 	}

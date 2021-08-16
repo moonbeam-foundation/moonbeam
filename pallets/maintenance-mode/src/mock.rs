@@ -18,16 +18,14 @@
 use super::*;
 use crate as pallet_maintenance_mode;
 use frame_support::traits::Filter;
-use frame_support::{
-	construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight};
+use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
-use frame_system::EnsureRoot;
 
 pub type AccountId = u64;
 pub type BlockNumber = u64;

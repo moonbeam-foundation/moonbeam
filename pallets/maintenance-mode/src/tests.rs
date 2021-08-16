@@ -31,7 +31,7 @@ fn can_remark_during_normal_operation() {
 fn cannot_remark_during_maintenance_mode() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: Call = frame_system::Call::remark(vec![]).into();
-		
+
 		//TODO test for the right error
 		todo!()
 	})
@@ -53,6 +53,6 @@ fn can_resume_normal_operation() {
 }
 
 #[test]
-fn can_resume_normal_operation_while_already_operating_normally() {
+fn cannot_resume_normal_operation_while_already_operating_normally() {
 	todo!()
 }
