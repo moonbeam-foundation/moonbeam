@@ -1,0 +1,28 @@
+[package]
+name = "xcm-simulator-example"
+version = "0.9.9"
+authors = ["Parity Technologies <admin@parity.io>"]
+description = "Examples of xcm-simulator usage."
+edition = "2018"
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+paste = "1.0.5"
+
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+
+xcm-simulator = { path = "../" }
+
+xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot",branch = "release-v0.9.8" }
+polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }

@@ -98,6 +98,7 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features 
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
+orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
@@ -110,6 +111,8 @@ evm = { version = "0.27.0", default-features = false, features = ["with-codec"] 
 rlp = "0.5"
 hex = "0.4"
 sha3 = "0.8"
+xcm-simulator = { path = "./xcm-simulator"}
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
@@ -180,6 +183,7 @@ std = [
 	"cumulus-pallet-dmp-queue/std",
 	"pallet-assets/std",
 	"orml-xtokens/std",
+	"orml-xcm-support/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
