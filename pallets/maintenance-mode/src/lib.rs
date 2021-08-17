@@ -21,8 +21,26 @@
 //! be that the state cache eliminates this cost almost entirely. I wonder if that can or should be
 //! reflected in the weight calculation.
 //!
-//! This could be more configureable by letting the runtime developer specify a type (probably an
-//! enum) that can be converted into a filter and an origin.
+//! Possible future improvements
+//! 1. This could be more configureable by letting the runtime developer specify a type (probably an
+//! enum) that can be converted into a filter. Similar end result (but different implementation) as
+//! Acala has it 
+//! github.com/AcalaNetwork/Acala/blob/pause-transaction/modules/transaction-pause/src/lib.rs#L71
+//!
+//! 2. Automatically enable maintenance mode after a long timeout is detected between blocks.
+//! To implement this we would couple to the timestamp pallet and store the timestamp of the
+//! previous block.
+//!
+//! 3. Different origins for entering and leaving maintenance mode.
+//!
+//! 4. Maintenance mode timeout. To avoid getting stuck in maintenance mode. It could automatically
+//! switch back to normal mode after a pre-decided number of blocks. Maybe there could be an
+//! extrinsic to extend the maintenance time.
+//!
+//! 5. Let the runtime developer configure which pallets' on init and on _finalize hooks get called
+//! This would allow to determine whether eg staking elections should still occur and
+//! democracy referenda still mature
+
 
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -80,34 +98,12 @@ pub mod pallet {
 	/// Whether the site is in maintenance mode
 	type MaintenanceMode<T: Config> = StorageValue<_, bool, ValueQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn previous_timestamp)]
-	/// The timestamp recorded on the previous block. Used to automatically enter maintenance mode
-	/// after a long delay in block production
-	type PreviousTimestamp<T: Config> = StorageValue<_, u64, ValueQuery>;
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_initialize(_n: T::BlockNumber) -> Weight {
-			// Idea: Detect if too much time has elapsed since the last block, and enter maintenance
-			// mode automatically.
-
-			// Idea: It might be nice to configure which pallets' on init and on _finalize hooks get called
-			// This would allow to determine whether eg staking elections should still occur and
-			// democracy referenda still mature
-
-			0
-		}
-
-		fn on_finalize(_n: T::BlockNumber) {
-			// Record this block's timestamp for comparison in the next block
-		}
-	}
-
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Place the chain in maintenance mode
-		#[pallet::weight(0)]
+		///
+		/// Weight cost is two DB writes (1 for the mode and 1 for the event)
+		#[pallet::weight(2 * T::DbWeight::get().write)]
 		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
@@ -122,7 +118,9 @@ pub mod pallet {
 		}
 
 		/// Return the chain to normal operating mode
-		#[pallet::weight(0)]
+		///
+		/// Weight cost is two DB writes (1 for the mode and 1 for the event)
+		#[pallet::weight(2 * T::DbWeight::get().write)]
 		pub fn resume_normal_operation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
