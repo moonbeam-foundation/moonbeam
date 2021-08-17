@@ -82,12 +82,14 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const UNIT: Balance = 1_000_000_000_000_000_000;
-	pub const KILOUNIT: Balance = UNIT * 1_000;
-	pub const MILLIUNIT: Balance = UNIT / 1_000;
-	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
-	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
 	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROUNIT: Balance = 1_000_000_000_000;
+	pub const MILLIUNIT: Balance = 1_000_000_000_000_000;
+	pub const UNIT: Balance = 1_000_000_000_000_000_000;
+	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
@@ -318,7 +320,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOUNIT).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
