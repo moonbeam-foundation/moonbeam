@@ -182,6 +182,7 @@ pub mod pallet {
 					migration_name_as_bytes.into(),
 					consumed_weight,
 				));
+				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight += consumed_weight;
 				if weight > available_weight {
