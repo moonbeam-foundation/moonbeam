@@ -6,6 +6,9 @@ export const contractSources: { [key: string]: string } = {
         function multiply(uint a) public pure returns(uint d) {
             return a *7;
         }
+        function fail() public pure {
+            require(false, "fail");
+        }
     }`,
   FailContract: `
     pragma solidity >=0.8.0;

@@ -80,3 +80,48 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
     console.log("Contract inner called");
   });
 });
+
+describeDevMoonbeam("Ethers.js contract", (context) => {
+  it("should fail gracefully", async function () {
+    let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, context.ethers);
+    const contractData = await getCompiled("TestContract");
+    const contractFactory = new ethers.ContractFactory(
+      contractData.contract.abi as ethers.ContractInterface,
+      contractData.byteCode,
+      signer
+    );
+    let contract = await new Promise<ethers.Contract>(async (resolve) => {
+      const contractPromise = contractFactory.deploy({
+        gasLimit: 1_000_000,
+        gasPrice: 1_000_000_000,
+      });
+      console.log("Contract sent");
+      await context.createBlock();
+      resolve(await contractPromise);
+    });
+    console.log("Contract created");
+
+    // Must create the block and then wait, because etherjs will wait until
+    // the contract is mined to return;
+    let result = await new Promise<string>(async (resolve) => {
+      const callPromise = contract.multiply(3, { gasLimit: 1_000_000, gasPrice: 1_000_000_000 });
+      await context.createBlock();
+      resolve(await callPromise);
+    });
+    expect(result.toString()).to.equal("21");
+    console.log("Contract called");
+
+    // Instantiate contract from address
+    const contractFromAddress = new ethers.Contract(
+      contract.address,
+      contractData.contract.abi as ethers.ContractInterface,
+      signer
+    );
+    expect(
+      (
+        await contractFromAddress.fail({ gasLimit: 1_000_000, gasPrice: 1_000_000_000 })
+      ).toString()
+    ).to.equal("21");
+    console.log("Contract inner called");
+  });
+});
