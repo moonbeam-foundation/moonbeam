@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Transfer {
 	/// Source address.
 	pub source: H160,
@@ -78,7 +78,7 @@ impl From<evm_runtime::CreateScheme> for CreateScheme {
 	}
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Context {
 	/// Execution address.
 	pub address: H160,
@@ -98,7 +98,7 @@ impl From<evm_runtime::Context> for Context {
 	}
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq)]
 pub enum EvmEvent {
 	Call {
 		code_address: H160,

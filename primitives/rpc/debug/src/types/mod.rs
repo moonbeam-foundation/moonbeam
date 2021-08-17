@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-mod evm_gasometer_types;
-mod evm_runtime_types;
-mod evm_types;
+pub mod evm_gasometer_types;
+pub mod evm_runtime_types;
+pub mod evm_types;
 
 pub use evm_gasometer_types::GasometerEvent;
 pub use evm_runtime_types::RuntimeEvent;

@@ -16,7 +16,7 @@
 
 use codec::{Decode, Encode};
 
-#[derive(Debug, Copy, Clone, Encode, Decode)]
+#[derive(Debug, Copy, Clone, Encode, Decode, PartialEq, Eq)]
 pub struct Snapshot {
 	pub gas_limit: u64,
 	pub memory_gas: u64,
@@ -41,7 +41,7 @@ impl From<evm_gasometer::Snapshot> for Snapshot {
 	}
 }
 
-#[derive(Debug, Copy, Clone, Encode, Decode)]
+#[derive(Debug, Copy, Clone, Encode, Decode, PartialEq, Eq)]
 pub enum GasometerEvent {
 	RecordCost {
 		cost: u64,

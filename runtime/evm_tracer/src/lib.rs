@@ -33,7 +33,7 @@ use codec::Encode;
 pub use raw::RawTracer;
 pub use util::{EvmListener, GasometerListener, RuntimeListener};
 
-use moonbeam_primitives_ext::types::{EvmEvent, GasometerEvent, RuntimeEvent};
+use moonbeam_rpc_primitives_debug::types::{EvmEvent, GasometerEvent, RuntimeEvent};
 
 pub struct EvmTracer {}
 

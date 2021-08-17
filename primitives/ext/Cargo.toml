@@ -16,9 +16,6 @@ moonbeam-rpc-primitives-debug = { path = "../rpc/debug", default-features = fals
 sp-runtime-interface = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
 sp-externalities = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
-evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
-evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
-evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
 
 [features]
 default = ["std"]
@@ -29,7 +26,4 @@ std = [
 	"sp-runtime-interface/std",
 	"sp-externalities/std",
 	"sp-std/std",
-	"evm/std",
-	"evm-runtime/std",
-	"evm-gasometer/std",
 ]

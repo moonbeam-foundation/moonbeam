@@ -61,8 +61,10 @@ pub mod serialization;
 use crate::serialization::*;
 
 pub mod block;
-pub mod proxy;
+pub mod proxy_v1;
+pub mod proxy_v2;
 pub mod single;
+pub mod types;
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]

@@ -1,149 +1,80 @@
-// Copyright 2019-2021 PureStake Inc.
-// This file is part of Moonbeam.
-
-// Moonbeam is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// Moonbeam is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
 extern crate alloc;
 
-use super::evm_types::Context;
-use alloc::vec::Vec;
-use codec::{Decode, Encode};
-use ethereum_types::{H160, H256, U256};
-use evm::{ExitReason, Opcode};
+environmental::environmental!(listener: dyn Listener + 'static);
 
-#[derive(Clone, Debug, Encode, Decode)]
-pub struct Stack {
-	data: Vec<H256>,
-	limit: u64,
+pub use codec::{Decode, Encode};
+pub use ethereum_types::{H160, H256, U256};
+pub use crate::{
+	CallType,
+	types::{
+		evm_runtime_types::{Capture, ExitReason, Opcode},
+		EvmEvent, GasometerEvent, RuntimeEvent
+	}
+};
+use alloc::{vec, vec::Vec};
+
+pub mod raw;
+
+/// Main trait to proxy emitted messages.
+pub trait Listener {
+	fn event(&mut self, event: Event);
 }
 
-impl From<&evm::Stack> for Stack {
-	fn from(i: &evm::Stack) -> Self {
-		Self {
-			data: i.data().clone(),
-			limit: i.limit() as u64,
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum Event {
+	Evm(EvmEvent),
+    Gasometer(GasometerEvent),
+    Runtime(RuntimeEvent),
+}
+
+impl Event {
+	/// Access the global reference and call it's `event` method, passing the `Event` itself as
+	/// argument.
+	///
+	/// This only works if we are `using` a global reference to a `Listener` implementor.
+	pub fn emit(self) {
+		listener::with(|listener| listener.event(self));
+	}
+}
+
+#[derive(Debug)]
+pub enum ContextType {
+	Call(CallType),
+	Create,
+}
+
+impl ContextType {
+	pub fn from(opcode: Vec<u8>) -> Option<Self> {
+		let bytes: [u8; 1] = [opcode[0]];
+		match u8::from_be_bytes(bytes) {
+			0xF0 | 0xF5 => Some(ContextType::Create),
+			0xF1 => Some(ContextType::Call(CallType::Call)),
+			0xF2 => Some(ContextType::Call(CallType::CallCode)),
+			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
+			0xFA => Some(ContextType::Call(CallType::StaticCall)),
+			_ => None,
 		}
 	}
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
-pub struct Memory {
-	data: Vec<u8>,
-	effective_len: U256,
-	limit: u64,
-}
-
-impl From<&evm::Memory> for Memory {
-	fn from(i: &evm::Memory) -> Self {
-		Self {
-			data: i.data().clone(),
-			effective_len: i.effective_len(),
-			limit: i.limit() as u64,
-		}
-	}
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
-pub enum Capture<E, T> {
-	/// The machine has exited. It cannot be executed again.
-	Exit(E),
-	/// The machine has trapped. It is waiting for external information, and can
-	/// be executed again.
-	Trap(T),
-}
-
-pub type Trap = Vec<u8>; // Should hold the marshalled Opcode.
-
-#[derive(Debug, Clone, Encode, Decode)]
-pub enum RuntimeEvent {
-	Step {
-		context: Context,
-		// This needs to be marshalled in the runtime no matter what.
-		opcode: Vec<u8>,
-		// We can use ExitReason with `with-codec` feature,
-		position: Result<u64, ExitReason>,
-		stack: Stack,
-		memory: Memory,
-	},
-	StepResult {
-		result: Result<(), Capture<ExitReason, Trap>>,
-		return_value: Vec<u8>,
-	},
-	SLoad {
-		address: H160,
-		index: H256,
-		value: H256,
-	},
-	SStore {
-		address: H160,
-		index: H256,
-		value: H256,
-	},
-}
-
-impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
-	fn from(i: evm_runtime::tracing::Event<'a>) -> Self {
-		match i {
-			evm_runtime::tracing::Event::Step {
-				context,
-				opcode,
-				position,
-				stack,
-				memory,
-			} => Self::Step {
-				context: context.clone().into(),
-				opcode: opcodes_string(opcode),
-				position: match position {
-					Ok(position) => Ok(*position as u64),
-					Err(e) => Err(e.clone()),
-				},
-				stack: stack.into(),
-				memory: memory.into(),
-			},
-			evm_runtime::tracing::Event::StepResult {
-				result,
-				return_value,
-			} => Self::StepResult {
-				result: match result {
-					Ok(_) => Ok(()),
-					Err(capture) => match capture {
-						evm::Capture::Exit(e) => Err(Capture::Exit(e.clone())),
-						evm::Capture::Trap(t) => Err(Capture::Trap(opcodes_string(*t))),
-					},
-				},
-				return_value: return_value.to_vec(),
-			},
-			evm_runtime::tracing::Event::SLoad {
-				address,
-				index,
-				value,
-			} => Self::SLoad {
-				address,
-				index,
-				value,
-			},
-			evm_runtime::tracing::Event::SStore {
-				address,
-				index,
-				value,
-			} => Self::SStore {
-				address,
-				index,
-				value,
-			},
-		}
-	}
+pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
+	let size = 32;
+	memory
+		.chunks(size)
+		.map(|c| {
+			let mut msg = [0u8; 32];
+			let chunk = c.len();
+			if chunk < size {
+				let left = size - chunk;
+				let remainder = vec![0; left];
+				msg[0..left].copy_from_slice(&remainder[..]);
+				msg[left..size].copy_from_slice(c);
+			} else {
+				msg[0..size].copy_from_slice(c)
+			}
+			H256::from_slice(&msg[..])
+		})
+		.collect()
 }
 
 pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
