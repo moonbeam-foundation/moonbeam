@@ -150,6 +150,7 @@ parameter_types! {
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 	pub SelfAssetLocation: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), Junction::GeneralIndex{ id: 0}.into()).into();
+	pub Local = MultiLocation::Null;
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -239,12 +240,13 @@ pub type FungiblesTransactor = xcm_builder::FungiblesAdapter<
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
-		xcm_builder::ConvertedConcreteAssetId<
+	/* 	xcm_builder::ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
 			AsParachainId,
 			xcm_executor::traits::JustTry,
-		>,
+		>,*/
+	xcm_builder::ConvertedConcreteAssetId<AssetId, Balance, AsPrefixedGeneralIndex<Local, AssetId, JustTry>, JustTry>,
 	),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
