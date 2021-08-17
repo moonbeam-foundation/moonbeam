@@ -46,6 +46,9 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 enum Action {
 	MinNomination = "min_nomination()",
 	Points = "points(uint256)",
+	CandidateCount = "candidate_count()",
+	CollatorNominationCount = "collator_nomination_count(address)",
+	NominatorNominationCount = "nominator_nomination_count(address)",
 	IsNominator = "is_nominator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
@@ -92,6 +95,13 @@ where
 			Action::MinNomination => return Self::min_nomination(target_gas),
 			// storage getters
 			Action::Points => return Self::points(input, target_gas),
+			Action::CandidateCount => return Self::candidate_count(target_gas),
+			Action::CollatorNominationCount => {
+				return Self::collator_nomination_count(input, target_gas)
+			}
+			Action::NominatorNominationCount => {
+				return Self::nominator_nomination_count(input, target_gas)
+			}
 			// role verifiers
 			Action::IsNominator => return Self::is_nominator(input, target_gas),
 			Action::IsCandidate => return Self::is_candidate(input, target_gas),
@@ -176,6 +186,105 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(points).build(),
+			logs: vec![],
+		})
+	}
+
+	fn candidate_count(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
+			.0
+			.len() as u32;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(candidate_count).build(),
+			logs: vec![],
+		})
+	}
+
+	fn collator_nomination_count(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(1)?;
+		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::collator_state2(&address) {
+				let collator_nomination_count: u32 = state.nominators.0.len() as u32;
+
+				log::trace!(
+					target: "staking-precompile",
+					"Result from pallet is {:?}",
+					collator_nomination_count
+				);
+				collator_nomination_count
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Collator {:?} not found, so nomination count is 0",
+					address
+				);
+				0u32
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(result).build(),
+			logs: vec![],
+		})
+	}
+
+	fn nominator_nomination_count(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(1)?;
+		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::nominator_state2(&address) {
+				let nominator_nomination_count: u32 = state.nominations.0.len() as u32;
+
+				log::trace!(
+					target: "staking-precompile",
+					"Result from pallet is {:?}",
+					nominator_nomination_count
+				);
+
+				nominator_nomination_count
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Nominator {:?} not found, so nomination count is 0",
+					address
+				);
+				0u32
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(result).build(),
 			logs: vec![],
 		})
 	}
