@@ -642,7 +642,7 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
-	pub const MaxInitContributorsBatchSizes: u32 = 1000;
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
