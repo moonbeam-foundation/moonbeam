@@ -156,6 +156,84 @@ fn points_non_zero() {
 }
 
 #[test]
+fn collator_nomination_count_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Bob, 50),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_nominations(vec![
+			(TestAccount::Bob, TestAccount::Alice, 50),
+			(TestAccount::Charlie, TestAccount::Alice, 50),
+			(TestAccount::Bogus, TestAccount::Alice, 50),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"collator_nomination_count(address)")[0..4];
+
+			// Construct data to read collator nomination count
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Expected result 3
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(3u32).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that there 3 nominations for Alice
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_one_result
+			);
+		});
+}
+
+#[test]
+fn nominator_nomination_count_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Bob, 1_000),
+			(TestAccount::Charlie, 200),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_nominations(vec![
+			(TestAccount::Charlie, TestAccount::Alice, 100),
+			(TestAccount::Charlie, TestAccount::Bob, 100),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"nominator_nomination_count(address)")[0..4];
+
+			// Construct data to read nominator nomination count
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
+
+			// Expected result is 2
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(2u32).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that Charlie has 2 outstanding nominations
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_one_result
+			);
+		});
+}
+
+#[test]
 fn is_nominator_false() {
 	ExtBuilder::default().build().execute_with(|| {
 		let selector = &Keccak256::digest(b"is_nominator(address)")[0..4];
