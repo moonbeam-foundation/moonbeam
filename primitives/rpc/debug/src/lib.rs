@@ -60,6 +60,8 @@ pub mod serialization;
 #[cfg(feature = "std")]
 use crate::serialization::*;
 
+pub const V2_RUNTIME_VERSION: u32 = 400;
+
 pub mod block;
 pub mod proxy_v1;
 pub mod proxy_v2;
