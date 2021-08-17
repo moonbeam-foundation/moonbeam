@@ -82,12 +82,14 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMR: Balance = GLMR * 1_000;
-	pub const MILLIGLMR: Balance = GLMR / 1_000;
-	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
-	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
 	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROGLMR: Balance = 1_000_000_000_000;
+	pub const MILLIGLMR: Balance = 1_000_000_000_000_000;
+	pub const GLMR: Balance = 1_000_000_000_000_000_000;
+	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;
@@ -333,7 +335,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMR).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
