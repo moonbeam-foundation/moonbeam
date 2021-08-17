@@ -659,6 +659,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;;
 }
 
 parameter_types! {
