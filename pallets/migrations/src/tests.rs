@@ -18,10 +18,9 @@
 use crate::mock::{events, ExtBuilder, Migrations, MockMigrationManager, System};
 use crate::Event;
 use frame_support::{
-	traits::{OnInitialize, OnRuntimeUpgrade},
+	traits::OnRuntimeUpgrade,
 	weights::{constants::RocksDbWeight, Weight},
 };
-use sp_runtime::Perbill;
 use std::sync::{Arc, Mutex};
 
 #[test]
@@ -105,45 +104,10 @@ fn on_runtime_upgrade_emits_events() {
 
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
-			Event::RuntimeUpgradeCompleted(0u64.into()),
+			Event::RuntimeUpgradeCompleted(100000000u64.into()),
 		];
 		assert_eq!(events(), expected);
 	});
-}
-
-#[test]
-fn step_called_until_done() {
-	let num_step_calls = Arc::new(Mutex::new(0usize));
-
-	crate::mock::execute_with_mock_migrations(
-		&mut |mgr: &mut MockMigrationManager| {
-			let num_step_calls = Arc::clone(&num_step_calls);
-
-			mgr.register_callback(
-				move || "migration1",
-				move |_| -> Weight {
-					let mut num_step_calls = num_step_calls.lock().unwrap();
-					*num_step_calls += 1;
-					if *num_step_calls == 10 {
-						0u64.into()
-					} else {
-						0u64.into()
-					}
-				},
-			);
-		},
-		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				crate::mock::roll_until_upgraded(true);
-			});
-		},
-	);
-
-	assert_eq!(
-		*num_step_calls.lock().unwrap(),
-		10,
-		"migration step should be called until done"
-	);
 }
 
 #[test]
@@ -189,7 +153,7 @@ fn migration_should_only_be_invoked_once() {
 					Event::RuntimeUpgradeStarted(),
 					Event::MigrationStarted("migration1".into()),
 					Event::MigrationCompleted("migration1".into(), 1u32.into()),
-					Event::RuntimeUpgradeCompleted(1u32.into()),
+					Event::RuntimeUpgradeCompleted(100000001u32.into()), // includes reads/writes
 				];
 				assert_eq!(events(), expected);
 
@@ -211,7 +175,7 @@ fn migration_should_only_be_invoked_once() {
 				);
 				expected.append(&mut vec![
 					Event::RuntimeUpgradeStarted(),
-					Event::RuntimeUpgradeCompleted(0u32.into()),
+					Event::RuntimeUpgradeCompleted(100000000u32.into()),
 				]);
 				assert_eq!(events(), expected);
 
@@ -235,19 +199,6 @@ fn migration_should_only_be_invoked_once() {
 }
 
 #[test]
-fn on_initialize_should_charge_at_least_one_db_read() {
-	ExtBuilder::default().build().execute_with(|| {
-		// first call to on_runtime_upgrade should flag FullyUpgraded as true
-		Migrations::on_runtime_upgrade();
-		assert_eq!(Migrations::is_fully_upgraded(), true);
-
-		// and subsequent call to on_initialize should do nothing but read this value and return
-		let weight = <Migrations as OnInitialize<u64>>::on_initialize(1);
-		assert_eq!(weight, RocksDbWeight::get().reads(1));
-	})
-}
-
-#[test]
 fn on_runtime_upgrade_charges_minimum_two_db_writes() {
 	ExtBuilder::default().build().execute_with(|| {
 		let mut weight = Migrations::on_runtime_upgrade();
@@ -260,74 +211,9 @@ fn on_runtime_upgrade_charges_minimum_two_db_writes() {
 }
 
 #[test]
-fn only_one_outstanding_test_at_a_time() {
-	let num_migration1_calls = Arc::new(Mutex::new(0usize));
-	let num_migration2_calls = Arc::new(Mutex::new(0usize));
-
-	// create two migrations. the first will return < Perbill::one() until its 3rd step, which
-	// should prevent the second from running. Once it s done, the second should execute.
-
-	crate::mock::execute_with_mock_migrations(
-		&mut |mgr: &mut MockMigrationManager| {
-			let num_migration1_calls = Arc::clone(&num_migration1_calls);
-			let num_migration2_calls = Arc::clone(&num_migration2_calls);
-
-			mgr.register_callback(
-				move || "migration1",
-				move |_| -> Weight {
-					let mut num_migration1_calls = num_migration1_calls.lock().unwrap();
-					*num_migration1_calls += 1;
-
-					// this migration is done on its 3rd step
-					if *num_migration1_calls < 3 {
-						0u64.into()
-					} else {
-						0u64.into()
-					}
-				},
-			);
-
-			mgr.register_callback(
-				move || "migration2",
-				move |_| -> Weight {
-					let mut num_migration2_calls = num_migration2_calls.lock().unwrap();
-					*num_migration2_calls += 1;
-					0u64.into()
-				},
-			);
-		},
-		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				// first pass should invoke migration1 once and not move on to migration2
-				Migrations::on_runtime_upgrade();
-				assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
-				assert_eq!(*num_migration2_calls.lock().unwrap(), 0);
-
-				// second pass should do the same
-				crate::mock::roll_to(2, false);
-				assert_eq!(*num_migration1_calls.lock().unwrap(), 2);
-				assert_eq!(*num_migration2_calls.lock().unwrap(), 0);
-
-				// third pass should invoke both
-				crate::mock::roll_to(3, false);
-				assert_eq!(*num_migration1_calls.lock().unwrap(), 3);
-				assert_eq!(*num_migration2_calls.lock().unwrap(), 1);
-
-				// and both should be done now
-				assert_eq!(Migrations::is_fully_upgraded(), true);
-			});
-		},
-	);
-}
-
-#[test]
 fn overweight_migrations_tolerated() {
 	// pallet-migrations currently tolerates a migration going over-weight. not only does it
 	// tolerate it, but it continues on to the next migration even if it's already overweight.
-	//
-	// Now that the pallet can be configured to not support multi-block migrations, this is sort of
-	// a feature and not really a bug -- this test case exists to explicitly acknowledge/protect
-	// that.
 	//
 	// The logic behind this is that we would rather go over-weight and risk a block taking too long
 	// (which *might* be "catastrophic") than outright prevent migrations from proceeding (which is
@@ -344,9 +230,6 @@ fn overweight_migrations_tolerated() {
 			let num_migration1_calls = Arc::clone(&num_migration1_calls);
 			let num_migration2_calls = Arc::clone(&num_migration2_calls);
 			let num_migration3_calls = Arc::clone(&num_migration3_calls);
-
-			panic!("fix me"); // this is a valid test but needs adapting to no-multi-block-support
-			// mgr.is_multi_block = false;
 
 			mgr.register_callback(
 				move || "migration1",
