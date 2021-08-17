@@ -120,11 +120,7 @@ impl<'test> MockMigrationManager<'test> {
 		self.name_fn_callbacks[index]()
 	}
 
-	pub(crate) fn invoke_migrate_fn(
-		&mut self,
-		index: usize,
-		available_weight: Weight,
-	) -> Weight {
+	pub(crate) fn invoke_migrate_fn(&mut self, index: usize, available_weight: Weight) -> Weight {
 		self.migrate_fn_callbacks[index](available_weight)
 	}
 

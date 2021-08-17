@@ -38,7 +38,7 @@ pub trait Migration {
 	fn friendly_name(&self) -> &str;
 
 	/// Perform the required migration and return the weight consumed.
-	/// 
+	///
 	/// Currently there is no way to migrate across blocks, so this method must (1) perform its full
 	/// migration and (2) not produce a block that has gone over-weight. Not meeting these strict
 	/// constraints will lead to a bricked chain upon a runtime upgrade because the parachain will
@@ -149,13 +149,10 @@ pub mod pallet {
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_done =
-				<MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(false);
+			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(false);
 
-			if ! migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(
-					migration_name_as_bytes.into(),
-				));
+			if !migration_done {
+				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
