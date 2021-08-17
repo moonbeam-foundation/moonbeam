@@ -315,7 +315,6 @@ where
 						disable_stack,
 					} => {
 						if runtime_version.spec_version >= 400 {
-							println!("---------------> IN NEW VERSION");
 							let mut proxy = proxy_v2::raw::RawListener::new(
 								disable_storage,
 								disable_memory,
@@ -324,7 +323,6 @@ where
 							proxy.using(f)?;
 							Ok(proxy.into_tx_trace())
 						} else {
-							println!("---------------> IN OLD VERSION");
 							let mut proxy = proxy_v1::RawProxy::new();
 							if api_version >= 2 {
 								proxy.using(f)?;
