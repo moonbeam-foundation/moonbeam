@@ -879,6 +879,8 @@
 <span id="879">879</span>
 <span id="880">880</span>
 <span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -964,12 +966,14 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">currency</span> {
 	<span class="kw">use</span> <span class="kw">super</span><span class="ident">::Balance</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNIT</span> <span class="op">*</span> <span class="number">1_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLIUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNIT</span> <span class="op">/</span> <span class="number">1_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MICROUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MILLIUNIT</span> <span class="op">/</span> <span class="number">1_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NANOUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MICROUNIT</span> <span class="op">/</span> <span class="number">1_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOWEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MEGAWEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIGAWEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MICROUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLIUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000_000</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>;
@@ -1200,7 +1204,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
 	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
-		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::NANOUNIT</span>).<span class="ident">into</span>()
+		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span>).<span class="ident">into</span>()
 	}
 }
 
