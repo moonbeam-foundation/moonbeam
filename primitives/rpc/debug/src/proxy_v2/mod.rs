@@ -1,17 +1,32 @@
-extern crate alloc;
+// Copyright 2019-2021 PureStake Inc.
+// This file is part of Moonbeam.
 
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+extern crate alloc;
 environmental::environmental!(listener: dyn Listener + 'static);
 
-pub use codec::{Decode, Encode};
-pub use ethereum_types::{H160, H256, U256};
 pub use crate::{
-	CallType,
 	types::{
 		evm_runtime_types::{Capture, ExitReason, Opcode},
-		EvmEvent, GasometerEvent, RuntimeEvent
-	}
+		EvmEvent, GasometerEvent, RuntimeEvent,
+	},
+	CallType,
 };
 use alloc::{vec, vec::Vec};
+pub use codec::{Decode, Encode};
+pub use ethereum_types::{H160, H256, U256};
 
 pub mod raw;
 
@@ -23,8 +38,8 @@ pub trait Listener {
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum Event {
 	Evm(EvmEvent),
-    Gasometer(GasometerEvent),
-    Runtime(RuntimeEvent),
+	Gasometer(GasometerEvent),
+	Runtime(RuntimeEvent),
 }
 
 impl Event {
@@ -45,13 +60,16 @@ pub enum ContextType {
 
 impl ContextType {
 	pub fn from(opcode: Vec<u8>) -> Option<Self> {
-		let bytes: [u8; 1] = [opcode[0]];
-		match u8::from_be_bytes(bytes) {
-			0xF0 | 0xF5 => Some(ContextType::Create),
-			0xF1 => Some(ContextType::Call(CallType::Call)),
-			0xF2 => Some(ContextType::Call(CallType::CallCode)),
-			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
-			0xFA => Some(ContextType::Call(CallType::StaticCall)),
+		let opcode = match alloc::str::from_utf8(&opcode[..]) {
+			Ok(op) => op.to_uppercase(),
+			_ => return None,
+		};
+		match &opcode[..] {
+			"CREATE" | "CREATE2" => Some(ContextType::Create),
+			"CALL" => Some(ContextType::Call(CallType::Call)),
+			"CALLCODE" => Some(ContextType::Call(CallType::CallCode)),
+			"DELEGATECALL" => Some(ContextType::Call(CallType::DelegateCall)),
+			"STATICCALL" => Some(ContextType::Call(CallType::StaticCall)),
 			_ => None,
 		}
 	}

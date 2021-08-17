@@ -29,7 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy_v1, single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{proxy_v1, proxy_v2, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -193,6 +193,10 @@ where
 		let header = client.header(reference_id).unwrap().unwrap();
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		// Runtime version
+		let runtime_version = api
+			.version(&parent_block_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 		// Get `DebugRuntimeApi` version.
 		let api_version = api
 			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
@@ -247,7 +251,8 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
-					if api_version >= 2 {
+					if runtime_version.spec_version >= 400 {
+						// Starting Runtime version 400, we are tracing client side.
 						let _result = api
 							.trace_transaction(
 								&parent_block_id,
@@ -261,52 +266,83 @@ where
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						// TODO handle proxy versioning
-						// we need some enum that covers results for all runtime_interface versions
 						Ok(proxy_v1::Result::V2(proxy_v1::ResultV2::Single))
 					} else {
-						// For versions < 2 block needs to be manually initialized.
-						api.initialize_block(&parent_block_id, &header)
+						// Before Runtime version 400, we need to supporting 2 different iterations
+						// of the tracer. This will be dropped if Alphanet is purged at some point.
+						if api_version >= 2 {
+							let _result = api
+								.trace_transaction(
+									&parent_block_id,
+									&header,
+									ext,
+									&transaction,
+									trace_type,
+								)
+								.map_err(|e| {
+									internal_err(format!("Runtime api access error: {:?}", e))
+								})?
+								.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+							Ok(proxy_v1::Result::V2(proxy_v1::ResultV2::Single))
+						} else {
+							// For versions < 2 block needs to be manually initialized.
+							api.initialize_block(&parent_block_id, &header)
+								.map_err(|e| {
+									internal_err(format!("Runtime api access error: {:?}", e))
+								})?;
+
+							#[allow(deprecated)]
+							let result = api.trace_transaction_before_version_2(
+								&parent_block_id,
+								ext,
+								&transaction,
+								trace_type,
+							)
 							.map_err(|e| {
 								internal_err(format!("Runtime api access error: {:?}", e))
-							})?;
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						#[allow(deprecated)]
-						let result = api.trace_transaction_before_version_2(
-							&parent_block_id,
-							ext,
-							&transaction,
-							trace_type,
-						)
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
-
-						// TODO handle proxy versioning
-						// we need some enum that covers results for all runtime_interface versions
-						Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(result)))
+							Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(result)))
+						}
 					}
 				};
 				return match trace_type {
-					single::TraceType::Raw { .. } => {
-						// TODO handle proxy versioning
-						let mut proxy = proxy_v1::RawProxy::new();
-						if api_version >= 2 {
+					single::TraceType::Raw {
+						disable_storage,
+						disable_memory,
+						disable_stack,
+					} => {
+						if runtime_version.spec_version >= 400 {
+							println!("---------------> IN NEW VERSION");
+							let mut proxy = proxy_v2::raw::RawListener::new(
+								disable_storage,
+								disable_memory,
+								disable_stack,
+							);
 							proxy.using(f)?;
 							Ok(proxy.into_tx_trace())
 						} else {
-							match proxy.using(f) {
-								Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(result))) => {
-									Ok(result)
+							println!("---------------> IN OLD VERSION");
+							let mut proxy = proxy_v1::RawProxy::new();
+							if api_version >= 2 {
+								proxy.using(f)?;
+								Ok(proxy.into_tx_trace())
+							} else {
+								match proxy.using(f) {
+									Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(
+										result,
+									))) => Ok(result),
+									Err(e) => Err(e),
+									_ => Err(internal_err(format!(
+										"Bug: Api and result versions must match"
+									))),
 								}
-								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
 							}
 						}
 					}
 					single::TraceType::CallList { .. } => {
-						// TODO handle proxy versioning
 						let mut proxy = proxy_v1::CallListProxy::new();
 						if api_version >= 2 {
 							proxy.using(f)?;

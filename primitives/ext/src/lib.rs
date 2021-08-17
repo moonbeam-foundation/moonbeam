@@ -33,10 +33,12 @@ use moonbeam_rpc_primitives_debug::{
 	proxy_v1::Event as EventV1,
 	proxy_v2::Event as EventV2,
 	single::{Call, RawStepLog},
+	types::{EvmEvent, GasometerEvent, RuntimeEvent},
 };
 
 #[runtime_interface]
 pub trait MoonbeamExt {
+	// Old format to be deprecated.
 	fn raw_step(&mut self, data: Vec<u8>) {
 		let data: RawStepLog = Decode::decode(&mut &data[..]).unwrap();
 		EventV1::RawStep(data).emit();
@@ -55,17 +57,17 @@ pub trait MoonbeamExt {
 	fn call_list_new(&mut self) {
 		EventV1::CallListNew().emit();
 	}
-
-	// #[version(2)]
-	// fn evm_event(&mut self, data: Vec<u8>) {
-
-	// }
-	// #[version(2)]
-	// fn gasometer_event(&mut self, data: Vec<u8>) {
-
-	// }
-	// #[version(2)]
-	// fn runtime_event(&mut self, data: Vec<u8>) {
-
-	// }
+	// New design, proxy events.
+	fn evm_event(&mut self, event: Vec<u8>) {
+		let event: EvmEvent = Decode::decode(&mut &event[..]).unwrap();
+		EventV2::Evm(event).emit();
+	}
+	fn gasometer_event(&mut self, event: Vec<u8>) {
+		let event: GasometerEvent = Decode::decode(&mut &event[..]).unwrap();
+		EventV2::Gasometer(event).emit();
+	}
+	fn runtime_event(&mut self, event: Vec<u8>) {
+		let event: RuntimeEvent = Decode::decode(&mut &event[..]).unwrap();
+		EventV2::Runtime(event).emit();
+	}
 }

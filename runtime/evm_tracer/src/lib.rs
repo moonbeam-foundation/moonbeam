@@ -19,25 +19,28 @@
 //! The purpose of this crate is enable tracing the EVM opcode execution and will be used by
 //! both Dapp developers - to get a granular view on their transactions - and indexers to access
 //! the EVM callstack (internal transactions).
+//!
+//! Proxies EVM messages to the host functions.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use crate::util::*;
 
 mod call_list;
-mod raw;
 mod util;
 
 pub use call_list::CallListTracer;
 use codec::Encode;
-pub use raw::RawTracer;
 pub use util::{EvmListener, GasometerListener, RuntimeListener};
 
 use moonbeam_rpc_primitives_debug::types::{EvmEvent, GasometerEvent, RuntimeEvent};
 
-pub struct EvmTracer {}
+pub struct EvmTracer;
 
 impl EvmTracer {
+	pub fn new() -> Self {
+		Self
+	}
 	/// Setup event listeners and execute provided closure.
 	///
 	/// Consume the tracer and return it alongside the return value of
@@ -57,31 +60,28 @@ impl EvmTracer {
 		let f = || evm_using(&mut evm, f);
 		f();
 	}
-
-	/// Each extrinsic represents a Call stack in the host and thus a block - a collection of
-	/// extrinsics - is a "stack of Call stacks" `Vec<BTree<u32, Call>>`.
-	pub fn emit_new() {
-		moonbeam_primitives_ext::moonbeam_ext::call_list_new();
-	}
 }
 
 impl EvmListener for EvmTracer {
 	fn event(&mut self, event: evm::tracing::Event) {
 		let event: EvmEvent = event.into();
-		let _message = event.encode();
+		let message = event.encode();
+		moonbeam_primitives_ext::moonbeam_ext::evm_event(message);
 	}
 }
 
 impl GasometerListener for EvmTracer {
 	fn event(&mut self, event: evm_gasometer::tracing::Event) {
 		let event: GasometerEvent = event.into();
-		let _message = event.encode();
+		let message = event.encode();
+		moonbeam_primitives_ext::moonbeam_ext::gasometer_event(message);
 	}
 }
 
 impl RuntimeListener for EvmTracer {
 	fn event(&mut self, event: evm_runtime::tracing::Event) {
 		let event: RuntimeEvent = event.into();
-		let _message = event.encode();
+		let message = event.encode();
+		moonbeam_primitives_ext::moonbeam_ext::runtime_event(message);
 	}
 }

@@ -1,18 +1,27 @@
+// Copyright 2019-2021 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 extern crate alloc;
-
-environmental::environmental!(listener: dyn Listener + 'static);
 use super::{
-	H160, H256, U256, Event, GasometerEvent, RuntimeEvent, Listener, ContextType, convert_memory,
-	Capture, ExitReason, Opcode, Encode, Decode, opcodes_string
+	convert_memory, opcodes_string, Capture, ContextType, Decode, Encode, Event, ExitReason,
+	GasometerEvent, Listener, Opcode, RuntimeEvent, H160, H256, U256,
 };
-use alloc::{
-	collections::btree_map::BTreeMap,
-	vec, vec::Vec
-};
+use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use crate::{
-	single::{RawStepLog, TransactionTrace as SingleTrace},
-};
+use crate::single::{RawStepLog, TransactionTrace as SingleTrace};
 
 #[derive(Debug)]
 pub struct RawListener {
@@ -71,7 +80,7 @@ impl RawListener {
 	}
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		listener::using(self, f)
+		super::listener::using(self, f)
 	}
 
 	pub fn into_tx_trace(self) -> SingleTrace {
@@ -281,7 +290,7 @@ impl Listener for RawListener {
 	fn event(&mut self, event: Event) {
 		match event {
 			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),
-			// Event::Runtime(runtime_event) => self.gas = gas,
+			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
 			_ => {}
 		};
 	}

@@ -97,7 +97,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
+					use moonbeam_evm_tracer::{CallListTracer, EvmTracer};
 					use moonbeam_rpc_primitives_debug::single::TraceType;
 
 					// Explicit initialize.
@@ -111,16 +111,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							Call::Ethereum(transact(t)) => {
 								if t == transaction {
 									match trace_type {
-										TraceType::Raw {
-											disable_storage,
-											disable_memory,
-											disable_stack,
-										} => {
-											RawTracer::new(
-												disable_storage,
-												disable_memory,
-												disable_stack,
-											).trace(|| Executive::apply_extrinsic(ext));
+										TraceType::Raw { .. } => {
+											EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										},
 										TraceType::CallList => {
 											CallListTracer::default()
