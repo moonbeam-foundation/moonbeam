@@ -16,24 +16,23 @@
 
 //! # Migrations
 
-use frame_support::{pallet_prelude::Get, weights::Weight};
+use frame_support::pallet_prelude::Get;
 use pallet_migrations::Migration;
-use sp_runtime::Perbill;
 use sp_std::prelude::*;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
+/*
+ * These are left as examples.
 #[allow(non_camel_case_types)]
 pub struct MM_001_AuthorMappingAddDeposit;
 impl Migration for MM_001_AuthorMappingAddDeposit {
 	fn friendly_name(&self) -> &str {
 		"AuthorMappingAddDeposit"
 	}
-	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
-		// reviewer note: this isn't meant to imply that migration code must live here. As noted
-		// elsewhere, I would expect migration code to live close to the pallet it affects.
-		(Perbill::one(), 0u64.into())
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		0u64.into()
 	}
 }
 
@@ -43,8 +42,8 @@ impl Migration for MM_002_StakingFixTotalBalance {
 	fn friendly_name(&self) -> &str {
 		"StakingFixTotalBalance"
 	}
-	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
-		(Perbill::one(), 0u64.into())
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		0u64.into()
 	}
 }
 
@@ -54,10 +53,11 @@ impl Migration for MM_003_StakingUnboundedCollatorNominations {
 	fn friendly_name(&self) -> &str {
 		"StakingUnboundedCollatorNominations"
 	}
-	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
-		(Perbill::one(), 0u64.into())
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		0u64.into()
 	}
 }
+*/
 
 pub struct CommonMigrations;
 impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
@@ -65,9 +65,11 @@ impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 		vec![
+			/*
 			Box::new(MM_001_AuthorMappingAddDeposit),
 			Box::new(MM_002_StakingFixTotalBalance),
 			Box::new(MM_003_StakingUnboundedCollatorNominations),
+			*/
 		]
 	}
 }
