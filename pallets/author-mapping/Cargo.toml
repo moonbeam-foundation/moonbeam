@@ -1,6 +1,6 @@
 [package]
 name = "pallet-author-mapping"
-version = "2.0.1"
+version = "2.0.3"
 authors = ["PureStake"]
 edition = "2018"
 description = "Maps AuthorIds to AccountIds Useful for associating consensus authors with in-runtime accounts"
@@ -14,6 +14,7 @@ parity-scale-codec = { version="2.0.0", default-features=false, features=["deriv
 serde = { version="1.0.101", optional=true }
 sp-std = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false }
 sp-runtime = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false, optional = true }
 
 [dev-dependencies]
 sp-io = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
@@ -31,4 +32,6 @@ std = [
 	"serde",
 	"sp-std/std",
 	"sp-runtime/std",
+	"frame-benchmarking/std",
 ]
+runtime-benchmarks = ["frame-benchmarking"]

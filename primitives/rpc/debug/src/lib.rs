@@ -25,7 +25,21 @@ use sp_std::vec::Vec;
 use serde::Serialize;
 
 sp_api::decl_runtime_apis! {
+	#[api_version(2)]
 	pub trait DebugRuntimeApi {
+
+		#[changed_in(2)]
+		fn trace_transaction(
+			extrinsics: Vec<Block::Extrinsic>,
+			transaction: &Transaction,
+			trace_type: single::TraceType,
+		) -> Result<single::TransactionTrace, sp_runtime::DispatchError>;
+
+		#[changed_in(2)]
+		fn trace_block(
+			extrinsics: Vec<Block::Extrinsic>,
+		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
+
 		fn trace_transaction(
 			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,

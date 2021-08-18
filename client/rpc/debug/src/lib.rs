@@ -31,7 +31,7 @@ use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -193,6 +193,16 @@ where
 		let header = client.header(reference_id).unwrap().unwrap();
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		// Get `DebugRuntimeApi` version.
+		let api_version = api
+			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+			.ok_or_else(|| {
+				internal_err(format!(
+					"Could not find `DebugRuntimeApi` at {:?}.",
+					parent_block_id
+				))
+			})?;
 
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
@@ -237,24 +247,80 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
-					client
-						.runtime_api()
-						.trace_transaction(&parent_block_id, &header, ext, &transaction, trace_type)
+					if api_version >= 2 {
+						let _result = api
+							.trace_transaction(
+								&parent_block_id,
+								&header,
+								ext,
+								&transaction,
+								trace_type,
+							)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+						Ok(proxy::Result::V2(proxy::ResultV2::Single))
+					} else {
+						// For versions < 2 block needs to be manually initialized.
+						api.initialize_block(&parent_block_id, &header)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?;
+
+						#[allow(deprecated)]
+						let result = api.trace_transaction_before_version_2(
+							&parent_block_id,
+							ext,
+							&transaction,
+							trace_type,
+						)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+						Ok(proxy::Result::V1(proxy::ResultV1::Single(result)))
+					}
 				};
-				return Ok(match trace_type {
+				return match trace_type {
 					single::TraceType::Raw { .. } => {
 						let mut proxy = proxy::RawProxy::new();
-						proxy.using(f);
-						proxy.into_tx_trace()
+						if api_version >= 2 {
+							proxy.using(f)?;
+							Ok(proxy.into_tx_trace())
+						} else {
+							match proxy.using(f) {
+								Ok(proxy::Result::V1(proxy::ResultV1::Single(result))) => {
+									Ok(result)
+								}
+								Err(e) => Err(e),
+								_ => Err(internal_err(format!(
+									"Bug: Api and result versions must match"
+								))),
+							}
+						}
 					}
 					single::TraceType::CallList { .. } => {
 						let mut proxy = proxy::CallListProxy::new();
-						proxy.using(f);
-						proxy.into_tx_trace()
+						if api_version >= 2 {
+							proxy.using(f)?;
+							proxy
+								.into_tx_trace()
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))
+						} else {
+							match proxy.using(f) {
+								Ok(proxy::Result::V1(proxy::ResultV1::Single(result))) => {
+									Ok(result)
+								}
+								Err(e) => Err(e),
+								_ => Err(internal_err(format!(
+									"Bug: Api and result versions must match"
+								))),
+							}
+						}
 					}
-				});
+				};
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))

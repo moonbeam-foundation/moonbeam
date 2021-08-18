@@ -82,16 +82,20 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROGLMR: Balance = 1_000_000_000_000;
+	pub const MILLIGLMR: Balance = 1_000_000_000_000_000;
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMR: Balance = GLMR * 1_000;
-	pub const MILLIGLMR: Balance = GLMR / 1_000;
-	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
-	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
+	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROGLMR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * GLMR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -130,7 +134,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 0155,
+	spec_version: 0300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -271,7 +275,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -331,7 +335,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMR).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
@@ -352,6 +356,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -362,6 +367,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -426,13 +432,13 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
 	pub const VotingPeriod: BlockNumber = 5 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MinimumDeposit: Balance = 4 * currency::GLMR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 
@@ -546,7 +552,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -572,8 +577,14 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 10;
 	/// Default BlocksPerRound is every hour (300 * 12 second block times)
 	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)
-	pub const BondDuration: u32 = 2;
+	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveCandidatesDelay: u32 = 2;
+	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveNominatorsDelay: u32 = 2;
+	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
+	pub const RevokeNominationDelay: u32 = 2;
+	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
@@ -597,7 +608,10 @@ impl parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
-	type BondDuration = BondDuration;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
@@ -653,9 +667,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
-	}
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

@@ -82,16 +82,20 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROUNIT: Balance = 1_000_000_000_000;
+	pub const MILLIUNIT: Balance = 1_000_000_000_000_000;
 	pub const UNIT: Balance = 1_000_000_000_000_000_000;
-	pub const KILOUNIT: Balance = UNIT * 1_000;
-	pub const MILLIUNIT: Balance = UNIT / 1_000;
-	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
-	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
+	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -129,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0155,
+	spec_version: 0300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -256,7 +260,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -316,7 +320,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOUNIT).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
@@ -337,6 +341,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -347,6 +352,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -417,7 +423,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
@@ -542,7 +548,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -568,8 +573,14 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 10;
 	/// Default BlocksPerRound is every hour (300 * 12 second block times)
 	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)
-	pub const BondDuration: u32 = 2;
+	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveCandidatesDelay: u32 = 2;
+	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveNominatorsDelay: u32 = 2;
+	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
+	pub const RevokeNominationDelay: u32 = 2;
+	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
@@ -593,7 +604,10 @@ impl parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
-	type BondDuration = BondDuration;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
@@ -649,9 +663,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
-	}
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -760,31 +772,31 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
+		Utility: pallet_utility::{Pallet, Call, Event} = 1,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 11,
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 17,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 19,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
 	}
 }
 

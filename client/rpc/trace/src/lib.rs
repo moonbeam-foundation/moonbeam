@@ -40,7 +40,7 @@ use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -798,6 +798,17 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
+		// Get `DebugRuntimeApi` version.
+		let api_version = api
+			.api_version::<dyn DebugRuntimeApi<B>>(&substrate_parent_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+			.ok_or_else(|| {
+				internal_err(format!(
+					"Could not find `DebugRuntimeApi` at {:?}.",
+					substrate_parent_id
+				))
+			})?;
+
 		// Get Ethereum block data.
 		let (eth_block, _, eth_transactions) = api
 			.current_all(&BlockId::Hash(substrate_hash))
@@ -839,57 +850,95 @@ where
 
 		// Trace the block.
 		let f = || {
-			api.trace_block(&substrate_parent_id, &block_header, extrinsics)
-				.map_err(|e| {
-					internal_err(format!(
-						"Blockchain error when replaying block {} : {:?}",
-						height, e
-					))
-				})?
-				.map_err(|e| {
-					tracing::warn!(
-						"Internal runtime error when replaying block {} : {:?}",
-						height,
-						e
-					);
-					internal_err(format!(
-						"Internal runtime error when replaying block {} : {:?}",
-						height, e
-					))
-				})
+			if api_version >= 2 {
+				let _result = api
+					.trace_block(&substrate_parent_id, &block_header, extrinsics)
+					.map_err(|e| {
+						internal_err(format!(
+							"Blockchain error when replaying block {} : {:?}",
+							height, e
+						))
+					})?
+					.map_err(|e| {
+						tracing::warn!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height,
+							e
+						);
+						internal_err(format!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height, e
+						))
+					})?;
+				Ok(proxy::Result::V2(proxy::ResultV2::Block))
+			} else {
+				// For versions < 2 block needs to be manually initialized.
+				api.initialize_block(&substrate_parent_id, &block_header)
+					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
+				#[allow(deprecated)]
+				let result = api.trace_block_before_version_2(&substrate_parent_id, extrinsics)
+					.map_err(|e| {
+						internal_err(format!(
+							"Blockchain error when replaying block {} : {:?}",
+							height, e
+						))
+					})?
+					.map_err(|e| {
+						tracing::warn!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height,
+							e
+						);
+						internal_err(format!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height, e
+						))
+					})?;
+				Ok(proxy::Result::V1(proxy::ResultV1::Block(result)))
+			}
 		};
 
 		let mut proxy = proxy::CallListProxy::new();
-		proxy.using(f);
-		let mut traces: Vec<_> = proxy.into_tx_traces();
 
-		// Fill missing data.
-		for trace in traces.iter_mut() {
-			trace.block_hash = eth_block_hash;
-			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position as usize)
-				.ok_or_else(|| {
-					tracing::warn!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					);
+		if api_version >= 2 {
+			proxy.using(f)?;
+			let mut traces: Vec<_> = proxy.into_tx_traces();
+			// Fill missing data.
+			for trace in traces.iter_mut() {
+				trace.block_hash = eth_block_hash;
+				trace.block_number = height;
+				trace.transaction_hash = eth_transactions
+					.get(trace.transaction_position as usize)
+					.ok_or_else(|| {
+						tracing::warn!(
+							"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+							height
+						);
 
-					internal_err(format!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					))
-				})?
-				.transaction_hash;
+						internal_err(format!(
+							"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+							height
+						))
+					})?
+					.transaction_hash;
 
-			// Reformat error messages.
-			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
-				if error.as_slice() == b"execution reverted" {
-					*error = b"Reverted".to_vec();
+				// Reformat error messages.
+				if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
+					if error.as_slice() == b"execution reverted" {
+						*error = b"Reverted".to_vec();
+					}
 				}
 			}
+			Ok(traces)
+		} else {
+			match proxy.using(f) {
+				Ok(proxy::Result::V1(proxy::ResultV1::Block(result))) => Ok(result),
+				Err(e) => Err(e),
+				_ => Err(internal_err(format!(
+					"Bug: Api and result versions must match"
+				))),
+			}
 		}
-
-		Ok(traces)
 	}
 }

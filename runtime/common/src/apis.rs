@@ -220,7 +220,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					Ethereum::find_author()
+					<pallet_evm::Module<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -317,6 +317,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_transaction_statuses(),
 					)
 				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.function {
+						Call::Ethereum(transact(t)) => Some(t),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
+				}
 			}
 
 			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
@@ -379,6 +388,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					let whitelist: Vec<TrackedStorageKey> = vec![];
 
 					let mut batches = Vec::<BenchmarkBatch>::new();
@@ -396,12 +406,27 @@ macro_rules! impl_runtime_apis_plus_common {
 					// 	pallet_crowdloan_rewards,
 					// 	PalletCrowdloanRewardsBench::<Runtime>
 					// );
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_mapping,
+						PalletAuthorMappingBench::<Runtime>
+					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());
 					}
 					Ok(batches)
+				}
+			}
+
+			#[cfg(feature = "try-runtime")]
+			impl frame_try_runtime::TryRuntime<Block> for Runtime {
+				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+					log::info!("try-runtime::on_runtime_upgrade()");
+					let weight = Executive::try_runtime_upgrade()?;
+					Ok((weight, BlockWeights::get().max_block))
 				}
 			}
 		}

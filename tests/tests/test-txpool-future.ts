@@ -35,6 +35,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
       from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0x100000",
       gasPrice: "0x3b9aca00",
+      hash: txHash,
       nonce: context.web3.utils.toHex(1),
       to: "0x0000000000000000000000000000000000000000",
       value: "0x0",

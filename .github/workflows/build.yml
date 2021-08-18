@@ -25,6 +25,7 @@ jobs:
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
+      polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -42,6 +43,8 @@ jobs:
         run: |
           echo ::set-output name=sha::$(git log -1 --format="%H")
           echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
+          echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
+            head -1 | sed 's/.*#//' |  cut -c1-8)
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -119,13 +122,51 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
+  check-rust-fmt:
+    name: "Check with rustfmt"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
+
+  ####### Preparing polkadot binary for parachain tests #######
+
+  prepare-polkadot:
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Check & build polkadot docker image
+        run: |
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          POLKADOT_EXISTS=docker manifest inspect $DOCKER_TAG > /dev/null && \
+            echo "true" || echo "false"
+          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+            # $POLKADOT_COMMIT is used to build the relay image
+            ./scripts/build-alphanet-relay-image.sh
+            docker push $DOCKER_TAG
+          fi
+
   ####### Building and Testing binaries #######
 
   build:
     runs-on: self-hosted
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      CARGO_SCCACHE_COMMIT: 90e1dc81
       RUSTFLAGS: "-C opt-level=3"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
@@ -138,8 +179,8 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/cache@v2
         with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
 
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
@@ -147,17 +188,20 @@ jobs:
         run: rustup show
       - name: SCCache
         run: |
-          # Must use purestake version to support SUBSTRATE_ env (for binary version matching git hash)
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/purestake/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          # We altered the path to avoid old actions to overwrite it
+          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
+          if [ ! -f $SCCACHE_BIN ]; then
+            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
           fi
-          ls -la ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          ls -la $SCCACHE_BIN
+          ps aux | grep sccache
           if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+            chmod +x $SCCACHE_BIN
+            $SCCACHE_BIN --start-server
           fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
+          $SCCACHE_BIN -s
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
@@ -167,12 +211,12 @@ jobs:
           cargo build --release --all
       - name: Verify node version
         run: |
-          git log -1 --format="%H"
-          ./target/release/moonbeam --version
+          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+          MB_VERSION=`./target/release/moonbeam --version`
+          echo "Checking $MB_VERSION contains $GIT_COMMIT"
+          echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
         run: cargo test --release --all
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
@@ -237,12 +281,48 @@ jobs:
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
 
+  typescript-para-tests:
+    runs-on: self-hosted
+    needs: ["set-tags", "build", "prepare-polkadot"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Retrieve polkadot
+        run: |
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          docker create -ti --name dummy $DOCKER_TAG bash
+          docker cp dummy:/usr/local/bin/polkadot build/polkadot
+          docker rm -f dummy
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Typescript integration tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam
+          RELAY_BINARY_PATH: ../build/polkadot
+        run: |
+          chmod uog+x build/polkadot
+          chmod uog+x build/moonbeam
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
+          npm install
+          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
+
   ####### Prepare and Deploy Docker images #######
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: ["build", "typescript-tests"]
+    needs: ["build", "typescript-tests", "typescript-para-tests"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
