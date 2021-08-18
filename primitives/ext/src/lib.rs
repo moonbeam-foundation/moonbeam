@@ -76,7 +76,7 @@ pub trait MoonbeamExt {
 		let event: RuntimeEvent = Decode::decode(&mut &event[..]).unwrap();
 		EventV2::Runtime(event).emit();
 	}
-	/// An event to create a new CallList (currently a new transaction when tracing a block). 
+	/// An event to create a new CallList (currently a new transaction when tracing a block).
 	#[version(2)]
 	fn call_list_new(&mut self) {
 		EventV2::CallListNew().emit();
