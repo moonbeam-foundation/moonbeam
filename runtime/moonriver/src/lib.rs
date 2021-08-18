@@ -532,13 +532,24 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BasicDeposit: Balance = 1 * currency::MILLIMOVR;
-	pub const FieldDeposit: Balance = 1 * currency::MILLIMOVR;
-	pub const SubAccountDeposit: Balance = 1 * currency::MILLIMOVR;
-	pub const MaxSubAccounts: u32 = 5;
-	pub const MaxAdditionalFields: u32 = 5;
-	pub const MaxRegistrars: u32 = 5;
+	pub const BasicDeposit: Balance = currency::deposit(1, 246);
+	pub const FieldDeposit: Balance = currency::deposit(0, 66);
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 41);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
 }
+
+type IdentityForceOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+type IdentityRegistrarOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
 
 impl pallet_identity::Config for Runtime {
 	type Event = Event;
@@ -550,8 +561,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type RegistrarOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = IdentityForceOrigin;
+	type RegistrarOrigin = IdentityRegistrarOrigin;
 	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }
 
