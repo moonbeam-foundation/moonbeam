@@ -1477,8 +1477,8 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
 	<span class="doccomment">/// Minimum stake required to become a collator is 1_000</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span>;
-	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate is 100</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
+	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate is 1_000</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
 }
