@@ -820,7 +820,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event} = 23,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
 	}
 }
 

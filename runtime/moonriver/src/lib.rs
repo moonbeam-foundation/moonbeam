@@ -809,7 +809,7 @@ construct_runtime! {
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event} = 32,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
 
 		// Sudo was previously index 40
 
