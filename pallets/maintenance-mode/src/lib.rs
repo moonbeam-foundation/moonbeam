@@ -37,7 +37,7 @@
 //! switch back to normal mode after a pre-decided number of blocks. Maybe there could be an
 //! extrinsic to extend the maintenance time.
 //!
-//! 5. Let the runtime developer configure which pallets' on init and on _finalize hooks get called
+//! 5. Let the runtime developer configure which pallets' on_initialize and on_finalize hooks get called
 //! This would allow to determine whether eg staking elections should still occur and
 //! democracy referenda still mature
 
