@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call as OuterCall, ExtBuilder, Origin, Test};
+use crate::mock::{events, Call as OuterCall, ExtBuilder, Origin, Test};
 use crate::{Call, Error, Event};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;
@@ -45,7 +45,7 @@ fn can_enter_maintenance_mode() {
 		let call: OuterCall = Call::enter_maintenance_mode().into();
 		assert_ok!(call.dispatch(Origin::root()));
 
-		//TODO test events?
+		assert_eq!(events(), vec![Event::EnteredMaintenanceMode,]);
 	})
 }
 
@@ -83,7 +83,7 @@ fn can_resume_normal_operation() {
 			let call: OuterCall = Call::resume_normal_operation().into();
 			assert_ok!(call.dispatch(Origin::root()));
 
-			//TODO test events?
+			assert_eq!(events(), vec![Event::NormalOperationResumed,]);
 		})
 }
 
