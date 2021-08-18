@@ -17,7 +17,8 @@
 //! Unit testing
 use crate::mock::{Call, ExtBuilder, MaintenanceMode, Origin, System};
 use crate::Event;
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
+use sp_runtime::DispatchError;
 
 #[test]
 fn can_remark_during_normal_operation() {
@@ -29,12 +30,13 @@ fn can_remark_during_normal_operation() {
 
 #[test]
 fn cannot_remark_during_maintenance_mode() {
-	ExtBuilder::default().build().execute_with(|| {
-		let call: Call = frame_system::Call::remark(vec![]).into();
-
-		//TODO test for the right error
-		todo!()
-	})
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			let call: Call = frame_system::Call::remark(vec![]).into();
+			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+		})
 }
 
 #[test]

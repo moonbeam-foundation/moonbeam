@@ -42,7 +42,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event},
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event, Config},
 	}
 );
 
@@ -95,23 +95,36 @@ impl Config for Test {
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
-/// This one is trivial, but I'll follow the builder pattern as in the rest of our pallets anyway.
-pub(crate) struct ExtBuilder;
-//TODO Actually, I should have one for whether we're in maintenance mode or not. I wonder whether
-// that should be in a genesis config. I guess it should. It seems reasonable to start a chain in
-// maintenance mode.
+pub(crate) struct ExtBuilder {
+	maintenance_mode: bool,
+}
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder
+		ExtBuilder {
+			maintenance_mode: false,
+		}
 	}
 }
 
 impl ExtBuilder {
+	pub(crate) fn with_maintenance_mode(mut self, m: bool) -> Self {
+		self.maintenance_mode = m;
+		self
+	}
+
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let t = frame_system::GenesisConfig::default()
+		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
+
+		GenesisBuild::<Test>::assimilate_storage(
+			&pallet_maintenance_mode::GenesisConfig {
+				start_in_maintenance_mode: self.maintenance_mode,
+			},
+			&mut t,
+		)
+		.expect("Pallet matinenance mode storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));

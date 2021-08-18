@@ -134,6 +134,23 @@ pub mod pallet {
 		}
 	}
 
+	#[derive(Default)]
+	#[pallet::genesis_config]
+	/// Genesis config for maintenance mode pallet
+	pub struct GenesisConfig {
+		/// Whether to launch in maintenance mode
+		pub start_in_maintenance_mode: bool,
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			if self.start_in_maintenance_mode {
+				MaintenanceMode::<T>::put(true);
+			}
+		}
+	}
+
 	impl<T: Config> Filter<T::Call> for Pallet<T> {
 		fn filter(call: &T::Call) -> bool {
 			if MaintenanceMode::<T>::get() {
