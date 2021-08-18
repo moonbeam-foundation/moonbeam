@@ -842,10 +842,6 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			<DelayNominationExitsMigration<T>>::kill();
-			0
-		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -876,11 +872,6 @@ pub mod pallet {
 			}
 		}
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn delay_nomination_exits_migration)]
-	/// DEPRECATED
-	type DelayNominationExitsMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]

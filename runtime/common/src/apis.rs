@@ -398,6 +398,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					Ok(batches)
 				}
 			}
+
+			#[cfg(feature = "try-runtime")]
+			impl frame_try_runtime::TryRuntime<Block> for Runtime {
+				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+					log::info!("try-runtime::on_runtime_upgrade()");
+					let weight = Executive::try_runtime_upgrade()?;
+					Ok((weight, BlockWeights::get().max_block))
+				}
+			}
 		}
 	};
 }

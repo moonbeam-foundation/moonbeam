@@ -20,7 +20,6 @@ dependencies = [
  "hex",
  "libsecp256k1 0.3.5",
  "log",
- "pallet-evm",
  "parity-scale-codec",
  "serde",
  "sha3 0.8.2",
@@ -1378,6 +1377,7 @@ dependencies = [
  "frame-system",
  "log",
  "max-encoded-len",
+ "num_enum",
  "pallet-balances",
  "pallet-crowdloan-rewards",
  "pallet-evm",
@@ -2107,8 +2107,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2126,8 +2125,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908739da31125d17a69533c290a6c818b494176e59a2ce8accbf122f7d76835c"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2138,8 +2136,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2150,8 +2147,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2211,12 +2207,6 @@ name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
-
-[[package]]
-name = "faster-hex"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b02a61fea82de8484f9d7ce99b698b0e190ef8de71035690a961a43d7b18a2ad"
 
 [[package]]
 name = "fastrand"
@@ -4910,6 +4900,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "max-encoded-len",
@@ -4947,6 +4938,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -5017,7 +5009,6 @@ dependencies = [
  "account",
  "libsecp256k1 0.3.5",
  "primitive-types",
- "sc-cli",
  "sha3 0.8.2",
  "sp-runtime",
  "structopt",
@@ -5275,6 +5266,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -5465,6 +5457,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -5808,6 +5801,27 @@ checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 dependencies = [
  "hermit-abi",
  "libc",
+]
+
+[[package]]
+name = "num_enum"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee2c8fd66061a707503d515639b8af10fd3807a5b5ee6959f7ff1bd303634bd5"
+dependencies = [
+ "derivative",
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "474fd1d096da3ad17084694eebed40ba09c4a36c5255cd772bd8b98859cc562e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -6775,18 +6789,25 @@ dependencies = [
 name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
+ "derive_more",
  "evm",
  "frame-support",
  "frame-system",
- "hex",
  "log",
+ "max-encoded-len",
+ "num_enum",
+ "pallet-balances",
  "pallet-evm",
+ "pallet-timestamp",
  "parachain-staking",
  "parity-scale-codec",
  "precompile-utils",
  "rustc-hex",
+ "serde",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -8296,12 +8317,24 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "num_enum",
  "pallet-evm",
  "parity-scale-codec",
- "slices",
+ "precompile-utils-macro",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
  "sp-std",
+]
+
+[[package]]
+name = "precompile-utils-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "sha3 0.8.2",
+ "syn",
 ]
 
 [[package]]
@@ -10606,18 +10639,6 @@ name = "slab"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f173ac3d1a7e3b28003f40de0b5ce7fe2710f9b9dc3fc38664cebee46b3b6527"
-
-[[package]]
-name = "slices"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2086e458a369cdca838e9f6ed04b4cc2e3ce636d99abb80c9e2eada107749cf"
-dependencies = [
- "faster-hex",
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "slog"
