@@ -92,6 +92,15 @@ pub mod pallet {
 		NormalOperationResumed,
 	}
 
+	/// An error that can occur while executing this pallet's extrinsics.
+	#[pallet::error]
+	pub enum Error<T> {
+		/// The chain cannot enter maintenance mode because it is already in maintenance mode
+		AlreadyInMaintenanceMode,
+		/// The chain cannot resume normal operation because it is not in maintenance mode
+		NotInMaintenanceMode,
+	}
+
 	#[pallet::storage]
 	#[pallet::getter(fn maintenance_mode)]
 	/// Whether the site is in maintenance mode
@@ -101,11 +110,21 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Place the chain in maintenance mode
 		///
-		/// Weight cost is two DB writes (1 for the mode and 1 for the event)
+		/// Weight cost is:
+		/// * One DB read to ensure we're not already in maintenance mode
+		/// * Two DB writes - 1 for the mode and 1 for the event
 		#[pallet::weight(2 * T::DbWeight::get().write)]
 		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
+
+			// Ensure we're not aleady in maintenance mode.
+			// This test is not strictly necessary, but seeing the error may help a confused chain
+			// operator during an emergency
+			ensure!(
+				!MaintenanceMode::<T>::get(),
+				Error::<T>::AlreadyInMaintenanceMode
+			);
 
 			// Write to storage
 			MaintenanceMode::<T>::put(true);
@@ -118,11 +137,21 @@ pub mod pallet {
 
 		/// Return the chain to normal operating mode
 		///
-		/// Weight cost is two DB writes (1 for the mode and 1 for the event)
+		/// Weight cost is:
+		/// * One DB read to ensure we're in maintenance mode
+		/// * Two DB writes - 1 for the mode and 1 for the event
 		#[pallet::weight(2 * T::DbWeight::get().write)]
 		pub fn resume_normal_operation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
+
+			// Ensure we're actually in maintenance mode.
+			// This test is not strictly necessary, but seeing the error may help a confused chain
+			// operator during an emergency
+			ensure!(
+				MaintenanceMode::<T>::get(),
+				Error::<T>::NotInMaintenanceMode
+			);
 
 			// Write to storage
 			MaintenanceMode::<T>::put(false);

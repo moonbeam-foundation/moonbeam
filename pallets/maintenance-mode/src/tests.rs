@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, System};
-use crate::{Call, Event};
+use crate::mock::{Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, System, Test};
+use crate::{Call, Event, Error};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;
 
@@ -60,6 +60,17 @@ fn can_enter_maintenance_mode_from_wrong_origin() {
 
 #[test]
 fn cannot_enter_maintenance_mode_when_already_in_it() {
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			let call: OuterCall = Call::enter_maintenance_mode().into();
+			assert_noop!(call.dispatch(Origin::root()), Error::<Test>::AlreadyInMaintenanceMode);
+		})
+}
+
+#[test]
+fn can_resume_normal_operation() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: OuterCall = Call::enter_maintenance_mode().into();
 		assert_ok!(call.dispatch(Origin::root()));
@@ -67,7 +78,7 @@ fn cannot_enter_maintenance_mode_when_already_in_it() {
 }
 
 #[test]
-fn can_resume_normal_operation() {
+fn cannot_resume_normal_operation_from_wrong_origin() {
 	todo!()
 }
 
