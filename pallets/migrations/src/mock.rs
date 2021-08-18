@@ -45,7 +45,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>},
 	}
 );
 
@@ -216,11 +216,12 @@ impl ExtBuilder {
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_migrations::GenesisConfig::<Test> {
-			completed_migrations: self.completed_migrations,
-			phantom: Default::default(),
-		}
-		.assimilate_storage(&mut t)
+		GenesisBuild::<Test>::assimilate_storage(
+			&pallet_migrations::GenesisConfig {
+				completed_migrations: self.completed_migrations,
+			},
+			&mut t,
+		)
 		.expect("Pallet migration's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);

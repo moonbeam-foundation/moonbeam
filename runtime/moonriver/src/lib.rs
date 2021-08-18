@@ -834,7 +834,7 @@ construct_runtime! {
 
 		// Crowdloan stuff.
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
-		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>},
 	}
 }
 
