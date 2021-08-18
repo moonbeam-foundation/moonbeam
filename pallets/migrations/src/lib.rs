@@ -114,7 +114,7 @@ pub mod pallet {
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, OptionQuery>;
+	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
@@ -139,7 +139,7 @@ pub mod pallet {
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(false);
+			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
 				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
