@@ -15,15 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call, ExtBuilder, MaintenanceMode, Origin, System};
-use crate::Event;
+use crate::mock::{Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, System};
+use crate::{Call, Event};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;
 
 #[test]
 fn can_remark_during_normal_operation() {
 	ExtBuilder::default().build().execute_with(|| {
-		let call: Call = frame_system::Call::remark(vec![]).into();
+		let call: OuterCall = frame_system::Call::remark(vec![]).into();
 		assert_ok!(call.dispatch(Origin::signed(1)));
 	})
 }
@@ -34,19 +34,36 @@ fn cannot_remark_during_maintenance_mode() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: Call = frame_system::Call::remark(vec![]).into();
+			let call: OuterCall = frame_system::Call::remark(vec![]).into();
 			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
 		})
 }
 
 #[test]
 fn can_enter_maintenance_mode() {
-	todo!()
+	ExtBuilder::default().build().execute_with(|| {
+		let call: OuterCall = Call::enter_maintenance_mode().into();
+		assert_ok!(call.dispatch(Origin::root()));
+	})
+}
+
+#[test]
+fn can_enter_maintenance_mode_from_wrong_origin() {
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			let call: OuterCall = Call::enter_maintenance_mode().into();
+			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+		})
 }
 
 #[test]
 fn cannot_enter_maintenance_mode_when_already_in_it() {
-	todo!()
+	ExtBuilder::default().build().execute_with(|| {
+		let call: OuterCall = Call::enter_maintenance_mode().into();
+		assert_ok!(call.dispatch(Origin::root()));
+	})
 }
 
 #[test]
