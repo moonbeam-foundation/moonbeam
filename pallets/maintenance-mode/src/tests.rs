@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, System, Test};
-use crate::{Call, Event, Error};
+use crate::{Call, Error, Event};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;
 
@@ -65,24 +65,42 @@ fn cannot_enter_maintenance_mode_when_already_in_it() {
 		.build()
 		.execute_with(|| {
 			let call: OuterCall = Call::enter_maintenance_mode().into();
-			assert_noop!(call.dispatch(Origin::root()), Error::<Test>::AlreadyInMaintenanceMode);
+			assert_noop!(
+				call.dispatch(Origin::root()),
+				Error::<Test>::AlreadyInMaintenanceMode
+			);
 		})
 }
 
 #[test]
 fn can_resume_normal_operation() {
-	ExtBuilder::default().build().execute_with(|| {
-		let call: OuterCall = Call::enter_maintenance_mode().into();
-		assert_ok!(call.dispatch(Origin::root()));
-	})
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			let call: OuterCall = Call::resume_normal_operation().into();
+			assert_ok!(call.dispatch(Origin::root()));
+		})
 }
 
 #[test]
 fn cannot_resume_normal_operation_from_wrong_origin() {
-	todo!()
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			let call: OuterCall = Call::resume_normal_operation().into();
+			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+		})
 }
 
 #[test]
 fn cannot_resume_normal_operation_while_already_operating_normally() {
-	todo!()
+	ExtBuilder::default().build().execute_with(|| {
+		let call: OuterCall = Call::resume_normal_operation().into();
+		assert_noop!(
+			call.dispatch(Origin::root()),
+			Error::<Test>::NotInMaintenanceMode
+		);
+	})
 }
