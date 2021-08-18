@@ -14,6 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! A Proxy in this context is an environmental trait implementor meant to be used for capturing
+//! EVM trace events sent to a Host function from the Runtime. Works like:
+//! - Runtime Api call `using` environmental.
+//! - Runtime calls a Host function with some scale-encoded Evm event.
+//! - Host function emits an additional event to this Listener.
+//! - Proxy listens for the event and format the actual trace response.
+//!
+//! There are two proxy types: `Raw` and `CallList`.
+//! - `Raw` - used for opcode-level traces.
+//! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
+
 extern crate alloc;
 environmental::environmental!(listener: dyn Listener + 'static);
 

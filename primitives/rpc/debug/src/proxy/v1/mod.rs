@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Legacy version of the client-side components for the tracer.
+//!
 //! A Proxy in this context is an environmental trait implementor meant to be used for capturing
 //! EVM trace results sent to a Host function from the Runtime. Works like:
 //! - Runtime Api call `using` environmental.
