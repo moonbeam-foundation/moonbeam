@@ -96,6 +96,9 @@ impl RawTracer {
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
+		evm_gasometer::tracing::enable_tracing(true);
+		evm_runtime::tracing::enable_tracing(true);
+
 		let wrapped = Rc::new(RefCell::new(self));
 
 		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
@@ -107,6 +110,9 @@ impl RawTracer {
 		let f = || runtime_using(&mut runtime, f);
 		let f = || gasometer_using(&mut gasometer, f);
 		f();
+
+		evm_gasometer::tracing::enable_tracing(false);
+		evm_runtime::tracing::enable_tracing(false);
 	}
 }
 
