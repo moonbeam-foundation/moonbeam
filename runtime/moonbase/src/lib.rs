@@ -769,7 +769,7 @@ impl pallet_proxy::Config for Runtime {
 
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
-impl Filter<Call> for PhaseThreeFilter {
+impl Filter<Call> for MaintenanceFilter {
 	fn filter(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
