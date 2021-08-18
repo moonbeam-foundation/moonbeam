@@ -26,11 +26,11 @@ nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "jo
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 
 
 # Substrate dependencies
@@ -58,11 +58,11 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
@@ -182,6 +182,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
+	"pallet-crowdloan-rewards/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
