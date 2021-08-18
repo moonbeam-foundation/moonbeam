@@ -12,9 +12,11 @@ log = "0.4"
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false }
-environmental = { version = "1.1.2", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+
+[dev-dependencies]
+environmental = { version = "1.1.2" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
 default = ["std"]
