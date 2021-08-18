@@ -523,9 +523,12 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BasicDeposit: Balance = currency::deposit(1, 246);
+	// Add one item in storage and take 258 bytes
+	pub const BasicDeposit: Balance = currency::deposit(1, 258);
+	// Not add any item to the storage but takes 66 bytes
 	pub const FieldDeposit: Balance = currency::deposit(0, 66);
-	pub const SubAccountDeposit: Balance = currency::deposit(1, 41);
+	// Add one item in storage and take 53 bytes
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 53);
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
