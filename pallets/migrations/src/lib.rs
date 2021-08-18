@@ -154,8 +154,8 @@ pub mod pallet {
 						ignoring and providing migration {} 0 weight.",
 						migration_name,
 					);
-					// no available weight so do not even try to execute migration
-					continue
+
+					0u64.into()
 				};
 
 				log::trace!(
