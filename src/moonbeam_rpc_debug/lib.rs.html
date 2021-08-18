@@ -326,6 +326,34 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -358,7 +386,7 @@
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H128</span>, <span class="ident">H256</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">frontier_backend_client</span>, <span class="ident">internal_err</span>};
 <span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">proxy</span>, <span class="ident">single</span>, <span class="ident">DebugRuntimeApi</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">proxy</span>, <span class="ident">single</span>, <span class="ident">DebugRuntimeApi</span>, <span class="ident">V2_RUNTIME_VERSION</span>};
 <span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
@@ -522,6 +550,10 @@
 		<span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="ident">reference_id</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
 		<span class="comment">// Get parent blockid.</span>
 		<span class="kw">let</span> <span class="ident">parent_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">parent_hash</span>());
+		<span class="comment">// Runtime version</span>
+		<span class="kw">let</span> <span class="ident">runtime_version</span> <span class="op">=</span> <span class="ident">api</span>
+			.<span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>)
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
 		<span class="comment">// Get `DebugRuntimeApi` version.</span>
 		<span class="kw">let</span> <span class="ident">api_version</span> <span class="op">=</span> <span class="ident">api</span>
 			.<span class="ident">api_version</span>::<span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>)
@@ -576,21 +608,24 @@
 			<span class="kw">let</span> <span class="ident">transactions</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">transactions</span>;
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>) <span class="op">=</span> <span class="ident">transactions</span>.<span class="ident">get</span>(<span class="ident">index</span>) {
 				<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
-					<span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+					<span class="kw">if</span> <span class="ident">runtime_version</span>.<span class="ident">spec_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">V2_RUNTIME_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> {
 						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-							.<span class="ident">trace_transaction</span>(
-								<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>,
-								<span class="kw-2">&amp;</span><span class="ident">header</span>,
-								<span class="ident">ext</span>,
-								<span class="kw-2">&amp;</span><span class="ident">transaction</span>,
-								<span class="ident">trace_type</span>,
-							)
+							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
 							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 								<span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>))
 							})<span class="question-mark">?</span>
 							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
 
-						<span class="prelude-val">Ok</span>(<span class="ident">proxy::Result::V2</span>(<span class="ident">proxy::ResultV2::Single</span>))
+						<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V2</span>(<span class="ident">proxy::v1::ResultV2::Single</span>))
+					} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
+							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
+							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+								<span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>))
+							})<span class="question-mark">?</span>
+							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+
+						<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V2</span>(<span class="ident">proxy::v1::ResultV2::Single</span>))
 					} <span class="kw">else</span> {
 						<span class="comment">// For versions &lt; 2 block needs to be manually initialized.</span>
 						<span class="ident">api</span>.<span class="ident">initialize_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>)
@@ -608,18 +643,31 @@
 						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
 						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
 
-						<span class="prelude-val">Ok</span>(<span class="ident">proxy::Result::V1</span>(<span class="ident">proxy::ResultV1::Single</span>(<span class="ident">result</span>)))
+						<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V1</span>(<span class="ident">proxy::v1::ResultV1::Single</span>(<span class="ident">result</span>)))
 					}
 				};
 				<span class="kw">return</span> <span class="kw">match</span> <span class="ident">trace_type</span> {
-					<span class="ident">single::TraceType::Raw</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::RawProxy::new</span>();
-						<span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+					<span class="ident">single::TraceType::Raw</span> {
+						<span class="ident">disable_storage</span>,
+						<span class="ident">disable_memory</span>,
+						<span class="ident">disable_stack</span>,
+					} <span class="op">=</span><span class="op">&gt;</span> {
+						<span class="kw">if</span> <span class="ident">runtime_version</span>.<span class="ident">spec_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">V2_RUNTIME_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v2::raw::Listener::new</span>(
+								<span class="ident">disable_storage</span>,
+								<span class="ident">disable_memory</span>,
+								<span class="ident">disable_stack</span>,
+							);
+							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+							<span class="prelude-val">Ok</span>(<span class="ident">proxy</span>.<span class="ident">into_tx_trace</span>())
+						} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v1::RawProxy::new</span>();
 							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
 							<span class="prelude-val">Ok</span>(<span class="ident">proxy</span>.<span class="ident">into_tx_trace</span>())
 						} <span class="kw">else</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v1::RawProxy::new</span>();
 							<span class="kw">match</span> <span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>) {
-								<span class="prelude-val">Ok</span>(<span class="ident">proxy::Result::V1</span>(<span class="ident">proxy::ResultV1::Single</span>(<span class="ident">result</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+								<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V1</span>(<span class="ident">proxy::v1::ResultV1::Single</span>(<span class="ident">result</span>))) <span class="op">=</span><span class="op">&gt;</span> {
 									<span class="prelude-val">Ok</span>(<span class="ident">result</span>)
 								}
 								<span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
@@ -630,16 +678,24 @@
 						}
 					}
 					<span class="ident">single::TraceType::CallList</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::CallListProxy::new</span>();
-						<span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+						<span class="kw">if</span> <span class="ident">runtime_version</span>.<span class="ident">spec_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">V2_RUNTIME_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v2::call_list::Listener::default</span>();
+							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+							<span class="ident">proxy</span>
+								.<span class="ident">into_tx_trace</span>()
+								.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
+								.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))
+						} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v1::CallListProxy::new</span>();
 							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
 							<span class="ident">proxy</span>
 								.<span class="ident">into_tx_trace</span>()
 								.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
 								.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))
 						} <span class="kw">else</span> {
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v1::CallListProxy::new</span>();
 							<span class="kw">match</span> <span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>) {
-								<span class="prelude-val">Ok</span>(<span class="ident">proxy::Result::V1</span>(<span class="ident">proxy::ResultV1::Single</span>(<span class="ident">result</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+								<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V1</span>(<span class="ident">proxy::v1::ResultV1::Single</span>(<span class="ident">result</span>))) <span class="op">=</span><span class="op">&gt;</span> {
 									<span class="prelude-val">Ok</span>(<span class="ident">result</span>)
 								}
 								<span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),

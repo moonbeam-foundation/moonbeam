@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Derive `parity_scale_codec::Encode` and `parity_scale_codec::EncodeLike` for struct and enum."><meta name="keywords" content="rust, rustlang, rust-lang, Encode"><title>Encode in moonbeam_rpc_primitives_debug::proxy::v2 - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../moonbeam_rpc_primitives_debug/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><h2 class="location">Other items in<br><a href="../../index.html">moonbeam_rpc_primitives_debug</a>::<wbr><a href="../index.html">proxy</a>::<wbr><a href="index.html">v2</a></h2><div id="sidebar-vars" data-name="Encode" data-ty="derive" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Derive Macro <a href="../../index.html">moonbeam_rpc_primitives_debug</a>::<wbr><a href="../index.html">proxy</a>::<wbr><a href="index.html">v2</a>::<wbr><a class="derive" href="#">Encode</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></span></h1><pre class="rust derive">#[derive(Encode)]
+{
+    // Attributes available to this derive:
+    #[codec]
+}
+</pre><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Derive <code>parity_scale_codec::Encode</code> and <code>parity_scale_codec::EncodeLike</code> for struct and enum.</p>
+<h1 id="struct" class="section-header"><a href="#struct">Struct</a></h1>
+<p>A struct is encoded by encoding each of its fields successively.</p>
+<p>Fields can have some attributes:</p>
+<ul>
+<li><code>#[codec(skip)]</code>: the field is not encoded. It must derive <code>Default</code> if Decode is derived.</li>
+<li><code>#[codec(compact)]</code>: the field is encoded in its compact representation i.e. the field must
+implement <code>parity_scale_codec::HasCompact</code> and will be encoded as <code>HasCompact::Type</code>.</li>
+<li><code>#[codec(encoded_as = &quot;$EncodeAs&quot;)]</code>: the field is encoded as an alternative type. $EncodedAs
+type must implement <code>parity_scale_codec::EncodeAsRef&lt;'_, $FieldType&gt;</code> with $FieldType the
+type of the field with the attribute. This is intended to be used for types implementing
+<code>HasCompact</code> as shown in the example.</li>
+<li><code>#[codec(encode_bound(T: Encode))]</code>: a custom where bound that will be used when deriving the <code>Encode</code> trait.</li>
+<li><code>#[codec(decode_bound(T: Encode))]</code>: a custom where bound that will be used when deriving the <code>Decode</code> trait.</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>)]</span>
+<span class="kw">struct</span> <span class="ident">StructType</span> {
+	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">skip</span>)]</span>
+	<span class="ident">a</span>: <span class="ident">u32</span>,
+	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">compact</span>)]</span>
+	<span class="ident">b</span>: <span class="ident">u32</span>,
+	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">encoded_as</span> <span class="op">=</span> <span class="string">&quot;&lt;u32 as HasCompact&gt;::Type&quot;</span>)]</span>
+	<span class="ident">c</span>: <span class="ident">u32</span>,
+}</pre></div>
+<h1 id="enum" class="section-header"><a href="#enum">Enum</a></h1>
+<p>The variable is encoded with one byte for the variant and then the variant struct encoding.
+The variant number is:</p>
+<ul>
+<li>if variant has attribute: <code>#[codec(index = &quot;$n&quot;)]</code> then n</li>
+<li>else if variant has discrimant (like 3 in <code>enum T { A = 3 }</code>) then the discrimant.</li>
+<li>else its position in the variant set, excluding skipped variants, but including variant with
+discrimant or attribute. Warning this position does collision with discrimant or attribute
+index.</li>
+</ul>
+<p>variant attributes:</p>
+<ul>
+<li><code>#[codec(skip)]</code>: the variant is not encoded.</li>
+<li><code>#[codec(index = &quot;$n&quot;)]</code>: override variant index.</li>
+</ul>
+<p>field attributes: same as struct fields attributes.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>)]</span>
+<span class="kw">enum</span> <span class="ident">EnumType</span> {
+	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">15</span>)]</span>
+	<span class="ident">A</span>,
+	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">skip</span>)]</span>
+	<span class="ident">B</span>,
+	<span class="ident">C</span> <span class="op">=</span> <span class="number">3</span>,
+	<span class="ident">D</span>,
+}
+
+<span class="macro">assert_eq!</span>(<span class="ident">EnumType::A</span>.<span class="ident">encode</span>(), <span class="macro">vec!</span>[<span class="number">15</span>]);
+<span class="macro">assert_eq!</span>(<span class="ident">EnumType::B</span>.<span class="ident">encode</span>(), <span class="macro">vec!</span>[]);
+<span class="macro">assert_eq!</span>(<span class="ident">EnumType::C</span>.<span class="ident">encode</span>(), <span class="macro">vec!</span>[<span class="number">3</span>]);
+<span class="macro">assert_eq!</span>(<span class="ident">EnumType::D</span>.<span class="ident">encode</span>(), <span class="macro">vec!</span>[<span class="number">2</span>]);</pre></div>
+</div></details></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_rpc_primitives_debug" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script>
+</body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CallListTracer","Listen to EVM events to provide a overview of the internal transactions. It can be used to implement `trace_filter`."],["RawTracer","Listen to EVM events to provide the intermediate machine state between opcode executions (stepping), resulting in a granular per opcode output."]],"trait":[["EvmListener",""]]});
+initSidebarItems({"struct":[["EvmTracer",""]]});
