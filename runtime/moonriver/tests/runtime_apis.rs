@@ -334,12 +334,7 @@ fn debug_runtime_api_trace_transaction() {
 			assert!(Runtime::trace_transaction(
 				&header,
 				vec![non_eth_uxt.clone(), eth_uxt, non_eth_uxt.clone()],
-				&transaction,
-				moonbeam_rpc_primitives_debug::single::TraceType::Raw {
-					disable_storage: true,
-					disable_memory: true,
-					disable_stack: true,
-				}
+				&transaction
 			)
 			.is_ok());
 		});
