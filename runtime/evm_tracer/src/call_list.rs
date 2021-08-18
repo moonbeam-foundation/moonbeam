@@ -15,13 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::util::*;
+
+use codec::Encode;
 use ethereum_types::{H160, U256};
 use evm::{Capture, ExitError, ExitReason, ExitSucceed};
 use moonbeam_rpc_primitives_debug::{
-	single::{Call, CallInner, TransactionTrace},
+	single::{Call, CallInner},
 	CallResult, CallType, CreateResult,
 };
-use sp_std::collections::btree_map::BTreeMap;
 
 /// Listen to EVM events to provide a overview of the internal transactions.
 /// It can be used to implement `trace_filter`.
@@ -61,8 +62,6 @@ pub struct CallListTracer {
 	// Transaction cost that must be added to the first context cost.
 	transaction_cost: u64,
 
-	// Final logs.
-	entries: BTreeMap<u32, Call>,
 	// Next index to use.
 	entries_next_index: u32,
 	// Stack of contexts with data to keep between events.
@@ -101,7 +100,6 @@ impl Default for CallListTracer {
 		Self {
 			transaction_cost: 0,
 
-			entries: BTreeMap::new(),
 			entries_next_index: 0,
 
 			context_stack: vec![],
@@ -116,28 +114,34 @@ impl CallListTracer {
 	///
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
-	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
+	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
+		evm::tracing::enable_tracing(true);
+		evm_gasometer::tracing::enable_tracing(true);
+		evm_runtime::tracing::enable_tracing(true);
+
 		let wrapped = Rc::new(RefCell::new(self));
 
-		let result = {
-			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
-			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
-			let mut evm = ListenerProxy(Rc::clone(&wrapped));
+		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
+		let mut runtime = ListenerProxy(Rc::clone(&wrapped));
+		let mut evm = ListenerProxy(Rc::clone(&wrapped));
 
-			// Each line wraps the previous `f` into a `using` call.
-			// Listening to new events results in adding one new line.
-			// Order is irrelevant when registering listeners.
-			let f = || runtime_using(&mut runtime, f);
-			let f = || gasometer_using(&mut gasometer, f);
-			let f = || evm_using(&mut evm, f);
-			f()
-		};
+		// Each line wraps the previous `f` into a `using` call.
+		// Listening to new events results in adding one new line.
+		// Order is irrelevant when registering listeners.
+		let f = || runtime_using(&mut runtime, f);
+		let f = || gasometer_using(&mut gasometer, f);
+		let f = || evm_using(&mut evm, f);
+		f();
 
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+		evm::tracing::enable_tracing(false);
+		evm_gasometer::tracing::enable_tracing(false);
+		evm_runtime::tracing::enable_tracing(false);
 	}
 
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::CallList(self.entries.into_iter().map(|(_, value)| value).collect())
+	/// Each extrinsic represents a Call stack in the host and thus a block - a collection of
+	/// extrinsics - is a "stack of Call stacks" `Vec<BTree<u32, Call>>`.
+	pub fn emit_new() {
+		moonbeam_primitives_ext::moonbeam_ext::call_list_new();
 	}
 }
 
@@ -183,7 +187,7 @@ impl RuntimeListener for CallListTracer {
 						gas_used += self.transaction_cost;
 					}
 
-					self.entries.insert(
+					moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 						context.entries_index,
 						match context.context_type {
 							ContextType::Call(call_type) => {
@@ -216,6 +220,7 @@ impl RuntimeListener for CallListTracer {
 										res,
 									},
 								}
+								.encode()
 							}
 							ContextType::Create => {
 								let res = match &reason {
@@ -244,6 +249,7 @@ impl RuntimeListener for CallListTracer {
 										res,
 									},
 								}
+								.encode()
 							}
 						},
 					);
@@ -335,7 +341,7 @@ impl EvmListener for CallListTracer {
 				target,
 				balance,
 			} => {
-				self.entries.insert(
+				moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 					self.entries_next_index,
 					Call {
 						from: address, // this contract is self destructing
@@ -348,7 +354,8 @@ impl EvmListener for CallListTracer {
 							refund_address: target,
 							balance,
 						},
-					},
+					}
+					.encode(),
 				);
 
 				self.entries_next_index += 1;

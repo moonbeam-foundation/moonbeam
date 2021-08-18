@@ -28,6 +28,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -51,7 +52,7 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
 };
-use pallet_transaction_payment::CurrencyAdapter;
+use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
@@ -60,7 +61,8 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill, SaturatedConversion,
+	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -81,19 +83,20 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const SED: Balance = 1;
-	pub const KILOSED: Balance = 1_000;
-	pub const MEGASED: Balance = 1_000_000;
-	pub const GIGASED: Balance = 1_000_000_000;
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
 	pub const MICROMOVR: Balance = 1_000_000_000_000;
 	pub const MILLIMOVR: Balance = 1_000_000_000_000_000;
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMOVR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * MOVR + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * MOVR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -131,7 +134,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0155,
+	spec_version: 0300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -272,19 +275,14 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = ();
-}
-
-impl pallet_sudo::Config for Runtime {
-	type Call = Call;
-	type Event = Event;
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
@@ -315,18 +313,45 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+	/// than this will decrease the weight and more will increase.
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
+	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
+	/// This value is currently only used by pallet-transaction-payment as an assertion that the
+	/// next multiplier is always > min value.
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 }
 
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGASED).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
+
+/// Parameterized slow adjusting fee updated based on
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line
+///
+/// The adjustment algorithm boils down to:
+///
+/// diff = (previous_block_weight - target) / maximum_block_weight
+/// next_multiplier = prev_multiplier * (1 + (v * diff) + ((v * diff)^2 / 2))
+/// assert(next_multiplier > min)
+///     where: v is AdjustmentVariable
+///            target is TargetBlockFullness
+///            min is MinimumMultiplier
+pub type SlowAdjustingFeeUpdate<R> =
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -337,6 +362,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -401,13 +427,13 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
 	pub const VotingPeriod: BlockNumber = 5 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
@@ -532,7 +558,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -558,8 +583,14 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 10;
 	/// Default BlocksPerRound is every hour (300 * 12 second block times)
 	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)
-	pub const BondDuration: u32 = 2;
+	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveCandidatesDelay: u32 = 2;
+	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveNominatorsDelay: u32 = 2;
+	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
+	pub const RevokeNominationDelay: u32 = 2;
+	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
@@ -572,8 +603,8 @@ parameter_types! {
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
-	/// Minimum stake required to be reserved to be a candidate is 100
-	pub const MinCollatorCandidateStk: u128 = 100 * currency::MOVR;
+	/// Minimum stake required to be reserved to be a candidate is 1_000
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOMOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
@@ -583,7 +614,10 @@ impl parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
-	type BondDuration = BondDuration;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
@@ -598,7 +632,7 @@ impl parachain_staking::Config for Runtime {
 
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
-	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
+	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
@@ -615,16 +649,18 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
+	type MaxInitContributors = MaxInitContributorsBatchSizes;
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
-	type VestingPeriod = VestingPeriod;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -637,9 +673,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
-	}
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -693,26 +727,21 @@ impl InstanceFilter<Call> for ProxyType {
 	fn filter(&self, c: &Call) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => matches!(
-				c,
-				Call::System(..) |
-				Call::Timestamp(..) |
-				Call::ParachainStaking(..) |
-				// Call::Session(..) |
-				Call::Democracy(..) |
-				Call::CouncilCollective(..) |
-				Call::TechComitteeCollective(..) |
-				// Call::Treasury(..) |
-				Call::Utility(..) |
-				Call::Scheduler(..) |
-				Call::Proxy(..)
-			),
+			ProxyType::NonTransfer => {
+				matches!(
+					c,
+					Call::System(..)
+						| Call::Timestamp(..) | Call::ParachainStaking(..)
+						| Call::Democracy(..) | Call::CouncilCollective(..)
+						| Call::TechComitteeCollective(..)
+						| Call::Utility(..) | Call::Proxy(..)
+				)
+			}
 			ProxyType::Governance => matches!(
 				c,
 				Call::Democracy(..)
 					| Call::CouncilCollective(..)
 					| Call::TechComitteeCollective(..)
-					// | Call::Treasury(..) 
 					| Call::Utility(..)
 			),
 			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
@@ -756,7 +785,7 @@ construct_runtime! {
 		// System support stuff.
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage} = 2,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
 
@@ -774,8 +803,7 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
 
-		// Sudo
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+		// Sudo was previously index 40
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
@@ -843,7 +871,8 @@ runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
-			xt: <Block as BlockT>::Extrinsic,
+			tx: <Block as BlockT>::Extrinsic,
+			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
 			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&xt.function);
@@ -864,7 +893,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 				// First we pass the transactions to the standard FRAME executive. This calculates all the
 				// necessary tags, longevity and other properties that we will leave unchanged.
 				// This also assigns some priority that we don't care about and will overwrite next.
-				let mut intermediate_valid = Executive::validate_transaction(source, xt.clone())?;
+				let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
 
 				// If this is a pallet ethereum transaction, then its priority is already set
 				// according to gas price from pallet ethereum. If it is any other kind of transaction,
@@ -876,9 +905,9 @@ runtime_common::impl_runtime_apis_plus_common! {
 
 						let tip = match xt.signature {
 							None => 0,
-							Some((_, _, signed_extra)) => {
+							Some((_, _, ref signed_extra)) => {
 								// Yuck, this depends on the index of charge transaction in Signed Extra
-								let charge_transaction = signed_extra.6;
+								let charge_transaction = &signed_extra.6;
 								charge_transaction.tip()
 							}
 						};
@@ -937,8 +966,8 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 }
 
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
-cumulus_pallet_parachain_system::register_validate_block! {
+cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
 	CheckInherents = CheckInherents,
-}
+);

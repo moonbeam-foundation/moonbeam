@@ -37,6 +37,11 @@ pub enum TestAuthor {
 	Dave,
 	Eve,
 }
+impl Default for TestAuthor {
+	fn default() -> TestAuthor {
+		TestAuthor::Alice
+	}
+}
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -111,11 +116,7 @@ impl pallet_author_mapping::Config for Test {
 	type AuthorId = TestAuthor;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-
-	// For this mock runtime, we'll only allow even accounts to register.
-	fn can_register(account: &AccountId) -> bool {
-		account % 2 == 0
-	}
+	type WeightInfo = ();
 }
 
 /// Externality builder for pallet author mapping's mock runtime

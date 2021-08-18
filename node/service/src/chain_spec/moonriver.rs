@@ -28,7 +28,7 @@ use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
@@ -56,8 +56,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		ChainType::Development,
 		move || {
 			testnet_genesis(
-				// Alith is Sudo
-				accounts[0],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
@@ -76,8 +74,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "dev-service".into(),
@@ -98,8 +98,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				// Alith is sudo
-				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
@@ -130,8 +128,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "kusama-local".into(),
@@ -162,7 +162,6 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
@@ -193,7 +192,6 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},

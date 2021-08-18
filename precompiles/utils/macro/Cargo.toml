@@ -1,0 +1,19 @@
+[package]
+name = "precompile-utils-macro"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = ""
+
+[lib]
+proc-macro = true
+
+[[test]]
+name = "tests"
+path = "tests/tests.rs"
+
+[dependencies]
+quote = "1.0"
+proc-macro2 = "1.0"
+sha3 = "0.8"
+syn = { version = "1.0", features = ["full", "fold", "extra-traits", "visit"] }

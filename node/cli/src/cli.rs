@@ -61,6 +61,14 @@ pub enum Subcommand {
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
+	/// Try some command against runtime state.
+	#[cfg(feature = "try-runtime")]
+	TryRuntime(try_runtime_cli::TryRuntimeCmd),
+
+	/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
+	#[cfg(not(feature = "try-runtime"))]
+	TryRuntime,
+
 	/// Key management cli utilities
 	Key(KeyCmd),
 }
@@ -89,8 +97,8 @@ pub struct ExportGenesisStateCommand {
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long, default_value = "1000")]
-	pub parachain_id: u32,
+	#[structopt(long)]
+	pub parachain_id: Option<u32>,
 
 	/// Write output in binary. Default is to write in hex.
 	#[structopt(short, long)]
@@ -172,10 +180,6 @@ pub struct RunCmd {
 	/// Force using Moonriver native runtime.
 	#[structopt(long = "force-moonriver")]
 	pub force_moonriver: bool,
-
-	/// Force using Moonshadow native runtime.
-	#[structopt(long = "force-moonshadow")]
-	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {
