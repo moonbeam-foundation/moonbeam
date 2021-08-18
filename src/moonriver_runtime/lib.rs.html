@@ -914,6 +914,7 @@
 <span id="914">914</span>
 <span id="915">915</span>
 <span id="916">916</span>
+<span id="917">917</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1565,7 +1566,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumReward</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Initialized</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InitializationPayment</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">30</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxInitContributorsBatchSizes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxInitContributorsBatchSizes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">500</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_crowdloan_rewards::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1576,6 +1577,7 @@
 	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> <span class="ident">AccountId32</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_crowdloan_rewards::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {

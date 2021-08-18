@@ -835,12 +835,12 @@
 						<span class="ident">parachain_staking</span>,
 						<span class="ident">ParachainStakingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 					);
-					<span class="comment">// add_benchmark!(</span>
-					<span class="comment">// 	params,</span>
-					<span class="comment">// 	batches,</span>
-					<span class="comment">// 	pallet_crowdloan_rewards,</span>
-					<span class="comment">// 	PalletCrowdloanRewardsBench::&lt;Runtime&gt;</span>
-					<span class="comment">// );</span>
+					<span class="macro">add_benchmark!</span>(
+					<span class="ident">params</span>,
+						<span class="ident">batches</span>,
+						<span class="ident">pallet_crowdloan_rewards</span>,
+						<span class="ident">PalletCrowdloanRewardsBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+					);
 					<span class="macro">add_benchmark!</span>(
 						<span class="ident">params</span>,
 						<span class="ident">batches</span>,
