@@ -44,6 +44,8 @@ fn can_enter_maintenance_mode() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: OuterCall = Call::enter_maintenance_mode().into();
 		assert_ok!(call.dispatch(Origin::root()));
+
+		//TODO test events?
 	})
 }
 
@@ -80,6 +82,8 @@ fn can_resume_normal_operation() {
 		.execute_with(|| {
 			let call: OuterCall = Call::resume_normal_operation().into();
 			assert_ok!(call.dispatch(Origin::root()));
+
+			//TODO test events?
 		})
 }
 

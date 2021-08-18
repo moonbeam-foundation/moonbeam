@@ -132,16 +132,16 @@ impl ExtBuilder {
 	}
 }
 
-// pub(crate) fn events() -> Vec<pallet_maintenance_mode::Event<Test>> {
-// 	System::events()
-// 		.into_iter()
-// 		.map(|r| r.event)
-// 		.filter_map(|e| {
-// 			if let Event::pallet_migrations(inner) = e {
-// 				Some(inner)
-// 			} else {
-// 				None
-// 			}
-// 		})
-// 		.collect::<Vec<_>>()
-// }
+pub(crate) fn events() -> Vec<pallet_maintenance_mode::Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let Event::MaintenanceMode(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
+}
