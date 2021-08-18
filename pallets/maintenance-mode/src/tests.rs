@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, System, Test};
+use crate::mock::{Call as OuterCall, ExtBuilder, Origin, Test};
 use crate::{Call, Error, Event};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;

@@ -55,7 +55,6 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{EnsureOrigin, Filter};
 	use frame_system::pallet_prelude::*;
