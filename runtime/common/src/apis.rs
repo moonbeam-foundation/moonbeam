@@ -92,13 +92,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
-					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
 					use moonbeam_evm_tracer::EvmTracer;
-					use moonbeam_rpc_primitives_debug::single::TraceType;
 
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
@@ -133,10 +131,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					sp_runtime::DispatchError,
 				> {
 					use moonbeam_evm_tracer::EvmTracer;
-					use moonbeam_rpc_primitives_debug::{
-						block, single, CallResult, CreateResult, CreateType,
-					};
-
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
 					Executive::initialize_block(header);

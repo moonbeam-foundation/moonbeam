@@ -252,15 +252,9 @@ where
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
 					match runtime_version.spec_version {
-						version if version >= V2_RUNTIME_VERSION => {
+						version if version >= V2_RUNTIME_VERSION && api_version >= 3 => {
 							let _result = api
-								.trace_transaction(
-									&parent_block_id,
-									&header,
-									ext,
-									&transaction,
-									trace_type,
-								)
+								.trace_transaction(&parent_block_id, &header, ext, &transaction)
 								.map_err(|e| {
 									internal_err(format!("Runtime api access error: {:?}", e))
 								})?
@@ -271,19 +265,19 @@ where
 						// Before Runtime version 400, we need to supporting 2 different iterations
 						// of the tracer. This will be dropped if Alphanet is purged at some point.
 						_ => {
-							if api_version >= 2 {
-								let _result = api
-									.trace_transaction(
-										&parent_block_id,
-										&header,
-										ext,
-										&transaction,
-										trace_type,
-									)
-									.map_err(|e| {
-										internal_err(format!("Runtime api access error: {:?}", e))
-									})?
-									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+							if api_version == 2 {
+								#[allow(deprecated)]
+								let _result = api.trace_transaction_before_version_3(
+									&parent_block_id,
+									&header,
+									ext,
+									&transaction,
+									trace_type,
+								)
+								.map_err(|e| {
+									internal_err(format!("Runtime api access error: {:?}", e))
+								})?
+								.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
 								Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 							} else {
