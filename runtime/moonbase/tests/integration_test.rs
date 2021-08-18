@@ -81,7 +81,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbase_runtime::AuthorMapping>("AuthorMapping");
-	is_pallet_prefix::<moonriver_runtime::MaintenanceMode>("MaintenanceMode");
+	is_pallet_prefix::<moonbeam_runtime::MaintenanceMode>("MaintenanceMode");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -158,7 +158,7 @@ fn verify_pallet_prefixes() {
 	);
 	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
 	// assert_eq!(
-	// 	<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+	// 	<moonbeam_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
 	// 	vec![
 	// 		StorageInfo {
 	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
@@ -200,7 +200,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::CrowdloanRewards>(20);
 	is_pallet_index::<moonbase_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbase_runtime::Proxy>(22);
-	is_pallet_index::<moonriver_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(23);
 }
 
 #[test]

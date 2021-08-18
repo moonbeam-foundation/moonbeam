@@ -160,7 +160,7 @@ fn verify_pallet_prefixes() {
 	);
 	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
 	// assert_eq!(
-	// 	<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+	// 	<moonbeam_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
 	// 	vec![
 	// 		StorageInfo {
 	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
@@ -202,7 +202,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::CrowdloanRewards>(20);
 	is_pallet_index::<moonbeam_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbeam_runtime::Proxy>(22);
-	is_pallet_index::<moonriver_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(23);
 }
 
 #[test]
