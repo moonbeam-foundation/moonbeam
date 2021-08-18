@@ -2,13 +2,13 @@
 members = [
     'runtime/moonbeam',
     'runtime/moonriver',
-    'runtime/moonshadow',
     'runtime/moonbase',
     'node',
     'node/cli',
     'node/service',
     'pallets/migrations',
     'bin/utils/moonkey',
+    'precompiles/utils/macro',
 ]
 exclude = [
     'bin/utils/moonkey'

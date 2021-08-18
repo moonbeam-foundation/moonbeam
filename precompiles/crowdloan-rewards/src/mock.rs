@@ -69,6 +69,7 @@ construct_runtime!(
 	Ord,
 	PartialOrd,
 	Clone,
+	Copy,
 	Encode,
 	Decode,
 	Debug,
@@ -101,20 +102,20 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
-impl TestAccount {
-	pub(crate) fn to_h160(&self) -> H160 {
-		match self {
-			Self::Alice => H160::repeat_byte(0xAA),
-			Self::Bob => H160::repeat_byte(0xBB),
-			Self::Charlie => H160::repeat_byte(0xCC),
-			Self::Bogus => Default::default(),
-		}
-	}
-}
-
 impl From<H160> for TestAccount {
 	fn from(x: H160) -> TestAccount {
 		TestAccount::into_account_id(x)
+	}
+}
+
+impl From<TestAccount> for H160 {
+	fn from(value: TestAccount) -> H160 {
+		match value {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => Default::default(),
+		}
 	}
 }
 
@@ -224,6 +225,8 @@ impl pallet_evm::Config for Test {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
 }
 
 parameter_types! {
