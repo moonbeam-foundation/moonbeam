@@ -138,9 +138,9 @@ pub mod pallet {
 	impl<T: Config> Filter<T::Call> for Pallet<T> {
 		fn filter(call: &T::Call) -> bool {
 			if MaintenanceMode::<T>::get() {
-				T::NormalCallFilter::filter(call)
-			} else {
 				T::MaintenanceCallFilter::filter(call)
+			} else {
+				T::NormalCallFilter::filter(call)
 			}
 		}
 	}
