@@ -92,13 +92,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
-					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
-					use moonbeam_rpc_primitives_debug::single::TraceType;
+					use moonbeam_evm_tracer::EvmTracer;
 
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
@@ -110,23 +108,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						let _ = match &ext.function {
 							Call::Ethereum(transact(t)) => {
 								if t == transaction {
-									match trace_type {
-										TraceType::Raw {
-											disable_storage,
-											disable_memory,
-											disable_stack,
-										} => {
-											RawTracer::new(
-												disable_storage,
-												disable_memory,
-												disable_stack,
-											).trace(|| Executive::apply_extrinsic(ext));
-										},
-										TraceType::CallList => {
-											CallListTracer::default()
-												.trace(|| Executive::apply_extrinsic(ext));
-										},
-									};
+									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 									return Ok(());
 								} else {
 									Executive::apply_extrinsic(ext)
@@ -148,11 +130,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::CallListTracer;
-					use moonbeam_rpc_primitives_debug::{
-						block, single, CallResult, CreateResult, CreateType,
-					};
-
+					use moonbeam_evm_tracer::EvmTracer;
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
 					Executive::initialize_block(header);
@@ -165,8 +143,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						match &ext.function {
 							Call::Ethereum(transact(_transaction)) => {
 								// Each extrinsic is a new call stack.
-								CallListTracer::emit_new();
-								CallListTracer::default().trace(|| Executive::apply_extrinsic(ext));
+								EvmTracer::emit_new();
+								EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 							}
 							_ => {
 								let _ = Executive::apply_extrinsic(ext);
@@ -400,12 +378,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						parachain_staking,
 						ParachainStakingBench::<Runtime>
 					);
-					// add_benchmark!(
-					// 	params,
-					// 	batches,
-					// 	pallet_crowdloan_rewards,
-					// 	PalletCrowdloanRewardsBench::<Runtime>
-					// );
+					add_benchmark!(
+					params,
+						batches,
+						pallet_crowdloan_rewards,
+						PalletCrowdloanRewardsBench::<Runtime>
+					);
 					add_benchmark!(
 						params,
 						batches,
