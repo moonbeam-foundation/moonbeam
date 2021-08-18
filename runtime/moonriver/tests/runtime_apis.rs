@@ -25,7 +25,6 @@ use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
 use fp_rpc::ConvertTransaction;
-use frame_support::assert_noop;
 use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
@@ -226,14 +225,12 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let statuses =
-			// 	Runtime::current_transaction_statuses().expect("Transaction statuses result.");
-			// assert_eq!(statuses.len(), 1);
+			assert_eq!(result, Ok(()));
+			run_to_block(2);
+			let statuses =
+				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
+			assert_eq!(statuses.len(), 1);
 		});
 }
 
@@ -290,13 +287,11 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let receipts = Runtime::current_receipts().expect("Receipts result.");
-			// assert_eq!(receipts.len(), 1);
+			assert_eq!(result, Ok(()));
+			run_to_block(2);
+			let receipts = Runtime::current_receipts().expect("Receipts result.");
+			assert_eq!(receipts.len(), 1);
 		});
 }
 
