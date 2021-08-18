@@ -113,6 +113,15 @@ You can run up to 3 relay nodes with this script
 scripts/run-alphanet-parachain.sh
 ```
 
+## Running a parachain test
+
+You can directly launch a parachain test with this script.
+It takes care of getting the binary relay node and spawns 2 validators and 2 collators. 
+
+```bash
+scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
+```
+
 # Development
 
 The scripts are based on env variables.  

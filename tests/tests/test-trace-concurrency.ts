@@ -24,6 +24,7 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
   // It will start a slow query (taking 1s) and will try to execute a fast one after to see if it
   // goes through or wait for the first one to finish
   it("should allow concurrent execution", async function () {
+    this.timeout(10000);
     const queryRange = async (range, index) => {
       const start = Date.now();
       await customWeb3Request(context.web3, "trace_filter", [
@@ -41,7 +42,6 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
     const startTime = Date.now();
     await queryRange(1, 2);
     const endTime = Date.now();
-
     // Less than 500ms is large enough (it should take at max 50ms)
     expect(endTime - startTime).to.be.lessThan(1000);
 

@@ -83,11 +83,14 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROGLMR: Balance = 1_000_000_000_000;
+	pub const MILLIGLMR: Balance = 1_000_000_000_000_000;
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMR: Balance = GLMR * 1_000;
-	pub const MILLIGLMR: Balance = GLMR / 1_000;
-	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
-	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
+	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;
@@ -132,7 +135,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 0159,
+	spec_version: 0400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -333,7 +336,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMR).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
@@ -354,6 +357,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -364,6 +368,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -548,7 +553,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -641,7 +645,7 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
-	pub const MaxInitContributorsBatchSizes: u32 = 1000;
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -652,6 +656,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

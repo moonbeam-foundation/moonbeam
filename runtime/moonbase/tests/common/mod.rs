@@ -188,12 +188,10 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
-		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_evm::GenesisConfig {
-				accounts: self.evm_accounts,
-			},
-			&mut t,
-		)
+		pallet_evm::GenesisConfig {
+			accounts: self.evm_accounts,
+		}
+		.assimilate_storage::<Runtime>(&mut t)
 		.unwrap();
 
 		pallet_ethereum::GenesisConfig::assimilate_storage::<Runtime>(

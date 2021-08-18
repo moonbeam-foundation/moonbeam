@@ -16,127 +16,31 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 use evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
 use pallet_evm::{GasWeightMapping, Log};
-use sp_core::{H160, H256, U256};
+use sp_core::{H160, H256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
+
+mod data;
+
+pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
+pub use precompile_utils_macro::generate_function_selector;
+
+#[cfg(test)]
+mod tests;
 
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, ExitError>;
 
 /// Return an error with provided (static) text.
-pub fn error(text: &'static str) -> ExitError {
+pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> ExitError {
 	ExitError::Other(text.into())
-}
-
-/// Wrapper around an EVM input slice, helping to parse it.
-/// Provide functions to parse common types.
-#[derive(Clone, Copy, Debug)]
-pub struct InputReader<'a> {
-	input: &'a [u8],
-	cursor: usize,
-}
-
-impl<'a> InputReader<'a> {
-	/// Create a new input parser.
-	pub fn new(input: &'a [u8]) -> EvmResult<Self> {
-		if input.len() >= 4 {
-			Ok(Self { input, cursor: 4 })
-		} else {
-			Err(error("input must at least contain a selector"))
-		}
-	}
-
-	/// Extract selector from input.
-	pub fn selector(&self) -> &[u8] {
-		&self.input[0..4]
-	}
-
-	/// Check the input has the correct amount of arguments (32 bytes values).
-	pub fn expect_arguments(&self, args: usize) -> EvmResult {
-		if self.input.len() == 4 + args * 32 {
-			Ok(())
-		} else {
-			Err(error("input doesn't match expected length"))
-		}
-	}
-
-	/// Parse a U256 value.
-	/// Returns an error if trying to parse out of bound.
-	pub fn read_u256(&mut self) -> EvmResult<U256> {
-		let range_end = self.cursor + 32;
-
-		let data = self
-			.input
-			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse out of bound"))?;
-
-		self.cursor += 32;
-
-		Ok(U256::from_big_endian(data))
-	}
-
-	/// Parse an address value.
-	/// Returns an error if trying to parse out of bound.
-	/// Ignores the 12 higher bytes.
-	pub fn read_address(&mut self) -> EvmResult<H160> {
-		let range_end = self.cursor + 32;
-
-		let data = self
-			.input
-			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse out of bound"))?;
-
-		self.cursor += 32;
-
-		Ok(H160::from_slice(&data[12..32]))
-	}
-}
-
-/// Help build an EVM output data.
-#[derive(Clone, Debug)]
-pub struct OutputBuilder {
-	data: Vec<u8>,
-}
-
-impl OutputBuilder {
-	/// Creates a new empty output builder.
-	pub fn new() -> Self {
-		Self { data: vec![] }
-	}
-
-	/// Return the built data.
-	pub fn build(self) -> Vec<u8> {
-		self.data
-	}
-
-	/// Push a U256 to the output.
-	pub fn write_u256<T: Into<U256>>(mut self, value: T) -> Self {
-		let mut buffer = [0u8; 32];
-		value.into().to_big_endian(&mut buffer);
-		self.data.extend_from_slice(&buffer);
-		self
-	}
-
-	/// Push a U256 to the output.
-	pub fn write_bool<T: Into<bool>>(mut self, value: T) -> Self {
-		let mut buffer = [0u8; 32];
-		if value.into() {
-			buffer[31] = 1;
-		}
-		self.data.extend_from_slice(&buffer);
-		self
-	}
-}
-
-impl Default for OutputBuilder {
-	fn default() -> Self {
-		Self::new()
-	}
 }
 
 /// Builder for PrecompileOutput.
@@ -256,7 +160,7 @@ where
 {
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
-	/// If succesful returns the used gas using the Runtime GasWeightMapping.
+	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
@@ -277,9 +181,13 @@ where
 		}
 
 		// Dispatch call.
+		// It may be possible to not record gas cost if the call returns Pays::No.
+		// However while Substrate handle checking weight while not making the sender pay for it,
+		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
+		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|_| error("dispatched call failed"))?
+			.map_err(|e| error(alloc::format!("Dispatched call failed with error: {:?}", e)))?
 			.actual_weight;
 
 		// Return used weight by converting weight to gas.
@@ -304,6 +212,8 @@ where
 }
 
 /// Custom Gasometer to record costs in precompiles.
+/// It is advised to record known costs as early as possible to
+/// avoid unecessary computations if there is an Out of Gas.
 #[derive(Clone, Copy, Debug)]
 pub struct Gasometer {
 	target_gas: Option<u64>,
@@ -327,12 +237,46 @@ impl Gasometer {
 
 	/// Record cost, and return error if it goes out of gas.
 	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
-		self.used_gas += cost;
+		self.used_gas = self.used_gas.checked_add(cost).ok_or(ExitError::OutOfGas)?;
 
 		match self.target_gas {
 			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
 			_ => Ok(()),
 		}
+	}
+
+	/// Record cost of a log manualy.
+	/// This can be useful to record log costs early when their content have static size.
+	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
+		// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
+		// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
+
+		const G_LOG: u64 = 375;
+		const G_LOGDATA: u64 = 8;
+		const G_LOGTOPIC: u64 = 375;
+
+		let topic_cost = G_LOGTOPIC
+			.checked_mul(topics as u64)
+			.ok_or(ExitError::OutOfGas)?;
+
+		let data_cost = G_LOGDATA
+			.checked_mul(data_len as u64)
+			.ok_or(ExitError::OutOfGas)?;
+
+		self.record_cost(G_LOG)?;
+		self.record_cost(topic_cost)?;
+		self.record_cost(data_cost)?;
+
+		Ok(())
+	}
+
+	/// Record cost of logs.
+	pub fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
+		for log in logs {
+			self.record_log_costs_manual(log.topics.len(), log.data.len())?;
+		}
+
+		Ok(())
 	}
 
 	/// Compute remaining gas.

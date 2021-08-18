@@ -92,13 +92,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
-					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
-					use moonbeam_rpc_primitives_debug::single::TraceType;
+					use moonbeam_evm_tracer::EvmTracer;
 
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
@@ -110,23 +108,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						let _ = match &ext.function {
 							Call::Ethereum(transact(t)) => {
 								if t == transaction {
-									match trace_type {
-										TraceType::Raw {
-											disable_storage,
-											disable_memory,
-											disable_stack,
-										} => {
-											RawTracer::new(
-												disable_storage,
-												disable_memory,
-												disable_stack,
-											).trace(|| Executive::apply_extrinsic(ext));
-										},
-										TraceType::CallList => {
-											CallListTracer::default()
-												.trace(|| Executive::apply_extrinsic(ext));
-										},
-									};
+									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 									return Ok(());
 								} else {
 									Executive::apply_extrinsic(ext)
@@ -148,11 +130,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::CallListTracer;
-					use moonbeam_rpc_primitives_debug::{
-						block, single, CallResult, CreateResult, CreateType,
-					};
-
+					use moonbeam_evm_tracer::EvmTracer;
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
 					Executive::initialize_block(header);
@@ -165,8 +143,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						match &ext.function {
 							Call::Ethereum(transact(_transaction)) => {
 								// Each extrinsic is a new call stack.
-								CallListTracer::emit_new();
-								CallListTracer::default().trace(|| Executive::apply_extrinsic(ext));
+								EvmTracer::emit_new();
+								EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 							}
 							_ => {
 								let _ = Executive::apply_extrinsic(ext);
@@ -220,7 +198,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					Ethereum::find_author()
+					<pallet_evm::Module<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -317,6 +295,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_transaction_statuses(),
 					)
 				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.function {
+						Call::Ethereum(transact(t)) => Some(t),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
+				}
 			}
 
 			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
@@ -391,12 +378,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						parachain_staking,
 						ParachainStakingBench::<Runtime>
 					);
-					// add_benchmark!(
-					// 	params,
-					// 	batches,
-					// 	pallet_crowdloan_rewards,
-					// 	PalletCrowdloanRewardsBench::<Runtime>
-					// );
+					add_benchmark!(
+					params,
+						batches,
+						pallet_crowdloan_rewards,
+						PalletCrowdloanRewardsBench::<Runtime>
+					);
 					add_benchmark!(
 						params,
 						batches,
@@ -409,6 +396,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						return Err("Benchmark not found for this pallet.".into());
 					}
 					Ok(batches)
+				}
+			}
+
+			#[cfg(feature = "try-runtime")]
+			impl frame_try_runtime::TryRuntime<Block> for Runtime {
+				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+					log::info!("try-runtime::on_runtime_upgrade()");
+					let weight = Executive::try_runtime_upgrade()?;
+					Ok((weight, BlockWeights::get().max_block))
 				}
 			}
 		}

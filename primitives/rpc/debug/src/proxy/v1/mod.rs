@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Legacy version of the client-side components for the tracer.
+//!
 //! A Proxy in this context is an environmental trait implementor meant to be used for capturing
 //! EVM trace results sent to a Host function from the Runtime. Works like:
 //! - Runtime Api call `using` environmental.
@@ -64,6 +66,29 @@ impl Event {
 	pub fn emit(self) {
 		listener::with(|listener| listener.event(self));
 	}
+}
+
+/// DebugRuntimeApi V1 result. Trace response is stored in runtime memory and returned as part of
+/// the runtime api call.
+#[derive(Debug)]
+pub enum ResultV1 {
+	Single(SingleTrace),
+	Block(Vec<BlockTrace>),
+}
+
+/// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is
+/// empty.
+#[derive(Debug)]
+pub enum ResultV2 {
+	Single,
+	Block,
+}
+
+/// Runtime api closure result.
+#[derive(Debug)]
+pub enum Result {
+	V1(ResultV1),
+	V2(ResultV2),
 }
 
 #[derive(Debug)]

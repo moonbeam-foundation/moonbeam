@@ -14,54 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::util::*;
-
-use codec::Encode;
-use ethereum_types::{H160, U256};
-use evm::{Capture, ExitError, ExitReason, ExitSucceed};
-use moonbeam_rpc_primitives_debug::{
-	single::{Call, CallInner},
-	CallResult, CallType, CreateResult,
+extern crate alloc;
+use super::{
+	Capture, ContextType, Event, EvmEvent, ExitError, ExitReason, ExitSucceed, GasometerEvent,
+	Listener as ListenerT, RuntimeEvent, H160, H256, U256,
 };
+use crate::{
+	block::{
+		TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
+		TransactionTraceResult,
+	},
+	single::{Call, CallInner, TransactionTrace as SingleTrace},
+	CallResult, CallType, CreateResult, CreateType,
+};
+use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-/// Listen to EVM events to provide a overview of the internal transactions.
-/// It can be used to implement `trace_filter`.
-///
-/// # Output example
-///
-/// ```json
-///   [
-///    {
-///      "type": "call",
-///      "callType": "call",
-///      "from": "0xfe2882ac0a337a976aa73023c2a2a917f57ba2ed",
-///      "to": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
-///      "input": "0x",
-///      "output": "0x",
-///      "traceAddress": [],
-///      "value": "0x0",
-///      "gas": "0xf9be",
-///      "gasUsed": "0xf9be"
-///    },
-///    {
-///      "type": "call",
-///      "callType": "call",
-///      "from": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
-///      "to": "0x1416aa2a27db08ce3a81a01cdfc981417d28a6e6",
-///      "input": "0xfd63983b0000000000000000000000000000000000000000000000000000000000000006",
-///      "output": "0x000000000000000000000000000000000000000000000000000000000000000d",
-///      "traceAddress": [0],
-///      "value": "0x0",
-///      "gas": "0x9b9b",
-///      "gasUsed": "0x4f6d"
-///    }
-///   ]
-///   ```
-#[derive(Debug)]
-pub struct CallListTracer {
+pub struct Listener {
 	// Transaction cost that must be added to the first context cost.
 	transaction_cost: u64,
 
+	// Final logs.
+	entries: Vec<BTreeMap<u32, Call>>,
 	// Next index to use.
 	entries_next_index: u32,
 	// Stack of contexts with data to keep between events.
@@ -75,7 +48,6 @@ pub struct CallListTracer {
 	call_type: Option<CallType>,
 }
 
-#[derive(Debug)]
 struct Context {
 	entries_index: u32,
 
@@ -95,11 +67,12 @@ struct Context {
 	to: H160,
 }
 
-impl Default for CallListTracer {
+impl Default for Listener {
 	fn default() -> Self {
 		Self {
 			transaction_cost: 0,
 
+			entries: vec![],
 			entries_next_index: 0,
 
 			context_stack: vec![],
@@ -109,36 +82,125 @@ impl Default for CallListTracer {
 	}
 }
 
-impl CallListTracer {
-	/// Setup event listeners and execute provided closure.
-	///
-	/// Consume the tracer and return it alongside the return value of
-	/// the closure.
-	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
-		let wrapped = Rc::new(RefCell::new(self));
-
-		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
-		let mut runtime = ListenerProxy(Rc::clone(&wrapped));
-		let mut evm = ListenerProxy(Rc::clone(&wrapped));
-
-		// Each line wraps the previous `f` into a `using` call.
-		// Listening to new events results in adding one new line.
-		// Order is irrelevant when registering listeners.
-		let f = || runtime_using(&mut runtime, f);
-		let f = || gasometer_using(&mut gasometer, f);
-		let f = || evm_using(&mut evm, f);
-		f();
+impl Listener {
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		super::listener::using(self, f)
 	}
 
-	/// Each extrinsic represents a Call stack in the host and thus a block - a collection of
-	/// extrinsics - is a "stack of Call stacks" `Vec<BTree<u32, Call>>`.
-	pub fn emit_new() {
-		moonbeam_primitives_ext::moonbeam_ext::call_list_new();
+	pub fn into_tx_trace(self) -> Option<SingleTrace> {
+		if let Some(entry) = self.entries.last() {
+			return Some(SingleTrace::CallList(
+				entry.into_iter().map(|(_, value)| value.clone()).collect(),
+			));
+		}
+		None
 	}
-}
 
-impl GasometerListener for CallListTracer {
-	fn event(&mut self, event: GasometerEvent) {
+	/// Format the RPC output for multiple transactions. Each call-stack represents a single
+	/// transaction/EVM execution.
+	pub fn into_tx_traces(self) -> Vec<BlockTrace> {
+		let mut traces = Vec::new();
+		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
+			let mut tx_traces: Vec<_> = entry
+				.into_iter()
+				.map(|(_, trace)| match trace.inner.clone() {
+					CallInner::Call {
+						input,
+						to,
+						res,
+						call_type,
+					} => BlockTrace {
+						action: TransactionTraceAction::Call {
+							call_type,
+							from: trace.from,
+							gas: trace.gas,
+							input,
+							to,
+							value: trace.value,
+						},
+						// Can't be known here, must be inserted upstream.
+						block_hash: H256::default(),
+						// Can't be known here, must be inserted upstream.
+						block_number: 0,
+						output: match res {
+							CallResult::Output(output) => {
+								TransactionTraceOutput::Result(TransactionTraceResult::Call {
+									gas_used: trace.gas_used,
+									output,
+								})
+							}
+							crate::CallResult::Error(error) => TransactionTraceOutput::Error(error),
+						},
+						subtraces: trace.subtraces,
+						trace_address: trace.trace_address.clone(),
+						// Can't be known here, must be inserted upstream.
+						transaction_hash: H256::default(),
+						transaction_position: eth_tx_index as u32,
+					},
+					CallInner::Create { init, res } => {
+						BlockTrace {
+							action: TransactionTraceAction::Create {
+								creation_method: CreateType::Create,
+								from: trace.from,
+								gas: trace.gas,
+								init,
+								value: trace.value,
+							},
+							// Can't be known here, must be inserted upstream.
+							block_hash: H256::default(),
+							// Can't be known here, must be inserted upstream.
+							block_number: 0,
+							output: match res {
+								CreateResult::Success {
+									created_contract_address_hash,
+									created_contract_code,
+								} => {
+									TransactionTraceOutput::Result(TransactionTraceResult::Create {
+										gas_used: trace.gas_used,
+										code: created_contract_code,
+										address: created_contract_address_hash,
+									})
+								}
+								crate::CreateResult::Error { error } => {
+									TransactionTraceOutput::Error(error)
+								}
+							},
+							subtraces: trace.subtraces,
+							trace_address: trace.trace_address.clone(),
+							// Can't be known here, must be inserted upstream.
+							transaction_hash: H256::default(),
+							transaction_position: eth_tx_index as u32,
+						}
+					}
+					CallInner::SelfDestruct {
+						balance,
+						refund_address,
+					} => BlockTrace {
+						action: TransactionTraceAction::Suicide {
+							address: trace.from,
+							balance,
+							refund_address,
+						},
+						// Can't be known here, must be inserted upstream.
+						block_hash: H256::default(),
+						// Can't be known here, must be inserted upstream.
+						block_number: 0,
+						output: TransactionTraceOutput::Result(TransactionTraceResult::Suicide),
+						subtraces: trace.subtraces,
+						trace_address: trace.trace_address.clone(),
+						// Can't be known here, must be inserted upstream.
+						transaction_hash: H256::default(),
+						transaction_position: eth_tx_index as u32,
+					},
+				})
+				.collect();
+
+			traces.append(&mut tx_traces);
+		}
+		traces
+	}
+
+	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
 			GasometerEvent::RecordCost { snapshot, .. }
 			| GasometerEvent::RecordDynamicCost { snapshot, .. }
@@ -156,16 +218,14 @@ impl GasometerListener for CallListTracer {
 			_ => (),
 		}
 	}
-}
 
-impl RuntimeListener for CallListTracer {
-	fn event(&mut self, event: RuntimeEvent) {
+	pub fn runtime_event(&mut self, event: RuntimeEvent) {
 		match event {
 			RuntimeEvent::StepResult {
 				result: Err(Capture::Trap(opcode)),
 				..
 			} => {
-				if let Some(ContextType::Call(call_type)) = ContextType::from(*opcode) {
+				if let Some(ContextType::Call(call_type)) = ContextType::from(opcode.clone()) {
 					self.call_type = Some(call_type)
 				}
 			}
@@ -179,7 +239,10 @@ impl RuntimeListener for CallListTracer {
 						gas_used += self.transaction_cost;
 					}
 
-					moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
+					if self.entries.is_empty() {
+						self.entries.push(BTreeMap::new());
+					}
+					self.entries.last_mut().unwrap().insert(
 						context.entries_index,
 						match context.context_type {
 							ContextType::Call(call_type) => {
@@ -212,7 +275,6 @@ impl RuntimeListener for CallListTracer {
 										res,
 									},
 								}
-								.encode()
 							}
 							ContextType::Create => {
 								let res = match &reason {
@@ -241,7 +303,6 @@ impl RuntimeListener for CallListTracer {
 										res,
 									},
 								}
-								.encode()
 							}
 						},
 					);
@@ -252,10 +313,8 @@ impl RuntimeListener for CallListTracer {
 			_ => (),
 		}
 	}
-}
 
-impl EvmListener for CallListTracer {
-	fn event(&mut self, event: EvmEvent) {
+	pub fn evm_event(&mut self, event: EvmEvent) {
 		let trace_address = if let Some(context) = self.context_stack.last_mut() {
 			let mut trace_address = context.trace_address.clone();
 			trace_address.push(context.subtraces);
@@ -333,7 +392,10 @@ impl EvmListener for CallListTracer {
 				target,
 				balance,
 			} => {
-				moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
+				if self.entries.is_empty() {
+					self.entries.push(BTreeMap::new());
+				}
+				self.entries.last_mut().unwrap().insert(
 					self.entries_next_index,
 					Call {
 						from: address, // this contract is self destructing
@@ -346,10 +408,8 @@ impl EvmListener for CallListTracer {
 							refund_address: target,
 							balance,
 						},
-					}
-					.encode(),
+					},
 				);
-
 				self.entries_next_index += 1;
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -377,4 +437,17 @@ fn error_message(error: &ExitError) -> Vec<u8> {
 	}
 	.as_bytes()
 	.to_vec()
+}
+
+impl ListenerT for Listener {
+	fn event(&mut self, event: Event) {
+		match event {
+			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),
+			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
+			Event::Evm(evm_event) => self.evm_event(evm_event),
+			Event::CallListNew() => {
+				self.entries.push(BTreeMap::new());
+			}
+		};
+	}
 }
