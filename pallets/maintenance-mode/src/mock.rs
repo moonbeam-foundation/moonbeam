@@ -27,6 +27,7 @@ use sp_runtime::{
 	Perbill,
 };
 
+//TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)
 pub type AccountId = u64;
 pub type BlockNumber = u64;
 
@@ -41,7 +42,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event<T>},
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event},
 	}
 );
 
