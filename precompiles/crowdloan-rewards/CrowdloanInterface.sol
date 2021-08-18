@@ -25,7 +25,9 @@ interface CrowdloanRewards {
     
     /// @dev Update reward address to receive crowdloan rewards
     /// @param new_address, the new_address where to receive the rewards from now on
-    function update_reward_address(address new_address) external;
+    /// @param relay_address, the relay_address of the contributor
+
+    function update_reward_address(address new_address, u256 relay_address) external;
 
 }
 
@@ -37,5 +39,5 @@ interface CrowdloanRewards {
 //    "53440c90": "is_contributor(address)"
 //    "76f70249": "reward_info(address)"
 //    "4e71d92d": "claim()" 
-//    "aaac61d6": "update_reward_address(address)"
+//    "aaac61d6": "update_reward_address(address, u256)"
 //}

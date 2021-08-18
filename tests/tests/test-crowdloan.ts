@@ -806,6 +806,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
     ).toJSON() as any;
 
+    // GENESIS_ACCOUNT should be associated
+    let associated = 
+      await context.polkadotApi.query.crowdloanRewards.claimed_relay_chain_ids(relayChainAddress);
+
+    expect(associated).to.be.equal(GENESIS_ACCOUNT);
+    
     expect(formatBalance(rewardInfo.total_reward, { withSi: true, withUnit: "UNIT" }, 18)).to.equal(
       "3.0000 MUNIT"
     );
@@ -840,6 +846,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .updateRewardAddress(toUpdateAccount.address)
       .signAndSend(genesisAccount);
     await context.createBlock();
+
+
+    // GENESIS_ACCOUNT should be associated
+    associated = 
+      await context.polkadotApi.query.crowdloanRewards.claimed_relay_chain_ids(relayChainAddress);
+    expect(associated).to.be.equal(toUpdateAccount.address);
 
     // GENESIS_ACCOUNT should no longer be in accounts payable
     expect(

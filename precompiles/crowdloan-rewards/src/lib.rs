@@ -28,7 +28,8 @@ use precompile_utils::{
 	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 
-use sp_core::{H160, U256};
+use sp_core::crypto::AccountId32;
+use sp_core::{H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -51,7 +52,7 @@ enum Action {
 	IsContributor = "is_contributor(address)",
 	RewardInfo = "reward_info(address)",
 	Claim = "claim()",
-	UpdateRewardAddress = "update_reward_address(address)",
+	UpdateRewardAddress = "update_reward_address(address, u256)",
 }
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
@@ -213,18 +214,25 @@ where
 		);
 
 		// Bound check
-		input.expect_arguments(1)?;
+		input.expect_arguments(2)?;
 
 		// parse the address
 		let new_address: H160 = input.read::<Address>()?.into();
+
+		// parse the relay address
+		let relay_address: H256 = input.read::<H256>()?.into();
+
+		let relay_address_decoded: AccountId32 = Into::<[u8; 32]>::into(relay_address).into();
 
 		let new_address_account = Runtime::AddressMapping::into_account_id(new_address);
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address_account);
+		let call = pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(
+			new_address_account,
+			relay_address_decoded.into(),
+		);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

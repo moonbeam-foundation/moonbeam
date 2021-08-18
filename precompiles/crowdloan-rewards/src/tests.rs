@@ -25,6 +25,7 @@ use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
+use sp_core::crypto::AccountId32;
 use sp_core::{H160, U256};
 
 #[test]
@@ -266,10 +267,10 @@ fn update_reward_address_works() {
 			pub const VESTING: u32 = 8;
 			// The init relay block gets inserted
 			roll_to(2);
-
+			let relay_address = [1u8; 32];
 			let init_block = Crowdloan::init_relay_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32].into(), Some(Alice), 50u32.into()),
+				(relay_address.into(), Some(Alice), 50u32.into()),
 				([2u8; 32].into(), Some(Bob), 50u32.into()),
 			]))
 			.dispatch(Origin::root()));
@@ -285,6 +286,7 @@ fn update_reward_address_works() {
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
 				.write(Address(H160::from(Charlie)))
+				.write(U256::from(relay_address))
 				.build();
 
 			// Make sure the call goes through successfully
@@ -299,13 +301,21 @@ fn update_reward_address_works() {
 			))
 			.dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				CrowdloanEvent::RewardAddressUpdated(Alice, Charlie).into();
+			let expected: crate::mock::Event = CrowdloanEvent::RewardAddressUpdated(
+				AccountId32::from(relay_address).into(),
+				Alice,
+				Charlie,
+			)
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 			// Assert storage is correctly moved
 			assert!(Crowdloan::accounts_payable(Alice).is_none());
 			assert!(Crowdloan::accounts_payable(Charlie).is_some());
+			assert_eq!(
+				Crowdloan::claimed_relay_chain_ids(relay_address).unwrap(),
+				Charlie
+			);
 		});
 }
 
