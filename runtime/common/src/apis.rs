@@ -372,8 +372,18 @@ macro_rules! impl_runtime_apis_plus_common {
 					// work around it by always authoring the first slot in a new round. A longer-
 					// term solution will be to calculate the staking election result in the last
 					// block of the ending round.
-					parachain_staking::Pallet::<Self>::round().should_update(block_number)
-					|| AuthorInherent::can_author(&author, &slot)
+					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+						log::info!(target: "nimbus-staking-workaround", "A new round is starting.\
+						Moonbeam will author during this slot without predicting eligibility first.\
+						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
+						It will be resolved soon.");
+
+						true
+					}
+					else {
+						AuthorInherent::can_author(&author, &slot)
+
+					}
 				}
 			}
 
