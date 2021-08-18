@@ -182,6 +182,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
+	"pallet-crowdloan-rewards/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
