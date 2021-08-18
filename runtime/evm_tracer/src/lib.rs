@@ -61,6 +61,10 @@ impl EvmTracer {
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
+		evm::tracing::enable_tracing(true);
+		evm_gasometer::tracing::enable_tracing(true);
+		evm_runtime::tracing::enable_tracing(true);
+
 		let wrapped = Rc::new(RefCell::new(self));
 
 		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
@@ -74,6 +78,10 @@ impl EvmTracer {
 		let f = || gasometer_using(&mut gasometer, f);
 		let f = || evm_using(&mut evm, f);
 		f();
+		
+		evm::tracing::enable_tracing(false);
+		evm_gasometer::tracing::enable_tracing(false);
+		evm_runtime::tracing::enable_tracing(false);
 	}
 
 	pub fn emit_new() {
@@ -82,6 +90,7 @@ impl EvmTracer {
 }
 
 impl EvmListener for EvmTracer {
+	/// Proxies `evm::tracing::Event` to the host.
 	fn event(&mut self, event: evm::tracing::Event) {
 		let event: EvmEvent = event.into();
 		let message = event.encode();
@@ -90,6 +99,7 @@ impl EvmListener for EvmTracer {
 }
 
 impl GasometerListener for EvmTracer {
+	/// Proxies `evm_gasometer::tracing::Event` to the host.
 	fn event(&mut self, event: evm_gasometer::tracing::Event) {
 		let event: GasometerEvent = event.into();
 		let message = event.encode();
@@ -98,6 +108,7 @@ impl GasometerListener for EvmTracer {
 }
 
 impl RuntimeListener for EvmTracer {
+	/// Proxies `evm_runtime::tracing::Event` to the host.
 	fn event(&mut self, event: evm_runtime::tracing::Event) {
 		let event: RuntimeEvent = event.into();
 		let message = event.encode();
