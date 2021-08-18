@@ -132,7 +132,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::CallListTracer;
+					use moonbeam_evm_tracer::EvmTracer;
 					use moonbeam_rpc_primitives_debug::{
 						block, single, CallResult, CreateResult, CreateType,
 					};
@@ -149,8 +149,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						match &ext.function {
 							Call::Ethereum(transact(_transaction)) => {
 								// Each extrinsic is a new call stack.
-								CallListTracer::emit_new();
-								CallListTracer::default().trace(|| Executive::apply_extrinsic(ext));
+								EvmTracer::emit_new();
+								EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 							}
 							_ => {
 								let _ = Executive::apply_extrinsic(ext);

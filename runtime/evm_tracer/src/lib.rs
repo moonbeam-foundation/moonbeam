@@ -24,19 +24,34 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use crate::util::*;
-
-mod call_list;
-mod util;
-
-pub use call_list::CallListTracer;
 use codec::Encode;
-pub use util::{EvmListener, GasometerListener, RuntimeListener};
-
 use moonbeam_rpc_primitives_debug::proxy::types::{EvmEvent, GasometerEvent, RuntimeEvent};
 
-pub struct EvmTracer;
+use evm::tracing::{using as evm_using, EventListener as EvmListener};
+use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};
+use evm_runtime::tracing::{using as runtime_using, EventListener as RuntimeListener};
+use sp_std::{cell::RefCell, rc::Rc};
 
+struct ListenerProxy<T>(pub Rc<RefCell<T>>);
+impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
+	fn event(&mut self, event: evm_gasometer::tracing::Event) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+impl<T: RuntimeListener> RuntimeListener for ListenerProxy<T> {
+	fn event(&mut self, event: evm_runtime::tracing::Event) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+impl<T: EvmListener> EvmListener for ListenerProxy<T> {
+	fn event(&mut self, event: evm::tracing::Event) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+pub struct EvmTracer;
 impl EvmTracer {
 	pub fn new() -> Self {
 		Self
@@ -59,6 +74,10 @@ impl EvmTracer {
 		let f = || gasometer_using(&mut gasometer, f);
 		let f = || evm_using(&mut evm, f);
 		f();
+	}
+
+	pub fn emit_new() {
+		moonbeam_primitives_ext::moonbeam_ext::call_list_new();
 	}
 }
 
