@@ -117,23 +117,13 @@ pub mod pallet {
 	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, OptionQuery>;
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
+	#[derive(Default)]
+	pub struct GenesisConfig {
 		pub completed_migrations: Vec<Vec<u8>>,
-		pub phantom: PhantomData<T>,
-	}
-
-	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
-		fn default() -> Self {
-			Self {
-				completed_migrations: vec![],
-				phantom: PhantomData,
-			}
-		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
 			for migration_name in &self.completed_migrations {
 				<MigrationState<T>>::insert(migration_name, true);

@@ -201,7 +201,6 @@
       "treasury": {},
       "scheduler": null,
       "migrations": {
-        "phantom": null,
         "completedMigrations": []
       }
     }
