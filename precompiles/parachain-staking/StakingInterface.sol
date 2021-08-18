@@ -35,6 +35,26 @@ interface ParachainStaking {
     /// @return The minimum nomination amount
     function min_nomination() external view returns (uint256);
 
+    /// @dev Get the CandidateCount weight hint
+    /// @return The CandidateCount weight hint
+    function candidate_count() external view returns (uint256);
+
+    /// @dev Get the CollatorNominationCount weight hint
+    /// @param collator The address for which we are querying the nomination count
+    /// @return The number of nominations backing the collator
+    function collator_nomination_count(address collator)
+        external
+        view
+        returns (uint256);
+
+    /// @dev Get the NominatorNominationCount weight hint
+    /// @param nominator The address for which we are querying the nomination count
+    /// @return The number of nominations made by the nominator
+    function nominator_nomination_count(address nominator)
+        external
+        view
+        returns (uint256);
+
     // Now the dispatchables
 
     /// @dev Join the set of collator candidates
