@@ -17,11 +17,11 @@
 extern crate alloc;
 
 use super::evm_types::Context;
-use crate::proxy_v2::opcodes_string;
+use crate::proxy::v2::opcodes_string;
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
-pub use evm::{ExitReason, Opcode};
+pub use evm::{ExitError, ExitReason, ExitSucceed, Opcode};
 
 #[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Stack {

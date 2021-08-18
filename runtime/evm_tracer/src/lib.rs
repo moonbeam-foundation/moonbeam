@@ -33,7 +33,7 @@ pub use call_list::CallListTracer;
 use codec::Encode;
 pub use util::{EvmListener, GasometerListener, RuntimeListener};
 
-use moonbeam_rpc_primitives_debug::types::{EvmEvent, GasometerEvent, RuntimeEvent};
+use moonbeam_rpc_primitives_debug::proxy::types::{EvmEvent, GasometerEvent, RuntimeEvent};
 
 pub struct EvmTracer;
 

@@ -30,10 +30,10 @@ use sp_std::vec::Vec;
 
 use ethereum_types::U256;
 use moonbeam_rpc_primitives_debug::{
-	proxy_v1::Event as EventV1,
-	proxy_v2::Event as EventV2,
+	proxy::types::{EvmEvent, GasometerEvent, RuntimeEvent},
+	proxy::v1::Event as EventV1,
+	proxy::v2::Event as EventV2,
 	single::{Call, RawStepLog},
-	types::{EvmEvent, GasometerEvent, RuntimeEvent},
 };
 
 #[runtime_interface]
@@ -69,5 +69,9 @@ pub trait MoonbeamExt {
 	fn runtime_event(&mut self, event: Vec<u8>) {
 		let event: RuntimeEvent = Decode::decode(&mut &event[..]).unwrap();
 		EventV2::Runtime(event).emit();
+	}
+	#[version(2)]
+	fn call_list_new(&mut self) {
+		EventV2::CallListNew().emit();
 	}
 }

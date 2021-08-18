@@ -17,17 +17,16 @@
 extern crate alloc;
 environmental::environmental!(listener: dyn Listener + 'static);
 
-pub use crate::{
-	types::{
-		evm_runtime_types::{Capture, ExitReason, Opcode},
-		EvmEvent, GasometerEvent, RuntimeEvent,
-	},
-	CallType,
+pub use super::types::{
+	evm_runtime_types::{Capture, ExitError, ExitReason, ExitSucceed, Opcode},
+	EvmEvent, GasometerEvent, RuntimeEvent,
 };
+pub use crate::CallType;
 use alloc::{vec, vec::Vec};
 pub use codec::{Decode, Encode};
 pub use ethereum_types::{H160, H256, U256};
 
+pub mod call_list;
 pub mod raw;
 
 /// Main trait to proxy emitted messages.
@@ -40,6 +39,7 @@ pub enum Event {
 	Evm(EvmEvent),
 	Gasometer(GasometerEvent),
 	Runtime(RuntimeEvent),
+	CallListNew(),
 }
 
 impl Event {

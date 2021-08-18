@@ -16,15 +16,15 @@
 
 extern crate alloc;
 use super::{
-	convert_memory, opcodes_string, Capture, ContextType, Decode, Encode, Event, ExitReason,
-	GasometerEvent, Listener, Opcode, RuntimeEvent, H160, H256, U256,
+	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
+	RuntimeEvent, H160, H256,
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
 use crate::single::{RawStepLog, TransactionTrace as SingleTrace};
 
 #[derive(Debug)]
-pub struct RawListener {
+pub struct Listener {
 	disable_storage: bool,
 	disable_memory: bool,
 	disable_stack: bool,
@@ -63,7 +63,7 @@ struct Step {
 	stack: Option<Vec<H256>>,
 }
 
-impl RawListener {
+impl Listener {
 	pub fn new(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
 		Self {
 			disable_storage,
@@ -286,7 +286,7 @@ impl RawListener {
 	}
 }
 
-impl Listener for RawListener {
+impl ListenerT for Listener {
 	fn event(&mut self, event: Event) {
 		match event {
 			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),

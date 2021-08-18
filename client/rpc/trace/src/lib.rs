@@ -55,7 +55,7 @@ use fp_rpc::EthereumRuntimeRPCApi;
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
-use moonbeam_rpc_primitives_debug::{block, proxy_v1, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{block, proxy, DebugRuntimeApi};
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
@@ -870,7 +870,7 @@ where
 							height, e
 						))
 					})?;
-				Ok(proxy_v1::Result::V2(proxy_v1::ResultV2::Block))
+				Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Block))
 			} else {
 				// For versions < 2 block needs to be manually initialized.
 				api.initialize_block(&substrate_parent_id, &block_header)
@@ -895,11 +895,11 @@ where
 							height, e
 						))
 					})?;
-				Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Block(result)))
+				Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Block(result)))
 			}
 		};
 
-		let mut proxy = proxy_v1::CallListProxy::new();
+		let mut proxy = proxy::v1::CallListProxy::new();
 
 		if api_version >= 2 {
 			proxy.using(f)?;
@@ -933,7 +933,7 @@ where
 			Ok(traces)
 		} else {
 			match proxy.using(f) {
-				Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Block(result))) => Ok(result),
+				Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Block(result))) => Ok(result),
 				Err(e) => Err(e),
 				_ => Err(internal_err(format!(
 					"Bug: Api and result versions must match"

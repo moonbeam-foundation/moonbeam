@@ -29,9 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{
-	proxy_v1, proxy_v2, single, DebugRuntimeApi, V2_RUNTIME_VERSION,
-};
+use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -268,7 +266,7 @@ where
 								})?
 								.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-							Ok(proxy_v1::Result::V2(proxy_v1::ResultV2::Single))
+							Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 						}
 						// Before Runtime version 400, we need to supporting 2 different iterations
 						// of the tracer. This will be dropped if Alphanet is purged at some point.
@@ -287,7 +285,7 @@ where
 									})?
 									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-								Ok(proxy_v1::Result::V2(proxy_v1::ResultV2::Single))
+								Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 							} else {
 								// For versions < 2 block needs to be manually initialized.
 								api.initialize_block(&parent_block_id, &header)
@@ -307,7 +305,7 @@ where
 								})?
 								.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-								Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(result)))
+								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result)))
 							}
 						}
 					}
@@ -319,7 +317,7 @@ where
 						disable_stack,
 					} => match runtime_version.spec_version {
 						version if version >= V2_RUNTIME_VERSION => {
-							let mut proxy = proxy_v2::raw::RawListener::new(
+							let mut proxy = proxy::v2::raw::Listener::new(
 								disable_storage,
 								disable_memory,
 								disable_stack,
@@ -328,13 +326,13 @@ where
 							Ok(proxy.into_tx_trace())
 						}
 						_ => {
-							let mut proxy = proxy_v1::RawProxy::new();
+							let mut proxy = proxy::v1::RawProxy::new();
 							if api_version >= 2 {
 								proxy.using(f)?;
 								Ok(proxy.into_tx_trace())
 							} else {
 								match proxy.using(f) {
-									Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(
+									Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(
 										result,
 									))) => Ok(result),
 									Err(e) => Err(e),
@@ -345,26 +343,36 @@ where
 							}
 						}
 					},
-					single::TraceType::CallList { .. } => {
-						let mut proxy = proxy_v1::CallListProxy::new();
-						if api_version >= 2 {
+					single::TraceType::CallList { .. } => match runtime_version.spec_version {
+						version if version >= V2_RUNTIME_VERSION => {
+							let mut proxy = proxy::v2::call_list::Listener::default();
 							proxy.using(f)?;
 							proxy
 								.into_tx_trace()
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
-						} else {
-							match proxy.using(f) {
-								Ok(proxy_v1::Result::V1(proxy_v1::ResultV1::Single(result))) => {
-									Ok(result)
+						}
+						_ => {
+							let mut proxy = proxy::v1::CallListProxy::new();
+							if api_version >= 2 {
+								proxy.using(f)?;
+								proxy
+									.into_tx_trace()
+									.ok_or("Trace result is empty.")
+									.map_err(|e| internal_err(format!("{:?}", e)))
+							} else {
+								match proxy.using(f) {
+									Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(
+										result,
+									))) => Ok(result),
+									Err(e) => Err(e),
+									_ => Err(internal_err(format!(
+										"Bug: Api and result versions must match"
+									))),
 								}
-								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
 							}
 						}
-					}
+					},
 				};
 			}
 		}
