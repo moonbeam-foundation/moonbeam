@@ -31,7 +31,7 @@ describeDevMoonbeam("Block 1", (context) => {
       logsBloom: `0x${"0".repeat(512)}`,
       miner: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
       number: 1,
-      receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       totalDifficulty: "0",
       transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",

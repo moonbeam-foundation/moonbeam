@@ -17,28 +17,22 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode};
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
-};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::{
-	construct_runtime,
-	dispatch::UnfilteredDispatchable,
-	inherent::{InherentData, ProvideInherent},
-	parameter_types,
-	traits::{GenesisBuild, MaxEncodedLen, OnFinalize, OnInitialize},
+	construct_runtime, parameter_types,
+	traits::{GenesisBuild, MaxEncodedLen},
+	weights::Weight,
 };
-use frame_system::RawOrigin;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use parachain_staking::{InflationInfo, Range};
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, Percent,
 };
+
 pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -46,7 +40,6 @@ pub type BlockNumber = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
-// Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Test where
 		Block = Block,
@@ -57,8 +50,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -69,7 +61,6 @@ construct_runtime!(
 	Ord,
 	PartialOrd,
 	Clone,
-	Copy,
 	Encode,
 	Decode,
 	Debug,
@@ -102,40 +93,28 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
+impl TestAccount {
+	pub(crate) fn to_h160(&self) -> H160 {
+		match self {
+			Self::Alice => H160::repeat_byte(0xAA),
+			Self::Bob => H160::repeat_byte(0xBB),
+			Self::Charlie => H160::repeat_byte(0xCC),
+			Self::Bogus => Default::default(),
+		}
+	}
+}
+
 impl From<H160> for TestAccount {
 	fn from(x: H160) -> TestAccount {
 		TestAccount::into_account_id(x)
 	}
 }
 
-impl From<TestAccount> for H160 {
-	fn from(value: TestAccount) -> H160 {
-		match value {
-			TestAccount::Alice => H160::repeat_byte(0xAA),
-			TestAccount::Bob => H160::repeat_byte(0xBB),
-			TestAccount::Charlie => H160::repeat_byte(0xCC),
-			TestAccount::Bogus => Default::default(),
-		}
-	}
-}
-
-parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
-}
-
-impl cumulus_pallet_parachain_system::Config for Test {
-	type SelfParaId = ParachainId;
-	type Event = Event;
-	type OnValidationData = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-}
-
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
+	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockLength: u32 = 2 * 1024;
+	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
@@ -147,7 +126,7 @@ impl frame_system::Config for Test {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = TestAccount;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -161,14 +140,14 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type OnSetCode = ();
 }
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Test {
 	type MaxReserves = ();
-	type ReserveIdentifier = ();
+	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
 	type Event = Event;
@@ -178,7 +157,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// The crowdloan precompile is available at address one in the mock runtime.
+/// The staking precompile is available at address one in the mock runtime.
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
@@ -190,10 +169,10 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: pallet_crowdloan_rewards::Config + pallet_evm::Config,
+	R: parachain_staking::Config + pallet_evm::Config,
 	R::AccountId: From<H160>,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
+	BalanceOf<R>: EvmData,
+	R::Call: From<parachain_staking::Call<R>>,
 {
 	fn execute(
 		address: H160,
@@ -202,7 +181,7 @@ where
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
-			a if a == precompile_address() => Some(CrowdloanRewardsWrapper::<R>::execute(
+			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,
@@ -215,9 +194,9 @@ pub type Precompiles = TestPrecompiles<Test>;
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<TestAccount>;
-	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
-	type AddressMapping = TestAccount;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -240,33 +219,79 @@ impl pallet_timestamp::Config for Test {
 }
 
 parameter_types! {
-	pub const TestMaxInitContributors: u32 = 8;
-	pub const TestMinimumReward: u128 = 0;
-	pub const TestInitialized: bool = false;
-	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
+	pub const MinBlocksPerRound: u32 = 3;
+	pub const DefaultBlocksPerRound: u32 = 5;
+	pub const LeaveCandidatesDelay: u32 = 2;
+	pub const LeaveNominatorsDelay: u32 = 2;
+	pub const RevokeNominationDelay: u32 = 2;
+	pub const RewardPaymentDelay: u32 = 2;
+	pub const MinSelectedCandidates: u32 = 5;
+	pub const MaxNominatorsPerCollator: u32 = 4;
+	pub const MaxCollatorsPerNominator: u32 = 4;
+	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
+	pub const MinCollatorStk: u128 = 10;
+	pub const MinNominatorStk: u128 = 5;
+	pub const MinNomination: u128 = 3;
 }
-
-impl pallet_crowdloan_rewards::Config for Test {
+impl parachain_staking::Config for Test {
 	type Event = Event;
-	type Initialized = TestInitialized;
-	type InitializationPayment = TestInitializationPayment;
-	type MaxInitContributors = TestMaxInitContributors;
-	type MinimumReward = TestMinimumReward;
-	type RewardCurrency = Balances;
-	type RelayChainAccountId = [u8; 32];
+	type Currency = Balances;
+	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
+	type MinSelectedCandidates = MinSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
+	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinNominatorStk = MinNominatorStk;
+	type MinNomination = MinNomination;
 	type WeightInfo = ();
 }
+
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	crowdloan_pot: Balance,
+	// [collator, amount]
+	collators: Vec<(AccountId, Balance)>,
+	// [nominator, collator, nomination_amount]
+	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// inflation config
+	inflation: InflationInfo<Balance>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			crowdloan_pot: 0u32.into(),
+			nominations: vec![],
+			collators: vec![],
+			inflation: InflationInfo {
+				expect: Range {
+					min: 700,
+					ideal: 700,
+					max: 700,
+				},
+				// not used
+				annual: Range {
+					min: Perbill::from_percent(50),
+					ideal: Perbill::from_percent(50),
+					max: Perbill::from_percent(50),
+				},
+				// unrealistically high parameterization, only for testing
+				round: Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
+				},
+			},
 		}
 	}
 }
@@ -276,10 +301,26 @@ impl ExtBuilder {
 		self.balances = balances;
 		self
 	}
-	pub(crate) fn with_crowdloan_pot(mut self, pot: Balance) -> Self {
-		self.crowdloan_pot = pot;
+
+	pub(crate) fn with_candidates(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+		self.collators = collators;
 		self
 	}
+
+	pub(crate) fn with_nominations(
+		mut self,
+		nominations: Vec<(AccountId, AccountId, Balance)>,
+	) -> Self {
+		self.nominations = nominations;
+		self
+	}
+
+	#[allow(dead_code)]
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+		self.inflation = inflation;
+		self
+	}
+
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -290,12 +331,13 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-
-		pallet_crowdloan_rewards::GenesisConfig::<Test> {
-			funded_amount: self.crowdloan_pot,
+		parachain_staking::GenesisConfig::<Test> {
+			candidates: self.collators,
+			nominations: self.nominations,
+			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
-		.expect("Pallet balances storage can be assimilated");
+		.expect("Parachain Staking's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
@@ -303,48 +345,10 @@ impl ExtBuilder {
 	}
 }
 
-//TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		// Relay chain Stuff. I might actually set this to a number different than N
-		let sproof_builder = RelayStateSproofBuilder::default();
-		let (relay_parent_storage_root, relay_chain_state) =
-			sproof_builder.into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let inherent_data = {
-			let mut inherent_data = InherentData::default();
-			let system_inherent_data = ParachainInherentData {
-				validation_data: vfp.clone(),
-				relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			inherent_data
-				.put_data(
-					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
-					&system_inherent_data,
-				)
-				.expect("failed to put VFP inherent");
-			inherent_data
-		};
-
-		ParachainSystem::on_initialize(System::block_number());
-		ParachainSystem::create_inherent(&inherent_data)
-			.expect("got an inherent")
-			.dispatch_bypass_filter(RawOrigin::None.into())
-			.expect("dispatch succeeded");
-		ParachainSystem::on_finalize(System::block_number());
-
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
+// Same storage changes as EventHandler::note_author impl
+pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
+	<parachain_staking::Points<Test>>::mutate(round, |p| *p += pts);
+	<parachain_staking::AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }
 
 pub(crate) fn events() -> Vec<Event> {

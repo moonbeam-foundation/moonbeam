@@ -25,7 +25,7 @@ use sp_block_builder::BlockBuilder;
 use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use ethereum::EthereumStorageSchema;
-use fc_mapping_sync::MappingSyncWorker;
+use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
 	EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle, RuntimeApiStorageOverride,
@@ -176,7 +176,7 @@ where
 		pending_transactions,
 		signers,
 		overrides.clone(),
-		frontier_backend,
+		frontier_backend.clone(),
 		is_authority,
 		max_past_logs,
 	)));
@@ -184,6 +184,7 @@ where
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
+			frontier_backend,
 			filter_pool,
 			500_usize, // max stored filters
 			overrides.clone(),
@@ -305,6 +306,7 @@ where
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
+			SyncStrategy::Parachain,
 		)
 		.for_each(|()| futures::future::ready(())),
 	);
@@ -355,6 +357,14 @@ where
 			),
 		);
 	}
+
+	params.task_manager.spawn_essential_handle().spawn(
+		"frontier-schema-cache-task",
+		EthTask::ethereum_schema_cache_task(
+			Arc::clone(&params.client),
+			Arc::clone(&params.frontier_backend),
+		),
+	);
 
 	RpcRequesters {
 		debug: debug_requester,
