@@ -24,6 +24,7 @@ parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", 
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 evm = { version="0.27.0", default-features=false, features=["with-codec"] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 pallet-evm-precompile-bn128 = { git="https://github.com/purestake/frontier", default-features=false, branch="moonriver-phase-four" }
@@ -154,6 +155,7 @@ std = [
 	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
+	"pallet-maintenance-mode/std",
 	"pallet-treasury/std",
 	"max-encoded-len/std",
 	"evm/std",
