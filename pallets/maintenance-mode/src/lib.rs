@@ -24,7 +24,7 @@
 //! Possible future improvements
 //! 1. This could be more configureable by letting the runtime developer specify a type (probably an
 //! enum) that can be converted into a filter. Similar end result (but different implementation) as
-//! Acala has it 
+//! Acala has it
 //! github.com/AcalaNetwork/Acala/blob/pause-transaction/modules/transaction-pause/src/lib.rs#L71
 //!
 //! 2. Automatically enable maintenance mode after a long timeout is detected between blocks.
@@ -41,7 +41,6 @@
 //! This would allow to determine whether eg staking elections should still occur and
 //! democracy referenda still mature
 
-
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -50,7 +49,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use frame_support::{pallet, weights::Weight};
+use frame_support::pallet;
 
 pub use pallet::*;
 
@@ -69,7 +68,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type Event: From<Event> + IsType<<Self as frame_system::Config>::Event>;
 		/// The base call filter to be used in normal operating mode
 		/// (When we aren't in the middle of a migration)
 		type NormalCallFilter: Filter<Self::Call>;
@@ -86,7 +85,7 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {
+	pub enum Event {
 		/// The chain was put into Maintenance Mode
 		EnteredMaintenanceMode,
 		/// The chain returned to its normal operating state
