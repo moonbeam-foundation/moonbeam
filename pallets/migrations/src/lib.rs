@@ -159,7 +159,7 @@ pub mod pallet {
 				};
 
 				log::trace!(
-					"performing migration {}, avail weight: {}",
+					"performing migration {}, available weight: {}",
 					migration_name,
 					available_for_step
 				);
