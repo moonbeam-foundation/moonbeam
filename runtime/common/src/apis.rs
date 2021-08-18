@@ -366,12 +366,12 @@ macro_rules! impl_runtime_apis_plus_common {
 					RandomnessCollectiveFlip::on_initialize(block_number);
 
 					// Because the staking solution calculates the next staking set at the beginning
-					// of the first block in the next round, the only way to accurately predict the
+					// of the first block in the new round, the only way to accurately predict the
 					// authors would be to run the staking election while predicting. However this
 					// election is heavy and will take too long during prediction. So instead we
-					// work around it by always authoring the first slot in a new round. A longer
+					// work around it by always authoring the first slot in a new round. A longer-
 					// term solution will be to calculate the staking election result in the last
-					// block of the previous round.
+					// block of the ending round.
 					parachain_staking::Pallet::<Self>::round().should_update(block_number)
 					|| AuthorInherent::can_author(&author, &slot)
 				}
