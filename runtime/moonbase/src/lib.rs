@@ -638,14 +638,17 @@ impl pallet_author_slot_filter::Config for Runtime {
 ///
 /// This is included in moonbase only so that we can re-test rewards intialization with the new
 /// version of the pallet. This migration makes no attempt to recouperate already-claimed tokens
-/// and it also mints tokens for the nwe pot.
+/// and it also mints tokens for the new pot.
 ///
 /// NOT FOR USE IN VALUE-BEARING NETWORKS!
 pub struct NukeRewardsStorage;
 
 impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 	fn on_runtime_upgrade() -> Weight {
-		//TODO Delete all crowdlaon rewards storage
+		// Delete all crowdlaon rewards storage
+		// Supply only the pallet name, no storage item name or map key
+		// This will cause the entire pallet's storage to be deleted
+		frame_support::storage::migration::remove_storage_prefix(b"CrowdloanRewards", &[], &[]);
 
 		//TODO Reset the pot's funds
 
