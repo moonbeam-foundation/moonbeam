@@ -40,6 +40,10 @@
 //! 5. Let the runtime developer configure which pallets' on_initialize and on_finalize hooks get
 //! called. This would allow to determine whether eg staking elections should still occur and
 //! democracy referenda still mature
+//!
+//! 6. An option to automatically enter maintenance mode after each runtime upgrade. This would give
+//! the MaintenanceOrigin an opportunity to inspect the chain and ensure that everything looks good
+//! before resuming normal operation.
 
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
