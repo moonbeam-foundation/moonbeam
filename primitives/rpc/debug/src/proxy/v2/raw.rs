@@ -23,7 +23,7 @@ use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
 use crate::single::RawStepLog;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Listener {
 	disable_storage: bool,
 	disable_memory: bool,
@@ -37,7 +37,7 @@ pub struct Listener {
 	pub final_gas: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Context {
 	storage_cache: BTreeMap<H256, H256>,
 	address: H160,
@@ -45,7 +45,7 @@ struct Context {
 	global_storage_changes: BTreeMap<H160, BTreeMap<H256, H256>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct Step {
 	/// Current opcode.
 	opcode: Vec<u8>,
