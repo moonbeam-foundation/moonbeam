@@ -21,9 +21,9 @@ use super::{
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use crate::single::{RawStepLog, TransactionTrace as SingleTrace};
+use crate::single::RawStepLog;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Listener {
 	disable_storage: bool,
 	disable_memory: bool,
@@ -32,12 +32,12 @@ pub struct Listener {
 	new_context: bool,
 	context_stack: Vec<Context>,
 
-	step_logs: Vec<RawStepLog>,
-	return_value: Vec<u8>,
-	final_gas: u64,
+	pub step_logs: Vec<RawStepLog>,
+	pub return_value: Vec<u8>,
+	pub final_gas: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Context {
 	storage_cache: BTreeMap<H256, H256>,
 	address: H160,
@@ -45,7 +45,7 @@ struct Context {
 	global_storage_changes: BTreeMap<H160, BTreeMap<H256, H256>>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Step {
 	/// Current opcode.
 	opcode: Vec<u8>,
@@ -83,13 +83,13 @@ impl Listener {
 		super::listener::using(self, f)
 	}
 
-	pub fn into_tx_trace(self) -> SingleTrace {
-		SingleTrace::Raw {
-			step_logs: self.step_logs,
-			gas: self.final_gas.into(),
-			return_value: self.return_value,
-		}
-	}
+	// pub fn into_tx_trace(self) -> SingleTrace {
+	// 	SingleTrace::Raw {
+	// 		step_logs: self.step_logs,
+	// 		gas: self.final_gas.into(),
+	// 		return_value: self.return_value,
+	// 	}
+	// }
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
