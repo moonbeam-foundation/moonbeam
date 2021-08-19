@@ -200,6 +200,9 @@
       },
       "treasury": {},
       "scheduler": null
+    },
+    "maintenanceMode": {
+      "start_in_maintenance_mode": false
     }
   }
 }
