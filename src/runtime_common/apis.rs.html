@@ -410,6 +410,25 @@
 <span id="410">410</span>
 <span id="411">411</span>
 <span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -742,20 +761,39 @@
 					<span class="ident">slot</span>: <span class="ident">u32</span>,
 					<span class="ident">parent_header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>
 				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+					<span class="kw">let</span> <span class="ident">block_number</span> <span class="op">=</span> <span class="ident">parent_header</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>;
+
 					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting</span>
 					<span class="comment">// work during block initialization. Therefore we initialize it here to match</span>
 					<span class="comment">// the state it will be in when the next block is being executed.</span>
 					<span class="kw">use</span> <span class="ident">frame_support::traits::OnInitialize</span>;
 					<span class="ident">System::initialize</span>(
-						<span class="kw-2">&amp;</span>(<span class="ident">parent_header</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>),
+						<span class="kw-2">&amp;</span><span class="ident">block_number</span>,
 						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">hash</span>(),
 						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">digest</span>,
 						<span class="ident">frame_system::InitKind::Inspection</span>
 					);
-					<span class="ident">RandomnessCollectiveFlip::on_initialize</span>(<span class="ident">System::block_number</span>());
+					<span class="ident">RandomnessCollectiveFlip::on_initialize</span>(<span class="ident">block_number</span>);
 
-					<span class="comment">// And now the actual prediction call</span>
-					<span class="ident">AuthorInherent::can_author</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>, <span class="kw-2">&amp;</span><span class="ident">slot</span>)
+					<span class="comment">// Because the staking solution calculates the next staking set at the beginning</span>
+					<span class="comment">// of the first block in the new round, the only way to accurately predict the</span>
+					<span class="comment">// authors would be to run the staking election while predicting. However this</span>
+					<span class="comment">// election is heavy and will take too long during prediction. So instead we</span>
+					<span class="comment">// work around it by always authoring the first slot in a new round. A longer-</span>
+					<span class="comment">// term solution will be to calculate the staking election result in the last</span>
+					<span class="comment">// block of the ending round.</span>
+					<span class="kw">if</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">should_update</span>(<span class="ident">block_number</span>) {
+						<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;nimbus-staking-workaround&quot;</span>, <span class="string">&quot;A new round is starting.\
+						Moonbeam will author during this slot without predicting eligibility first.\
+						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
+						It will be resolved soon.&quot;</span>);
+
+						<span class="bool-val">true</span>
+					}
+					<span class="kw">else</span> {
+						<span class="ident">AuthorInherent::can_author</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>, <span class="kw-2">&amp;</span><span class="ident">slot</span>)
+
+					}
 				}
 			}
 
