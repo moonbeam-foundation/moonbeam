@@ -662,6 +662,32 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		// * One for updating the total issuance
 		3 * <Runtime as frame_system::Config>::DbWeight::get().write
 	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::ensure;
+
+		// Ensure that the storage is killed
+		// TODO how to ensure that the maps are empty?
+		// ensure!(
+		// 	pallet_crowdloan_rewards::AccountsPayable::drain().next().is_none(),
+		// 	"AccountPayable map was not reset"
+		// );
+		ensure!(!CrowdloanRewards::initialized(), "Initialized storage item is set to true");
+		ensure!(CrowdloanRewards::init_relay_block() == 0, "Init relay block is not 0");
+		ensure!(CrowdloanRewards::end_relay_block() == 0, "End relay block is not 0");
+		ensure!(CrowdloanRewards::init_reward_amount() == 0, "Init reward amount is not 0");
+		ensure!(CrowdloanRewards::total_contributors() == 0, "Total contributors is not 0");
+
+
+		// Ensure that the pot balance is correct
+		ensure!(
+			Balances::free_balance(&CrowdloanRewards::account_id()) == 3_000_000 * currency::UNIT,
+			"Pot balance was not set correctly during migration"
+		);
+
+		Ok(())
+	}
 }
 
 parameter_types! {
