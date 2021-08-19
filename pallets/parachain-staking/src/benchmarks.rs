@@ -526,7 +526,7 @@ benchmarks! {
 		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get() + 2u32;
 		let mut now = <frame_system::Pallet<T>>::block_number();
 		let mut counter = 0usize;
-		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
+		let end = Pallet::<T>::round().first + (round_length * reward_delay.into()) - 1u32.into();
 		// SET collators as authors for blocks from now - end
 		while now < end {
 			let author = collators[counter % collators.len()].clone();
