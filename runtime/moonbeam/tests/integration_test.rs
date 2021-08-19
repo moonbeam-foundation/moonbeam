@@ -83,7 +83,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbeam_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("AuthorMapping");
-	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("MaintenanceMode");
+	is_pallet_prefix::<moonbeam_runtime::MaintenanceMode>("MaintenanceMode");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
