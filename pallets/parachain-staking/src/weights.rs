@@ -176,13 +176,16 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
-		(10_177_000 as Weight)
-			// Standard Error: 0
-			.saturating_add((24_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 0
-			.saturating_add((1_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+	fn active_on_initialize(x: u32, y: u32, ) -> Weight {
+		(0 as Weight)
+			// Standard Error: 299_000
+			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 27_000
+			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads(26 as Weight))
+			.saturating_add(T::DbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes(16 as Weight))
+			.saturating_add(T::DbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
 	}
 	fn passive_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -291,13 +294,16 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
-		(10_177_000 as Weight)
-			// Standard Error: 0
-			.saturating_add((24_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 0
-			.saturating_add((1_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+	fn active_on_initialize(x: u32, y: u32, ) -> Weight {
+		(0 as Weight)
+			// Standard Error: 299_000
+			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 27_000
+			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads(26 as Weight))
+			.saturating_add(RocksDbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(16 as Weight))
+			.saturating_add(RocksDbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
 	}
 	fn passive_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
