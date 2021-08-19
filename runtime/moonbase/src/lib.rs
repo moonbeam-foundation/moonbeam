@@ -663,7 +663,6 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 
 
 parameter_types! {
-	// TODO to be revisited
 	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
