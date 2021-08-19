@@ -455,7 +455,7 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--log=info,rpc=trace,evm=trace,ethereum=trace,cumulus-collator=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
@@ -468,7 +468,7 @@ const parachainTemplate = {
       wsPort: 112,
       name: "bob",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--log=info,rpc=trace,evm=trace,ethereum=trace,cumulus-collator=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
