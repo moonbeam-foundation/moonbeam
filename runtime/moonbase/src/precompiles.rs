@@ -78,7 +78,7 @@ where
 	R::Call: From<parachain_staking::Call<R>>,
 	R::Call: From<pallet_balances::Call<R>>,
 	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
+	BalanceOf<R>: Debug + precompile_utils::EvmData,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	Erc20BalanceOf<R>: TryFrom<sp_core::U256> + Into<sp_core::U256> + Debug,
 {

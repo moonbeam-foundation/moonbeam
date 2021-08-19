@@ -307,7 +307,7 @@ fn txpool_runtime_api_extrinsic_filter() {
 			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
 		);
 		let eth_uxt = uxt();
-		let txpool = Runtime::extrinsic_filter(
+		let txpool = <Runtime as TxPoolRuntimeApi<moonbeam_runtime::Block>>::extrinsic_filter(
 			vec![eth_uxt.clone(), non_eth_uxt.clone()],
 			vec![uxt(), non_eth_uxt],
 		);
@@ -339,12 +339,7 @@ fn debug_runtime_api_trace_transaction() {
 			assert!(Runtime::trace_transaction(
 				&header,
 				vec![non_eth_uxt.clone(), eth_uxt, non_eth_uxt.clone()],
-				&transaction,
-				moonbeam_rpc_primitives_debug::single::TraceType::Raw {
-					disable_storage: true,
-					disable_memory: true,
-					disable_stack: true,
-				}
+				&transaction
 			)
 			.is_ok());
 		});

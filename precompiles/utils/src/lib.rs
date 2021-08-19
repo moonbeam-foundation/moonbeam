@@ -16,6 +16,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 use evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -26,7 +28,9 @@ use sp_core::{H160, H256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
+
 pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
+pub use precompile_utils_macro::generate_function_selector;
 
 #[cfg(test)]
 mod tests;
@@ -35,7 +39,7 @@ mod tests;
 pub type EvmResult<T = ()> = Result<T, ExitError>;
 
 /// Return an error with provided (static) text.
-pub fn error(text: &'static str) -> ExitError {
+pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> ExitError {
 	ExitError::Other(text.into())
 }
 
@@ -156,7 +160,7 @@ where
 {
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
-	/// If succesful returns the used gas using the Runtime GasWeightMapping.
+	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
@@ -177,13 +181,13 @@ where
 		}
 
 		// Dispatch call.
-		// It may be possible to not record gas cost if the call returnes Pays::No.
+		// It may be possible to not record gas cost if the call returns Pays::No.
 		// However while Substrate handle checking weight while not making the sender pay for it,
 		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|_| error("dispatched call failed"))?
+			.map_err(|e| error(alloc::format!("Dispatched call failed with error: {:?}", e)))?
 			.actual_weight;
 
 		// Return used weight by converting weight to gas.

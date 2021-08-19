@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{error, EvmResult};
-use core::ops::Range;
+use core::{any::type_name, ops::Range};
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
 
@@ -81,9 +81,23 @@ impl<'a> EvmDataReader<'a> {
 
 	/// Parse (4 bytes) selector.
 	/// Returns an error if trying to parse out of bounds.
-	pub fn read_selector(&mut self) -> EvmResult<&[u8]> {
-		self.read_raw_bytes(4)
-			.map_err(|_| error("tried to parse selector out of bounds"))
+	pub fn read_selector<T>(&mut self) -> EvmResult<T>
+	where
+		T: num_enum::TryFromPrimitive<Primitive = u32>,
+	{
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(
+			self.read_raw_bytes(4)
+				.map_err(|_| error("tried to parse selector out of bounds"))?,
+		);
+		T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
+			log::trace!(
+				target: "precompile-utils",
+				"Failed to match function selector for {}",
+				type_name::<T>()
+			);
+			error("unknown selector")
+		})
 	}
 
 	/// Move the reading cursor with provided length, and return a range from the previous cursor
@@ -105,7 +119,7 @@ impl<'a> EvmDataReader<'a> {
 /// Help build an EVM input/output data.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
-	data: Vec<u8>,
+	pub(crate) data: Vec<u8>,
 	arrays: Vec<Array>,
 }
 
@@ -229,6 +243,57 @@ impl EvmData for U256 {
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
 		value.to_big_endian(&mut buffer);
+		writer.data.extend_from_slice(&buffer);
+	}
+}
+
+macro_rules! impl_evmdata_for_uints {
+	($($uint:ty, )*) => {
+		$(
+			impl EvmData for $uint {
+				fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+					let range = reader.move_cursor(32)?;
+
+					let data = reader
+						.input
+						.get(range)
+						.ok_or_else(|| error(alloc::format!(
+							"tried to parse {} out of bounds", core::any::type_name::<Self>()
+						)))?;
+
+					let mut buffer = [0u8; core::mem::size_of::<Self>()];
+					buffer.copy_from_slice(&data[32 - core::mem::size_of::<Self>()..]);
+					Ok(Self::from_be_bytes(buffer))
+				}
+
+				fn write(writer: &mut EvmDataWriter, value: Self) {
+					let mut buffer = [0u8; 32];
+					buffer[32 - core::mem::size_of::<Self>()..].copy_from_slice(&value.to_be_bytes());
+					writer.data.extend_from_slice(&buffer);
+				}
+			}
+		)*
+	};
+}
+impl_evmdata_for_uints!(u16, u32, u64, u128,);
+
+// The implementation for u8 is specific, for performance reasons.
+impl EvmData for u8 {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(32)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse u64 out of bounds"))?;
+
+		Ok(data[31])
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let mut buffer = [0u8; 32];
+		buffer[31] = value;
+
 		writer.data.extend_from_slice(&buffer);
 	}
 }

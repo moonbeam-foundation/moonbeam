@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -60,7 +60,7 @@ use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
+	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -133,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0159,
+	spec_version: 0400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -149,20 +149,6 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-
-/// Returns if calls are allowed through the filter
-pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(c: &Call) -> bool {
-		match c {
-			Call::Balances(_) => false,
-			Call::CrowdloanRewards(_) => false,
-			Call::Ethereum(_) => false,
-			Call::EVM(_) => false,
-			_ => true,
-		}
-	}
-}
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 256;
@@ -211,7 +197,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = RocksDbWeight;
-	type BaseCallFilter = BaseFilter;
+	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
@@ -284,11 +270,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-impl pallet_sudo::Config for Runtime {
-	type Call = Call;
-	type Event = Event;
-}
-
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
@@ -355,6 +336,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -365,6 +347,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -560,7 +543,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -606,8 +588,8 @@ parameter_types! {
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
-	/// Minimum stake required to be reserved to be a candidate is 100
-	pub const MinCollatorCandidateStk: u128 = 100 * currency::MOVR;
+	/// Minimum stake required to be reserved to be a candidate is 1_000
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOMOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
@@ -652,7 +634,7 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
-	pub const MaxInitContributorsBatchSizes: u32 = 1000;
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -663,6 +645,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -805,8 +788,7 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
 
-		// Sudo
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+		// Sudo was previously index 40
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
@@ -877,14 +859,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-			// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&tx.function);
-
-			if allowed {
-				Executive::validate_transaction(source, tx, block_hash)
-			} else {
-				InvalidTransaction::Call.into()
-			}
+			Executive::validate_transaction(source, tx, block_hash)
 		}
 	}
 }

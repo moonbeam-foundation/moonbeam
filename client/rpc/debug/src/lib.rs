@@ -29,7 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -193,6 +193,10 @@ where
 		let header = client.header(reference_id).unwrap().unwrap();
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		// Runtime version
+		let runtime_version = api
+			.version(&parent_block_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 		// Get `DebugRuntimeApi` version.
 		let api_version = api
 			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
@@ -247,21 +251,24 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
-					if api_version >= 2 {
+					if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 						let _result = api
-							.trace_transaction(
-								&parent_block_id,
-								&header,
-								ext,
-								&transaction,
-								trace_type,
-							)
+							.trace_transaction(&parent_block_id, &header, ext, &transaction)
 							.map_err(|e| {
 								internal_err(format!("Runtime api access error: {:?}", e))
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						Ok(proxy::Result::V2(proxy::ResultV2::Single))
+						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
+					} else if api_version == 2 {
+						let _result = api
+							.trace_transaction(&parent_block_id, &header, ext, &transaction)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else {
 						// For versions < 2 block needs to be manually initialized.
 						api.initialize_block(&parent_block_id, &header)
@@ -279,18 +286,31 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						Ok(proxy::Result::V1(proxy::ResultV1::Single(result)))
+						Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result)))
 					}
 				};
 				return match trace_type {
-					single::TraceType::Raw { .. } => {
-						let mut proxy = proxy::RawProxy::new();
-						if api_version >= 2 {
+					single::TraceType::Raw {
+						disable_storage,
+						disable_memory,
+						disable_stack,
+					} => {
+						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
+							let mut proxy = proxy::v2::raw::Listener::new(
+								disable_storage,
+								disable_memory,
+								disable_stack,
+							);
+							proxy.using(f)?;
+							Ok(proxy.into_tx_trace())
+						} else if api_version == 2 {
+							let mut proxy = proxy::v1::RawProxy::new();
 							proxy.using(f)?;
 							Ok(proxy.into_tx_trace())
 						} else {
+							let mut proxy = proxy::v1::RawProxy::new();
 							match proxy.using(f) {
-								Ok(proxy::Result::V1(proxy::ResultV1::Single(result))) => {
+								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
 									Ok(result)
 								}
 								Err(e) => Err(e),
@@ -301,16 +321,24 @@ where
 						}
 					}
 					single::TraceType::CallList { .. } => {
-						let mut proxy = proxy::CallListProxy::new();
-						if api_version >= 2 {
+						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
+							let mut proxy = proxy::v2::call_list::Listener::default();
+							proxy.using(f)?;
+							proxy
+								.into_tx_trace()
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))
+						} else if api_version == 2 {
+							let mut proxy = proxy::v1::CallListProxy::new();
 							proxy.using(f)?;
 							proxy
 								.into_tx_trace()
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
 						} else {
+							let mut proxy = proxy::v1::CallListProxy::new();
 							match proxy.using(f) {
-								Ok(proxy::Result::V1(proxy::ResultV1::Single(result))) => {
+								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
 									Ok(result)
 								}
 								Err(e) => Err(e),

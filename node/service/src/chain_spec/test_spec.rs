@@ -40,6 +40,11 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
 					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
 				],
+				// Council members: Alith and Baltathar
+				vec![
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+				],
 				// Collators
 				vec![
 					(
