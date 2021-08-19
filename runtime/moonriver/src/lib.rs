@@ -580,8 +580,8 @@ parameter_types! {
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 25 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// Maximum 100 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
