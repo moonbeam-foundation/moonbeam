@@ -14,35 +14,96 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use ethereum_types::H256;
-pub use evm::tracing::{using as evm_using, Event as EvmEvent, EventListener as EvmListener};
-pub use evm::Opcode;
-pub use evm_gasometer::tracing::{
-	using as gasometer_using, Event as GasometerEvent, EventListener as GasometerListener,
-};
-pub use evm_runtime::tracing::{
-	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
-};
-use moonbeam_rpc_primitives_debug::CallType;
-pub use sp_std::{cell::RefCell, fmt::Debug, rc::Rc, vec, vec::Vec};
-pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
+//! A Proxy in this context is an environmental trait implementor meant to be used for capturing
+//! EVM trace events sent to a Host function from the Runtime. Works like:
+//! - Runtime Api call `using` environmental.
+//! - Runtime calls a Host function with some scale-encoded Evm event.
+//! - Host function emits an additional event to this Listener.
+//! - Proxy listens for the event and format the actual trace response.
+//!
+//! There are two proxy types: `Raw` and `CallList`.
+//! - `Raw` - used for opcode-level traces.
+//! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
 
-impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
-	fn event(&mut self, event: GasometerEvent) {
-		self.0.borrow_mut().event(event);
+extern crate alloc;
+environmental::environmental!(listener: dyn Listener + 'static);
+
+pub use super::types::{
+	evm_runtime_types::{Capture, ExitError, ExitReason, ExitSucceed, Opcode},
+	EvmEvent, GasometerEvent, RuntimeEvent,
+};
+pub use crate::CallType;
+use alloc::{vec, vec::Vec};
+pub use codec::{Decode, Encode};
+pub use ethereum_types::{H160, H256, U256};
+
+pub mod call_list;
+pub mod raw;
+
+/// Main trait to proxy emitted messages.
+pub trait Listener {
+	fn event(&mut self, event: Event);
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum Event {
+	Evm(EvmEvent),
+	Gasometer(GasometerEvent),
+	Runtime(RuntimeEvent),
+	CallListNew(),
+}
+
+impl Event {
+	/// Access the global reference and call it's `event` method, passing the `Event` itself as
+	/// argument.
+	///
+	/// This only works if we are `using` a global reference to a `Listener` implementor.
+	pub fn emit(self) {
+		listener::with(|listener| listener.event(self));
 	}
 }
 
-impl<T: RuntimeListener> RuntimeListener for ListenerProxy<T> {
-	fn event(&mut self, event: RuntimeEvent) {
-		self.0.borrow_mut().event(event);
+#[derive(Debug)]
+pub enum ContextType {
+	Call(CallType),
+	Create,
+}
+
+impl ContextType {
+	pub fn from(opcode: Vec<u8>) -> Option<Self> {
+		let opcode = match alloc::str::from_utf8(&opcode[..]) {
+			Ok(op) => op.to_uppercase(),
+			_ => return None,
+		};
+		match &opcode[..] {
+			"CREATE" | "CREATE2" => Some(ContextType::Create),
+			"CALL" => Some(ContextType::Call(CallType::Call)),
+			"CALLCODE" => Some(ContextType::Call(CallType::CallCode)),
+			"DELEGATECALL" => Some(ContextType::Call(CallType::DelegateCall)),
+			"STATICCALL" => Some(ContextType::Call(CallType::StaticCall)),
+			_ => None,
+		}
 	}
 }
 
-impl<T: EvmListener> EvmListener for ListenerProxy<T> {
-	fn event(&mut self, event: EvmEvent) {
-		self.0.borrow_mut().event(event);
-	}
+pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
+	let size = 32;
+	memory
+		.chunks(size)
+		.map(|c| {
+			let mut msg = [0u8; 32];
+			let chunk = c.len();
+			if chunk < size {
+				let left = size - chunk;
+				let remainder = vec![0; left];
+				msg[0..left].copy_from_slice(&remainder[..]);
+				msg[left..size].copy_from_slice(c);
+			} else {
+				msg[0..size].copy_from_slice(c)
+			}
+			H256::from_slice(&msg[..])
+		})
+		.collect()
 }
 
 pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
@@ -204,43 +265,4 @@ pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 		_ => unreachable!("Unreachable Opcode identifier."),
 	};
 	out.as_bytes().to_vec()
-}
-
-#[derive(Debug)]
-pub enum ContextType {
-	Call(CallType),
-	Create,
-}
-
-impl ContextType {
-	pub fn from(opcode: Opcode) -> Option<Self> {
-		match opcode.0 {
-			0xF0 | 0xF5 => Some(ContextType::Create),
-			0xF1 => Some(ContextType::Call(CallType::Call)),
-			0xF2 => Some(ContextType::Call(CallType::CallCode)),
-			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
-			0xFA => Some(ContextType::Call(CallType::StaticCall)),
-			_ => None,
-		}
-	}
-}
-
-pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
-	let size = 32;
-	memory
-		.chunks(size)
-		.map(|c| {
-			let mut msg = [0u8; 32];
-			let chunk = c.len();
-			if chunk < size {
-				let left = size - chunk;
-				let remainder = vec![0; left];
-				msg[0..left].copy_from_slice(&remainder[..]);
-				msg[left..size].copy_from_slice(c);
-			} else {
-				msg[0..size].copy_from_slice(c)
-			}
-			H256::from_slice(&msg[..])
-		})
-		.collect()
 }
