@@ -187,7 +187,7 @@ pub mod pallet {
 					log::warn!("Maintenance mode already enabled");
 				} else {
 					log::warn!("Automatically entering maintenance mode upon runtime upgrade");
-					weight += T::DbWeight::get().read; // writing maintenance mode flag
+					weight += T::DbWeight::get().write; // writing maintenance mode flag
 					MaintenanceMode::<T>::put(true);
 				}
 
