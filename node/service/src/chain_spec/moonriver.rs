@@ -29,7 +29,7 @@ use moonriver_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
-	TechComitteeCollectiveConfig, WASM_BINARY,
+	TechComitteeCollectiveConfig, WASM_BINARY, MaintenanceModeConfig,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -244,6 +244,9 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		treasury: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: false,
+		},
 	}
 }
 
