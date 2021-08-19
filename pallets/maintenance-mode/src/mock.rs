@@ -124,7 +124,7 @@ impl ExtBuilder {
 			},
 			&mut t,
 		)
-		.expect("Pallet matinenance mode storage can be assimilated");
+		.expect("Pallet maintenance mode storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
