@@ -653,8 +653,11 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		// Reset the pot's funds
 		<Balances as frame_support::traits::Currency<AccountId>>::make_free_balance_be(&CrowdloanRewards::account_id(), 3_000_000 * currency::UNIT);
 
-		//TODO Return a reasonable weight
-		10_000
+		// Return weight of three DB writes (I'm not really that confident this is right)
+		// * One for the prefix removal
+		// * One for setting the balance
+		// * One for updating the total issuance
+		3 * <Runtime as frame_system::Config>::DbWeight::get().write
 	}
 }
 
