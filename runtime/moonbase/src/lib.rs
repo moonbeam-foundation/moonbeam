@@ -673,12 +673,26 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		// 	pallet_crowdloan_rewards::AccountsPayable::drain().next().is_none(),
 		// 	"AccountPayable map was not reset"
 		// );
-		ensure!(!CrowdloanRewards::initialized(), "Initialized storage item is set to true");
-		ensure!(CrowdloanRewards::init_relay_block() == 0, "Init relay block is not 0");
-		ensure!(CrowdloanRewards::end_relay_block() == 0, "End relay block is not 0");
-		ensure!(CrowdloanRewards::init_reward_amount() == 0, "Init reward amount is not 0");
-		ensure!(CrowdloanRewards::total_contributors() == 0, "Total contributors is not 0");
-
+		ensure!(
+			!CrowdloanRewards::initialized(),
+			"Initialized storage item is set to true"
+		);
+		ensure!(
+			CrowdloanRewards::init_relay_block() == 0,
+			"Init relay block is not 0"
+		);
+		ensure!(
+			CrowdloanRewards::end_relay_block() == 0,
+			"End relay block is not 0"
+		);
+		ensure!(
+			CrowdloanRewards::init_reward_amount() == 0,
+			"Init reward amount is not 0"
+		);
+		ensure!(
+			CrowdloanRewards::total_contributors() == 0,
+			"Total contributors is not 0"
+		);
 
 		// Ensure that the pot balance is correct
 		ensure!(
