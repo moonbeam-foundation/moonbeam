@@ -83,14 +83,6 @@ impl Listener {
 		super::listener::using(self, f)
 	}
 
-	// pub fn into_tx_trace(self) -> SingleTrace {
-	// 	SingleTrace::Raw {
-	// 		step_logs: self.step_logs,
-	// 		gas: self.final_gas.into(),
-	// 		return_value: self.return_value,
-	// 	}
-	// }
-
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
 			GasometerEvent::RecordTransaction { .. } => {
