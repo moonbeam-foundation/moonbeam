@@ -651,7 +651,11 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		frame_support::storage::migration::remove_storage_prefix(b"CrowdloanRewards", &[], &[]);
 
 		// Reset the pot's funds
-		<Balances as frame_support::traits::Currency<AccountId>>::make_free_balance_be(&CrowdloanRewards::account_id(), 3_000_000 * currency::UNIT);
+		<Balances as frame_support::traits::Currency<AccountId>>::make_free_balance_be(
+			&CrowdloanRewards::account_id(),
+			//TODO is this the right amount to initialize to?
+			3_000_000 * currency::UNIT,
+		);
 
 		// Return weight of three DB writes (I'm not really that confident this is right)
 		// * One for the prefix removal
@@ -660,7 +664,6 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		3 * <Runtime as frame_system::Config>::DbWeight::get().write
 	}
 }
-
 
 parameter_types! {
 	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
