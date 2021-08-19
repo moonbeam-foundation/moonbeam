@@ -294,7 +294,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32, ) -> Weight {
+	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 299_000
 			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
