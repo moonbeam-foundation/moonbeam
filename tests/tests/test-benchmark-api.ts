@@ -20,7 +20,7 @@ describeDevMoonbeam("Benchmark API", (context) => {
         to: fibContract.options.address,
         gas: "0x100000",
         value: "0x00",
-        data: fibContract.methods.fib2(1024).encodeABI(),
+        data: fibContract.methods.fib2(102400).encodeABI(),
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
@@ -28,4 +28,4 @@ describeDevMoonbeam("Benchmark API", (context) => {
     const txn = await customWeb3Request(context.web3, "benchmark_sendRawTransaction", [callTx.rawTransaction]);
     console.log("txn: ", txn);
   });
-});
+}, true); // true for "use WASM"

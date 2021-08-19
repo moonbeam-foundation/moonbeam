@@ -33,3 +33,4 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
 fc-rpc-core = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-polkadot-v0.9.8" }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }

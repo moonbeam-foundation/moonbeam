@@ -30,6 +30,7 @@ pub struct BenchmarkResults {
 	pub evm_mil_gas_per_sec: f64,
 	pub request_execution_time_us: u64,
 	pub result: Option<Bytes>,
+	pub error: Option<String>,
 }
 
 #[rpc(server)]

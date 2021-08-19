@@ -23,7 +23,8 @@ use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
 use sp_runtime::traits::Block as BlockT;
 use ethereum_types::{H160, H256};
-use fc_rpc::{internal_err};
+use pallet_evm::ExitReason;
+use fc_rpc::{internal_err, error_on_execution_failure};
 use fc_rpc_core::types::{Bytes, CallRequest};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sha3::{Keccak256, Digest};
@@ -136,6 +137,18 @@ where
 				let gas_per_sec: f64 = info.used_gas.as_u64() as f64 / elapsed.as_secs_f64();
 				let mil_gas_per_sec: f64 = gas_per_sec / 1_000_000f64;
 
+				let error_string: Option<String> = match info.exit_reason {
+					ExitReason::Succeed(_) => None,
+					_ => {
+						let result = error_on_execution_failure(&info.exit_reason, &info.value);
+						if let Err(error) = result {
+							Some(error.message)
+						} else {
+							unreachable!("EVM error expected if reason != Succeed");
+						}
+					}
+				};
+
 				Ok(BenchmarkResults {
 					gas_used: info.used_gas,
 					evm_execution_time_us: elapsed.as_micros() as u64,
@@ -143,7 +156,8 @@ where
 					evm_mil_gas_per_sec: mil_gas_per_sec,
 					// TODO: not sure request time is worth the effort, extra code, etc.
 					request_execution_time_us: 0,
-					result: None, // TODO: Bytes vs Vec<u8> is quite annoying...
+					result: Some(Bytes::new(info.value)),
+					error: error_string,
 				})
 			},
 			None => {
