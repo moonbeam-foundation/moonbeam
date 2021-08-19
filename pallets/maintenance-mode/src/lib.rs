@@ -109,6 +109,11 @@ pub mod pallet {
 	/// Whether the site is in maintenance mode
 	type MaintenanceMode<T: Config> = StorageValue<_, bool, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn auto_enable_on_runtime_upgrade)]
+	/// Whether to automatically enter maintenance mode upon the next runtime upgrade
+	type AutoEnableOnRuntimeUpgrade<T: Config> = StorageValue<_, bool, ValueQuery>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Place the chain in maintenance mode
@@ -163,6 +168,34 @@ pub mod pallet {
 			<Pallet<T>>::deposit_event(Event::NormalOperationResumed);
 
 			Ok(().into())
+		}
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		/// on_runtime_upgrade is called once at the first block that a runtime upgrade is applied.
+		/// we use it here to optionally trigger maintenance mode if configured to do so.
+		fn on_runtime_upgrade() -> Weight {
+
+			let mut weight: Weight = 0u64.into();
+			weight += T::DbWeight::get().read; // reading auto-enable flag
+			
+			if AutoEnableOnRuntimeUpgrade::<T>::get() {
+
+				weight += T::DbWeight::get().read; // reading current maintenance mode
+				if MaintenanceMode::<T>::get() {
+					log::warn!("Automatically entering maintenance mode upon runtime upgrade");
+					weight += T::DbWeight::get().read; // writing maintenance mode flag
+					MaintenanceMode::<T>::put(true);
+				} else {
+					log::warn!("Maintenance mode already enabled");
+				}
+
+				weight += T::DbWeight::get().write; // writing auto-enable flag
+				AutoEnableOnRuntimeUpgrade::<T>::put(false);
+			}
+
+			weight
 		}
 	}
 
