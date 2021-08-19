@@ -4924,6 +4924,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5252,6 +5253,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5444,6 +5446,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -6367,6 +6370,19 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-maintenance-mode"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]

@@ -27,8 +27,8 @@ use evm::GenesisAccount;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
+	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
@@ -244,6 +244,9 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		treasury: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: false,
+		},
 	}
 }
 
