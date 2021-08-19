@@ -112,7 +112,7 @@ pub mod pallet {
 		/// Weight cost is:
 		/// * One DB read to ensure we're not already in maintenance mode
 		/// * Two DB writes - 1 for the mode and 1 for the event
-		#[pallet::weight(2 * T::DbWeight::get().write)]
+		#[pallet::weight(T::DbWeight::get().read + 2 * T::DbWeight::get().write)]
 		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
