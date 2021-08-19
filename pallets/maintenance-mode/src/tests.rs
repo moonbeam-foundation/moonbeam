@@ -50,7 +50,7 @@ fn can_enter_maintenance_mode() {
 }
 
 #[test]
-fn can_enter_maintenance_mode_from_wrong_origin() {
+fn cannot_enter_maintenance_mode_from_wrong_origin() {
 	ExtBuilder::default()
 		.with_maintenance_mode(true)
 		.build()
