@@ -653,7 +653,6 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		// Reset the pot's funds
 		<Balances as frame_support::traits::Currency<AccountId>>::make_free_balance_be(
 			&CrowdloanRewards::account_id(),
-			//TODO is this the right amount to initialize to?
 			3_000_000 * currency::UNIT,
 		);
 
