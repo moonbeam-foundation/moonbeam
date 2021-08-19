@@ -22,6 +22,7 @@ sourcesIndex["moonkey"] = {"name":"","files":["main.rs"]};
 sourcesIndex["moonriver_runtime"] = {"name":"","files":["lib.rs","precompiles.rs"]};
 sourcesIndex["pallet_author_mapping"] = {"name":"","files":["lib.rs","weights.rs"]};
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_maintenance_mode"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs","weights.rs"]};
 sourcesIndex["parachain_staking_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["precompile_utils"] = {"name":"","files":["data.rs","lib.rs"]};

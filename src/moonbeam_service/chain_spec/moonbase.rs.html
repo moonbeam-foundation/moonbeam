@@ -314,6 +314,9 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -344,9 +347,9 @@
 <span class="kw">use</span> <span class="ident">moonbase_runtime</span>::{
 	<span class="ident">currency::UNIT</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
-	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>,
-	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
-	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">MaintenanceModeConfig</span>,
+	<span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>,
+	<span class="ident">SystemConfig</span>, <span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
@@ -585,6 +588,9 @@
 				.<span class="ident">collect</span>(),
 		},
 		<span class="ident">treasury</span>: <span class="ident">Default::default</span>(),
+		<span class="ident">maintenance_mode</span>: <span class="ident">MaintenanceModeConfig</span> {
+			<span class="ident">start_in_maintenance_mode</span>: <span class="bool-val">false</span>,
+		},
 	}
 }
 
