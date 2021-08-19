@@ -9124,6 +9124,9 @@ dependencies = [
 [[package]]
 name = "runtime-common"
 version = "0.8.0-dev"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "rustc-demangle"
