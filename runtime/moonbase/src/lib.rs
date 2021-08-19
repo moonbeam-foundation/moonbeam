@@ -634,6 +634,27 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type PotentialAuthors = ParachainStaking;
 }
 
+/// Migration that destroys all of pallet crowdloan rewards' stored data.
+///
+/// This is included in moonbase only so that we can re-test rewards intialization with the new
+/// version of the pallet. This migration makes no attempt to recouperate already-claimed tokens
+/// and it also mints tokens for the nwe pot.
+///
+/// NOT FOR USE IN VALUE-BEARING NETWORKS!
+pub struct NukeRewardsStorage;
+
+impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
+	fn on_runtime_upgrade() -> Weight {
+		//TODO Delete all crowdlaon rewards storage
+
+		//TODO Reset the pot's funds
+
+		//TODO Return a reasonable weight
+		10_000
+	}
+}
+
+
 parameter_types! {
 	// TODO to be revisited
 	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
@@ -828,6 +849,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	NukeRewardsStorage,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
