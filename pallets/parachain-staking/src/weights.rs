@@ -176,7 +176,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32, ) -> Weight {
+	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 299_000
 			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
