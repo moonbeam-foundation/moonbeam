@@ -17,9 +17,10 @@ frame-support = { git = "https://github.com/paritytech/substrate", default-featu
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
 pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 precompile-utils = { path = "../utils", default-features = false }
+num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
 sp-runtime = { git="https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }

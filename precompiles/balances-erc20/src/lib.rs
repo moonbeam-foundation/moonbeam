@@ -113,6 +113,17 @@ pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Runtime as pallet_balances::Config<Instance>>::Balance,
 >;
 
+#[precompile_utils::generate_function_selector]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+enum Action {
+	TotalSupply = "totalSupply()",
+	BalanceOf = "balanceOf(address)",
+	Allowance = "allowance(address,address)",
+	Transfer = "transfer(address,uint256)",
+	Approve = "approve(address,uint256)",
+	TransferFrom = "transferFrom(address,address,uint256)",
+}
+
 /// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
 /// The precompile used an additional storage to store approvals.
@@ -137,13 +148,12 @@ where
 		let mut input = EvmDataReader::new(input);
 
 		match &input.read_selector()? {
-			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(input, target_gas),
-			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(input, target_gas),
-			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(input, target_gas),
-			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(input, target_gas, context),
-			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(input, target_gas, context),
-			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(input, target_gas, context),
-			_ => Err(error("unknown selector")),
+			Action::TotalSupply => Self::total_supply(input, target_gas),
+			Action::BalanceOf => Self::balance_of(input, target_gas),
+			Action::Allowance => Self::allowance(input, target_gas),
+			Action::Approve => Self::approve(input, target_gas, context),
+			Action::Transfer => Self::transfer(input, target_gas, context),
+			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
 		}
 	}
 }
