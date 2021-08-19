@@ -650,7 +650,8 @@ impl frame_support::traits::OnRuntimeUpgrade for NukeRewardsStorage {
 		// This will cause the entire pallet's storage to be deleted
 		frame_support::storage::migration::remove_storage_prefix(b"CrowdloanRewards", &[], &[]);
 
-		//TODO Reset the pot's funds
+		// Reset the pot's funds
+		<Balances as frame_support::traits::Currency<AccountId>>::make_free_balance_be(&CrowdloanRewards::account_id(), 3_000_000 * currency::UNIT);
 
 		//TODO Return a reasonable weight
 		10_000
