@@ -269,7 +269,7 @@ function start() {
         );
         return;
       }
-      const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
+      const parachainBinary = `build/${parasNames[i]}/moonbeam`;
       const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
@@ -278,9 +278,9 @@ function start() {
             docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
             docker rm moonbeam-tmp`);
         console.log(`${parachainBinary} downloaded !`);
-        parachainBinaries.push(parachainBinary);
-        parachainPaths.push(parachainPath);
       }
+      parachainBinaries.push(parachainBinary);
+      parachainPaths.push(parachainPath);
     }
     console.log(
       `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${paras[i].docker || paras[i].binary} (${
@@ -322,7 +322,7 @@ function start() {
   launchConfig.relaychain.chain = relayChain;
 
   let relay_nodes = [];
-
+  console.log(parachainBinaries);
   // We need to build the configuration for each of the paras
   for (let i = 0; i < parachainBinaries.length; i++) {
     let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
