@@ -354,6 +354,10 @@
 <span id="354">354</span>
 <span id="355">355</span>
 <span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -618,12 +622,16 @@
 
 						<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V2</span>(<span class="ident">proxy::v1::ResultV2::Single</span>))
 					} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
-						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-								<span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>))
-							})<span class="question-mark">?</span>
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+						<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>.<span class="ident">trace_transaction_before_version_3</span>(
+							<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>,
+							<span class="kw-2">&amp;</span><span class="ident">header</span>,
+							<span class="ident">ext</span>,
+							<span class="kw-2">&amp;</span><span class="ident">transaction</span>,
+							<span class="ident">trace_type</span>,
+						)
+						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
+						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
 
 						<span class="prelude-val">Ok</span>(<span class="ident">proxy::v1::Result::V2</span>(<span class="ident">proxy::v1::ResultV2::Single</span>))
 					} <span class="kw">else</span> {
