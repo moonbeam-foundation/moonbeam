@@ -255,7 +255,6 @@ function start() {
   // We retrieve the binaries and paths for all parachains
   for (let i = 0; i < paras.length; i++) {
     if (paras[i].binary) {
-
       parachainBinaries.push(paras[i].binary);
       const parachainPath = path.join(__dirname, paras[i].binary);
       if (!fs.existsSync(parachainPath)) {
@@ -271,9 +270,7 @@ function start() {
         );
         return;
       }
-
       const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
-
       const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
@@ -459,7 +456,7 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-        "--log=error,rpc=trace,evm=trace,ethereum=trace",
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
@@ -472,7 +469,7 @@ const parachainTemplate = {
       wsPort: 112,
       name: "bob",
       flags: [
-        "--log=error,rpc=trace,evm=trace,ethereum=trace",
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
