@@ -263,7 +263,6 @@ function start() {
       }
       parachainPaths.push(parachainPath);
     } else {
-
       if (process.platform != "linux") {
         console.log(
           `docker binaries are only supported on linux. Use "local" config for compiled binaries`
