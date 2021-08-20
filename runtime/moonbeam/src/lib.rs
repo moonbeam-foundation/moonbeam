@@ -429,6 +429,11 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_common_benchmarks::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = ();
+}
+
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
 	pub const VotingPeriod: BlockNumber = 5 * DAYS;
@@ -826,6 +831,7 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
+		PalletCommonBenchmarks: pallet_common_benchmarks::{Pallet, Call, Config, Storage, Event<T>},
 	}
 }
 

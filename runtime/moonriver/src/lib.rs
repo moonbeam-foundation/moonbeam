@@ -615,6 +615,11 @@ impl parachain_staking::Config for Runtime {
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_common_benchmarks::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = ();
+}
+
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
@@ -833,6 +838,7 @@ construct_runtime! {
 
 		// Crowdloan stuff.
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
+		CommonBenchmarks: pallet_common_benchmarks::{Pallet, Call, Storage, Event<T>} = 91,
 	}
 }
 
