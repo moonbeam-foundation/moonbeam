@@ -169,6 +169,35 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
+		// Set trace type
+		let trace_type = match params {
+			Some(TraceParams {
+				tracer: Some(tracer),
+				..
+			}) => {
+				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+				if hash == blockscout_hash {
+					single::TraceType::CallList
+				} else {
+					return Err(internal_err(format!(
+						"javascript based tracing is not available (hash :{:?})",
+						hash
+					)));
+				}
+			}
+			Some(params) => single::TraceType::Raw {
+				disable_storage: params.disable_storage.unwrap_or(false),
+				disable_memory: params.disable_memory.unwrap_or(false),
+				disable_stack: params.disable_stack.unwrap_or(false),
+			},
+			_ => single::TraceType::Raw {
+				disable_storage: false,
+				disable_memory: false,
+				disable_stack: false,
+			},
+		};
+
 		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
@@ -215,35 +244,6 @@ where
 		let reference_block = match api.current_block(&reference_id) {
 			Ok(block) => block,
 			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
-		};
-
-		// Set trace type
-		let trace_type = match params {
-			Some(TraceParams {
-				tracer: Some(tracer),
-				..
-			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
-				} else {
-					return Err(internal_err(format!(
-						"javascript based tracing is not available (hash :{:?})",
-						hash
-					)));
-				}
-			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
 		};
 
 		// Get the actual ethereum transaction.

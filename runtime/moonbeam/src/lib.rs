@@ -627,8 +627,8 @@ parameter_types! {
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 25 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// Maximum 100 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
@@ -809,6 +809,29 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+/// Call filter expected to be used during Phase 3 of the Moonbeam rollout
+/// At least it was used in Moonriver phase3
+pub struct PhaseThreeFilter;
+impl Filter<Call> for PhaseThreeFilter {
+	fn filter(c: &Call) -> bool {
+		match c {
+			Call::Balances(_) => false,
+			Call::CrowdloanRewards(_) => false,
+			Call::Ethereum(_) => false,
+			Call::EVM(_) => false,
+			_ => true,
+		}
+	}
+}
+
+impl pallet_maintenance_mode::Config for Runtime {
+	type Event = Event;
+	type NormalCallFilter = ();
+	type MaintenanceCallFilter = PhaseThreeFilter;
+	type MaintenanceOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -840,6 +863,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event, Config},
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
 	}
 }

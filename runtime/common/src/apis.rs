@@ -329,20 +329,39 @@ macro_rules! impl_runtime_apis_plus_common {
 					slot: u32,
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
+					let block_number = parent_header.number + 1;
+
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
 					// the state it will be in when the next block is being executed.
 					use frame_support::traits::OnInitialize;
 					System::initialize(
-						&(parent_header.number + 1),
+						&block_number,
 						&parent_header.hash(),
 						&parent_header.digest,
 						frame_system::InitKind::Inspection
 					);
-					RandomnessCollectiveFlip::on_initialize(System::block_number());
+					RandomnessCollectiveFlip::on_initialize(block_number);
 
-					// And now the actual prediction call
-					AuthorInherent::can_author(&author, &slot)
+					// Because the staking solution calculates the next staking set at the beginning
+					// of the first block in the new round, the only way to accurately predict the
+					// authors would be to run the staking election while predicting. However this
+					// election is heavy and will take too long during prediction. So instead we
+					// work around it by always authoring the first slot in a new round. A longer-
+					// term solution will be to calculate the staking election result in the last
+					// block of the ending round.
+					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+						log::info!(target: "nimbus-staking-workaround", "A new round is starting.\
+						Moonbeam will author during this slot without predicting eligibility first.\
+						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
+						It will be resolved soon.");
+
+						true
+					}
+					else {
+						AuthorInherent::can_author(&author, &slot)
+
+					}
 				}
 			}
 

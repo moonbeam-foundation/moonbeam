@@ -71,6 +71,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonriver_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonriver_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonriver_runtime::MaintenanceMode>("MaintenanceMode");
 	is_pallet_prefix::<moonriver_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
@@ -146,6 +147,17 @@ fn verify_pallet_prefixes() {
 			}
 		]
 	);
+	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
+	// assert_eq!(
+	// 	<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+	// 	vec![
+	// 		StorageInfo {
+	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+	// 			max_values: None,
+	// 			max_size: Some(845),
+	// 		},
+	// 	]
+	// );
 }
 
 #[test]
@@ -173,7 +185,8 @@ fn verify_pallet_indices() {
 	// Handy utilities
 	is_pallet_index::<moonriver_runtime::Utility>(30);
 	is_pallet_index::<moonriver_runtime::Proxy>(31);
-	// Sudo was previously index 40
+	is_pallet_index::<moonriver_runtime::MaintenanceMode>(32);
+	// TODO Sudo was previously index 40, should we test that there is nothing there now?
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
@@ -531,7 +544,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
-#[ignore]
 #[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
@@ -831,7 +843,6 @@ fn reward_info_via_precompile() {
 		})
 }
 
-#[ignore]
 #[test]
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
