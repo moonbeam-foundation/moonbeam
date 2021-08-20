@@ -27,6 +27,9 @@ mod benchmarking;
 #[cfg(test)]
 pub(crate) mod mock;
 
+pub mod weights;
+use weights::WeightInfo;
+
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
