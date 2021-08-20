@@ -11,7 +11,7 @@ import { Extrinsic } from "../utils/types";
 type Account = ReturnType<Keyring["addFromUri"]>;
 
 const argv = yargs(process.argv.slice(2))
-  .usage("Usage: $0 url")
+  .usage("Usage: $0")
   .version("1.0.0")
   .options({
     url: {
