@@ -39,24 +39,6 @@ pub enum TraceType {
 	CallList,
 }
 
-/// Single transaction trace.
-#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-#[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
-pub enum TransactionTrace {
-	/// Classical output of `debug_trace`.
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Raw {
-		gas: U256,
-		#[cfg_attr(feature = "std", serde(with = "hex"))]
-		return_value: Vec<u8>,
-		step_logs: Vec<RawStepLog>,
-	},
-	/// Matches the formatter used by Blockscout.
-	/// Is also used to built output of OpenEthereum's `trace_filter`.
-	CallList(Vec<Call>),
-}
-
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
@@ -99,6 +81,25 @@ pub struct RawStepLog {
 	pub storage: Option<BTreeMap<H256, H256>>,
 }
 
+/// Legacy. Single transaction trace for `DebugRuntimeApi` version 1.
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
+pub enum TransactionTrace {
+	/// Classical output of `debug_trace`.
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	Raw {
+		gas: U256,
+		#[cfg_attr(feature = "std", serde(with = "hex"))]
+		return_value: Vec<u8>,
+		step_logs: Vec<RawStepLog>,
+	},
+	/// Matches the formatter used by Blockscout.
+	/// Is also used to built output of OpenEthereum's `trace_filter`.
+	CallList(Vec<Call>),
+}
+
+/// Legacy for `DebugRuntimeApi` version 1.
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
@@ -131,6 +132,7 @@ pub enum CallInner {
 	},
 }
 
+/// Legacy for `DebugRuntimeApi` version 1.
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]

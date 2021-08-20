@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use super::TransactionTrace;
 use crate::proxy::v2::raw::Listener;
-use crate::single::TransactionTrace;
 
 pub struct Response;
 

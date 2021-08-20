@@ -29,12 +29,14 @@
 
 environmental::environmental!(listener: dyn Listener + 'static);
 
-use crate::block::{
-	TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
-	TransactionTraceResult,
+use crate::{
+	CallResult, CreateResult, CreateType,
+	single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace},
+	block::{
+		TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
+		TransactionTraceResult,
+	}
 };
-use crate::single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace};
-use crate::{CallResult, CreateResult, CreateType};
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};

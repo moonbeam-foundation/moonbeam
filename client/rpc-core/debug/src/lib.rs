@@ -22,9 +22,10 @@ use serde::Deserialize;
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
 pub mod types {
 	pub use moonbeam_rpc_primitives_debug::single;
+	pub use moonbeam_rpc_primitives_debug::TransactionTrace;
 }
 
-use crate::types::single;
+pub use types::TransactionTrace;
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -44,5 +45,5 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
+	) -> Compat<BoxFuture<'static, RpcResult<TransactionTrace>>>;
 }

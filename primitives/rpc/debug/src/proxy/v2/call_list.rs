@@ -20,7 +20,10 @@ use super::{
 	Listener as ListenerT, RuntimeEvent, H160, U256,
 };
 use crate::{
-	single::{Call, CallInner},
+	proxy::formats::{
+		blockscout::{BlockscoutCall, BlockscoutInner},
+		Call,
+	},
 	CallResult, CallType, CreateResult,
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
@@ -144,20 +147,20 @@ impl Listener {
 									ExitReason::Fatal(_) => CallResult::Error(vec![]),
 								};
 
-								Call {
+								Call::Blockscout(BlockscoutCall {
 									from: context.from,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
 									value: context.value,
 									gas: context.gas.into(),
 									gas_used: gas_used.into(),
-									inner: CallInner::Call {
+									inner: BlockscoutInner::Call {
 										call_type,
 										to: context.to,
 										input: context.data,
 										res,
 									},
-								}
+								})
 							}
 							ContextType::Create => {
 								let res = match &reason {
@@ -174,18 +177,18 @@ impl Listener {
 									ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
 								};
 
-								Call {
+								Call::Blockscout(BlockscoutCall {
 									value: context.value,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
 									gas: context.gas.into(),
 									gas_used: gas_used.into(),
 									from: context.from,
-									inner: CallInner::Create {
+									inner: BlockscoutInner::Create {
 										init: context.data,
 										res,
 									},
-								}
+								})
 							}
 						},
 					);
@@ -280,18 +283,18 @@ impl Listener {
 				}
 				self.entries.last_mut().unwrap().insert(
 					self.entries_next_index,
-					Call {
+					Call::Blockscout(BlockscoutCall {
 						from: address, // this contract is self destructing
 						trace_address,
 						subtraces: 0,
 						value: 0.into(),
 						gas: 0.into(),
 						gas_used: 0.into(),
-						inner: CallInner::SelfDestruct {
+						inner: BlockscoutInner::SelfDestruct {
 							refund_address: target,
 							balance,
 						},
-					},
+					}),
 				);
 				self.entries_next_index += 1;
 			}

@@ -117,3 +117,19 @@ pub enum CallType {
 pub enum CreateType {
 	Create,
 }
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum TracerInput {
+	None,
+	Blockscout,
+	CallTracer,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
+pub enum TransactionTrace {
+	SingleV1(crate::single::TransactionTrace),
+	SingleV2(crate::proxy::formats::TransactionTrace),
+	Block(crate::block::TransactionTrace),
+}

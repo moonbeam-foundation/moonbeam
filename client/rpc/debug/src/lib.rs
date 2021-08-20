@@ -29,7 +29,9 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
+use moonbeam_rpc_primitives_debug::{
+	proxy, single, DebugRuntimeApi, TracerInput, TransactionTrace, V2_RUNTIME_VERSION,
+};
 use proxy::formats::TraceResponseBuilder;
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
@@ -41,7 +43,7 @@ use sp_runtime::traits::Block as BlockT;
 use sp_utils::mpsc::TracingUnboundedSender;
 use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
 
-pub type Responder = oneshot::Sender<RpcResult<single::TransactionTrace>>;
+pub type Responder = oneshot::Sender<RpcResult<TransactionTrace>>;
 pub type DebugRequester = TracingUnboundedSender<((H256, Option<TraceParams>), Responder)>;
 
 pub struct Debug {
@@ -61,7 +63,7 @@ impl DebugT for Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>> {
+	) -> Compat<BoxFuture<'static, RpcResult<TransactionTrace>>> {
 		let mut requester = self.requester.clone();
 
 		async move {
@@ -169,7 +171,7 @@ where
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> RpcResult<single::TransactionTrace> {
+	) -> RpcResult<TransactionTrace> {
 		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
@@ -218,16 +220,23 @@ where
 			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
 		};
 
-		// Set trace type
-		let trace_type = match params {
+		// Set trace input and type
+		let (tracer_input, trace_type) = match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
 				..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
+				let tracer = if hash == blockscout_hash {
+					Some(TracerInput::Blockscout)
+				} else if tracer == "callTracer" {
+					Some(TracerInput::CallTracer)
+				} else {
+					None
+				};
+				if let Some(tracer) = tracer {
+					(tracer, single::TraceType::CallList)
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -235,16 +244,22 @@ where
 					)));
 				}
 			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
+			Some(params) => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(false),
+					disable_memory: params.disable_memory.unwrap_or(false),
+					disable_stack: params.disable_stack.unwrap_or(false),
+				},
+			),
+			_ => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: false,
+					disable_memory: false,
+					disable_stack: false,
+				},
+			),
 		};
 
 		// Get the actual ethereum transaction.
@@ -303,16 +318,17 @@ where
 								disable_stack,
 							);
 							proxy.using(f)?;
-							Ok(proxy::formats::raw::Response::build(proxy).unwrap())
+							let response = proxy::formats::raw::Response::build(proxy).unwrap();
+							Ok(TransactionTrace::SingleV2(response))
 						} else if api_version == 2 {
 							let mut proxy = proxy::v1::RawProxy::new();
 							proxy.using(f)?;
-							Ok(proxy.into_tx_trace())
+							Ok(TransactionTrace::SingleV1(proxy.into_tx_trace()))
 						} else {
 							let mut proxy = proxy::v1::RawProxy::new();
 							match proxy.using(f) {
 								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
-									Ok(result)
+									Ok(TransactionTrace::SingleV1(result))
 								}
 								Err(e) => Err(e),
 								_ => Err(internal_err(format!(
@@ -325,21 +341,35 @@ where
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 							let mut proxy = proxy::v2::call_list::Listener::default();
 							proxy.using(f)?;
-							proxy::formats::blockscout::Response::build(proxy)
-								.ok_or("Trace result is empty.")
-								.map_err(|e| internal_err(format!("{:?}", e)))
+							let response = match tracer_input {
+								TracerInput::Blockscout => {
+									proxy::formats::blockscout::Response::build(proxy)
+										.ok_or("Trace result is empty.")
+										.map_err(|e| internal_err(format!("{:?}", e)))
+								}
+								TracerInput::CallTracer => {
+									proxy::formats::call_tracer::Response::build(proxy)
+										.ok_or("Trace result is empty.")
+										.map_err(|e| internal_err(format!("{:?}", e)))
+								}
+								_ => Err(internal_err(format!(
+									"Bug: failed to resolve the tracer format."
+								))),
+							}?;
+							Ok(TransactionTrace::SingleV2(response))
 						} else if api_version == 2 {
 							let mut proxy = proxy::v1::CallListProxy::new();
 							proxy.using(f)?;
-							proxy
+							let response = proxy
 								.into_tx_trace()
 								.ok_or("Trace result is empty.")
-								.map_err(|e| internal_err(format!("{:?}", e)))
+								.map_err(|e| internal_err(format!("{:?}", e)))?;
+							Ok(TransactionTrace::SingleV1(response))
 						} else {
 							let mut proxy = proxy::v1::CallListProxy::new();
 							match proxy.using(f) {
 								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
-									Ok(result)
+									Ok(TransactionTrace::SingleV1(result))
 								}
 								Err(e) => Err(e),
 								_ => Err(internal_err(format!(
