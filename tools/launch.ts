@@ -254,10 +254,7 @@ function start() {
 
   // We retrieve the binaries and paths for all parachains
   for (let i = 0; i < paras.length; i++) {
-    console.log("I AM HERE")
-    console.log(paras[i])
     if (paras[i].binary) {
-      console.log("I AM HERE 2")
 
       parachainBinaries.push(paras[i].binary);
       const parachainPath = path.join(__dirname, paras[i].binary);
@@ -267,7 +264,6 @@ function start() {
       }
       parachainPaths.push(parachainPath);
     } else {
-      console.log("I AM HERE 3")
 
       if (process.platform != "linux") {
         console.log(
@@ -277,7 +273,6 @@ function start() {
       }
 
       const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
-      console.log(paras[i])
 
       const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
       if (!fs.existsSync(parachainPath)) {
