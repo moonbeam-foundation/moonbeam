@@ -322,8 +322,7 @@ function start() {
   launchConfig.relaychain.chain = relayChain;
 
   let relay_nodes = [];
-  console.log(parachainBinaries);
-  // We need to build the configuration for each of the paras
+¡  // We need to build the configuration for each of the paras
   for (let i = 0; i < parachainBinaries.length; i++) {
     let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
     let parachainConfig = JSON.parse(JSON.stringify(parachainTemplate));
