@@ -254,7 +254,11 @@ function start() {
 
   // We retrieve the binaries and paths for all parachains
   for (let i = 0; i < paras.length; i++) {
+    console.log("I AM HERE")
+    console.log(paras[i])
     if (paras[i].binary) {
+      console.log("I AM HERE 2")
+
       parachainBinaries.push(paras[i].binary);
       const parachainPath = path.join(__dirname, paras[i].binary);
       if (!fs.existsSync(parachainPath)) {
@@ -263,14 +267,19 @@ function start() {
       }
       parachainPaths.push(parachainPath);
     } else {
+      console.log("I AM HERE 3")
+
       if (process.platform != "linux") {
         console.log(
           `docker binaries are only supported on linux. Use "local" config for compiled binaries`
         );
         return;
       }
+
       const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
-      const parachainPath = path.join(__dirname, `build/${paras[i].parachainName}/moonbeam`);
+      console.log(paras[i])
+
+      const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
         child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
@@ -455,7 +464,7 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--log=error,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
@@ -468,7 +477,7 @@ const parachainTemplate = {
       wsPort: 112,
       name: "bob",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--log=error,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
         "--rpc-cors=all",
         "--",
