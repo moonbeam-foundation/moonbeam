@@ -32,7 +32,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
-
+pallet-common-benchmarks = { path = "../../pallets/common-benchmarks", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
@@ -162,6 +162,7 @@ std = [
 	"pallet-author-mapping/std",
 	"max-encoded-len/std",
 	"evm/std",
+	"pallet-common-benchmarks/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -185,6 +186,7 @@ runtime-benchmarks = [
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"pallet-common-benchmarks/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

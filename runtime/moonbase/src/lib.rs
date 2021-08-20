@@ -620,6 +620,11 @@ impl parachain_staking::Config for Runtime {
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_common_benchmarks::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = ();
+}
+
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
@@ -821,6 +826,7 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
+		CommonBenchmarks: pallet_common_benchmarks::{Pallet, Call, Storage, Event<T>} = 24,
 	}
 }
 

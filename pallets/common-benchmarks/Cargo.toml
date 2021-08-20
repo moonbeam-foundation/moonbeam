@@ -1,0 +1,31 @@
+[package]
+name = "pallet-common-benchmarks"
+version = "4.0.0-dev"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2018"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/paritytech/substrate/"
+description = "Common generic patterns for benchmarking comparison"
+readme = "README.md"
+
+[dependencies]
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+frame-benchmarking = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false, optional=true }
+frame-support = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false }
+frame-system = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false }
+sp-runtime = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features=false }
+
+[dev-dependencies]
+pallet-balances = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
+sp-core = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
+sp-io = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
+
+[features]
+default = ["std"]
+std = [
+    "parity-scale-codec/std",
+    "frame-support/std",
+    "frame-system/std",
+]
+runtime-benchmarks = ["frame-benchmarking"]
