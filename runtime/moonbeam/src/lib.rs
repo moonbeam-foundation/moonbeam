@@ -831,7 +831,7 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
-		PalletCommonBenchmarks: pallet_common_benchmarks::{Pallet, Call, Config, Storage, Event<T>},
+		CommonBenchmarks: pallet_common_benchmarks::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
