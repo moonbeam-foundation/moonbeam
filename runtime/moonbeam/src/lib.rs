@@ -82,12 +82,14 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMR: Balance = GLMR * 1_000;
-	pub const MILLIGLMR: Balance = GLMR / 1_000;
-	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
-	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
 	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROGLMR: Balance = 1_000_000_000_000;
+	pub const MILLIGLMR: Balance = 1_000_000_000_000_000;
+	pub const GLMR: Balance = 1_000_000_000_000_000_000;
+	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;
@@ -132,7 +134,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 0300,
+	spec_version: 0400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -333,7 +335,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMR).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
@@ -587,8 +589,8 @@ parameter_types! {
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 25 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// Maximum 100 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
@@ -642,7 +644,7 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
-	pub const MaxInitContributorsBatchSizes: u32 = 1000;
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -653,6 +655,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -768,6 +771,29 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+/// Call filter expected to be used during Phase 3 of the Moonbeam rollout
+/// At least it was used in Moonriver phase3
+pub struct PhaseThreeFilter;
+impl Filter<Call> for PhaseThreeFilter {
+	fn filter(c: &Call) -> bool {
+		match c {
+			Call::Balances(_) => false,
+			Call::CrowdloanRewards(_) => false,
+			Call::Ethereum(_) => false,
+			Call::EVM(_) => false,
+			_ => true,
+		}
+	}
+}
+
+impl pallet_maintenance_mode::Config for Runtime {
+	type Event = Event;
+	type NormalCallFilter = ();
+	type MaintenanceCallFilter = PhaseThreeFilter;
+	type MaintenanceOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -799,6 +825,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
 	}
 }
 

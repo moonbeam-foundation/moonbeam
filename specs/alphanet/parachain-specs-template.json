@@ -199,7 +199,10 @@
         ]
       },
       "treasury": {},
-      "scheduler": null
+      "scheduler": null,
+      "maintenanceMode": {
+        "startInMaintenanceMode": false
+      }
     }
   }
 }
