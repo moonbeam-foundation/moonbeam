@@ -79,65 +79,65 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		// VALUES
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_u64_value())]
 		pub fn get_u64_value(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			U64Value::<T>::get();
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::put_u64_value())]
 		pub fn put_u64_value(_origin: OriginFor<T>, input: u64) -> DispatchResultWithPostInfo {
 			U64Value::<T>::put(input);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_put_u64_value())]
 		pub fn get_put_u64_value(_origin: OriginFor<T>, input: u64) -> DispatchResultWithPostInfo {
 			U64Value::<T>::get();
 			U64Value::<T>::put(input);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::emit_u64_value_event())]
 		pub fn emit_u64_value_event(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			Self::deposit_event(Event::U64Value(0u64));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_emit_u64_value_event())]
 		pub fn get_emit_u64_value_event(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			Self::deposit_event(Event::U64Value(U64Value::<T>::get()));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_u64_option())]
 		pub fn get_u64_option(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			U64Option::<T>::get();
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::put_u64_option())]
 		pub fn put_u64_option(_origin: OriginFor<T>, input: u64) -> DispatchResultWithPostInfo {
 			U64Option::<T>::put(input);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_put_u64_option())]
 		pub fn get_put_u64_option(_origin: OriginFor<T>, input: u64) -> DispatchResultWithPostInfo {
 			U64Option::<T>::get();
 			U64Option::<T>::put(input);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::emit_u64_option_event())]
 		pub fn emit_u64_option_event(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			Self::deposit_event(Event::U64Option(Some(1u64)));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_emit_u64_option_event())]
 		pub fn get_emit_u64_option_event(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			Self::deposit_event(Event::U64Option(U64Option::<T>::get()));
 			Ok(().into())
 		}
 		// MAPS
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_u64_map_value())]
 		pub fn get_u64_map_value(_origin: OriginFor<T>, key: u64) -> DispatchResultWithPostInfo {
 			U64Map::<T>::get(key);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::put_u64_map_value())]
 		pub fn put_u64_map_value(
 			_origin: OriginFor<T>,
 			key: u64,
@@ -146,7 +146,7 @@ pub mod pallet {
 			U64Map::<T>::insert(key, value);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_put_u64_map_value())]
 		pub fn get_put_u64_map_value(
 			_origin: OriginFor<T>,
 			key: u64,
@@ -157,7 +157,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		// DOUBLE MAPS
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_u64_double_map_value())]
 		pub fn get_u64_double_map_value(
 			_origin: OriginFor<T>,
 			key_0: u64,
@@ -166,7 +166,7 @@ pub mod pallet {
 			U64DoubleMap::<T>::get(key_0, key_1);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::put_u64_double_map_value())]
 		pub fn put_u64_double_map_value(
 			_origin: OriginFor<T>,
 			key_0: u64,
@@ -176,7 +176,7 @@ pub mod pallet {
 			U64DoubleMap::<T>::insert(key_0, key_1, value);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::get_put_u64_double_map_value())]
 		pub fn get_put_u64_double_map_value(
 			_origin: OriginFor<T>,
 			key_0: u64,
