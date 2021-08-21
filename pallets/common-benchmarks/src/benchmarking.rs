@@ -23,6 +23,7 @@ use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 
 benchmarks! {
+	// VALUES
 	get_u64_value {
 	}: _(RawOrigin::None)
 	verify {}
@@ -61,6 +62,32 @@ benchmarks! {
 
 	get_emit_u64_option_event {
 	}: _(RawOrigin::None)
+	verify {}
+
+	// MAPS
+	get_u64_map_value {
+	}: _(RawOrigin::None, 1u64)
+	verify {}
+
+	put_u64_map_value {
+	}: _(RawOrigin::None, 1u64, 2u64)
+	verify {}
+
+	get_put_u64_map_value {
+	}: _(RawOrigin::None, 1u64, 2u64)
+	verify {}
+
+	// DOUBLE MAPS
+	get_u64_double_map_value {
+	}: _(RawOrigin::None, 1u64, 1u64)
+	verify {}
+
+	put_u64_double_map_value {
+	}: _(RawOrigin::None, 1u64, 1u64, 2u64)
+	verify {}
+
+	get_put_u64_double_map_value {
+	}: _(RawOrigin::None, 1u64, 1u64, 2u64)
 	verify {}
 }
 

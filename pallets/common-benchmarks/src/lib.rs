@@ -32,8 +32,9 @@ use weights::WeightInfo;
 
 #[pallet]
 pub mod pallet {
+	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
-	use frame_system::{pallet_prelude::*, WeightInfo};
+	use frame_system::pallet_prelude::*;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -62,8 +63,22 @@ pub mod pallet {
 	#[pallet::getter(fn u64_option)]
 	pub type U64Option<T: Config> = StorageValue<_, u64, OptionQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn u64_map)]
+	pub type U64Map<T: Config> = StorageMap<_, Twox64Concat, u64, u64, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn u64_double_map)]
+	pub type U64DoubleMap<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, u64, Twox64Concat, u64, u64, ValueQuery>;
+
+	// TODO: do different values cost different amounts for read/writes
+	// --> structs with lots of fields vs a vec?
+	// TODO: events separate and figure out how they compose with the types
+	// TODO: add weight annotations to all the functions
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		// VALUES
 		#[pallet::weight(0)]
 		pub fn get_u64_value(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			U64Value::<T>::get();
@@ -116,5 +131,64 @@ pub mod pallet {
 			Self::deposit_event(Event::U64Option(U64Option::<T>::get()));
 			Ok(().into())
 		}
+		// MAPS
+		#[pallet::weight(0)]
+		pub fn get_u64_map_value(_origin: OriginFor<T>, key: u64) -> DispatchResultWithPostInfo {
+			U64Map::<T>::get(key);
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		pub fn put_u64_map_value(
+			_origin: OriginFor<T>,
+			key: u64,
+			value: u64,
+		) -> DispatchResultWithPostInfo {
+			U64Map::<T>::insert(key, value);
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		pub fn get_put_u64_map_value(
+			_origin: OriginFor<T>,
+			key: u64,
+			value: u64,
+		) -> DispatchResultWithPostInfo {
+			U64Map::<T>::get(key);
+			U64Map::<T>::insert(key, value);
+			Ok(().into())
+		}
+		// DOUBLE MAPS
+		#[pallet::weight(0)]
+		pub fn get_u64_double_map_value(
+			_origin: OriginFor<T>,
+			key_0: u64,
+			key_1: u64,
+		) -> DispatchResultWithPostInfo {
+			U64DoubleMap::<T>::get(key_0, key_1);
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		pub fn put_u64_double_map_value(
+			_origin: OriginFor<T>,
+			key_0: u64,
+			key_1: u64,
+			value: u64,
+		) -> DispatchResultWithPostInfo {
+			U64DoubleMap::<T>::insert(key_0, key_1, value);
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		pub fn get_put_u64_double_map_value(
+			_origin: OriginFor<T>,
+			key_0: u64,
+			key_1: u64,
+			value: u64,
+		) -> DispatchResultWithPostInfo {
+			U64DoubleMap::<T>::get(key_0, key_1);
+			U64DoubleMap::<T>::insert(key_0, key_1, value);
+			Ok(().into())
+		}
+		// COUNTED MAPS
+		// N MAPS
+		// SIGNATURE VERIFICATION
 	}
 }

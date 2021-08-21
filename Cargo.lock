@@ -5244,6 +5244,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-common-benchmarks",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
@@ -5437,6 +5438,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-common-benchmarks",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
@@ -6099,6 +6101,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
