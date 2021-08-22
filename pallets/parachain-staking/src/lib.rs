@@ -867,18 +867,19 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
 			if current_round.should_run_election(n) {
-				println!(
-					"SHOULD RUN ELECTION TRIGGERED SO CANNOT UPDATE ROUND, BLOCK: {}",
-					n
-				);
+				println!("COMPUTING NEXT ROUND ELECTION RESULTS AT BLOCK {}", n);
 				let election_result = Self::select_top_candidates(current_round.current + 1u32);
 				QueuedElectionResult::<T>::put(election_result);
-				return 0u32.into(); // TODO: actual weight
+				// TODO: benchmark and set actual weight instead of acting like its in next block
 			}
 
 			if current_round.should_update(n) {
-				println!("SHOULD UPDATE ROUND, BLOCK: {}", n);
-				let election_result = match QueuedElectionResult::<T>::take() {
+				println!("STARTING NEXT ROUND AT BLOCK {}", n);
+				let ElectionResult {
+					collators,
+					nomination_count,
+					total_staked,
+				} = match QueuedElectionResult::<T>::take() {
 					Some(result) => result,
 					None => Self::select_top_candidates(current_round.current + 1u32),
 				};
@@ -886,7 +887,7 @@ pub mod pallet {
 					current_round.update(n);
 					current_round
 				});
-				let collator_count: u32 = election_result.collators.len() as u32;
+				let collator_count: u32 = collators.len() as u32;
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(new_round.current);
 				// execute all delayed collator exits
@@ -894,7 +895,7 @@ pub mod pallet {
 				// execute all delayed nominator exits
 				Self::execute_nominator_exits(new_round.current);
 				// move the queued set into active duty
-				<SelectedCandidates<T>>::put(election_result.collators);
+				<SelectedCandidates<T>>::put(collators);
 				// start next round
 				<Round<T>>::put(new_round);
 				// snapshot total stake
@@ -905,12 +906,9 @@ pub mod pallet {
 					new_round.first,
 					new_round.current,
 					collator_count,
-					election_result.total_staked,
+					total_staked,
 				));
-				T::WeightInfo::active_on_initialize(
-					collator_count,
-					election_result.nomination_count,
-				)
+				T::WeightInfo::active_on_initialize(collator_count, nomination_count)
 			} else {
 				T::WeightInfo::passive_on_initialize()
 			}
