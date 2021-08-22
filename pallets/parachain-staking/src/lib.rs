@@ -867,14 +867,14 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
 			if current_round.should_run_election(n) {
-				println!("COMPUTING NEXT ROUND ELECTION RESULTS AT BLOCK {}", n);
+				// execute all delayed nominator exits
+				Self::execute_nominator_exits(current_round.current + 1u32);
 				let election_result = Self::select_top_candidates(current_round.current + 1u32);
 				QueuedElectionResult::<T>::put(election_result);
 				// TODO: benchmark and set actual weight instead of acting like its in next block
 			}
 
 			if current_round.should_update(n) {
-				println!("STARTING NEXT ROUND AT BLOCK {}", n);
 				let ElectionResult {
 					collators,
 					nomination_count,
@@ -892,8 +892,6 @@ pub mod pallet {
 				Self::pay_stakers(new_round.current);
 				// execute all delayed collator exits
 				Self::execute_collator_exits(new_round.current);
-				// execute all delayed nominator exits
-				Self::execute_nominator_exits(new_round.current);
 				// move the queued set into active duty
 				<SelectedCandidates<T>>::put(collators);
 				// start next round
@@ -1336,7 +1334,6 @@ pub mod pallet {
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
 			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
-			println!("now: {} + delay: {}", now, T::LeaveCandidatesDelay::get());
 			let when = now + T::LeaveCandidatesDelay::get();
 			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
 			state.leave(when);
