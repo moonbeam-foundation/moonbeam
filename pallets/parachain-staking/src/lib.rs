@@ -880,10 +880,9 @@ pub mod pallet {
 				println!("SHOULD UPDATE ROUND, BLOCK: {}", n);
 				let election_result = match QueuedElectionResult::<T>::take() {
 					Some(result) => result,
-					None => Self::select_top_candidates(current_round.current),
+					None => Self::select_top_candidates(current_round.current + 1u32),
 				};
-				// was this update when stored?
-				let new_round = <NextRound<T>>::get().unwrap_or_else(|| {
+				let new_round = <NextRound<T>>::take().unwrap_or_else(|| {
 					current_round.update(n);
 					current_round
 				});
@@ -941,7 +940,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn next_round)]
-	/// Information queued for the nexxt round
+	/// Information queued for the next round
 	type NextRound<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, OptionQuery>;
 
 	#[pallet::storage]
