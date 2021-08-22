@@ -73,21 +73,22 @@ const main = async () => {
 
   let fromNonce = (await polkadotApi.rpc.system.accountNextIndex(targetAccount.address)).toNumber();
 
-  console.log(`Creating ${argv.count} balance tranfers...`);
+  // We need to multiple the float first to then convert to BigInt,
+  // 1000000 should be enough
+  const amount = BigInt(argv.amount * 1000000) * 10n ** 12n;
+  console.log(`Creating ${argv.count} balance tranfers of ${argv.amount} Tokens...`);
   const transferTxs = await Promise.all(
     accounts.map((account, index) => {
       if (argv.from) {
-        return (
-          polkadotApi.tx.balances
-            // We need to multiple the float first to then convert to BigInt, 1000000 should be enough
-            .transfer(account.address, BigInt(argv.amount * 1000000) * 10n ** 12n)
-            .signAsync(targetAccount, { nonce: fromNonce + index })
-        );
+        return polkadotApi.tx.balances
+          .transfer(account.address, amount)
+          .signAsync(targetAccount, { nonce: fromNonce + index });
       } else {
         return (
           polkadotApi.tx.balances
-            // We need to multiple the float first to then convert to BigInt, 1000000 should be enough
-            .transfer(targetAccount.address, BigInt(argv.amount * 1000000) * 10n ** 12n)
+            // We need to multiple the float first to then convert to BigInt,
+            // 1000000 should be enough
+            .transfer(targetAccount.address, amount)
             .signAsync(account, { nonce: -1 })
         );
       }
