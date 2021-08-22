@@ -849,10 +849,11 @@ pub mod pallet {
 				round.update(n);
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(round.current);
+				// TODO: no more delayed execution, just allow them to exit once it's past their time
 				// execute all delayed collator exits
-				Self::execute_collator_exits(round.current);
+				//Self::execute_collator_exits(round.current);
 				// execute all delayed nominator exits
-				Self::execute_nominator_exits(round.current);
+				//Self::execute_nominator_exits(round.current);
 				// select top collator candidates for next round
 				let (collator_count, nomination_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -932,6 +933,7 @@ pub mod pallet {
 	type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
+	// TODO: remove this and make the exit manual
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
 	/// A queue of collators and nominators awaiting exit
@@ -1276,10 +1278,8 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
-			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveCandidatesDelay::get();
-			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
 			state.leave(when);
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
@@ -1289,7 +1289,6 @@ pub mod pallet {
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<ExitQueue2<T>>::put(exits);
 			<CollatorState2<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CollatorScheduledExit(now, collator, when));
 			Ok(().into())
@@ -1465,14 +1464,11 @@ pub mod pallet {
 				nomination_count >= (state.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
-			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
-			<ExitQueue2<T>>::put(exits);
 			<NominatorState2<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
@@ -1512,28 +1508,24 @@ pub mod pallet {
 					);
 					false
 				};
-			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::RevokeNominationDelay::get();
 			if leaving {
-				// schedule to leave the set of nominators if this is the only nomination
-				exits.schedule_nominator_exit::<T>(nominator.clone(), when)?;
 				state.leave(when);
 				state.scheduled_revocations_total = state.total;
 				state.scheduled_revocations_count = state.nominations.0.len() as u32;
-				<ExitQueue2<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			} else {
 				// schedule to revoke this nomination
-				exits.schedule_nomination_revocation::<T>(
-					nominator.clone(),
-					collator.clone(),
-					when,
-				)?;
+				// exits.schedule_nomination_revocation::<T>(
+				// 	nominator.clone(),
+				// 	collator.clone(),
+				// 	when,
+				// )?;
+				// TODO: need something on local nominator state for exit one nomination
 				state.scheduled_revocations_total += amount;
 				state.scheduled_revocations_count += 1u32;
-				<ExitQueue2<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
 					now, nominator, collator, when,
