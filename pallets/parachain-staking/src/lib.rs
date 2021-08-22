@@ -579,9 +579,9 @@ pub mod pallet {
 		/// The first block of the current round
 		pub first: BlockNumber,
 		/// The length of the current round in number of blocks
-		pub length: BlockNumber,
-		/// The number of blocks by which the election calculation should preceed the next round.
-		pub early_election_offset: BlockNumber,
+		pub length: u32,
+		/// The number of blocks by which the election calculation should precede the next round.
+		pub early_election_offset: u32,
 	}
 	impl<
 			B: Copy
@@ -591,7 +591,12 @@ pub mod pallet {
 				+ PartialOrd,
 		> RoundInfo<B>
 	{
-		pub fn new(current: RoundIndex, first: B, length: B, early_election_offset: B) -> RoundInfo<B> {
+		pub fn new(
+			current: RoundIndex,
+			first: B,
+			length: u32,
+			early_election_offset: u32,
+		) -> RoundInfo<B> {
 			RoundInfo {
 				current,
 				first,
@@ -605,9 +610,8 @@ pub mod pallet {
 		}
 		/// Check if we should compute the elected set for the upcoming round
 		pub fn should_run_election(&self, now: B) -> bool {
-			self.should_update(now + self.early_election_offset)
+			self.should_update(now + self.early_election_offset.into())
 		}
-		
 		/// Mutate this round into the next round
 		pub fn update(&mut self, now: B) {
 			self.current += 1u32;
@@ -625,7 +629,7 @@ pub mod pallet {
 		fn default() -> RoundInfo<B> {
 			//TODO Here I hard-coded 1 as the early election offset. This should be somewhere
 			// better.
-			RoundInfo::new(1u32, 1u32.into(), 20.into(), 1.into())
+			RoundInfo::new(1u32, 1u32.into(), 20, 1)
 		}
 	}
 
@@ -715,7 +719,7 @@ pub mod pallet {
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
 		#[pallet::constant]
-		type MinBlocksPerRound: Get<Self::BlockNumber>;
+		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
 		#[pallet::constant]
 		type DefaultBlocksPerRound: Get<u32>;
@@ -847,18 +851,13 @@ pub mod pallet {
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
 		/// The RoundInfo for the next round has been updated.
-		RoundInfoUpdated(
-			RoundInfo<T::BlockNumber>,
-			Perbill,
-			Perbill,
-			Perbill,
-		),
+		RoundInfoUpdated(RoundInfo<T::BlockNumber>, Perbill, Perbill, Perbill),
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
-			let current_round = <Round<T>>::get();
+			let mut current_round = <Round<T>>::get();
 			if current_round.should_run_election(n) {
 				let election_result = Self::select_top_candidates(current_round.current);
 				QueuedElectionResult::<T>::put(election_result);
@@ -870,9 +869,16 @@ pub mod pallet {
 					None => panic!("We're hosed. There is no election result, and Joshy didn't bother to write proper error handling! //TODO"),
 				};
 
-				let new_round = <NextRound<T>>::get().unwrap_or_else(|| {current_round.update(n); current_round});
+				let new_round = <NextRound<T>>::get().unwrap_or_else(|| {
+					current_round.update(n);
+					current_round
+				});
 				use sp_std::convert::TryInto;
-				let collator_count: u32 = election_result.collators.len().try_into().expect("collator count is limited below 2**32");
+				let collator_count: u32 = election_result
+					.collators
+					.len()
+					.try_into()
+					.expect("collator count is limited below 2**32");
 
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(new_round.current);
@@ -894,7 +900,10 @@ pub mod pallet {
 					collator_count,
 					election_result.total_staked,
 				));
-				T::WeightInfo::active_on_initialize(collator_count, election_result.nomination_count)
+				T::WeightInfo::active_on_initialize(
+					collator_count,
+					election_result.nomination_count,
+				)
 			} else {
 				T::WeightInfo::passive_on_initialize()
 			}
@@ -957,7 +966,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn queued_election_result)]
 	/// The collator candidates selected for the next round
-	type QueuedElectionResult<T: Config> = StorageValue<_, ElectionResult<T::AccountId, BalanceOf<T>>, OptionQuery>;
+	type QueuedElectionResult<T: Config> =
+		StorageValue<_, ElectionResult<T::AccountId, BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
@@ -1106,18 +1116,22 @@ pub mod pallet {
 			// Set total selected candidates to minimum config
 			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
 			// Choose top TotalSelected collator candidates
-			let ElectionResult {collators, nomination_count: _, total_staked} = <Pallet<T>>::select_top_candidates(1u32);
+			let ElectionResult {
+				collators,
+				nomination_count: _,
+				total_staked,
+			} = <Pallet<T>>::select_top_candidates(1u32);
 			//TODO I hardcoded the election offset to 1 here also.
 			// Start Round 1 at Block 0
 			let round: RoundInfo<T::BlockNumber> =
-				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get(), 1.into());
+				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get(), 1u32);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound(
 				T::BlockNumber::zero(),
 				1u32,
-				collators.len(),
+				collators.len() as u32,
 				total_staked,
 			));
 		}
@@ -1242,7 +1256,10 @@ pub mod pallet {
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
 		/// - also updates per-round inflation config
-		pub fn set_blocks_per_round(origin: OriginFor<T>, new_round: RoundInfo<T::BlockNumber>) -> DispatchResultWithPostInfo {
+		pub fn set_blocks_per_round(
+			origin: OriginFor<T>,
+			new_round: RoundInfo<T::BlockNumber>,
+		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
 				new_round.length >= T::MinBlocksPerRound::get(),
