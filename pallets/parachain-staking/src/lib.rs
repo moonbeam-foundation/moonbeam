@@ -564,7 +564,7 @@ pub mod pallet {
 	}
 
 	#[derive(PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-	/// The computed result of an election along with some stats about the nomination graph.
+	/// The computed result of an election along with information about the nomination graph.
 	pub struct ElectionResult<AccountId, Balance> {
 		pub collators: Vec<AccountId>,
 		pub nomination_count: u32,
@@ -610,7 +610,7 @@ pub mod pallet {
 		}
 		/// Check if we should compute the elected set for the upcoming round
 		pub fn should_run_election(&self, now: B) -> bool {
-			self.should_update(now + self.early_election_offset.into())
+			now + self.early_election_offset.into() - self.first == self.length.into()
 		}
 		/// Mutate this round into the next round
 		pub fn update(&mut self, now: B) {
@@ -850,8 +850,16 @@ pub mod pallet {
 		TotalSelectedSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
-		/// The RoundInfo for the next round has been updated.
-		RoundInfoUpdated(RoundInfo<T::BlockNumber>, Perbill, Perbill, Perbill),
+		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
+		BlocksPerRoundSet(
+			RoundIndex,
+			T::BlockNumber,
+			u32,
+			u32,
+			Perbill,
+			Perbill,
+			Perbill,
+		),
 	}
 
 	#[pallet::hooks]
@@ -859,27 +867,27 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
 			if current_round.should_run_election(n) {
-				let election_result = Self::select_top_candidates(current_round.current);
+				println!(
+					"SHOULD RUN ELECTION TRIGGERED SO CANNOT UPDATE ROUND, BLOCK: {}",
+					n
+				);
+				let election_result = Self::select_top_candidates(current_round.current + 1u32);
 				QueuedElectionResult::<T>::put(election_result);
+				return 0u32.into(); // TODO: actual weight
 			}
 
 			if current_round.should_update(n) {
-				let election_result = match QueuedElectionResult::<T>::get() {
+				println!("SHOULD UPDATE ROUND, BLOCK: {}", n);
+				let election_result = match QueuedElectionResult::<T>::take() {
 					Some(result) => result,
-					None => panic!("We're hosed. There is no election result, and Joshy didn't bother to write proper error handling! //TODO"),
+					None => Self::select_top_candidates(current_round.current),
 				};
-
+				// was this update when stored?
 				let new_round = <NextRound<T>>::get().unwrap_or_else(|| {
 					current_round.update(n);
 					current_round
 				});
-				use sp_std::convert::TryInto;
-				let collator_count: u32 = election_result
-					.collators
-					.len()
-					.try_into()
-					.expect("collator count is limited below 2**32");
-
+				let collator_count: u32 = election_result.collators.len() as u32;
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(new_round.current);
 				// execute all delayed collator exits
@@ -892,8 +900,8 @@ pub mod pallet {
 				<Round<T>>::put(new_round);
 				// snapshot total stake
 				<Staked<T>>::insert(new_round.current, <Total<T>>::get());
-				//Unrelated, but may as well do it while I'm thinking about it.
-				<Staked<T>>::take(new_round.current - 3); // I just chose three because it seemed like enough. Maybe it can be less.
+				// TODO: clear old storage, need to ensure round.current >= 3 if doing this
+				// <Staked<T>>::take(new_round.current - 3);
 				Self::deposit_event(Event::NewRound(
 					new_round.first,
 					new_round.current,
@@ -1252,30 +1260,29 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_blocks_per_round())]
-		/// Update the round configuration.
-		/// - if called with `new` less than length of current round, will transition immediately
-		/// in the next block
-		/// - also updates per-round inflation config
-		pub fn set_blocks_per_round(
-			origin: OriginFor<T>,
-			new_round: RoundInfo<T::BlockNumber>,
-		) -> DispatchResultWithPostInfo {
+		/// Update the round configuration, effective at start of next round.
+		/// TODO: force round update function with parameters by root
+		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
-				new_round.length >= T::MinBlocksPerRound::get(),
+				new >= T::MinBlocksPerRound::get(),
 				Error::<T>::CannotSetBelowMin
 			);
+			let mut next_round = <Round<T>>::get();
+			let (now, first, old) = (next_round.current, next_round.first, next_round.length);
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			next_round.length = new;
 
-			<NextRound<T>>::put(new_round);
-
-			//TODO Amar, I didn't look at the inflation stuff at all. Does it need adjusting?
-			// I guess at least it shouldn't take effect immetiately?
 			// update per-round inflation given new rounds per year
-			let new = new_round.length; //just to make this code compile
+			// TODO: how to effectively delay computation
 			let mut inflation_config = <InflationConfig<T>>::get();
 			inflation_config.reset_round(new);
-			Self::deposit_event(Event::RoundInfoUpdated(
-				new_round,
+			<NextRound<T>>::put(next_round);
+			Self::deposit_event(Event::BlocksPerRoundSet(
+				now,
+				first,
+				old,
+				new,
 				inflation_config.round.min,
 				inflation_config.round.ideal,
 				inflation_config.round.max,
@@ -1332,6 +1339,7 @@ pub mod pallet {
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
 			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
+			println!("now: {} + delay: {}", now, T::LeaveCandidatesDelay::get());
 			let when = now + T::LeaveCandidatesDelay::get();
 			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
 			state.leave(when);
@@ -1923,8 +1931,7 @@ pub mod pallet {
 		/// Best as in most cumulatively supported in terms of stake
 		/// This function just runs the election, it does not mutate storage.
 		fn select_top_candidates(next: RoundIndex) -> ElectionResult<T::AccountId, BalanceOf<T>> {
-			let (mut collator_count, mut nomination_count, mut total) =
-				(0u32, 0u32, BalanceOf::<T>::zero());
+			let (mut nomination_count, mut total) = (0u32, BalanceOf::<T>::zero());
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
@@ -1941,7 +1948,6 @@ pub mod pallet {
 			for account in collators.iter() {
 				let state = <CollatorState2<T>>::get(&account)
 					.expect("all members of CandidateQ must be candidates");
-				collator_count += 1u32;
 				nomination_count += state.nominators.0.len() as u32;
 				let amount = state.total_counted;
 				total += amount;

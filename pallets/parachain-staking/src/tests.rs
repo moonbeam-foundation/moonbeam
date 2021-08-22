@@ -2700,8 +2700,8 @@ fn collator_exit_executes_after_delay() {
 				Event::CollatorScheduledExit(3, 2, 5),
 				Event::CollatorChosen(4, 1, 700),
 				Event::NewRound(15, 4, 1, 700),
-				Event::CollatorLeft(2, 400, 700),
 				Event::CollatorChosen(5, 1, 700),
+				Event::CollatorLeft(2, 400, 700),
 				Event::NewRound(20, 5, 1, 700),
 			];
 			assert_eq!(events(), expected);
