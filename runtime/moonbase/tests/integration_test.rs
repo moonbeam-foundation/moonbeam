@@ -19,7 +19,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -34,7 +34,7 @@ use moonbase_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::{Bond, NominatorAdded};
+use parachain_staking::Bond;
 use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{

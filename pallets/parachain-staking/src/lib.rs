@@ -897,8 +897,11 @@ pub mod pallet {
 				<Round<T>>::put(new_round);
 				// snapshot total stake
 				<Staked<T>>::insert(new_round.current, <Total<T>>::get());
-				// TODO: clear old storage, need to ensure round.current >= 3 if doing this
-				// <Staked<T>>::take(new_round.current - 3);
+				// clear old storage
+				if new_round.current >= 3 {
+					<Staked<T>>::remove(new_round.current - 3);
+				}
+				// emit new round event
 				Self::deposit_event(Event::NewRound(
 					new_round.first,
 					new_round.current,
@@ -1260,7 +1263,6 @@ pub mod pallet {
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_blocks_per_round())]
 		/// Update the round configuration, effective at start of next round.
-		/// TODO: force round update function with parameters by root
 		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
@@ -1273,7 +1275,6 @@ pub mod pallet {
 			next_round.length = new;
 
 			// update per-round inflation given new rounds per year
-			// TODO: how to effectively delay computation
 			let mut inflation_config = <InflationConfig<T>>::get();
 			inflation_config.reset_round(new);
 			<NextRound<T>>::put(next_round);
@@ -1709,7 +1710,6 @@ pub mod pallet {
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
-			// TODO: consider interpolation instead of bounded range
 			if staked < config.expect.min {
 				round_issuance.min
 			} else if staked > config.expect.max {
