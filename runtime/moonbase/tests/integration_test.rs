@@ -362,11 +362,6 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..599 {
-				println!(
-					"SELECTED CANDIDATES AT BLOCK {}\n {:?}",
-					x,
-					ParachainStaking::selected_candidates()
-				);
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -378,11 +373,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				6084681589500000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				541333333292000000000,
+				520318406416000000000,
 			);
 		});
 }
@@ -426,16 +421,16 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1079592333275448000000,
+				4559311973346500000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				528942666637724000000,
+				514223023794672000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				1532515000000000000000,
 			);
 		});
 }

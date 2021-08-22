@@ -1063,10 +1063,8 @@ pub mod pallet {
 					balance,
 					candidate_count,
 				) {
-					println!("Joined candidates failed with error {:?}", error);
 					log::warn!("Join candidates failed in genesis with error {:?}", error);
 				} else {
-					println!("CANDIDATE SUCCESSFULLY ADDED");
 					candidate_count += 1u32;
 				}
 			}
