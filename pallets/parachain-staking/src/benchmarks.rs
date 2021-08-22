@@ -137,9 +137,7 @@ benchmarks! {
 	}
 
 	set_blocks_per_round {}: _(RawOrigin::Root, 1200u32)
-	verify {
-		assert_eq!(Pallet::<T>::round().length, 1200u32);
-	}
+	verify {} // TODO: simulate block production and verify effects when next round starts, block 21
 
 	// USER DISPATCHABLES
 

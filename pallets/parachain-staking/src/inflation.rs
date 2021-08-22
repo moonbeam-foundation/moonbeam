@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Helper methods for computing issuance based on inflation
-use crate::pallet::{BalanceOf, Config, Pallet};
+use crate::pallet::{BalanceOf, Config};
+use crate::round::*;
 use frame_support::traits::Currency;
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -24,15 +25,6 @@ use sp_runtime::PerThing;
 use sp_runtime::{Perbill, RuntimeDebug};
 use substrate_fixed::transcendental::pow as floatpow;
 use substrate_fixed::types::{I32F32, I64F64};
-
-const SECONDS_PER_YEAR: u32 = 31557600;
-const SECONDS_PER_BLOCK: u32 = 12;
-const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
-
-fn rounds_per_year<T: Config>() -> u32 {
-	let blocks_per_round = <Pallet<T>>::round().length;
-	BLOCKS_PER_YEAR / blocks_per_round
-}
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug)]

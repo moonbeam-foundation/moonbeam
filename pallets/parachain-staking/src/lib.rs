@@ -51,6 +51,7 @@ mod benchmarks;
 mod inflation;
 #[cfg(test)]
 mod mock;
+mod round;
 mod set;
 #[cfg(test)]
 mod tests;
@@ -65,7 +66,7 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use crate::{set::OrderedSet, InflationInfo, Range, WeightInfo};
+	use crate::{round::EARLY_ELECTION_OFFSET, set::OrderedSet, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
@@ -627,9 +628,7 @@ pub mod pallet {
 		> Default for RoundInfo<B>
 	{
 		fn default() -> RoundInfo<B> {
-			//TODO Here I hard-coded 1 as the early election offset. This should be somewhere
-			// better.
-			RoundInfo::new(1u32, 1u32.into(), 20, 1)
+			RoundInfo::new(1u32, 1u32.into(), 20, EARLY_ELECTION_OFFSET)
 		}
 	}
 
@@ -1124,10 +1123,13 @@ pub mod pallet {
 				nomination_count: _,
 				total_staked,
 			} = <Pallet<T>>::select_top_candidates(1u32);
-			//TODO I hardcoded the election offset to 1 here also.
 			// Start Round 1 at Block 0
-			let round: RoundInfo<T::BlockNumber> =
-				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get(), 1u32);
+			let round: RoundInfo<T::BlockNumber> = RoundInfo::new(
+				1u32,
+				0u32.into(),
+				T::DefaultBlocksPerRound::get(),
+				EARLY_ELECTION_OFFSET,
+			);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
