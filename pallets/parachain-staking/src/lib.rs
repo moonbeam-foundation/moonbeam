@@ -1063,8 +1063,10 @@ pub mod pallet {
 					balance,
 					candidate_count,
 				) {
+					println!("Joined candidates failed with error {:?}", error);
 					log::warn!("Join candidates failed in genesis with error {:?}", error);
 				} else {
+					println!("CANDIDATE SUCCESSFULLY ADDED");
 					candidate_count += 1u32;
 				}
 			}
@@ -1123,6 +1125,8 @@ pub mod pallet {
 				nomination_count: _,
 				total_staked,
 			} = <Pallet<T>>::select_top_candidates(1u32);
+			let collator_count = collators.len() as u32;
+			<SelectedCandidates<T>>::put(collators);
 			// Start Round 1 at Block 0
 			let round: RoundInfo<T::BlockNumber> = RoundInfo::new(
 				1u32,
@@ -1136,7 +1140,7 @@ pub mod pallet {
 			<Pallet<T>>::deposit_event(Event::NewRound(
 				T::BlockNumber::zero(),
 				1u32,
-				collators.len() as u32,
+				collator_count,
 				total_staked,
 			));
 		}

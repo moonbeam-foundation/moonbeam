@@ -207,14 +207,14 @@ fn verify_pallet_indices() {
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
+			(AccountId::from(BOB), 101_000 * UNIT),
 			(AccountId::from(CHARLIE), 1_100 * UNIT),
-			(AccountId::from(DAVE), 1_000 * UNIT),
+			(AccountId::from(DAVE), 100_000 * UNIT),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
+			(AccountId::from(ALICE), 100_000 * UNIT),
+			(AccountId::from(BOB), 100_000 * UNIT),
 		])
 		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * UNIT),
@@ -225,7 +225,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
-					1_000 * UNIT,
+					100_000 * UNIT,
 					2u32
 				),
 				parachain_staking::Error::<Runtime>::CandidateExists
@@ -241,15 +241,15 @@ fn join_collator_candidates() {
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				1_000 * UNIT,
+				100_000 * UNIT,
 				2u32
 			));
 			assert_eq!(
 				last_event(),
 				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
-					1_000 * UNIT,
-					3_100 * UNIT
+					100_000 * UNIT,
+					300_100 * UNIT
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
@@ -257,21 +257,21 @@ fn join_collator_candidates() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(ALICE),
-					amount: 1_050 * UNIT
+					amount: 100_050 * UNIT
 				}
 			);
 			assert_eq!(
 				candidates.0[1],
 				Bond {
 					owner: AccountId::from(BOB),
-					amount: 1_050 * UNIT
+					amount: 100_050 * UNIT
 				}
 			);
 			assert_eq!(
 				candidates.0[2],
 				Bond {
 					owner: AccountId::from(DAVE),
-					amount: 1_000 * UNIT
+					amount: 100_000 * UNIT
 				}
 			);
 		});
@@ -345,10 +345,10 @@ fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * UNIT),
+			(AccountId::from(ALICE), 101_100 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -362,7 +362,11 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..599 {
-				println!("SELECTED CANDIDATES AT BLOCK {}\n {:?}", x, ParachainStaking::selected_candidates());
+				println!(
+					"SELECTED CANDIDATES AT BLOCK {}\n {:?}",
+					x,
+					ParachainStaking::selected_candidates()
+				);
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -388,11 +392,11 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * UNIT),
+			(AccountId::from(ALICE), 101_100 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 			(AccountId::from(CHARLIE), UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -440,10 +444,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
@@ -550,10 +554,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 fn claim_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
@@ -638,10 +642,10 @@ fn claim_via_precompile() {
 fn is_contributor_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
@@ -746,10 +750,10 @@ fn is_contributor_via_precompile() {
 fn reward_info_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
@@ -831,10 +835,10 @@ fn reward_info_via_precompile() {
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(ALICE), 101_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
