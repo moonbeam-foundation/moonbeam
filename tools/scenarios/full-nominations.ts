@@ -1,12 +1,12 @@
 // This script is expected to run against a parachain network (using launch.ts script)
 
-import { typesBundle } from "../../moonbeam-types-bundle/dist";
 import { ALITH_PRIVATE_KEY, BALTATHAR_PRIVATE_KEY } from "../utils/constants";
-import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
+import { Keyring } from "@polkadot/api";
 
 import yargs from "yargs";
-import { monitorBlocks, sendAllAndWaitLast } from "../utils/monitoring";
-import { Extrinsic } from "../utils/types";
+import { getMonitoredApiFor, NETWORK_YARGS_OPTIONS } from "../utils/networks";
+import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { sendAllAndWaitLast } from "../utils/transactions";
 
 type Account = ReturnType<Keyring["addFromUri"]>;
 
@@ -14,28 +14,21 @@ const argv = yargs(process.argv.slice(2))
   .usage("Usage: $0")
   .version("1.0.0")
   .options({
-    url: {
-      type: "string",
-      default: "http://localhost:9944",
-      description: "Websocket url",
-    },
+    ...NETWORK_YARGS_OPTIONS,
     nominators: {
       type: "number",
       default: 2000,
       description: "Number of nominators",
     },
-  })
-  .demandOption(["url"]).argv;
+    "transfer-initial-funds": {
+      type: "boolean",
+      default: true,
+      description: "Should funds be transferered from Alice to those accounts",
+    },
+  }).argv;
 
 const main = async () => {
-  const wsProvider = new WsProvider(argv.url);
-  const polkadotApi = await ApiPromise.create({
-    provider: wsProvider,
-    typesBundle: typesBundle as any,
-  });
-
-  // Start monitor blocks (it is nicer when we see what is happening)
-  const cancelMonitoring = await monitorBlocks(polkadotApi);
+  const polkadotApi = await getMonitoredApiFor(argv.url || argv.network);
 
   const keyring = new Keyring({ type: "ethereum" });
   const alith = await keyring.addFromUri(ALITH_PRIVATE_KEY);
@@ -53,18 +46,20 @@ const main = async () => {
   const node2 = baltathar;
   let aliceNonce = (await polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
 
-  // Create transaction for 10 tokens tranfer to each nominator, from Alith
-  console.log(`Creating ${argv.nominators} balance tranfers...`);
-  const transferTxs = await Promise.all(
-    nominators.map((nominator, index) =>
-      polkadotApi.tx.balances
-        .transfer(nominator.address, 10n ** 19n)
-        .signAsync(alith, { nonce: aliceNonce + index })
-    )
-  );
+  if (argv["transfer-initial-funds"]) {
+    // Create transaction for 10 tokens tranfer to each nominator, from Alith
+    console.log(`Creating ${argv.nominators} balance tranfers...`);
+    const transferTxs = await Promise.all(
+      nominators.map((nominator, index) =>
+        polkadotApi.tx.balances
+          .transfer(nominator.address, 10n ** 19n)
+          .signAsync(alith, { nonce: aliceNonce + index })
+      )
+    );
 
-  // Send the transfer transactions and wait for the last one to finish
-  await sendAllAndWaitLast(transferTxs);
+    // Send the transfer transactions and wait for the last one to finish
+    await sendAllAndWaitLast(transferTxs);
+  }
 
   const nodes = [node1, node2];
   console.log(`Creating ${nodes.length * argv.nominators} nominations...`);
@@ -72,7 +67,7 @@ const main = async () => {
     await Promise.all(
       // for each node
       nodes.map(async (node, nodeIndex) => {
-        const transactions: Extrinsic[] = [];
+        const transactions: SubmittableExtrinsic[] = [];
         // for each nominator (sequentially)
         for (let nominatorIndex = 0; nominatorIndex < nominators.length; nominatorIndex++) {
           const nominator = nominators[nominatorIndex];
@@ -97,8 +92,6 @@ const main = async () => {
   // Send the nomination transactions and wait for the last one to finish
   await sendAllAndWaitLast(nominationTxs);
 
-  // Stop monitoring blocks
-  cancelMonitoring();
   await polkadotApi.disconnect();
   console.log(`Finished`);
 };

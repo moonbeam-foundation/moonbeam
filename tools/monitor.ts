@@ -1,12 +1,7 @@
 // This script is expected to run against a parachain network (using launch.ts script)
-
-import { typesBundle } from "../moonbeam-types-bundle/dist";
-import { ALITH_PRIVATE_KEY, BALTATHAR_PRIVATE_KEY } from "./utils/constants";
-import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
-
 import yargs from "yargs";
-import { monitorBlocks, sendAllAndWaitLast } from "./utils/monitoring";
-import { Extrinsic } from "./utils/types";
+
+import { getMonitoredApiFor, NETWORK_NAMES } from "./utils/networks";
 
 const argv = yargs(process.argv.slice(2))
   .usage("Usage: $0")
@@ -14,20 +9,30 @@ const argv = yargs(process.argv.slice(2))
   .options({
     url: {
       type: "string",
-      default: "http://localhost:9944",
       description: "Websocket url",
+      conflicts: ["networks"],
+      string: true,
+    },
+    networks: {
+      type: "array",
+      choices: NETWORK_NAMES,
+      description: "Known networks",
+      string: true,
     },
   })
-  .demandOption(["url"]).argv;
+  .check(function (argv) {
+    if (!argv.url && !argv.networks) {
+      throw new Error("Error: must provide --url or --network");
+    }
+    return true;
+  }).argv;
 
 const main = async () => {
-  const wsProvider = new WsProvider(argv.url);
-  const polkadotApi = await ApiPromise.create({
-    provider: wsProvider,
-    typesBundle: typesBundle as any,
-  });
-
-  await monitorBlocks(polkadotApi);
+  if (argv.networks) {
+    argv.networks.map(getMonitoredApiFor);
+  } else {
+    getMonitoredApiFor(argv.url);
+  }
 };
 
 main();
