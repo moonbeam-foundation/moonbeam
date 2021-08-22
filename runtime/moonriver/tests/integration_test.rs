@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -33,7 +33,7 @@ use moonriver_runtime::{BlockWeights, Precompiles};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::{Bond, NominatorAdded};
+use parachain_staking::Bond;
 use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
@@ -233,7 +233,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					100s_000 * MOVR,
+					100_000 * MOVR,
 					2u32
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
@@ -249,7 +249,7 @@ fn join_collator_candidates() {
 				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
 					100_000 * MOVR,
-					300_000 * MOVR
+					300_100 * MOVR
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
@@ -372,11 +372,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				6084681589500000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				541333333292000000000,
+				520318406416000000000,
 			);
 		});
 }

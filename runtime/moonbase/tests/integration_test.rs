@@ -280,14 +280,14 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+		.with_balances(vec![(AccountId::from(ALICE), 200_000 * UNIT)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * UNIT,
+					100_000 * UNIT,
 					0u32
 				),
 				DispatchError::Module {
@@ -301,9 +301,9 @@ fn transfer_through_evm_to_stake() {
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				2_000 * UNIT,
+				200_000 * UNIT,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * UNIT);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 200_000 * UNIT);
 
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
@@ -312,7 +312,7 @@ fn transfer_through_evm_to_stake() {
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
 				Vec::new(),
-				(1_000 * UNIT).into(),
+				(100_000 * UNIT).into(),
 				gas_limit,
 				gas_price,
 				None
@@ -320,13 +320,13 @@ fn transfer_through_evm_to_stake() {
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				1_000 * UNIT,
+				100_000 * UNIT,
 			);
 
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				1_000 * UNIT,
+				100_000 * UNIT,
 				0u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
@@ -334,7 +334,7 @@ fn transfer_through_evm_to_stake() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * UNIT
+					amount: 100_000 * UNIT
 				}
 			);
 		});
