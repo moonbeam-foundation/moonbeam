@@ -362,6 +362,7 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..599 {
+				println!("SELECTED CANDIDATES AT BLOCK {}\n {:?}", x, ParachainStaking::selected_candidates());
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
