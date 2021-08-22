@@ -865,11 +865,13 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
+			let mut weight: Weight = 0u64.into();
 			if current_round.should_run_election(n) {
 				// execute all delayed nominator exits
 				Self::execute_nominator_exits(current_round.current + 1u32);
 				let election_result = Self::select_top_candidates(current_round.current + 1u32);
 				QueuedElectionResult::<T>::put(election_result);
+				// weight += T::WeightInfo::compute_election_on_initialize()
 				// TODO: benchmark and set actual weight instead of acting like its in next block
 			}
 
