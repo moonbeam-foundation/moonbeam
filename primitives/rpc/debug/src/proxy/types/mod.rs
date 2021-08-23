@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use substrate_wasm_builder::WasmBuilder;
+pub mod evm_gasometer_types;
+pub mod evm_runtime_types;
+pub mod evm_types;
 
-fn main() {
-	WasmBuilder::new()
-		.with_current_project()
-		.export_heap_base()
-		.import_memory()
-		.build()
-}
+pub use evm_gasometer_types::GasometerEvent;
+pub use evm_runtime_types::RuntimeEvent;
+pub use evm_types::EvmEvent;

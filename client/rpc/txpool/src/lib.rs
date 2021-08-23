@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use ethereum::TransactionMessage;
 use ethereum_types::{H160, H256, U256};
 use fc_rpc::{internal_err, public_key};
 use jsonrpc_core::Result as RpcResult;
@@ -83,8 +82,7 @@ where
 		// Build the T response.
 		let mut pending = TransactionMap::<T>::new();
 		for txn in ethereum_txns.ready.iter() {
-			let transaction_message = TransactionMessage::from(txn.clone());
-			let hash = transaction_message.hash();
+			let hash = H256::from_slice(Keccak256::digest(&rlp::encode(txn)).as_slice());
 			let from_address = match public_key(txn) {
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),
@@ -96,8 +94,7 @@ where
 		}
 		let mut queued = TransactionMap::<T>::new();
 		for txn in ethereum_txns.future.iter() {
-			let transaction_message = TransactionMessage::from(txn.clone());
-			let hash = transaction_message.hash();
+			let hash = H256::from_slice(Keccak256::digest(&rlp::encode(txn)).as_slice());
 			let from_address = match public_key(txn) {
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),

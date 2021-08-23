@@ -283,6 +283,5 @@ export const typesBundle = {
     moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
-    moonshadow: moonbeamDefinitions,
   },
 } as OverrideBundleType;

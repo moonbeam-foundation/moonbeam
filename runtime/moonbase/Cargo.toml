@@ -21,15 +21,17 @@ moonbeam-core-primitives = { path = "../../core-primitives", default-features = 
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+precompile-utils = { path = "../../precompiles/utils", default-features = false }
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 
 
 # Substrate dependencies
@@ -52,16 +54,16 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-# pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
@@ -86,6 +88,8 @@ cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", d
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
+
+frame-try-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
 
 [dev-dependencies]
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
@@ -123,11 +127,12 @@ std = [
 	"pallet-randomness-collective-flip/std",
 	"pallet-timestamp/std",
 	"pallet-treasury/std",
-	#"pallet-sudo/std",
+	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",
 	"pallet-ethereum/std",
 	"pallet-evm/std",
+	"precompile-utils/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"fp-rpc/std",
@@ -148,6 +153,7 @@ std = [
 	"parachain-staking/std",
 	"parachain-staking-precompiles/std",
 	"pallet-author-slot-filter/std",
+	"pallet-maintenance-mode/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
@@ -178,4 +184,10 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
+	"pallet-crowdloan-rewards/runtime-benchmarks",
+]
+try-runtime = [
+	"frame-executive/try-runtime",
+	"frame-try-runtime",
+	"frame-system/try-runtime",
 ]

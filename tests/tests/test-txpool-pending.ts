@@ -45,6 +45,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
       from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0x100000",
       gasPrice: "0x3b9aca00",
+      hash: txHash,
       nonce: context.web3.utils.toHex(0),
       to: "0x0000000000000000000000000000000000000000",
       value: "0x0",
@@ -53,7 +54,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 });
 
 describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
-  let testContract: Contract;
+  let testContract: Contract, txHash;
 
   before("Setup: Create contract block and add call transaction", async () => {
     const { contract, rawTx } = await createContract(context.web3, "TestContract", {
@@ -62,12 +63,14 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
     testContract = contract;
     await context.createBlock({ transactions: [rawTx] });
 
-    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createContractExecution(context.web3, {
-        contract,
-        contractCall: contract.methods.multiply(5),
-      }),
-    ]);
+    txHash = (
+      await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+        await createContractExecution(context.web3, {
+          contract,
+          contractCall: contract.methods.multiply(5),
+        }),
+      ])
+    ).result;
   });
 
   it("should appear in the txpool inspection", async function () {
@@ -90,6 +93,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0xb71b00",
       gasPrice: "0x3b9aca00",
+      hash: txHash,
       nonce: context.web3.utils.toHex(1),
       to: testContract.options.address.toString().toLowerCase(),
       value: "0x0",

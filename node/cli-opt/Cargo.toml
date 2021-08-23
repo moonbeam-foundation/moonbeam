@@ -2,12 +2,11 @@
 name = 'moonbeam-cli-opt'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.9.6'
+version = '0.11.2'
 authors = ["PureStake"]
 edition = '2018'
 
 [dependencies]
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 structopt = "0.3.8"
 tiny-bip39 = { version = "0.6" }
