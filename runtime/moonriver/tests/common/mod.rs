@@ -145,7 +145,7 @@ impl ExtBuilder {
 	}
 
 	#[allow(dead_code)]
-	pub fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+	pub fn with_inflation(mut self, inflation: InflationInfo2<Balance>) -> Self {
 		self.inflation = inflation;
 		self
 	}
