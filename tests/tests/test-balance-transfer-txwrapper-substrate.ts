@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
-import {
-  construct,
-  decode,
-  deriveAddress,
-  getRegistry,
-  methods,
-  PolkadotSS58Format,
-} from "@substrate/txwrapper-polkadot";
+// import {
+//   construct,
+//   decode,
+//   deriveAddress,
+//   getRegistry,
+//   methods,
+//   PolkadotSS58Format,
+// } from "@substrate/txwrapper-polkadot";
+import { getRegistry } from "@substrate/txwrapper-registry";
 
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
 
@@ -25,17 +26,25 @@ describeDevMoonbeam("Balance transfer", (context) => {
     const genesisHash = await rpcToLocalNode(context.rpcPort, "chain_getBlockHash", [0]);
     const metadataRpc = await rpcToLocalNode(context.rpcPort, "state_getMetadata");
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    // const registry = await context.polkadotApi.registry; //.getChainProperties();
+    // const knownTypes = await context.polkadotApi.registry.get();
+    // console.log("knownTypes", knownTypes);
 
-    const { specVersion, transactionVersion, specName } = await rpcToLocalNode(
+    const { specVersion, transactionVersion, specName, chainName } = await rpcToLocalNode(
       context.rpcPort,
       "state_getRuntimeVersion"
     );
+    console.log("chainName", chainName);
+    console.log("specName", specName);
+    console.log("specVersion", specVersion);
     const registry = getRegistry({
-      chainName: "Polkadot",
+      chainName: "Moonriver",
       specName,
       specVersion,
       metadataRpc,
     });
+    console.log("REGISTRY", registry.knownTypes);
+    console.log("specName2", specName);
     substrateMethods.balances.transfer(
       {
         dest: TEST_ACCOUNT,
@@ -55,6 +64,7 @@ describeDevMoonbeam("Balance transfer", (context) => {
       },
       {
         metadataRpc,
+        // @ts-ignore
         registry,
       }
     );
