@@ -28,7 +28,11 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
 [features]
-default = []
+default = ["moonbase-runtime", "moonriver-runtime", "moonbeam-runtime"]
+
+moonbase-runtime = ["moonbeam-cli/moonbase-runtime", "moonbeam-service/moonbase-runtime"]
+moonriver-runtime = ["moonbeam-cli/moonriver-runtime", "moonbeam-service/moonriver-runtime"]
+moonbeam-runtime = ["moonbeam-cli/moonbeam-runtime", "moonbeam-service/moonbeam-runtime"]
 
 test-spec = []
 

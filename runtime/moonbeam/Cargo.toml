@@ -105,7 +105,6 @@ std = [
 	"runtime-common/std",
 	"parity-scale-codec/std",
 	"serde",
-	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",

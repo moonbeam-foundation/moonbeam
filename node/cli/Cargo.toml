@@ -35,7 +35,12 @@ cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features 
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
-default = ["wasmtime"]
+default = ["wasmtime", "moonbase-runtime", "moonriver-runtime", "moonbeam-runtime"]
+
+moonbase-runtime = ["service/moonbase-runtime"]
+moonriver-runtime = ["service/moonriver-runtime"]
+moonbeam-runtime = ["service/moonbeam-runtime"]
+
 wasmtime = ["sc-cli/wasmtime"]
 runtime-benchmarks = ["service/runtime-benchmarks"]
 try-runtime = [

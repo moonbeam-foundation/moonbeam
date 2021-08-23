@@ -26,8 +26,11 @@ use cli_opt::RpcConfig;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
+#[cfg(feature = "moonbase-runtime")]
 pub use moonbase_runtime;
+#[cfg(feature = "moonbeam-runtime")]
 pub use moonbeam_runtime;
+#[cfg(feature = "moonriver-runtime")]
 pub use moonriver_runtime;
 use sc_service::BasePath;
 use std::{
@@ -64,6 +67,7 @@ type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
+#[cfg(feature = "moonbeam-runtime")]
 native_executor_instance!(
 	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
@@ -74,6 +78,7 @@ native_executor_instance!(
 	),
 );
 
+#[cfg(feature = "moonriver-runtime")]
 native_executor_instance!(
 	pub MoonriverExecutor,
 	moonriver_runtime::api::dispatch,
@@ -84,6 +89,7 @@ native_executor_instance!(
 	),
 );
 
+#[cfg(feature = "moonbase-runtime")]
 native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
@@ -158,7 +164,7 @@ use sp_trie::PrefixedMemoryDB;
 /// Builds a new object suitable for chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
-	mut config: &mut Configuration,
+	config: &mut Configuration,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -168,59 +174,56 @@ pub fn new_chain_ops(
 	),
 	ServiceError,
 > {
-	config.keystore = sc_service::config::KeystoreConfig::InMemory;
-	if config.chain_spec.is_moonbase() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbase(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonriver() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonriver(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbeam(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
+	match &config.chain_spec {
+		#[cfg(feature = "moonriver-runtime")]
+		spec if spec.is_moonriver() => {
+			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
+		}
+		#[cfg(feature = "moonbeam-runtime")]
+		spec if spec.is_moonbeam() => {
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
+		}
+		#[cfg(feature = "moonbase-runtime")]
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
+		#[cfg(not(feature = "moonbase-runtime"))]
+		_ => panic!("invalid chain spec"),
 	}
+}
+
+#[allow(clippy::type_complexity)]
+fn new_chain_ops_inner<RuntimeApi, Executor>(
+	mut config: &mut Configuration,
+) -> Result<
+	(
+		Arc<Client>,
+		Arc<FullBackend>,
+		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		TaskManager,
+	),
+	ServiceError,
+>
+where
+	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
+	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+	let PartialComponents {
+		client,
+		backend,
+		import_queue,
+		task_manager,
+		..
+	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev())?;
+	Ok((
+		Arc::new(Client::from(client)),
+		backend,
+		import_queue,
+		task_manager,
+	))
 }
 
 /// Builds the PartialComponents for a parachain or development service
@@ -359,9 +362,39 @@ where
 /// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
 /// each runtime implementation.
 pub enum TransactionConverters {
+	#[cfg(feature = "moonbeam-runtime")]
 	Moonbeam(moonbeam_runtime::TransactionConverter),
+	#[cfg(feature = "moonbase-runtime")]
 	Moonbase(moonbase_runtime::TransactionConverter),
+	#[cfg(feature = "moonriver-runtime")]
 	Moonriver(moonriver_runtime::TransactionConverter),
+}
+
+impl TransactionConverters {
+	#[cfg(feature = "moonbeam-runtime")]
+	fn moonbeam() -> Self {
+		TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonbeam-runtime"))]
+	fn moonbeam() -> Self {
+		unimplemented!()
+	}
+	#[cfg(feature = "moonriver-runtime")]
+	fn moonriver() -> Self {
+		TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonriver-runtime"))]
+	fn moonriver() -> Self {
+		unimplemented!()
+	}
+	#[cfg(feature = "moonbase-runtime")]
+	fn moonbase() -> Self {
+		TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonbase-runtime"))]
+	fn moonbase() -> Self {
+		unimplemented!()
+	}
 }
 
 impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
@@ -372,8 +405,11 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 		transaction: ethereum_primitives::Transaction,
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
+			#[cfg(feature = "moonbeam-runtime")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
+			#[cfg(feature = "moonriver-runtime")]
 			Self::Moonriver(inner) => inner.convert_transaction(transaction),
+			#[cfg(feature = "moonbase-runtime")]
 			Self::Moonbase(inner) => inner.convert_transaction(transaction),
 		}
 	}
@@ -475,11 +511,11 @@ where
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+				TransactionConverters::moonbeam()
 			} else if is_moonriver {
-				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+				TransactionConverters::moonriver()
 			} else {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+				TransactionConverters::moonbase()
 			};
 
 			let deps = rpc::FullDeps {
@@ -800,11 +836,11 @@ pub fn new_dev(
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+				TransactionConverters::moonbeam()
 			} else if is_moonriver {
-				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+				TransactionConverters::moonriver()
 			} else {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+				TransactionConverters::moonbase()
 			};
 
 			let deps = rpc::FullDeps {
