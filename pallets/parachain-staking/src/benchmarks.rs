@@ -96,7 +96,7 @@ benchmarks! {
 		};
 	}: _(RawOrigin::Root, stake_range)
 	verify {
-		assert_eq!(Pallet::<T>::inflation_config().expect, stake_range);
+		assert_eq!(Pallet::<T>::inflation_config2().expect, stake_range);
 	}
 
 	set_inflation {
@@ -108,7 +108,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Root, inflation_range)
 	verify {
-		assert_eq!(Pallet::<T>::inflation_config().annual, inflation_range);
+		assert_eq!(Pallet::<T>::inflation_config2().annual, inflation_range);
 	}
 
 	set_parachain_bond_account {
@@ -137,7 +137,9 @@ benchmarks! {
 	}
 
 	set_blocks_per_round {}: _(RawOrigin::Root, 1200u32)
-	verify {} // TODO: simulate block production and verify effects when next round starts, block 21
+	verify {
+		assert_eq!(Pallet::<T>::next_round().expect("set next bpr so exists").length, 1200u32);
+	}
 
 	// USER DISPATCHABLES
 

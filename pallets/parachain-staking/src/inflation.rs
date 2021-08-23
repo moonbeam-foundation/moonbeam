@@ -87,6 +87,30 @@ pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
+pub struct InflationInfo2<Balance> {
+	/// Staking expectations
+	pub expect: Range<Balance>,
+	/// Annual inflation range
+	pub annual: Range<Perbill>,
+	/// Round inflation range
+	pub round: Range<Perbill>,
+	/// Next round length to reset `round` field
+	pub next_length: Option<u32>,
+}
+
+impl<B> From<InflationInfo<B>> for InflationInfo2<B> {
+	fn from(other: InflationInfo<B>) -> InflationInfo2<B> {
+		InflationInfo2 {
+			expect: other.expect,
+			annual: other.annual,
+			round: other.round,
+			next_length: None,
+		}
+	}
+}
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
 pub struct InflationInfo<Balance> {
 	/// Staking expectations
 	pub expect: Range<Balance>,
@@ -96,15 +120,16 @@ pub struct InflationInfo<Balance> {
 	pub round: Range<Perbill>,
 }
 
-impl<Balance> InflationInfo<Balance> {
+impl<Balance> InflationInfo2<Balance> {
 	pub fn new<T: Config>(
 		annual: Range<Perbill>,
 		expect: Range<Balance>,
-	) -> InflationInfo<Balance> {
-		InflationInfo {
+	) -> InflationInfo2<Balance> {
+		InflationInfo2 {
 			expect,
 			annual,
 			round: annual_to_round::<T>(annual),
+			next_length: None,
 		}
 	}
 	/// Set round inflation range according to input annual inflation range
@@ -112,9 +137,24 @@ impl<Balance> InflationInfo<Balance> {
 		self.round = annual_to_round::<T>(new);
 	}
 	/// Reset round inflation rate based on changes to round length
-	pub fn reset_round(&mut self, new_length: u32) {
+	fn reset_round(&mut self, new_length: u32) {
 		let periods = BLOCKS_PER_YEAR / new_length;
 		self.round = perbill_annual_to_perbill_round(self.annual, periods);
+	}
+	/// Set round length to be enacted next round
+	pub fn set_next_length(&mut self, new_length: u32) {
+		self.next_length = Some(new_length);
+	}
+	/// Set next round inflation and clear next field if it was Some
+	/// returns true if was changed (=> requires additional write to storage)
+	pub fn set_next_round(&mut self) -> bool {
+		if let Some(next_length) = self.next_length {
+			self.reset_round(next_length);
+			self.next_length = None;
+			true
+		} else {
+			false
+		}
 	}
 	/// Set staking expectations
 	pub fn set_expectations(&mut self, expect: Range<Balance>) {

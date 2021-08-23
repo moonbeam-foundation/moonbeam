@@ -152,15 +152,7 @@ fn set_blocks_per_round_event_emits_correctly() {
 		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 		assert_eq!(
 			last_event(),
-			MetaEvent::Stake(Event::BlocksPerRoundSet(
-				1,
-				0,
-				5,
-				3,
-				Perbill::from_parts(463),
-				Perbill::from_parts(463),
-				Perbill::from_parts(463)
-			))
+			MetaEvent::Stake(Event::BlocksPerRoundSet(1, 0, 5, 3,))
 		);
 	});
 }
@@ -270,7 +262,7 @@ fn set_staking_event_emits_event_correctly() {
 fn set_staking_updates_storage_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
-			Stake::inflation_config().expect,
+			Stake::inflation_config2().expect,
 			Range {
 				min: 700,
 				ideal: 700,
@@ -286,7 +278,7 @@ fn set_staking_updates_storage_correctly() {
 			}
 		));
 		assert_eq!(
-			Stake::inflation_config().expect,
+			Stake::inflation_config2().expect,
 			Range {
 				min: 3u128,
 				ideal: 4u128,
@@ -376,7 +368,7 @@ fn set_inflation_storage_updates_correctly() {
 			Perbill::from_percent(5),
 		);
 		assert_eq!(
-			Stake::inflation_config().annual,
+			Stake::inflation_config2().annual,
 			Range {
 				min: Perbill::from_percent(50),
 				ideal: Perbill::from_percent(50),
@@ -384,7 +376,7 @@ fn set_inflation_storage_updates_correctly() {
 			}
 		);
 		assert_eq!(
-			Stake::inflation_config().round,
+			Stake::inflation_config2().round,
 			Range {
 				min: Perbill::from_percent(5),
 				ideal: Perbill::from_percent(5),
@@ -395,9 +387,9 @@ fn set_inflation_storage_updates_correctly() {
 			Origin::root(),
 			Range { min, ideal, max }
 		),);
-		assert_eq!(Stake::inflation_config().annual, Range { min, ideal, max });
+		assert_eq!(Stake::inflation_config2().annual, Range { min, ideal, max });
 		assert_eq!(
-			Stake::inflation_config().round,
+			Stake::inflation_config2().round,
 			Range {
 				min: Perbill::from_parts(57),
 				ideal: Perbill::from_parts(75),

@@ -16,7 +16,7 @@
 
 //! Test utilities
 use crate as stake;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
+use crate::{pallet, AwardedPts, Config, InflationInfo2, Points, Range};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
@@ -142,7 +142,7 @@ pub(crate) struct ExtBuilder {
 	// [nominator, collator, nomination_amount]
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
-	inflation: InflationInfo<Balance>,
+	inflation: InflationInfo2<Balance>,
 }
 
 impl Default for ExtBuilder {
@@ -151,7 +151,7 @@ impl Default for ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
 			collators: vec![],
-			inflation: InflationInfo {
+			inflation: InflationInfo2 {
 				expect: Range {
 					min: 700,
 					ideal: 700,
@@ -169,6 +169,7 @@ impl Default for ExtBuilder {
 					ideal: Perbill::from_percent(5),
 					max: Perbill::from_percent(5),
 				},
+				next_length: None,
 			},
 		}
 	}
@@ -194,7 +195,7 @@ impl ExtBuilder {
 	}
 
 	#[allow(dead_code)]
-	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo2<Balance>) -> Self {
 		self.inflation = inflation;
 		self
 	}

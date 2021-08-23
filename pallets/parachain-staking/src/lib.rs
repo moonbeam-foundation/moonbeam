@@ -60,13 +60,16 @@ pub mod weights;
 use weights::WeightInfo;
 
 use frame_support::pallet;
-pub use inflation::{InflationInfo, Range};
+pub use inflation::{InflationInfo, InflationInfo2, Range};
 
 pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use crate::{round::EARLY_ELECTION_OFFSET, set::OrderedSet, InflationInfo, Range, WeightInfo};
+	use crate::{
+		round::EARLY_ELECTION_OFFSET, set::OrderedSet, InflationInfo, InflationInfo2, Range,
+		WeightInfo,
+	};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
@@ -849,30 +852,34 @@ pub mod pallet {
 		TotalSelectedSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
-		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
-		BlocksPerRoundSet(
-			RoundIndex,
-			T::BlockNumber,
-			u32,
-			u32,
-			Perbill,
-			Perbill,
-			Perbill,
-		),
+		/// Set blocks per round [current_round, first_block, old, new]
+		BlocksPerRoundSet(RoundIndex, T::BlockNumber, u32, u32),
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			// TODO: only run once
+			let new_config: InflationInfo2<BalanceOf<T>> = <InflationConfig<T>>::take().into();
+			<InflationConfig2<T>>::put(new_config);
+			// TODO accurate weight
+			10_000_000
+		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
 			let mut weight: Weight = 0u64.into();
 			if current_round.should_run_election(n) {
 				// execute all delayed nominator exits
 				Self::execute_nominator_exits(current_round.current + 1u32);
+				// compute election result for next round
 				let election_result = Self::select_top_candidates(current_round.current + 1u32);
+				let (collator_count, nomination_count) = (
+					election_result.collators.len() as u32,
+					election_result.nomination_count,
+				);
 				QueuedElectionResult::<T>::put(election_result);
-				// weight += T::WeightInfo::compute_election_on_initialize()
-				// TODO: benchmark and set actual weight instead of acting like its in next block
+				weight +=
+					T::WeightInfo::compute_election_on_initialize(collator_count, nomination_count);
 			}
 
 			if current_round.should_update(n) {
@@ -899,6 +906,11 @@ pub mod pallet {
 				<Round<T>>::put(new_round);
 				// snapshot total stake
 				<Staked<T>>::insert(new_round.current, <Total<T>>::get());
+				// execute changes to inflation config if it changed with new round
+				let mut inflation_config = <InflationConfig2<T>>::get();
+				if inflation_config.set_next_round() {
+					<InflationConfig2<T>>::put(inflation_config);
+				}
 				// clear old storage
 				if new_round.current >= 3 {
 					<Staked<T>>::remove(new_round.current - 3);
@@ -910,10 +922,11 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-				T::WeightInfo::active_on_initialize(collator_count, nomination_count)
+				weight += T::WeightInfo::new_round_on_initialize(collator_count, nomination_count);
 			} else {
-				T::WeightInfo::passive_on_initialize()
+				weight += T::WeightInfo::passive_on_initialize();
 			}
+			weight
 		}
 	}
 
@@ -1012,8 +1025,14 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn inflation_config)]
-	/// Inflation configuration
+	/// DEPRECATED
 	pub type InflationConfig<T: Config> = StorageValue<_, InflationInfo<BalanceOf<T>>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn inflation_config2)]
+	/// Inflation configuration
+	pub type InflationConfig2<T: Config> =
+		StorageValue<_, InflationInfo2<BalanceOf<T>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn points)]
@@ -1037,7 +1056,7 @@ pub mod pallet {
 	pub struct GenesisConfig<T: Config> {
 		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
 		pub nominations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
-		pub inflation_config: InflationInfo<BalanceOf<T>>,
+		pub inflation_config: InflationInfo2<BalanceOf<T>>,
 	}
 
 	#[cfg(feature = "std")]
@@ -1054,7 +1073,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			<InflationConfig<T>>::put(self.inflation_config.clone());
+			<InflationConfig2<T>>::put(self.inflation_config.clone());
 			let mut candidate_count = 0u32;
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
@@ -1160,7 +1179,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
-			let mut config = <InflationConfig<T>>::get();
+			let mut config = <InflationConfig2<T>>::get();
 			ensure!(
 				config.expect != expectations,
 				Error::<T>::NoWritingSameValue
@@ -1171,7 +1190,7 @@ pub mod pallet {
 				config.expect.ideal,
 				config.expect.max,
 			));
-			<InflationConfig<T>>::put(config);
+			<InflationConfig2<T>>::put(config);
 			Ok(().into())
 		}
 		/// Set the annual inflation rate to derive per-round inflation
@@ -1182,7 +1201,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
-			let mut config = <InflationConfig<T>>::get();
+			let mut config = <InflationConfig2<T>>::get();
 			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
 			config.annual = schedule;
 			config.set_round_from_annual::<T>(schedule);
@@ -1194,7 +1213,7 @@ pub mod pallet {
 				config.round.ideal,
 				config.round.max,
 			));
-			<InflationConfig<T>>::put(config);
+			<InflationConfig2<T>>::put(config);
 			Ok(().into())
 		}
 		/// Set the account that will hold funds set aside for parachain bond
@@ -1275,21 +1294,14 @@ pub mod pallet {
 			let (now, first, old) = (next_round.current, next_round.first, next_round.length);
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			next_round.length = new;
+			next_round.current += 1u32;
 
 			// update per-round inflation given new rounds per year
-			let mut inflation_config = <InflationConfig<T>>::get();
-			inflation_config.reset_round(new);
+			let mut inflation_config = <InflationConfig2<T>>::get();
+			inflation_config.set_next_length(new);
 			<NextRound<T>>::put(next_round);
-			Self::deposit_event(Event::BlocksPerRoundSet(
-				now,
-				first,
-				old,
-				new,
-				inflation_config.round.min,
-				inflation_config.round.ideal,
-				inflation_config.round.max,
-			));
-			<InflationConfig<T>>::put(inflation_config);
+			Self::deposit_event(Event::BlocksPerRoundSet(now, first, old, new));
+			<InflationConfig2<T>>::put(inflation_config);
 			Ok(().into())
 		}
 		/// Join the set of collator candidates
@@ -1710,7 +1722,7 @@ pub mod pallet {
 		}
 		// Calculate round issuance based on total staked for the given round
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
-			let config = <InflationConfig<T>>::get();
+			let config = <InflationConfig2<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
 			if staked < config.expect.min {
 				round_issuance.min
