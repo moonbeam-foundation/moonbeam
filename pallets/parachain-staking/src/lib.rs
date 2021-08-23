@@ -859,11 +859,15 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			// TODO: only run once
-			let new_config: InflationInfo2<BalanceOf<T>> = <InflationConfig<T>>::take().into();
-			<InflationConfig2<T>>::put(new_config);
-			// TODO accurate weight
-			10_000_000
+			let weight = T::DbWeight::get();
+			if !<MigratedInflationConfig<T>>::get() {
+				let new_config: InflationInfo2<BalanceOf<T>> = <InflationConfig<T>>::take().into();
+				<InflationConfig2<T>>::put(new_config);
+				<MigratedInflationConfig<T>>::put(true);
+				weight.reads(3) + weight.writes(2)
+			} else {
+				weight.reads(2)
+			}
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut current_round = <Round<T>>::get();
@@ -929,6 +933,11 @@ pub mod pallet {
 			weight
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn migrated_inflation_config)]
+	/// Temporary flag to ensure inflation config migration only runs once
+	type MigratedInflationConfig<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]

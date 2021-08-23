@@ -24,7 +24,7 @@ use frame_support::{
 };
 pub use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	Event, Executive, FixedGasPrice, InflationInfo2, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
@@ -68,7 +68,7 @@ pub struct ExtBuilder {
 	// [nominator, collator, nomination_amount]
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
-	inflation: InflationInfo<Balance>,
+	inflation: InflationInfo2<Balance>,
 	// AuthorId -> AccoutId mappings
 	mappings: Vec<(NimbusId, AccountId)>,
 	// Crowdloan fund
@@ -85,7 +85,7 @@ impl Default for ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
 			collators: vec![],
-			inflation: InflationInfo {
+			inflation: InflationInfo2 {
 				expect: Range {
 					min: 100_000 * MOVR,
 					ideal: 200_000 * MOVR,
@@ -103,6 +103,7 @@ impl Default for ExtBuilder {
 					ideal: Perbill::from_percent(5),
 					max: Perbill::from_percent(5),
 				},
+				next_length: None,
 			},
 			mappings: vec![],
 			crowdloan_fund: 0,
