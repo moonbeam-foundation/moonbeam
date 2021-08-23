@@ -209,8 +209,20 @@ const TYPES_43_154 = {
   },
 };
 
-const TYPES_155_undefined = {
+const TYPES_155_199 = {
   ...TYPES_43_154,
+  EthereumSignature: {
+    r: "H256",
+    s: "H256",
+    v: "U8",
+  },
+  NominatorAdded: {
+    _enum: [{ AddedToTop: "Balance" }, "AddedToBottom"],
+  },
+};
+
+const TYPES_200_399 = {
+  ...TYPES_155_199,
   NominatorStatus: {
     _enum: ["Active", { Leaving: "RoundIndex" }],
   },
@@ -222,16 +234,20 @@ const TYPES_155_undefined = {
     scheduled_revocations_total: "Balance",
     status: "NominatorStatus",
   },
-  EthereumSignature: {
-    r: "H256",
-    s: "H256",
-    v: "U8",
-  },
   ExitQ: {
     candidates: "Vec<AccountId>",
     nominators_leaving: "Vec<AccountId>",
     candidate_schedule: "Vec<(AccountId, RoundIndex)>",
     nominator_schedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
+  },
+};
+
+const TYPES_400_undefined = {
+  ...TYPES_200_399,
+  RewardInfo: {
+    total_reward: "Balance",
+    claimed_reward: "Balance",
+    contributed_relay_addresses: "Vec<RelayChainAccountId>",
   },
 };
 
@@ -271,8 +287,16 @@ export const moonbeamDefinitions = {
       types: TYPES_43_154,
     },
     {
-      minmax: [155, undefined],
-      types: TYPES_155_undefined,
+      minmax: [155, 199],
+      types: TYPES_155_199,
+    },
+    {
+      minmax: [199, 400],
+      types: TYPES_200_399,
+    },
+    {
+      minmax: [400, undefined],
+      types: TYPES_400_undefined,
     },
   ],
 } as OverrideBundleDefinition;
