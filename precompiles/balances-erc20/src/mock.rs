@@ -98,6 +98,13 @@ impl From<H160> for Account {
 	}
 }
 
+impl From<Account> for H256 {
+	fn from(x: Account) -> H256 {
+		let x: H160 = x.into();
+		x.into()
+	}
+}
+
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;

@@ -175,6 +175,14 @@ impl EvmDataWriter {
 		self
 	}
 
+	/// Write a selector.
+	/// The provided type must impl `Into<u32>`.
+	/// Doesn't handle any alignement checks, should be used only when adding the initial
+	/// selector of a Solidity call data.
+	pub fn write_selector<T: Into<u32>>(self, value: T) -> Self {
+		self.write_raw_bytes(&value.into().to_be_bytes())
+	}
+
 	/// Write data of requested type.
 	pub fn write<T: EvmData>(mut self, value: T) -> Self {
 		T::write(&mut self, value);
