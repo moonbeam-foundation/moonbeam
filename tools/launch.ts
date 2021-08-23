@@ -78,6 +78,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.10.0",
   },
+  "moonbase-0.11.2": {
+    relay: "rococo-9004",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.11.2",
+  },
   local: {
     relay: "rococo-9004",
     chain: "moonbase-local",
@@ -269,8 +274,8 @@ function start() {
         );
         return;
       }
-      const parachainBinary = `build/${paras[i].parachainName}/moonbeam`;
-      const parachainPath = path.join(__dirname, `build/${paras[i].parachainName}/moonbeam`);
+      const parachainBinary = `build/${parasNames[i]}/moonbeam`;
+      const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
         child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
@@ -278,9 +283,9 @@ function start() {
             docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
             docker rm moonbeam-tmp`);
         console.log(`${parachainBinary} downloaded !`);
-        parachainBinaries.push(parachainBinary);
-        parachainPaths.push(parachainPath);
       }
+      parachainBinaries.push(parachainBinary);
+      parachainPaths.push(parachainPath);
     }
     console.log(
       `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${paras[i].docker || paras[i].binary} (${
@@ -322,7 +327,6 @@ function start() {
   launchConfig.relaychain.chain = relayChain;
 
   let relay_nodes = [];
-
   // We need to build the configuration for each of the paras
   for (let i = 0; i < parachainBinaries.length; i++) {
     let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));

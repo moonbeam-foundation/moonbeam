@@ -4960,7 +4960,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.11.0"
+version = "0.11.2"
 dependencies = [
  "assert_cmd",
  "futures 0.3.15",
@@ -4977,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.11.0"
+version = "0.11.2"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5005,7 +5005,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.11.0"
+version = "0.11.2"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
@@ -5289,7 +5289,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.11.0"
+version = "0.11.2"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",

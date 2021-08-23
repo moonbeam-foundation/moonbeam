@@ -21,7 +21,7 @@ use super::{
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use crate::single::{RawStepLog, TransactionTrace as SingleTrace};
+use crate::single::RawStepLog;
 
 #[derive(Debug)]
 pub struct Listener {
@@ -32,9 +32,9 @@ pub struct Listener {
 	new_context: bool,
 	context_stack: Vec<Context>,
 
-	step_logs: Vec<RawStepLog>,
-	return_value: Vec<u8>,
-	final_gas: u64,
+	pub step_logs: Vec<RawStepLog>,
+	pub return_value: Vec<u8>,
+	pub final_gas: u64,
 }
 
 #[derive(Debug)]
@@ -81,14 +81,6 @@ impl Listener {
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
 		super::listener::using(self, f)
-	}
-
-	pub fn into_tx_trace(self) -> SingleTrace {
-		SingleTrace::Raw {
-			step_logs: self.step_logs,
-			gas: self.final_gas.into(),
-			return_value: self.return_value,
-		}
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
