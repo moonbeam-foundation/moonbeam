@@ -41,8 +41,10 @@ const main = async () => {
 
   console.log(`Creating ${argv.count} balance tranfers of ${argv.amount} Tokens...`);
   const transferTxs = await Promise.all(
-    new Array(argv.count).fill(0).map((account, index) => {
-      return polkadotApi.tx.system.remark("ok").signAsync(account, { nonce: fromNonce + index });
+    new Array(argv.count).fill(0).map((_, index) => {
+      return polkadotApi.tx.system
+        .remark("ok")
+        .signAsync(fromAccount, { nonce: fromNonce + index });
     })
   );
 
