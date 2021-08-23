@@ -608,6 +608,9 @@ pub mod pallet {
 				early_election_offset,
 			}
 		}
+		pub fn next_round_index(&self) -> u32 {
+			self.current + 1u32
+		}
 		/// Check if the round should be updated
 		pub fn should_update(&self, now: B) -> bool {
 			now - self.first >= self.length.into()
@@ -874,9 +877,9 @@ pub mod pallet {
 			let mut weight: Weight = 0u64.into();
 			if current_round.should_run_election(n) {
 				// execute all delayed nominator exits
-				Self::execute_nominator_exits(current_round.current + 1u32);
+				Self::execute_nominator_exits(current_round.next_round_index());
 				// compute election result for next round
-				let election_result = Self::select_top_candidates(current_round.current + 1u32);
+				let election_result = Self::select_top_candidates(current_round.next_round_index());
 				let (collator_count, nomination_count) = (
 					election_result.collators.len() as u32,
 					election_result.nomination_count,
@@ -893,7 +896,7 @@ pub mod pallet {
 					total_staked,
 				} = match QueuedElectionResult::<T>::take() {
 					Some(result) => result,
-					None => Self::select_top_candidates(current_round.current + 1u32),
+					None => Self::select_top_candidates(current_round.next_round_index()),
 				};
 				let new_round = <NextRound<T>>::take().unwrap_or_else(|| {
 					current_round.update(n);
@@ -1153,8 +1156,8 @@ pub mod pallet {
 			// Choose top TotalSelected collator candidates
 			let ElectionResult {
 				collators,
-				nomination_count: _,
 				total_staked,
+				..
 			} = <Pallet<T>>::select_top_candidates(1u32);
 			let collator_count = collators.len() as u32;
 			<SelectedCandidates<T>>::put(collators);

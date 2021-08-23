@@ -23,7 +23,7 @@ use frame_support::{
 	weights::Weight,
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use parachain_staking::{InflationInfo, Range};
+use parachain_staking::{InflationInfo2, Range};
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_io;
@@ -264,7 +264,7 @@ pub(crate) struct ExtBuilder {
 	// [nominator, collator, nomination_amount]
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
-	inflation: InflationInfo<Balance>,
+	inflation: InflationInfo2<Balance>,
 }
 
 impl Default for ExtBuilder {
@@ -273,7 +273,7 @@ impl Default for ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
 			collators: vec![],
-			inflation: InflationInfo {
+			inflation: InflationInfo2 {
 				expect: Range {
 					min: 700,
 					ideal: 700,
@@ -291,6 +291,7 @@ impl Default for ExtBuilder {
 					ideal: Perbill::from_percent(5),
 					max: Perbill::from_percent(5),
 				},
+				next_length: None,
 			},
 		}
 	}
@@ -316,7 +317,7 @@ impl ExtBuilder {
 	}
 
 	#[allow(dead_code)]
-	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo2<Balance>) -> Self {
 		self.inflation = inflation;
 		self
 	}

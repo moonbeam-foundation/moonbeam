@@ -37,7 +37,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 
   it("should have inflation matching specs", async function () {
-    const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
+    const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig2();
     // {
     //   expect: {
     //     min: '100.0000 kUNIT',
