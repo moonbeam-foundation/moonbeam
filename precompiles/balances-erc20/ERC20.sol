@@ -8,7 +8,7 @@ pragma solidity ^0.4.24;
 interface IERC20 {
   /**
    * @dev Total number of tokens in existence
-   * Selector: 7c80aa9f
+   * Selector: 18160ddd
    */
   function totalSupply() external view returns (uint256);
 
@@ -53,7 +53,7 @@ interface IERC20 {
 
   /**
    * @dev Transfer tokens from one address to another
-   * Selector: 0c41b033
+   * Selector: 23b872dd
    * @param from address The address which you want to send tokens from
    * @param to address The address which you want to transfer to
    * @param value uint256 the amount of tokens to be transferred

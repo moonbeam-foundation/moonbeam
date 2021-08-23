@@ -20,9 +20,8 @@ use crate::mock::*;
 use crate::*;
 
 use pallet_evm::PrecompileSet;
-use precompile_utils::{
-	error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
-};
+use precompile_utils::{error, EvmDataWriter, LogsBuilder};
+use sha3::{Digest, Keccak256};
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -65,6 +64,26 @@ fn no_selector_exists_but_length_is_right() {
 			Some(Err(error("unknown selector")))
 		);
 	});
+}
+
+#[test]
+fn selectors() {
+	assert_eq!(u32::from(Action::BalanceOf), 0x70a08231);
+	assert_eq!(u32::from(Action::TotalSupply), 0x18160ddd);
+	assert_eq!(u32::from(Action::Approve), 0x095ea7b3);
+	assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
+	assert_eq!(u32::from(Action::Transfer), 0xa9059cbb);
+	assert_eq!(u32::from(Action::TransferFrom), 0x23b872dd);
+
+	assert_eq!(
+		crate::SELECTOR_LOG_TRANSFER,
+		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]
+	);
+
+	assert_eq!(
+		crate::SELECTOR_LOG_APPROVAL,
+		&Keccak256::digest(b"Approval(address,address,uint256)")[..]
+	);
 }
 
 #[test]

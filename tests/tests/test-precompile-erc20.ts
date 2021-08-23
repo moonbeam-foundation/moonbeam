@@ -14,11 +14,11 @@ import { createTransaction } from "../util/transactions";
 const ADDRESS_ERC20 = "0x0000000000000000000000000000000000000802";
 const SELECTORS = {
   balanceOf: "70a08231",
-  totalSupply: "7c80aa9f",
+  totalSupply: "18160ddd",
   approve: "095ea7b3",
   allowance: "dd62ed3e",
   transfer: "a9059cbb",
-  transferFrom: "0c41b033",
+  transferFrom: "23b872dd",
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
@@ -112,6 +112,8 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
     const amount = await context.polkadotApi.query.balances.totalIssuance();
     const amount_hex = "0x" + amount.toHex().slice(2).padStart(64, "0");
 
+    console.log({ tx_call });
+
     expect(tx_call.result).equals(amount_hex);
   });
 });
@@ -186,6 +188,8 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
       });
 
       const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+
+      console.log({ receipt });
 
       expect(receipt.logs.length).to.eq(1);
       expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);

@@ -6247,6 +6247,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "serde",
+ "sha3 0.8.2",
  "slices",
  "sp-core",
  "sp-io",

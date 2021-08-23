@@ -28,6 +28,7 @@ pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polk
 serde = { version = "1.0.100" }
 derive_more = { version = "0.99"}
 max-encoded-len = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", features=["derive"] }
+sha3 = "0.8"
 
 [features]
 default = ["std"]
