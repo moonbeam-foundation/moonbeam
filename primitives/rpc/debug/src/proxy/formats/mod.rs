@@ -14,7 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod formats;
-pub mod types;
-pub mod v1;
-pub mod v2;
+pub mod blockscout;
+pub mod raw;
+pub mod trace_filter;
+
+use crate::proxy::v2::Listener;
+#[cfg(feature = "std")]
+use serde::Serialize;
+
+#[cfg(feature = "std")]
+pub trait TraceResponseBuilder {
+	type Listener: Listener;
+	type Response: Serialize;
+
+	fn build(listener: Self::Listener) -> Option<Self::Response>;
+}
