@@ -713,6 +713,7 @@ export const moonbeamDefinitions = {
         RewardInfo: {
           total_reward: "Balance",
           claimed_reward: "Balance",
+          contributed_relay_addresses: "Vec<RelayChainAccountId>",
         },
         RegistrationInfo: {
           account: "AccountId",

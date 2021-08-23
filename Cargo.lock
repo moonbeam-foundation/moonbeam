@@ -4924,6 +4924,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -4959,7 +4960,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.10.0"
+version = "0.11.2"
 dependencies = [
  "assert_cmd",
  "futures 0.3.15",
@@ -4976,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.10.0"
+version = "0.11.2"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5004,7 +5005,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.10.0"
+version = "0.11.2"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
@@ -5131,6 +5132,9 @@ dependencies = [
  "environmental",
  "ethereum",
  "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5249,6 +5253,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5284,7 +5289,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.10.0"
+version = "0.11.2"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -5441,6 +5446,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -6083,7 +6089,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#7d1e7e87e8adfd7470b9bc31af10e5ee33e25c90"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#5c96ec664592987d6f577baa3fa4e7b2bdefc055"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6364,6 +6370,19 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-maintenance-mode"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9121,6 +9140,9 @@ dependencies = [
 [[package]]
 name = "runtime-common"
 version = "0.8.0-dev"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "rustc-demangle"
