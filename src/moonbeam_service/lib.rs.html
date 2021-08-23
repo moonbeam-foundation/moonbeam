@@ -850,6 +850,9 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1359,6 +1362,8 @@
 		})
 	};
 
+	<span class="kw">let</span> <span class="ident">skip_prediction</span> <span class="op">=</span> <span class="ident">parachain_config</span>.<span class="ident">force_authoring</span>;
+
 	<span class="ident">sc_service::spawn_tasks</span>(<span class="ident">sc_service::SpawnTasksParams</span> {
 		<span class="ident">on_demand</span>: <span class="prelude-val">None</span>,
 		<span class="ident">remote_blockchain</span>: <span class="prelude-val">None</span>,
@@ -1399,6 +1404,7 @@
 			<span class="ident">relay_chain_backend</span>: <span class="ident">relay_chain_full_node</span>.<span class="ident">backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">parachain_client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">keystore</span>: <span class="ident">params</span>.<span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>(),
+			<span class="ident">skip_prediction</span>,
 			<span class="ident">create_inherent_data_providers</span>: <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, (<span class="ident">relay_parent</span>, <span class="ident">validation_data</span>, <span class="ident">author_id</span>)<span class="op">|</span> {
 				<span class="kw">let</span> <span class="ident">parachain_inherent</span> <span class="op">=</span>
 							<span class="ident">cumulus_primitives_parachain_inherent::ParachainInherentData</span>::

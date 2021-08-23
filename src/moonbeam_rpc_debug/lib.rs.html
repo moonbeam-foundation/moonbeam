@@ -391,6 +391,7 @@
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">frontier_backend_client</span>, <span class="ident">internal_err</span>};
 <span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">proxy</span>, <span class="ident">single</span>, <span class="ident">DebugRuntimeApi</span>, <span class="ident">V2_RUNTIME_VERSION</span>};
+<span class="kw">use</span> <span class="ident">proxy::formats::TraceResponseBuilder</span>;
 <span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
@@ -667,7 +668,7 @@
 								<span class="ident">disable_stack</span>,
 							);
 							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-							<span class="prelude-val">Ok</span>(<span class="ident">proxy</span>.<span class="ident">into_tx_trace</span>())
+							<span class="prelude-val">Ok</span>(<span class="ident">proxy::formats::raw::Response::build</span>(<span class="ident">proxy</span>).<span class="ident">unwrap</span>())
 						} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
 							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v1::RawProxy::new</span>();
 							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
@@ -689,8 +690,7 @@
 						<span class="kw">if</span> <span class="ident">runtime_version</span>.<span class="ident">spec_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">V2_RUNTIME_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> {
 							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">proxy::v2::call_list::Listener::default</span>();
 							<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-							<span class="ident">proxy</span>
-								.<span class="ident">into_tx_trace</span>()
+							<span class="ident">proxy::formats::blockscout::Response::build</span>(<span class="ident">proxy</span>)
 								.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
 								.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))
 						} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
