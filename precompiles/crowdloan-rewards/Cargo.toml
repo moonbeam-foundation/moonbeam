@@ -30,10 +30,10 @@ pallet-scheduler = { git="https://github.com/paritytech/substrate", branch="polk
 max-encoded-len = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", features=["derive"] }
 serde = "1.0.100"
 derive_more = "0.99"
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-hack-500ms-limit" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-hack-500ms-limit" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-hack-500ms-limit" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-hack-500ms-limit" }
 
 [features]
 default = ["std"]

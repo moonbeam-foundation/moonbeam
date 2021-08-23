@@ -94,20 +94,20 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-pha
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
 
 # Nimbus dependencies
-nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
+nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-hack-500ms-limit" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
