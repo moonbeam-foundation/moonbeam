@@ -27,7 +27,7 @@ use evm::GenesisAccount;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo2, MaintenanceModeConfig,
 	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig,
 	SystemConfig, TechComitteeCollectiveConfig, WASM_BINARY,
 };
@@ -160,8 +160,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
-pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
-	InflationInfo {
+pub fn moonbeam_inflation_config() -> InflationInfo2<Balance> {
+	InflationInfo2 {
 		expect: Range {
 			min: 100_000 * UNIT,
 			ideal: 200_000 * UNIT,
@@ -178,6 +178,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
 			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
 		},
+		next_length: None,
 	}
 }
 
