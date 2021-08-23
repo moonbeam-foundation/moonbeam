@@ -347,10 +347,18 @@ function start() {
     parachainConfig.id = paraIds[i];
     parachainConfig.nodes[0].port = startingPort + 100 + i * 100;
     parachainConfig.nodes[0].rpcPort = startingPort + 101 + i * 100;
+    parachainConfig.nodes[0].flags = [
+      `--rpc-port=${startingPort + 101 + i * 100}`,
+      ...parachainConfig.nodes[0].flags,
+    ];
     parachainConfig.nodes[0].wsPort = startingPort + 102 + i * 100;
 
     parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
     parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
+    parachainConfig.nodes[1].flags = [
+      `--rpc-port=${startingPort + 111 + i * 100}`,
+      ...parachainConfig.nodes[1].flags,
+    ];
     parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
     launchConfig.parachains.push(parachainConfig);
 
