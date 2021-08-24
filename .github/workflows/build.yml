@@ -279,7 +279,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
+          TS_NODE_TRANSPILE_ONLY=true node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
 
   typescript-para-tests:
     runs-on: self-hosted
@@ -315,7 +315,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
+          TS_NODE_TRANSPILE_ONLY=true node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
 
   ####### Prepare and Deploy Docker images #######
 
