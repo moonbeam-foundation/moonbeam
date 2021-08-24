@@ -141,14 +141,12 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 
 [features]
 default = [
-	"kusama-native",
 	"westend-native",
 	"moonbase-runtime",
 	"moonriver-runtime",
 	"moonbeam-runtime"
 ]
 
-kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
 westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
 
 test-spec = []
