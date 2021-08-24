@@ -142,12 +142,14 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 [features]
 default = [
 	"westend-native",
+	"rococo-native",
 	"moonbase-runtime",
 	"moonriver-runtime",
 	"moonbeam-runtime"
 ]
 
 westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
 
 test-spec = []
 
