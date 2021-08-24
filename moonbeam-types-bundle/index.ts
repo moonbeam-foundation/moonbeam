@@ -3,6 +3,7 @@ import {
   OverrideBundleType,
   DefinitionRpc,
   DefinitionRpcSub,
+  RegistryTypes,
 } from "@polkadot/types/types";
 
 // Moonbeam specific rpc methods
@@ -84,7 +85,7 @@ const TYPES_6_19 = {
     amount: "Balance",
   },
   ValidatorStatus: {
-    _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+    _enum: { Active: "Null", Idle: "Null", Leaving: "RoundIndex" },
   },
   TxPoolResultContent: {
     pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -125,7 +126,7 @@ const TYPES_19_35 = {
     state: "CollatorStatus",
   },
   CollatorStatus: {
-    _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+    _enum: { Active: "Null", Idle: "Null", Leaving: "RoundIndex" },
   },
   // Staking inflation
   Range: "RangeBalance",
@@ -197,7 +198,7 @@ const TYPES_43_154 = {
     state: "CollatorStatus",
   },
   NominatorAdded: {
-    _enum: ["AddedToBottom", { AddedToTop: "Balance" }],
+    _enum: { AddedToBottom: "Null", AddedToTop: "Balance" },
   },
   RegistrationInfo: {
     account: "AccountId",
@@ -217,14 +218,14 @@ const TYPES_155_199 = {
     v: "U8",
   },
   NominatorAdded: {
-    _enum: [{ AddedToTop: "Balance" }, "AddedToBottom"],
+    _enum: { AddedToTop: "Balance", AddedToBottom: "Null" },
   },
 };
 
 const TYPES_200_399 = {
   ...TYPES_155_199,
   NominatorStatus: {
-    _enum: ["Active", { Leaving: "RoundIndex" }],
+    _enum: { Active: "Null", Leaving: "RoundIndex" },
   },
   Nominator2: {
     nominations: "Vec<Bond>",

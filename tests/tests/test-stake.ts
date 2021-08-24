@@ -33,7 +33,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
       COLLATOR_ACCOUNT
     );
     expect(candidates.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
-    expect(candidates.toHuman()["state"]).equal("Active");
+    expect(Object.keys(candidates.toHuman()["state"])[0]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
@@ -136,14 +136,16 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Nominators", (context) => {
-  it("should succesfully call nominate on ALITH", async function () {
+  let ethan;
+  beforeEach("should succesfully call joinCandidates on ETHAN", async function () {
     const keyring = new Keyring({ type: "ethereum" });
-    const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
       .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
-
+  });
+  it("should succesfully call nominate on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
@@ -152,6 +154,14 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
+    expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+  });
+  it("should succesfully revoke nomination on ALITH", async function () {
+    await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
+    await context.createBlock();
+
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
+    expect(nominatorsAfter.toHuman()["status"].Leaving).equal("3");
   });
 });
 
