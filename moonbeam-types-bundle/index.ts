@@ -51,7 +51,7 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
   },
 };
 
-const TYPES_0_4 = {
+const TYPES_0_4: RegistryTypes = {
   AccountId: "EthereumAccountId",
   Address: "AccountId",
   Balance: "u128",
@@ -64,7 +64,7 @@ const TYPES_0_4 = {
 };
 const { RefCount, ...TYPES_5_5 } = TYPES_0_4;
 
-const TYPES_6_19 = {
+const TYPES_6_19: RegistryTypes = {
   ...TYPES_5_5,
   ExtrinsicSignature: "EthereumSignature",
   RoundIndex: "u32",
@@ -114,7 +114,7 @@ const TYPES_6_19 = {
   },
 };
 const { ValidatorStatus, ...omitFields } = TYPES_6_19;
-const TYPES_19_35 = {
+const TYPES_19_35: RegistryTypes = {
   ...omitFields,
   AccountInfo: "AccountInfoWithTripleRefCount",
   Candidate: {
@@ -170,11 +170,11 @@ const TYPES_19_35 = {
     length: "u32",
   },
 };
-const TYPES_36_36 = {
+const TYPES_36_36: RegistryTypes = {
   ...TYPES_19_35,
   AuthorId: "AccountId",
 };
-const TYPES_37_42 = {
+const TYPES_37_42: RegistryTypes = {
   ...TYPES_36_36,
   AccountId32: "H256",
   AuthorId: "AccountId32",
@@ -185,7 +185,7 @@ const TYPES_37_42 = {
   },
 };
 
-const TYPES_43_154 = {
+const TYPES_43_154: RegistryTypes = {
   ...TYPES_37_42,
   Collator2: {
     id: "AccountId",
@@ -210,7 +210,7 @@ const TYPES_43_154 = {
   },
 };
 
-const TYPES_155_199 = {
+const TYPES_155_199: RegistryTypes = {
   ...TYPES_43_154,
   EthereumSignature: {
     r: "H256",
@@ -222,7 +222,7 @@ const TYPES_155_199 = {
   },
 };
 
-const TYPES_200_399 = {
+const TYPES_200_399: RegistryTypes = {
   ...TYPES_155_199,
   NominatorStatus: {
     _enum: { Active: "Null", Leaving: "RoundIndex" },
@@ -243,7 +243,7 @@ const TYPES_200_399 = {
   },
 };
 
-const TYPES_400_undefined = {
+const TYPES_400_undefined: RegistryTypes = {
   ...TYPES_200_399,
   RewardInfo: {
     total_reward: "Balance",
