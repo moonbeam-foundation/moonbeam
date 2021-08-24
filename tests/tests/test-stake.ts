@@ -1,18 +1,14 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
-import { Event } from "@polkadot/types/interfaces";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
-  GENESIS_ACCOUNT,
   COLLATOR_ACCOUNT,
   ETHAN_PRIVKEY,
   MIN_GLMR_STAKING,
   ETHAN,
-  ALITH_PRIV_KEY,
   ALITH,
   MIN_GLMR_NOMINATOR,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
