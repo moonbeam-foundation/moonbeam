@@ -3,7 +3,7 @@ name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "A Precompile to expose a Balances pallet throught an ERC20-compliant precompile."
+description = "A Precompile to expose a Balances pallet through an ERC20-compliant precompile."
 
 [dependencies]
 log = "0.4"
