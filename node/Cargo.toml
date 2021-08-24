@@ -13,8 +13,8 @@ path = 'src/main.rs'
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat"] }
-moonbeam-cli = { path = "cli" }
-moonbeam-service = { path = "service" }
+moonbeam-cli = { path = "cli", default-features = false }
+moonbeam-service = { path = "service", default-features = false }
 
 [dev-dependencies]
 serde = { version = "1.0.101", features = ["derive"] }

@@ -24,10 +24,46 @@ use sp_runtime::traits::{BlakeTwo256, Hash};
 use std::convert::TryInto;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
+pub mod fake_spec;
+#[cfg(feature = "moonbase-runtime")]
 pub mod moonbase;
+#[cfg(feature = "moonbeam-runtime")]
 pub mod moonbeam;
+#[cfg(feature = "moonriver-runtime")]
 pub mod moonriver;
+#[cfg(feature = "moonbeam-runtime")]
 pub mod test_spec;
+
+#[cfg(not(feature = "moonbase-runtime"))]
+pub mod moonbase {
+	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
+	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
+		panic!("moonbase runtime not enabled")
+	}
+	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> ChainSpec {
+		panic!("moonbase runtime not enabled")
+	}
+}
+#[cfg(not(feature = "moonriver-runtime"))]
+pub mod moonriver {
+	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
+	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
+		panic!("moonriver runtime not enabled")
+	}
+	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> ChainSpec {
+		panic!("moonriver runtime not enabled")
+	}
+}
+#[cfg(not(feature = "moonbeam-runtime"))]
+pub mod moonbeam {
+	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
+	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
+		panic!("moonbeam runtime not enabled")
+	}
+	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> ChainSpec {
+		panic!("moonbeam runtime not enabled")
+	}
+}
 
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension, ChainSpecGroup)]
 #[serde(rename_all = "camelCase")]

@@ -44,25 +44,30 @@ fn load_spec(
 	}
 	Ok(match id {
 		// Moonbase networks
-		"moonbase-alpha" | "alphanet" => {
-			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v8.json")[..],
-			)?)
-		}
+		#[cfg(feature = "moonbase-runtime")]
+		"moonbase-alpha" | "alphanet" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v8.json")[..],
+		)?),
+		#[cfg(feature = "moonbase-runtime")]
 		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
+		#[cfg(feature = "moonbase-runtime")]
 		"moonbase-dev" | "dev" | "development" => {
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
-		#[cfg(feature = "test-spec")]
+		#[cfg(all(feature = "test-spec", feature = "moonbeam-runtime"))]
 		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
+		#[cfg(feature = "moonriver-runtime")]
 		"moonriver" => Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
 			&include_bytes!("../../../specs/moonriver/parachain-embedded-specs.json")[..],
 		)?),
+		#[cfg(feature = "moonriver-runtime")]
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
+		#[cfg(feature = "moonriver-runtime")]
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonbeam networks
+		#[cfg(feature = "moonbeam-runtime")]
 		"moonbeam" => {
 			return Err(
 				"You chosen the moonbeam mainnet spec. This network is not yet available.".into(),
@@ -71,7 +76,9 @@ fn load_spec(
 			// 	&include_bytes!("../../../specs/moonbeam.json")[..],
 			// )?)
 		}
+		#[cfg(feature = "moonbeam-runtime")]
 		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
+		#[cfg(feature = "moonbeam-runtime")]
 		"moonbeam-local" => Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
 
 		// Specs provided as json specify which runtime to use in their file name. For example,

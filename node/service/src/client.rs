@@ -202,8 +202,11 @@ impl ClientHandle for Client {
 macro_rules! match_client {
 	($self:ident, $method:ident($($param:ident),*)) => {
 		match $self {
+			#[cfg(feature = "moonbeam-runtime")]
 			Self::Moonbeam(client) => client.$method($($param),*),
+			#[cfg(feature = "moonriver-runtime")]
 			Self::Moonriver(client) => client.$method($($param),*),
+			#[cfg(feature = "moonbase-runtime")]
 			Self::Moonbase(client) => client.$method($($param),*),
 		}
 	};
