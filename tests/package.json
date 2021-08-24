@@ -30,13 +30,13 @@
   },
   "scripts": {
     "test-with-logs": "mocha --printlogs -r ts-node/register 'tests/**/test-*.ts'",
-    "pre-build-contracts": "TS_NODE_TRANSPILE_ONLY=true ts-node ./pre-build-contracts.ts && npx prettier -w ./contracts/compiled/*.json",
-    "test": "TS_NODE_TRANSPILE_ONLY=true mocha --parallel -r ts-node/register 'tests/**/test-*.ts'",
-    "para-test": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register 'para-tests/**/test-*.ts'",
+    "pre-build-contracts": "ts-node ./pre-build-contracts.ts && npx prettier -w ./contracts/compiled/*.json",
+    "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts'",
+    "para-test": "mocha -r ts-node/register 'para-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register 'tests/test-stake.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-stake.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
@@ -58,8 +58,8 @@
     "rimraf": "^3.0.2",
     "solc": "^0.8.3",
     "tcp-port-used": "^1.0.2",
-    "ts-node": "9.1",
-    "typescript": "^3.9.6",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5",
     "web3": "^1.3.5"
   }
 }
