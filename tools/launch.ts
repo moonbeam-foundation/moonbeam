@@ -145,7 +145,7 @@ function start() {
     .options({
       parachain: {
         type: "string",
-        choices: Object.keys(parachains),
+        choices: parachainNames,
         default: "local",
         describe: "which parachain configuration to run",
       },
@@ -156,7 +156,7 @@ function start() {
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
       relay: {
         type: "string",
-        choices: Object.keys(relays),
+        choices: relayNames,
         describe: "overrides relay configuration",
       },
       "relay-chain": {
@@ -401,7 +401,9 @@ function start() {
   process.on("SIGINT", function () {
     process.exit(2);
   });
-
+  console.log("ha");
+  console.log(__dirname);
+  console.log(launchConfig);
   run(__dirname, launchConfig);
 }
 
