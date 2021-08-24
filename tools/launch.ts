@@ -275,7 +275,7 @@ function start() {
         return;
       }
       const parachainBinary = `build/${parasNames[i]}/moonbeam`;
-      const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
+      const parachainPath = path.join(__dirname, parachainBinary);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
         child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
