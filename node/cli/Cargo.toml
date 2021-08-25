@@ -35,7 +35,9 @@ cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features 
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
-default = ["wasmtime", "moonbase-native", "moonriver-native", "moonbeam-native"]
+default = ["wasmtime", "westend-native", "moonbase-native", "moonriver-native", "moonbeam-native"]
+
+westend-native = [ "polkadot-service/westend-native" ]
 
 moonbase-native = ["service/moonbase-native"]
 moonriver-native = ["service/moonriver-native"]
