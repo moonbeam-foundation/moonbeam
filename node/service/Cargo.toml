@@ -160,10 +160,12 @@ moonbeam-native = [ "moonbeam-runtime" ]
 test-spec = []
 
 runtime-benchmarks = [
-	"moonbeam-runtime",
-	"moonbeam-runtime/runtime-benchmarks",
-	"moonbase-runtime",
+	"moonbase-native",
 	"moonbase-runtime/runtime-benchmarks",
+	"moonriver-native",
+	"moonriver-runtime/runtime-benchmarks",
+	"moonbeam-native",
+	"moonbeam-runtime/runtime-benchmarks",
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",
