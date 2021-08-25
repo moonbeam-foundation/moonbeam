@@ -26,11 +26,11 @@ use cli_opt::RpcConfig;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
-#[cfg(feature = "moonbase-runtime")]
+#[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-#[cfg(feature = "moonbeam-runtime")]
+#[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
-#[cfg(feature = "moonriver-runtime")]
+#[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use sc_service::BasePath;
 use std::{
@@ -67,7 +67,7 @@ type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
-#[cfg(feature = "moonbeam-runtime")]
+#[cfg(feature = "moonbeam-native")]
 native_executor_instance!(
 	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
@@ -78,7 +78,7 @@ native_executor_instance!(
 	),
 );
 
-#[cfg(feature = "moonriver-runtime")]
+#[cfg(feature = "moonriver-native")]
 native_executor_instance!(
 	pub MoonriverExecutor,
 	moonriver_runtime::api::dispatch,
@@ -89,7 +89,7 @@ native_executor_instance!(
 	),
 );
 
-#[cfg(feature = "moonbase-runtime")]
+#[cfg(feature = "moonbase-native")]
 native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
@@ -175,17 +175,17 @@ pub fn new_chain_ops(
 	ServiceError,
 > {
 	match &config.chain_spec {
-		#[cfg(feature = "moonriver-runtime")]
+		#[cfg(feature = "moonriver-native")]
 		spec if spec.is_moonriver() => {
 			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
 		}
-		#[cfg(feature = "moonbeam-runtime")]
+		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => {
 			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
 		}
-		#[cfg(feature = "moonbase-runtime")]
+		#[cfg(feature = "moonbase-native")]
 		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
-		#[cfg(not(feature = "moonbase-runtime"))]
+		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
 	}
 }
@@ -362,36 +362,36 @@ where
 /// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
 /// each runtime implementation.
 pub enum TransactionConverters {
-	#[cfg(feature = "moonbeam-runtime")]
+	#[cfg(feature = "moonbeam-native")]
 	Moonbeam(moonbeam_runtime::TransactionConverter),
-	#[cfg(feature = "moonbase-runtime")]
+	#[cfg(feature = "moonbase-native")]
 	Moonbase(moonbase_runtime::TransactionConverter),
-	#[cfg(feature = "moonriver-runtime")]
+	#[cfg(feature = "moonriver-native")]
 	Moonriver(moonriver_runtime::TransactionConverter),
 }
 
 impl TransactionConverters {
-	#[cfg(feature = "moonbeam-runtime")]
+	#[cfg(feature = "moonbeam-native")]
 	fn moonbeam() -> Self {
 		TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
 	}
-	#[cfg(not(feature = "moonbeam-runtime"))]
+	#[cfg(not(feature = "moonbeam-native"))]
 	fn moonbeam() -> Self {
 		unimplemented!()
 	}
-	#[cfg(feature = "moonriver-runtime")]
+	#[cfg(feature = "moonriver-native")]
 	fn moonriver() -> Self {
 		TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
 	}
-	#[cfg(not(feature = "moonriver-runtime"))]
+	#[cfg(not(feature = "moonriver-native"))]
 	fn moonriver() -> Self {
 		unimplemented!()
 	}
-	#[cfg(feature = "moonbase-runtime")]
+	#[cfg(feature = "moonbase-native")]
 	fn moonbase() -> Self {
 		TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 	}
-	#[cfg(not(feature = "moonbase-runtime"))]
+	#[cfg(not(feature = "moonbase-native"))]
 	fn moonbase() -> Self {
 		unimplemented!()
 	}
@@ -405,11 +405,11 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 		transaction: ethereum_primitives::Transaction,
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
-			#[cfg(feature = "moonbeam-runtime")]
+			#[cfg(feature = "moonbeam-native")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonriver-runtime")]
+			#[cfg(feature = "moonriver-native")]
 			Self::Moonriver(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonbase-runtime")]
+			#[cfg(feature = "moonbase-native")]
 			Self::Moonbase(inner) => inner.convert_transaction(transaction),
 		}
 	}

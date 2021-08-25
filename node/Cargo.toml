@@ -28,11 +28,15 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
 [features]
-default = ["moonbase-runtime", "moonriver-runtime", "moonbeam-runtime"]
+default = ["moonbase-native", "moonriver-native", "moonbeam-native"]
 
-moonbase-runtime = ["moonbeam-cli/moonbase-runtime", "moonbeam-service/moonbase-runtime"]
-moonriver-runtime = ["moonbeam-cli/moonriver-runtime", "moonbeam-service/moonriver-runtime"]
-moonbeam-runtime = ["moonbeam-cli/moonbeam-runtime", "moonbeam-service/moonbeam-runtime"]
+rococo-native = [ "moonbeam-service/rococo-native" ]
+westend-native = [ "moonbeam-service/westend-native" ]
+kusama-native = [ "moonbeam-service/kusama-native" ]
+
+moonbase-native = ["moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-native"]
+moonriver-native = ["moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native"]
+moonbeam-native = ["moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native"]
 
 test-spec = []
 

@@ -25,16 +25,16 @@ use std::convert::TryInto;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
 pub mod fake_spec;
-#[cfg(feature = "moonbase-runtime")]
+#[cfg(feature = "moonbase-native")]
 pub mod moonbase;
-#[cfg(feature = "moonbeam-runtime")]
+#[cfg(feature = "moonbeam-native")]
 pub mod moonbeam;
-#[cfg(feature = "moonriver-runtime")]
+#[cfg(feature = "moonriver-native")]
 pub mod moonriver;
-#[cfg(feature = "moonbeam-runtime")]
+#[cfg(feature = "moonbeam-native")]
 pub mod test_spec;
 
-#[cfg(not(feature = "moonbase-runtime"))]
+#[cfg(not(feature = "moonbase-native"))]
 pub mod moonbase {
 	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
 	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
@@ -44,7 +44,7 @@ pub mod moonbase {
 		panic!("moonbase runtime not enabled")
 	}
 }
-#[cfg(not(feature = "moonriver-runtime"))]
+#[cfg(not(feature = "moonriver-native"))]
 pub mod moonriver {
 	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
 	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
@@ -54,7 +54,7 @@ pub mod moonriver {
 		panic!("moonriver runtime not enabled")
 	}
 }
-#[cfg(not(feature = "moonbeam-runtime"))]
+#[cfg(not(feature = "moonbeam-native"))]
 pub mod moonbeam {
 	pub type ChainSpec = crate::chain_spec::fake_spec::FakeSpec;
 	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<ChainSpec, String> {
@@ -64,6 +64,8 @@ pub mod moonbeam {
 		panic!("moonbeam runtime not enabled")
 	}
 }
+
+pub type RawChainSpec = sc_service::GenericChainSpec<(), Extensions>;
 
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension, ChainSpecGroup)]
 #[serde(rename_all = "camelCase")]

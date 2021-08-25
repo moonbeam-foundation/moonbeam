@@ -141,15 +141,21 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 
 [features]
 default = [
-	"westend-native",
 	"rococo-native",
-	"moonbase-runtime",
-	"moonriver-runtime",
-	"moonbeam-runtime"
+	"westend-native",
+	"kusama-native",
+	"moonbase-native",
+	"moonriver-native",
+	"moonbeam-native"
 ]
 
-westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
 rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
+westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
+
+moonbase-native = [ "moonbase-runtime", "westend-native" ]
+moonriver-native = [ "moonriver-runtime" ]
+moonbeam-native = [ "moonbeam-runtime" ]
 
 test-spec = []
 
