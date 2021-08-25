@@ -542,6 +542,8 @@ where
 		})
 	};
 
+	let skip_prediction = parachain_config.force_authoring;
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
@@ -582,6 +584,7 @@ where
 			relay_chain_backend: relay_chain_full_node.backend.clone(),
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
+			skip_prediction,
 			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
 				let parachain_inherent =
 							cumulus_primitives_parachain_inherent::ParachainInherentData::
