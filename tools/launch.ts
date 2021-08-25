@@ -403,7 +403,7 @@ function start() {
   });
   console.log("ha");
   console.log(__dirname);
-  console.log(launchConfig);
+  console.log(JSON.stringify(launchConfig));
   run(__dirname, launchConfig);
 }
 
