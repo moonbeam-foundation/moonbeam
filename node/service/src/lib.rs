@@ -35,11 +35,13 @@ use std::{
 	sync::Mutex,
 	time::Duration,
 };
-mod inherents;
 mod rpc;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+};
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
@@ -506,6 +508,8 @@ where
 		})
 	};
 
+	let skip_prediction = parachain_config.force_authoring;
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
@@ -546,16 +550,15 @@ where
 			relay_chain_backend: relay_chain_full_node.backend.clone(),
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
+			skip_prediction,
 			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
-				let parachain_inherent =
-							cumulus_primitives_parachain_inherent::ParachainInherentData::
-							create_at_with_client(
-								relay_parent,
-								&relay_chain_client,
-								&*relay_chain_backend,
-								&validation_data,
-								id,
-							);
+				let parachain_inherent = ParachainInherentData::create_at_with_client(
+					relay_parent,
+					&relay_chain_client,
+					&*relay_chain_backend,
+					&validation_data,
+					id,
+				);
 				async move {
 					let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -759,7 +762,7 @@ pub fn new_dev(
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let mocked_parachain = inherents::MockValidationDataInherentDataProvider {
+						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
