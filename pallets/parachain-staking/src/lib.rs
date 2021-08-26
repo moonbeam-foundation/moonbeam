@@ -1865,23 +1865,29 @@ pub mod pallet {
 			exit_queue.nominator_schedule = remaining_exits;
 			<ExitQueue2<T>>::put(exit_queue);
 		}
-		/// Best as in most cumulatively supported in terms of stake
-		/// Returns [collator_count, nomination_count, total staked]
-		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
-			let (mut collator_count, mut nomination_count, mut total) =
-				(0u32, 0u32, BalanceOf::<T>::zero());
+		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
+		/// a vec of their AccountIds (in the order of selection)
+		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = candidates
+			candidates
 				.into_iter()
 				.rev()
 				.take(top_n)
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>();
+				.collect::<Vec<T::AccountId>>()
+		}
+		/// Best as in most cumulatively supported in terms of stake
+		/// Returns [collator_count, nomination_count, total staked]
+		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+			let (mut collator_count, mut nomination_count, mut total) =
+				(0u32, 0u32, BalanceOf::<T>::zero());
+			// choose the top TotalSelected qualified candidates, ordered by stake
+			let mut collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CollatorState2<T>>::get(&account)
