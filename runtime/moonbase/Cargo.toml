@@ -10,7 +10,6 @@ build = "build.rs"
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-#TODO, do I need the max-encoded-len feature?
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 log = "0.4"
 
