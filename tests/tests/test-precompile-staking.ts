@@ -38,6 +38,8 @@ const SELECTORS = {
   nominator_bond_more: "971d44c8",
   revoke_nomination: "4b65c34b",
   points: "9799b4e7",
+  //
+  candidate_count: "4b1c4c29",
 };
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
@@ -52,6 +54,22 @@ async function isSelectedCandidate(context: DevTestContext, address: string) {
       gasPrice: GAS_PRICE,
       to: ADDRESS_STAKING,
       data: `0x${SELECTORS.is_selected_candidate}${addressData}`,
+    },
+  ]);
+}
+
+async function candidateCount(context: DevTestContext) {
+  console.log("candidate_count()");
+  console.log(Web3.utils.sha3("candidate_count()"));
+
+  return await customWeb3Request(context.web3, "eth_call", [
+    {
+      from: GENESIS_ACCOUNT,
+      value: "0x0",
+      gas: "0x10000",
+      gasPrice: GAS_PRICE,
+      to: ADDRESS_STAKING,
+      data: `0x${SELECTORS.candidate_count}`,
     },
   ]);
 }
@@ -119,6 +137,13 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     // console.log("oh");
     // console.log(await isSelectedCandidate(context, COLLATOR_ACCOUNT));
     expect(Number((await isSelectedCandidate(context, COLLATOR_ACCOUNT)).result)).to.equal(1);
+  });
+  it.only("should have one collator", async function () {
+    // const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
+    // expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(COLLATOR_ACCOUNT);
+    // console.log("oh");
+    // console.log(await isSelectedCandidate(context, COLLATOR_ACCOUNT));
+    expect(Number((await candidateCount(context)).result)).to.equal(1);
   });
 });
 
