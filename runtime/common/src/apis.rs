@@ -345,18 +345,15 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
-					// authors is to run the staking election while predicting.
+					// authors is to compute the staking selection while predicting.
 					let mut round = parachain_staking::Pallet::<Self>::round();
 					if round.should_update(block_number) {
-						// mutate round to get next index
-						round.update(block_number);
-						// select top collator candidates for next round
-						parachain_staking::Pallet::<Self>::select_top_candidates(round.current);
+						// get top collator candidates for expected selection to occur
+						let top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates(round.current);
+						top_candidates.contains(&author)
+					} else {
+						AuthorInherent::can_author(&author, &slot)
 					}
-
-					// With both the randomness and election results initialized,
-					// we are now prepared to run the prediction
-					AuthorInherent::can_author(&author, &slot)
 				}
 			}
 
