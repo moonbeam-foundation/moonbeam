@@ -1867,7 +1867,7 @@ pub mod pallet {
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
-		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+		pub fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
 			let (mut collator_count, mut nomination_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			let mut candidates = <CandidatePool<T>>::get().0;
