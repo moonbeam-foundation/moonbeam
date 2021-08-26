@@ -61,13 +61,9 @@ describeDevMoonbeam("Proxing governance", (context) => {
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      console.log(method, section);
       const events: Event[] = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-        .map(({ event }) => {
-          console.log(event.toHuman());
-          return event;
-        });
+        .map(({ event }) => event);
 
       switch (index) {
         case 0:
