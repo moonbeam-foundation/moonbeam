@@ -41,7 +41,7 @@ export const listenBlocks = async (
     callBack({
       block,
       elapsedMilliSecs: blockTime.toNumber() - latestBlockTime,
-      weightPercentage: Number((blockWeight * 100n) / maxBlockWeight) / 100,
+      weightPercentage: Number((blockWeight * 10000n) / maxBlockWeight) / 100,
       txWithEvents,
       pendingTxs,
     });
@@ -78,11 +78,19 @@ export function printBlockDetails(
       ? chalk.yellow(txPool)
       : txPool;
 
+  const ext = block.extrinsics.length.toString().padStart(4, " ");
+  const extText =
+    block.extrinsics.length >= 40
+      ? chalk.red(ext)
+      : block.extrinsics.length >= 10
+      ? chalk.yellow(ext)
+      : block.extrinsics.length > 3
+      ? chalk.green(ext)
+      : ext;
+
   console.log(
     `${options?.prefix ? `${options.prefix} ` : ""}Block ${block.header.number
       .toString()
-      .padEnd(7, " ")} [${weightText}%][Ext:${block.extrinsics.length
-      .toString()
-      .padStart(4, " ")}][Pool: ${txPoolText} txs][${secondText}s]`
+      .padEnd(7, " ")} [${weightText}%][Ext:${extText}][Pool:${txPoolText}][${secondText}s]`
   );
 }
