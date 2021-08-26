@@ -202,16 +202,6 @@ describeDevMoonbeam("Trace", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
-    // let res = await contract.methods
-    //   .infinite()
-    //   .call({ gas: 12_000_000 })
-    //   .then(() => {
-    //     return Promise.reject({ message: "Execution succeeded but should have failed" });
-    //   })
-    //   .catch((err) => console.log({ err }));
-
-    // console.log({ res });
-
     console.log(contract.options.address);
 
     let callTx = await context.web3.eth.accounts.signTransaction(
@@ -233,9 +223,7 @@ describeDevMoonbeam("Trace", (context) => {
       { tracer: BS_TRACER.body },
     ]);
 
-    console.log(trace);
-
-    // await context.createBlock();
-    // let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [sentTx.result]);
+    expect(trace.result.length).to.be.eq(1);
+    expect(trace.result[0].error).to.be.equal("out of gas");
   });
 });

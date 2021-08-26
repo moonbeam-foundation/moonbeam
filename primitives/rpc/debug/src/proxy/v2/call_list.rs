@@ -50,6 +50,11 @@ pub struct Listener {
 	/// true = we are before the first Evm::Call/Create event a transaction.
 	/// Allow to handle early errors before these events.
 	early_in_tx: bool,
+
+	/// StepResult event will produce an entry but not insert it directly.
+	/// Exit event will produce an antry if there was not a StepResult one
+	/// (out of gas or other error), then insert it.
+	step_result_entry: Option<(u32, Call)>,
 }
 
 struct Context {
@@ -83,6 +88,7 @@ impl Default for Listener {
 
 			call_type: None,
 			early_in_tx: true,
+			step_result_entry: None,
 		}
 	}
 }
@@ -95,7 +101,7 @@ impl Listener {
 	pub fn into_tx_trace(self) -> Option<SingleTrace> {
 		if let Some(entry) = self.entries.last() {
 			return Some(SingleTrace::CallList(
-				entry.into_iter().map(|(_, value)| value.clone()).collect(),
+				entry.iter().map(|(_, value)| value.clone()).collect(),
 			));
 		}
 		None
@@ -107,7 +113,7 @@ impl Listener {
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry
-				.into_iter()
+				.iter()
 				.map(|(_, trace)| match trace.inner.clone() {
 					CallInner::Call {
 						input,
@@ -234,85 +240,12 @@ impl Listener {
 					self.call_type = Some(call_type)
 				}
 			}
-			// RuntimeEvent::StepResult {
-			// 	result: Err(Capture::Exit(reason)),
-			// 	return_value,
-			// } => {
-			// 	if let Some(context) = self.context_stack.pop() {
-			// 		let mut gas_used = context.start_gas.unwrap() - context.gas;
-			// 		if context.entries_index == 0 {
-			// 			gas_used += self.transaction_cost;
-			// 		}
-
-			// 		if self.entries.is_empty() {
-			// 			self.entries.push(BTreeMap::new());
-			// 		}
-			// 		self.entries.last_mut().unwrap().insert(
-			// 			context.entries_index,
-			// 			match context.context_type {
-			// 				ContextType::Call(call_type) => {
-			// 					let res = match &reason {
-			// 						ExitReason::Succeed(ExitSucceed::Returned) => {
-			// 							CallResult::Output(return_value.to_vec())
-			// 						}
-			// 						ExitReason::Succeed(_) => CallResult::Output(vec![]),
-			// 						ExitReason::Error(error) => {
-			// 							CallResult::Error(error_message(error))
-			// 						}
-
-			// 						ExitReason::Revert(_) => {
-			// 							CallResult::Error(b"execution reverted".to_vec())
-			// 						}
-			// 						ExitReason::Fatal(_) => CallResult::Error(vec![]),
-			// 					};
-
-			// 					Call {
-			// 						from: context.from,
-			// 						trace_address: context.trace_address,
-			// 						subtraces: context.subtraces,
-			// 						value: context.value,
-			// 						gas: context.gas.into(),
-			// 						gas_used: gas_used.into(),
-			// 						inner: CallInner::Call {
-			// 							call_type,
-			// 							to: context.to,
-			// 							input: context.data,
-			// 							res,
-			// 						},
-			// 					}
-			// 				}
-			// 				ContextType::Create => {
-			// 					let res = match &reason {
-			// 						ExitReason::Succeed(_) => CreateResult::Success {
-			// 							created_contract_address_hash: context.to,
-			// 							created_contract_code: return_value.to_vec(),
-			// 						},
-			// 						ExitReason::Error(error) => CreateResult::Error {
-			// 							error: error_message(error),
-			// 						},
-			// 						ExitReason::Revert(_) => CreateResult::Error {
-			// 							error: b"execution reverted".to_vec(),
-			// 						},
-			// 						ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
-			// 					};
-
-			// 					Call {
-			// 						value: context.value,
-			// 						trace_address: context.trace_address,
-			// 						subtraces: context.subtraces,
-			// 						gas: context.gas.into(),
-			// 						gas_used: gas_used.into(),
-			// 						from: context.from,
-			// 						inner: CallInner::Create {
-			// 							init: context.data,
-			// 							res,
-			// 						},
-			// 					}
-			// 				}
-			// 			},
-			// 		);
-			// 	}
-			// }
+			RuntimeEvent::StepResult {
+				result: Err(Capture::Exit(reason)),
+				return_value,
+			} => {
+				self.step_result_entry = self.pop_context_to_entry(reason, return_value);
+			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
 			_ => (),
@@ -320,24 +253,13 @@ impl Listener {
 	}
 
 	pub fn evm_event(&mut self, event: EvmEvent) {
-		debug(&event);
-
-		// let trace_address = if let Some(context) = self.context_stack.last_mut() {
-		// 	let mut trace_address = context.trace_address.clone();
-		// 	trace_address.push(context.subtraces);
-		// 	context.subtraces += 1;
-		// 	trace_address
-		// } else {
-		// 	vec![]
-		// };
-
 		match event {
 			EvmEvent::TransactCall {
 				caller,
 				address,
 				value,
 				data,
-				gas_limit,
+				..
 			} => {
 				self.context_stack.push(Context {
 					entries_index: self.entries_next_index,
@@ -363,8 +285,8 @@ impl Listener {
 				caller,
 				value,
 				init_code,
-				gas_limit,
 				address,
+				..
 			} => {
 				self.context_stack.push(Context {
 					entries_index: self.entries_next_index,
@@ -390,7 +312,6 @@ impl Listener {
 				caller,
 				value,
 				init_code,
-				gas_limit,
 				address,
 				..
 			} => {
@@ -415,10 +336,7 @@ impl Listener {
 			}
 
 			EvmEvent::Call {
-				// code_address,
-				// transfer,
 				input,
-				target_gas,
 				is_static,
 				context,
 				..
@@ -468,7 +386,6 @@ impl Listener {
 				// scheme,
 				value,
 				init_code,
-				target_gas,
 				..
 			} => {
 				if !self.early_in_tx {
@@ -541,79 +458,17 @@ impl Listener {
 				reason,
 				return_value,
 			} => {
-				if let Some(context) = self.context_stack.pop() {
-					let mut gas_used = context.start_gas.unwrap() - context.gas;
-					if context.entries_index == 0 {
-						gas_used += self.transaction_cost;
-					}
+				let entry = self
+					.step_result_entry
+					.take()
+					.or_else(|| self.pop_context_to_entry(reason, return_value));
 
+				if let Some((key, entry)) = entry {
 					if self.entries.is_empty() {
 						self.entries.push(BTreeMap::new());
 					}
-					self.entries.last_mut().unwrap().insert(
-						context.entries_index,
-						match context.context_type {
-							ContextType::Call(call_type) => {
-								let res = match &reason {
-									ExitReason::Succeed(ExitSucceed::Returned) => {
-										CallResult::Output(return_value.to_vec())
-									}
-									ExitReason::Succeed(_) => CallResult::Output(vec![]),
-									ExitReason::Error(error) => {
-										CallResult::Error(error_message(error))
-									}
 
-									ExitReason::Revert(_) => {
-										CallResult::Error(b"execution reverted".to_vec())
-									}
-									ExitReason::Fatal(_) => CallResult::Error(vec![]),
-								};
-
-								Call {
-									from: context.from,
-									trace_address: context.trace_address,
-									subtraces: context.subtraces,
-									value: context.value,
-									gas: context.gas.into(),
-									gas_used: gas_used.into(),
-									inner: CallInner::Call {
-										call_type,
-										to: context.to,
-										input: context.data,
-										res,
-									},
-								}
-							}
-							ContextType::Create => {
-								let res = match &reason {
-									ExitReason::Succeed(_) => CreateResult::Success {
-										created_contract_address_hash: context.to,
-										created_contract_code: return_value.to_vec(),
-									},
-									ExitReason::Error(error) => CreateResult::Error {
-										error: error_message(error),
-									},
-									ExitReason::Revert(_) => CreateResult::Error {
-										error: b"execution reverted".to_vec(),
-									},
-									ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
-								};
-
-								Call {
-									value: context.value,
-									trace_address: context.trace_address,
-									subtraces: context.subtraces,
-									gas: context.gas.into(),
-									gas_used: gas_used.into(),
-									from: context.from,
-									inner: CallInner::Create {
-										init: context.data,
-										res,
-									},
-								}
-							}
-						},
-					);
+					self.entries.last_mut().unwrap().insert(key, entry);
 				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -621,15 +476,89 @@ impl Listener {
 			_ => (),
 		}
 	}
-}
 
-#[cfg(feature = "std")]
-fn debug<T: core::fmt::Debug>(v: T) {
-	println!("EvmEvent::Exit : {:?}", v);
-}
+	fn pop_context_to_entry(
+		&mut self,
+		reason: ExitReason,
+		return_value: Vec<u8>,
+	) -> Option<(u32, Call)> {
+		if let Some(context) = self.context_stack.pop() {
+			let mut gas_used = context.start_gas.unwrap() - context.gas;
+			if context.entries_index == 0 {
+				gas_used += self.transaction_cost;
+			}
 
-#[cfg(not(feature = "std"))]
-fn debug<T: core::fmt::Debug>(v: T) {}
+			// if self.entries.is_empty() {
+			// 	self.entries.push(BTreeMap::new());
+			// }
+
+			Some((
+				context.entries_index,
+				match context.context_type {
+					ContextType::Call(call_type) => {
+						let res = match &reason {
+							ExitReason::Succeed(ExitSucceed::Returned) => {
+								CallResult::Output(return_value.to_vec())
+							}
+							ExitReason::Succeed(_) => CallResult::Output(vec![]),
+							ExitReason::Error(error) => CallResult::Error(error_message(error)),
+
+							ExitReason::Revert(_) => {
+								CallResult::Error(b"execution reverted".to_vec())
+							}
+							ExitReason::Fatal(_) => CallResult::Error(vec![]),
+						};
+
+						Call {
+							from: context.from,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							value: context.value,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							inner: CallInner::Call {
+								call_type,
+								to: context.to,
+								input: context.data,
+								res,
+							},
+						}
+					}
+					ContextType::Create => {
+						let res = match &reason {
+							ExitReason::Succeed(_) => CreateResult::Success {
+								created_contract_address_hash: context.to,
+								created_contract_code: return_value.to_vec(),
+							},
+							ExitReason::Error(error) => CreateResult::Error {
+								error: error_message(error),
+							},
+							ExitReason::Revert(_) => CreateResult::Error {
+								error: b"execution reverted".to_vec(),
+							},
+							ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
+						};
+
+						Call {
+							value: context.value,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							from: context.from,
+							inner: CallInner::Create {
+								init: context.data,
+								res,
+							},
+						}
+					}
+				},
+			))
+		} else {
+			None
+		}
+	}
+}
 
 fn error_message(error: &ExitError) -> Vec<u8> {
 	match error {
