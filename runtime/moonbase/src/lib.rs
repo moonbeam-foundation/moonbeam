@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -246,7 +246,7 @@ pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
+	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
@@ -254,7 +254,7 @@ where
 			let (_, to_treasury) = fees.ration(80, 20);
 			// Balances module automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -341,7 +341,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
-	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -693,7 +693,7 @@ parameter_types! {
 	Encode,
 	Decode,
 	Debug,
-	max_encoded_len::MaxEncodedLen,
+	parity_scale_codec::MaxEncodedLen,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -769,8 +769,8 @@ impl pallet_proxy::Config for Runtime {
 
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
-impl Filter<Call> for MaintenanceFilter {
-	fn filter(c: &Call) -> bool {
+impl Contains<Call> for MaintenanceFilter {
+	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,

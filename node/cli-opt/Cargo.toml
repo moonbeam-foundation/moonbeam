@@ -11,7 +11,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 structopt = "0.3.8"
 tiny-bip39 = { version = "0.6" }
 libsecp256k1 = { version = "0.3.2" }
-primitive-types = "0.9.0"
+primitive-types = "0.10.0"
 sha3 = "0.8"
 tiny-hderive = "0.3.0"
 account = { path = "../../primitives/account" }

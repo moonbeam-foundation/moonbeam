@@ -13,8 +13,8 @@ futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 
 #TODO Probably need to update these dependencies to match versions from Frontier
-ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
-ethereum-types = "0.11.0"
+ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.12.0"
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }

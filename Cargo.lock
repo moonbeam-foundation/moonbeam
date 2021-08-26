@@ -1452,7 +1452,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "evm 0.27.0",
+ "evm",
  "frame-support",
  "frame-system",
  "log",
@@ -2150,30 +2150,12 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "567ce064a8232c16e2b2c2173a936b91fbe35c2f2c5278871f5a1a31688b42e9"
-dependencies = [
- "ethereum-types 0.11.0",
- "funty",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec",
- "rlp",
- "rlp-derive",
- "serde",
- "sha3 0.9.1",
- "triehash",
-]
-
-[[package]]
-name = "ethereum"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a67be3eaf296ef668733f54c637e84d0ca34eaf194f0077455135981ad464c3"
 dependencies = [
  "bytes 1.0.1",
- "ethereum-types 0.12.0",
+ "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
  "parity-scale-codec",
@@ -2182,21 +2164,6 @@ dependencies = [
  "serde",
  "sha3 0.9.1",
  "triehash",
-]
-
-[[package]]
-name = "ethereum-types"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f64b5df66a228d85e4b17e5d6c6aa43b0310898ffe8a85988c4c032357aaabfd"
-dependencies = [
- "ethbloom",
- "fixed-hash",
- "impl-codec",
- "impl-rlp",
- "impl-serde",
- "primitive-types 0.9.1",
- "uint",
 ]
 
 [[package]]
@@ -2210,7 +2177,7 @@ dependencies = [
  "impl-codec",
  "impl-rlp",
  "impl-serde",
- "primitive-types 0.10.1",
+ "primitive-types",
  "uint",
 ]
 
@@ -2222,37 +2189,17 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
-dependencies = [
- "environmental",
- "ethereum 0.7.1",
- "evm-core 0.27.1",
- "evm-gasometer 0.27.0",
- "evm-runtime 0.27.0",
- "log",
- "parity-scale-codec",
- "primitive-types 0.9.1",
- "rlp",
- "serde",
- "sha3 0.8.2",
-]
-
-[[package]]
-name = "evm"
 version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3144301c57a81101003055c7cab61b58e68060f3bd1c54aa419f663e4f0e6347"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
 dependencies = [
  "environmental",
- "ethereum 0.9.0",
- "evm-core 0.30.0",
- "evm-gasometer 0.30.0",
- "evm-runtime 0.30.0",
+ "ethereum",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "log",
  "parity-scale-codec",
- "primitive-types 0.10.1",
+ "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
@@ -2260,73 +2207,34 @@ dependencies = [
 
 [[package]]
 name = "evm-core"
-version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908739da31125d17a69533c290a6c818b494176e59a2ce8accbf122f7d76835c"
-dependencies = [
- "funty",
- "parity-scale-codec",
- "primitive-types 0.9.1",
- "serde",
-]
-
-[[package]]
-name = "evm-core"
 version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7bfa2dae9a2c6c0172d83c37eb406bfabf6a9d1af17b7ab4958e89853ddae97"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
 dependencies = [
  "funty",
  "parity-scale-codec",
- "primitive-types 0.10.1",
+ "primitive-types",
  "serde",
 ]
 
 [[package]]
 name = "evm-gasometer"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
-dependencies = [
- "environmental",
- "evm-core 0.27.1",
- "evm-runtime 0.27.0",
- "primitive-types 0.9.1",
-]
-
-[[package]]
-name = "evm-gasometer"
 version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14d5b12117cb9a5a9b9f031296ea86416da2cd9d8c9a9e3a2fa10275ae55f3ea"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
 dependencies = [
  "environmental",
- "evm-core 0.30.0",
- "evm-runtime 0.30.0",
- "primitive-types 0.10.1",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
-dependencies = [
- "environmental",
- "evm-core 0.27.1",
- "primitive-types 0.9.1",
- "sha3 0.8.2",
+ "evm-core",
+ "evm-runtime",
+ "primitive-types",
 ]
 
 [[package]]
 name = "evm-runtime"
 version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3921ac8964cf13d12693392fef6686ef94470328ccd8eea384c6ff9ac0125b01"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
 dependencies = [
  "environmental",
- "evm-core 0.30.0",
- "primitive-types 0.10.1",
+ "evm-core",
+ "primitive-types",
  "sha3 0.8.2",
 ]
 
@@ -2457,9 +2365,9 @@ name = "fc-rpc"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "ethereum 0.9.0",
- "ethereum-types 0.12.0",
- "evm 0.30.1",
+ "ethereum",
+ "ethereum-types",
+ "evm",
  "fc-consensus",
  "fc-db",
  "fc-rpc-core",
@@ -2499,7 +2407,7 @@ name = "fc-rpc-core"
 version = "1.1.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "ethereum-types 0.12.0",
+ "ethereum-types",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -2603,7 +2511,7 @@ name = "fp-consensus"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "ethereum 0.9.0",
+ "ethereum",
  "parity-scale-codec",
  "rlp",
  "sha3 0.8.2",
@@ -2617,7 +2525,7 @@ name = "fp-evm"
 version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -2630,8 +2538,8 @@ name = "fp-rpc"
 version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "ethereum 0.9.0",
- "ethereum-types 0.12.0",
+ "ethereum",
+ "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
  "sp-api",
@@ -5078,7 +4986,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
- "evm 0.27.0",
+ "evm",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -5194,7 +5102,7 @@ version = "0.11.2"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
- "primitive-types 0.9.1",
+ "primitive-types",
  "sha3 0.8.2",
  "sp-runtime",
  "structopt",
@@ -5215,10 +5123,10 @@ dependencies = [
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.11.0",
- "evm 0.27.0",
- "evm-gasometer 0.27.0",
- "evm-runtime 0.27.0",
+ "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "moonbeam-primitives-ext",
  "moonbeam-rpc-primitives-debug",
@@ -5234,7 +5142,7 @@ dependencies = [
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "sp-externalities",
@@ -5246,7 +5154,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "futures 0.3.16",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -5261,7 +5169,7 @@ dependencies = [
 name = "moonbeam-rpc-core-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "futures 0.3.16",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -5275,8 +5183,8 @@ dependencies = [
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.7.1",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fc-rpc-core",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -5289,8 +5197,8 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.7.1",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-db",
  "fc-rpc",
@@ -5315,11 +5223,11 @@ name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum 0.7.1",
- "ethereum-types 0.11.0",
- "evm 0.27.0",
- "evm-gasometer 0.27.0",
- "evm-runtime 0.27.0",
+ "ethereum",
+ "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5335,7 +5243,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.7.1",
+ "ethereum",
  "parity-scale-codec",
  "sp-api",
  "sp-io",
@@ -5347,8 +5255,8 @@ dependencies = [
 name = "moonbeam-rpc-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.7.1",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
@@ -5377,7 +5285,7 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "fc-rpc",
  "frame-system",
  "jsonrpc-core 15.1.0",
@@ -5405,7 +5313,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
- "evm 0.27.0",
+ "evm",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -5486,7 +5394,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "ethereum 0.7.1",
+ "ethereum",
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-db",
@@ -5596,7 +5504,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
- "evm 0.27.0",
+ "evm",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -6410,9 +6318,9 @@ name = "pallet-ethereum"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "ethereum 0.9.0",
- "ethereum-types 0.12.0",
- "evm 0.30.1",
+ "ethereum",
+ "ethereum-types",
+ "evm",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -6448,9 +6356,9 @@ name = "pallet-evm"
 version = "6.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
- "evm-gasometer 0.30.0",
- "evm-runtime 0.30.0",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "frame-benchmarking",
  "frame-support",
@@ -6460,7 +6368,7 @@ dependencies = [
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
- "primitive-types 0.10.1",
+ "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
@@ -6475,7 +6383,7 @@ name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -6487,7 +6395,7 @@ name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -6501,7 +6409,7 @@ name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "fp-evm",
  "num",
  "sp-core",
@@ -6513,7 +6421,7 @@ name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -6525,7 +6433,7 @@ name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=polkadot-v0.9.9#4c91772259f5d1436274af24a9fd9304e54aefe6"
 dependencies = [
- "evm 0.30.1",
+ "evm",
  "fp-evm",
  "ripemd160",
  "sp-core",
@@ -7053,7 +6961,7 @@ name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "evm 0.27.0",
+ "evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7166,13 +7074,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ad6f1acec69b95caf435bbd158d486e5a0a44fcf51531e84922c59ff09e8457"
 dependencies = [
  "cfg-if 1.0.0",
- "ethereum-types 0.12.0",
+ "ethereum-types",
  "hashbrown 0.11.2",
  "impl-trait-for-tuples 0.2.1",
  "lru",
  "parity-util-mem-derive",
  "parking_lot 0.11.1",
- "primitive-types 0.10.1",
+ "primitive-types",
  "smallvec 1.6.1",
  "winapi 0.3.9",
 ]
@@ -8707,7 +8615,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompile-utils"
 version = "0.1.0"
 dependencies = [
- "evm 0.27.0",
+ "evm",
  "frame-support",
  "frame-system",
  "log",
@@ -8755,19 +8663,6 @@ checksum = "15f553275e5721409451eb85e15fd9a860a6e5ab4496eb215987502b5f5391f2"
 dependencies = [
  "predicates-core",
  "treeline",
-]
-
-[[package]]
-name = "primitive-types"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06345ee39fbccfb06ab45f3a1a5798d9dafa04cb8921a76d227040003a234b0e"
-dependencies = [
- "fixed-hash",
- "impl-codec",
- "impl-rlp",
- "impl-serde",
- "uint",
 ]
 
 [[package]]
@@ -11418,7 +11313,7 @@ dependencies = [
  "parity-scale-codec",
  "parity-util-mem",
  "parking_lot 0.11.1",
- "primitive-types 0.10.1",
+ "primitive-types",
  "rand 0.7.3",
  "regex",
  "schnorrkel",
@@ -11643,7 +11538,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#910
 dependencies = [
  "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec",
- "primitive-types 0.10.1",
+ "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
  "sp-std",
