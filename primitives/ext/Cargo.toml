@@ -10,7 +10,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
 ethereum-types = { version = "0.11.0", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../rpc/debug", default-features = false }
 sp-runtime-interface = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.9", default-features = false }

@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 log = "0.4.8"
 structopt = "0.3.8"
-parity-scale-codec = '2.0.0'
+parity-scale-codec = '2.2'
 
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }

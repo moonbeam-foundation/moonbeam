@@ -15,7 +15,7 @@ futures = { version = "0.3.1", features = ["compat"] }
 log = '0.4'
 parking_lot = '0.9.0'
 trie-root = '0.15.2'
-parity-scale-codec = '2.0.0'
+parity-scale-codec = '2.2'
 structopt = "0.3"
 ansi_term = "0.12.1"
 serde = { version = "1.0.101", features = ["derive"] }
@@ -58,7 +58,6 @@ sc-executor = { git = "https://github.com/paritytech/substrate", branch = "polka
 sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }

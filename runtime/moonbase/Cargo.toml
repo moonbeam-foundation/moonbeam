@@ -11,7 +11,7 @@ build = "build.rs"
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 #feature?
-parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
 log = "0.4"
 
 runtime-common = { path = "../common", default-features = false }

@@ -23,7 +23,7 @@ num_enum = { version = "0.5.3", default-features = false }
 sha3 = "0.9"
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 #TODO do I need the max-encoded-len feature?
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
 sp-runtime = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }
 pallet-balances = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }
 pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }

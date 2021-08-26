@@ -35,7 +35,6 @@ moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 jsonrpc-core = "15.0.0"
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four", features = ["rpc_binary_search_estimate"] }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
