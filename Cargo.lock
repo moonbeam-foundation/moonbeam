@@ -5292,6 +5292,8 @@ dependencies = [
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
  "rlp",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
  "serde",
  "sha3 0.8.2",
  "sp-api",
@@ -5299,7 +5301,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "sp-transaction-pool",
 ]
 
 [[package]]
@@ -5457,6 +5458,7 @@ dependencies = [
  "sc-telemetry",
  "sc-tracing",
  "sc-transaction-pool",
+ "sc-transaction-pool-api",
  "serde",
  "serde_json",
  "sha3 0.8.2",

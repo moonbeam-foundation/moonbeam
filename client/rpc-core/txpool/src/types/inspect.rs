@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::GetT;
-use ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use ethereum::{TransactionV0 as EthereumTransaction, TransactionAction};
 use ethereum_types::{H160, H256, U256};
 use serde::{Serialize, Serializer};
 

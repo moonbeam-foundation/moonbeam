@@ -18,7 +18,8 @@ sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", features = ["test-helpers"] }
+sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 serde = { version = "1.0", features = ["derive"] }
 
