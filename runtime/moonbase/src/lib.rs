@@ -45,7 +45,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use pallet_balances::NegativeImbalance;
+use pallet_balances::{NegativeImbalance, PositiveImbalance};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
@@ -248,8 +248,8 @@ where
 	R: pallet_balances::Config + pallet_treasury::Config,
 	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
+	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
-		log::warn!("DealWithFees::on_unbalanceds");
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
@@ -257,6 +257,15 @@ where
 			// total_supply accordingly
 			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		// Balances module automatically burns dropped Negative Imbalances by decreasing
+		// total_supply accordingly
+		let (_, to_treasury) = amount.ration(80, 20);
+		<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 	}
 }
 
