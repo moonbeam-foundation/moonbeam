@@ -157,7 +157,7 @@ pub fn native_version() -> NativeVersion {
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4; // TODO: derive from NORMAL_DISPATCH_RATIO
-const EXTRINSIC_BASE_WEIGHT: Weight = 5_250_000_000; // 21000 * weight_per_gas
+const EXTRINSIC_BASE_WEIGHT: Weight = 21000 * WEIGHT_PER_GAS;
 
 pub struct RuntimeBlockWeights;
 impl Get<BlockWeights> for RuntimeBlockWeights {
