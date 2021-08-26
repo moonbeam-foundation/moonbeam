@@ -163,9 +163,6 @@ pub struct RuntimeBlockWeights;
 impl Get<BlockWeights> for RuntimeBlockWeights {
 	fn get() -> BlockWeights {
 		BlockWeights::builder()
-			.for_class(DispatchClass::all(), |weights| {
-				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
-			})
 			.for_class(DispatchClass::Normal, |weights| {
 				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
 				weights.max_total = NORMAL_WEIGHT.into();
