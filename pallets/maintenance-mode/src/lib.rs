@@ -56,7 +56,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{EnsureOrigin, Filter};
+	use frame_support::traits::{EnsureOrigin, Contains};
 	use frame_system::pallet_prelude::*;
 
 	/// Pallet for migrations
@@ -70,11 +70,11 @@ pub mod pallet {
 		type Event: From<Event> + IsType<<Self as frame_system::Config>::Event>;
 		/// The base call filter to be used in normal operating mode
 		/// (When we aren't in the middle of a migration)
-		type NormalCallFilter: Filter<Self::Call>;
+		type NormalCallFilter: Contains<Self::Call>;
 		/// The base call filter to be used when we are in the middle of migrations
 		/// This should be very restrictive. Probably not allowing anything except possibly
 		/// something like sudo or other emergency processes
-		type MaintenanceCallFilter: Filter<Self::Call>;
+		type MaintenanceCallFilter: Contains<Self::Call>;
 		/// The origin from which the call to enter or exit maintenance mode must come
 		/// Take care when choosing your maintenance call filter to ensure that you'll still be
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
@@ -179,12 +179,12 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> Filter<T::Call> for Pallet<T> {
-		fn filter(call: &T::Call) -> bool {
+	impl<T: Config> Contains<T::Call> for Pallet<T> {
+		fn contains(call: &T::Call) -> bool {
 			if MaintenanceMode::<T>::get() {
-				T::MaintenanceCallFilter::filter(call)
+				T::MaintenanceCallFilter::contains(call)
 			} else {
-				T::NormalCallFilter::filter(call)
+				T::NormalCallFilter::contains(call)
 			}
 		}
 	}
