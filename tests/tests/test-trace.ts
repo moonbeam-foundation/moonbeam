@@ -225,6 +225,28 @@ describeDevMoonbeam("Trace", (context) => {
     expect(trace.result[0].error).to.be.equal("out of gas");
   });
 
+  // it("should trace correctly out of gas transaction cost (Blockscout)", async function () {
+  //   this.timeout(5000000000);
+
+  //   const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+  //   await context.createBlock({ transactions: [rawTx] });
+
+  //   const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+  //     "add signed transaction here",
+  //   ]);
+
+  //   console.log(data);
+
+  //   await context.createBlock();
+  //   let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+  //     data.result,
+  //     { tracer: BS_TRACER.body },
+  //   ]);
+
+  //   expect(trace.result.length).to.be.eq(1);
+  //   expect(trace.result[0].error).to.be.equal("out of gas");
+  // });
+
   it("should trace correctly precompiles (Blockscout)", async function () {
     this.timeout(50000);
 
@@ -246,8 +268,6 @@ describeDevMoonbeam("Trace", (context) => {
       data.result,
       { tracer: BS_TRACER.body },
     ]);
-
-    console.log(JSON.stringify(trace));
 
     expect(trace.result.length).to.be.eq(1);
   });
