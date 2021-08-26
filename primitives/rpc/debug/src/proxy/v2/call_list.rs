@@ -17,15 +17,11 @@
 extern crate alloc;
 use super::{
 	Capture, ContextType, Event, EvmEvent, ExitError, ExitReason, ExitSucceed, GasometerEvent,
-	Listener as ListenerT, RuntimeEvent, H160, H256, U256,
+	Listener as ListenerT, RuntimeEvent, H160, U256,
 };
 use crate::{
-	block::{
-		TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
-		TransactionTraceResult,
-	},
-	single::{Call, CallInner, TransactionTrace as SingleTrace},
-	CallResult, CallType, CreateResult, CreateType,
+	single::{Call, CallInner},
+	CallResult, CallType, CreateResult,
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
@@ -34,7 +30,7 @@ pub struct Listener {
 	transaction_cost: u64,
 
 	// Final logs.
-	entries: Vec<BTreeMap<u32, Call>>,
+	pub entries: Vec<BTreeMap<u32, Call>>,
 	// Next index to use.
 	entries_next_index: u32,
 	// Stack of contexts with data to keep between events.
@@ -96,119 +92,6 @@ impl Default for Listener {
 impl Listener {
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
 		super::listener::using(self, f)
-	}
-
-	pub fn into_tx_trace(self) -> Option<SingleTrace> {
-		if let Some(entry) = self.entries.last() {
-			return Some(SingleTrace::CallList(
-				entry.iter().map(|(_, value)| value.clone()).collect(),
-			));
-		}
-		None
-	}
-
-	/// Format the RPC output for multiple transactions. Each call-stack represents a single
-	/// transaction/EVM execution.
-	pub fn into_tx_traces(self) -> Vec<BlockTrace> {
-		let mut traces = Vec::new();
-		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
-			let mut tx_traces: Vec<_> = entry
-				.iter()
-				.map(|(_, trace)| match trace.inner.clone() {
-					CallInner::Call {
-						input,
-						to,
-						res,
-						call_type,
-					} => BlockTrace {
-						action: TransactionTraceAction::Call {
-							call_type,
-							from: trace.from,
-							gas: trace.gas,
-							input,
-							to,
-							value: trace.value,
-						},
-						// Can't be known here, must be inserted upstream.
-						block_hash: H256::default(),
-						// Can't be known here, must be inserted upstream.
-						block_number: 0,
-						output: match res {
-							CallResult::Output(output) => {
-								TransactionTraceOutput::Result(TransactionTraceResult::Call {
-									gas_used: trace.gas_used,
-									output,
-								})
-							}
-							crate::CallResult::Error(error) => TransactionTraceOutput::Error(error),
-						},
-						subtraces: trace.subtraces,
-						trace_address: trace.trace_address.clone(),
-						// Can't be known here, must be inserted upstream.
-						transaction_hash: H256::default(),
-						transaction_position: eth_tx_index as u32,
-					},
-					CallInner::Create { init, res } => {
-						BlockTrace {
-							action: TransactionTraceAction::Create {
-								creation_method: CreateType::Create,
-								from: trace.from,
-								gas: trace.gas,
-								init,
-								value: trace.value,
-							},
-							// Can't be known here, must be inserted upstream.
-							block_hash: H256::default(),
-							// Can't be known here, must be inserted upstream.
-							block_number: 0,
-							output: match res {
-								CreateResult::Success {
-									created_contract_address_hash,
-									created_contract_code,
-								} => {
-									TransactionTraceOutput::Result(TransactionTraceResult::Create {
-										gas_used: trace.gas_used,
-										code: created_contract_code,
-										address: created_contract_address_hash,
-									})
-								}
-								crate::CreateResult::Error { error } => {
-									TransactionTraceOutput::Error(error)
-								}
-							},
-							subtraces: trace.subtraces,
-							trace_address: trace.trace_address.clone(),
-							// Can't be known here, must be inserted upstream.
-							transaction_hash: H256::default(),
-							transaction_position: eth_tx_index as u32,
-						}
-					}
-					CallInner::SelfDestruct {
-						balance,
-						refund_address,
-					} => BlockTrace {
-						action: TransactionTraceAction::Suicide {
-							address: trace.from,
-							balance,
-							refund_address,
-						},
-						// Can't be known here, must be inserted upstream.
-						block_hash: H256::default(),
-						// Can't be known here, must be inserted upstream.
-						block_number: 0,
-						output: TransactionTraceOutput::Result(TransactionTraceResult::Suicide),
-						subtraces: trace.subtraces,
-						trace_address: trace.trace_address.clone(),
-						// Can't be known here, must be inserted upstream.
-						transaction_hash: H256::default(),
-						transaction_position: eth_tx_index as u32,
-					},
-				})
-				.collect();
-
-			traces.append(&mut tx_traces);
-		}
-		traces
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {

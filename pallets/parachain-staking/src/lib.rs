@@ -240,9 +240,8 @@ pub mod pallet {
 			self.bottom_nominators
 				.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
 		}
-		/// Return Ok(Some(new_total)) if inserted into top
-		/// Return Ok(None) if inserted into bottom
-		/// Return Err if already exists in top or bottom
+		/// Bond a new account as a nominator, and make a first nomination. If successful,
+		/// the return value indicates whether the nomination is top for the candidate.
 		pub fn add_nominator<T: Config>(
 			&mut self,
 			acc: A,

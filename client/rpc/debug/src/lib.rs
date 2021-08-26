@@ -30,6 +30,7 @@ use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
+use proxy::formats::TraceResponseBuilder;
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -261,12 +262,16 @@ where
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else if api_version == 2 {
-						let _result = api
-							.trace_transaction(&parent_block_id, &header, ext, &transaction)
-							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
-							})?
-							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+						#[allow(deprecated)]
+						let _result = api.trace_transaction_before_version_3(
+							&parent_block_id,
+							&header,
+							ext,
+							&transaction,
+							trace_type,
+						)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else {
@@ -302,7 +307,7 @@ where
 								disable_stack,
 							);
 							proxy.using(f)?;
-							Ok(proxy.into_tx_trace())
+							Ok(proxy::formats::raw::Response::build(proxy).unwrap())
 						} else if api_version == 2 {
 							let mut proxy = proxy::v1::RawProxy::new();
 							proxy.using(f)?;
@@ -324,8 +329,7 @@ where
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 							let mut proxy = proxy::v2::call_list::Listener::default();
 							proxy.using(f)?;
-							proxy
-								.into_tx_trace()
+							proxy::formats::blockscout::Response::build(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
 						} else if api_version == 2 {
