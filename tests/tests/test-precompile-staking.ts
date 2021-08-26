@@ -105,18 +105,43 @@ async function joinCandidates(
   const block = await context.createBlock({
     transactions: [tx],
   });
-  const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-  console.log("receipt", receipt);
-  console.log("block", block);
-  let response = await customWeb3Request(context.web3, "trace_filter", [
-    {
-      fromBlock: "0x01",
-      toBlock: "0x01",
-    },
-  ]);
-  console.log("resp", response);
-  console.log(await context.web3.eth.getTransactionFromBlock("latest", 0));
+  // const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+  // console.log("receipt", receipt);
+  // console.log("block", block);
+  // let response = await customWeb3Request(context.web3, "trace_filter", [
+  //   {
+  //     fromBlock: "0x01",
+  //     toBlock: "0x01",
+  //   },
+  // ]);
+  // console.log("resp", response);
+  // console.log(await context.web3.eth.getTransactionFromBlock("latest", 0));
   //expect(receipt.status).to.equal(true);
+  return block;
+}
+async function candidateBondMore(context: DevTestContext, amount: string, privateKey, from) {
+  const amountData = amount.padStart(64, "0");
+  console.log("amountData", amountData);
+
+  console.log("SELECTORS.join_candidates", SELECTORS.join_candidates);
+  console.log("check", Web3.utils.sha3("join_candidates(uint256,uint256)"));
+
+  let data = `0x${SELECTORS.candidate_bond_more}${amountData}`;
+  console.log("data", data);
+
+  const tx = await createTransaction(context.web3, {
+    from,
+    privateKey,
+    value: "0x0",
+    gas: "0x200000",
+    gasPrice: GAS_PRICE,
+    to: ADDRESS_STAKING,
+    data,
+  });
+
+  const block = await context.createBlock({
+    transactions: [tx],
+  });
   return block;
 }
 
@@ -147,6 +172,10 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 });
 
+async function getBalance(context, address) {
+  return (await context.polkadotApi.query.system.account(address)).data.free.toHuman();
+}
+
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
   it.only("should succesfully call joinCandidates on ETHAN", async function () {
     // const keyring = new Keyring({ type: "ethereum" });
@@ -155,8 +184,10 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     //   .joinCandidates(MIN_GLMR_STAKING, 1)
     //   .signAndSend(ethan);
     // await context.createBlock();
+
     console.log(" MIN_GLMR_STAKING.toString()", MIN_GLMR_STAKING.toString());
-    await joinCandidates(context, "1000", "1", ETHAN_PRIVKEY, ETHAN);
+    console.log("balance ethan", await getBalance(context, ETHAN));
+    await joinCandidates(context, MIN_GLMR_STAKING.toString(), "1", ETHAN_PRIVKEY, ETHAN);
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     console.log(candidatesAfter.toHuman());
@@ -191,6 +222,16 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
+        "2.0000 kUNIT"
+    ).to.equal(true, "bond should have increased");
+  });
+  it.only("should succesfully call candidateBondMore on ALITH", async function () {
+    await candidateBondMore(context, MIN_GLMR_STAKING.toString(), ALITH_PRIV_KEY, ALITH);
+    await context.createBlock();
+    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
+    console.log(candidatesAfter.toHuman());
+    expect(
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount ===
         "2.0000 kUNIT"
     ).to.equal(true, "bond should have increased");
   });
