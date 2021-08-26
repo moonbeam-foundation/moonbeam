@@ -16,7 +16,7 @@ codec = { package = "parity-scale-codec", version = "2.2", default-features = fa
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
 precompile-utils-macro = { path = "macro" }

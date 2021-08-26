@@ -12,6 +12,7 @@ tokio = { version = "0.2.21", features = ["sync", "time"] }
 futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 
+#TODO Probably need to update these dependencies to match versions from Frontier
 ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
 ethereum-types = "0.11.0"
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
@@ -25,7 +26,7 @@ sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }

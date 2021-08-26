@@ -20,7 +20,7 @@ panic = 'unwind'
 # TODO update this patch. I think I have to cherrypick the commits from
 # https://github.com/rust-blockchain/evm/pull/53
 # Fix EVM tracing impact in block production pipeline.
-[patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance" }
+# [patch.crates-io]
+# evm = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance"}
+# evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance" }
+# evm-gasometer = { git = "https://github.com/purestake/evm", branch = "jeremy-evm27-tracing-performance" }

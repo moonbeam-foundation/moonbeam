@@ -80,17 +80,17 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", br
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
 ethereum-primitives = { package = "ethereum", version = "0.7.1", default-features = false, features = ["with-codec"] }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9" }
