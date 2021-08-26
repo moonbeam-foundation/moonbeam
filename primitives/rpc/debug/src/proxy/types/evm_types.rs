@@ -243,7 +243,7 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				salt,
 				gas_limit,
 				address,
-			}
+			},
 		}
 	}
 }
