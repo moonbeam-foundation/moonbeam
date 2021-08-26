@@ -2107,7 +2107,6 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2125,7 +2124,6 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2136,7 +2134,6 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2147,7 +2144,6 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
 dependencies = [
  "environmental",
  "evm-core",

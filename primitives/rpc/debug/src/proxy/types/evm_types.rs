@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
+use evm::ExitReason;
 
 #[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Transfer {
@@ -121,6 +122,32 @@ pub enum EvmEvent {
 		target: H160,
 		balance: U256,
 	},
+	Exit {
+		reason: ExitReason,
+		return_value: Vec<u8>,
+	},
+	TransactCall {
+		caller: H160,
+		address: H160,
+		value: U256,
+		data: Vec<u8>,
+		gas_limit: u64,
+	},
+	TransactCreate {
+		caller: H160,
+		value: U256,
+		init_code: Vec<u8>,
+		gas_limit: u64,
+		address: H160,
+	},
+	TransactCreate2 {
+		caller: H160,
+		value: U256,
+		init_code: Vec<u8>,
+		salt: H256,
+		gas_limit: u64,
+		address: H160,
+	},
 }
 
 impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
@@ -169,6 +196,54 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				target,
 				balance,
 			},
+			evm::tracing::Event::Exit {
+				reason,
+				return_value,
+			} => Self::Exit {
+				reason: reason.clone(),
+				return_value: return_value.to_vec(),
+			},
+			evm::tracing::Event::TransactCall {
+				caller,
+				address,
+				value,
+				data,
+				gas_limit,
+			} => Self::TransactCall {
+				caller,
+				address,
+				value,
+				data: data.to_vec(),
+				gas_limit,
+			},
+			evm::tracing::Event::TransactCreate {
+				caller,
+				value,
+				init_code,
+				gas_limit,
+				address,
+			} => Self::TransactCreate {
+				caller,
+				value,
+				init_code: init_code.to_vec(),
+				gas_limit,
+				address,
+			},
+			evm::tracing::Event::TransactCreate2 {
+				caller,
+				value,
+				init_code,
+				salt,
+				gas_limit,
+				address,
+			} => Self::TransactCreate2 {
+				caller,
+				value,
+				init_code: init_code.to_vec(),
+				salt,
+				gas_limit,
+				address,
+			}
 		}
 	}
 }

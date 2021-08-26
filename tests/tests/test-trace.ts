@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
@@ -194,3 +194,48 @@ describeDevMoonbeam(
   },
   true
 );
+
+describeDevMoonbeam("Trace", (context) => {
+  it("should trace correctly out of gas transactions (Blockscout)", async function () {
+    this.timeout(5000000000);
+
+    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    await context.createBlock({ transactions: [rawTx] });
+
+    // let res = await contract.methods
+    //   .infinite()
+    //   .call({ gas: 12_000_000 })
+    //   .then(() => {
+    //     return Promise.reject({ message: "Execution succeeded but should have failed" });
+    //   })
+    //   .catch((err) => console.log({ err }));
+
+    // console.log({ res });
+
+    console.log(contract.options.address);
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contract.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: "0x5bec9e67",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: BS_TRACER.body },
+    ]);
+
+    console.log(trace);
+
+    // await context.createBlock();
+    // let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [sentTx.result]);
+  });
+});

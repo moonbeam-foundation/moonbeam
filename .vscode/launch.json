@@ -32,7 +32,7 @@
       "name": "Launch Moonbeam Node (Linux)",
       "program": "${workspaceFolder}/target/release/moonbeam",
       "args": [
-        "--execution=Native",
+        "--execution=Wasm",
         "--no-telemetry",
         "--no-prometheus",
         "--dev",
