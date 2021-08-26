@@ -178,11 +178,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 299_000
-			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 27_000
-			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads(26 as Weight))
+			// Standard Error: 238_000
+			.saturating_add((62_607_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 18_000
+			.saturating_add((1_114_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads(27 as Weight))
 			.saturating_add(T::DbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(T::DbWeight::get().writes(16 as Weight))
 			.saturating_add(T::DbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
@@ -296,11 +296,11 @@ impl WeightInfo for () {
 	}
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 299_000
-			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 27_000
-			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(RocksDbWeight::get().reads(26 as Weight))
+			// Standard Error: 238_000
+			.saturating_add((62_607_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 18_000
+			.saturating_add((1_114_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads(27 as Weight))
 			.saturating_add(RocksDbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(RocksDbWeight::get().writes(16 as Weight))
 			.saturating_add(RocksDbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))

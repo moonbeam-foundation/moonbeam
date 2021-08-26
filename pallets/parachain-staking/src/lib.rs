@@ -1710,7 +1710,7 @@ pub mod pallet {
 					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
 				}
 			};
-			// proposed optimization is to use a BTreeMap and make the transfers at the end
+			// only pay out rewards at the end to transfer only total amount due
 			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
 			let mut increase_due_rewards = |amt: BalanceOf<T>, to: T::AccountId| {
 				if let Some(already_due) = due_rewards.get(&to) {
@@ -1741,7 +1741,6 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						increase_due_rewards(due, owner);
-						// mint(due, owner);
 					}
 				}
 			}
