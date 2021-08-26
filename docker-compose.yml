@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  node:
+    image: purestake/moonbeam:v0.11.2
+    restart: always
+    command: 
+      --base-path=/data 
+      --chain moonriver 
+      --execution wasm 
+      --wasm-execution compiled 
+      --pruning archive 
+      --state-cache-size 1 
+      -- 
+      --pruning archive 
+    volumes:
+      - node-data:/data
+    ports:
+      - "30334:30334"
+      - "30333:30333"
+      - "9933:9933"
+      - "9944:9944"
+
+volumes:
+  node-data:
+
