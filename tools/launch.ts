@@ -401,9 +401,7 @@ function start() {
   process.on("SIGINT", function () {
     process.exit(2);
   });
-  console.log("ha");
-  console.log(__dirname);
-  console.log(JSON.stringify(launchConfig));
+
   run(__dirname, launchConfig);
 }
 
