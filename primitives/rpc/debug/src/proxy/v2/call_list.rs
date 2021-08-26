@@ -366,14 +366,10 @@ impl Listener {
 		return_value: Vec<u8>,
 	) -> Option<(u32, Call)> {
 		if let Some(context) = self.context_stack.pop() {
-			let mut gas_used = context.start_gas.unwrap() - context.gas;
+			let mut gas_used = context.start_gas.unwrap_or(0) - context.gas;
 			if context.entries_index == 0 {
 				gas_used += self.transaction_cost;
 			}
-
-			// if self.entries.is_empty() {
-			// 	self.entries.push(BTreeMap::new());
-			// }
 
 			Some((
 				context.entries_index,
