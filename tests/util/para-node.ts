@@ -50,7 +50,9 @@ export type ParachainOptions = {
 
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startParachainNodes(options: ParachainOptions): Promise<{
+export async function startParachainNodes(
+  options: ParachainOptions
+): Promise<{
   p2pPort: number;
   rpcPort: number;
   wsPort: number;

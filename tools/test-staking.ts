@@ -221,11 +221,9 @@ async function test() {
   });
   const nominatorsAfter = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(
-    (
-      nominatorsAfter.toHuman() as {
-        nominations: { owner: string; amount: string }[];
-      }
-    ).nominations[0].owner.toLowerCase() === GERALD,
+    (nominatorsAfter.toHuman() as {
+      nominations: { owner: string; amount: string }[];
+    }).nominations[0].owner.toLowerCase() === GERALD,
     "nomination didnt go through"
   );
 

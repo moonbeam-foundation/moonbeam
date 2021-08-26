@@ -146,11 +146,9 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
 
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
-      (
-        nominatorsAfter.toHuman() as {
-          nominations: { owner: string; amount: string }[];
-        }
-      ).nominations[0].owner === ALITH
+      (nominatorsAfter.toHuman() as {
+        nominations: { owner: string; amount: string }[];
+      }).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
   });
 });

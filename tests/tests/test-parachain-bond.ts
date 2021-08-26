@@ -123,8 +123,7 @@ describeDevMoonbeam(
         .setParachainBondReservePercent(TWENTY_PERCENT)
         .signAndSend(genesisAccount);
       await context.createBlock();
-      const parachainBondInfo =
-        await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+      const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
       expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
       expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
     });

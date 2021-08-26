@@ -77,11 +77,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
 
     expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-        ).toHuman() as any
-      ).total_reward
+      ((
+        await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
+      ).toHuman() as any).total_reward
     ).to.equal("3.0000 MUNIT");
     let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
     expect(isInitialized.toHuman()).to.be.true;
@@ -132,11 +130,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
 
     expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-        ).toHuman() as any
-      ).claimed_reward
+      ((
+        await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
+      ).toHuman() as any).claimed_reward
     ).to.equal(claimed);
 
     // check balances
@@ -423,11 +419,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await Promise.all(
       largInput.map(async (input) => {
         expect(
-          (
-            (
-              await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
-            ).toHuman() as any
-          ).total_reward
+          ((
+            await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
+          ).toHuman() as any).total_reward
         ).to.equal(rewardPerContributor);
       })
     );
@@ -509,11 +503,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await Promise.all(
       largInput.map(async (input) => {
         expect(
-          (
-            (
-              await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
-            ).toHuman() as any
-          ).total_reward
+          ((
+            await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
+          ).toHuman() as any).total_reward
         ).to.equal(rewardPerContributor);
       })
     );
@@ -694,13 +686,11 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // relayAccount should be in the unassociated contributions
     expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
-            relayAccount.addressRaw
-          )
-        ).toHuman() as any
-      ).total_reward
+      ((
+        await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+          relayAccount.addressRaw
+        )
+      ).toHuman() as any).total_reward
     ).to.equal("1.5000 MUNIT");
 
     // toAssociateAccount should not be in accounts payable
@@ -756,13 +746,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // Claimed amount should match
     expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(
-            toAssociateAccount.address
-          )
-        ).toHuman() as any
-      ).claimed_reward
+      ((
+        await context.polkadotApi.query.crowdloanRewards.accountsPayable(toAssociateAccount.address)
+      ).toHuman() as any).claimed_reward
     ).to.equal(claimed);
   });
 });
@@ -828,11 +814,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // Claimed amount should match
     expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-        ).toHuman() as any
-      ).claimed_reward
+      ((
+        await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
+      ).toHuman() as any).claimed_reward
     ).to.equal(claimed);
 
     // Let's update the reward address
