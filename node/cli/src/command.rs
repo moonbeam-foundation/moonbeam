@@ -326,8 +326,7 @@ pub fn run() -> Result<()> {
 				&cli.run,
 			)?;
 			let output_buf = if chain_spec.is_moonbeam() {
-				let block: service::moonbeam_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
+				let block: service::moonbeam_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header
@@ -336,8 +335,7 @@ pub fn run() -> Result<()> {
 				};
 				output_buf
 			} else if chain_spec.is_moonriver() {
-				let block: service::moonriver_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
+				let block: service::moonriver_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header
@@ -346,8 +344,7 @@ pub fn run() -> Result<()> {
 				};
 				output_buf
 			} else {
-				let block: service::moonbase_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
+				let block: service::moonbase_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header
