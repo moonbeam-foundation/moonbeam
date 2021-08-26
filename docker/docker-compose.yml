@@ -2,11 +2,11 @@ version: "3"
 
 services:
   node:
-    image: purestake/moonbeam:v0.11.2
-    restart: always
+    image: "purestake/moonbeam:${DOCKERVERSION}"
+    restart: unless-stopped
     command: 
       --base-path=/data 
-      --chain moonriver 
+      --chain ${CHAINNAME} 
       --execution wasm 
       --wasm-execution compiled 
       --pruning archive 
