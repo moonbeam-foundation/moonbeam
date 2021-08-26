@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
+import { Event } from "@polkadot/types/interfaces";
 import {
   ALITH_PRIV_KEY,
   DOROTHY,
@@ -49,6 +50,46 @@ describeDevMoonbeam("Proxing governance", (context) => {
     });
     await context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall).signAndSend(ethan);
     await context.createBlock();
+
+    // verify events
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    const allRecords = await context.polkadotApi.query.system.events.at(
+      signedBlock.block.header.hash
+    );
+
+    // map between the extrinsics and events
+    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
+      // filter the specific events based on the phase and then the
+      // index of our extrinsic in the block
+      console.log(method, section);
+      const events: Event[] = allRecords
+        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+        .map(({ event }) => {
+          console.log(event.toHuman());
+          return event;
+        });
+
+      switch (index) {
+        case 0:
+        case 1:
+        case 2:
+          expect(
+            events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
+          ).to.be.true;
+          break;
+        // Fourth extrinsic: proxy.proxy
+        case 3:
+          expect(section === "proxy" && method === "proxy").to.be.true;
+          expect(events.length === 3);
+          expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[0])).to.be.true;
+          expect(Object.keys(events[0].toHuman().data[0])[0] === "Ok").to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[1])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[2])).to.be.true;
+          break;
+        default:
+          throw new Error(`Unexpected extrinsic`);
+      }
+    });
 
     // Verify that dorothy tokens are used
     let dorothyAccountData = await context.polkadotApi.query.system.account(DOROTHY);
