@@ -349,7 +349,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					let mut round = parachain_staking::Pallet::<Self>::round();
 					if round.should_update(block_number) {
 						// get top collator candidates for expected selection to occur
-						let top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates(round.current);
+						let top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates();
 						top_candidates.contains(&author)
 					} else {
 						AuthorInherent::can_author(&author, &slot)
