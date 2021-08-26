@@ -38,8 +38,7 @@
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
     "test-single": "mocha -r ts-node/register 'tests/test-stake.ts'",
     "current-test": "mocha -r ts-node/register",
-    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
-    "test-trace": "TS_NODE_TRANSPILE_ONLY=true mocha --parallel -r ts-node/register 'tests/**/test-trace*.ts'"
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "author": "",
   "license": "ISC",
