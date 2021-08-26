@@ -192,6 +192,13 @@ pub mod pallet {
 		pub fn is_leaving(&self) -> bool {
 			matches!(self.state, CollatorStatus::Leaving(_))
 		}
+		pub fn can_leave(&self, now: RoundIndex) -> bool {
+			if let CollatorStatus::Leaving(when) = self.state {
+				now <= when
+			} else {
+				false
+			}
+		}
 		pub fn bond_more(&mut self, more: B) {
 			self.bond += more;
 			self.total_counted += more;
@@ -1088,9 +1095,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		pub fn set_staking_expectations(
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
@@ -1111,8 +1118,8 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
-		/// Set the annual inflation rate to derive per-round inflation
 		#[pallet::weight(<T as Config>::WeightInfo::set_inflation())]
+		/// Set the annual inflation rate to derive per-round inflation
 		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
@@ -1134,8 +1141,8 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
-		/// Set the account that will hold funds set aside for parachain bond
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
+		/// Set the account that will hold funds set aside for parachain bond
 		pub fn set_parachain_bond_account(
 			origin: OriginFor<T>,
 			new: T::AccountId,
@@ -1153,8 +1160,8 @@ pub mod pallet {
 			Self::deposit_event(Event::ParachainBondAccountSet(old, new));
 			Ok(().into())
 		}
-		/// Set the percent of inflation set aside for parachain bond
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
+		/// Set the percent of inflation set aside for parachain bond
 		pub fn set_parachain_bond_reserve_percent(
 			origin: OriginFor<T>,
 			new: Percent,
@@ -1231,8 +1238,8 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
-		/// Join the set of collator candidates
 		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
+		/// Join the set of collator candidates
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
@@ -1267,11 +1274,10 @@ pub mod pallet {
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
-		/// Request to leave the set of candidates. If successful, the account is immediately
-		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
-		/// executed with a delay of `T::LeaveCandidates` rounds.
 		#[pallet::weight(<T as Config>::WeightInfo::leave_candidates(*candidate_count))]
-		pub fn leave_candidates(
+		/// Request to leave the set of candidates. If successful, the account is immediately
+		/// removed from the candidate pool to prevent selection as a collator.
+		pub fn schedule_leave_candidates(
 			origin: OriginFor<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -1293,8 +1299,69 @@ pub mod pallet {
 			Self::deposit_event(Event::CollatorScheduledExit(now, collator, when));
 			Ok(().into())
 		}
-		/// Temporarily leave the set of collator candidates without unbonding
+		#[pallet::weight(0)]
+		/// Execute leave candidates request
+		pub fn execute_leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			// TODO: should we let anyone call this with argument `collator: AccountId`
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.is_leaving(), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateNotLeaving
+			let now = <Round<T>>::get().current;
+			ensure!(state.can_leave(now), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateCannotLeaveYet
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
+				T::Currency::unreserve(&bond.owner, bond.amount);
+				// remove nomination from nominator state
+				let mut nominator = NominatorState2::<T>::get(&bond.owner).expect(
+					"Collator state and nominator state are consistent. 
+						Collator state has a record of this nomination. Therefore, 
+						Nominator state also has a record. qed.",
+				);
+				if let Some(remaining) = nominator.rm_nomination(collator.clone()) {
+					if remaining.is_zero() {
+						<NominatorState2<T>>::remove(&bond.owner);
+					} else {
+						<NominatorState2<T>>::insert(&bond.owner, nominator);
+					}
+				}
+			};
+			// return all top nominations
+			for bond in state.top_nominators {
+				return_stake(bond);
+			}
+			// return all bottom nominations
+			for bond in state.bottom_nominators {
+				return_stake(bond);
+			}
+			// return stake to collator
+			T::Currency::unreserve(&state.id, state.bond);
+			<CollatorState2<T>>::remove(&collator);
+			let new_total_staked = <Total<T>>::get().saturating_sub(state.total_backing);
+			<Total<T>>::put(new_total_staked);
+			Self::deposit_event(Event::CollatorLeft(
+				collator,
+				state.total_backing,
+				new_total_staked,
+			));
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		/// Cancel open request to leave candidates
+		pub fn cancel_leave_candidates(
+			origin: OriginFor<T>,
+			candidate_count: u32,
+		) -> DispatchResultWithPostInfo {
+			// TODO: check that state.leave(when) s.t. when >= now for round
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.is_leaving(), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateNotLeaving
+			let now = <Round<T>>::get().current;
+			ensure!(state.can_leave(now), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateCannotLeaveYet
+																	// TODO: add back to CandidatePool and make is_active
+																	// TODO: emit CandidateCanceledExit
+			Ok(().into())
+		}
 		#[pallet::weight(<T as Config>::WeightInfo::go_offline())]
+		/// Temporarily leave the set of collator candidates without unbonding
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -1311,8 +1378,8 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		/// Rejoin the set of collator candidates if previously had called `go_offline`
 		#[pallet::weight(<T as Config>::WeightInfo::go_online())]
+		/// Rejoin the set of collator candidates if previously had called `go_offline`
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -1335,8 +1402,8 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		/// Bond more for collator candidates
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		/// Bond more for collator candidates
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
@@ -1357,8 +1424,8 @@ pub mod pallet {
 			Self::deposit_event(Event::CollatorBondedMore(collator, before, after));
 			Ok(().into())
 		}
-		/// Bond less for collator candidates
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_less())]
+		/// Bond less for collator candidates
 		pub fn candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
@@ -1382,14 +1449,14 @@ pub mod pallet {
 			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
 			Ok(().into())
 		}
-		/// If caller is not a nominator, then join the set of nominators
-		/// If caller is a nominator, then makes nomination to change their nomination state
 		#[pallet::weight(
 			<T as Config>::WeightInfo::nominate(
 				*collator_nominator_count,
 				*nomination_count
 			)
 		)]
+		/// If caller is not a nominator, then join the set of nominators
+		/// If caller is a nominator, then makes nomination to change their nomination state
 		pub fn nominate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1440,6 +1507,7 @@ pub mod pallet {
 			T::Currency::reserve(&acc, amount)?;
 			if let NominatorAdded::AddedToTop { new_total } = nominator_position {
 				if state.is_active() {
+					// collator in candidate pool
 					Self::update_active(collator.clone(), new_total);
 				}
 			}
@@ -1450,10 +1518,10 @@ pub mod pallet {
 			Self::deposit_event(Event::Nomination(acc, amount, collator, nominator_position));
 			Ok(().into())
 		}
-		/// Request to leave the set of nominators. If successful, the nominator is scheduled
-		/// to exit
 		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nomination_count))]
-		pub fn leave_nominators(
+		/// Request to leave the set of nominators. If successful, the nominator is scheduled
+		/// to be granted the right to exit
+		pub fn schedule_leave_nominators(
 			origin: OriginFor<T>,
 			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -1467,15 +1535,30 @@ pub mod pallet {
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
 			state.leave(when);
+			// TODO: remove both of these fields
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
 			<NominatorState2<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
+		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nomination_count))]
+		pub fn execute_leave_nominators(
+			origin: OriginFor<T>,
+			nomination_count: u32,
+		) -> DispatchResultWithPostInfo {
+			Ok(().into())
+		}
+		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nomination_count))]
+		pub fn cancel_leave_nominators(
+			origin: OriginFor<T>,
+			nomination_count: u32,
+		) -> DispatchResultWithPostInfo {
+			Ok(().into())
+		} // TODO: same 3 runtime dispatchables for revoke nomination
+		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		/// Request to revoke an existing nomination. If successful, the nomination is scheduled
 		/// to exit
-		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1517,12 +1600,6 @@ pub mod pallet {
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			} else {
-				// schedule to revoke this nomination
-				// exits.schedule_nomination_revocation::<T>(
-				// 	nominator.clone(),
-				// 	collator.clone(),
-				// 	when,
-				// )?;
 				// TODO: need something on local nominator state for exit one nomination
 				state.scheduled_revocations_total += amount;
 				state.scheduled_revocations_count += 1u32;
@@ -1533,8 +1610,8 @@ pub mod pallet {
 			}
 			Ok(().into())
 		}
-		/// Bond more for nominators with respect to a specific collator candidate
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_more())]
+		/// Bond more for nominators with respect to a specific collator candidate
 		pub fn nominator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1570,8 +1647,8 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		/// Bond less for nominators with respect to a specific nominator candidate
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_less())]
+		/// Bond less for nominators with respect to a specific nominator candidate
 		pub fn nominator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
