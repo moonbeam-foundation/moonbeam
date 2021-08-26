@@ -1865,6 +1865,8 @@ pub mod pallet {
 			exit_queue.nominator_schedule = remaining_exits;
 			<ExitQueue2<T>>::put(exit_queue);
 		}
+		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
+		/// a vec of their AccountIds (in the order of selection)
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
