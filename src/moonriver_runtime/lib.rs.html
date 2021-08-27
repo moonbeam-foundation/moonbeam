@@ -916,6 +916,14 @@
 <span id="916">916</span>
 <span id="917">917</span>
 <span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -979,7 +987,7 @@
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentityLookup</span>},
-	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
+	<span class="ident">transaction_validity</span>::{<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
 	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
@@ -1116,7 +1124,7 @@
 	<span class="kw">type</span> <span class="ident">OnNewAccount</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">OnKilledAccount</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">DbWeight</span> <span class="op">=</span> <span class="ident">RocksDbWeight</span>;
-	<span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">SystemWeightInfo</span> <span class="op">=</span> ();
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.</span>
 	<span class="kw">type</span> <span class="ident">SS58Prefix</span> <span class="op">=</span> <span class="ident">SS58Prefix</span>;
@@ -1800,7 +1808,15 @@
 			<span class="ident">tx</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
 			<span class="ident">block_hash</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionValidity</span> {
-			<span class="ident">Executive::validate_transaction</span>(<span class="ident">source</span>, <span class="ident">tx</span>, <span class="ident">block_hash</span>)
+			<span class="comment">// Filtered calls should not enter the tx pool as they&#39;ll fail if inserted.</span>
+			<span class="kw">let</span> <span class="ident">allowed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span>
+				<span class="ident">::BaseCallFilter::filter</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>.<span class="ident">function</span>);
+
+			<span class="kw">if</span> <span class="ident">allowed</span> {
+				<span class="ident">Executive::validate_transaction</span>(<span class="ident">source</span>, <span class="ident">tx</span>, <span class="ident">block_hash</span>)
+			} <span class="kw">else</span> {
+				<span class="ident">InvalidTransaction::Call</span>.<span class="ident">into</span>()
+			}
 		}
 	}
 }

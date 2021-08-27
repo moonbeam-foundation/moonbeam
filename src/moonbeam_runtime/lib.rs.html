@@ -1131,7 +1131,7 @@
 	<span class="kw">type</span> <span class="ident">OnNewAccount</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">OnKilledAccount</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">DbWeight</span> <span class="op">=</span> <span class="ident">RocksDbWeight</span>;
-	<span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">BaseFilter</span>;
+	<span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">SystemWeightInfo</span> <span class="op">=</span> ();
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.</span>
 	<span class="kw">type</span> <span class="ident">SS58Prefix</span> <span class="op">=</span> <span class="ident">SS58Prefix</span>;
@@ -1705,7 +1705,7 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_maintenance_mode::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">NormalCallFilter</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">NormalCallFilter</span> <span class="op">=</span> <span class="ident">BaseFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceCallFilter</span> <span class="op">=</span> <span class="ident">PhaseThreeFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceOrigin</span> <span class="op">=</span>
 		<span class="ident">pallet_collective::EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
