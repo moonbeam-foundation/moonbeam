@@ -55,13 +55,13 @@ use sc_service::TaskManager;
 // TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
 // Is it only for tests? Should we use it here?
 use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool_api::TransactionPool;
 use sp_api::{HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use sc_transaction_pool_api::TransactionPool;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
 use tokio::sync::Semaphore;

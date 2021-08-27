@@ -683,18 +683,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,

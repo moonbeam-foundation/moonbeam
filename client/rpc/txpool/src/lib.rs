@@ -23,12 +23,12 @@ pub use moonbeam_rpc_core_txpool::{
 // TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
 // Is it only for tests? Should we use it here?
 use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool_api::InPoolTransaction;
 use serde::Serialize;
 use sha3::{Digest, Keccak256};
 use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_runtime::traits::Block as BlockT;
-use sc_transaction_pool_api::InPoolTransaction;
 use std::collections::HashMap;
 use std::{marker::PhantomData, sync::Arc};
 
