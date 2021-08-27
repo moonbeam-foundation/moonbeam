@@ -2495,7 +2495,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(25, 6, 5, 130),
 			];
 			expected.append(&mut new2);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 48);
 			assert_ok!(Stake::set_parachain_bond_reserve_percent(
 				Origin::root(),
@@ -2523,7 +2523,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(30, 7, 5, 130),
 			];
 			expected.append(&mut new3);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 77);
 			set_author(7, 1, 100);
 			roll_to(35);
@@ -3164,7 +3164,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(15, 4, 5, 140),
 			];
 			expected.append(&mut new);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			// ~ set block author as 1 for all blocks this round
 			set_author(3, 1, 100);
 			set_author(4, 1, 100);
@@ -3204,7 +3204,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(25, 6, 5, 130),
 			];
 			expected.append(&mut new2);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			// 6 won't be paid for this round because they left already
 			set_author(6, 1, 100);
 			roll_to(30);
@@ -3222,7 +3222,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(30, 7, 5, 130),
 			];
 			expected.append(&mut new3);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			set_author(7, 1, 100);
 			roll_to(35);
 			// no more paying 6
@@ -3272,7 +3272,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(45, 10, 5, 140),
 			];
 			expected.append(&mut new6);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			roll_to(50);
 			// new nomination is rewarded for first time, 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
@@ -3289,6 +3289,47 @@ fn payouts_follow_nomination_changes() {
 			];
 			expected.append(&mut new7);
 			assert_eq!(events(), expected);
+		});
+}
+
+#[test]
+fn nominations_merged_before_reward_payout() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 120)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_nominations(vec![(5, 1, 30), (5, 2, 30), (5, 3, 30), (5, 4, 30)])
+		.build()
+		.execute_with(|| {
+			roll_to(8);
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+			set_author(1, 3, 1);
+			set_author(1, 4, 1);
+			roll_to(16);
+			let expected_events = vec![
+				Event::CollatorChosen(2, 4, 50),
+				Event::CollatorChosen(2, 3, 50),
+				Event::CollatorChosen(2, 2, 50),
+				Event::CollatorChosen(2, 1, 50),
+				Event::NewRound(5, 2, 4, 200),
+				Event::Rewarded(3, 1),
+				Event::Rewarded(4, 1),
+				Event::Rewarded(1, 1),
+				Event::Rewarded(2, 1),
+				// ALL REWARDS FOR 5 are merged into one payment + event
+				Event::Rewarded(5, 4),
+				Event::CollatorChosen(3, 4, 50),
+				Event::CollatorChosen(3, 3, 50),
+				Event::CollatorChosen(3, 2, 50),
+				Event::CollatorChosen(3, 1, 50),
+				Event::NewRound(10, 3, 4, 200),
+				Event::CollatorChosen(4, 4, 50),
+				Event::CollatorChosen(4, 3, 50),
+				Event::CollatorChosen(4, 2, 50),
+				Event::CollatorChosen(4, 1, 50),
+				Event::NewRound(15, 4, 4, 200),
+			];
+			assert_eq!(events(), expected_events);
 		});
 }
 

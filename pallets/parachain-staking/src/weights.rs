@@ -176,18 +176,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
+	// If this takes up too much block space, run again on code
+	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
+	// 15x lower per nominator
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Recent benchmarks after optimization:
-			// 	// Standard Error: 238_000
-			// 	.saturating_add((62_607_000 as Weight).saturating_mul(x as Weight))
-			// 	// Standard Error: 18_000
-			// 	.saturating_add((1_114_000 as Weight).saturating_mul(y as Weight))
-			// 	.saturating_add(T::DbWeight::get().reads(27 as Weight))
-			// 	.saturating_add(T::DbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
-			// 	.saturating_add(T::DbWeight::get().writes(16 as Weight))
-			// 	.saturating_add(T::DbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
-			// + last 3 lines of bench below
 			// Standard Error: 299_000
 			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
 			// Standard Error: 27_000
@@ -304,15 +297,11 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
+	// If this takes up too much block space, run again on code
+	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
+	// 15x lower per nominator
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Recent benchmarks
-			// // Standard Error: 238_000
-			// .saturating_add((62_607_000 as Weight).saturating_mul(x as Weight))
-			// // Standard Error: 18_000
-			// .saturating_add((1_114_000 as Weight).saturating_mul(y as Weight))
-			// .saturating_add(RocksDbWeight::get().reads(27 as Weight))
-			// + last 3 lines
 			// Standard Error: 299_000
 			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
 			// Standard Error: 27_000
