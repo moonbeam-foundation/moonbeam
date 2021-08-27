@@ -350,7 +350,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					if round.should_update(block_number) {
 						// get top collator candidates for expected selection to occur
 						let top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates();
-						let author_account_id = author_mapping::Pallet::<Self>::lookup_account(&author).expect("expect to have registered author mapping");
+						let author_account_id = pallet_author_mapping::Pallet::<Self>::lookup_account(&author).expect("expect to have registered author mapping");
 						top_candidates.contains(&author_account_id)
 					} else {
 						AuthorInherent::can_author(&author, &slot)
