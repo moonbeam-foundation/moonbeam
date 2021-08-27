@@ -578,7 +578,7 @@ parameter_types! {
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per collator
+	/// Maximum 100 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 100;
 	/// Maximum 100 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 100;
