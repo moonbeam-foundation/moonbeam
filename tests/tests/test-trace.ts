@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
@@ -244,15 +244,11 @@ describeDevMoonbeam("Trace", (context) => {
       1944944bca22b8ff367e4094be21f7d85a3",
     ]);
 
-    console.log(data);
-
     await context.createBlock();
     let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
       data.result,
       { tracer: BS_TRACER.body },
     ]);
-
-    console.log({ trace });
 
     expect(trace.result.length).to.be.eq(1);
     expect(trace.result[0].error).to.be.equal("out of gas");
