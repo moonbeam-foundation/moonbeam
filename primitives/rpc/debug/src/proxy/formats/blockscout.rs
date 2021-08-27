@@ -14,7 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod formats;
-pub mod types;
-pub mod v1;
-pub mod v2;
+use crate::proxy::v2::call_list::Listener;
+use crate::single::TransactionTrace;
+
+pub struct Response;
+
+#[cfg(feature = "std")]
+impl super::TraceResponseBuilder for Response {
+	type Listener = Listener;
+	type Response = TransactionTrace;
+
+	fn build(listener: Listener) -> Option<TransactionTrace> {
+		if let Some(entry) = listener.entries.last() {
+			return Some(TransactionTrace::CallList(
+				entry.into_iter().map(|(_, value)| value.clone()).collect(),
+			));
+		}
+		None
+	}
+}
