@@ -579,7 +579,7 @@ parameter_types! {
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 10;
+	pub const MaxNominatorsPerCollator: u32 = 100;
 	/// Maximum 100 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
