@@ -170,7 +170,7 @@ pub mod pallet {
 	}
 
 	impl<
-			A: Ord + Clone,
+			A: Ord + Clone + frame_support::dispatch::fmt::Debug,
 			B: AtLeast32BitUnsigned
 				+ Ord
 				+ Copy
@@ -382,40 +382,47 @@ pub mod pallet {
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
 			let mut in_top = false;
 			let mut new_top: Option<Bond<A, B>> = None;
-			// TODO: change using iter_map
-			for Bond { owner, mut amount } in self.top_nominators {
-				if owner == nominator {
-					println!("BEFORE: {:?}", amount);
-					amount -= less; // is this not written to top nominators??
-					println!("AFTER: {:?}", amount);
-					// if there is at least 1 nominator in bottom nominators, compare it to check
-					// if it should be swapped with lowest top nomination and put in top
-					if let Some(top_bottom) = self.bottom_nominators.pop() {
-						if top_bottom.amount > amount {
-							new_top = Some(top_bottom);
-						} else {
-							// reset self.bottom_nominators
-							self.bottom_nominators.push(top_bottom);
+			self.top_nominators = self
+				.top_nominators
+				.clone()
+				.into_iter()
+				.filter_map(|Bond { owner, amount }| {
+					if owner == nominator {
+						let new_amount = amount - less;
+						// if there is at least 1 nominator in bottom nominators, compare it to check
+						// if it should be swapped with lowest top nomination and put in top
+						if let Some(top_bottom) = self.bottom_nominators.pop() {
+							if top_bottom.amount > new_amount {
+								new_top = Some(top_bottom);
+							} else {
+								// reset self.bottom_nominators
+								self.bottom_nominators.push(top_bottom);
+							}
 						}
+						in_top = true;
+						Some(Bond {
+							owner,
+							amount: new_amount,
+						})
 					} else {
-						self.total_counted -= less;
-						self.total_backing -= less;
+						Some(Bond { owner, amount })
 					}
-					in_top = true;
-					break;
-				}
-			}
+				})
+				.collect::<Vec<Bond<A, B>>>();
 			if in_top {
 				self.sort_top_nominators();
 				if let Some(new) = new_top {
 					let lowest_top = self.top_nominators.pop().expect("just updated => exists");
-					self.total_counted -= lowest_top.amount;
+					self.total_counted -= lowest_top.amount + less;
 					self.total_counted += new.amount;
 					self.total_backing -= less;
 					self.add_top_nominator(new);
 					self.add_bottom_nominator(lowest_top);
 					return false;
 				} else {
+					// no existing bottom nominators so update both counters the same magnitude
+					self.total_counted -= less;
+					self.total_backing -= less;
 					return true;
 				}
 			}

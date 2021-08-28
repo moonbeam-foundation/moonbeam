@@ -2344,6 +2344,7 @@ fn cannot_nominator_bond_less_below_min_nomination() {
 
 #[test]
 /// There once existed a bug in `parachain-staking` which caused this test to fail
+/// TODO: all other paths for this function
 fn nominator_bond_less_does_not_delete_bottom_nominations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
@@ -2357,31 +2358,51 @@ fn nominator_bond_less_does_not_delete_bottom_nominations() {
 		])
 		.build()
 		.execute_with(|| {
-			// set up: fill up top nominations and bottom nominations
-			// bond less for a top nomination
 			let pre_call_collator_state =
 				Stake::collator_state2(&1).expect("nominated by all so exists");
-			assert_ok!(Stake::nominator_bond_less(Origin::signed(5), 1, 1));
-			//assert!(false);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(6), 1, 4));
 			let post_call_collator_state =
 				Stake::collator_state2(&1).expect("nominated by all so exists");
+			let mut equal = true;
+			for Bond { owner, amount } in pre_call_collator_state.bottom_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.bottom_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							equal = false;
+							break;
+						}
+					}
+				}
+			}
+			assert!(equal);
+			let mut not_equal = false;
+			for Bond { owner, amount } in pre_call_collator_state.top_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.top_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							not_equal = true;
+							break;
+						}
+					}
+				}
+			}
+			assert!(not_equal);
 			assert_eq!(
-				pre_call_collator_state.bottom_nominators,
-				post_call_collator_state.bottom_nominators
+				pre_call_collator_state.total_backing - 4,
+				post_call_collator_state.total_backing
 			);
-			// this should fail
 			assert_eq!(
-				pre_call_collator_state.top_nominators,
-				post_call_collator_state.top_nominators
+				pre_call_collator_state.total_counted - 4,
+				post_call_collator_state.total_counted
 			);
-			// assert_eq!(
-			// 	pre_call_collator_state.total_backing,
-			// 	post_call_collator_state.total_backing + 1
-			// );
-			// assert_eq!(
-			// 	pre_call_collator_state.total_counted,
-			// 	post_call_collator_state.total_counted + 1
-			// );
 		});
 }
 
