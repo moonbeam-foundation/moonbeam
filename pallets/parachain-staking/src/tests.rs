@@ -2343,8 +2343,68 @@ fn cannot_nominator_bond_less_below_min_nomination() {
 }
 
 #[test]
-/// There once existed a bug in `parachain-staking` which caused this test to fail
-/// TODO: all other paths for this function
+fn nominator_bond_less_updates_just_bottom_nominations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 10),
+			(3, 1, 11),
+			(4, 1, 12),
+			(5, 1, 14),
+			(6, 1, 15),
+		])
+		.build()
+		.execute_with(|| {
+			let pre_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 2));
+			let post_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			let mut not_equal = false;
+			for Bond { owner, amount } in pre_call_collator_state.bottom_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.bottom_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							not_equal = true;
+							break;
+						}
+					}
+				}
+			}
+			assert!(not_equal);
+			let mut equal = true;
+			for Bond { owner, amount } in pre_call_collator_state.top_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.top_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							equal = false;
+							break;
+						}
+					}
+				}
+			}
+			assert!(equal);
+			assert_eq!(
+				pre_call_collator_state.total_backing - 2,
+				post_call_collator_state.total_backing
+			);
+			assert_eq!(
+				pre_call_collator_state.total_counted,
+				post_call_collator_state.total_counted
+			);
+		});
+}
+
+#[test]
 fn nominator_bond_less_does_not_delete_bottom_nominations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])

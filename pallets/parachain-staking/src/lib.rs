@@ -382,33 +382,23 @@ pub mod pallet {
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
 			let mut in_top = false;
 			let mut new_top: Option<Bond<A, B>> = None;
-			self.top_nominators = self
-				.top_nominators
-				.clone()
-				.into_iter()
-				.filter_map(|Bond { owner, amount }| {
-					if owner == nominator {
-						let new_amount = amount - less;
-						// if there is at least 1 nominator in bottom nominators, compare it to check
-						// if it should be swapped with lowest top nomination and put in top
-						if let Some(top_bottom) = self.bottom_nominators.pop() {
-							if top_bottom.amount > new_amount {
-								new_top = Some(top_bottom);
-							} else {
-								// reset self.bottom_nominators
-								self.bottom_nominators.push(top_bottom);
-							}
+			for x in &mut self.top_nominators {
+				if x.owner == nominator {
+					x.amount -= less;
+					// if there is at least 1 nominator in bottom nominators, compare it to check
+					// if it should be swapped with lowest top nomination and put in top
+					if let Some(top_bottom) = self.bottom_nominators.pop() {
+						if top_bottom.amount > x.amount {
+							new_top = Some(top_bottom);
+						} else {
+							// reset self.bottom_nominators
+							self.bottom_nominators.push(top_bottom);
 						}
-						in_top = true;
-						Some(Bond {
-							owner,
-							amount: new_amount,
-						})
-					} else {
-						Some(Bond { owner, amount })
 					}
-				})
-				.collect::<Vec<Bond<A, B>>>();
+					in_top = true;
+					break;
+				}
+			}
 			if in_top {
 				self.sort_top_nominators();
 				if let Some(new) = new_top {
