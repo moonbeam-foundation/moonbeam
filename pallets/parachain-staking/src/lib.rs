@@ -458,7 +458,7 @@ pub mod pallet {
 		Leaving(RoundIndex),
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
 		/// All current nominations
@@ -857,7 +857,7 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			// 1. for collator state, check if there is a nominator not in either set
+			// 1. for collator state, check if there is a nominator not in top or bottom
 			for (account, state) in <CollatorState2<T>>::iter() {
 				if state.top_nominators.len() + state.bottom_nominators.len()
 					== state.nominators.0.len()
@@ -878,9 +878,13 @@ pub mod pallet {
 					}
 					for nominator in state.nominators.0 {
 						if !nominator_set.contains(&nominator) {
-							// these accounts were removed without being unreserved so we push
-							// the (collator_id, nominator_id)
-							<AccountsDueUnreservedBalance<T>>::append((account.clone(), nominator));
+							// these accounts were removed without being unreserved so we track it
+							// with this map which will hold the due amount
+							<AccountsDueUnreservedBalance<T>>::insert(
+								account.clone(),
+								nominator,
+								BalanceOf::<T>::zero(),
+							);
 						}
 					}
 					let new_state = Collator2 {
@@ -896,8 +900,17 @@ pub mod pallet {
 					);
 				}
 			}
-			// 2. for nominator state, check if is a nomination that isn't in the collator state
-
+			// 2. for nominator state, check if there are nominations that were inadvertently bumped
+			for (account, mut state) in <NominatorState2<T>>::iter() {
+				for Bond { owner, amount } in state.nominations.0.clone() {
+					if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
+						<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
+						if state.rm_nomination(owner).is_some() {
+							<NominatorState2<T>>::insert(&account, state.clone());
+						}
+					}
+				}
+			}
 			0u64.into() // TODO: update to actual weight
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
@@ -935,8 +948,15 @@ pub mod pallet {
 	#[pallet::getter(fn accounts_due_unreserved_balance)]
 	/// Temporary storage item to track accounts due unreserved balance by democracy
 	/// - each item is a tuple (collator_id, nominator_id)
-	type AccountsDueUnreservedBalance<T: Config> =
-		StorageValue<_, Vec<(T::AccountId, T::AccountId)>, ValueQuery>;
+	type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		Twox64Concat,
+		T::AccountId,
+		BalanceOf<T>,
+		OptionQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
