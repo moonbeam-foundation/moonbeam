@@ -402,7 +402,10 @@ pub mod pallet {
 			if in_top {
 				self.sort_top_nominators();
 				if let Some(new) = new_top {
-					let lowest_top = self.top_nominators.pop().expect("just updated => exists");
+					let lowest_top = self
+						.top_nominators
+						.pop()
+						.expect("must have >1 item to update, assign in_top = true");
 					self.total_counted -= lowest_top.amount + less;
 					self.total_counted += new.amount;
 					self.total_backing -= less;
@@ -853,6 +856,50 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			// 1. for collator state, check if there is a nominator not in either set
+			for (account, state) in <CollatorState2<T>>::iter() {
+				if state.top_nominators.len() + state.bottom_nominators.len()
+					== state.nominators.0.len()
+				{
+					log::warn!("COLLATOR STATE SEEMS CONSISTENT FOR {:?}", account);
+					continue;
+				} else if state.top_nominators.len() + state.bottom_nominators.len()
+					< state.nominators.0.len()
+				{
+					log::warn!("CORRECTING INCONSISTENT COLLATOR STATE FOR {:?}", account);
+					// remove all accounts not in self.top_nominators && self.bottom_nominators
+					let mut nominator_set = Vec::new();
+					for Bond { owner, .. } in state.top_nominators.clone() {
+						nominator_set.push(owner);
+					}
+					for Bond { owner, .. } in state.bottom_nominators.clone() {
+						nominator_set.push(owner);
+					}
+					for nominator in state.nominators.0 {
+						if !nominator_set.contains(&nominator) {
+							// these accounts were removed without being unreserved so we push
+							// the (collator_id, nominator_id)
+							<AccountsDueUnreservedBalance<T>>::append((account.clone(), nominator));
+						}
+					}
+					let new_state = Collator2 {
+						nominators: OrderedSet::from(nominator_set),
+						..state
+					};
+					<CollatorState2<T>>::insert(&account, new_state);
+					log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
+				} else {
+					log::warn!(
+						"NEW INCONSISTENCY FOUND WHILE TRYING TO FIX COLLATOR STATE FOR {:?}",
+						account
+					);
+				}
+			}
+			// 2. for nominator state, check if is a nomination that isn't in the collator state
+
+			0u64.into() // TODO: update to actual weight
+		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -883,6 +930,13 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn accounts_due_unreserved_balance)]
+	/// Temporary storage item to track accounts due unreserved balance by democracy
+	/// - each item is a tuple (collator_id, nominator_id)
+	type AccountsDueUnreservedBalance<T: Config> =
+		StorageValue<_, Vec<(T::AccountId, T::AccountId)>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
