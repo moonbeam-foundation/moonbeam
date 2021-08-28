@@ -2342,6 +2342,49 @@ fn cannot_nominator_bond_less_below_min_nomination() {
 		});
 }
 
+#[test]
+/// There once existed a bug in `parachain-staking` which caused this test to fail
+fn nominator_bond_less_does_not_delete_bottom_nominations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 10),
+			(3, 1, 11),
+			(4, 1, 12),
+			(5, 1, 14),
+			(6, 1, 15),
+		])
+		.build()
+		.execute_with(|| {
+			// set up: fill up top nominations and bottom nominations
+			// bond less for a top nomination
+			let pre_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(5), 1, 1));
+			//assert!(false);
+			let post_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			assert_eq!(
+				pre_call_collator_state.bottom_nominators,
+				post_call_collator_state.bottom_nominators
+			);
+			// this should fail
+			assert_eq!(
+				pre_call_collator_state.top_nominators,
+				post_call_collator_state.top_nominators
+			);
+			// assert_eq!(
+			// 	pre_call_collator_state.total_backing,
+			// 	post_call_collator_state.total_backing + 1
+			// );
+			// assert_eq!(
+			// 	pre_call_collator_state.total_counted,
+			// 	post_call_collator_state.total_counted + 1
+			// );
+		});
+}
+
 // ~~ PROPERTY-BASED TESTS ~~
 
 #[test]

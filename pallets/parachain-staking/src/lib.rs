@@ -171,7 +171,12 @@ pub mod pallet {
 
 	impl<
 			A: Ord + Clone,
-			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
+			B: AtLeast32BitUnsigned
+				+ Ord
+				+ Copy
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::SubAssign
+				+ frame_support::dispatch::fmt::Debug,
 		> Collator2<A, B>
 	{
 		pub fn new(id: A, bond: B) -> Self {
@@ -377,15 +382,24 @@ pub mod pallet {
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
 			let mut in_top = false;
 			let mut new_top: Option<Bond<A, B>> = None;
-			for x in &mut self.top_nominators {
-				if x.owner == nominator {
-					x.amount -= less;
-					self.total_counted -= less;
-					self.total_backing -= less;
+			// TODO: change using iter_map
+			for Bond { owner, mut amount } in self.top_nominators {
+				if owner == nominator {
+					println!("BEFORE: {:?}", amount);
+					amount -= less; // is this not written to top nominators??
+					println!("AFTER: {:?}", amount);
+					// if there is at least 1 nominator in bottom nominators, compare it to check
+					// if it should be swapped with lowest top nomination and put in top
 					if let Some(top_bottom) = self.bottom_nominators.pop() {
-						if top_bottom.amount > x.amount {
+						if top_bottom.amount > amount {
 							new_top = Some(top_bottom);
+						} else {
+							// reset self.bottom_nominators
+							self.bottom_nominators.push(top_bottom);
 						}
+					} else {
+						self.total_counted -= less;
+						self.total_backing -= less;
 					}
 					in_top = true;
 					break;
@@ -397,6 +411,7 @@ pub mod pallet {
 					let lowest_top = self.top_nominators.pop().expect("just updated => exists");
 					self.total_counted -= lowest_top.amount;
 					self.total_counted += new.amount;
+					self.total_backing -= less;
 					self.add_top_nominator(new);
 					self.add_bottom_nominator(lowest_top);
 					return false;
