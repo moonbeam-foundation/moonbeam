@@ -981,7 +981,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn accounts_due_unreserved_balance)]
 	/// Temporary storage item to track accounts due unreserved balance by democracy
-	/// - each item is a tuple (collator_id, nominator_id)
+	/// - keys are `collator_id`, `nominator_id` and value is the unreserved balance,
+	/// set to 0 if some amount due but amount not found in the migration (i.e. if nominator left)
 	pub(crate) type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
