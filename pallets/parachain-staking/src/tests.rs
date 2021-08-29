@@ -3885,5 +3885,17 @@ fn migration_corrects_corrupt_storage() {
 			);
 			// no longer a nominator
 			assert!(!Stake::is_nominator(&2));
+			// stored the due unreserved balance
+			assert_eq!(Stake::accounts_due_unreserved_balance(&1, &2).unwrap(), 19);
+			// check that the balance is not unreserved
+			assert_eq!(Balances::reserved_balance(&2), 19);
+			assert_eq!(Balances::free_balance(&2), 81);
+			// return due unreserved balance (NOTE: doesn't reset this storage item)
+			assert_ok!(Stake::hotfix_unreserve_nomination(
+				Origin::root(),
+				vec![(2, 19)]
+			));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 100);
 		});
 }

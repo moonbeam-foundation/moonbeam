@@ -862,7 +862,7 @@ pub mod pallet {
 			Perbill,
 		),
 		/// Account, Amount Unreserved by Democracy
-		UnreservedStaker(T::AccountId, BalanceOf<T>),
+		HotfixUnreservedNomination(T::AccountId, BalanceOf<T>),
 	}
 
 	// TODO(nit): remove pub and the entire function, made pub to test
@@ -872,12 +872,10 @@ pub mod pallet {
 			if state.top_nominators.len() + state.bottom_nominators.len()
 				== state.nominators.0.len()
 			{
-				log::warn!("COLLATOR STATE SEEMS CONSISTENT FOR {:?}", account);
 				continue;
 			} else if state.top_nominators.len() + state.bottom_nominators.len()
 				< state.nominators.0.len()
 			{
-				log::warn!("CORRECTING INCONSISTENT COLLATOR STATE FOR {:?}", account);
 				// remove all accounts not in self.top_nominators && self.bottom_nominators
 				let mut nominator_set = Vec::new();
 				for Bond { owner, .. } in state.top_nominators.clone() {
@@ -907,19 +905,21 @@ pub mod pallet {
 				// This message would reveal a new state inconsistency, not expected
 				log::warn!(
 					"There are more accounts in CollatorState.nominators than 
-						CollatorState.top_nominators + CollatorState.bottom_nominators for
-						CollatorState for account {:?}",
+					CollatorState.top_nominators + CollatorState.bottom_nominators for
+					account {:?}",
 					account
 				);
 			}
 		}
 		// 2. for nominator state, check if there are nominations that were inadvertently bumped
+		// -> this allows us to recover the due unreserved balances for cases of (1) that
+		// did not have the nominator state removed (it does not account for when it was removed)
 		for (account, mut state) in <NominatorState2<T>>::iter() {
 			for Bond { owner, amount } in state.nominations.0.clone() {
 				if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
 					<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
 					if state.rm_nomination(owner).is_some() {
-						if state.nominations.0.len().is_zero() {
+						if state.nominations.0.is_empty() {
 							<NominatorState2<T>>::remove(&account);
 						} else {
 							<NominatorState2<T>>::insert(&account, state.clone());
@@ -1195,14 +1195,17 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
-		pub fn unreserve_stakers(
+		pub fn hotfix_unreserve_nomination(
 			origin: OriginFor<T>,
 			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			for (due_account, due_unreserve) in stakers {
 				T::Currency::unreserve(&due_account, due_unreserve);
-				Self::deposit_event(Event::UnreservedStaker(due_account, due_unreserve));
+				Self::deposit_event(Event::HotfixUnreservedNomination(
+					due_account,
+					due_unreserve,
+				));
 			}
 			Ok(().into())
 		}
