@@ -287,7 +287,10 @@ pub mod pallet {
 			&mut self,
 			nominator: A,
 		) -> Result<(bool, B), DispatchError> {
-			ensure!(self.nominators.remove(&nominator), Error::<T>::NominatorDNE);
+			ensure!(
+				self.nominators.remove(&nominator),
+				Error::<T>::NominatorDNEInNominatorSet
+			);
 			let mut nominator_stake: Option<B> = None;
 			self.top_nominators = self
 				.top_nominators
@@ -330,8 +333,7 @@ pub mod pallet {
 				})
 				.collect();
 			// if err, no item with account exists in top || bottom
-			// TODO: make this a different error from the other error
-			let stake = nominator_stake.ok_or(Error::<T>::NominatorDNE)?;
+			let stake = nominator_stake.ok_or(Error::<T>::NominatorDNEinTopNorBottom)?;
 			self.total_backing -= stake;
 			Ok((false, stake))
 		}
@@ -766,8 +768,9 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		// Nominator Does Not Exist
 		NominatorDNE,
+		NominatorDNEinTopNorBottom,
+		NominatorDNEInNominatorSet,
 		CandidateDNE,
 		NominationDNE,
 		NominatorExists,
@@ -860,67 +863,71 @@ pub mod pallet {
 		),
 	}
 
+	fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>() -> Weight {
+		// 1. for collator state, check if there is a nominator not in top or bottom
+		for (account, state) in <CollatorState2<T>>::iter() {
+			if state.top_nominators.len() + state.bottom_nominators.len()
+				== state.nominators.0.len()
+			{
+				log::warn!("COLLATOR STATE SEEMS CONSISTENT FOR {:?}", account);
+				continue;
+			} else if state.top_nominators.len() + state.bottom_nominators.len()
+				< state.nominators.0.len()
+			{
+				log::warn!("CORRECTING INCONSISTENT COLLATOR STATE FOR {:?}", account);
+				// remove all accounts not in self.top_nominators && self.bottom_nominators
+				let mut nominator_set = Vec::new();
+				for Bond { owner, .. } in state.top_nominators.clone() {
+					nominator_set.push(owner);
+				}
+				for Bond { owner, .. } in state.bottom_nominators.clone() {
+					nominator_set.push(owner);
+				}
+				for nominator in state.nominators.0 {
+					if !nominator_set.contains(&nominator) {
+						// these accounts were removed without being unreserved so we track it
+						// with this map which will hold the due amount
+						<AccountsDueUnreservedBalance<T>>::insert(
+							account.clone(),
+							nominator,
+							BalanceOf::<T>::zero(),
+						);
+					}
+				}
+				let new_state = Collator2 {
+					nominators: OrderedSet::from(nominator_set),
+					..state
+				};
+				<CollatorState2<T>>::insert(&account, new_state);
+				log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
+			} else {
+				// This message would reveal a new state inconsistency, not expected
+				log::warn!(
+					"There are more accounts in CollatorState.nominators than 
+						CollatorState.top_nominators + CollatorState.bottom_nominators for
+						CollatorState for account {:?}",
+					account
+				);
+			}
+		}
+		// 2. for nominator state, check if there are nominations that were inadvertently bumped
+		for (account, mut state) in <NominatorState2<T>>::iter() {
+			for Bond { owner, amount } in state.nominations.0.clone() {
+				if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
+					<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
+					if state.rm_nomination(owner).is_some() {
+						<NominatorState2<T>>::insert(&account, state.clone());
+					}
+				}
+			}
+		}
+		0u64.into() // TODO: update to actual weight
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			// 1. for collator state, check if there is a nominator not in top or bottom
-			for (account, state) in <CollatorState2<T>>::iter() {
-				if state.top_nominators.len() + state.bottom_nominators.len()
-					== state.nominators.0.len()
-				{
-					log::warn!("COLLATOR STATE SEEMS CONSISTENT FOR {:?}", account);
-					continue;
-				} else if state.top_nominators.len() + state.bottom_nominators.len()
-					< state.nominators.0.len()
-				{
-					log::warn!("CORRECTING INCONSISTENT COLLATOR STATE FOR {:?}", account);
-					// remove all accounts not in self.top_nominators && self.bottom_nominators
-					let mut nominator_set = Vec::new();
-					for Bond { owner, .. } in state.top_nominators.clone() {
-						nominator_set.push(owner);
-					}
-					for Bond { owner, .. } in state.bottom_nominators.clone() {
-						nominator_set.push(owner);
-					}
-					for nominator in state.nominators.0 {
-						if !nominator_set.contains(&nominator) {
-							// these accounts were removed without being unreserved so we track it
-							// with this map which will hold the due amount
-							<AccountsDueUnreservedBalance<T>>::insert(
-								account.clone(),
-								nominator,
-								BalanceOf::<T>::zero(),
-							);
-						}
-					}
-					let new_state = Collator2 {
-						nominators: OrderedSet::from(nominator_set),
-						..state
-					};
-					<CollatorState2<T>>::insert(&account, new_state);
-					log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
-				} else {
-					// This message would reveal a new state inconsistency, not expected
-					log::warn!(
-						"There are more accounts in CollatorState.nominators than 
-							CollatorState.top_nominators + CollatorState.bottom_nominators for
-							CollatorState for account {:?}",
-						account
-					);
-				}
-			}
-			// 2. for nominator state, check if there are nominations that were inadvertently bumped
-			for (account, mut state) in <NominatorState2<T>>::iter() {
-				for Bond { owner, amount } in state.nominations.0.clone() {
-					if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
-						<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
-						if state.rm_nomination(owner).is_some() {
-							<NominatorState2<T>>::insert(&account, state.clone());
-						}
-					}
-				}
-			}
-			0u64.into() // TODO: update to actual weight
+			correct_bond_less_removes_bottom_nomination_inconsistencies::<T>()
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();

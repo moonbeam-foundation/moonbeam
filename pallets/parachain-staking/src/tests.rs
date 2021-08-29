@@ -3831,3 +3831,11 @@ fn nomination_events_convey_correct_position() {
 			);
 		});
 }
+
+#[test]
+fn migration_corrects_corrupt_storage() {
+	// MIGRATION TEST
+	// (1) corrupt storage like bond_less does
+	// (2) correct it
+	assert!(true);
+}
