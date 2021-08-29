@@ -861,6 +861,8 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
+		/// Account, Amount Unreserved by Democracy
+		UnreservedStaker(T::AccountId, BalanceOf<T>),
 	}
 
 	fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>() -> Weight {
@@ -1187,6 +1189,18 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(0)]
+		pub fn unreserve_stakers(
+			origin: OriginFor<T>,
+			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			for (due_account, due_unreserve) in stakers {
+				T::Currency::unreserve(&due_account, due_unreserve);
+				Self::deposit_event(Event::UnreservedStaker(due_account, due_unreserve));
+			}
+			Ok(().into())
+		}
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
