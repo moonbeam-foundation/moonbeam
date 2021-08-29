@@ -807,17 +807,17 @@ pub mod pallet {
 		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
 		/// Account, Amount Unlocked, New Total Amt Locked
 		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
-		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
-		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
-		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
+		// Nominator, Collator, Amount, If in top nominations for collator after increase
+		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
+		// Nominator, Collator, Amount, If in top nominations for collator after decrease
+		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
 		/// Round, Nominator, Scheduled Exit
 		NominatorExitScheduled(RoundIndex, T::AccountId, RoundIndex),
 		/// Round, Nominator, Collator, Scheduled Exit
 		NominationRevocationScheduled(RoundIndex, T::AccountId, T::AccountId, RoundIndex),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
-		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Backing if in Top
+		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Counted if in Top
 		Nomination(
 			T::AccountId,
 			BalanceOf<T>,
@@ -1659,7 +1659,7 @@ pub mod pallet {
 			let new_total_staked = <Total<T>>::get().saturating_add(more);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationIncreased(
-				nominator, candidate, before, in_top, after,
+				nominator, candidate, more, in_top,
 			));
 			Ok(().into())
 		}
@@ -1704,7 +1704,7 @@ pub mod pallet {
 			let new_total_staked = <Total<T>>::get().saturating_sub(less);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationDecreased(
-				nominator, candidate, before, in_top, after,
+				nominator, candidate, less, in_top,
 			));
 			Ok(().into())
 		}
