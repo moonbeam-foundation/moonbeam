@@ -259,6 +259,7 @@ pub mod pallet {
 					new_total: self.total_counted,
 				})
 			} else {
+				// >pop requires push to reset in case isn't pushed to bottom
 				let last_nomination_in_top = self
 					.top_nominators
 					.pop()
@@ -274,7 +275,7 @@ pub mod pallet {
 						new_total: self.total_counted,
 					})
 				} else {
-					// push previously popped last nomination into top_nominators
+					// >required push to previously popped last nomination into top_nominators
 					self.top_nominators.push(last_nomination_in_top);
 					self.add_bottom_nominator(Bond { owner: acc, amount });
 					Ok(NominatorAdded::AddedToBottom)
@@ -301,17 +302,20 @@ pub mod pallet {
 					}
 				})
 				.collect();
+			// item removed from the top => highest bottom is popped from bottom and pushed to top
 			if let Some(s) = nominator_stake {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.pop() {
 					self.total_counted -= s - last.amount;
 					self.add_top_nominator(last);
 				} else {
+					// no item in bottom nominators so no item from bottom to pop and push up
 					self.total_counted -= s;
 				}
 				self.total_backing -= s;
 				return Ok((true, s));
 			}
+			// else (no item removed from the top)
 			self.bottom_nominators = self
 				.bottom_nominators
 				.clone()
@@ -325,6 +329,8 @@ pub mod pallet {
 					}
 				})
 				.collect();
+			// if err, no item with account exists in top || bottom
+			// TODO: make this a different error from the other error
 			let stake = nominator_stake.ok_or(Error::<T>::NominatorDNE)?;
 			self.total_backing -= stake;
 			Ok((false, stake))
@@ -342,10 +348,13 @@ pub mod pallet {
 					break;
 				}
 			}
+			// if nominator was increased in top nominators
 			if in_top {
 				self.sort_top_nominators();
 				return true;
 			}
+			// else nominator to increase must exist in bottom
+			// >pop requires push later on to reset in case it isn't used
 			let lowest_top = self
 				.top_nominators
 				.pop()
@@ -367,7 +376,7 @@ pub mod pallet {
 				self.add_bottom_nominator(lowest_top);
 				true
 			} else {
-				// reset top_nominators from earlier pop
+				// >required push to reset top_nominators from earlier pop
 				self.top_nominators.push(lowest_top);
 				self.sort_bottom_nominators();
 				false
@@ -376,18 +385,19 @@ pub mod pallet {
 		/// Return true if in_top after call
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
 			let mut in_top = false;
-			let mut new_top: Option<Bond<A, B>> = None;
+			let mut new_lowest_top: Option<Bond<A, B>> = None;
 			for x in &mut self.top_nominators {
 				if x.owner == nominator {
 					x.amount -= less;
 					// if there is at least 1 nominator in bottom nominators, compare it to check
 					// if it should be swapped with lowest top nomination and put in top
-					if let Some(top_bottom) = self.bottom_nominators.pop() {
-						if top_bottom.amount > x.amount {
-							new_top = Some(top_bottom);
+					// >pop requires push later on to reset in case it isn't used
+					if let Some(highest_bottom) = self.bottom_nominators.pop() {
+						if highest_bottom.amount > x.amount {
+							new_lowest_top = Some(highest_bottom);
 						} else {
-							// reset self.bottom_nominators
-							self.bottom_nominators.push(top_bottom);
+							// >required push to reset self.bottom_nominators
+							self.bottom_nominators.push(highest_bottom);
 						}
 					}
 					in_top = true;
@@ -396,15 +406,16 @@ pub mod pallet {
 			}
 			if in_top {
 				self.sort_top_nominators();
-				if let Some(new) = new_top {
+				if let Some(highest_bottom) = new_lowest_top {
+					// pop last in top to swap it with top bottom
 					let lowest_top = self
 						.top_nominators
 						.pop()
 						.expect("must have >1 item to update, assign in_top = true");
 					self.total_counted -= lowest_top.amount + less;
-					self.total_counted += new.amount;
+					self.total_counted += highest_bottom.amount;
 					self.total_backing -= less;
-					self.add_top_nominator(new);
+					self.add_top_nominator(highest_bottom);
 					self.add_bottom_nominator(lowest_top);
 					return false;
 				} else {
@@ -889,8 +900,11 @@ pub mod pallet {
 					<CollatorState2<T>>::insert(&account, new_state);
 					log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
 				} else {
+					// This message would reveal a new state inconsistency, not expected
 					log::warn!(
-						"NEW INCONSISTENCY FOUND WHILE TRYING TO FIX COLLATOR STATE FOR {:?}",
+						"There are more accounts in CollatorState.nominators than 
+							CollatorState.top_nominators + CollatorState.bottom_nominators for
+							CollatorState for account {:?}",
 						account
 					);
 				}

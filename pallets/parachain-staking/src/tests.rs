@@ -1930,6 +1930,102 @@ fn cannot_revoke_nomination_leaving_nominator_below_min_nominator_stake() {
 		});
 }
 
+#[test]
+fn revoke_nomination_after_leave_candidates_executes_during_leave_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
+			);
+			roll_to(10);
+			assert!(!Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn revoke_nomination_before_leave_candidates_executes_during_leave_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
+			);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			roll_to(10);
+			assert!(!Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn nominator_bond_more_after_revoke_nomination_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			assert_noop!(
+				Stake::nominator_bond_more(Origin::signed(2), 1, 10),
+				Error::<Test>::CannotActBecauseRevoking
+			);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 3, 10));
+			roll_to(10);
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 20);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn nominator_bond_less_after_revoke_nomination_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 1, 2),
+				Error::<Test>::CannotActBecauseRevoking
+			);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 3, 2));
+			roll_to(10);
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 8);
+			assert_eq!(Balances::free_balance(&2), 22);
+		});
+}
+
 // NOMINATOR BOND MORE
 
 #[test]
