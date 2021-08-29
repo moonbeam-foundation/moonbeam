@@ -919,7 +919,11 @@ pub mod pallet {
 				if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
 					<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
 					if state.rm_nomination(owner).is_some() {
-						<NominatorState2<T>>::insert(&account, state.clone());
+						if state.nominations.0.len().is_zero() {
+							<NominatorState2<T>>::remove(&account);
+						} else {
+							<NominatorState2<T>>::insert(&account, state.clone());
+						}
 					}
 				}
 			}

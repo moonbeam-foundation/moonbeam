@@ -3883,7 +3883,7 @@ fn migration_corrects_corrupt_storage() {
 				candidate_state.nominators.0.len(),
 				candidate_state.top_nominators.len() + candidate_state.bottom_nominators.len()
 			);
-			// SHOULD no longer a nominator (TODO fix)
-			assert_eq!(Stake::nominator_state2(&2).unwrap().nominations.0.len(), 0);
+			// no longer a nominator
+			assert!(!Stake::is_nominator(&2));
 		});
 }
