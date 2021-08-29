@@ -74,7 +74,7 @@ export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string) => 
     provider: wsProvider,
     typesBundle: typesBundle,
   });
-  listenBlocks(api, (blockDetails) => {
+  listenBlocks(api, async (blockDetails) => {
     printBlockDetails(blockDetails, {
       prefix: isKnownNetwork(name_or_url)
         ? NETWORK_COLORS[name_or_url](name_or_url.padStart(10, " "))

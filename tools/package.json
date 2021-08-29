@@ -4,7 +4,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@polkadot/api": "^5.6.1",
-    "@polkadot/api-cli": "^0.45.1",
+    "@polkadot/api-cli": "^0.45.2",
     "bip39": "^3.0.3",
     "chalk": "^4.1.2",
     "eth-block-tracker": "^4.4.3",
@@ -12,6 +12,7 @@
     "ethjs-provider-http": "^0.1.6",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
+    "moonbeam-types-bundle": "^1.2.4",
     "octokit": "^1.0.6",
     "p-map": "^4.0.0",
     "pkg": "^4.4.9",

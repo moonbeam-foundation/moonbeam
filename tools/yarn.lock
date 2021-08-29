@@ -704,7 +704,7 @@
     "@octokit/webhooks-types" "4.3.0"
     aggregate-error "^3.1.0"
 
-"@polkadot/api-cli@^0.45.1":
+"@polkadot/api-cli@^0.45.2":
   version "0.45.2"
   resolved "https://registry.yarnpkg.com/@polkadot/api-cli/-/api-cli-0.45.2.tgz#96ebce5e3c7eeaa625473bde7415d73d5ebf2b8c"
   integrity sha512-c19B8WFrI6/aodtZwTtUwR0RC1phcSBYkpVPWWTOmZ1lnUyYJSUwFH6/orN5dAjcu3N2gVta/q8LaHQhH+9m0A==
@@ -4025,6 +4025,15 @@ moment-timezone@^0.5.33:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
+
+moonbeam-types-bundle@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/moonbeam-types-bundle/-/moonbeam-types-bundle-1.2.4.tgz#a1b3a339a71c039aad312cfc8e1ebd9aa51e244f"
+  integrity sha512-BBEKCEf+QoWOOZE6rFDXvSJ0asHJjhbJRlsbOPwl6XSFkpj+iX6/VnhqWZbxlDCtHlKhe6BISR2/cVTj4HX0+w==
+  dependencies:
+    "@polkadot/keyring" "^7.2.1"
+    "@polkadot/types" "^5.6.1"
+    typescript "^4.3.5"
 
 ms@2.0.0:
   version "2.0.0"

@@ -1,23 +1,76 @@
 import { ApiPromise } from "@polkadot/api";
-import { Extrinsic } from "@polkadot/types/interfaces";
+import { Extrinsic, BlockHash, EventRecord } from "@polkadot/types/interfaces";
 import { Block } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import { mapExtrinsics } from "./types";
 import chalk from "chalk";
-
 export interface BlockDetails {
   block: Block;
+  blockTime: number;
+  records: EventRecord[];
   txWithEvents: TxWithEvent[];
   pendingTxs: Extrinsic[];
-  elapsedMilliSecs: number;
   weightPercentage: number;
+}
+
+const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash) => {
+  const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
+  const [{ block }, pendingTxs, records, blockTime] = await Promise.all([
+    api.rpc.chain.getBlock(blockHash),
+    api.rpc.author.pendingExtrinsics(),
+    api.query.system.events.at(blockHash),
+    api.query.timestamp.now.at(blockHash),
+  ]);
+
+  const txWithEvents = mapExtrinsics(block.extrinsics, records);
+  const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
+    return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
+  }, 0n);
+  return {
+    block,
+    blockTime: blockTime.toNumber(),
+    weightPercentage: Number((blockWeight * 10000n) / maxBlockWeight) / 100,
+    txWithEvents,
+    pendingTxs,
+    records,
+  } as BlockDetails;
+};
+
+interface BlockRangeOption {
+  from: number;
+  to: number;
+  concurrency?: number;
+}
+// Explore all blocks for the given range
+// fromBlockNumber and toBlockNumber included
+export const exploreBlockRange = async (
+  api: ApiPromise,
+  { from, to, concurrency = 1 }: BlockRangeOption,
+  callBack: (blockDetails: BlockDetails) => Promise<void>
+) => {
+  let current = from;
+  while (current <= to) {
+    const concurrentTasks = [];
+    for (let i = 0; i < concurrency && current <= to; i++) {
+      concurrentTasks.push(
+        api.rpc.chain.getBlockHash(current++).then((hash) => getBlockDetails(api, hash))
+      );
+    }
+    const blocksDetails = await Promise.all(concurrentTasks);
+    for (const blockDetails of blocksDetails) {
+      await callBack(blockDetails);
+    }
+  }
+};
+
+export interface ContinuousBlockDetails extends BlockDetails {
+  elapsedMilliSecs: number;
 }
 
 export const listenBlocks = async (
   api: ApiPromise,
-  callBack: (blockDetails: BlockDetails) => void
+  callBack: (blockDetails: ContinuousBlockDetails) => Promise<void>
 ) => {
-  const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
   let latestBlockTime = 0;
   try {
     latestBlockTime = (
@@ -28,30 +81,15 @@ export const listenBlocks = async (
     latestBlockTime = 0;
   }
   const unsubHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-    const [{ block }, pendingTxs, records, blockTime] = await Promise.all([
-      api.rpc.chain.getBlock(lastHeader.hash),
-      api.rpc.author.pendingExtrinsics(),
-      api.query.system.events.at(lastHeader.hash),
-      api.query.timestamp.now.at(lastHeader.hash),
-    ]);
-    const txWithEvents = mapExtrinsics(block.extrinsics, records);
-    const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
-      return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
-    }, 0n);
-    callBack({
-      block,
-      elapsedMilliSecs: blockTime.toNumber() - latestBlockTime,
-      weightPercentage: Number((blockWeight * 10000n) / maxBlockWeight) / 100,
-      txWithEvents,
-      pendingTxs,
-    });
-    latestBlockTime = blockTime.toNumber();
+    const blockDetails = await getBlockDetails(api, lastHeader.hash);
+    callBack({ ...blockDetails, elapsedMilliSecs: blockDetails.blockTime - latestBlockTime });
+    latestBlockTime = blockDetails.blockTime;
   });
   return unsubHeads;
 };
 
 export function printBlockDetails(
-  { block, pendingTxs, elapsedMilliSecs, weightPercentage }: BlockDetails,
+  { block, pendingTxs, elapsedMilliSecs, weightPercentage }: ContinuousBlockDetails,
   options?: { prefix: string }
 ) {
   const seconds = (Math.floor(elapsedMilliSecs / 100) / 10).toFixed(1).padStart(5, " ");
