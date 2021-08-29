@@ -865,10 +865,12 @@ pub mod pallet {
 		HotfixUnreservedNomination(T::AccountId, BalanceOf<T>),
 	}
 
-	// TODO(nit): remove pub and the entire function, made pub to test
-	pub fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>() -> Weight {
+	pub(crate) fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>(
+	) -> (u64, u64) {
+		let (mut reads, mut writes) = (0u64, 0u64);
 		// 1. for collator state, check if there is a nominator not in top or bottom
 		for (account, state) in <CollatorState2<T>>::iter() {
+			reads += 1u64;
 			if state.top_nominators.len() + state.bottom_nominators.len()
 				== state.nominators.0.len()
 			{
@@ -893,6 +895,7 @@ pub mod pallet {
 							nominator,
 							BalanceOf::<T>::zero(),
 						);
+						writes += 1u64;
 					}
 				}
 				let new_state = Collator2 {
@@ -900,6 +903,7 @@ pub mod pallet {
 					..state
 				};
 				<CollatorState2<T>>::insert(&account, new_state);
+				writes += 1u64;
 				log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
 			} else {
 				// This message would reveal a new state inconsistency, not expected
@@ -915,26 +919,33 @@ pub mod pallet {
 		// -> this allows us to recover the due unreserved balances for cases of (1) that
 		// did not have the nominator state removed (it does not account for when it was removed)
 		for (account, mut state) in <NominatorState2<T>>::iter() {
+			reads += 1u64;
 			for Bond { owner, amount } in state.nominations.0.clone() {
+				reads += 1u64;
 				if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
 					<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
+					writes += 1u64;
 					if state.rm_nomination(owner).is_some() {
 						if state.nominations.0.is_empty() {
 							<NominatorState2<T>>::remove(&account);
 						} else {
 							<NominatorState2<T>>::insert(&account, state.clone());
 						}
+						writes += 1u64;
 					}
 				}
 			}
 		}
-		0u64.into() // TODO: update to actual weight
+		(reads, writes)
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			correct_bond_less_removes_bottom_nomination_inconsistencies::<T>()
+			let (reads, writes) =
+				correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
+			let wt = <T as frame_system::Config>::DbWeight::get();
+			wt.reads(reads) + wt.writes(writes) + 5_000_000_000 // 1% of the max block weight margin
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
@@ -971,7 +982,7 @@ pub mod pallet {
 	#[pallet::getter(fn accounts_due_unreserved_balance)]
 	/// Temporary storage item to track accounts due unreserved balance by democracy
 	/// - each item is a tuple (collator_id, nominator_id)
-	pub type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
+	pub(crate) type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -984,28 +995,28 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
 	/// Commission percent taken off of rewards for all collators
-	pub type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
+	type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total_selected)]
 	/// The total candidates selected every round
-	pub type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
+	type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn parachain_bond_info)]
 	/// Parachain bond config info { account, percent_of_inflation }
-	pub type ParachainBondInfo<T: Config> =
+	type ParachainBondInfo<T: Config> =
 		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	pub type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
+	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
 	/// Get nominator state associated with an account if account is nominating else None
-	pub type NominatorState2<T: Config> = StorageMap<
+	type NominatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1016,7 +1027,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state2)]
 	/// Get collator state associated with an account if account is collating else None
-	pub type CollatorState2<T: Config> = StorageMap<
+	pub(crate) type CollatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1027,23 +1038,23 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn selected_candidates)]
 	/// The collator candidates selected for the current round
-	pub type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
 	/// Total capital locked by this staking pallet
-	pub type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	pub type CandidatePool<T: Config> =
+	type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
 	/// A queue of collators and nominators awaiting exit
-	pub type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
+	type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -1194,7 +1205,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)]
+		#[pallet::weight(1_000_000_000)]
+		/// Temporary root function to return nominations
+		/// - charges uniform 0.2% of block weight as fee per call
 		pub fn hotfix_unreserve_nomination(
 			origin: OriginFor<T>,
 			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
@@ -1781,8 +1794,7 @@ pub mod pallet {
 				round_issuance.ideal
 			}
 		}
-		// TODO(nit): remove pub, we just needed to make this pub to test a migration
-		pub fn nominator_leaves_collator(
+		pub(crate) fn nominator_leaves_collator(
 			nominator: T::AccountId,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
