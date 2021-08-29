@@ -13,8 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 mod cli;
 mod command;
 pub use cli::*;
 pub use command::*;
+pub(crate) mod parse;
 pub use sc_cli::{Error, Result};

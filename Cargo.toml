@@ -5,6 +5,7 @@ members = [
     'runtime/moonbase',
     'node',
     'node/cli',
+    'node/rpc-client',
     'node/service',
     'bin/utils/moonkey',
     'pallets/maintenance-mode',

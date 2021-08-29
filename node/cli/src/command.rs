@@ -16,6 +16,8 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
+pub(crate) mod replay_blocks;
+
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
@@ -382,6 +384,36 @@ pub fn run() -> Result<()> {
 			}
 
 			Ok(())
+		}
+
+		Some(Subcommand::ReplayBlocks(command)) => {
+			let runner = cli.create_runner(command)?;
+			let chain_spec = &runner.config().chain_spec;
+			if chain_spec.is_moonbeam() {
+				return runner.async_run(|config| {
+					// we don't need any of the components of new_partial, just a runtime, or a task
+					// manager to do `async_run`.
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager =
+						sc_service::TaskManager::new(config.task_executor.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})?;
+
+					// TODO: support all runtimes
+					Ok((
+						command.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							config,
+							service::moonbeam_runtime::WASM_BINARY,
+						),
+						task_manager,
+					))
+				});
+			} else if chain_spec.is_moonriver() {
+				todo!()
+			} else {
+				todo!()
+			}
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {

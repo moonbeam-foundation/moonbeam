@@ -19,6 +19,7 @@
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
+use crate::command::replay_blocks::ReplayBlocksCommand;
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
@@ -56,6 +57,9 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+
+	/// Replay blocks on live chain conditions
+	ReplayBlocks(ReplayBlocksCommand),
 
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
