@@ -865,7 +865,8 @@ pub mod pallet {
 		UnreservedStaker(T::AccountId, BalanceOf<T>),
 	}
 
-	fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>() -> Weight {
+	// TODO(nit): remove pub and the entire function, made pub to test
+	pub fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>() -> Weight {
 		// 1. for collator state, check if there is a nominator not in top or bottom
 		for (account, state) in <CollatorState2<T>>::iter() {
 			if state.top_nominators.len() + state.bottom_nominators.len()
@@ -966,7 +967,7 @@ pub mod pallet {
 	#[pallet::getter(fn accounts_due_unreserved_balance)]
 	/// Temporary storage item to track accounts due unreserved balance by democracy
 	/// - each item is a tuple (collator_id, nominator_id)
-	type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
+	pub type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -979,28 +980,28 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
 	/// Commission percent taken off of rewards for all collators
-	type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
+	pub type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total_selected)]
 	/// The total candidates selected every round
-	type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
+	pub type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn parachain_bond_info)]
 	/// Parachain bond config info { account, percent_of_inflation }
-	type ParachainBondInfo<T: Config> =
+	pub type ParachainBondInfo<T: Config> =
 		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
+	pub type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
 	/// Get nominator state associated with an account if account is nominating else None
-	type NominatorState2<T: Config> = StorageMap<
+	pub type NominatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1011,7 +1012,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state2)]
 	/// Get collator state associated with an account if account is collating else None
-	type CollatorState2<T: Config> = StorageMap<
+	pub type CollatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1022,23 +1023,23 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn selected_candidates)]
 	/// The collator candidates selected for the current round
-	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	pub type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
 	/// Total capital locked by this staking pallet
-	type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	pub type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	type CandidatePool<T: Config> =
+	pub type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
 	/// A queue of collators and nominators awaiting exit
-	type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
+	pub type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -1773,7 +1774,8 @@ pub mod pallet {
 				round_issuance.ideal
 			}
 		}
-		fn nominator_leaves_collator(
+		// TODO(nit): remove pub, we just needed to make this pub to test a migration
+		pub fn nominator_leaves_collator(
 			nominator: T::AccountId,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {

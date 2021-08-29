@@ -25,7 +25,7 @@ use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
 };
-use crate::{Bond, CollatorStatus, Error, Event, NominatorAdded, Range};
+use crate::{Bond, CollatorState2, CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
@@ -3834,6 +3834,56 @@ fn nomination_events_convey_correct_position() {
 
 #[test]
 fn migration_corrects_corrupt_storage() {
-	// TODO
-	assert!(true);
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 19),
+			(3, 1, 20),
+			(4, 1, 21),
+			(5, 1, 22),
+			(6, 1, 23),
+		])
+		.build()
+		.execute_with(|| {
+			// start by corrupting collator state like the bug -- basically every `nominator_bond_less`
+			// call would bump the highest nomination in the bottom nominations without replacing it,
+			// thereby preventing proper exit for these nominators (unreserve)
+			let mut candidate_state =
+				<CollatorState2<Test>>::get(&1).expect("set up 1 as candidate");
+			candidate_state.bottom_nominators = Vec::new();
+			// corrupt storage like the bug instance
+			<CollatorState2<Test>>::insert(1, candidate_state);
+			// function called in executed nomination/nominator exits
+			assert_noop!(
+				Stake::nominator_leaves_collator(2, 1),
+				Error::<Test>::NominatorDNEinTopNorBottom
+			);
+			let candidate_state = <CollatorState2<Test>>::get(&1).expect("still exists");
+			// was removed from bottom nominators and not the `nominators` set
+			assert_eq!(
+				candidate_state.nominators.0.len() - 1,
+				candidate_state.top_nominators.len() + candidate_state.bottom_nominators.len()
+			);
+			// nominator state still has the nomination if the collator hasn't left and the nominator
+			// didn't exit entirely (this wasn't their last nomination)
+			assert!(Stake::is_nominator(&2));
+			// make storage consistent at least
+			crate::pallet::correct_bond_less_removes_bottom_nomination_inconsistencies::<Test>();
+			// check storage is consistent
+			let candidate_state = <CollatorState2<Test>>::get(&1).expect("still exists");
+			assert_eq!(
+				candidate_state.nominators.0.len(),
+				candidate_state.top_nominators.len() + candidate_state.bottom_nominators.len()
+			);
+			// SHOULD no longer a nominator (TODO fix)
+			assert_eq!(Stake::nominator_state2(&2).unwrap().nominations.0.len(), 0);
+		});
 }
