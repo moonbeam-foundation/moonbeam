@@ -1,11 +1,12 @@
 import { typesBundle } from "moonbeam-types-bundle";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { BlockHash } from "@polkadot/types/interfaces";
+import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
+import { BlockHash, Extrinsic } from "@polkadot/types/interfaces";
 import { exploreBlockRange } from "../utils/monitoring";
-import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { xxhashAsU8a, blake2AsHex } from "@polkadot/util-crypto";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import yargs from "yargs";
 import { NETWORK_YARGS_OPTIONS } from "../utils/networks";
+
 const debug = require("debug")("main");
 
 const argv = yargs(process.argv.slice(2))
@@ -21,59 +22,134 @@ const argv = yargs(process.argv.slice(2))
     to: {
       type: "number",
       description: "to block number (included)",
-      demandOption: true,
     },
     account: {
       type: "string",
       description: "filter only specific nominator account",
     },
+    "council-private-key": {
+      type: "string",
+      description: "Private key for council to send proposal",
+    },
+    "send-external-proposal": {
+      type: "boolean",
+      description: "should send external proposal",
+      implies: ["council-private-key", "collective-threshold"],
+    },
+    "collective-threshold": {
+      type: "number",
+      demandOption: false,
+    },
     "scan-storage": {
       type: "boolean",
       description: "scan storage for difference between each block",
-      implies: ["account"],
     },
   }).argv;
 
-const nominatorState2Key = u8aToHex(
-  u8aConcat(xxhashAsU8a("ParachainStaking", 128), xxhashAsU8a("NominatorState2", 128))
-);
-const nominatorState2AccountKey = (account: string) =>
-  u8aToHex(
-    u8aConcat(
-      xxhashAsU8a("ParachainStaking", 128),
-      xxhashAsU8a("NominatorState2", 128),
-      xxhashAsU8a(account, 64),
-      account
-    )
-  );
-
-const getNominatorsData = async (polkadotApi: ApiPromise, at: BlockHash, account?: string) => {
-  const nominatorKeys: any = account
-    ? [nominatorState2AccountKey(account)]
-    : await polkadotApi.rpc.state.getKeys(nominatorState2Key, at);
-  const bonded = {};
-  for (const key of nominatorKeys) {
-    const id = `0x${key.toString().slice(32 + 32 + 18)}`;
-    if (account && account != id) {
-      continue;
-    }
-    const data: any = await polkadotApi.rpc.state.getStorage.raw(key, at);
-    if (data.length == 0) {
-      debug(`${id.substring(0, 7)}: not found`);
-      continue;
-    }
-    const nominator = polkadotApi.registry.createType("Nominator2", data) as any;
-    bonded[id] = BigInt(nominator.total);
-
-    debug(
-      `${id.substring(0, 7)}: ${bonded[id] / 1000000000000000000n} (${nominator.nominations
-        .map(
-          (m) => `${m.owner.toString().substring(0, 7)}: ${BigInt(m.amount) / 1000000000000000000n}`
-        )
-        .join(", ")})`
+const parachainStorageKey = (name: string, account?: string) => {
+  if (account) {
+    return u8aToHex(
+      u8aConcat(
+        xxhashAsU8a("ParachainStaking", 128),
+        xxhashAsU8a(name, 128),
+        xxhashAsU8a(account, 64),
+        account
+      )
     );
   }
-  return bonded;
+  return u8aToHex(u8aConcat(xxhashAsU8a("ParachainStaking", 128), xxhashAsU8a(name, 128)));
+};
+
+const getParachainStorageData = async (
+  polkadotApi: ApiPromise,
+  name: string,
+  type: string,
+  at: BlockHash,
+  account?: string
+) => {
+  const nominatorKeys: any = account
+    ? [parachainStorageKey(name, account)]
+    : await polkadotApi.rpc.state.getKeys(parachainStorageKey(name), at);
+
+  return (
+    await Promise.all(
+      nominatorKeys.map(async (key) => {
+        const id = `0x${key.toString().slice(32 + 32 + 18)}`;
+        if (account && account != id) {
+          return null;
+        }
+        const data: any = await polkadotApi.rpc.state.getStorage.raw(key, at);
+        if (data.length == 0) {
+          debug(`${id.substring(0, 7)}: not found`);
+          return null;
+        }
+        return {
+          id,
+          data: polkadotApi.registry.createType(type, data),
+        };
+      })
+    )
+  )
+    .filter((v) => !!v)
+    .reduce((p, { id, data }) => {
+      p[id] = data;
+      return p;
+    }, {});
+};
+
+const getNominatorsStakes = async (polkadotApi: ApiPromise, at: BlockHash, account?: string) => {
+  const nominators = (await getParachainStorageData(
+    polkadotApi,
+    "NominatorState2",
+    "Nominator2",
+    at,
+    account
+  )) as { [accountId: string]: any };
+
+  Object.keys(nominators)
+    .sort()
+    .map((accountId) => {
+      debug(
+        `${accountId.substring(0, 7)}: ${
+          nominators[accountId].total.toBigInt() / 1000000000000000000n
+        } (${nominators[accountId].nominations
+          .map(
+            (m) =>
+              `${m.owner.toString().substring(0, 7)}: ${BigInt(m.amount) / 1000000000000000000n}`
+          )
+          .join(", ")})`
+      );
+    });
+
+  const stakes: { [accountId: string]: bigint } = {};
+  Object.keys(nominators).map((key) => {
+    stakes[key] = nominators[key].total.toBigInt();
+  });
+  return stakes;
+};
+
+const collatorToString = (accountId: string, collator: any) => {
+  return `${accountId.substring(0, 7)}:  ${collator.nominators.length} nominations (top: ${
+    collator.top_nominators.length
+  }, bottom: ${collator.bottom_nominators.length})`;
+};
+
+const getCollatorsStates = async (polkadotApi: ApiPromise, at: BlockHash, account?: string) => {
+  const collators = (await getParachainStorageData(
+    polkadotApi,
+    "CollatorState2",
+    "Collator2",
+    at,
+    account
+  )) as { [accountId: string]: any };
+
+  Object.keys(collators)
+    .sort()
+    .map((accountId) => {
+      debug(collatorToString(accountId, collators[accountId]));
+    });
+
+  return collators;
 };
 
 const main = async () => {
@@ -84,23 +160,71 @@ const main = async () => {
   });
   const filteredAccount = argv.account?.toLowerCase() || null;
 
-  const fromHash = await polkadotApi.rpc.chain.getBlockHash(argv.from - 1);
-  const toHash = await polkadotApi.rpc.chain.getBlockHash(argv.to);
+  const toBlockNumber =
+    argv.to || (await polkadotApi.rpc.chain.getBlock()).block.header.number.toNumber();
+  const fromBlockNumber = argv.from;
+  console.log(
+    `Using range #${fromBlockNumber}-#${toBlockNumber} (${toBlockNumber - fromBlockNumber + 1})`
+  );
 
-  const bonded = await getNominatorsData(polkadotApi, fromHash, filteredAccount);
+  const previousHash = await polkadotApi.rpc.chain.getBlockHash(fromBlockNumber - 1);
+  const toHash = await polkadotApi.rpc.chain.getBlockHash(toBlockNumber);
+
+  const nominatorBonds = await getNominatorsStakes(polkadotApi, previousHash, filteredAccount);
+  const collators = await getCollatorsStates(polkadotApi, previousHash, filteredAccount);
 
   if (filteredAccount) {
     console.log(
-      `#${argv.from - 1}: Storage (${filteredAccount}: ${
-        bonded[filteredAccount] ? bonded[filteredAccount] / 1000000000000000000n : `not found`
+      `#${fromBlockNumber - 1}: Nominator (${filteredAccount}: ${
+        nominatorBonds[filteredAccount]
+          ? nominatorBonds[filteredAccount] / 1000000000000000000n
+          : `not found`
       })`
+    );
+    console.log(
+      `#${fromBlockNumber - 1}: Collator - ${
+        collators[filteredAccount]
+          ? `${collatorToString(filteredAccount, collators[filteredAccount])})`
+          : `(${filteredAccount}: not found)`
+      }`
     );
   }
 
+  // Stores collator once their storage mismatch
+  const reportedCollators = {};
+
   await exploreBlockRange(
     polkadotApi,
-    { from: argv.from, to: argv.to, concurrency: 5 },
+    { from: fromBlockNumber, to: toBlockNumber, concurrency: 5 },
     async (blockDetails) => {
+      if (argv["scan-storage"]) {
+        const collators = await getCollatorsStates(
+          polkadotApi,
+          blockDetails.block.hash,
+          filteredAccount
+        );
+        for (const accountId of Object.keys(collators)) {
+          const collator = collators[accountId];
+
+          if (
+            !reportedCollators[accountId] && // Do not repeat the error at each block
+            collator.nominators.length !=
+              collator.top_nominators.length + collator.bottom_nominators.length
+          ) {
+            console.log(
+              `#${blockDetails.block.header.number}: ERROR - ${collatorToString(
+                accountId,
+                collator
+              )}`
+            );
+            reportedCollators[accountId] = `Invalid #${
+              blockDetails.block.header.number
+            } ${collatorToString(accountId, collator)} `;
+          }
+        }
+      }
+
+      // console.log(`block: #${blockDetails.block.header.number}`);
       blockDetails.records.forEach(({ event }, index) => {
         const types = event.typeDef;
         if (event.section == "parachainStaking" && event.method == "JoinedCollatorCandidates") {
@@ -138,7 +262,7 @@ const main = async () => {
           if (filteredAccount && filteredAccount != key) {
             return;
           }
-          bonded[key] = (bonded[key] || 0n) + (amount as any).toBigInt();
+          nominatorBonds[key] = (nominatorBonds[key] || 0n) + (amount as any).toBigInt();
           console.log(
             `#${blockDetails.block.header.number}: ${event.method} (${key} + ${(
               amount as any
@@ -165,7 +289,7 @@ const main = async () => {
             );
             process.exit(1);
           }
-          bonded[key] = (bonded[key] || 0n) + (amount as any).toBigInt();
+          nominatorBonds[key] = (nominatorBonds[key] || 0n) + (amount as any).toBigInt();
           console.log(
             `#${blockDetails.block.header.number}: ${event.method} (${key} + ${(
               amount as any
@@ -205,7 +329,7 @@ const main = async () => {
             );
             process.exit(1);
           }
-          bonded[key] = (bonded[key] || 0n) - (amount as any).toBigInt();
+          nominatorBonds[key] = (nominatorBonds[key] || 0n) - (amount as any).toBigInt();
           console.log(
             `#${blockDetails.block.header.number}: ${event.method} (${key} - ${(
               amount as any
@@ -217,7 +341,7 @@ const main = async () => {
           if (filteredAccount && filteredAccount != key) {
             return;
           }
-          bonded[key] = (bonded[key] || 0n) - (nominator_stake as any).toBigInt();
+          nominatorBonds[key] = (nominatorBonds[key] || 0n) - (nominator_stake as any).toBigInt();
           console.log(
             `#${blockDetails.block.header.number}: ${event.method} (${key} - ${(
               nominator_stake as any
@@ -248,7 +372,8 @@ const main = async () => {
               }-${i} (${accountKey} - ${(amount as any).toBigInt()})`
             );
             if (accountKey != key) {
-              bonded[accountKey] = (bonded[accountKey] || 0n) - (amount as any).toBigInt();
+              nominatorBonds[accountKey] =
+                (nominatorBonds[accountKey] || 0n) - (amount as any).toBigInt();
             }
           }
         } else {
@@ -265,15 +390,15 @@ const main = async () => {
         // });
       });
       if (filteredAccount && argv["scan-storage"]) {
-        const bond = await getNominatorsData(
+        const bond = await getNominatorsStakes(
           polkadotApi,
           blockDetails.block.header.hash,
           filteredAccount
         );
-        if (bond[filteredAccount] != bonded[filteredAccount]) {
+        if (bond[filteredAccount] != nominatorBonds[filteredAccount]) {
           console.log(`Block: ${blockDetails.block.header.number}`);
           console.log(
-            `${filteredAccount}: (expected: ${bonded[filteredAccount]}, storage: ${bond[filteredAccount]})`
+            `${filteredAccount}: (expected: ${nominatorBonds[filteredAccount]}, storage: ${bond[filteredAccount]})`
           );
           process.exit(1);
         }
@@ -281,37 +406,92 @@ const main = async () => {
     }
   );
 
-  const endBonded = await getNominatorsData(polkadotApi, toHash, filteredAccount);
+  const endBonded = await getNominatorsStakes(polkadotApi, toHash, filteredAccount);
 
   if (filteredAccount) {
     console.log(
-      `#${argv.to}: Storage (${filteredAccount}: ${
+      `#${toBlockNumber}: Storage (${filteredAccount}: ${
         endBonded[filteredAccount] ? endBonded[filteredAccount] / 1000000000000000000n : `not found`
       })`
     );
   }
 
+  const accountsToFix: { id: string; stored: bigint; computed: bigint; reserved: bigint }[] = [];
+
   console.log(`\n=========Checking`);
-  for (const id of Object.keys(endBonded)) {
-    if (bonded[id] != endBonded[id]) {
-      const balance = (await polkadotApi.query.system.account.at(toHash, id)).data;
+  for (const id of [
+    ...Object.keys(endBonded),
+    ...Object.keys(nominatorBonds).filter((b) => !endBonded[b]),
+  ]) {
+    // convert storage undefined to 0
+    if (nominatorBonds[id] != (endBonded[id] || 0n)) {
+      const balance = ((await polkadotApi.query.system.account.at(toHash, id)) as any).data;
       console.log(
         `${id}: (storage: ${endBonded[id]}, computed: ${
-          bonded[id]
+          nominatorBonds[id]
         }), free: ${balance.free.toString()}, reversed: ${balance.reserved.toString()}`
       );
+
+      accountsToFix.push({
+        id,
+        stored: endBonded[id] || 0n,
+        computed: nominatorBonds[id],
+        reserved: balance.reserved.toBigInt(),
+      });
     }
   }
   console.log(``);
-  for (const id of Object.keys(bonded)) {
-    if (bonded[id] && !endBonded[id]) {
-      const balance = (await polkadotApi.query.system.account.at(toHash, id)).data;
-      console.log(
-        `${id}: (storage: ${endBonded[id]}, computed: ${
-          bonded[id]
-        }), free: ${balance.free.toString()}, reversed: ${balance.reserved.toString()}`
+
+  // Reported collators having bad nomiations vs top_nomination+bottom_nominations
+  for (const accountId of Object.keys(reportedCollators)) {
+    console.log(reportedCollators[accountId]);
+  }
+
+  if (argv["send-external-proposal"]) {
+    console.log(`\nPreparing external proposal`);
+
+    const keyring = new Keyring({ type: "ethereum" });
+    const council = await keyring.addFromUri(argv["council-private-key"], null, "ethereum");
+    const { nonce: rawNonce } = await polkadotApi.query.system.account(council.address);
+    let nonce = BigInt(rawNonce.toString());
+
+    const unreserveTxs: Extrinsic[] = [];
+
+    for (const account of accountsToFix) {
+      if (account.reserved != account.computed) {
+        console.log(
+          `SKIPPED ${
+            account.id
+          }, reserved (${account.reserved.toString()}) != computed (${account.computed.toString()})`
+        );
+        continue;
+      }
+      console.log(`Unreserving ${account.reserved - account.stored} for ${account.id}`);
+      unreserveTxs.push(
+        await polkadotApi.tx.parachainStaking.unreserve_hotfix(
+          account.id,
+          account.reserved - account.stored
+        )
       );
     }
+    const batchTx = polkadotApi.tx.utility.batchAll(unreserveTxs);
+    const encodedProposal = batchTx?.method.toHex() || "";
+    const encodedHash = blake2AsHex(encodedProposal);
+
+    console.log(`Encoded proposal hash ${encodedHash}`);
+    console.log(`Encoded length ${encodedProposal.length}`);
+
+    console.log(`Sending Preimage Note...`);
+    // await polkadotApi.tx.democracy
+    //   .notePreimage(encodedProposal)
+    //   .signAndSend(council, { nonce: nonce++ });
+
+    const external = polkadotApi.tx.democracy.externalProposeMajority(encodedHash);
+
+    console.log(`Sending Council ...`);
+    // await polkadotApi.tx.councilCollective
+    //   .propose(argv["collective-threshold"], external, external.length)
+    //   .signAndSend(council, { nonce: nonce++ });
   }
 
   await polkadotApi.disconnect();
