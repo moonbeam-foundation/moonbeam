@@ -365,10 +365,10 @@ where
 							let mut proxy = proxy::v1::CallListProxy::new();
 							proxy.using(f)?;
 							let response = proxy
-								.into_tx_trace()
+								.into_tx_trace(&tracer_input)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?;
-							Ok(TransactionTrace::SingleV1(response))
+							Ok(TransactionTrace::SingleV2(response))
 						} else {
 							let mut proxy = proxy::v1::CallListProxy::new();
 							match proxy.using(f) {

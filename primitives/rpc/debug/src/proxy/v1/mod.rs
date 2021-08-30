@@ -30,16 +30,24 @@
 environmental::environmental!(listener: dyn Listener + 'static);
 
 use crate::{
-	CallResult, CreateResult, CreateType,
-	single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace},
 	block::{
 		TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
 		TransactionTraceResult,
-	}
+	},
+	proxy::formats::{
+		blockscout::BlockscoutInner, call_tracer::CallTracerInner, BlockscoutCall, Call,
+		CallTracerCall, TransactionTrace,
+	},
+	// single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace},
+	single::{RawStepLog, TransactionTrace as SingleTrace},
+	CallResult,
+	CreateResult,
+	CreateType,
+	TracerInput,
 };
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, vec::Vec};
 
 /// Main trait to proxy emitted messages.
 pub trait Listener {
@@ -55,7 +63,7 @@ pub enum Event {
 	/// EVM execution return value.
 	RawReturnValue(Vec<u8>),
 	/// An internal EVM Call for a single call-stack.
-	CallListEntry((u32, Call)),
+	CallListEntry((u32, BlockscoutCall)),
 	/// A new call-stack.
 	CallListNew(),
 }
@@ -140,7 +148,7 @@ impl Listener for RawProxy {
 // List
 #[derive(Debug)]
 pub struct CallListProxy {
-	entries: Vec<BTreeMap<u32, Call>>,
+	entries: Vec<BTreeMap<u32, BlockscoutCall>>,
 }
 
 impl CallListProxy {
@@ -158,11 +166,212 @@ impl CallListProxy {
 	}
 
 	/// Format the RPC output of a single call-stack.
-	pub fn into_tx_trace(self) -> Option<SingleTrace> {
+	pub fn into_tx_trace(self, tracer: &TracerInput) -> Option<TransactionTrace> {
 		if let Some(entry) = self.entries.last() {
-			return Some(SingleTrace::CallList(
-				entry.into_iter().map(|(_, value)| value.clone()).collect(),
-			));
+			match tracer {
+				TracerInput::Blockscout => {
+					return Some(TransactionTrace::CallList(
+						entry
+							.into_iter()
+							.map(|(_, value)| Call::Blockscout(value.clone()))
+							.collect(),
+					))
+				}
+				TracerInput::CallTracer => {
+					let mut result: Vec<Call> = entry
+						.into_iter()
+						.filter_map(|(_, it)| {
+							let from = it.from;
+							let trace_address = it.trace_address.clone();
+							let value = it.value;
+							let gas = it.gas;
+							let gas_used = it.gas_used;
+							let inner = it.inner.clone();
+
+							Some(Call::CallTracer(CallTracerCall {
+								from: from,
+								gas: gas,
+								gas_used: gas_used,
+								trace_address: Some(trace_address.clone()),
+								inner: match inner.clone() {
+									BlockscoutInner::Call {
+										input,
+										to,
+										res,
+										call_type,
+									} => CallTracerInner::Call {
+										call_type: match call_type {
+											crate::CallType::Call => "CALL".as_bytes().to_vec(),
+											crate::CallType::CallCode => {
+												"CALLCODE".as_bytes().to_vec()
+											}
+											crate::CallType::DelegateCall => {
+												"DELEGATECALL".as_bytes().to_vec()
+											}
+											crate::CallType::StaticCall => {
+												"STATICCALL".as_bytes().to_vec()
+											}
+										},
+										to,
+										input,
+										res,
+										value: Some(value),
+									},
+									BlockscoutInner::Create { init, res } => {
+										CallTracerInner::Create {
+											input: init,
+											error: match res {
+												CreateResult::Success { .. } => None,
+												crate::CreateResult::Error { ref error } => {
+													Some(error.clone())
+												}
+											},
+											to: match res {
+												CreateResult::Success {
+													created_contract_address_hash,
+													..
+												} => Some(created_contract_address_hash),
+												crate::CreateResult::Error { .. } => None,
+											},
+											output: match res {
+												CreateResult::Success {
+													created_contract_code,
+													..
+												} => Some(created_contract_code),
+												crate::CreateResult::Error { .. } => None,
+											},
+											value: value,
+											call_type: "CREATE".as_bytes().to_vec(),
+										}
+									}
+									BlockscoutInner::SelfDestruct {
+										balance,
+										refund_address,
+									} => CallTracerInner::SelfDestruct {
+										value: balance,
+										to: refund_address,
+										call_type: "SELFDESTRUCT".as_bytes().to_vec(),
+									},
+								},
+								calls: Vec::new(),
+							}))
+						})
+						.map(|x| x)
+						.collect();
+
+					// Geth's `callTracer` expects a tree of nested calls and we have a stack.
+					//
+					// We iterate over the sorted stack, and push each children to it's
+					// parent (the item which's `trace_address` matches &T[0..T.len()-1]) until there
+					// is a single item on the list.
+					//
+					// The last remaining item is the context call with all it's descendants. I.e.
+					//
+					// 		[0,0,0] -> pop() and added to [0,0]
+					// 		[1,0,0] -> pop() and added to [1,0]
+					// 		[1,0,1] -> pop() and added to [1,0]
+					// 		[0,0] -> pop() and added to [0]
+					// 		[0,1] -> pop() and added to [0]
+					// 		[1,0] -> pop() and added to [1]
+					// 		[0] -> pop() and added to []
+					// 		[1] -> pop() and added to []
+					// 		[] -> list length == 1, out
+
+					if result.len() > 1 {
+						// Sort the stack. Assume there is no `Ordering::Equal`, as we are
+						// sorting by index.
+						//
+						// We consider an item to be `Ordering::Less` when:
+						// 	- Is closer to the root.
+						//	- The concatenated numerical representation of it's indexes is
+						//	greater than it's siblings. This allows to later pop (and push) the indexes
+						//	sorted ASC.
+						result.sort_by(|a, b| match (a, b) {
+							(
+								Call::CallTracer(CallTracerCall {
+									trace_address: Some(a),
+									..
+								}),
+								Call::CallTracer(CallTracerCall {
+									trace_address: Some(b),
+									..
+								}),
+							) => {
+								let a_len = a.len();
+								let b_len = b.len();
+
+								let sibling_greater_than = |a: &Vec<u32>, b: &Vec<u32>| -> bool {
+									for (i, a_value) in a.iter().enumerate() {
+										if a_value > &b[i] {
+											return true;
+										} else if a_value < &b[i] {
+											return false;
+										} else {
+											continue;
+										}
+									}
+									return false;
+								};
+
+								if b_len > a_len || (a_len == b_len && sibling_greater_than(&a, &b))
+								{
+									Ordering::Less
+								} else {
+									Ordering::Greater
+								}
+							}
+							_ => unreachable!(),
+						});
+						// Stack pop-and-push.
+						while result.len() > 1 {
+							let mut last = result.pop().unwrap();
+							// Find the parent index.
+							if let Some(index) =
+								result
+									.iter()
+									.position(|current| match (last.clone(), current) {
+										(
+											Call::CallTracer(CallTracerCall {
+												trace_address: Some(a),
+												..
+											}),
+											Call::CallTracer(CallTracerCall {
+												trace_address: Some(b),
+												..
+											}),
+										) => &b[..] == &a[0..a.len() - 1],
+										_ => unreachable!(),
+									}) {
+								// Remove `trace_address` from result.
+								if let Call::CallTracer(CallTracerCall {
+									ref mut trace_address,
+									..
+								}) = last
+								{
+									*trace_address = None;
+								}
+								// Push the children to parent.
+								if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
+									result.get_mut(index)
+								{
+									calls.push(last);
+								}
+							}
+						}
+					}
+					// Remove `trace_address` from result.
+					if let Some(Call::CallTracer(CallTracerCall { trace_address, .. })) =
+						result.get_mut(0)
+					{
+						*trace_address = None;
+					}
+					if result.len() == 1 {
+						return Some(TransactionTrace::CallListNested(result.pop().unwrap()));
+					}
+					return None;
+				}
+				_ => return None,
+			}
 		}
 		None
 	}
@@ -175,7 +384,7 @@ impl CallListProxy {
 			let mut tx_traces: Vec<_> = entry
 				.into_iter()
 				.map(|(_, trace)| match trace.inner.clone() {
-					CallInner::Call {
+					BlockscoutInner::Call {
 						input,
 						to,
 						res,
@@ -208,7 +417,7 @@ impl CallListProxy {
 						transaction_hash: H256::default(),
 						transaction_position: eth_tx_index as u32,
 					},
-					CallInner::Create { init, res } => {
+					BlockscoutInner::Create { init, res } => {
 						BlockTrace {
 							action: TransactionTraceAction::Create {
 								creation_method: CreateType::Create,
@@ -243,7 +452,7 @@ impl CallListProxy {
 							transaction_position: eth_tx_index as u32,
 						}
 					}
-					CallInner::SelfDestruct {
+					BlockscoutInner::SelfDestruct {
 						balance,
 						refund_address,
 					} => BlockTrace {

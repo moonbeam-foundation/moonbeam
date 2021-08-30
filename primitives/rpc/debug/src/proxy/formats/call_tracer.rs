@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::{Call, TransactionTrace, blockscout::{BlockscoutCall, BlockscoutInner}};
-use crate::{CreateResult, proxy::v2::call_list::Listener};
+use super::{
+	blockscout::{BlockscoutCall, BlockscoutInner},
+	Call, TransactionTrace,
+};
+use crate::{proxy::v2::call_list::Listener, CreateResult};
 
 #[cfg(feature = "std")]
 use crate::serialization::*;
@@ -150,15 +153,19 @@ impl super::TraceResponseBuilder for Response {
 					) => {
 						let a_len = a.len();
 						let b_len = b.len();
-						// Concat a Vec to u32.
-						let f = |idxs: &Vec<u32>| -> u32 {
-							idxs.iter()
-								.map(ToString::to_string)
-								.collect::<String>()
-								.parse::<u32>()
-								.unwrap_or(0)
+						let sibling_greater_than = |a: &Vec<u32>, b: &Vec<u32>| -> bool {
+							for (i, a_value) in a.iter().enumerate() {
+								if a_value > &b[i] {
+									return true;
+								} else if a_value < &b[i] {
+									return false;
+								} else {
+									continue;
+								}
+							}
+							return false;
 						};
-						if b_len > a_len || (a_len == b_len && (f(&b) < f(&a))) {
+						if b_len > a_len || (a_len == b_len && sibling_greater_than(&a, &b)) {
 							Ordering::Less
 						} else {
 							Ordering::Greater
