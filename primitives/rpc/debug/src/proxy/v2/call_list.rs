@@ -54,6 +54,10 @@ pub struct Listener {
 	/// True when an entry has been added to the pending list by StepResult.
 	/// Prevents EvmEvent::Exit to create a duplicate.
 	entry_from_step_result: bool,
+
+	/// First Call/Create will not create a context because it has been created by
+	/// TransactionCall/Create event.
+	skip_next_context: bool,
 }
 
 struct Context {
@@ -89,6 +93,7 @@ impl Default for Listener {
 			early_in_tx: true,
 			pending_entries: vec![],
 			entry_from_step_result: false,
+			skip_next_context: false,
 		}
 	}
 }
@@ -114,45 +119,47 @@ impl Listener {
 				gas_used += self.transaction_cost;
 			}
 
-			let entry = match context.context_type {
-				ContextType::Call(call_type) => {
-					let res = CallResult::Error(
-						b"implicit revert (out of gas, stack overflow, ...)".to_vec(),
-					);
-					Call {
-						from: context.from,
-						trace_address: context.trace_address,
-						subtraces: context.subtraces,
-						value: context.value,
-						gas: context.gas.into(),
-						gas_used: gas_used.into(),
-						inner: CallInner::Call {
-							call_type,
-							to: context.to,
-							input: context.data,
-							res,
-						},
+			let entry =
+				match context.context_type {
+					ContextType::Call(call_type) => {
+						let res = CallResult::Error(
+							b"early exit (out of gas, stack overflow, direct call to precompile)"
+								.to_vec(),
+						);
+						Call {
+							from: context.from,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							value: context.value,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							inner: CallInner::Call {
+								call_type,
+								to: context.to,
+								input: context.data,
+								res,
+							},
+						}
 					}
-				}
-				ContextType::Create => {
-					let res = CreateResult::Error {
-						error: b"implicit revert (out of gas, stack overflow, ...)".to_vec(),
+					ContextType::Create => {
+						let res = CreateResult::Error {
+						error: b"early exit (out of gas, stack overflow, direct call to precompile)".to_vec(),
 					};
 
-					Call {
-						value: context.value,
-						trace_address: context.trace_address,
-						subtraces: context.subtraces,
-						gas: context.gas.into(),
-						gas_used: gas_used.into(),
-						from: context.from,
-						inner: CallInner::Create {
-							init: context.data,
-							res,
-						},
+						Call {
+							value: context.value,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							from: context.from,
+							inner: CallInner::Create {
+								init: context.data,
+								res,
+							},
+						}
 					}
-				}
-			};
+				};
 
 			self.pending_entries.push((context.entries_index, entry));
 
@@ -263,6 +270,7 @@ impl Listener {
 				});
 
 				self.entries_next_index += 1;
+				self.skip_next_context = true;
 			}
 
 			EvmEvent::TransactCreate {
@@ -290,6 +298,7 @@ impl Listener {
 				});
 
 				self.entries_next_index += 1;
+				self.skip_next_context = true;
 			}
 
 			EvmEvent::TransactCreate2 {
@@ -317,6 +326,7 @@ impl Listener {
 				});
 
 				self.entries_next_index += 1;
+				self.skip_next_context = true;
 			}
 
 			EvmEvent::Call {
@@ -331,7 +341,7 @@ impl Listener {
 					(Some(call_type), _) => call_type,
 				};
 
-				if !self.early_in_tx {
+				if !self.skip_next_context {
 					let trace_address = if let Some(context) = self.context_stack.last_mut() {
 						let mut trace_address = context.trace_address.clone();
 						trace_address.push(context.subtraces);
@@ -360,6 +370,7 @@ impl Listener {
 
 					self.entries_next_index += 1;
 				} else {
+					self.skip_next_context = false;
 					self.early_in_tx = false;
 				}
 			}
@@ -372,7 +383,7 @@ impl Listener {
 				init_code,
 				..
 			} => {
-				if !self.early_in_tx {
+				if !self.skip_next_context {
 					let trace_address = if let Some(context) = self.context_stack.last_mut() {
 						let mut trace_address = context.trace_address.clone();
 						trace_address.push(context.subtraces);
@@ -399,6 +410,7 @@ impl Listener {
 						to: address,
 					});
 				} else {
+					self.skip_next_context = false;
 					self.early_in_tx = false;
 				}
 
@@ -582,6 +594,7 @@ impl ListenerT for Listener {
 			Event::CallListNew() => {
 				self.insert_pending_entries();
 				self.early_in_tx = true;
+				self.skip_next_context = true;
 				self.entries.push(BTreeMap::new());
 			}
 		};
