@@ -958,6 +958,17 @@ pub mod pallet {
 		(reads, writes)
 	}
 
+	fn patch_total_counted_total_backing_to_include_self_bond<T: Config>() -> (u64, u64) {
+		let mut reads_writes = 0u64;
+		for (account, mut state) in <CollatorState2<T>>::iter() {
+			reads_writes += 1u64;
+			state.total_backing += state.bond;
+			state.total_counted += state.bond;
+			<CollatorState2<T>>::insert(account, state);
+		}
+		(reads_writes, reads_writes)
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
@@ -971,7 +982,18 @@ pub mod pallet {
 				// 50% of the max block weight as safety margin for computation
 				weight.reads(reads) + weight.writes(writes) + 250_000_000_000
 			} else {
-				weight.reads(1u64)
+				// already ran the other migration
+				if !<FixTotalCountedBackingExecuted<T>>::get() {
+					let (mut reads, mut writes) =
+						patch_total_counted_total_backing_to_include_self_bond::<T>();
+					reads += 1u64;
+					writes += 1u64;
+					<FixTotalCountedBackingExecuted<T>>::put(true);
+					// 20% of the max block weight as safety margin for computation
+					weight.reads(reads) + weight.writes(writes) + 100_000_000_000
+				} else {
+					weight.reads(1u64)
+				}
 			}
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
@@ -1004,6 +1026,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn fix_total_counted_backing_executed)]
+	/// Temporary to check if migration has run
+	pub(crate) type FixTotalCountedBackingExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn fix_bond_less_migration_executed)]
