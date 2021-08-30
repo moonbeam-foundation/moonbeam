@@ -19,11 +19,11 @@ use super::{
 	Call,
 };
 use crate::{
-	CallResult, CreateResult, CreateType,
 	block::{
 		TransactionTrace, TransactionTraceAction, TransactionTraceOutput, TransactionTraceResult,
 	},
 	proxy::v2::call_list::Listener,
+	CallResult, CreateResult, CreateType,
 };
 
 pub use ethereum_types::{H160, H256, U256};
