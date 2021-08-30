@@ -943,7 +943,6 @@ pub mod pallet {
 		for (account, mut state) in <NominatorState2<T>>::iter() {
 			reads += 1u64;
 			for Bond { owner, .. } in state.nominations.0.clone() {
-				reads += 1u64;
 				if map.get(&(owner.clone(), account.clone())).is_some() {
 					if state.rm_nomination(owner).is_some() {
 						if state.nominations.0.is_empty() {
