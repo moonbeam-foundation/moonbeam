@@ -969,8 +969,8 @@ pub mod pallet {
 				reads += 1u64;
 				writes += 1u64;
 				<FixBondLessMigrationExecuted<T>>::put(true);
-				// 2% of the max block weight as safety margin for computation
-				weight.reads(reads) + weight.writes(writes) + 10_000_000_000
+				// 50% of the max block weight as safety margin for computation
+				weight.reads(reads) + weight.writes(writes) + 250_000_000_000
 			} else {
 				weight.reads(1u64)
 			}
