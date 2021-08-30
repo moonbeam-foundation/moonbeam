@@ -912,7 +912,7 @@ pub mod pallet {
 				Vec::new()
 			};
 			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
-				(0u32.into(), 0u32.into());
+				(state.bond, state.bond);
 			for Bond { amount, .. } in &top_nominators {
 				total_counted += *amount;
 				total_backing += *amount;
