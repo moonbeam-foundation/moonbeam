@@ -945,28 +945,38 @@ pub mod pallet {
 		let (mut reads, mut writes) = (0u64, 0u64);
 		for (account, state) in <CollatorState2<T>>::iter() {
 			reads += 1u64;
-			if state.nominators.len() < 10 && state.bottom_nominators.is_empty() {
+			if state.nominators.0.len() < 10 && state.bottom_nominators.is_empty() {
 				// not effected by the bug
 				continue;
 			} else {
 				// else >= 10 nominators
 				// 1. collect all nominator amounts into single vec and order them
-				let mut bottom_nominators = state.top_nominators.clone();
-				bottom_nominators.append(state.bottom_nominators.clone().iter().rev().collect());
-				bottom_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-				let top_n = T::MaxNominatorsPerCollator as usize;
+				let mut all_nominators = state.top_nominators.clone();
+				let mut starting_bottom_nominators = state.bottom_nominators.clone();
+				all_nominators.append(&mut starting_bottom_nominators);
+				// sort all nominators from greatest to least
+				all_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+				let top_n = T::MaxNominatorsPerCollator::get() as usize;
 				// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
-				let top_nominators = bottom_nominators.iter().take(top_n).collect();
+				let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+					all_nominators.clone().into_iter().take(top_n).collect();
+				let mut bottom_nominators = all_nominators;
 				//  sorts bottom nominators least to greatest
 				bottom_nominators.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
-				let total_counted = top_nominators.clone().iter().map(|x| x.amount).sum();
-				let mut total_backing = bottom_nominators.clone().iter().map(|x| x.amount).sum();
-				total_backing += total_counted;
+				let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
+					(1u32.into(), 1u32.into());
+				for Bond { amount, .. } in &top_nominators {
+					total_counted += *amount;
+					total_backing += *amount;
+				}
+				for Bond { amount, .. } in &bottom_nominators {
+					total_backing += *amount;
+				}
 				// update candidate pool with new total counted if it changed
 				if state.total_counted != total_counted && state.is_active() {
 					reads += 1u64;
 					writes += 1u64;
-					<Pallet<T>>::update_active(account, total_counted);
+					<Pallet<T>>::update_active(account.clone(), total_counted);
 				}
 				<CollatorState2<T>>::insert(
 					account,
