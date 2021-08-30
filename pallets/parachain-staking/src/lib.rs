@@ -872,44 +872,28 @@ pub mod pallet {
 		// 1. for collator state, check if there is a nominator not in top or bottom
 		for (account, state) in <CollatorState2<T>>::iter() {
 			reads += 1u64;
-			if state.top_nominators.len() + state.bottom_nominators.len()
-				== state.nominators.0.len()
-			{
-				continue;
-			} else if state.top_nominators.len() + state.bottom_nominators.len()
-				< state.nominators.0.len()
-			{
-				// remove all accounts not in self.top_nominators && self.bottom_nominators
-				let mut nominator_set = Vec::new();
-				for Bond { owner, .. } in &state.top_nominators {
-					nominator_set.push(owner.clone());
-				}
-				for Bond { owner, .. } in &state.bottom_nominators {
-					nominator_set.push(owner.clone());
-				}
-				for nominator in state.nominators.0 {
-					if !nominator_set.contains(&nominator) {
-						// these accounts were removed without being unreserved so we track it
-						// with this map which will hold the due amount
-						map.insert((account.clone(), nominator), BalanceOf::<T>::zero());
-					}
-				}
-				let new_state = Collator2 {
-					nominators: OrderedSet::from(nominator_set),
-					..state
-				};
-				<CollatorState2<T>>::insert(&account, new_state);
-				writes += 1u64;
-				log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
-			} else {
-				// This message would reveal a new state inconsistency, not expected
-				log::warn!(
-					"There are more accounts in CollatorState.nominators than 
-					CollatorState.top_nominators + CollatorState.bottom_nominators for
-					account {:?}",
-					account
-				);
+			// remove all accounts not in self.top_nominators && self.bottom_nominators
+			let mut nominator_set = Vec::new();
+			for Bond { owner, .. } in &state.top_nominators {
+				nominator_set.push(owner.clone());
 			}
+			for Bond { owner, .. } in &state.bottom_nominators {
+				nominator_set.push(owner.clone());
+			}
+			for nominator in state.nominators.0 {
+				if !nominator_set.contains(&nominator) {
+					// these accounts were removed without being unreserved so we track it
+					// with this map which will hold the due amount
+					map.insert((account.clone(), nominator), BalanceOf::<T>::zero());
+				}
+			}
+			let new_state = Collator2 {
+				nominators: OrderedSet::from(nominator_set),
+				..state
+			};
+			<CollatorState2<T>>::insert(&account, new_state);
+			writes += 1u64;
+			log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
 		}
 		// 2. for nominator state, check if there are nominations that were inadvertently bumped
 		// -> this allows us to recover the due unreserved balances for cases of (1) that
@@ -947,7 +931,7 @@ pub mod pallet {
 			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
 			let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
 				all_nominators.clone().into_iter().take(top_n).collect();
-			let bottom_nominators = if all_nominators.len() >= top_n {
+			let bottom_nominators = if all_nominators.len() > top_n {
 				let rest = all_nominators.len() - top_n;
 				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_nominators
 					.clone()
