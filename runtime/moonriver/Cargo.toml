@@ -24,6 +24,7 @@ parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", 
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 evm = { version="0.27.0", default-features=false, features=["with-codec"] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 pallet-evm-precompile-bn128 = { git="https://github.com/purestake/frontier", default-features=false, branch="moonriver-phase-four" }
@@ -85,6 +86,8 @@ cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", d
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
+
+frame-try-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
 
 [dev-dependencies]
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
@@ -152,6 +155,7 @@ std = [
 	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
+	"pallet-maintenance-mode/std",
 	"pallet-treasury/std",
 	"max-encoded-len/std",
 	"evm/std",
@@ -178,4 +182,16 @@ runtime-benchmarks = [
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+]
+try-runtime = [
+	"frame-try-runtime",
+	"frame-executive/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-collective/try-runtime",
+	"parachain-staking/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-society/try-runtime",
+	"pallet-author-mapping/try-runtime",
+	#"pallet-crowdloan-rewards/try-runtime",
 ]

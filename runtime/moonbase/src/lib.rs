@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -60,7 +60,7 @@ use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -197,7 +197,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = RocksDbWeight;
-	type BaseCallFilter = ();
+	type BaseCallFilter = MaintenanceMode;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
@@ -583,10 +583,10 @@ parameter_types! {
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 25 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// Maximum 100 nominators per collator
+	pub const MaxNominatorsPerCollator: u32 = 100;
+	/// Maximum 100 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
@@ -636,7 +636,6 @@ impl pallet_author_slot_filter::Config for Runtime {
 
 parameter_types! {
 	// TODO to be revisited
-	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
@@ -767,6 +766,28 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+/// Call filter used during Phase 3 of the Moonriver rollout
+pub struct MaintenanceFilter;
+impl Filter<Call> for MaintenanceFilter {
+	fn filter(c: &Call) -> bool {
+		match c {
+			Call::Balances(_) => false,
+			Call::CrowdloanRewards(_) => false,
+			Call::Ethereum(_) => false,
+			Call::EVM(_) => false,
+			_ => true,
+		}
+	}
+}
+
+impl pallet_maintenance_mode::Config for Runtime {
+	type Event = Event;
+	type NormalCallFilter = ();
+	type MaintenanceCallFilter = MaintenanceFilter;
+	type MaintenanceOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -798,6 +819,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
 	}
 }
 
@@ -847,7 +869,15 @@ runtime_common::impl_runtime_apis_plus_common! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx, block_hash)
+			// Filtered calls should not enter the tx pool as they'll fail if inserted.
+			let allowed = <Runtime as frame_system::Config>
+				::BaseCallFilter::filter(&tx.function);
+
+			if allowed {
+				Executive::validate_transaction(source, tx, block_hash)
+			} else {
+				InvalidTransaction::Call.into()
+			}
 		}
 	}
 }

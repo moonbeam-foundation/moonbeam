@@ -172,6 +172,48 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<TransactionTrace> {
+		// Set trace input and type
+		let (tracer_input, trace_type) = match params {
+			Some(TraceParams {
+				tracer: Some(tracer),
+				..
+			}) => {
+				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+				let tracer = if hash == blockscout_hash {
+					Some(TracerInput::Blockscout)
+				} else if tracer == "callTracer" {
+					Some(TracerInput::CallTracer)
+				} else {
+					None
+				};
+				if let Some(tracer) = tracer {
+					(tracer, single::TraceType::CallList)
+				} else {
+					return Err(internal_err(format!(
+						"javascript based tracing is not available (hash :{:?})",
+						hash
+					)));
+				}
+			}
+			Some(params) => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(false),
+					disable_memory: params.disable_memory.unwrap_or(false),
+					disable_stack: params.disable_stack.unwrap_or(false),
+				},
+			),
+			_ => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: false,
+					disable_memory: false,
+					disable_stack: false,
+				},
+			),
+		};
+
 		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
@@ -220,48 +262,6 @@ where
 			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
 		};
 
-		// Set trace input and type
-		let (tracer_input, trace_type) = match params {
-			Some(TraceParams {
-				tracer: Some(tracer),
-				..
-			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				let tracer = if hash == blockscout_hash {
-					Some(TracerInput::Blockscout)
-				} else if tracer == "callTracer" {
-					Some(TracerInput::CallTracer)
-				} else {
-					None
-				};
-				if let Some(tracer) = tracer {
-					(tracer, single::TraceType::CallList)
-				} else {
-					return Err(internal_err(format!(
-						"javascript based tracing is not available (hash :{:?})",
-						hash
-					)));
-				}
-			}
-			Some(params) => (
-				TracerInput::None,
-				single::TraceType::Raw {
-					disable_storage: params.disable_storage.unwrap_or(false),
-					disable_memory: params.disable_memory.unwrap_or(false),
-					disable_stack: params.disable_stack.unwrap_or(false),
-				},
-			),
-			_ => (
-				TracerInput::None,
-				single::TraceType::Raw {
-					disable_storage: false,
-					disable_memory: false,
-					disable_stack: false,
-				},
-			),
-		};
-
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
@@ -277,12 +277,16 @@ where
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else if api_version == 2 {
-						let _result = api
-							.trace_transaction(&parent_block_id, &header, ext, &transaction)
-							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
-							})?
-							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+						#[allow(deprecated)]
+						let _result = api.trace_transaction_before_version_3(
+							&parent_block_id,
+							&header,
+							ext,
+							&transaction,
+							trace_type,
+						)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else {

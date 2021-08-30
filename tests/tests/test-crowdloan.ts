@@ -6,7 +6,6 @@ import { Account } from "web3-core";
 import { formatBalance } from "@polkadot/util";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
-import { MultiSignature } from "@polkadot/types/interfaces";
 
 import {
   GENESIS_ACCOUNT,

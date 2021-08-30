@@ -83,6 +83,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbeam_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("AuthorMapping");
+	is_pallet_prefix::<moonbeam_runtime::MaintenanceMode>("MaintenanceMode");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -157,6 +158,17 @@ fn verify_pallet_prefixes() {
 			}
 		]
 	);
+	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
+	// assert_eq!(
+	// 	<moonbeam_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+	// 	vec![
+	// 		StorageInfo {
+	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+	// 			max_values: None,
+	// 			max_size: Some(845),
+	// 		},
+	// 	]
+	// );
 }
 
 #[test]
@@ -190,6 +202,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::CrowdloanRewards>(20);
 	is_pallet_index::<moonbeam_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbeam_runtime::Proxy>(22);
+	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(23);
 }
 
 #[test]
