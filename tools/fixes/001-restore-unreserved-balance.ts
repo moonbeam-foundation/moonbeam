@@ -135,9 +135,23 @@ const getNominatorsStakes = async (polkadotApi: ApiPromise, at: BlockHash, accou
 const collatorToString = (accountId: string, collator: any) => {
   return `${accountId}:  ${collator.nominators.length
     .toString()
-    .padEnd(3, " ")} nominations (top: ${collator.top_nominators.length
+    .padEnd(3, " ")} nominations [backing: ${(collator.total_backing.toBigInt() / 10n ** 18n)
     .toString()
-    .padEnd(3, " ")}, bottom: ${collator.bottom_nominators.length.toString().padStart(3, " ")})`;
+    .padEnd(5, " ")}, counted: ${(collator.total_counted.toBigInt() / 10n ** 18n)
+    .toString()
+    .padEnd(5, " ")}] (top: ${collator.top_nominators.length.toString().padEnd(3, " ")}[amount: ${(
+    collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n) /
+    10n ** 18n
+  )
+    .toString()
+    .padEnd(5, " ")}], bottom: ${collator.bottom_nominators.length
+    .toString()
+    .padStart(3, " ")} [amount: ${(
+    collator.bottom_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n) /
+    10n ** 18n
+  )
+    .toString()
+    .padEnd(5, " ")}])`;
 };
 
 const getCollatorsStates = async (polkadotApi: ApiPromise, at: BlockHash, account?: string) => {
@@ -198,7 +212,7 @@ const main = async () => {
   }
 
   // Stores collator once their storage mismatch
-  const reportedCollators = {};
+  const reportedCollators: { [id: string]: bigint } = {};
 
   console.log(`\n========= Analyze events...`);
   await exploreBlockRange(
@@ -216,12 +230,17 @@ const main = async () => {
 
           if (
             !reportedCollators[accountId] && // Do not repeat the error at each block
-            collator.nominators.length !=
-              collator.top_nominators.length + collator.bottom_nominators.length
+            (collator.nominators.length !=
+              collator.top_nominators.length + collator.bottom_nominators.length ||
+              collator.total_backing.toBigInt() !=
+                [...collator.top_nominators, ...collator.bottom_nominators].reduce(
+                  (p, nom) => p + nom.amount.toBigInt(),
+                  0n
+                ) ||
+              collator.total_counted.toBigInt() !=
+                collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n))
           ) {
-            reportedCollators[accountId] = `Invalid #${
-              blockDetails.block.header.number
-            } ${collatorToString(accountId, collator)} `;
+            reportedCollators[accountId] = blockDetails.block.header.number.toBigInt();
           }
         }
       }
@@ -470,15 +489,26 @@ const main = async () => {
   for (const accountId of Object.keys(reportedCollators)) {
     const collator = collatorsAtEnd[accountId];
 
-    const isFixed =
-      reportedCollators[accountId] && // Do not repeat the error at each block
-      collator.nominators.length ==
-        collator.top_nominators.length + collator.bottom_nominators.length;
+    const isWrongBacking =
+      collator.total_backing.toBigInt() !=
+      [...collator.top_nominators, ...collator.bottom_nominators].reduce(
+        (p, nom) => p + nom.amount.toBigInt(),
+        0n
+      );
+    const isWrongCounted =
+      collator.total_counted.toBigInt() !=
+      collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n);
+
+    const isWrongLength =
+      collator.nominators.length !=
+      collator.top_nominators.length + collator.bottom_nominators.length;
+
+    const isFixed = !isWrongBacking && !isWrongCounted && !isWrongLength;
 
     if (isFixed) {
       console.log(`${collatorToString(accountId, collator)}: Fixed !!`);
     } else {
-      console.log(reportedCollators[accountId]);
+      console.log(collatorToString(accountId, collator));
     }
   }
 
