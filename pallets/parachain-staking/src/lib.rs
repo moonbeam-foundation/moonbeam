@@ -140,7 +140,7 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator2<AccountId, Balance> {
 		/// The account of this collator
@@ -880,11 +880,11 @@ pub mod pallet {
 			{
 				// remove all accounts not in self.top_nominators && self.bottom_nominators
 				let mut nominator_set = Vec::new();
-				for Bond { owner, .. } in state.top_nominators.clone() {
-					nominator_set.push(owner);
+				for Bond { owner, .. } in &state.top_nominators {
+					nominator_set.push(owner.clone());
 				}
-				for Bond { owner, .. } in state.bottom_nominators.clone() {
-					nominator_set.push(owner);
+				for Bond { owner, .. } in &state.bottom_nominators {
+					nominator_set.push(owner.clone());
 				}
 				for nominator in state.nominators.0 {
 					if !nominator_set.contains(&nominator) {
@@ -999,13 +999,22 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let (mut reads, mut writes) =
-				correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
-			let (reads_1, writes_1) = correct_max_nominations_per_collator_upgrade_mistake::<T>();
-			reads += reads_1;
-			writes += writes_1;
-			let wt = <T as frame_system::Config>::DbWeight::get();
-			wt.reads(reads) + wt.writes(writes) + 10_000_000_000 // 2% of the max block weight margin
+			let (reads, writes) = if !<FixBondLessMigrationExecuted<T>>::get() {
+				let (mut reads_0, mut writes_0) =
+					correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
+				let (reads_1, writes_1) =
+					correct_max_nominations_per_collator_upgrade_mistake::<T>();
+				reads_0 += reads_1;
+				writes_0 += writes_1;
+				reads_0 += 1u64;
+				writes_0 += 1u64;
+				<FixBondLessMigrationExecuted<T>>::put(true);
+				(reads_0, writes_0)
+			} else {
+				(1u64, 0u64)
+			};
+			let wt = T::DbWeight::get();
+			wt.reads(reads) + wt.writes(writes) + 10_000_000_000 //2% of the max block weight margin
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
@@ -1037,6 +1046,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn fix_bond_less_migration_executed)]
+	/// Temporary to check if migration has run
+	pub(crate) type FixBondLessMigrationExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn accounts_due_unreserved_balance)]
