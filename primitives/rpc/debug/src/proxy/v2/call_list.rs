@@ -47,10 +47,13 @@ pub struct Listener {
 	/// Allow to handle early errors before these events.
 	early_in_tx: bool,
 
-	/// StepResult event will produce an entry but not insert it directly.
-	/// Exit event will produce an antry if there was not a StepResult one
-	/// (out of gas or other error), then insert it.
-	step_result_entry: Option<(u32, Call)>,
+	/// To handle EvmEvent::Exit no emitted by previous runtimes versions,
+	/// entries are not inserted directly in `self.entries`.
+	pending_entries: Vec<(u32, Call)>,
+
+	/// True when an entry has been added to the pending list by StepResult.
+	/// Prevents EvmEvent::Exit to create a duplicate.
+	entry_from_step_result: bool,
 }
 
 struct Context {
@@ -84,7 +87,8 @@ impl Default for Listener {
 
 			call_type: None,
 			early_in_tx: true,
-			step_result_entry: None,
+			pending_entries: vec![],
+			entry_from_step_result: false,
 		}
 	}
 }
@@ -92,6 +96,100 @@ impl Default for Listener {
 impl Listener {
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
 		super::listener::using(self, f)
+	}
+
+	/// Called at the end of each transaction when tracing.
+	/// Allow to insert the pending entries regardless of which runtime version
+	/// is used (with or without EvmEvent::Exit).
+	pub fn finish_transaction(&mut self) {
+		// remove any leftover context
+		let mut context_stack = vec![];
+		core::mem::swap(&mut self.context_stack, &mut context_stack);
+
+		// if there is a left over there have been an early exit.
+		// we generate an entry from it and discord any inner context.
+		if let Some(context) = context_stack.into_iter().next() {
+			let mut gas_used = context.start_gas.unwrap_or(0) - context.gas;
+			if context.entries_index == 0 {
+				gas_used += self.transaction_cost;
+			}
+
+			let entry = match context.context_type {
+				ContextType::Call(call_type) => {
+					let res = CallResult::Error(
+						b"implicit revert (out of gas, stack overflow, ...)".to_vec(),
+					);
+					Call {
+						from: context.from,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						value: context.value,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						inner: CallInner::Call {
+							call_type,
+							to: context.to,
+							input: context.data,
+							res,
+						},
+					}
+				}
+				ContextType::Create => {
+					let res = CreateResult::Error {
+						error: b"implicit revert (out of gas, stack overflow, ...)".to_vec(),
+					};
+
+					Call {
+						value: context.value,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						from: context.from,
+						inner: CallInner::Create {
+							init: context.data,
+							res,
+						},
+					}
+				}
+			};
+
+			self.pending_entries.push((context.entries_index, entry));
+
+			// Since only this context/entry is kept, we need update entries_next_index too.
+			self.entries_next_index = context.entries_index + 1;
+		}
+		// however if the transaction had a too low gas limit to pay for the data cost itself,
+		// no context are created and no data is available.
+		else if self.early_in_tx {
+			let res = CallResult::Error(
+				b"transaction could not pay its own data cost (impossible to gather more info)"
+					.to_vec(),
+			);
+
+			let entry = Call {
+				from: H160::repeat_byte(0),
+				trace_address: vec![],
+				subtraces: 0,
+				value: 0.into(),
+				gas: 0.into(),
+				gas_used: 0.into(),
+				inner: CallInner::Call {
+					call_type: CallType::Call,
+					to: H160::repeat_byte(0),
+					input: vec![],
+					res,
+				},
+			};
+
+			self.pending_entries.push((self.entries_next_index, entry));
+			self.entries_next_index += 1;
+		}
+
+		// We insert all the pending entries.
+		// All entries of a transaction are stored in the pending list to correctly handle
+		// runtime versions where EvmEvent::Exit exist or not.
+		self.insert_pending_entries();
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
@@ -127,7 +225,10 @@ impl Listener {
 				result: Err(Capture::Exit(reason)),
 				return_value,
 			} => {
-				self.step_result_entry = self.pop_context_to_entry(reason, return_value);
+				if let Some(entry) = self.pop_context_to_entry(reason, return_value) {
+					self.pending_entries.push(entry);
+					self.entry_from_step_result = true;
+				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
@@ -341,22 +442,35 @@ impl Listener {
 				reason,
 				return_value,
 			} => {
-				let entry = self
-					.step_result_entry
-					.take()
-					.or_else(|| self.pop_context_to_entry(reason, return_value));
-
-				if let Some((key, entry)) = entry {
-					if self.entries.is_empty() {
-						self.entries.push(BTreeMap::new());
+				// If StepResult has been skipped (early revert due to out of gas or similar
+				// errors), we produce the entry here.
+				if !self.entry_from_step_result {
+					if let Some(entry) = self.pop_context_to_entry(reason, return_value) {
+						self.pending_entries.push(entry);
 					}
-
-					self.entries.last_mut().unwrap().insert(key, entry);
+				} else {
+					self.entry_from_step_result = false;
 				}
+
+				// This event handles tx cost revert entry, so we're no longer "early".
+				self.early_in_tx = false;
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
 			_ => (),
+		}
+	}
+
+	fn insert_pending_entries(&mut self) {
+		let mut entries = vec![];
+		core::mem::swap(&mut self.pending_entries, &mut entries);
+
+		for (key, entry) in entries.into_iter() {
+			if self.entries.is_empty() {
+				self.entries.push(BTreeMap::new());
+			}
+
+			self.entries.last_mut().unwrap().insert(key, entry);
 		}
 	}
 
@@ -466,6 +580,7 @@ impl ListenerT for Listener {
 			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
 			Event::Evm(evm_event) => self.evm_event(evm_event),
 			Event::CallListNew() => {
+				self.insert_pending_entries();
 				self.early_in_tx = true;
 				self.entries.push(BTreeMap::new());
 			}
