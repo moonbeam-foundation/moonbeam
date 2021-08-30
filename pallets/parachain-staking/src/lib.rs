@@ -140,7 +140,7 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator2<AccountId, Balance> {
 		/// The account of this collator
@@ -939,13 +939,73 @@ pub mod pallet {
 		(reads, writes)
 	}
 
+	pub(crate) fn correct_max_nominations_per_collator_upgrade_mistake<T: Config>() -> (u64, u64) {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		for (account, state) in <CollatorState2<T>>::iter() {
+			reads += 1u64;
+			// 1. collect all nominator amounts into single vec and order them
+			let mut all_nominators = state.top_nominators.clone();
+			let mut starting_bottom_nominators = state.bottom_nominators.clone();
+			all_nominators.append(&mut starting_bottom_nominators);
+			// sort all nominators from greatest to least
+			all_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+			let top_n = T::MaxNominatorsPerCollator::get() as usize;
+			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
+			let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+				all_nominators.clone().into_iter().take(top_n).collect();
+			let bottom_nominators = if all_nominators.len() > top_n {
+				let rest = all_nominators.len() - top_n;
+				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_nominators
+					.clone()
+					.into_iter()
+					.rev()
+					.take(rest)
+					.collect();
+				bottom
+			} else {
+				// empty, all nominations are in top
+				Vec::new()
+			};
+			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
+				(0u32.into(), 0u32.into());
+			for Bond { amount, .. } in &top_nominators {
+				total_counted += *amount;
+				total_backing += *amount;
+			}
+			for Bond { amount, .. } in &bottom_nominators {
+				total_backing += *amount;
+			}
+			// update candidate pool with new total counted if it changed
+			if state.total_counted != total_counted && state.is_active() {
+				reads += 1u64;
+				writes += 1u64;
+				<Pallet<T>>::update_active(account.clone(), total_counted);
+			}
+			<CollatorState2<T>>::insert(
+				account,
+				Collator2 {
+					top_nominators,
+					bottom_nominators,
+					total_counted,
+					total_backing,
+					..state
+				},
+			);
+			writes += 1u64;
+		}
+		(reads, writes)
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let (reads, writes) =
+			let (mut reads, mut writes) =
 				correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
+			let (reads_1, writes_1) = correct_max_nominations_per_collator_upgrade_mistake::<T>();
+			reads += reads_1;
+			writes += writes_1;
 			let wt = <T as frame_system::Config>::DbWeight::get();
-			wt.reads(reads) + wt.writes(writes) + 5_000_000_000 // 1% of the max block weight margin
+			wt.reads(reads) + wt.writes(writes) + 10_000_000_000 // 2% of the max block weight margin
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
