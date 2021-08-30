@@ -3938,7 +3938,6 @@ fn migration_corrects_storage_corrupted_by_max_nominators_upgrade_bug() {
 			<CollatorState2<Test>>::insert(&1, candidate_state);
 			// full migration, first cleans nominator set and second cleans other items
 			crate::correct_bond_less_removes_bottom_nomination_inconsistencies::<Test>();
-			crate::correct_max_nominations_per_collator_upgrade_mistake::<Test>();
 			let post_candidate_state =
 				<CollatorState2<Test>>::get(&1).expect("set up 1 as candidate");
 			assert_eq!(post_candidate_state.top_nominators.len(), 4);

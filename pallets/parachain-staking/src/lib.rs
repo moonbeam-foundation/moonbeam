@@ -868,7 +868,8 @@ pub mod pallet {
 	pub(crate) fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>(
 	) -> (u64, u64) {
 		let (mut reads, mut writes) = (0u64, 0u64);
-		let mut map: BTreeMap<(T::AccountId, T::AccountId), BalanceOf<T>> = BTreeMap::new();
+		let mut map: BTreeMap<(T::AccountId, T::AccountId), ()> = BTreeMap::new();
+		let top_n = T::MaxNominatorsPerCollator::get() as usize;
 		// 1. for collator state, check if there is a nominator not in top or bottom
 		for (account, state) in <CollatorState2<T>>::iter() {
 			reads += 1u64;
@@ -880,49 +881,14 @@ pub mod pallet {
 			for Bond { owner, .. } in &state.bottom_nominators {
 				nominator_set.push(owner.clone());
 			}
-			for nominator in state.nominators.0 {
-				if !nominator_set.contains(&nominator) {
+			for nominator in &state.nominators.0 {
+				if !nominator_set.contains(nominator) {
 					// these accounts were removed without being unreserved so we track it
 					// with this map which will hold the due amount
-					map.insert((account.clone(), nominator), BalanceOf::<T>::zero());
+					map.insert((account.clone(), nominator.clone()), ());
 				}
 			}
-			let new_state = Collator2 {
-				nominators: OrderedSet::from(nominator_set),
-				..state
-			};
-			<CollatorState2<T>>::insert(&account, new_state);
-			writes += 1u64;
-			log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
-		}
-		// 2. for nominator state, check if there are nominations that were inadvertently bumped
-		// -> this allows us to recover the due unreserved balances for cases of (1) that
-		// did not have the nominator state removed (it does not account for when it was removed)
-		for (account, mut state) in <NominatorState2<T>>::iter() {
-			reads += 1u64;
-			for Bond { owner, .. } in state.nominations.0.clone() {
-				reads += 1u64;
-				if map.get(&(owner.clone(), account.clone())).is_some() {
-					if state.rm_nomination(owner).is_some() {
-						if state.nominations.0.is_empty() {
-							<NominatorState2<T>>::remove(&account);
-						} else {
-							<NominatorState2<T>>::insert(&account, state.clone());
-						}
-						writes += 1u64;
-					}
-				}
-			}
-		}
-		(reads, writes)
-	}
-
-	pub(crate) fn correct_max_nominations_per_collator_upgrade_mistake<T: Config>() -> (u64, u64) {
-		let (mut reads, mut writes) = (0u64, 0u64);
-		let top_n = T::MaxNominatorsPerCollator::get() as usize;
-		for (account, state) in <CollatorState2<T>>::iter() {
-			reads += 1u64;
-			// 1. collect all nominator amounts into single vec and order them
+			// RESET incorrect storage state
 			let mut all_nominators = state.top_nominators.clone();
 			let mut starting_bottom_nominators = state.bottom_nominators.clone();
 			all_nominators.append(&mut starting_bottom_nominators);
@@ -959,21 +925,36 @@ pub mod pallet {
 				writes += 1u64;
 				<Pallet<T>>::update_active(account.clone(), total_counted);
 			}
-			<CollatorState2<T>>::insert(
-				&account,
-				Collator2 {
-					top_nominators,
-					bottom_nominators,
-					total_counted,
-					total_backing,
-					..state
-				},
-			);
+			let new_state = Collator2 {
+				nominators: OrderedSet::from(nominator_set),
+				top_nominators,
+				bottom_nominators,
+				total_counted,
+				total_backing,
+				..state
+			};
+			<CollatorState2<T>>::insert(&account, new_state);
 			writes += 1u64;
-			log::warn!(
-				"CORRECTED INCONSISTENT TOP BOTTOM COLLATOR STATE FOR {:?}",
-				account
-			);
+			log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
+		}
+		// 2. for nominator state, check if there are nominations that were inadvertently bumped
+		// -> this allows us to recover the due unreserved balances for cases of (1) that
+		// did not have the nominator state removed (it does not account for when it was removed)
+		for (account, mut state) in <NominatorState2<T>>::iter() {
+			reads += 1u64;
+			for Bond { owner, .. } in state.nominations.0.clone() {
+				reads += 1u64;
+				if map.get(&(owner.clone(), account.clone())).is_some() {
+					if state.rm_nomination(owner).is_some() {
+						if state.nominations.0.is_empty() {
+							<NominatorState2<T>>::remove(&account);
+						} else {
+							<NominatorState2<T>>::insert(&account, state.clone());
+						}
+						writes += 1u64;
+					}
+				}
+			}
 		}
 		(reads, writes)
 	}
@@ -985,10 +966,6 @@ pub mod pallet {
 			if !<FixBondLessMigrationExecuted<T>>::get() {
 				let (mut reads, mut writes) =
 					correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
-				let (reads_1, writes_1) =
-					correct_max_nominations_per_collator_upgrade_mistake::<T>();
-				reads += reads_1;
-				writes += writes_1;
 				reads += 1u64;
 				writes += 1u64;
 				<FixBondLessMigrationExecuted<T>>::put(true);
