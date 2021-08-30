@@ -1274,13 +1274,17 @@ pub mod pallet {
 			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
+			let mut sum_unreserved: BalanceOf<T> = 0u32.into();
 			for (due_account, due_unreserve) in stakers {
 				T::Currency::unreserve(&due_account, due_unreserve);
 				Self::deposit_event(Event::HotfixUnreservedNomination(
 					due_account,
 					due_unreserve,
 				));
+				sum_unreserved += due_unreserve;
 			}
+			let new_total = <Total<T>>::get().saturating_sub(sum_unreserved);
+			<Total<T>>::put(new_total);
 			Ok(().into())
 		}
 		/// Set the expectations for total staked. These expectations determine the issuance for

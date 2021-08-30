@@ -3866,6 +3866,7 @@ fn migration_corrects_storage_corrupted_by_bond_less_bug() {
 				Stake::nominator_leaves_collator(2, 1),
 				Error::<Test>::NominatorDNEinTopNorBottom
 			);
+			assert_eq!(Stake::total(), 125);
 			let candidate_state = <CollatorState2<Test>>::get(&1).expect("still exists");
 			// was removed from bottom nominators and not the `nominators` set
 			assert_eq!(
@@ -3890,6 +3891,7 @@ fn migration_corrects_storage_corrupted_by_bond_less_bug() {
 			// check that the balance is not unreserved
 			assert_eq!(Balances::reserved_balance(&2), 19);
 			assert_eq!(Balances::free_balance(&2), 81);
+			assert_eq!(Stake::total(), 125);
 			// return due unreserved balance (NOTE: doesn't reset this storage item)
 			assert_ok!(Stake::hotfix_unreserve_nomination(
 				Origin::root(),
@@ -3897,6 +3899,7 @@ fn migration_corrects_storage_corrupted_by_bond_less_bug() {
 			));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 100);
+			assert_eq!(Stake::total(), 106);
 		});
 }
 
