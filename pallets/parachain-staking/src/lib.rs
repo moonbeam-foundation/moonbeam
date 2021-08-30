@@ -935,6 +935,7 @@ pub mod pallet {
 
 	pub(crate) fn correct_max_nominations_per_collator_upgrade_mistake<T: Config>() -> (u64, u64) {
 		let (mut reads, mut writes) = (0u64, 0u64);
+		let top_n = T::MaxNominatorsPerCollator::get() as usize;
 		for (account, state) in <CollatorState2<T>>::iter() {
 			reads += 1u64;
 			// 1. collect all nominator amounts into single vec and order them
@@ -943,11 +944,10 @@ pub mod pallet {
 			all_nominators.append(&mut starting_bottom_nominators);
 			// sort all nominators from greatest to least
 			all_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			let top_n = T::MaxNominatorsPerCollator::get() as usize;
 			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
 			let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
 				all_nominators.clone().into_iter().take(top_n).collect();
-			let bottom_nominators = if all_nominators.len() > top_n {
+			let bottom_nominators = if all_nominators.len() >= top_n {
 				let rest = all_nominators.len() - top_n;
 				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_nominators
 					.clone()
@@ -976,7 +976,7 @@ pub mod pallet {
 				<Pallet<T>>::update_active(account.clone(), total_counted);
 			}
 			<CollatorState2<T>>::insert(
-				account,
+				&account,
 				Collator2 {
 					top_nominators,
 					bottom_nominators,
@@ -986,6 +986,10 @@ pub mod pallet {
 				},
 			);
 			writes += 1u64;
+			log::warn!(
+				"CORRECTED INCONSISTENT TOP BOTTOM COLLATOR STATE FOR {:?}",
+				account
+			);
 		}
 		(reads, writes)
 	}
