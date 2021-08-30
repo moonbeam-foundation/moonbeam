@@ -3833,7 +3833,7 @@ fn nomination_events_convey_correct_position() {
 }
 
 #[test]
-fn migration_corrects_corrupt_storage() {
+fn migration_corrects_storage_corrupted_by_bond_less_bug() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 100),
@@ -3876,7 +3876,7 @@ fn migration_corrects_corrupt_storage() {
 			// didn't exit entirely (this wasn't their last nomination)
 			assert!(Stake::is_nominator(&2));
 			// make storage consistent at least
-			crate::pallet::correct_bond_less_removes_bottom_nomination_inconsistencies::<Test>();
+			crate::correct_bond_less_removes_bottom_nomination_inconsistencies::<Test>();
 			// check storage is consistent
 			let candidate_state = <CollatorState2<Test>>::get(&1).expect("still exists");
 			assert_eq!(
@@ -3897,5 +3897,50 @@ fn migration_corrects_corrupt_storage() {
 			));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 100);
+		});
+}
+
+#[test]
+fn migration_corrects_storage_corrupted_by_max_nominators_upgrade_bug() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 19),
+			(3, 1, 20),
+			(4, 1, 21),
+			(5, 1, 22),
+			(6, 1, 23),
+			(7, 1, 24),
+			(8, 1, 25),
+		])
+		.build()
+		.execute_with(|| {
+			// start by corrupting collator state like the bug -- have some in bottom with open
+			// slots in the top
+			let mut candidate_state =
+				<CollatorState2<Test>>::get(&1).expect("set up 1 as candidate");
+			// corrupt storage via unhandled pop
+			candidate_state.top_nominators.pop();
+			candidate_state.top_nominators.pop();
+			assert_eq!(candidate_state.top_nominators.len(), 2); // < MaxNominatorsPerCollator = 4
+			assert_eq!(candidate_state.bottom_nominators.len(), 3);
+			<CollatorState2<Test>>::insert(&1, candidate_state);
+			// full migration, first cleans nominator set and second cleans other items
+			crate::correct_bond_less_removes_bottom_nomination_inconsistencies::<Test>();
+			crate::correct_max_nominations_per_collator_upgrade_mistake::<Test>();
+			let post_candidate_state =
+				<CollatorState2<Test>>::get(&1).expect("set up 1 as candidate");
+			assert_eq!(post_candidate_state.top_nominators.len(), 4);
+			assert_eq!(post_candidate_state.bottom_nominators.len(), 1);
 		});
 }
