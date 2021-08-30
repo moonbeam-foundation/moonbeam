@@ -135,7 +135,9 @@ const getNominatorsStakes = async (polkadotApi: ApiPromise, at: BlockHash, accou
 const collatorToString = (accountId: string, collator: any) => {
   return `${accountId}:  ${collator.nominators.length
     .toString()
-    .padEnd(3, " ")} nominations [backing: ${(collator.total_backing.toBigInt() / 10n ** 18n)
+    .padEnd(3, " ")} nominations [bond: ${(collator.bond.toBigInt() / 10n ** 18n)
+    .toString()
+    .padEnd(5, " ")}, backing: ${(collator.total_backing.toBigInt() / 10n ** 18n)
     .toString()
     .padEnd(5, " ")}, counted: ${(collator.total_counted.toBigInt() / 10n ** 18n)
     .toString()
@@ -236,9 +238,11 @@ const main = async () => {
                 [...collator.top_nominators, ...collator.bottom_nominators].reduce(
                   (p, nom) => p + nom.amount.toBigInt(),
                   0n
-                ) ||
+                ) +
+                  collator.bond.toBigInt() ||
               collator.total_counted.toBigInt() !=
-                collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n))
+                collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n) +
+                  collator.bond.toBigInt())
           ) {
             reportedCollators[accountId] = blockDetails.block.header.number.toBigInt();
           }
@@ -494,10 +498,12 @@ const main = async () => {
       [...collator.top_nominators, ...collator.bottom_nominators].reduce(
         (p, nom) => p + nom.amount.toBigInt(),
         0n
-      );
+      ) +
+        collator.bond.toBigInt();
     const isWrongCounted =
       collator.total_counted.toBigInt() !=
-      collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n);
+      collator.top_nominators.reduce((p, nom) => p + nom.amount.toBigInt(), 0n) +
+        collator.bond.toBigInt();
 
     const isWrongLength =
       collator.nominators.length !=
