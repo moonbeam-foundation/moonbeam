@@ -939,13 +939,61 @@ pub mod pallet {
 		(reads, writes)
 	}
 
+	// TODO: combine with other migration to optimize read/writes
+	// TODO: if not combined, does order of execution matter? I don't think so
+	pub(crate) fn correct_max_nominations_per_collator_upgrade_mistake<T: Config>() -> (u64, u64) {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		for (account, state) in <CollatorState2<T>>::iter() {
+			reads += 1u64;
+			if state.nominators.len() < 10 && state.bottom_nominators.is_empty() {
+				// not effected by the bug
+				continue;
+			} else {
+				// else >= 10 nominators
+				// 1. collect all nominator amounts into single vec and order them
+				let mut bottom_nominators = state.top_nominators.clone();
+				bottom_nominators.append(state.bottom_nominators.clone().iter().rev().collect());
+				bottom_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+				let top_n = T::MaxNominatorsPerCollator as usize;
+				// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
+				let top_nominators = bottom_nominators.iter().take(top_n).collect();
+				//  sorts bottom nominators least to greatest
+				bottom_nominators.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
+				let total_counted = top_nominators.clone().iter().map(|x| x.amount).sum();
+				let mut total_backing = bottom_nominators.clone().iter().map(|x| x.amount).sum();
+				total_backing += total_counted;
+				// update candidate pool with new total counted if it changed
+				if state.total_counted != total_counted && state.is_active() {
+					reads += 1u64;
+					writes += 1u64;
+					<Pallet<T>>::update_active(account, total_counted);
+				}
+				<CollatorState2<T>>::insert(
+					account,
+					Collator2 {
+						top_nominators,
+						bottom_nominators,
+						total_counted,
+						total_backing,
+						..state
+					},
+				);
+				writes += 1u64;
+			}
+		}
+		(reads, writes)
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let (reads, writes) =
+			let (mut reads, mut writes) =
 				correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
+			let (reads_1, writes_1) = correct_max_nominations_per_collator_upgrade_mistake::<T>();
+			reads += reads_1;
+			writes += writes_1;
 			let wt = <T as frame_system::Config>::DbWeight::get();
-			wt.reads(reads) + wt.writes(writes) + 5_000_000_000 // 1% of the max block weight margin
+			wt.reads(reads) + wt.writes(writes) + 10_000_000_000 // 2% of the max block weight margin
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
