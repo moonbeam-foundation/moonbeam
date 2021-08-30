@@ -999,22 +999,22 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let (reads, writes) = if !<FixBondLessMigrationExecuted<T>>::get() {
-				let (mut reads_0, mut writes_0) =
+			let weight = T::DbWeight::get();
+			if !<FixBondLessMigrationExecuted<T>>::get() {
+				let (mut reads, mut writes) =
 					correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
 				let (reads_1, writes_1) =
 					correct_max_nominations_per_collator_upgrade_mistake::<T>();
-				reads_0 += reads_1;
-				writes_0 += writes_1;
-				reads_0 += 1u64;
-				writes_0 += 1u64;
+				reads += reads_1;
+				writes += writes_1;
+				reads += 1u64;
+				writes += 1u64;
 				<FixBondLessMigrationExecuted<T>>::put(true);
-				(reads_0, writes_0)
+				// 2% of the max block weight as safety margin for computation
+				weight.reads(reads) + weight.writes(writes) + 10_000_000_000
 			} else {
-				(1u64, 0u64)
-			};
-			let wt = T::DbWeight::get();
-			wt.reads(reads) + wt.writes(writes) + 10_000_000_000 //2% of the max block weight margin
+				weight.reads(1u64)
+			}
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
