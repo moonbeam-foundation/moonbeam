@@ -3886,8 +3886,6 @@ fn migration_corrects_storage_corrupted_by_bond_less_bug() {
 			);
 			// no longer a nominator
 			assert!(!Stake::is_nominator(&2));
-			// stored the due unreserved balance
-			assert_eq!(Stake::accounts_due_unreserved_balance(&1, &2).unwrap(), 19);
 			// check that the balance is not unreserved
 			assert_eq!(Balances::reserved_balance(&2), 19);
 			assert_eq!(Balances::free_balance(&2), 81);

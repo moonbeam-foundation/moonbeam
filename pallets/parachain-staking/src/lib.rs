@@ -868,6 +868,7 @@ pub mod pallet {
 	pub(crate) fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>(
 	) -> (u64, u64) {
 		let (mut reads, mut writes) = (0u64, 0u64);
+		let mut map: BTreeMap<(T::AccountId, T::AccountId), BalanceOf<T>> = BTreeMap::new();
 		// 1. for collator state, check if there is a nominator not in top or bottom
 		for (account, state) in <CollatorState2<T>>::iter() {
 			reads += 1u64;
@@ -890,12 +891,7 @@ pub mod pallet {
 					if !nominator_set.contains(&nominator) {
 						// these accounts were removed without being unreserved so we track it
 						// with this map which will hold the due amount
-						<AccountsDueUnreservedBalance<T>>::insert(
-							account.clone(),
-							nominator,
-							BalanceOf::<T>::zero(),
-						);
-						writes += 1u64;
+						map.insert((account.clone(), nominator), BalanceOf::<T>::zero());
 					}
 				}
 				let new_state = Collator2 {
@@ -920,11 +916,9 @@ pub mod pallet {
 		// did not have the nominator state removed (it does not account for when it was removed)
 		for (account, mut state) in <NominatorState2<T>>::iter() {
 			reads += 1u64;
-			for Bond { owner, amount } in state.nominations.0.clone() {
+			for Bond { owner, .. } in state.nominations.0.clone() {
 				reads += 1u64;
-				if <AccountsDueUnreservedBalance<T>>::get(&owner, &account).is_some() {
-					<AccountsDueUnreservedBalance<T>>::insert(&owner, &account, amount);
-					writes += 1u64;
+				if map.get(&(owner.clone(), account.clone())).is_some() {
 					if state.rm_nomination(owner).is_some() {
 						if state.nominations.0.is_empty() {
 							<NominatorState2<T>>::remove(&account);
@@ -1051,21 +1045,6 @@ pub mod pallet {
 	#[pallet::getter(fn fix_bond_less_migration_executed)]
 	/// Temporary to check if migration has run
 	pub(crate) type FixBondLessMigrationExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn accounts_due_unreserved_balance)]
-	/// Temporary storage item to track accounts due unreserved balance by democracy
-	/// - keys are `collator_id`, `nominator_id` and value is the unreserved balance,
-	/// set to 0 if some amount due but amount not found in the migration (i.e. if nominator left)
-	pub(crate) type AccountsDueUnreservedBalance<T: Config> = StorageDoubleMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Twox64Concat,
-		T::AccountId,
-		BalanceOf<T>,
-		OptionQuery,
-	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
