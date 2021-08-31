@@ -10,6 +10,7 @@ import { promiseConcurrent } from "../utils/functions";
 // TODO: clean the code, use PolkadotJS for storage key and ...
 // TODO: use multi or range to query multiple accounts at once
 // TODO: add democracy propose/second support
+// TODO: add cost for proxy > 2
 // WARNING: This is not accurate (missing democracy propose/second and maybe others...)
 
 const debug = require("debug")("main");
@@ -27,10 +28,22 @@ const argv = yargs(process.argv.slice(2))
       type: "string",
       description: "filter only specific nominator account",
     },
+    decimals: {
+      type: "number",
+      default: 0,
+      description: "number of decimal under MOVR",
+    },
   }).argv;
 
+const POWER = 10n ** (18n - BigInt(argv.decimals));
+const DECIMAL_POWER = 10 ** argv.decimals;
 const printMOVRs = (value: bigint) => {
-  return (value / 10n ** 18n).toString().padStart(5, " ");
+  if (argv.decimals > 0) {
+    return (Number(value / POWER) / DECIMAL_POWER)
+      .toFixed(argv.decimals)
+      .padStart(6 + argv.decimals, " ");
+  }
+  return (value / POWER).toString().padStart(6, " ");
 };
 
 const getStorageKey = (module: string, name: string, account?: string) => {
@@ -274,13 +287,13 @@ const main = async () => {
             preimageCost
       ) {
         console.log(
-          `${id}: (reserved: ${printMOVRs(
+          `${id} [reserved: ${printMOVRs(
             account.data.reserved.toBigInt()
-          )}, nominated: ${printMOVRs(nominatorStakes[id] || 0n)}, bonded: ${printMOVRs(
+          )}][nominated: ${printMOVRs(nominatorStakes[id] || 0n)}][bonded: ${printMOVRs(
             collators[id]?.bond?.toBigInt() || 0n
-          )}, proxy: ${printMOVRs(BigInt(proxyCount))}, mapping: ${printMOVRs(
+          )}][proxy: ${printMOVRs(proxyCost)}][mapping: ${printMOVRs(
             authorMappingCost
-          )}, preimage: ${printMOVRs(preimageCost)})`
+          )}][preimage: ${printMOVRs(preimageCost)}]`
         );
       }
       if (!argv.verbose && index % 1000 == 0) {
