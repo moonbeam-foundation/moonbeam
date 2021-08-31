@@ -128,10 +128,22 @@ impl<
 	pub fn adjust_num_selected_nominators(&mut self) {}
 
 	/// accessors
-	pub fn get_active_nominator_stake(&self) {} // get sum of top N nominator stakes
-	pub fn get_inactive_nominator_stake(&self) {} // get sum of not top N nominator stakes
-	pub fn get_total_nominator_stake(&self) {} // sum of the two above
-	pub fn get_num_nominators(&self) {}
+	pub fn get_active_nominator_stake(&self) {
+		// TODO: consistent naming...
+		self.contribution
+	}
+
+	pub fn get_inactive_nominator_stake(&self) {
+		self.total_bond_amount.saturating_sub(self.contribution)
+	}
+
+	pub fn get_total_nominator_stake(&self) {
+		self.total_bond_amount
+	}
+
+	pub fn get_num_nominators(&self) {
+		self.nominators.len()
+	}
 
 	/// reflect any modification to the state of this structure. this is a helper that can be called
 	/// after any modification and should at any point result in proper sorting and accounting.
