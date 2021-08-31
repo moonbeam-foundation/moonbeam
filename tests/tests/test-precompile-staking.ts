@@ -43,19 +43,21 @@ const SELECTORS = {
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
-  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_selected_candidate',[address])
+  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_selected_candidate", [
+    address,
+  ]);
 }
 
 async function isNominator(context: DevTestContext, address: string) {
-  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_nominator',[address])
+  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_nominator", [address]);
 }
 
 async function isCandidate(context: DevTestContext, address: string) {
-  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_candidate',[address])
+  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [address]);
 }
 
 async function candidateCount(context: DevTestContext) {
-  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'candidate_count',[])
+  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "candidate_count", []);
 }
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
@@ -94,7 +96,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
         "1.0000 kUNIT"
     ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
 
-    expect(Number((await isCandidate(context,ETHAN)).result)).to.equal(1);
+    expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
   });
 });
 
@@ -175,15 +177,12 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 
 describeDevMoonbeam("Staking - Join Nominators", (context) => {
   beforeEach("should succesfully call nominate on ETHAN", async function () {
-    await sendPrecompileTx(
-      context,
-      ADDRESS_STAKING,
-      SELECTORS,
-      ETHAN,
-      ETHAN_PRIVKEY,
-      "nominate",
-      [ALITH, numberToHex(Number(MIN_GLMR_STAKING)),"0x0","0x0"]
-    );
+    await sendPrecompileTx(context, ADDRESS_STAKING, SELECTORS, ETHAN, ETHAN_PRIVKEY, "nominate", [
+      ALITH,
+      numberToHex(Number(MIN_GLMR_STAKING)),
+      "0x0",
+      "0x0",
+    ]);
   });
   it("should succesfully call nominate on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
@@ -196,7 +195,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     ).to.equal(true, "nomination didnt go through");
     expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
 
-    expect(Number((await isNominator(context,ETHAN)).result)).to.equal(1);
+    expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
   });
   it("should succesfully revoke nomination on ALITH", async function () {
     await sendPrecompileTx(
