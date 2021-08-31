@@ -40,7 +40,6 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
         // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, (?),
         // ethereum.Executed, system.ExtrinsicSuccess
         case 3:
-          console.log(JSON.stringify(events));
           expect(section === "ethereum" && method === "transact").to.be.true;
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
