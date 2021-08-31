@@ -447,20 +447,63 @@ pub fn run() -> Result<()> {
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				// we don't need any of the components of new_partial, just a runtime, or a task
-				// manager to do `async_run`.
-				let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-				let task_manager =
-					sc_service::TaskManager::new(config.task_executor.clone(), registry)
-						.map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => {
+					runner.async_run(|config| {
+						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+						let task_manager =
+							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+								.map_err(|e| {
+									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+								})?;
 
-				// TODO: support all runtimes
-				Ok((
-					cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config),
-					task_manager,
-				))
-			})
+						Ok((
+							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(config),
+							task_manager,
+						))
+					})
+				}
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => runner.async_run(|config| {
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager =
+						sc_service::TaskManager::new(config.task_executor.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})?;
+
+					Ok((
+						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							config,
+						),
+						task_manager,
+					))
+				}),
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					runner.async_run(|config| {
+						// we don't need any of the components of new_partial, just a runtime, or a task
+						// manager to do `async_run`.
+						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+						let task_manager =
+							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+								.map_err(|e| {
+									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+								})?;
+
+						Ok((
+							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+								config,
+							),
+							task_manager,
+						))
+					})
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			}
 		}
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
