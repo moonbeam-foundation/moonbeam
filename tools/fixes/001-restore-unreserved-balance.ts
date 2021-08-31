@@ -310,7 +310,8 @@ const main = async () => {
           const [account, amount] = previousEvent.data;
           if (account.toString().toLowerCase() != key) {
             console.log(
-              `Unexpected account for event balances.Reserved before NominationIncreased at #${blockDetails.block.header.number}`
+              `Unexpected account for event balances. ` +
+                `Reserved before NominationIncreased at #${blockDetails.block.header.number}`
             );
             process.exit(1);
           }
@@ -350,7 +351,8 @@ const main = async () => {
           const [account, amount] = previousEvent.data;
           if (account.toString().toLowerCase() != key) {
             console.log(
-              `Unexpected account for event balances.Unreserved before NominationIncreased at #${blockDetails.block.header.number}`
+              `Unexpected account for event balances.` +
+                `Unreserved before NominationIncreased at #${blockDetails.block.header.number}`
             );
             process.exit(1);
           }
@@ -438,7 +440,8 @@ const main = async () => {
         if (bond[filteredAccount] != nominatorBonds[filteredAccount]) {
           console.log(`Block: ${blockDetails.block.header.number}`);
           console.log(
-            `${filteredAccount}: (expected: ${nominatorBonds[filteredAccount]}, storage: ${bond[filteredAccount]})`
+            `${filteredAccount}: (expected: ${nominatorBonds[filteredAccount]},` +
+              ` storage: ${bond[filteredAccount]})`
           );
           process.exit(1);
         }
