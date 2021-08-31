@@ -87,11 +87,34 @@ impl<
 		}
 	}
 
-	/// remove a nominator. this is immediate; this struct doesn't concern itself with the need to
+	/// Remove a nominator. this is immediate; this struct doesn't concern itself with the need to
 	/// delay an exit, etc.
 	///
-	/// after removal, same accounting as insert_nominator()
-	pub fn remove_nominator(&mut self) {}
+	/// Returns a tuple reflecting (1) whether or not the nominator was in the selected group and
+	/// (2) the amount of the nominator's bond. Returns Err if the nominator didn't exist.
+	pub fn remove_nominator(&mut self, account: &AccountId) -> Result<(bool, Balance), ()> {
+		match self.nominators.binary_search(account) {
+			Err(_) => Err(()),
+			Ok(index) => {
+				let removed_account = self.nominators.remove(index);
+				assert!(removed_account == *account, "removed wrong account");
+				Ok(())
+			},
+		}?;
+
+		if let Some(index) = self.find_bond_by_account(account) {
+			let bond = self.bonds.remove(index);
+			let selected = self.is_selected(index);
+			if selected {
+				self.contribution.saturating_sub(bond.amount);
+			}
+			self.total_bond_amount.saturating_sub(bond.amount);
+			Ok((selected, bond.amount))
+		} else {
+			// TODO: not good, we have inconsistent state
+			panic!("Inconsistent state; nominator removed but had no bond!");
+		}
+	}
 
 	/// makes an adjustment (positive or negative) to some specific nominator's stake.
 	pub fn adjust_nominator_stake(&mut self) {}
@@ -131,7 +154,6 @@ impl<
 	}
 
 	/// Uses binary search to locate the appropriate insertion index of a given bond amount.
-	#[inline]
 	fn find_bond_insertion_index(&self, amount: &Balance) -> usize {
 		match self.bonds.binary_search_by(|bond| amount.cmp(&bond.amount)) {
 			Ok(index) => {
@@ -147,5 +169,18 @@ impl<
 			},
 			Err(index) => index
 		}
+	}
+
+	/// Scans (inefficient) for the given account in the bonds vec. This vec is sorted by bond
+	/// amount, so there is no efficient way to find an entry given only an account id.
+	///
+	/// Returns Some(index) if found or None otherwise.
+	fn find_bond_by_account(&self, account: &AccountId) -> Option<usize> {
+		for index in 0..self.bonds.len() {
+			if *account == self.bonds[index].owner {
+				return Some(index);
+			}
+		}
+		None
 	}
 }
