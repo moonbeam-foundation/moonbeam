@@ -14,7 +14,7 @@ import {
 } from "../util/constants";
 import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
-import { stringToHex } from "@polkadot/util";
+import { numberToHex, stringToHex } from "@polkadot/util";
 import Web3 from "web3";
 import { customWeb3Request } from "../util/providers";
 import { createTransaction } from "../util/transactions";
@@ -76,21 +76,15 @@ async function candidateCount(context: DevTestContext) {
 
 async function joinCandidates(
   context: DevTestContext,
-  amount: string,
-  candidateCount: string,
+  amount: number,
+  candidateCount: number,
   privateKey: string,
   from: string
 ) {
-  const amountData = amount.padStart(64, "0");
-  console.log("amountData", amountData);
-  const candidateCountData = candidateCount.padStart(64, "0");
-  console.log("candidateCountData", candidateCountData);
-
-  console.log("SELECTORS.join_candidates", SELECTORS.join_candidates);
-  console.log("check", Web3.utils.sha3("join_candidates(uint256,uint256)"));
+  const amountData = numberToHex(amount).slice(2).padStart(64, "0");
+  const candidateCountData = numberToHex(candidateCount).slice(2).padStart(64, "0");
 
   let data = `0x${SELECTORS.join_candidates}${amountData}${candidateCountData}`;
-  console.log("data", data);
 
   const tx = await createTransaction(context.web3, {
     from,
@@ -105,29 +99,15 @@ async function joinCandidates(
   const block = await context.createBlock({
     transactions: [tx],
   });
-  // const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-  // console.log("receipt", receipt);
-  // console.log("block", block);
-  // let response = await customWeb3Request(context.web3, "trace_filter", [
-  //   {
-  //     fromBlock: "0x01",
-  //     toBlock: "0x01",
-  //   },
-  // ]);
-  // console.log("resp", response);
-  // console.log(await context.web3.eth.getTransactionFromBlock("latest", 0));
-  //expect(receipt.status).to.equal(true);
+  const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+  expect(receipt.status).to.equal(true);
   return block;
 }
-async function candidateBondMore(context: DevTestContext, amount: string, privateKey, from) {
-  const amountData = amount.padStart(64, "0");
-  console.log("amountData", amountData);
 
-  console.log("SELECTORS.join_candidates", SELECTORS.join_candidates);
-  console.log("check", Web3.utils.sha3("join_candidates(uint256,uint256)"));
+async function candidateBondMore(context: DevTestContext, amount: number, privateKey, from) {
+  const amountData = numberToHex(amount).slice(2).padStart(64, "0");
 
   let data = `0x${SELECTORS.candidate_bond_more}${amountData}`;
-  console.log("data", data);
 
   const tx = await createTransaction(context.web3, {
     from,
@@ -187,7 +167,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
     console.log(" MIN_GLMR_STAKING.toString()", MIN_GLMR_STAKING.toString());
     console.log("balance ethan", await getBalance(context, ETHAN));
-    await joinCandidates(context, MIN_GLMR_STAKING.toString(), "1", ETHAN_PRIVKEY, ETHAN);
+    console.log("numberToHex(Number(MIN_GLMR_STAKING),64)",numberToHex(Number(MIN_GLMR_STAKING) ))
+    await joinCandidates(context, Number(MIN_GLMR_STAKING), 1, ETHAN_PRIVKEY, ETHAN);
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     console.log(candidatesAfter.toHuman());
@@ -226,7 +207,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     ).to.equal(true, "bond should have increased");
   });
   it.only("should succesfully call candidateBondMore on ALITH", async function () {
-    await candidateBondMore(context, MIN_GLMR_STAKING.toString(), ALITH_PRIV_KEY, ALITH);
+    await candidateBondMore(context, Number(MIN_GLMR_STAKING), ALITH_PRIV_KEY, ALITH);
     await context.createBlock();
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     console.log(candidatesAfter.toHuman());
