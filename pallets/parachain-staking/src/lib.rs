@@ -867,7 +867,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
 			<FixBondLessMigrationExecuted<T>>::kill();
-			T::DbWeight::writes(1u64);
+			T::DbWeight::get().writes(1u64)
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
