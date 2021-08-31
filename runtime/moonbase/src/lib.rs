@@ -496,7 +496,7 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
-	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
+	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const MaxApprovals: u32 = 100;
 }
 
