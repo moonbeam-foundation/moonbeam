@@ -319,9 +319,7 @@ where
 									Ok(result)
 								}
 								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
+								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}
 						}
 					}
@@ -329,6 +327,7 @@ where
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 							let mut proxy = proxy::v2::call_list::Listener::default();
 							proxy.using(f)?;
+							proxy.finish_transaction();
 							proxy::formats::blockscout::Response::build(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
@@ -346,9 +345,7 @@ where
 									Ok(result)
 								}
 								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
+								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}
 						}
 					}
