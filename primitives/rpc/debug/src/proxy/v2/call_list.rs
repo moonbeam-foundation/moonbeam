@@ -600,3 +600,457 @@ impl ListenerT for Listener {
 		};
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::proxy::types::{
+		evm_gasometer_types::Snapshot,
+		evm_runtime_types::{Memory, Stack},
+		evm_types::{Context as EvmContext, CreateScheme},
+	};
+	use ethereum_types::H256;
+
+	enum TestEvmEvent {
+		Call,
+		Create,
+		Suicide,
+		Exit,
+		TransactCall,
+		TransactCreate,
+		TransactCreate2,
+	}
+
+	enum TestRuntimeEvent {
+		Step,
+		StepResult,
+		SLoad,
+		SStore,
+	}
+
+	enum TestGasometerEvent {
+		RecordCost,
+		RecordRefund,
+		RecordStipend,
+		RecordDynamicCost,
+		RecordTransaction,
+	}
+
+	fn test_context() -> EvmContext {
+		EvmContext {
+			address: H160::default(),
+			caller: H160::default(),
+			apparent_value: U256::zero(),
+		}
+	}
+
+	fn test_create_scheme() -> CreateScheme {
+		CreateScheme::Legacy {
+			caller: H160::default(),
+		}
+	}
+
+	fn test_stack() -> Stack {
+		Stack {
+			data: Vec::new(),
+			limit: 0u64,
+		}
+	}
+
+	fn test_memory() -> Memory {
+		Memory {
+			data: Vec::new(),
+			effective_len: U256::zero(),
+			limit: 0u64,
+		}
+	}
+
+	fn test_snapshot() -> Snapshot {
+		Snapshot {
+			gas_limit: 0u64,
+			memory_gas: 0u64,
+			used_gas: 0u64,
+			refunded_gas: 0i64,
+		}
+	}
+
+	fn test_emit_evm_event(
+		event_type: TestEvmEvent,
+		is_static: bool,
+		exit_reason: Option<ExitReason>,
+	) -> EvmEvent {
+		match event_type {
+			TestEvmEvent::Call => EvmEvent::Call {
+				code_address: H160::default(),
+				transfer: None,
+				input: Vec::new(),
+				target_gas: None,
+				is_static,
+				context: test_context(),
+			},
+			TestEvmEvent::Create => EvmEvent::Create {
+				caller: H160::default(),
+				address: H160::default(),
+				scheme: test_create_scheme(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				target_gas: None,
+			},
+			TestEvmEvent::Suicide => EvmEvent::Suicide {
+				address: H160::default(),
+				target: H160::default(),
+				balance: U256::zero(),
+			},
+			TestEvmEvent::Exit => EvmEvent::Exit {
+				reason: exit_reason.unwrap(),
+				return_value: Vec::new(),
+			},
+			TestEvmEvent::TransactCall => EvmEvent::TransactCall {
+				caller: H160::default(),
+				address: H160::default(),
+				value: U256::zero(),
+				data: Vec::new(),
+				gas_limit: 0u64,
+			},
+			TestEvmEvent::TransactCreate => EvmEvent::TransactCreate {
+				caller: H160::default(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				gas_limit: 0u64,
+				address: H160::default(),
+			},
+			TestEvmEvent::TransactCreate2 => EvmEvent::TransactCreate2 {
+				caller: H160::default(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				salt: H256::default(),
+				gas_limit: 0u64,
+				address: H160::default(),
+			},
+		}
+	}
+
+	fn test_emit_runtime_event(event_type: TestRuntimeEvent) -> RuntimeEvent {
+		match event_type {
+			TestRuntimeEvent::Step => RuntimeEvent::Step {
+				context: test_context(),
+				opcode: Vec::new(),
+				position: Ok(0u64),
+				stack: test_stack(),
+				memory: test_memory(),
+			},
+			TestRuntimeEvent::StepResult => RuntimeEvent::StepResult {
+				result: Ok(()),
+				return_value: Vec::new(),
+			},
+			TestRuntimeEvent::SLoad => RuntimeEvent::SLoad {
+				address: H160::default(),
+				index: H256::default(),
+				value: H256::default(),
+			},
+			TestRuntimeEvent::SStore => RuntimeEvent::SStore {
+				address: H160::default(),
+				index: H256::default(),
+				value: H256::default(),
+			},
+		}
+	}
+
+	fn test_emit_gasometer_event(event_type: TestGasometerEvent) -> GasometerEvent {
+		match event_type {
+			TestGasometerEvent::RecordCost => GasometerEvent::RecordCost {
+				cost: 0u64,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordRefund => GasometerEvent::RecordRefund {
+				refund: 0i64,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordStipend => GasometerEvent::RecordStipend {
+				stipend: 0u64,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordDynamicCost => GasometerEvent::RecordDynamicCost {
+				gas_cost: 0u64,
+				memory_gas: 0u64,
+				gas_refund: 0i64,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordTransaction => GasometerEvent::RecordTransaction {
+				cost: 0u64,
+				snapshot: test_snapshot(),
+			},
+		}
+	}
+
+	fn do_transact_call_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::TransactCall, false, None));
+	}
+
+	fn do_transact_create_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(
+			TestEvmEvent::TransactCreate,
+			false,
+			None,
+		));
+	}
+
+	fn do_gasometer_event(listener: &mut Listener) {
+		listener.gasometer_event(test_emit_gasometer_event(
+			TestGasometerEvent::RecordTransaction,
+		));
+	}
+
+	fn do_exit_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(
+			TestEvmEvent::Exit,
+			false,
+			Some(ExitReason::Error(ExitError::OutOfGas)),
+		));
+	}
+
+	fn do_evm_call_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Call, false, None));
+	}
+
+	fn do_evm_create_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Create, false, None));
+	}
+
+	fn do_runtime_step_event(listener: &mut Listener) {
+		listener.runtime_event(test_emit_runtime_event(TestRuntimeEvent::Step));
+	}
+
+	fn do_runtime_step_result_event(listener: &mut Listener) {
+		listener.runtime_event(test_emit_runtime_event(TestRuntimeEvent::StepResult));
+	}
+
+	// Call context
+
+	// Early exit on TransactionCost.
+	#[test]
+	fn call_early_exit_tx_cost() {
+		let mut listener = Listener::default();
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Early exit somewhere between the first callstack event and stepping the bytecode.
+	// I.e. precompile call.
+	#[test]
+	fn call_early_exit_before_runtime() {
+		let mut listener = Listener::default();
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Exit after Step without StepResult.
+	#[test]
+	fn call_step_without_step_result() {
+		let mut listener = Listener::default();
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Exit after StepResult.
+	#[test]
+	fn call_step_result() {
+		let mut listener = Listener::default();
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Create context
+
+	// Early exit on TransactionCost.
+	#[test]
+	fn create_early_exit_tx_cost() {
+		let mut listener = Listener::default();
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Early exit somewhere between the first callstack event and stepping the bytecode
+	// I.e. precompile call..
+	#[test]
+	fn create_early_exit_before_runtime() {
+		let mut listener = Listener::default();
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Exit after Step without StepResult.
+	#[test]
+	fn create_step_without_step_result() {
+		let mut listener = Listener::default();
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Exit after StepResult.
+	#[test]
+	fn create_step_result() {
+		let mut listener = Listener::default();
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Call Context Nested
+
+	// Nested call early exit before stepping.
+	#[test]
+	fn nested_call_early_exit_before_runtime() {
+		let mut listener = Listener::default();
+		// Main
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		// Nested
+		do_evm_call_event(&mut listener);
+		do_exit_event(&mut listener);
+		// Main exit
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 2);
+	}
+
+	// Nested exit before step result.
+	#[test]
+	fn nested_call_without_step_result() {
+		let mut listener = Listener::default();
+		// Main
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		// Nested
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_exit_event(&mut listener);
+		// Main exit
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 2);
+	}
+
+	// Nested exit.
+	#[test]
+	fn nested_call_step_result() {
+		let depth = 5;
+		let mut listener = Listener::default();
+		// Main
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		// 5 nested calls
+		for d in 0..depth {
+			do_evm_call_event(&mut listener);
+			do_runtime_step_event(&mut listener);
+			do_runtime_step_result_event(&mut listener);
+			do_exit_event(&mut listener);
+		}
+		// Main exit
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), depth + 1);
+	}
+
+	// Call + Create mixed subnesting.
+
+	#[test]
+	fn subnested_call_and_create_mixbag() {
+		let depth = 5;
+		let subdepth = 10;
+		let mut listener = Listener::default();
+		// Main
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_runtime_step_result_event(&mut listener);
+		// 5 nested call/creates, each with 10 nested call/creates
+		for d in 0..depth {
+			if d % 2 == 0 {
+				do_evm_call_event(&mut listener);
+			} else {
+				do_evm_create_event(&mut listener);
+			}
+			do_runtime_step_event(&mut listener);
+			do_runtime_step_result_event(&mut listener);
+			for s in 0..subdepth {
+				// Some mixed call/create and early exits.
+				if s % 2 == 0 {
+					do_evm_call_event(&mut listener);
+				} else {
+					do_evm_create_event(&mut listener);
+				}
+				if s % 3 == 0 {
+					do_runtime_step_event(&mut listener);
+					do_runtime_step_result_event(&mut listener);
+				}
+				do_exit_event(&mut listener);
+			}
+			// Nested exit
+			do_exit_event(&mut listener);
+		}
+		// Main exit
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		// Each nested call contains 11 elements in the callstack (main + 10 subcalls).
+		// There are 5 main nested calls for a total of 56 elements in the callstack: 1 main + 55 nested.
+		assert_eq!(listener.entries[0].len(), (depth * (subdepth + 1)) + 1);
+	}
+}
