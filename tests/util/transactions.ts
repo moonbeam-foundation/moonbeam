@@ -4,6 +4,7 @@ import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
 import { DevTestContext } from "./setup-dev-tests";
+import { customWeb3Request } from "./providers";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -136,8 +137,8 @@ export async function createContractExecution(
 // The parameters passed to the function are assumed to have all been converted to hexa
 export async function sendPrecompileTx(
   context: DevTestContext,
-  precompileContractAddress:string,
-  selectors:{[key:string]:string},
+  precompileContractAddress: string,
+  selectors: { [key: string]: string },
   from: string,
   privateKey: string,
   selector: string,
@@ -163,8 +164,36 @@ export async function sendPrecompileTx(
     data,
   });
 
-  const block = await context.createBlock({
+  return context.createBlock({
     transactions: [tx],
   });
-  return block;
+}
+const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+export async function callPrecompile(
+  context: DevTestContext,
+  precompileContractAddress: string,
+  selectors: { [key: string]: string },
+  selector: string,
+  parameters: string[]
+) {
+  let data: string;
+  if (selectors[selector]) {
+    data = `0x${selectors[selector]}`;
+  } else {
+    throw new Error(`selector doesn't exist on the precompile contract`);
+  }
+  parameters.forEach((para: string) => {
+    data += para.slice(2).padStart(64, "0");
+  });
+
+  return await customWeb3Request(context.web3, "eth_call", [
+    {
+      from: GENESIS_ACCOUNT,
+      value: "0x0",
+      gas: "0x10000",
+      gasPrice: GAS_PRICE,
+      to: precompileContractAddress,
+      data,
+    },
+  ]);
 }

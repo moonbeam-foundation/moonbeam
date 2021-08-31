@@ -133,7 +133,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 
 describeDevMoonbeam("Staking - Join Nominators", (context) => {
   let ethan;
-  beforeEach("should succesfully call joinCandidates on ETHAN", async function () {
+  beforeEach("should succesfully call nominate on ETHAN", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking

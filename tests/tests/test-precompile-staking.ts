@@ -17,7 +17,7 @@ import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { numberToHex, stringToHex } from "@polkadot/util";
 import Web3 from "web3";
 import { customWeb3Request } from "../util/providers";
-import { sendPrecompileTx } from "../util/transactions";
+import { callPrecompile, sendPrecompileTx } from "../util/transactions";
 
 const ADDRESS_STAKING = "0x0000000000000000000000000000000000000800";
 
@@ -41,49 +41,21 @@ const SELECTORS = {
   // new selectors
   candidate_count: "4b1c4c29",
 };
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
-  const addressData = address.slice(2).padStart(64, "0");
-
-  return await customWeb3Request(context.web3, "eth_call", [
-    {
-      from: GENESIS_ACCOUNT,
-      value: "0x0",
-      gas: "0x10000",
-      gasPrice: GAS_PRICE,
-      to: ADDRESS_STAKING,
-      data: `0x${SELECTORS.is_selected_candidate}${addressData}`,
-    },
-  ]);
+  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_selected_candidate',[address])
 }
 
 async function isNominator(context: DevTestContext, address: string) {
-  const addressData = address.slice(2).padStart(64, "0");
+  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_nominator',[address])
+}
 
-  return await customWeb3Request(context.web3, "eth_call", [
-    {
-      from: GENESIS_ACCOUNT,
-      value: "0x0",
-      gas: "0x10000",
-      gasPrice: GAS_PRICE,
-      to: ADDRESS_STAKING,
-      data: `0x${SELECTORS.is_selected_candidate}${addressData}`,
-    },
-  ]);
+async function isCandidate(context: DevTestContext, address: string) {
+  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'is_candidate',[address])
 }
 
 async function candidateCount(context: DevTestContext) {
-  return await customWeb3Request(context.web3, "eth_call", [
-    {
-      from: GENESIS_ACCOUNT,
-      value: "0x0",
-      gas: "0x10000",
-      gasPrice: GAS_PRICE,
-      to: ADDRESS_STAKING,
-      data: `0x${SELECTORS.candidate_count}`,
-    },
-  ]);
+  return await callPrecompile(context,ADDRESS_STAKING,SELECTORS,'candidate_count',[])
 }
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
@@ -94,10 +66,6 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     expect(Number((await candidateCount(context)).result)).to.equal(1);
   });
 });
-
-async function getBalance(context, address) {
-  return (await context.polkadotApi.query.system.account(address)).data.free.toHuman();
-}
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
   it("should succesfully call joinCandidates on ETHAN", async function () {
@@ -125,6 +93,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
         "1.0000 kUNIT"
     ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
+
+    expect(Number((await isCandidate(context,ETHAN)).result)).to.equal(1);
   });
 });
 
@@ -139,10 +109,6 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     await context.createBlock();
   });
   it("should succesfully call candidateBondMore on ETHAN", async function () {
-    // await context.polkadotApi.tx.parachainStaking
-    //   .candidateBondMore(MIN_GLMR_STAKING)
-    //   .signAndSend(ethan);
-    // await context.createBlock();
     const block = await sendPrecompileTx(
       context,
       ADDRESS_STAKING,
@@ -190,10 +156,6 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     await context.createBlock();
   });
   it("should succesfully call candidateBondLess on ETHAN", async function () {
-    // await context.polkadotApi.tx.parachainStaking
-    //   .candidateBondLess(MIN_GLMR_STAKING)
-    //   .signAndSend(ethan);
-    // await context.createBlock();
     await sendPrecompileTx(
       context,
       ADDRESS_STAKING,
@@ -212,14 +174,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Nominators", (context) => {
-  let ethan;
-  beforeEach("should succesfully call joinCandidates on ETHAN", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    // await context.polkadotApi.tx.parachainStaking
-    //   .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-    //   .signAndSend(ethan);
-    // await context.createBlock();
+  beforeEach("should succesfully call nominate on ETHAN", async function () {
     await sendPrecompileTx(
       context,
       ADDRESS_STAKING,
@@ -240,10 +195,10 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
     expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+
+    expect(Number((await isNominator(context,ETHAN)).result)).to.equal(1);
   });
   it("should succesfully revoke nomination on ALITH", async function () {
-    // await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
-    // await context.createBlock();
     await sendPrecompileTx(
       context,
       ADDRESS_STAKING,
@@ -258,29 +213,3 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     expect(nominatorsAfter.toHuman()["status"].Leaving).equal("3");
   });
 });
-
-// // TODO: bring back when we figure out how to get `NominatorState2.revocations`
-// describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
-//   let ethan;
-//   before("should succesfully call nominate on ALITH", async function () {
-//     //nominate
-//     const keyring = new Keyring({ type: "ethereum" });
-//     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-//     await context.polkadotApi.tx.parachainStaking
-//       .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-//       .signAndSend(ethan);
-//     await context.createBlock();
-//   });
-//   it("should succesfully revoke nomination for ALITH", async function () {
-//     await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
-//     await context.createBlock();
-//     const nominatorsAfterRevocation =
-//       await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
-//     expect(
-//       (nominatorsAfterRevocation.revocations[0] === ALITH).to.equal(
-//         true,
-//         "revocation didnt go through"
-//       )
-//     );
-//   });
-// });
