@@ -42,6 +42,15 @@ pub struct Listener {
 	// Then by looking at call traps events we can set this value to the correct
 	// call type, to be used when the following `Call` event is received.
 	call_type: Option<CallType>,
+
+	/// true = we are before the first Evm::Call/Create event a transaction.
+	/// Allow to handle early errors before these events.
+	early_in_tx: bool,
+
+	/// StepResult event will produce an entry but not insert it directly.
+	/// Exit event will produce an antry if there was not a StepResult one
+	/// (out of gas or other error), then insert it.
+	step_result_entry: Option<(u32, Call)>,
 }
 
 struct Context {
@@ -74,6 +83,8 @@ impl Default for Listener {
 			context_stack: vec![],
 
 			call_type: None,
+			early_in_tx: true,
+			step_result_entry: None,
 		}
 	}
 }
@@ -116,80 +127,7 @@ impl Listener {
 				result: Err(Capture::Exit(reason)),
 				return_value,
 			} => {
-				if let Some(context) = self.context_stack.pop() {
-					let mut gas_used = context.start_gas.unwrap() - context.gas;
-					if context.entries_index == 0 {
-						gas_used += self.transaction_cost;
-					}
-
-					if self.entries.is_empty() {
-						self.entries.push(BTreeMap::new());
-					}
-					self.entries.last_mut().unwrap().insert(
-						context.entries_index,
-						match context.context_type {
-							ContextType::Call(call_type) => {
-								let res = match &reason {
-									ExitReason::Succeed(ExitSucceed::Returned) => {
-										CallResult::Output(return_value.to_vec())
-									}
-									ExitReason::Succeed(_) => CallResult::Output(vec![]),
-									ExitReason::Error(error) => {
-										CallResult::Error(error_message(error))
-									}
-
-									ExitReason::Revert(_) => {
-										CallResult::Error(b"execution reverted".to_vec())
-									}
-									ExitReason::Fatal(_) => CallResult::Error(vec![]),
-								};
-
-								Call {
-									from: context.from,
-									trace_address: context.trace_address,
-									subtraces: context.subtraces,
-									value: context.value,
-									gas: context.gas.into(),
-									gas_used: gas_used.into(),
-									inner: CallInner::Call {
-										call_type,
-										to: context.to,
-										input: context.data,
-										res,
-									},
-								}
-							}
-							ContextType::Create => {
-								let res = match &reason {
-									ExitReason::Succeed(_) => CreateResult::Success {
-										created_contract_address_hash: context.to,
-										created_contract_code: return_value.to_vec(),
-									},
-									ExitReason::Error(error) => CreateResult::Error {
-										error: error_message(error),
-									},
-									ExitReason::Revert(_) => CreateResult::Error {
-										error: b"execution reverted".to_vec(),
-									},
-									ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
-								};
-
-								Call {
-									value: context.value,
-									trace_address: context.trace_address,
-									subtraces: context.subtraces,
-									gas: context.gas.into(),
-									gas_used: gas_used.into(),
-									from: context.from,
-									inner: CallInner::Create {
-										init: context.data,
-										res,
-									},
-								}
-							}
-						},
-					);
-				}
+				self.step_result_entry = self.pop_context_to_entry(reason, return_value);
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
@@ -198,21 +136,90 @@ impl Listener {
 	}
 
 	pub fn evm_event(&mut self, event: EvmEvent) {
-		let trace_address = if let Some(context) = self.context_stack.last_mut() {
-			let mut trace_address = context.trace_address.clone();
-			trace_address.push(context.subtraces);
-			context.subtraces += 1;
-			trace_address
-		} else {
-			vec![]
-		};
-
 		match event {
+			EvmEvent::TransactCall {
+				caller,
+				address,
+				value,
+				data,
+				..
+			} => {
+				self.context_stack.push(Context {
+					entries_index: self.entries_next_index,
+
+					context_type: ContextType::Call(CallType::Call),
+
+					from: caller,
+					trace_address: vec![],
+					subtraces: 0,
+					value,
+
+					gas: 0,
+					start_gas: None,
+
+					data,
+					to: address,
+				});
+
+				self.entries_next_index += 1;
+			}
+
+			EvmEvent::TransactCreate {
+				caller,
+				value,
+				init_code,
+				address,
+				..
+			} => {
+				self.context_stack.push(Context {
+					entries_index: self.entries_next_index,
+
+					context_type: ContextType::Create,
+
+					from: caller,
+					trace_address: vec![],
+					subtraces: 0,
+					value,
+
+					gas: 0,
+					start_gas: None,
+
+					data: init_code,
+					to: address,
+				});
+
+				self.entries_next_index += 1;
+			}
+
+			EvmEvent::TransactCreate2 {
+				caller,
+				value,
+				init_code,
+				address,
+				..
+			} => {
+				self.context_stack.push(Context {
+					entries_index: self.entries_next_index,
+
+					context_type: ContextType::Create,
+
+					from: caller,
+					trace_address: vec![],
+					subtraces: 0,
+					value,
+
+					gas: 0,
+					start_gas: None,
+
+					data: init_code,
+					to: address,
+				});
+
+				self.entries_next_index += 1;
+			}
+
 			EvmEvent::Call {
-				// code_address,
-				// transfer,
 				input,
-				// target_gas,
 				is_static,
 				context,
 				..
@@ -223,50 +230,76 @@ impl Listener {
 					(Some(call_type), _) => call_type,
 				};
 
-				self.context_stack.push(Context {
-					entries_index: self.entries_next_index,
+				if !self.early_in_tx {
+					let trace_address = if let Some(context) = self.context_stack.last_mut() {
+						let mut trace_address = context.trace_address.clone();
+						trace_address.push(context.subtraces);
+						context.subtraces += 1;
+						trace_address
+					} else {
+						vec![]
+					};
 
-					context_type: ContextType::Call(call_type),
+					self.context_stack.push(Context {
+						entries_index: self.entries_next_index,
 
-					from: context.caller,
-					trace_address,
-					subtraces: 0,
-					value: context.apparent_value,
+						context_type: ContextType::Call(call_type),
 
-					gas: 0,
-					start_gas: None,
+						from: context.caller,
+						trace_address,
+						subtraces: 0,
+						value: context.apparent_value,
 
-					data: input.to_vec(),
-					to: context.address,
-				});
+						gas: 0,
+						start_gas: None,
 
-				self.entries_next_index += 1;
+						data: input.to_vec(),
+						to: context.address,
+					});
+
+					self.entries_next_index += 1;
+				} else {
+					self.early_in_tx = false;
+				}
 			}
+
 			EvmEvent::Create {
 				caller,
 				address,
 				// scheme,
 				value,
 				init_code,
-				// target_gas,
 				..
 			} => {
-				self.context_stack.push(Context {
-					entries_index: self.entries_next_index,
+				if !self.early_in_tx {
+					let trace_address = if let Some(context) = self.context_stack.last_mut() {
+						let mut trace_address = context.trace_address.clone();
+						trace_address.push(context.subtraces);
+						context.subtraces += 1;
+						trace_address
+					} else {
+						vec![]
+					};
 
-					context_type: ContextType::Create,
+					self.context_stack.push(Context {
+						entries_index: self.entries_next_index,
 
-					from: caller,
-					trace_address,
-					subtraces: 0,
-					value,
+						context_type: ContextType::Create,
 
-					gas: 0,
-					start_gas: None,
+						from: caller,
+						trace_address,
+						subtraces: 0,
+						value,
 
-					data: init_code.to_vec(),
-					to: address,
-				});
+						gas: 0,
+						start_gas: None,
+
+						data: init_code.to_vec(),
+						to: address,
+					});
+				} else {
+					self.early_in_tx = false;
+				}
 
 				self.entries_next_index += 1;
 			}
@@ -275,6 +308,15 @@ impl Listener {
 				target,
 				balance,
 			} => {
+				let trace_address = if let Some(context) = self.context_stack.last_mut() {
+					let mut trace_address = context.trace_address.clone();
+					trace_address.push(context.subtraces);
+					context.subtraces += 1;
+					trace_address
+				} else {
+					vec![]
+				};
+
 				if self.entries.is_empty() {
 					self.entries.push(BTreeMap::new());
 				}
@@ -295,9 +337,104 @@ impl Listener {
 				);
 				self.entries_next_index += 1;
 			}
+			EvmEvent::Exit {
+				reason,
+				return_value,
+			} => {
+				let entry = self
+					.step_result_entry
+					.take()
+					.or_else(|| self.pop_context_to_entry(reason, return_value));
+
+				if let Some((key, entry)) = entry {
+					if self.entries.is_empty() {
+						self.entries.push(BTreeMap::new());
+					}
+
+					self.entries.last_mut().unwrap().insert(key, entry);
+				}
+			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
 			_ => (),
+		}
+	}
+
+	fn pop_context_to_entry(
+		&mut self,
+		reason: ExitReason,
+		return_value: Vec<u8>,
+	) -> Option<(u32, Call)> {
+		if let Some(context) = self.context_stack.pop() {
+			let mut gas_used = context.start_gas.unwrap_or(0) - context.gas;
+			if context.entries_index == 0 {
+				gas_used += self.transaction_cost;
+			}
+
+			Some((
+				context.entries_index,
+				match context.context_type {
+					ContextType::Call(call_type) => {
+						let res = match &reason {
+							ExitReason::Succeed(ExitSucceed::Returned) => {
+								CallResult::Output(return_value.to_vec())
+							}
+							ExitReason::Succeed(_) => CallResult::Output(vec![]),
+							ExitReason::Error(error) => CallResult::Error(error_message(error)),
+
+							ExitReason::Revert(_) => {
+								CallResult::Error(b"execution reverted".to_vec())
+							}
+							ExitReason::Fatal(_) => CallResult::Error(vec![]),
+						};
+
+						Call {
+							from: context.from,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							value: context.value,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							inner: CallInner::Call {
+								call_type,
+								to: context.to,
+								input: context.data,
+								res,
+							},
+						}
+					}
+					ContextType::Create => {
+						let res = match &reason {
+							ExitReason::Succeed(_) => CreateResult::Success {
+								created_contract_address_hash: context.to,
+								created_contract_code: return_value.to_vec(),
+							},
+							ExitReason::Error(error) => CreateResult::Error {
+								error: error_message(error),
+							},
+							ExitReason::Revert(_) => CreateResult::Error {
+								error: b"execution reverted".to_vec(),
+							},
+							ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
+						};
+
+						Call {
+							value: context.value,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							from: context.from,
+							inner: CallInner::Create {
+								init: context.data,
+								res,
+							},
+						}
+					}
+				},
+			))
+		} else {
+			None
 		}
 	}
 }
@@ -329,6 +466,7 @@ impl ListenerT for Listener {
 			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
 			Event::Evm(evm_event) => self.evm_event(evm_event),
 			Event::CallListNew() => {
+				self.early_in_tx = true;
 				self.entries.push(BTreeMap::new());
 			}
 		};

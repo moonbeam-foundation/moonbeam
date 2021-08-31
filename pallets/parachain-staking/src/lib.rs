@@ -240,9 +240,8 @@ pub mod pallet {
 			self.bottom_nominators
 				.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
 		}
-		/// Return Ok(Some(new_total)) if inserted into top
-		/// Return Ok(None) if inserted into bottom
-		/// Return Err if already exists in top or bottom
+		/// Bond a new account as a nominator, and make a first nomination. If successful,
+		/// the return value indicates whether the nomination is top for the candidate.
 		pub fn add_nominator<T: Config>(
 			&mut self,
 			acc: A,
@@ -260,6 +259,7 @@ pub mod pallet {
 					new_total: self.total_counted,
 				})
 			} else {
+				// >pop requires push to reset in case isn't pushed to bottom
 				let last_nomination_in_top = self
 					.top_nominators
 					.pop()
@@ -275,7 +275,7 @@ pub mod pallet {
 						new_total: self.total_counted,
 					})
 				} else {
-					// push previously popped last nomination into top_nominators
+					// >required push to previously popped last nomination into top_nominators
 					self.top_nominators.push(last_nomination_in_top);
 					self.add_bottom_nominator(Bond { owner: acc, amount });
 					Ok(NominatorAdded::AddedToBottom)
@@ -287,7 +287,10 @@ pub mod pallet {
 			&mut self,
 			nominator: A,
 		) -> Result<(bool, B), DispatchError> {
-			ensure!(self.nominators.remove(&nominator), Error::<T>::NominatorDNE);
+			ensure!(
+				self.nominators.remove(&nominator),
+				Error::<T>::NominatorDNEInNominatorSet
+			);
 			let mut nominator_stake: Option<B> = None;
 			self.top_nominators = self
 				.top_nominators
@@ -302,17 +305,20 @@ pub mod pallet {
 					}
 				})
 				.collect();
+			// item removed from the top => highest bottom is popped from bottom and pushed to top
 			if let Some(s) = nominator_stake {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.pop() {
 					self.total_counted -= s - last.amount;
 					self.add_top_nominator(last);
 				} else {
+					// no item in bottom nominators so no item from bottom to pop and push up
 					self.total_counted -= s;
 				}
 				self.total_backing -= s;
 				return Ok((true, s));
 			}
+			// else (no item removed from the top)
 			self.bottom_nominators = self
 				.bottom_nominators
 				.clone()
@@ -326,7 +332,8 @@ pub mod pallet {
 					}
 				})
 				.collect();
-			let stake = nominator_stake.ok_or(Error::<T>::NominatorDNE)?;
+			// if err, no item with account exists in top || bottom
+			let stake = nominator_stake.ok_or(Error::<T>::NominatorDNEinTopNorBottom)?;
 			self.total_backing -= stake;
 			Ok((false, stake))
 		}
@@ -343,10 +350,13 @@ pub mod pallet {
 					break;
 				}
 			}
+			// if nominator was increased in top nominators
 			if in_top {
 				self.sort_top_nominators();
 				return true;
 			}
+			// else nominator to increase must exist in bottom
+			// >pop requires push later on to reset in case it isn't used
 			let lowest_top = self
 				.top_nominators
 				.pop()
@@ -368,7 +378,7 @@ pub mod pallet {
 				self.add_bottom_nominator(lowest_top);
 				true
 			} else {
-				// reset top_nominators from earlier pop
+				// >required push to reset top_nominators from earlier pop
 				self.top_nominators.push(lowest_top);
 				self.sort_bottom_nominators();
 				false
@@ -377,15 +387,19 @@ pub mod pallet {
 		/// Return true if in_top after call
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
 			let mut in_top = false;
-			let mut new_top: Option<Bond<A, B>> = None;
+			let mut new_lowest_top: Option<Bond<A, B>> = None;
 			for x in &mut self.top_nominators {
 				if x.owner == nominator {
 					x.amount -= less;
-					self.total_counted -= less;
-					self.total_backing -= less;
-					if let Some(top_bottom) = self.bottom_nominators.pop() {
-						if top_bottom.amount > x.amount {
-							new_top = Some(top_bottom);
+					// if there is at least 1 nominator in bottom nominators, compare it to check
+					// if it should be swapped with lowest top nomination and put in top
+					// >pop requires push later on to reset in case it isn't used
+					if let Some(highest_bottom) = self.bottom_nominators.pop() {
+						if highest_bottom.amount > x.amount {
+							new_lowest_top = Some(highest_bottom);
+						} else {
+							// >required push to reset self.bottom_nominators
+							self.bottom_nominators.push(highest_bottom);
 						}
 					}
 					in_top = true;
@@ -394,14 +408,22 @@ pub mod pallet {
 			}
 			if in_top {
 				self.sort_top_nominators();
-				if let Some(new) = new_top {
-					let lowest_top = self.top_nominators.pop().expect("just updated => exists");
-					self.total_counted -= lowest_top.amount;
-					self.total_counted += new.amount;
-					self.add_top_nominator(new);
+				if let Some(highest_bottom) = new_lowest_top {
+					// pop last in top to swap it with top bottom
+					let lowest_top = self
+						.top_nominators
+						.pop()
+						.expect("must have >1 item to update, assign in_top = true");
+					self.total_counted -= lowest_top.amount + less;
+					self.total_counted += highest_bottom.amount;
+					self.total_backing -= less;
+					self.add_top_nominator(highest_bottom);
 					self.add_bottom_nominator(lowest_top);
 					return false;
 				} else {
+					// no existing bottom nominators so update both counters the same magnitude
+					self.total_counted -= less;
+					self.total_backing -= less;
 					return true;
 				}
 			}
@@ -444,7 +466,7 @@ pub mod pallet {
 		Leaving(RoundIndex),
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
 		/// All current nominations
@@ -746,8 +768,9 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		// Nominator Does Not Exist
 		NominatorDNE,
+		NominatorDNEinTopNorBottom,
+		NominatorDNEInNominatorSet,
 		CandidateDNE,
 		NominationDNE,
 		NominatorExists,
@@ -793,17 +816,17 @@ pub mod pallet {
 		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
 		/// Account, Amount Unlocked, New Total Amt Locked
 		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
-		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
-		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
-		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
+		// Nominator, Collator, Amount, If in top nominations for collator after increase
+		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
+		// Nominator, Collator, Amount, If in top nominations for collator after decrease
+		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
 		/// Round, Nominator, Scheduled Exit
 		NominatorExitScheduled(RoundIndex, T::AccountId, RoundIndex),
 		/// Round, Nominator, Collator, Scheduled Exit
 		NominationRevocationScheduled(RoundIndex, T::AccountId, T::AccountId, RoundIndex),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
-		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Backing if in Top
+		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Counted if in Top
 		Nomination(
 			T::AccountId,
 			BalanceOf<T>,
@@ -838,10 +861,119 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
+		/// Account, Amount Unreserved by Democracy
+		HotfixUnreservedNomination(T::AccountId, BalanceOf<T>),
+	}
+
+	pub(crate) fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>(
+	) -> (u64, u64) {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		let mut map: BTreeMap<(T::AccountId, T::AccountId), ()> = BTreeMap::new();
+		let top_n = T::MaxNominatorsPerCollator::get() as usize;
+		// 1. for collator state, check if there is a nominator not in top or bottom
+		for (account, state) in <CollatorState2<T>>::iter() {
+			reads += 1u64;
+			// remove all accounts not in self.top_nominators && self.bottom_nominators
+			let mut nominator_set = Vec::new();
+			for Bond { owner, .. } in &state.top_nominators {
+				nominator_set.push(owner.clone());
+			}
+			for Bond { owner, .. } in &state.bottom_nominators {
+				nominator_set.push(owner.clone());
+			}
+			for nominator in &state.nominators.0 {
+				if !nominator_set.contains(nominator) {
+					// these accounts were removed without being unreserved so we track it
+					// with this map which will hold the due amount
+					map.insert((account.clone(), nominator.clone()), ());
+				}
+			}
+			// RESET incorrect storage state
+			let mut all_nominators = state.top_nominators.clone();
+			let mut starting_bottom_nominators = state.bottom_nominators.clone();
+			all_nominators.append(&mut starting_bottom_nominators);
+			// sort all nominators from greatest to least
+			all_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
+			let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+				all_nominators.clone().into_iter().take(top_n).collect();
+			let bottom_nominators = if all_nominators.len() > top_n {
+				let rest = all_nominators.len() - top_n;
+				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_nominators
+					.clone()
+					.into_iter()
+					.rev()
+					.take(rest)
+					.collect();
+				bottom
+			} else {
+				// empty, all nominations are in top
+				Vec::new()
+			};
+			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
+				(state.bond, state.bond);
+			for Bond { amount, .. } in &top_nominators {
+				total_counted += *amount;
+				total_backing += *amount;
+			}
+			for Bond { amount, .. } in &bottom_nominators {
+				total_backing += *amount;
+			}
+			// update candidate pool with new total counted if it changed
+			if state.total_counted != total_counted && state.is_active() {
+				reads += 1u64;
+				writes += 1u64;
+				<Pallet<T>>::update_active(account.clone(), total_counted);
+			}
+			let new_state = Collator2 {
+				nominators: OrderedSet::from(nominator_set),
+				top_nominators,
+				bottom_nominators,
+				total_counted,
+				total_backing,
+				..state
+			};
+			<CollatorState2<T>>::insert(&account, new_state);
+			writes += 1u64;
+			log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
+		}
+		// 2. for nominator state, check if there are nominations that were inadvertently bumped
+		// -> this allows us to recover the due unreserved balances for cases of (1) that
+		// did not have the nominator state removed (it does not account for when it was removed)
+		for (account, mut state) in <NominatorState2<T>>::iter() {
+			reads += 1u64;
+			for Bond { owner, .. } in state.nominations.0.clone() {
+				if map.get(&(owner.clone(), account.clone())).is_some() {
+					if state.rm_nomination(owner).is_some() {
+						if state.nominations.0.is_empty() {
+							<NominatorState2<T>>::remove(&account);
+						} else {
+							<NominatorState2<T>>::insert(&account, state.clone());
+						}
+						writes += 1u64;
+					}
+				}
+			}
+		}
+		(reads, writes)
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			let weight = T::DbWeight::get();
+			if !<FixBondLessMigrationExecuted<T>>::get() {
+				let (mut reads, mut writes) =
+					correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
+				reads += 1u64;
+				writes += 1u64;
+				<FixBondLessMigrationExecuted<T>>::put(true);
+				// 50% of the max block weight as safety margin for computation
+				weight.reads(reads) + weight.writes(writes) + 250_000_000_000
+			} else {
+				weight.reads(1u64)
+			}
+		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -872,6 +1004,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn fix_bond_less_migration_executed)]
+	/// Temporary to check if migration has run
+	pub(crate) type FixBondLessMigrationExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -908,7 +1045,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state2)]
 	/// Get collator state associated with an account if account is collating else None
-	type CollatorState2<T: Config> = StorageMap<
+	pub(crate) type CollatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1086,6 +1223,27 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(1_000_000_000)]
+		/// Temporary root function to return nominations
+		/// - charges uniform 0.2% of block weight as fee per call
+		pub fn hotfix_unreserve_nomination(
+			origin: OriginFor<T>,
+			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			let mut sum_unreserved: BalanceOf<T> = 0u32.into();
+			for (due_account, due_unreserve) in stakers {
+				T::Currency::unreserve(&due_account, due_unreserve);
+				Self::deposit_event(Event::HotfixUnreservedNomination(
+					due_account,
+					due_unreserve,
+				));
+				sum_unreserved += due_unreserve;
+			}
+			let new_total = <Total<T>>::get().saturating_sub(sum_unreserved);
+			<Total<T>>::put(new_total);
+			Ok(().into())
+		}
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
@@ -1574,7 +1732,7 @@ pub mod pallet {
 			let new_total_staked = <Total<T>>::get().saturating_add(more);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationIncreased(
-				nominator, candidate, before, in_top, after,
+				nominator, candidate, more, in_top,
 			));
 			Ok(().into())
 		}
@@ -1619,7 +1777,7 @@ pub mod pallet {
 			let new_total_staked = <Total<T>>::get().saturating_sub(less);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationDecreased(
-				nominator, candidate, before, in_top, after,
+				nominator, candidate, less, in_top,
 			));
 			Ok(().into())
 		}
@@ -1658,7 +1816,7 @@ pub mod pallet {
 				round_issuance.ideal
 			}
 		}
-		fn nominator_leaves_collator(
+		pub(crate) fn nominator_leaves_collator(
 			nominator: T::AccountId,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
@@ -1866,23 +2024,29 @@ pub mod pallet {
 			exit_queue.nominator_schedule = remaining_exits;
 			<ExitQueue2<T>>::put(exit_queue);
 		}
-		/// Best as in most cumulatively supported in terms of stake
-		/// Returns [collator_count, nomination_count, total staked]
-		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
-			let (mut collator_count, mut nomination_count, mut total) =
-				(0u32, 0u32, BalanceOf::<T>::zero());
+		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
+		/// a vec of their AccountIds (in the order of selection)
+		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = candidates
+			candidates
 				.into_iter()
 				.rev()
 				.take(top_n)
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>();
+				.collect::<Vec<T::AccountId>>()
+		}
+		/// Best as in most cumulatively supported in terms of stake
+		/// Returns [collator_count, nomination_count, total staked]
+		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+			let (mut collator_count, mut nomination_count, mut total) =
+				(0u32, 0u32, BalanceOf::<T>::zero());
+			// choose the top TotalSelected qualified candidates, ordered by stake
+			let mut collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CollatorState2<T>>::get(&account)
