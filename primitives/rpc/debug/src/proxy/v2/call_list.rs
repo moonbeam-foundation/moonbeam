@@ -817,6 +817,10 @@ mod tests {
 		listener.evm_event(test_emit_evm_event(TestEvmEvent::Create, false, None));
 	}
 
+	fn do_evm_suicide_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Suicide, false, None));
+	}
+
 	fn do_runtime_step_event(listener: &mut Listener) {
 		listener.runtime_event(test_emit_runtime_event(TestRuntimeEvent::Step));
 	}
@@ -880,6 +884,21 @@ mod tests {
 		listener.finish_transaction();
 		assert_eq!(listener.entries.len(), 1);
 		assert_eq!(listener.entries[0].len(), 1);
+	}
+
+	// Suicide.
+	#[test]
+	fn call_suicide() {
+		let mut listener = Listener::default();
+		do_transact_call_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_runtime_step_event(&mut listener);
+		do_evm_suicide_event(&mut listener);
+		do_exit_event(&mut listener);
+		listener.finish_transaction();
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.entries[0].len(), 2);
 	}
 
 	// Create context
