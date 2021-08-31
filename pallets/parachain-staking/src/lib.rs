@@ -865,10 +865,6 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			<FixBondLessMigrationExecuted<T>>::kill();
-			T::DbWeight::get().writes(1u64)
-		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -899,11 +895,6 @@ pub mod pallet {
 			}
 		}
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn fix_bond_less_migration_executed)]
-	/// Temporary to check if migration has run
-	pub(crate) type FixBondLessMigrationExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
