@@ -861,119 +861,10 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
-		/// Account, Amount Unreserved by Democracy
-		HotfixUnreservedNomination(T::AccountId, BalanceOf<T>),
-	}
-
-	pub(crate) fn correct_bond_less_removes_bottom_nomination_inconsistencies<T: Config>(
-	) -> (u64, u64) {
-		let (mut reads, mut writes) = (0u64, 0u64);
-		let mut map: BTreeMap<(T::AccountId, T::AccountId), ()> = BTreeMap::new();
-		let top_n = T::MaxNominatorsPerCollator::get() as usize;
-		// 1. for collator state, check if there is a nominator not in top or bottom
-		for (account, state) in <CollatorState2<T>>::iter() {
-			reads += 1u64;
-			// remove all accounts not in self.top_nominators && self.bottom_nominators
-			let mut nominator_set = Vec::new();
-			for Bond { owner, .. } in &state.top_nominators {
-				nominator_set.push(owner.clone());
-			}
-			for Bond { owner, .. } in &state.bottom_nominators {
-				nominator_set.push(owner.clone());
-			}
-			for nominator in &state.nominators.0 {
-				if !nominator_set.contains(nominator) {
-					// these accounts were removed without being unreserved so we track it
-					// with this map which will hold the due amount
-					map.insert((account.clone(), nominator.clone()), ());
-				}
-			}
-			// RESET incorrect storage state
-			let mut all_nominators = state.top_nominators.clone();
-			let mut starting_bottom_nominators = state.bottom_nominators.clone();
-			all_nominators.append(&mut starting_bottom_nominators);
-			// sort all nominators from greatest to least
-			all_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
-			let top_nominators: Vec<Bond<T::AccountId, BalanceOf<T>>> =
-				all_nominators.clone().into_iter().take(top_n).collect();
-			let bottom_nominators = if all_nominators.len() > top_n {
-				let rest = all_nominators.len() - top_n;
-				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_nominators
-					.clone()
-					.into_iter()
-					.rev()
-					.take(rest)
-					.collect();
-				bottom
-			} else {
-				// empty, all nominations are in top
-				Vec::new()
-			};
-			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
-				(state.bond, state.bond);
-			for Bond { amount, .. } in &top_nominators {
-				total_counted += *amount;
-				total_backing += *amount;
-			}
-			for Bond { amount, .. } in &bottom_nominators {
-				total_backing += *amount;
-			}
-			// update candidate pool with new total counted if it changed
-			if state.total_counted != total_counted && state.is_active() {
-				reads += 1u64;
-				writes += 1u64;
-				<Pallet<T>>::update_active(account.clone(), total_counted);
-			}
-			let new_state = Collator2 {
-				nominators: OrderedSet::from(nominator_set),
-				top_nominators,
-				bottom_nominators,
-				total_counted,
-				total_backing,
-				..state
-			};
-			<CollatorState2<T>>::insert(&account, new_state);
-			writes += 1u64;
-			log::warn!("CORRECTED INCONSISTENT COLLATOR STATE FOR {:?}", account);
-		}
-		// 2. for nominator state, check if there are nominations that were inadvertently bumped
-		// -> this allows us to recover the due unreserved balances for cases of (1) that
-		// did not have the nominator state removed (it does not account for when it was removed)
-		for (account, mut state) in <NominatorState2<T>>::iter() {
-			reads += 1u64;
-			for Bond { owner, .. } in state.nominations.0.clone() {
-				if map.get(&(owner.clone(), account.clone())).is_some() {
-					if state.rm_nomination(owner).is_some() {
-						if state.nominations.0.is_empty() {
-							<NominatorState2<T>>::remove(&account);
-						} else {
-							<NominatorState2<T>>::insert(&account, state.clone());
-						}
-						writes += 1u64;
-					}
-				}
-			}
-		}
-		(reads, writes)
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			let weight = T::DbWeight::get();
-			if !<FixBondLessMigrationExecuted<T>>::get() {
-				let (mut reads, mut writes) =
-					correct_bond_less_removes_bottom_nomination_inconsistencies::<T>();
-				reads += 1u64;
-				writes += 1u64;
-				<FixBondLessMigrationExecuted<T>>::put(true);
-				// 50% of the max block weight as safety margin for computation
-				weight.reads(reads) + weight.writes(writes) + 250_000_000_000
-			} else {
-				weight.reads(1u64)
-			}
-		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -1004,11 +895,6 @@ pub mod pallet {
 			}
 		}
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn fix_bond_less_migration_executed)]
-	/// Temporary to check if migration has run
-	pub(crate) type FixBondLessMigrationExecuted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -1223,27 +1109,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(1_000_000_000)]
-		/// Temporary root function to return nominations
-		/// - charges uniform 0.2% of block weight as fee per call
-		pub fn hotfix_unreserve_nomination(
-			origin: OriginFor<T>,
-			stakers: Vec<(T::AccountId, BalanceOf<T>)>,
-		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			let mut sum_unreserved: BalanceOf<T> = 0u32.into();
-			for (due_account, due_unreserve) in stakers {
-				T::Currency::unreserve(&due_account, due_unreserve);
-				Self::deposit_event(Event::HotfixUnreservedNomination(
-					due_account,
-					due_unreserve,
-				));
-				sum_unreserved += due_unreserve;
-			}
-			let new_total = <Total<T>>::get().saturating_sub(sum_unreserved);
-			<Total<T>>::put(new_total);
-			Ok(().into())
-		}
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
