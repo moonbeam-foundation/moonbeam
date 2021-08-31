@@ -3,6 +3,7 @@ import Web3 from "web3";
 import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
+import { DevTestContext } from "./setup-dev-tests";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -130,4 +131,40 @@ export async function createContractExecution(
   });
 
   return tx;
+}
+
+// The parameters passed to the function are assumed to have all been converted to hexa
+export async function sendPrecompileTx(
+  context: DevTestContext,
+  precompileContractAddress:string,
+  selectors:{[key:string]:string},
+  from: string,
+  privateKey: string,
+  selector: string,
+  parameters: string[]
+) {
+  let data: string;
+  if (selectors[selector]) {
+    data = `0x${selectors[selector]}`;
+  } else {
+    throw new Error(`selector doesn't exist on the precompile contract`);
+  }
+  parameters.forEach((para: string) => {
+    data += para.slice(2).padStart(64, "0");
+  });
+
+  const tx = await createTransaction(context.web3, {
+    from,
+    privateKey,
+    value: "0x0",
+    gas: "0x200000",
+    gasPrice: GENESIS_TRANSACTION.gasPrice,
+    to: precompileContractAddress,
+    data,
+  });
+
+  const block = await context.createBlock({
+    transactions: [tx],
+  });
+  return block;
 }
