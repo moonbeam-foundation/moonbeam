@@ -25,7 +25,24 @@ use crate::{
 };
 use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
+/// Enum of the different "modes" of tracer for multiple runtime versions and
+/// the kind of EVM events that are emitted.
+enum TracingVersion {
+	/// The first event of the transaction is `EvmEvent::TransactX`. It goes along other events
+	/// such as `EvmEvent::Exit`. All contexts should have clear start/end boundaries.
+	EarlyTransact,
+	/// Older version in which the events above didn't existed.
+	/// It means that we cannot rely on those events to perform any task, and must rely only
+	/// on other events.
+	Legacy,
+}
+
 pub struct Listener {
+	/// Version of the tracing.
+	/// Defaults to legacy, and switch to a more modern version if recently added events are
+	/// received.
+	version: TracingVersion,
+
 	// Transaction cost that must be added to the first context cost.
 	transaction_cost: u64,
 
@@ -43,21 +60,26 @@ pub struct Listener {
 	// call type, to be used when the following `Call` event is received.
 	call_type: Option<CallType>,
 
-	/// true = we are before the first Evm::Call/Create event a transaction.
-	/// Allow to handle early errors before these events.
-	early_in_tx: bool,
-
-	/// To handle EvmEvent::Exit no emitted by previous runtimes versions,
-	/// entries are not inserted directly in `self.entries`.
-	pending_entries: Vec<(u32, Call)>,
-
-	/// True when an entry has been added to the pending list by StepResult.
-	/// Prevents EvmEvent::Exit to create a duplicate.
-	entry_from_step_result: bool,
-
-	/// First Call/Create will not create a context because it has been created by
-	/// TransactionCall/Create event.
+	/// When `EvmEvent::TransactX` is received it creates its own context. However it will usually
+	/// be followed by an `EvmEvent::Call/Create` that will also create a context, which must be
+	/// prevented. It must however not be skipped if `EvmEvent::TransactX` was not received
+	/// (in legacy mode).
 	skip_next_context: bool,
+
+	// /// To handle EvmEvent::Exit no emitted by previous runtimes versions,
+	// /// entries are not inserted directly in `self.entries`.
+	// pending_entries: Vec<(u32, Call)>,
+	/// See `RuntimeEvent::StepResult` event explanatioins.
+	step_result_entry: Option<(u32, Call)>,
+
+	/// When tracing a block `Event::CallListNew` is emitted before each Ethereum transaction is
+	/// processed. Since we use that event to **finish** the transaction, we must ignore the first
+	/// one.
+	call_list_first_transaction: bool,
+
+	/// True if only the `GasometerEvent::RecordTransaction` event has been received.
+	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
+	record_transaction_event_only: bool,
 }
 
 struct Context {
@@ -82,6 +104,7 @@ struct Context {
 impl Default for Listener {
 	fn default() -> Self {
 		Self {
+			version: TracingVersion::Legacy,
 			transaction_cost: 0,
 
 			entries: vec![],
@@ -90,10 +113,10 @@ impl Default for Listener {
 			context_stack: vec![],
 
 			call_type: None,
-			early_in_tx: true,
-			pending_entries: vec![],
-			entry_from_step_result: false,
+			step_result_entry: None,
 			skip_next_context: false,
+			call_list_first_transaction: true,
+			record_transaction_event_only: false,
 		}
 	}
 }
@@ -119,56 +142,55 @@ impl Listener {
 				gas_used += self.transaction_cost;
 			}
 
-			let entry =
-				match context.context_type {
-					ContextType::Call(call_type) => {
-						let res = CallResult::Error(
-							b"early exit (out of gas, stack overflow, direct call to precompile)"
-								.to_vec(),
-						);
-						Call {
-							from: context.from,
-							trace_address: context.trace_address,
-							subtraces: context.subtraces,
-							value: context.value,
-							gas: context.gas.into(),
-							gas_used: gas_used.into(),
-							inner: CallInner::Call {
-								call_type,
-								to: context.to,
-								input: context.data,
-								res,
-							},
-						}
+			let entry = match context.context_type {
+				ContextType::Call(call_type) => {
+					let res = CallResult::Error(
+						b"early exit (out of gas, stack overflow, direct call to precompile, ...)"
+							.to_vec(),
+					);
+					Call {
+						from: context.from,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						value: context.value,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						inner: CallInner::Call {
+							call_type,
+							to: context.to,
+							input: context.data,
+							res,
+						},
 					}
-					ContextType::Create => {
-						let res = CreateResult::Error {
-						error: b"early exit (out of gas, stack overflow, direct call to precompile)".to_vec(),
-					};
+				}
+				ContextType::Create => {
+					let res = CreateResult::Error {
+							error: b"early exit (out of gas, stack overflow, direct call to precompile, ...)".to_vec(),
+						};
 
-						Call {
-							value: context.value,
-							trace_address: context.trace_address,
-							subtraces: context.subtraces,
-							gas: context.gas.into(),
-							gas_used: gas_used.into(),
-							from: context.from,
-							inner: CallInner::Create {
-								init: context.data,
-								res,
-							},
-						}
+					Call {
+						value: context.value,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						from: context.from,
+						inner: CallInner::Create {
+							init: context.data,
+							res,
+						},
 					}
-				};
+				}
+			};
 
-			self.pending_entries.push((context.entries_index, entry));
-
+			self.insert_entry(context.entries_index, entry);
 			// Since only this context/entry is kept, we need update entries_next_index too.
 			self.entries_next_index = context.entries_index + 1;
 		}
-		// however if the transaction had a too low gas limit to pay for the data cost itself,
-		// no context are created and no data is available.
-		else if self.early_in_tx {
+		// However if the transaction had a too low gas limit to pay for the data cost itself,
+		// and `EvmEvent::Exit` is not emitted in **Legacy mode**, then it has never produced any
+		// context (and exited **early in the transaction**).
+		else if self.record_transaction_event_only {
 			let res = CallResult::Error(
 				b"transaction could not pay its own data cost (impossible to gather more info)"
 					.to_vec(),
@@ -189,14 +211,9 @@ impl Listener {
 				},
 			};
 
-			self.pending_entries.push((self.entries_next_index, entry));
+			self.insert_entry(self.entries_next_index, entry);
 			self.entries_next_index += 1;
 		}
-
-		// We insert all the pending entries.
-		// All entries of a transaction are stored in the pending list to correctly handle
-		// runtime versions where EvmEvent::Exit exist or not.
-		self.insert_pending_entries();
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
@@ -211,7 +228,10 @@ impl Listener {
 					context.gas = snapshot.gas();
 				}
 			}
-			GasometerEvent::RecordTransaction { cost, .. } => self.transaction_cost = cost,
+			GasometerEvent::RecordTransaction { cost, .. } => {
+				self.transaction_cost = cost;
+				self.record_transaction_event_only = true;
+			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
 			_ => (),
@@ -224,7 +244,7 @@ impl Listener {
 				result: Err(Capture::Trap(opcode)),
 				..
 			} => {
-				if let Some(ContextType::Call(call_type)) = ContextType::from(opcode.clone()) {
+				if let Some(ContextType::Call(call_type)) = ContextType::from(opcode) {
 					self.call_type = Some(call_type)
 				}
 			}
@@ -232,9 +252,21 @@ impl Listener {
 				result: Err(Capture::Exit(reason)),
 				return_value,
 			} => {
-				if let Some(entry) = self.pop_context_to_entry(reason, return_value) {
-					self.pending_entries.push(entry);
-					self.entry_from_step_result = true;
+				if let Some((key, entry)) = self.pop_context_to_entry(reason, return_value) {
+					match self.version {
+						TracingVersion::Legacy => {
+							// In Legacy mode we directly insert the entry.
+							self.insert_entry(key, entry);
+						}
+						TracingVersion::EarlyTransact => {
+							// In EarlyTransact mode this context must be used if this event is
+							// emitted. However the context of `EvmEvent::Exit` must be used if
+							// `StepResult` is skipped. For that reason we store this generated
+							// entry in a temporary value, and deal with it in `EvmEvent::Exit` that
+							// will be called in all cases.
+							self.step_result_entry = Some((key, entry));
+						}
+					}
 				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -252,6 +284,8 @@ impl Listener {
 				data,
 				..
 			} => {
+				self.record_transaction_event_only = false;
+				self.version = TracingVersion::EarlyTransact;
 				self.context_stack.push(Context {
 					entries_index: self.entries_next_index,
 
@@ -280,6 +314,8 @@ impl Listener {
 				address,
 				..
 			} => {
+				self.record_transaction_event_only = false;
+				self.version = TracingVersion::EarlyTransact;
 				self.context_stack.push(Context {
 					entries_index: self.entries_next_index,
 
@@ -308,6 +344,8 @@ impl Listener {
 				address,
 				..
 			} => {
+				self.record_transaction_event_only = false;
+				self.version = TracingVersion::EarlyTransact;
 				self.context_stack.push(Context {
 					entries_index: self.entries_next_index,
 
@@ -335,6 +373,8 @@ impl Listener {
 				context,
 				..
 			} => {
+				self.record_transaction_event_only = false;
+
 				let call_type = match (self.call_type, is_static) {
 					(None, true) => CallType::StaticCall,
 					(None, false) => CallType::Call,
@@ -371,7 +411,6 @@ impl Listener {
 					self.entries_next_index += 1;
 				} else {
 					self.skip_next_context = false;
-					self.early_in_tx = false;
 				}
 			}
 
@@ -383,6 +422,8 @@ impl Listener {
 				init_code,
 				..
 			} => {
+				self.record_transaction_event_only = false;
+
 				if !self.skip_next_context {
 					let trace_address = if let Some(context) = self.context_stack.last_mut() {
 						let mut trace_address = context.trace_address.clone();
@@ -409,12 +450,11 @@ impl Listener {
 						data: init_code.to_vec(),
 						to: address,
 					});
+
+					self.entries_next_index += 1;
 				} else {
 					self.skip_next_context = false;
-					self.early_in_tx = false;
 				}
-
-				self.entries_next_index += 1;
 			}
 			EvmEvent::Suicide {
 				address,
@@ -454,18 +494,18 @@ impl Listener {
 				reason,
 				return_value,
 			} => {
-				// If StepResult has been skipped (early revert due to out of gas or similar
-				// errors), we produce the entry here.
-				if !self.entry_from_step_result {
-					if let Some(entry) = self.pop_context_to_entry(reason, return_value) {
-						self.pending_entries.push(entry);
-					}
-				} else {
-					self.entry_from_step_result = false;
-				}
+				// We know we're in `TracingVersion::EarlyTransact` mode.
 
-				// This event handles tx cost revert entry, so we're no longer "early".
-				self.early_in_tx = false;
+				self.record_transaction_event_only = false;
+
+				let entry = self
+					.step_result_entry
+					.take()
+					.or_else(|| self.pop_context_to_entry(reason, return_value));
+
+				if let Some((key, entry)) = entry {
+					self.insert_entry(key, entry);
+				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
@@ -473,17 +513,12 @@ impl Listener {
 		}
 	}
 
-	fn insert_pending_entries(&mut self) {
-		let mut entries = vec![];
-		core::mem::swap(&mut self.pending_entries, &mut entries);
-
-		for (key, entry) in entries.into_iter() {
-			if self.entries.is_empty() {
-				self.entries.push(BTreeMap::new());
-			}
-
-			self.entries.last_mut().unwrap().insert(key, entry);
+	fn insert_entry(&mut self, key: u32, entry: Call) {
+		if self.entries.is_empty() {
+			self.entries.push(BTreeMap::new());
 		}
+
+		self.entries.last_mut().unwrap().insert(key, entry);
 	}
 
 	fn pop_context_to_entry(
@@ -592,16 +627,20 @@ impl ListenerT for Listener {
 			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
 			Event::Evm(evm_event) => self.evm_event(evm_event),
 			Event::CallListNew() => {
-				self.insert_pending_entries();
-				self.early_in_tx = true;
-				self.skip_next_context = true;
-				self.entries.push(BTreeMap::new());
+				if !self.call_list_first_transaction {
+					self.finish_transaction();
+					self.skip_next_context = false;
+					self.entries.push(BTreeMap::new());
+				} else {
+					self.call_list_first_transaction = false;
+				}
 			}
 		};
 	}
 }
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests {
 	use super::*;
 	use crate::proxy::types::{
