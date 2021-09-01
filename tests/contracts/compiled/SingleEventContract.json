@@ -1,5 +1,5 @@
 {
-  "byteCode": "0x6080604052348015600f57600080fd5b503373ffffffffffffffffffffffffffffffffffffffff167e40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d60405160405180910390a2603f80605f6000396000f3fe6080604052600080fdfea264697066735822122021725305845a2d926c95065cc9a2a5033cd7d0040ddde784654f0608214a40ab64736f6c63430008060033",
+  "byteCode": "0x6080604052348015600f57600080fd5b503373ffffffffffffffffffffffffffffffffffffffff167e40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d60405160405180910390a2603f80605f6000396000f3fe6080604052600080fdfea2646970667358221220ae026c320d184ca85465858e1967f27f93db9dc49be1d4cef1c722bf17bc0dc264736f6c63430008030033",
   "contract": {
     "abi": [
       { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
@@ -19,29 +19,20 @@
     ],
     "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
     "evm": {
-      "assembly": "    /* \"main.sol\":43:206  contract SingleEventContract {... */\n  mstore(0x40, 0x80)\n    /* \"main.sol\":133:200  constructor() {... */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"main.sol\":178:188  msg.sender */\n  caller\n    /* \"main.sol\":166:189  Constructed(msg.sender) */\n  0xffffffffffffffffffffffffffffffffffffffff\n  and\n  0x40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d\n  mload(0x40)\n  mload(0x40)\n  dup1\n  swap2\n  sub\n  swap1\n  log2\n    /* \"main.sol\":43:206  contract SingleEventContract {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"main.sol\":43:206  contract SingleEventContract {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa264697066735822122021725305845a2d926c95065cc9a2a5033cd7d0040ddde784654f0608214a40ab64736f6c63430008060033\n}\n",
+      "assembly": "    /* \"main.sol\":43:206  contract SingleEventContract {... */\n  mstore(0x40, 0x80)\n    /* \"main.sol\":133:200  constructor() {... */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"main.sol\":178:188  msg.sender */\n  caller\n    /* \"main.sol\":166:189  Constructed(msg.sender) */\n  0xffffffffffffffffffffffffffffffffffffffff\n  and\n  0x40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d\n  mload(0x40)\n  mload(0x40)\n  dup1\n  swap2\n  sub\n  swap1\n  log2\n    /* \"main.sol\":43:206  contract SingleEventContract {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"main.sol\":43:206  contract SingleEventContract {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220ae026c320d184ca85465858e1967f27f93db9dc49be1d4cef1c722bf17bc0dc264736f6c63430008030033\n}\n",
       "bytecode": {
-        "functionDebugData": {
-          "@_14": {
-            "entryPoint": null,
-            "id": 14,
-            "parameterSlots": 0,
-            "returnSlots": 0
-          }
-        },
         "generatedSources": [],
         "linkReferences": {},
-        "object": "6080604052348015600f57600080fd5b503373ffffffffffffffffffffffffffffffffffffffff167e40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d60405160405180910390a2603f80605f6000396000f3fe6080604052600080fdfea264697066735822122021725305845a2d926c95065cc9a2a5033cd7d0040ddde784654f0608214a40ab64736f6c63430008060033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLER PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH31 0x40D54D5E5B097202376B55BCBAAEDD2EE468CE4496F1D30030C4E5308BF94D PUSH1 0x40 MLOAD PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG2 PUSH1 0x3F DUP1 PUSH1 0x5F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0x21 PUSH19 0x5305845A2D926C95065CC9A2A5033CD7D0040D 0xDD 0xE7 DUP5 PUSH6 0x4F0608214A40 0xAB PUSH5 0x736F6C6343 STOP ADDMOD MOD STOP CALLER ",
+        "object": "6080604052348015600f57600080fd5b503373ffffffffffffffffffffffffffffffffffffffff167e40d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d60405160405180910390a2603f80605f6000396000f3fe6080604052600080fdfea2646970667358221220ae026c320d184ca85465858e1967f27f93db9dc49be1d4cef1c722bf17bc0dc264736f6c63430008030033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLER PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH31 0x40D54D5E5B097202376B55BCBAAEDD2EE468CE4496F1D30030C4E5308BF94D PUSH1 0x40 MLOAD PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG2 PUSH1 0x3F DUP1 PUSH1 0x5F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xAE MUL PUSH13 0x320D184CA85465858E1967F27F SWAP4 0xDB SWAP14 0xC4 SWAP12 0xE1 0xD4 0xCE CALL 0xC7 0x22 0xBF OR 0xBC 0xD 0xC2 PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
         "sourceMap": "43:163:0:-:0;;;133:67;;;;;;;;;;178:10;166:23;;;;;;;;;;;;43:163;;;;;;"
       },
       "deployedBytecode": {
-        "functionDebugData": {},
         "generatedSources": [],
         "immutableReferences": {},
         "linkReferences": {},
-        "object": "6080604052600080fdfea264697066735822122021725305845a2d926c95065cc9a2a5033cd7d0040ddde784654f0608214a40ab64736f6c63430008060033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0x21 PUSH19 0x5305845A2D926C95065CC9A2A5033CD7D0040D 0xDD 0xE7 DUP5 PUSH6 0x4F0608214A40 0xAB PUSH5 0x736F6C6343 STOP ADDMOD MOD STOP CALLER ",
+        "object": "6080604052600080fdfea2646970667358221220ae026c320d184ca85465858e1967f27f93db9dc49be1d4cef1c722bf17bc0dc264736f6c63430008030033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xAE MUL PUSH13 0x320D184CA85465858E1967F27F SWAP4 0xDB SWAP14 0xC4 SWAP12 0xE1 0xD4 0xCE CALL 0xC7 0x22 0xBF OR 0xBC 0xD 0xC2 PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
         "sourceMap": "43:163:0:-:0;;;;;"
       },
       "gasEstimates": {
@@ -168,7 +159,7 @@
         ],
         ".data": {
           "0": {
-            ".auxdata": "a264697066735822122021725305845a2d926c95065cc9a2a5033cd7d0040ddde784654f0608214a40ab64736f6c63430008060033",
+            ".auxdata": "a2646970667358221220ae026c320d184ca85465858e1967f27f93db9dc49be1d4cef1c722bf17bc0dc264736f6c63430008030033",
             ".code": [
               {
                 "begin": 43,
@@ -201,7 +192,7 @@
       "methodIdentifiers": {}
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"Constructed\",\"type\":\"event\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"SingleEventContract\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x5bdc4e014e35f9b07112af42347d90a14e9ea3cf8b609e48e93273606b5896b2\",\"urls\":[\"bzz-raw://20d9c0eb3ca1fceec867318c063ab277ffcf57928a325da537cb5f061ea713cf\",\"dweb:/ipfs/QmYHPwfoDdMa7p1oUG44unJ3vHQWSSqaBJ2xVj5dJEvoim\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"Constructed\",\"type\":\"event\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"SingleEventContract\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x5bdc4e014e35f9b07112af42347d90a14e9ea3cf8b609e48e93273606b5896b2\",\"urls\":[\"bzz-raw://20d9c0eb3ca1fceec867318c063ab277ffcf57928a325da537cb5f061ea713cf\",\"dweb:/ipfs/QmYHPwfoDdMa7p1oUG44unJ3vHQWSSqaBJ2xVj5dJEvoim\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": { "kind": "user", "methods": {}, "version": 1 }
   },

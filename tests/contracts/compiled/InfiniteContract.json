@@ -1,5 +1,5 @@
 {
-  "byteCode": "0x608060405234801561001057600080fd5b5060bd8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea26469706673582212209e5978e509bfbb9ce4a72235e92f9cc85428f37f2283dc5635d26cb144a43a0964736f6c63430008060033",
+  "byteCode": "0x608060405234801561001057600080fd5b5060bd8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea264697066735822122081d8942ad65b5431cb61a704d975eb570c9bc1981b78b8829067f91cca53bb2d64736f6c63430008030033",
   "contract": {
     "abi": [
       {
@@ -14,42 +14,15 @@
     ],
     "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
     "evm": {
-      "assembly": "    /* \"main.sol\":39:146  contract InfiniteContract {... */\n  mstore(0x40, 0x80)\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"main.sol\":39:146  contract InfiniteContract {... */\n      mstore(0x40, 0x80)\n      callvalue\n      dup1\n      iszero\n      tag_1\n      jumpi\n      0x00\n      dup1\n      revert\n    tag_1:\n      pop\n      jumpi(tag_2, lt(calldatasize, 0x04))\n      shr(0xe0, calldataload(0x00))\n      dup1\n      0x5bec9e67\n      eq\n      tag_3\n      jumpi\n    tag_2:\n      0x00\n      dup1\n      revert\n        /* \"main.sol\":75:140  function infinite() public pure returns(uint d) {while (true) {}} */\n    tag_3:\n      tag_4\n      tag_5\n      jump\t// in\n    tag_4:\n      mload(0x40)\n      tag_6\n      swap2\n      swap1\n      tag_7\n      jump\t// in\n    tag_6:\n      mload(0x40)\n      dup1\n      swap2\n      sub\n      swap1\n      return\n    tag_5:\n        /* \"main.sol\":115:121  uint d */\n      0x00\n        /* \"main.sol\":124:139  while (true) {} */\n    tag_9:\n        /* \"main.sol\":131:135  true */\n      0x01\n        /* \"main.sol\":124:139  while (true) {} */\n      iszero\n      tag_10\n      jumpi\n      jump(tag_9)\n    tag_10:\n        /* \"main.sol\":75:140  function infinite() public pure returns(uint d) {while (true) {}} */\n      swap1\n      jump\t// out\n        /* \"#utility.yul\":7:125   */\n    tag_12:\n        /* \"#utility.yul\":94:118   */\n      tag_14\n        /* \"#utility.yul\":112:117   */\n      dup2\n        /* \"#utility.yul\":94:118   */\n      tag_15\n      jump\t// in\n    tag_14:\n        /* \"#utility.yul\":89:92   */\n      dup3\n        /* \"#utility.yul\":82:119   */\n      mstore\n        /* \"#utility.yul\":72:125   */\n      pop\n      pop\n      jump\t// out\n        /* \"#utility.yul\":131:353   */\n    tag_7:\n        /* \"#utility.yul\":224:228   */\n      0x00\n        /* \"#utility.yul\":262:264   */\n      0x20\n        /* \"#utility.yul\":251:260   */\n      dup3\n        /* \"#utility.yul\":247:265   */\n      add\n        /* \"#utility.yul\":239:265   */\n      swap1\n      pop\n        /* \"#utility.yul\":275:346   */\n      tag_17\n        /* \"#utility.yul\":343:344   */\n      0x00\n        /* \"#utility.yul\":332:341   */\n      dup4\n        /* \"#utility.yul\":328:345   */\n      add\n        /* \"#utility.yul\":319:325   */\n      dup5\n        /* \"#utility.yul\":275:346   */\n      tag_12\n      jump\t// in\n    tag_17:\n        /* \"#utility.yul\":229:353   */\n      swap3\n      swap2\n      pop\n      pop\n      jump\t// out\n        /* \"#utility.yul\":359:436   */\n    tag_15:\n        /* \"#utility.yul\":396:403   */\n      0x00\n        /* \"#utility.yul\":425:430   */\n      dup2\n        /* \"#utility.yul\":414:430   */\n      swap1\n      pop\n        /* \"#utility.yul\":404:436   */\n      swap2\n      swap1\n      pop\n      jump\t// out\n\n    auxdata: 0xa26469706673582212209e5978e509bfbb9ce4a72235e92f9cc85428f37f2283dc5635d26cb144a43a0964736f6c63430008060033\n}\n",
+      "assembly": "    /* \"main.sol\":39:146  contract InfiniteContract {... */\n  mstore(0x40, 0x80)\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"main.sol\":39:146  contract InfiniteContract {... */\n      mstore(0x40, 0x80)\n      callvalue\n      dup1\n      iszero\n      tag_1\n      jumpi\n      0x00\n      dup1\n      revert\n    tag_1:\n      pop\n      jumpi(tag_2, lt(calldatasize, 0x04))\n      shr(0xe0, calldataload(0x00))\n      dup1\n      0x5bec9e67\n      eq\n      tag_3\n      jumpi\n    tag_2:\n      0x00\n      dup1\n      revert\n        /* \"main.sol\":75:140  function infinite() public pure returns(uint d) {while (true) {}} */\n    tag_3:\n      tag_4\n      tag_5\n      jump\t// in\n    tag_4:\n      mload(0x40)\n      tag_6\n      swap2\n      swap1\n      tag_7\n      jump\t// in\n    tag_6:\n      mload(0x40)\n      dup1\n      swap2\n      sub\n      swap1\n      return\n    tag_5:\n        /* \"main.sol\":115:121  uint d */\n      0x00\n        /* \"main.sol\":124:139  while (true) {} */\n    tag_9:\n        /* \"main.sol\":131:135  true */\n      0x01\n        /* \"main.sol\":124:139  while (true) {} */\n      iszero\n      tag_10\n      jumpi\n      jump(tag_9)\n    tag_10:\n        /* \"main.sol\":75:140  function infinite() public pure returns(uint d) {while (true) {}} */\n      swap1\n      jump\t// out\n        /* \"#utility.yul\":7:125   */\n    tag_12:\n        /* \"#utility.yul\":94:118   */\n      tag_14\n        /* \"#utility.yul\":112:117   */\n      dup2\n        /* \"#utility.yul\":94:118   */\n      tag_15\n      jump\t// in\n    tag_14:\n        /* \"#utility.yul\":89:92   */\n      dup3\n        /* \"#utility.yul\":82:119   */\n      mstore\n        /* \"#utility.yul\":72:125   */\n      pop\n      pop\n      jump\t// out\n        /* \"#utility.yul\":131:353   */\n    tag_7:\n      0x00\n        /* \"#utility.yul\":262:264   */\n      0x20\n        /* \"#utility.yul\":251:260   */\n      dup3\n        /* \"#utility.yul\":247:265   */\n      add\n        /* \"#utility.yul\":239:265   */\n      swap1\n      pop\n        /* \"#utility.yul\":275:346   */\n      tag_17\n        /* \"#utility.yul\":343:344   */\n      0x00\n        /* \"#utility.yul\":332:341   */\n      dup4\n        /* \"#utility.yul\":328:345   */\n      add\n        /* \"#utility.yul\":319:325   */\n      dup5\n        /* \"#utility.yul\":275:346   */\n      tag_12\n      jump\t// in\n    tag_17:\n        /* \"#utility.yul\":229:353   */\n      swap3\n      swap2\n      pop\n      pop\n      jump\t// out\n        /* \"#utility.yul\":359:436   */\n    tag_15:\n      0x00\n        /* \"#utility.yul\":425:430   */\n      dup2\n        /* \"#utility.yul\":414:430   */\n      swap1\n      pop\n        /* \"#utility.yul\":404:436   */\n      swap2\n      swap1\n      pop\n      jump\t// out\n\n    auxdata: 0xa264697066735822122081d8942ad65b5431cb61a704d975eb570c9bc1981b78b8829067f91cca53bb2d64736f6c63430008030033\n}\n",
       "bytecode": {
-        "functionDebugData": {},
         "generatedSources": [],
         "linkReferences": {},
-        "object": "608060405234801561001057600080fd5b5060bd8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea26469706673582212209e5978e509bfbb9ce4a72235e92f9cc85428f37f2283dc5635d26cb144a43a0964736f6c63430008060033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0xBD DUP1 PUSH2 0x1F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x5BEC9E67 EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x64 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 JUMPDEST PUSH1 0x1 ISZERO PUSH1 0x54 JUMPI PUSH1 0x4A JUMP JUMPDEST SWAP1 JUMP JUMPDEST PUSH1 0x5E DUP2 PUSH1 0x7D JUMP JUMPDEST DUP3 MSTORE POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 ADD SWAP1 POP PUSH1 0x77 PUSH1 0x0 DUP4 ADD DUP5 PUSH1 0x57 JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH1 0x0 DUP2 SWAP1 POP SWAP2 SWAP1 POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 SWAP15 MSIZE PUSH25 0xE509BFBB9CE4A72235E92F9CC85428F37F2283DC5635D26CB1 DIFFICULTY LOG4 GASPRICE MULMOD PUSH5 0x736F6C6343 STOP ADDMOD MOD STOP CALLER ",
+        "object": "608060405234801561001057600080fd5b5060bd8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea264697066735822122081d8942ad65b5431cb61a704d975eb570c9bc1981b78b8829067f91cca53bb2d64736f6c63430008030033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0xBD DUP1 PUSH2 0x1F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x5BEC9E67 EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x64 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 JUMPDEST PUSH1 0x1 ISZERO PUSH1 0x54 JUMPI PUSH1 0x4A JUMP JUMPDEST SWAP1 JUMP JUMPDEST PUSH1 0x5E DUP2 PUSH1 0x7D JUMP JUMPDEST DUP3 MSTORE POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 ADD SWAP1 POP PUSH1 0x77 PUSH1 0x0 DUP4 ADD DUP5 PUSH1 0x57 JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH1 0x0 DUP2 SWAP1 POP SWAP2 SWAP1 POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 DUP2 0xD8 SWAP5 0x2A 0xD6 JUMPDEST SLOAD BALANCE 0xCB PUSH2 0xA704 0xD9 PUSH22 0xEB570C9BC1981B78B8829067F91CCA53BB2D64736F6C PUSH4 0x43000803 STOP CALLER ",
         "sourceMap": "39:107:0:-:0;;;;;;;;;;;;;;;;;;;"
       },
       "deployedBytecode": {
-        "functionDebugData": {
-          "@infinite_10": {
-            "entryPoint": 71,
-            "id": 10,
-            "parameterSlots": 0,
-            "returnSlots": 1
-          },
-          "abi_encode_t_uint256_to_t_uint256_fromStack": {
-            "entryPoint": 87,
-            "id": null,
-            "parameterSlots": 2,
-            "returnSlots": 0
-          },
-          "abi_encode_tuple_t_uint256__to_t_uint256__fromStack_reversed": {
-            "entryPoint": 100,
-            "id": null,
-            "parameterSlots": 2,
-            "returnSlots": 1
-          },
-          "cleanup_t_uint256": {
-            "entryPoint": 125,
-            "id": null,
-            "parameterSlots": 1,
-            "returnSlots": 1
-          }
-        },
         "generatedSources": [
           {
             "ast": {
@@ -280,9 +253,9 @@
         ],
         "immutableReferences": {},
         "linkReferences": {},
-        "object": "6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea26469706673582212209e5978e509bfbb9ce4a72235e92f9cc85428f37f2283dc5635d26cb144a43a0964736f6c63430008060033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x5BEC9E67 EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x64 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 JUMPDEST PUSH1 0x1 ISZERO PUSH1 0x54 JUMPI PUSH1 0x4A JUMP JUMPDEST SWAP1 JUMP JUMPDEST PUSH1 0x5E DUP2 PUSH1 0x7D JUMP JUMPDEST DUP3 MSTORE POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 ADD SWAP1 POP PUSH1 0x77 PUSH1 0x0 DUP4 ADD DUP5 PUSH1 0x57 JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH1 0x0 DUP2 SWAP1 POP SWAP2 SWAP1 POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 SWAP15 MSIZE PUSH25 0xE509BFBB9CE4A72235E92F9CC85428F37F2283DC5635D26CB1 DIFFICULTY LOG4 GASPRICE MULMOD PUSH5 0x736F6C6343 STOP ADDMOD MOD STOP CALLER ",
-        "sourceMap": "39:107:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;75:65;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;;115:6;124:15;131:4;124:15;;;;;;75:65;:::o;7:118:1:-;94:24;112:5;94:24;:::i;:::-;89:3;82:37;72:53;;:::o;131:222::-;224:4;262:2;251:9;247:18;239:26;;275:71;343:1;332:9;328:17;319:6;275:71;:::i;:::-;229:124;;;;:::o;359:77::-;396:7;425:5;414:16;;404:32;;;:::o"
+        "object": "6080604052348015600f57600080fd5b506004361060285760003560e01c80635bec9e6714602d575b600080fd5b60336047565b604051603e91906064565b60405180910390f35b60005b600115605457604a565b90565b605e81607d565b82525050565b6000602082019050607760008301846057565b92915050565b600081905091905056fea264697066735822122081d8942ad65b5431cb61a704d975eb570c9bc1981b78b8829067f91cca53bb2d64736f6c63430008030033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x5BEC9E67 EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x64 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 JUMPDEST PUSH1 0x1 ISZERO PUSH1 0x54 JUMPI PUSH1 0x4A JUMP JUMPDEST SWAP1 JUMP JUMPDEST PUSH1 0x5E DUP2 PUSH1 0x7D JUMP JUMPDEST DUP3 MSTORE POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 ADD SWAP1 POP PUSH1 0x77 PUSH1 0x0 DUP4 ADD DUP5 PUSH1 0x57 JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH1 0x0 DUP2 SWAP1 POP SWAP2 SWAP1 POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 DUP2 0xD8 SWAP5 0x2A 0xD6 JUMPDEST SLOAD BALANCE 0xCB PUSH2 0xA704 0xD9 PUSH22 0xEB570C9BC1981B78B8829067F91CCA53BB2D64736F6C PUSH4 0x43000803 STOP CALLER ",
+        "sourceMap": "39:107:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;75:65;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;;115:6;124:15;131:4;124:15;;;;;;75:65;:::o;7:118:1:-;94:24;112:5;94:24;:::i;:::-;89:3;82:37;72:53;;:::o;131:222::-;;262:2;251:9;247:18;239:26;;275:71;343:1;332:9;328:17;319:6;275:71;:::i;:::-;229:124;;;;:::o;359:77::-;;425:5;414:16;;404:32;;;:::o"
       },
       "gasEstimates": {
         "creation": {
@@ -366,7 +339,7 @@
         ],
         ".data": {
           "0": {
-            ".auxdata": "a26469706673582212209e5978e509bfbb9ce4a72235e92f9cc85428f37f2283dc5635d26cb144a43a0964736f6c63430008060033",
+            ".auxdata": "a264697066735822122081d8942ad65b5431cb61a704d975eb570c9bc1981b78b8829067f91cca53bb2d64736f6c63430008030033",
             ".code": [
               {
                 "begin": 39,
@@ -689,8 +662,8 @@
               },
               { "begin": 131, "end": 353, "name": "JUMPDEST", "source": 1 },
               {
-                "begin": 224,
-                "end": 228,
+                "begin": 131,
+                "end": 353,
                 "name": "PUSH",
                 "source": 1,
                 "value": "0"
@@ -765,8 +738,8 @@
               },
               { "begin": 359, "end": 436, "name": "JUMPDEST", "source": 1 },
               {
-                "begin": 396,
-                "end": 403,
+                "begin": 359,
+                "end": 436,
                 "name": "PUSH",
                 "source": 1,
                 "value": "0"
@@ -791,7 +764,7 @@
       "methodIdentifiers": { "infinite()": "5bec9e67" }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"infinite\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"d\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"InfiniteContract\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xdee3f3a75354dcd46705d92919495e78aeb24e54aa4626be18e97550ca5972d9\",\"urls\":[\"bzz-raw://30a5f5362c53875bfac4d739d5419e8815889f410029caade6e159b4f1a70092\",\"dweb:/ipfs/Qmb9jgzJySoTZf8jKfaQUoBgwrWA89FcVAw2h7FKnSfpGj\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"infinite\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"d\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"InfiniteContract\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xdee3f3a75354dcd46705d92919495e78aeb24e54aa4626be18e97550ca5972d9\",\"urls\":[\"bzz-raw://30a5f5362c53875bfac4d739d5419e8815889f410029caade6e159b4f1a70092\",\"dweb:/ipfs/Qmb9jgzJySoTZf8jKfaQUoBgwrWA89FcVAw2h7FKnSfpGj\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": { "kind": "user", "methods": {}, "version": 1 }
   },
