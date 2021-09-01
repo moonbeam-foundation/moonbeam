@@ -449,8 +449,8 @@ export const contractSources: { [key: string]: string } = {
     }
 
     contract StakingNominationAttaker {
-        /// The collator that this contract will benefit with nominations
-        address public target = 0x0000000000000000000000000000000000000000;
+        /// The collator (ALITH) that this contract will benefit with nominations
+        address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
 
         /// The ParachainStaking wrapper at the known pre-compile address.
         ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);

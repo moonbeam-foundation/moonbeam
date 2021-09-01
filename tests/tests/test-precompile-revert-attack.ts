@@ -14,15 +14,26 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 import { GENESIS_ACCOUNT } from "../util/constants";
 import { getCompiled } from "../util/contracts";
+import { createContract, createContractExecution } from "../util/transactions";
 
 describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
   it("should return contract creation gas cost", async function () {
-    const contract = await getCompiled("TestContract");
-    expect(
-      await context.web3.eth.estimateGas({
-        from: GENESIS_ACCOUNT,
-        data: contract.byteCode,
-      })
-    ).to.equal(149143);
+    // Check initial balance
+    const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
+    // Deploy atatck contract
+    const { contract, rawTx } = await createContract(context.web3, "StakingNominationAttaker");
+    await context.createBlock({ transactions: [rawTx] });
+
+    await context.createBlock({
+      transactions: [
+        await createContractExecution(context.web3, {
+          contract,
+          contractCall: contract.methods.score_a_free_nomination(),
+        }),
+      ],
+    });
+
+    // balance should still be the same
+    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.eq(initialBalance);
   });
 });
