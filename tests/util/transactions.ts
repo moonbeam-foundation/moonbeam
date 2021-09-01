@@ -134,7 +134,7 @@ export async function createContractExecution(
   return tx;
 }
 
-// The parameters passed to the function are assumed to have all been converted to hexa
+// The parameters passed to the function are assumed to have all been converted to hexadecimal
 export async function sendPrecompileTx(
   context: DevTestContext,
   precompileContractAddress: string,
