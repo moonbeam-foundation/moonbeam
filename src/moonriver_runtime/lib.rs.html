@@ -1272,7 +1272,7 @@
 	<span class="kw">type</span> <span class="ident">Runner</span> <span class="op">=</span> <span class="ident">pallet_evm::runner::stack::Runner</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Precompiles</span> <span class="op">=</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ChainId</span> <span class="op">=</span> <span class="ident">EthereumChainId</span>;
-	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">pallet_evm::EVMCurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
 	<span class="kw">type</span> <span class="ident">FindAuthor</span> <span class="op">=</span> <span class="ident">AuthorInherent</span>;
 }
