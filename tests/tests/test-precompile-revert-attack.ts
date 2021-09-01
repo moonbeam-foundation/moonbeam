@@ -12,11 +12,12 @@
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { GENESIS_ACCOUNT, MIN_GLMR_STAKING } from "../util/constants";
 import { getCompiled } from "../util/contracts";
-import { createContract, createContractExecution } from "../util/transactions";
+import { createContract, createContractExecution, GENESIS_TRANSACTION } from "../util/transactions";
+import { numberToHex } from "@polkadot/util";
 
-describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
+describeDevMoonbeam("Precompiles - test revert attack on state modifier", (context) => {
   it("should return contract creation gas cost", async function () {
     // Check initial balance
     const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
@@ -24,16 +25,37 @@ describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "StakingNominationAttaker");
     await context.createBlock({ transactions: [rawTx] });
 
-    await context.createBlock({
+    // call the payable function, which should revert
+    const block = await context.createBlock({
       transactions: [
-        await createContractExecution(context.web3, {
-          contract,
-          contractCall: contract.methods.score_a_free_nomination(),
-        }),
+        await createContractExecution(
+          context.web3,
+          {
+            contract,
+            contractCall: contract.methods.score_a_free_nomination(),
+          },
+          {
+            ...GENESIS_TRANSACTION,
+            value: numberToHex(Number(MIN_GLMR_STAKING)),
+          }
+        ),
       ],
     });
 
-    // balance should still be the same
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.eq(initialBalance);
+    // TX should be included but fail
+    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    expect(receipt.status).to.eq(false);
+
+    // Nomination shouldn't have passed
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(
+      GENESIS_ACCOUNT
+    );
+    expect(nominatorsAfter.toHuman()).to.eq(null);
+
+    // balance dif should only be tx fee, not MIN_GLMR_STAKING
+    expect(
+      Number(initialBalance) - Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) <
+        Number(MIN_GLMR_STAKING)
+    ).to.eq(true);
   });
 });
