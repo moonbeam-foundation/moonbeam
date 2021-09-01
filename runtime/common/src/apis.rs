@@ -347,16 +347,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
 					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
-						// predict eligibility post-selection by computing selection results now
-						let top_candidates =
-							parachain_staking::Pallet::<Self>::compute_top_candidates();
+						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id =
 							pallet_author_mapping::Pallet::<Self>::lookup_account(&author)
 							.expect("expect to have registered author mapping");
+						// predict eligibility post-selection by computing selection results now
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
-								top_candidates,
+								parachain_staking::Pallet::<Self>::compute_top_candidates(),
 								&slot
 							);
 						eligible.contains(&author_account_id)
