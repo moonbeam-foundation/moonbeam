@@ -349,7 +349,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
-						let author_account_id: T::AccountId = if let Some(account) =
+						let author_account_id = if let Some(account) =
 							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
 							account
 						} else {
