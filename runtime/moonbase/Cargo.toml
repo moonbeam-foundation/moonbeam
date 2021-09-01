@@ -189,7 +189,14 @@ runtime-benchmarks = [
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 ]
 try-runtime = [
-	"frame-executive/try-runtime",
 	"frame-try-runtime",
+	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
+	"pallet-collective/try-runtime",
+	"parachain-staking/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-society/try-runtime",
+	"pallet-author-mapping/try-runtime",
+	#"pallet-crowdloan-rewards/try-runtime",
 ]
