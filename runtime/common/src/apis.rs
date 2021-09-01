@@ -349,9 +349,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
-						let author_account_id =
-							pallet_author_mapping::Pallet::<Self>::lookup_account(&author)
-							.expect("expect to have registered author mapping");
+						let author_account_id: T::AccountId = if let Some(account) =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
+							account
+						} else {
+							// return false if author mapping not registered like in can_author impl
+							return false
+						};
 						// predict eligibility post-selection by computing selection results now
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
