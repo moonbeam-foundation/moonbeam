@@ -1453,7 +1453,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1463,7 +1463,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1511,7 +1511,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1535,7 +1535,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1559,7 +1559,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-primitives-core",
  "futures 0.3.15",
@@ -1582,7 +1582,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1610,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1638,7 +1638,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
@@ -1649,7 +1649,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -1667,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1688,7 +1688,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-primitives-core",
  "sp-inherents",
@@ -1699,7 +1699,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -5599,7 +5599,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5628,7 +5628,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -5903,7 +5903,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5939,7 +5939,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "frame-support",
@@ -6775,7 +6775,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#89069bf80ef22e3bda442e274b2e4a6f67d9f975"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
