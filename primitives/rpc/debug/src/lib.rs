@@ -59,6 +59,14 @@ sp_api::decl_runtime_apis! {
 			extrinsics: Vec<Block::Extrinsic>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
+
+	#[api_version(3)]
+	/// Replay block without final digest checks
+	pub trait ReplayBlockRuntimeApi {
+		fn execute_block_without_final_checks(
+			block: Block,
+		);
+	}
 }
 
 // These functions are quite usefull, shoud it be moved into its own crate ?

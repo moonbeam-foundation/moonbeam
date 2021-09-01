@@ -156,6 +156,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			/*impl moonbeam_rpc_primitives_debug::ReplayBlockRuntimeApi<Block> for Runtime {
+				fn execute_block_without_final_checks(
+					block: Block,
+				) {
+					Executive::execute_block_without_final_checks(block);
+				}
+			}*/
+
 			impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 				fn extrinsic_filter(
 					xts_ready: Vec<<Block as BlockT>::Extrinsic>,

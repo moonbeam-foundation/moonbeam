@@ -16,6 +16,7 @@
 
 //! RPC client
 
+use core::convert::TryInto;
 use jsonrpsee_ws_client::{
 	types::{traits::Client, v2::params::JsonRpcParams},
 	WsClient, WsClientBuilder,
@@ -43,12 +44,15 @@ impl RpcClient {
 		Block: BlockT + serde::de::DeserializeOwned,
 		Block::Header: HeaderT,
 	{
-		let params = vec![serde_json::Value::String(block_number.to_string())];
+		let block_number: u32 = block_number
+			.try_into()
+			.map_err(|_| "to hight block number".to_owned())?;
+		let params = vec![serde_json::Value::Number(block_number.into())];
 		let block_hash = self
 			.0
 			.request::<Block::Hash>("chain_getBlockHash", JsonRpcParams::Array(params))
 			.await
-			.map_err(|e| format!("chain_getBlock request failed: {:?}", e))?;
+			.map_err(|e| format!("chain_getBlockHash request failed: {:?}", e))?;
 
 		Ok(block_hash)
 	}

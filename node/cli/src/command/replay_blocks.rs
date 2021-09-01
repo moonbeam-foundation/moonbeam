@@ -39,7 +39,7 @@ pub struct ReplayBlocksCommand {
 	shared: sc_cli::SharedParams,
 
 	/// Number of blocks to replay
-	#[structopt(short)]
+	#[structopt(short, default_value = "1")]
 	n: usize,
 
 	/// The execution strategy that should be used for replay blocks
@@ -139,8 +139,11 @@ impl ReplayBlocksCommand {
 		// TODO uncomment when substrate upgraded
 		//check_spec_name::<Block>(self.url.clone(), config.chain_spec.name().to_string()).await;
 
-		let state_path =
-			PathBuf::from(STATES_PATH).join(format!("state_{}_{}", block_number, block_hash));
+		let states_folder = PathBuf::from(STATES_PATH);
+		if !states_folder.exists() {
+			std::fs::create_dir_all(&states_folder)?;
+		}
+		let state_path = states_folder.join(format!("state_{}_{}", block_number, block_hash));
 		let mode = if state_path.exists() {
 			let mode = Mode::<Block>::Offline(OfflineConfig {
 				state_snapshot: SnapshotConfig::new(state_path),
@@ -269,6 +272,7 @@ where
 		let block_ref = if by_number {
 			BlockRef::BlockNumber(block_number)
 		} else {
+			log::info!("Get hash of block #{} from network", block_number);
 			let block_hash = rpc_client.get_block_hash::<Block>(block_number).await?;
 			BlockRef::BlockHash(block_hash)
 		};
@@ -308,12 +312,15 @@ where
 	} else {
 		let block_hash = match &block_ref {
 			BlockRef::BlockNumber(block_number) => {
+				log::info!("Get hash of block number {} from network", block_number);
 				rpc_client
 					.get_block_hash::<Block>((*block_number).into())
 					.await?
 			}
 			BlockRef::BlockHash(block_hash) => *block_hash,
 		};
+		log::warn!("block_hash={:?}", block_hash);
+		log::info!("Get content of block {} from network", block_hash);
 		let block = rpc_client.get_block::<Block>(block_hash).await?;
 		let mut file = std::fs::File::create(block_file_path)?;
 		block.using_encoded(|buf| file.write_all(buf))?;
