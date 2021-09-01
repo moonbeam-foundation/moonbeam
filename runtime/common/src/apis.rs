@@ -345,14 +345,20 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
-					// authors is to compute the staking selection while predicting.
-					let mut round = parachain_staking::Pallet::<Self>::round();
-					if round.should_update(block_number) {
-						// get top collator candidates for expected selection to occur
-						let top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates();
+					// authors is to compute the selection during prediction.
+					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+						// predict eligibility post-selection by computing selection results now
+						let top_candidates =
+							parachain_staking::Pallet::<Self>::compute_top_candidates();
 						use nimbus_primitives::AccountLookup;
-						let author_account_id = pallet_author_mapping::Pallet::<Self>::lookup_account(&author).expect("expect to have registered author mapping");
-						let (eligible, _) = pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(top_candidates, &slot);
+						let author_account_id =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author)
+							.expect("expect to have registered author mapping");
+						let (eligible, _) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
+								top_candidates,
+								&slot
+							);
 						eligible.contains(&author_account_id)
 					} else {
 						AuthorInherent::can_author(&author, &slot)
