@@ -40,6 +40,8 @@ const SELECTORS = {
   points: "9799b4e7",
   // new selectors
   candidate_count: "4b1c4c29",
+  collator_nomination_count: "0ad6a7be",
+  nominator_nomination_count: "dae5659b",
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
