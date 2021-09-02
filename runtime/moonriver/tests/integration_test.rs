@@ -59,8 +59,8 @@ fn verify_pallet_prefixes() {
 			Some(name)
 		);
 	}
-	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
-	// is pulled in substrate deps.
+	// TODO: use StorageInfoTrait from https://github.com/paritytech/substrate/pull/9246
+	// This is now available with polkadot-v0.9.9 dependencies
 	is_pallet_prefix::<moonriver_runtime::System>("System");
 	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
 	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
@@ -85,17 +85,21 @@ fn verify_pallet_prefixes() {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
 		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
-		res
+		res.to_vec()
 	};
 	assert_eq!(
 		<moonriver_runtime::Timestamp as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"Now".to_vec(),
 				prefix: prefix(b"Timestamp", b"Now"),
 				max_values: Some(1),
 				max_size: Some(8),
 			},
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"DidUpdate".to_vec(),
 				prefix: prefix(b"Timestamp", b"DidUpdate"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -106,26 +110,36 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"TotalIssuance".to_vec(),
 				prefix: prefix(b"Balances", b"TotalIssuance"),
 				max_values: Some(1),
 				max_size: Some(16),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: Some(300_000),
 				max_size: Some(100),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
 				max_values: Some(300_000),
 				max_size: Some(1287),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Reserves".to_vec(),
 				prefix: prefix(b"Balances", b"Reserves"),
 				max_values: None,
 				max_size: Some(1037),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"StorageVersion".to_vec(),
 				prefix: prefix(b"Balances", b"StorageVersion"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -136,28 +150,33 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Proxies".to_vec(),
 				prefix: prefix(b"Proxy", b"Proxies"),
 				max_values: None,
 				max_size: Some(845),
 			},
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Announcements".to_vec(),
 				prefix: prefix(b"Proxy", b"Announcements"),
 				max_values: None,
 				max_size: Some(1837),
 			}
 		]
 	);
-	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
-	// assert_eq!(
-	// 	<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
-	// 	vec![
-	// 		StorageInfo {
-	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
-	// 			max_values: None,
-	// 			max_size: Some(845),
-	// 		},
-	// 	]
-	// );
+	assert_eq!(
+		<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				pallet_name: b"MaintenanceMode".to_vec(),
+				storage_name: b"MaintenanceMode".to_vec(),
+				prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+				max_values: Some(1),
+				max_size: Some(1),
+			},
+		]
+	);
 }
 
 #[test]
