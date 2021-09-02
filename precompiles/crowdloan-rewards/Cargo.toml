@@ -14,7 +14,7 @@ evm = { version = "0.30.1", default-features = false, features = ["with-codec"] 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "joshy-polkadot-v0.9.9" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
