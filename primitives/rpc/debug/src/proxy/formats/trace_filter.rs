@@ -29,7 +29,10 @@ impl super::TraceResponseBuilder for Response {
 	type Listener = Listener;
 	type Response = Vec<TransactionTrace>;
 
-	fn build(listener: Listener) -> Option<Vec<TransactionTrace>> {
+	fn build(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
+		// Remove empty BTreeMaps pushed to `entries`.
+		// I.e. InvalidNonce or other pallet_evm::runner exits
+		listener.entries.retain(|x| !x.is_empty());
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry
