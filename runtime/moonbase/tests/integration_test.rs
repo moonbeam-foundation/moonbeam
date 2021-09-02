@@ -178,15 +178,13 @@ fn verify_pallet_prefixes() {
 	);
 	assert_eq!(
 		<moonbase_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
-		vec![
-			StorageInfo {
-				pallet_name: b"MaintenanceMode".to_vec(),
-				storage_name: b"MaintenanceMode".to_vec(),
-				prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
-				max_values: Some(1),
-				max_size: Some(1),
-			},
-		]
+		vec![StorageInfo {
+			pallet_name: b"MaintenanceMode".to_vec(),
+			storage_name: b"MaintenanceMode".to_vec(),
+			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+			max_values: Some(1),
+			max_size: Some(1),
+		},]
 	);
 }
 

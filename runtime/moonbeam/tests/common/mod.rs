@@ -192,7 +192,7 @@ impl ExtBuilder {
 			&pallet_evm::GenesisConfig {
 				accounts: self.evm_accounts,
 			},
-			&mut t
+			&mut t,
 		)
 		.unwrap();
 
