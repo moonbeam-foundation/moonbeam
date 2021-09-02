@@ -749,14 +749,9 @@ fn nominator_bond_more_works() {
 			.dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::NominationIncreased(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				1_500,
-				true,
-				2_000,
-			)
-			.into();
+			let expected_event: crate::mock::Event =
+				StakingEvent::NominationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
+					.into();
 
 			assert!(events().contains(&expected_event));
 		});
@@ -790,14 +785,9 @@ fn nominator_bond_less_works() {
 			.dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::NominationDecreased(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				2_500,
-				true,
-				2_000,
-			)
-			.into();
+			let expected_event: crate::mock::Event =
+				StakingEvent::NominationDecreased(TestAccount::Bob, TestAccount::Alice, 500, true)
+					.into();
 
 			assert!(events().contains(&expected_event));
 		});

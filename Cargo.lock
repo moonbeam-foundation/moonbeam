@@ -2190,7 +2190,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.30.1"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2208,7 +2208,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2219,7 +2219,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2230,7 +2230,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "evm-core",
@@ -5148,6 +5148,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -5514,6 +5515,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "moonbeam-core-primitives",
