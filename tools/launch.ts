@@ -145,7 +145,7 @@ function start() {
     .options({
       parachain: {
         type: "string",
-        choices: Object.keys(parachains),
+        choices: parachainNames,
         default: "local",
         describe: "which parachain configuration to run",
       },
@@ -156,7 +156,7 @@ function start() {
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
       relay: {
         type: "string",
-        choices: Object.keys(relays),
+        choices: relayNames,
         describe: "overrides relay configuration",
       },
       "relay-chain": {
@@ -275,7 +275,7 @@ function start() {
         return;
       }
       const parachainBinary = `build/${parasNames[i]}/moonbeam`;
-      const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
+      const parachainPath = path.join(__dirname, parachainBinary);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
         child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \

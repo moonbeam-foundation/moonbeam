@@ -18,7 +18,7 @@ export interface TransactionOptions {
   data?: string;
 }
 
-const GENESIS_TRANSACTION: TransactionOptions = {
+export const GENESIS_TRANSACTION: TransactionOptions = {
   from: GENESIS_ACCOUNT,
   privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
   nonce: null,
