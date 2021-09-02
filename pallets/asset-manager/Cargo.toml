@@ -1,0 +1,35 @@
+[package]
+name = "pallet-asset-manager"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0.124", optional = true }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+
+
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+
+
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9"	}
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9"}
+
+[features]
+default = ["std"]
+std = [
+	"serde",
+	"parity-scale-codec/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"sp-io/std",
+	"frame-support/std",
+	"xcm/std",
+	"frame-system/std"
+]
