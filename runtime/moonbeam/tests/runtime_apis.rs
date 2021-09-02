@@ -208,7 +208,8 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result = Executive::apply_extrinsic(uxt(true)).expect("Apply result.");
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
 			// // Future us: uncomment below.
 			// run_to_block(2);
@@ -272,7 +273,8 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result = Executive::apply_extrinsic(uxt(true)).expect("Apply result.");
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
 			// // Future us: uncomment below.
 			// run_to_block(2);
@@ -287,10 +289,10 @@ fn txpool_runtime_api_extrinsic_filter() {
 		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
 		);
-		let eth_uxt = uxt(true);
+		let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 		let txpool = <Runtime as TxPoolRuntimeApi<moonbeam_runtime::Block>>::extrinsic_filter(
 			vec![eth_uxt.clone(), non_eth_uxt.clone()],
-			vec![uxt(true), non_eth_uxt],
+			vec![unchecked_eth_tx(VALID_ETH_TX), non_eth_uxt],
 		);
 		assert_eq!(txpool.ready.len(), 1);
 		assert_eq!(txpool.future.len(), 1);
@@ -314,8 +316,8 @@ fn debug_runtime_api_trace_transaction() {
 			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
 			);
-			let transaction = ethereum_transaction(true);
-			let eth_uxt = uxt(true);
+			let transaction = ethereum_transaction(VALID_ETH_TX);
+			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 			let header = System::finalize();
 			assert!(Runtime::trace_transaction(
 				&header,
@@ -343,7 +345,7 @@ fn debug_runtime_api_trace_block() {
 			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
 			);
-			let eth_uxt = uxt(true);
+			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 			let header = System::finalize();
 			assert!(Runtime::trace_block(
 				&header,
