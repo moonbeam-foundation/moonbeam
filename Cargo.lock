@@ -1448,7 +1448,7 @@ name = "crowdloan-rewards-precompiles"
 version = "0.6.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
@@ -1546,7 +1546,7 @@ source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1595,7 +1595,7 @@ source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1642,7 +1642,7 @@ name = "cumulus-client-pov-recovery"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "futures-timer 3.0.2",
  "parity-scale-codec",
@@ -1669,7 +1669,7 @@ dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "polkadot-overseer",
@@ -1693,9 +1693,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-support",
  "frame-system",
  "log",
@@ -1715,7 +1715,7 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "environmental",
  "frame-support",
@@ -1751,9 +1751,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcm"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1767,9 +1767,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-support",
  "frame-system",
  "log",
@@ -1803,7 +1803,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.9#fd80849dde5c209c20a996cfcc5aaacd4666dcbe"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -1824,7 +1824,7 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-test-relay-sproof-builder",
  "parity-scale-codec",
  "polkadot-client",
@@ -1844,7 +1844,7 @@ name = "cumulus-primitives-timestamp"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "sp-inherents",
  "sp-std",
  "sp-timestamp",
@@ -1853,9 +1853,9 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-utility"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec",
@@ -1873,7 +1873,7 @@ name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -5074,7 +5074,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
@@ -5096,6 +5096,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "orml-xtokens",
+ "pallet-asset-manager",
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
@@ -5128,6 +5129,9 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
  "runtime-common",
@@ -5173,7 +5177,7 @@ version = "0.11.2"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
@@ -5409,7 +5413,7 @@ dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
@@ -5490,7 +5494,7 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
@@ -5601,7 +5605,7 @@ dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
@@ -5792,7 +5796,7 @@ source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "futures 0.3.16",
  "log",
@@ -6086,7 +6090,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library#3ca350edc31ad68ec2075cc386af9d4eb1fffff6"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library#74d290da1ca161093f79900d90182178003fa4f5"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -6103,7 +6107,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library#3ca350edc31ad68ec2075cc386af9d4eb1fffff6"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library#74d290da1ca161093f79900d90182178003fa4f5"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6116,7 +6120,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library#3ca350edc31ad68ec2075cc386af9d4eb1fffff6"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library#74d290da1ca161093f79900d90182178003fa4f5"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6130,9 +6134,9 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library#3ca350edc31ad68ec2075cc386af9d4eb1fffff6"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library#74d290da1ca161093f79900d90182178003fa4f5"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.9)",
  "frame-support",
  "frame-system",
  "orml-traits",
@@ -6156,14 +6160,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-asset-manager"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
 name = "pallet-assets"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.8#74101dc21cfffb4c2d014fcc28edc166d5ca1b16"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "max-encoded-len",
  "parity-scale-codec",
  "sp-runtime",
  "sp-std",
@@ -6423,7 +6442,7 @@ version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards?branch=joshy-polkadot-v0.9.9#6238fc7d67327b62a650f913c3abfd855b7d4f35"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "cumulus-primitives-parachain-inherent",
  "ed25519-dalek",
  "frame-benchmarking",
@@ -7107,7 +7126,7 @@ name = "parachain-info"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",

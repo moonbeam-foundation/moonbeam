@@ -31,10 +31,12 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::traits::Filter;
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{All, Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
+	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -87,8 +89,30 @@ use precompiles::MoonbasePrecompiles;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
+use parity_scale_codec::CompactAs;
+#[derive(
+	Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen,
+)]
+pub struct AssetId(H160);
+
+impl CompactAs for AssetId {
+	type As = [u8; 20];
+	fn encode_as(&self) -> &Self::As {
+		self.0.as_fixed_bytes()
+	}
+	fn decode_from(data: Self::As) -> Result<Self, parity_scale_codec::Error> {
+		let conversion = H160::from_slice(&data);
+		Ok(AssetId(conversion))
+	}
+}
+
+impl From<parity_scale_codec::Compact<AssetId>> for AssetId {
+	fn from(x: parity_scale_codec::Compact<AssetId>) -> AssetId {
+		x.0
+	}
+}
+
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
-pub type AssetId = u32;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -810,16 +834,13 @@ use sp_std::borrow::Borrow;
 pub struct AsParachainId;
 impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		match id.borrow() {
-			MultiLocation::X1(Junction::Parent) => Ok(0u32.into()),
-			MultiLocation::X1(Junction::Parachain(para_id)) => Ok(*para_id),
-			_ => Err(()),
-		}
+		Ok(AssetType::Xcm(*(id.borrow())).into())
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		match what.borrow() {
-			0u32 => Ok(MultiLocation::X1(Junction::Parent)),
-			para_id => Ok(MultiLocation::X1(Junction::Parachain(*para_id))),
+		if let Some(AssetType::Xcm(location)) = AssetManager::asset_id_to_type(what.borrow()) {
+			Ok(location)
+		} else {
+			Err(())
 		}
 	}
 }
@@ -883,7 +904,7 @@ parameter_types! {
 
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
-	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
+	xcm_builder::AllowTopLevelPaidExecutionFrom<Everything>,
 );
 
 use xcm_executor::traits::FilterAssetLocation;
@@ -958,11 +979,12 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = All<(MultiLocation, Xcm<Call>)>;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor;
-	type XcmTeleportFilter = All<(MultiLocation, Vec<MultiAsset>)>;
-	type XcmReserveTransferFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type XcmTeleportFilter = Everything;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -1014,6 +1036,68 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum AssetType {
+	Xcm(MultiLocation),
+}
+impl Default for AssetType {
+	fn default() -> Self {
+		Self::Xcm(MultiLocation::Null)
+	}
+}
+
+impl From<AssetType> for AssetId {
+	fn from(asset: AssetType) -> AssetId {
+		match asset {
+			AssetType::Xcm(id) => {
+				let hash: H160 = id
+					.using_encoded(<Runtime as frame_system::Config>::Hashing::hash)
+					.into();
+				AssetId(H160::from(hash))
+			}
+		}
+	}
+}
+
+pub struct AssetRegistrar;
+use frame_support::pallet_prelude::DispatchError;
+use frame_support::pallet_prelude::DispatchResult;
+use frame_support::pallet_prelude::DispatchResultWithPostInfo;
+impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
+	fn create_asset(asset: AssetId, min_balance: Balance) -> DispatchResult {
+		Assets::force_create(
+			Origin::root(),
+			asset,
+			PalletId(*b"amngaaar").into_account(),
+			true,
+			min_balance,
+		)
+	}
+
+	fn destroy_asset(asset: AssetId) -> DispatchResultWithPostInfo {
+		// These should be 0 if the asset was created with
+		let witness = pallet_assets::DestroyWitness {
+			accounts: 0,
+			sufficients: 0,
+			approvals: 0,
+		};
+
+		Assets::destroy(
+			Origin::signed(PalletId(*b"amngaaar").into_account()),
+			asset,
+			witness,
+		)
+	}
+}
+
+impl pallet_asset_manager::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type AssetType = AssetType;
+	type AssetRegistrar = AssetRegistrar;
+}
+
 // Instruct how to convert Asset Ids into MultiLocation with xConvert
 pub struct AssetIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<AssetId, Option<MultiLocation>>
@@ -1049,6 +1133,7 @@ impl orml_xtokens::Config for Runtime {
 	type SelfLocation = Ancestry;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
+}
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
@@ -1109,6 +1194,7 @@ construct_runtime! {
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 27,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 28,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 29,
+		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
 	}
 }
 

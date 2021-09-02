@@ -21,6 +21,8 @@ account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
+
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9", default-features = false }
@@ -86,10 +88,10 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", defaul
 parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
 cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
 
-cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
-cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098"}
-cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098" }
-cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098" }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.9"}
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.9" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.9" }
 
 # xcmp 
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
@@ -98,6 +100,7 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9", optional = true }
@@ -112,8 +115,7 @@ evm = { version = "0.30.1", default-features = false, features = ["with-codec"] 
 rlp = "0.5"
 hex = "0.4"
 sha3 = "0.8"
-xcm-simulator = { path = "./xcm-simulator"}
-polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
@@ -184,6 +186,8 @@ std = [
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-dmp-queue/std",
 	"pallet-assets/std",
+	"pallet-asset-manager/std",
+	"orml-xtokens/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
