@@ -16,7 +16,7 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{
 	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
 };
@@ -27,7 +27,7 @@ use frame_support::{
 	dispatch::UnfilteredDispatchable,
 	inherent::{InherentData, ProvideInherent},
 	parameter_types,
-	traits::{GenesisBuild, MaxEncodedLen, OnFinalize, OnInitialize},
+	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
