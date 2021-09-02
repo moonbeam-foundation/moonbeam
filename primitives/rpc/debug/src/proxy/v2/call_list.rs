@@ -80,11 +80,6 @@ pub struct Listener {
 	/// True if only the `GasometerEvent::RecordTransaction` event has been received.
 	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
 	record_transaction_event_only: bool,
-
-	/// Boolean storing if the last received event was `Event::CallListNew`.
-	/// Multiple consecutive of those event can occur when an invalid transaction is in a block,
-	/// which can cause issues.
-	last_event_is_call_list_new: bool,
 }
 
 struct Context {
@@ -122,7 +117,6 @@ impl Default for Listener {
 			skip_next_context: false,
 			call_list_first_transaction: true,
 			record_transaction_event_only: false,
-			last_event_is_call_list_new: false,
 		}
 	}
 }
@@ -628,19 +622,11 @@ fn error_message(error: &ExitError) -> Vec<u8> {
 
 impl ListenerT for Listener {
 	fn event(&mut self, event: Event) {
-		if matches!(&event, &Event::CallListNew()) && self.last_event_is_call_list_new {
-			return;
-		}
-
-		self.last_event_is_call_list_new = false;
-
 		match event {
 			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),
 			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
 			Event::Evm(evm_event) => self.evm_event(evm_event),
 			Event::CallListNew() => {
-				self.last_event_is_call_list_new = true;
-
 				if !self.call_list_first_transaction {
 					self.finish_transaction();
 					self.skip_next_context = false;
