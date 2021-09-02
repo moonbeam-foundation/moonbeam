@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -777,7 +777,7 @@ impl Contains<Call> for PhaseThreeFilter {
 
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = ();
+	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = PhaseThreeFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;

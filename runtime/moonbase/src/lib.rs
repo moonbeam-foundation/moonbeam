@@ -772,7 +772,7 @@ impl Contains<Call> for MaintenanceFilter {
 
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = ();
+	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
