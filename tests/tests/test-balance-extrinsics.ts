@@ -45,8 +45,10 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
           // TODO: what event was inserted here?
-          expect(context.polkadotApi.events.ethereum.Executed.is(events[3])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[4])).to.be.true; // treasury
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[5])).to.be.true;
+          expect(context.polkadotApi.events.ethereum.Executed.is(events[6])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[7])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);

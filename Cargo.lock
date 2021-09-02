@@ -1453,7 +1453,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1463,7 +1463,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1511,7 +1511,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1535,7 +1535,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1559,7 +1559,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "futures 0.3.15",
@@ -1582,7 +1582,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1610,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1638,7 +1638,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
@@ -1649,7 +1649,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -1667,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1688,7 +1688,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "sp-inherents",
@@ -1699,7 +1699,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -2107,7 +2107,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2125,7 +2125,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2136,7 +2136,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2147,7 +2147,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#98606a1943eae6047e8c6ea596765779675b6e86"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2220,7 +2220,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2245,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fp-storage",
  "kvdb",
@@ -2261,7 +2261,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2279,7 +2279,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2320,7 +2320,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2424,7 +2424,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2438,7 +2438,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2451,7 +2451,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "2.1.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2467,7 +2467,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 
 [[package]]
 name = "frame-benchmarking"
@@ -4960,7 +4960,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "assert_cmd",
  "futures 0.3.15",
@@ -4977,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5005,7 +5005,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
@@ -5055,6 +5055,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -5289,7 +5290,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -5423,6 +5424,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "max-encoded-len",
@@ -5599,7 +5601,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5628,7 +5630,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -5903,7 +5905,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5939,7 +5941,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "frame-support",
@@ -6164,7 +6166,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6202,7 +6204,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "5.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -6229,7 +6231,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6241,7 +6243,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6255,7 +6257,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6267,7 +6269,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6279,7 +6281,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6775,7 +6777,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
