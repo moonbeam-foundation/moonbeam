@@ -262,10 +262,10 @@ where
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		// Balances module automatically burns dropped Negative Imbalances by decreasing
+		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 		// total_supply accordingly
 		let (_, to_treasury) = amount.ration(80, 20);
-		<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 	}
 }
 
