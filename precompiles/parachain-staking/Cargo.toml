@@ -8,20 +8,26 @@ description = "A Precompile to make parachain staking accessible to pallet-evm"
 [dependencies]
 log = "0.4"
 rustc-hex = { version = "2.0.1", default-features = false }
-
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
-evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
+num_enum = { version = "0.5.3", default-features = false }
+#TODO feature?
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 precompile-utils = { path = "../utils", default-features = false }
 
 [dev-dependencies]
-hex = "0.4"
+sha3 = "0.9"
+serde = "1.0.100"
+derive_more = "0.99"
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [features]
 default = ["std"]
