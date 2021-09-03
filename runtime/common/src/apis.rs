@@ -397,7 +397,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					return (list, storage_info)
 				}
 
-
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
