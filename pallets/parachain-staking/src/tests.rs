@@ -2698,9 +2698,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(10, 3, 5, 140),
 				Event::ReservedForParachainBond(11, 15),
 				Event::Rewarded(1, 18),
+				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
 				Event::CollatorChosen(4, 1, 50),
 				Event::CollatorChosen(4, 2, 40),
 				Event::CollatorChosen(4, 4, 20),
@@ -2727,9 +2727,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NominatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 19),
+				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
 				Event::CollatorChosen(5, 1, 50),
 				Event::CollatorChosen(5, 2, 40),
 				Event::CollatorChosen(5, 4, 20),
@@ -2738,9 +2738,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(20, 5, 5, 140),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 20),
+				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
 				Event::NominatorLeftCollator(6, 1, 10, 40),
 				Event::NominatorLeft(6, 10),
 				Event::CollatorChosen(6, 2, 40),
@@ -2768,9 +2768,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				),
 				Event::ReservedForParachainBond(11, 29),
 				Event::Rewarded(1, 15),
+				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
-				Event::Rewarded(6, 5),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 4, 20),
@@ -2909,8 +2909,8 @@ fn paid_collator_commission_matches_config() {
 				Event::CollatorChosen(4, 1, 40),
 				Event::NewRound(15, 4, 2, 80),
 				Event::Rewarded(4, 18),
-				Event::Rewarded(6, 6),
 				Event::Rewarded(5, 6),
+				Event::Rewarded(6, 6),
 				Event::CollatorChosen(5, 4, 40),
 				Event::CollatorChosen(5, 1, 40),
 				Event::NewRound(20, 5, 2, 80),
@@ -3409,9 +3409,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
 				Event::Rewarded(1, 26),
+				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
-				Event::Rewarded(6, 8),
 				Event::CollatorChosen(4, 1, 50),
 				Event::CollatorChosen(4, 2, 40),
 				Event::CollatorChosen(4, 4, 20),
@@ -3437,9 +3437,9 @@ fn payouts_follow_nomination_changes() {
 			let mut new2 = vec![
 				Event::NominatorExitScheduled(4, 6, 6),
 				Event::Rewarded(1, 27),
+				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
-				Event::Rewarded(6, 8),
 				Event::CollatorChosen(5, 1, 50),
 				Event::CollatorChosen(5, 2, 40),
 				Event::CollatorChosen(5, 4, 20),
@@ -3447,9 +3447,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
 				Event::Rewarded(1, 29),
+				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
-				Event::Rewarded(6, 9),
 				Event::NominatorLeftCollator(6, 1, 10, 40),
 				Event::NominatorLeft(6, 10),
 				Event::CollatorChosen(6, 2, 40),
@@ -3467,9 +3467,9 @@ fn payouts_follow_nomination_changes() {
 			// keep paying 6
 			let mut new3 = vec![
 				Event::Rewarded(1, 30),
+				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
-				Event::Rewarded(6, 9),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 4, 20),
@@ -3545,6 +3545,47 @@ fn payouts_follow_nomination_changes() {
 			];
 			expected.append(&mut new7);
 			assert_eq!(events(), expected);
+		});
+}
+
+#[test]
+fn nominations_merged_before_reward_payout() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 120)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_nominations(vec![(5, 1, 30), (5, 2, 30), (5, 3, 30), (5, 4, 30)])
+		.build()
+		.execute_with(|| {
+			roll_to(8);
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+			set_author(1, 3, 1);
+			set_author(1, 4, 1);
+			roll_to(16);
+			let expected_events = vec![
+				Event::CollatorChosen(2, 4, 50),
+				Event::CollatorChosen(2, 3, 50),
+				Event::CollatorChosen(2, 2, 50),
+				Event::CollatorChosen(2, 1, 50),
+				Event::NewRound(5, 2, 4, 200),
+				Event::Rewarded(3, 1),
+				Event::Rewarded(4, 1),
+				Event::Rewarded(1, 1),
+				Event::Rewarded(2, 1),
+				// ALL REWARDS FOR 5 are merged into one payment + event
+				Event::Rewarded(5, 4),
+				Event::CollatorChosen(3, 4, 50),
+				Event::CollatorChosen(3, 3, 50),
+				Event::CollatorChosen(3, 2, 50),
+				Event::CollatorChosen(3, 1, 50),
+				Event::NewRound(10, 3, 4, 200),
+				Event::CollatorChosen(4, 4, 50),
+				Event::CollatorChosen(4, 3, 50),
+				Event::CollatorChosen(4, 2, 50),
+				Event::CollatorChosen(4, 1, 50),
+				Event::NewRound(15, 4, 4, 200),
+			];
+			assert_eq!(events(), expected_events);
 		});
 }
 
