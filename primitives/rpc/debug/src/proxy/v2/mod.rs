@@ -107,6 +107,7 @@ pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
 }
 
 pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
+	let tmp;
 	let out = match opcode {
 		Opcode(0) => "Stop",
 		Opcode(1) => "Add",
@@ -262,7 +263,10 @@ pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 		Opcode(253) => "Revert",
 		Opcode(254) => "Invalid",
 		Opcode(255) => "SelfDestruct",
-		_ => unreachable!("Unreachable Opcode identifier."),
+		Opcode(n) => {
+			tmp = alloc::format!("Unknown({})", n);
+			&tmp
+		}
 	};
 	out.as_bytes().to_vec()
 }
