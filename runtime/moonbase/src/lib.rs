@@ -1074,7 +1074,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		)
 	}
 
-	fn destroy_asset(asset: AssetId) -> DispatchResultWithPostInfo {
+	fn destroy_asset(asset: AssetId) -> DispatchResult {
 		// These should be 0 if the asset was created with
 		let witness = pallet_assets::DestroyWitness {
 			accounts: 0,
@@ -1082,11 +1082,14 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			approvals: 0,
 		};
 
-		Assets::destroy(
+		match Assets::destroy(
 			Origin::signed(PalletId(*b"amngaaar").into_account()),
 			asset,
 			witness,
-		)
+		) {
+			Ok(_) => Ok(()),
+			Err(e) => Err(e.error),
+		}
 	}
 }
 

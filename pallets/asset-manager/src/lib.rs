@@ -38,7 +38,7 @@ pub mod pallet {
 	pub trait AssetRegistrar<T: Config> {
 		// How to create an asset
 		fn create_asset(asset: T::AssetId, min_balance: T::Balance) -> DispatchResult;
-		fn destroy_asset(asset: T::AssetId) -> DispatchResultWithPostInfo;
+		fn destroy_asset(asset: T::AssetId) -> DispatchResult;
 	}
 
 	#[pallet::config]
