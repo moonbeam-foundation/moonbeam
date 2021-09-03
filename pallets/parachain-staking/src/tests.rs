@@ -702,16 +702,16 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 		});
 }
 
-// LEAVE CANDIDATES
+// SCHEDULE LEAVE CANDIDATES
 
 #[test]
-fn leave_candidates_event_emits_correctly() {
+fn schedule_leave_candidates_event_emits_correctly() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(1, 1, 3))
@@ -720,7 +720,78 @@ fn leave_candidates_event_emits_correctly() {
 }
 
 #[test]
-fn leave_candidates_unreserves_balance() {
+fn schedule_leave_candidates_removes_candidate_from_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::candidate_pool().0.len(), 1);
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
+			assert!(Stake::candidate_pool().0.is_empty());
+		});
+}
+
+#[test]
+fn cannot_schedule_leave_candidates_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::schedule_leave_candidates(Origin::signed(1), 1u32),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_schedule_leave_candidates_if_already_leaving_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
+			assert_noop!(
+				Stake::schedule_leave_candidates(Origin::signed(1), 1u32),
+				Error::<Test>::CandidateAlreadyLeaving
+			);
+		});
+}
+
+#[test]
+fn insufficient_schedule_leave_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 1..6 {
+				assert_noop!(
+					Stake::schedule_leave_candidates(Origin::signed(i), 4u32),
+					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_schedule_leave_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 1..6 {
+				assert_ok!(Stake::schedule_leave_candidates(Origin::signed(i), count));
+				count -= 1u32;
+			}
+		});
+}
+
+// EXECUTE LEAVE CANDIDATES
+
+#[test]
+fn execute_leave_candidates_unreserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
 		.with_candidates(vec![(1, 10)])
@@ -729,15 +800,16 @@ fn leave_candidates_unreserves_balance() {
 			roll_to(1);
 			assert_eq!(Balances::reserved_balance(&1), 10);
 			assert_eq!(Balances::free_balance(&1), 0);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1)));
 			assert_eq!(Balances::reserved_balance(&1), 0);
 			assert_eq!(Balances::free_balance(&1), 10);
 		});
 }
 
 #[test]
-fn leave_candidates_decreases_total_staked() {
+fn execute_leave_candidates_decreases_total_staked() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
 		.with_candidates(vec![(1, 10)])
@@ -745,34 +817,22 @@ fn leave_candidates_decreases_total_staked() {
 		.execute_with(|| {
 			roll_to(1);
 			assert_eq!(Stake::total(), 10);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1)));
 			assert_eq!(Stake::total(), 0);
 		});
 }
 
 #[test]
-fn leave_candidates_removes_candidate_from_candidate_pool() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 10)])
-		.with_candidates(vec![(1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Stake::candidate_pool().0.len(), 1);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
-			assert!(Stake::candidate_pool().0.is_empty());
-		});
-}
-
-#[test]
-fn leave_candidates_removes_candidate_state_after_exit() {
+fn execute_leave_candidates_removes_candidate_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
 			roll_to(1);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			// candidate state is not immediately removed
 			let candidate_state = Stake::collator_state2(1).expect("just left => still exists");
 			assert_eq!(candidate_state.bond, 10u128);
@@ -781,61 +841,7 @@ fn leave_candidates_removes_candidate_state_after_exit() {
 		});
 }
 
-#[test]
-fn cannot_leave_candidates_if_not_candidate() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			Stake::leave_candidates(Origin::signed(1), 1u32),
-			Error::<Test>::CandidateDNE
-		);
-	});
-}
-
-#[test]
-fn cannot_leave_candidates_if_already_leaving_candidates() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 10)])
-		.with_candidates(vec![(1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
-			assert_noop!(
-				Stake::leave_candidates(Origin::signed(1), 1u32),
-				Error::<Test>::CandidateAlreadyLeaving
-			);
-		});
-}
-
-#[test]
-fn insufficient_leave_candidates_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			for i in 1..6 {
-				assert_noop!(
-					Stake::leave_candidates(Origin::signed(i), 4u32),
-					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
-				);
-			}
-		});
-}
-
-#[test]
-fn sufficient_leave_candidates_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			let mut count = 5u32;
-			for i in 1..6 {
-				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
-				count -= 1u32;
-			}
-		});
-}
+// CANCEL LEAVE CANDIDATES
 
 // GO OFFLINE
 
@@ -1106,7 +1112,7 @@ fn cannot_candidate_bond_more_if_leaving_candidates() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
 				Error::<Test>::CannotActBecauseLeaving
@@ -1122,7 +1128,7 @@ fn cannot_candidate_bond_more_if_exited_candidates() {
 		.build()
 		.execute_with(|| {
 			roll_to(4);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(30);
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
@@ -1248,7 +1254,7 @@ fn cannot_candidate_bond_less_if_leaving_candidates() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 10),
 				Error::<Test>::CannotActBecauseLeaving
@@ -1264,7 +1270,7 @@ fn cannot_candidate_bond_less_if_exited_candidates() {
 		.build()
 		.execute_with(|| {
 			roll_to(4);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(30);
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 10),
@@ -1939,7 +1945,7 @@ fn revoke_nomination_after_leave_candidates_executes_during_leave_candidates() {
 		.build()
 		.execute_with(|| {
 			roll_to(1);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
 			assert_eq!(
 				last_event(),
@@ -1966,7 +1972,7 @@ fn revoke_nomination_before_leave_candidates_executes_during_leave_candidates() 
 				last_event(),
 				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
 			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(10);
 			assert!(!Stake::is_nominator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 0);
@@ -2939,7 +2945,7 @@ fn collator_exit_executes_after_delay() {
 		.build()
 		.execute_with(|| {
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 2));
 			let info = Stake::collator_state2(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
 			roll_to(21);
@@ -2992,7 +2998,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
@@ -3072,19 +3078,19 @@ fn exit_queue_executes_in_order() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(5), 5));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(5), 5));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(3, 5, 5))
 			);
 			roll_to(16);
-			assert_ok!(Stake::leave_candidates(Origin::signed(4), 4));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(4), 4));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(4, 4, 6))
@@ -3312,7 +3318,7 @@ fn multiple_nominations() {
 			];
 			expected.append(&mut new2);
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 5));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8))

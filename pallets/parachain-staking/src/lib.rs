@@ -790,6 +790,8 @@ pub mod pallet {
 		NominatorAlreadyLeaving,
 		NominationAlreadyRevoked,
 		CandidateAlreadyLeaving,
+		CandidateNotLeaving,
+		CandidateCannotLeaveYet,
 		CannotActBecauseLeaving,
 		CannotActBecauseRevoking,
 		ExceedMaxCollatorsPerNom,
@@ -798,6 +800,7 @@ pub mod pallet {
 		CannotSetBelowMin,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
+		TooLowCandidateCountWeightHintCancelLeaveCandidates,
 		TooLowCollatorCandidateCountToLeaveCandidates,
 		TooLowNominationCountToNominate,
 		TooLowCollatorNominationCountToNominate,
@@ -821,6 +824,8 @@ pub mod pallet {
 		CollatorBackOnline(RoundIndex, T::AccountId),
 		/// Round, Collator Account, Scheduled Exit
 		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
+		/// Collator Account
+		CancelledCandidateExit(T::AccountId),
 		/// Account, Amount Unlocked, New Total Amt Locked
 		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		// Nominator, Collator, Amount, If in top nominations for collator after increase
@@ -1325,12 +1330,12 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		/// Execute leave candidates request
 		pub fn execute_leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			// TODO: should we let anyone call this with argument `collator: AccountId`
+			// TODO: should we let anyone call this by adding arg `collator: AccountId`
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.is_leaving(), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateNotLeaving
+			ensure!(state.is_leaving(), Error::<T>::CandidateNotLeaving);
 			let now = <Round<T>>::get().current;
-			ensure!(state.can_leave(now), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateCannotLeaveYet
+			ensure!(state.can_leave(now), Error::<T>::CandidateCannotLeaveYet);
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);
 				// remove nomination from nominator state
@@ -1369,18 +1374,31 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Cancel open request to leave candidates
+		/// - only callable by collator account
+		/// - result upon successful call is the candidate is active in the candidate pool
 		pub fn cancel_leave_candidates(
 			origin: OriginFor<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
-			// TODO: check that state.leave(when) s.t. when >= now for round
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.is_leaving(), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateNotLeaving
-			let now = <Round<T>>::get().current;
-			ensure!(state.can_leave(now), Error::<T>::CandidateAlreadyLeaving); // TODO: change err to CandidateCannotLeaveYet
-																	// TODO: add back to CandidatePool and make is_active
-																	// TODO: emit CandidateCanceledExit
+			ensure!(state.is_leaving(), Error::<T>::CandidateNotLeaving);
+			state.go_online();
+			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				candidates.0.len() as u32 <= candidate_count,
+				Error::<T>::TooLowCandidateCountWeightHintCancelLeaveCandidates
+			);
+			ensure!(
+				candidates.insert(Bond {
+					owner: collator.clone(),
+					amount: state.total_counted
+				}),
+				Error::<T>::AlreadyActive
+			);
+			<CandidatePool<T>>::put(candidates);
+			<CollatorState2<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CancelledCandidateExit(collator));
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::go_offline())]
@@ -1558,17 +1576,18 @@ pub mod pallet {
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
 			state.leave(when);
-			// TODO: remove both of these fields
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
 			<NominatorState2<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nomination_count))]
+		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nominator_nomination_count))]
+		/// Execute the right to exit, must have been scheduled 2 rounds ago (at least)
 		pub fn execute_leave_nominators(
 			origin: OriginFor<T>,
-			nomination_count: u32,
+			collator_nomination_count: u32,
+			nominator_nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			Ok(().into())
 		}
