@@ -71,7 +71,6 @@ where
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
 		let mut input = EvmDataReader::new(input);
-		println!("In crowdloan precompile");
 
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
@@ -180,29 +179,16 @@ where
 	}
 
 	fn claim(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
-		println!("In precompile claim method");
 		let mut gasometer = Gasometer::new(target_gas);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim();
 
-		println!("about to call runtime helper");
-		println!("Origin is:");
-		println!("{:?}", origin);
-		println!("Call is:");
-		println!("{:?}", call);
-
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
 			call,
 			gasometer.remaining_gas()?,
-		)
-		.map_err(|e| {
-			println!("{:?}", e);
-			e
-		})?;
-
-		println!("back from runtime helper");
+		)?;
 
 		gasometer.record_cost(used_gas)?;
 

@@ -188,33 +188,20 @@ fn claim_works() {
 
 			roll_to(5);
 
-			println!("rolled to five");
-
 			let selector = &Keccak256::digest(b"claim()")[0..4];
 			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
-			// println!("about to call evm");
-
-			// let inner_call = EvmCall::call(
-			// 	Alice.into(),
-			// 	precompile_address(),
-			// 	input,
-			// 	U256::zero(), // No value sent in EVM
-			// 	u64::max_value(),
-			// 	0.into(),
-			// 	None, // Use the next nonce
-			// );
-			// println!("evm call is");
-			// println!("{:?}", inner_call);
-			//
-			// // Make sure the call goes through successfully
-			// assert_ok!(Call::Evm(inner_call).dispatch(Origin::root()));
-			//
-			// println!("returned from evm");
-
-			// let's try calling claim directly instead of through the precompile.
-			// So maybe it isn't the precompile? It seems this call just isn't working?
-			assert_ok!(Call::Crowdloan(CrowdloanCall::claim()).dispatch(Origin::signed(Alice)));
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
 
 			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice, 25).into();
 			// Assert that the events vector contains the one expected
