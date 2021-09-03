@@ -4592,12 +4592,14 @@ dependencies = [
  "arrayref",
  "base64 0.12.3",
  "digest 0.9.0",
+ "hmac-drbg 0.3.0",
  "libsecp256k1-core",
  "libsecp256k1-gen-ecmult",
  "libsecp256k1-gen-genmult",
  "rand 0.7.3",
  "serde",
  "sha2 0.9.5",
+ "typenum",
 ]
 
 [[package]]
@@ -6518,6 +6520,7 @@ name = "pallet-indices"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6744,6 +6747,7 @@ name = "pallet-staking"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
 dependencies = [
+ "frame-benchmarking",
  "frame-election-provider-support",
  "frame-support",
  "frame-system",
@@ -6752,6 +6756,7 @@ dependencies = [
  "pallet-session",
  "parity-scale-codec",
  "paste",
+ "rand_chacha 0.2.2",
  "serde",
  "sp-application-crypto",
  "sp-io",
@@ -8263,12 +8268,14 @@ version = "0.9.9-1"
 source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.9#7a9f624777ad2d2adb3a1e6797a31f9d653c9587"
 dependencies = [
  "bitvec 0.20.4",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples 0.2.1",
  "libsecp256k1 0.6.0",
  "log",
  "pallet-authorship",
+ "pallet-babe",
  "pallet-balances",
  "pallet-beefy-mmr",
  "pallet-election-provider-multi-phase",
@@ -8306,6 +8313,7 @@ dependencies = [
  "bitflags",
  "bitvec 0.20.4",
  "derive_more",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
