@@ -475,6 +475,39 @@ pub mod pallet {
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Nominator state
+	/// -> todo: replace nominator2 with nominator
+	pub struct Nominator<AccountId, Balance> {
+		/// All current nominations
+		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
+		/// Total balance locked for this nominator
+		pub total: Balance,
+		/// Requests to exit, relevant iff active
+		pub requests: ExitRequests<AccountId, Balance>,
+		/// Status for this nominator
+		pub status: NominatorStatus,
+	}
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	pub enum ScheduledNominatorAction<AccountId, Balance> {
+		Revoke(AccountId, RoundIndex),
+		BondLess(AccountId, Balance, RoundIndex),
+		BondMore(AccountId, Balance, RoundIndex),
+	}
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	/// Requests to exit and/or change nominations for each nominator
+	pub struct ExitRequests<AccountId, Balance> {
+		pub revocations: OrderedSet<AccountId>,
+		pub bond_less_totals: BTreeMap<AccountId, Balance>,
+		pub bond_more_totals: BTreeMap<AccountId, Balance>,
+		pub requests: Vec<ScheduledNominatorAction<AccountId, Balance>>,
+		pub revocations_total: Balance,
+		pub bond_less_total: Balance,
+		pub bond_more_total: Balance,
+	}
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
 		/// All current nominations
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
