@@ -25,7 +25,7 @@ use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
 };
-use crate::{Bond, CollatorStatus, Error, Event, NominatorAdded, Range};
+use crate::{Bond, CollatorState2, CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
@@ -1930,6 +1930,102 @@ fn cannot_revoke_nomination_leaving_nominator_below_min_nominator_stake() {
 		});
 }
 
+#[test]
+fn revoke_nomination_after_leave_candidates_executes_during_leave_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
+			);
+			roll_to(10);
+			assert!(!Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn revoke_nomination_before_leave_candidates_executes_during_leave_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
+			);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			roll_to(10);
+			assert!(!Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn nominator_bond_more_after_revoke_nomination_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			assert_noop!(
+				Stake::nominator_bond_more(Origin::signed(2), 1, 10),
+				Error::<Test>::CannotActBecauseRevoking
+			);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 3, 10));
+			roll_to(10);
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 20);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn nominator_bond_less_after_revoke_nomination_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 1, 2),
+				Error::<Test>::CannotActBecauseRevoking
+			);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 3, 2));
+			roll_to(10);
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 8);
+			assert_eq!(Balances::free_balance(&2), 22);
+		});
+}
+
 // NOMINATOR BOND MORE
 
 #[test]
@@ -1943,7 +2039,7 @@ fn nominator_bond_more_event_emits_correctly() {
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::NominationIncreased(2, 1, 40, true, 45))
+				MetaEvent::Stake(Event::NominationIncreased(2, 1, 5, true))
 			);
 		});
 }
@@ -1993,7 +2089,7 @@ fn nominator_bond_more_updates_nominator_state() {
 }
 
 #[test]
-fn nominator_bond_more_updates_candidate_state() {
+fn nominator_bond_more_updates_candidate_state_top_nominators() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2010,6 +2106,42 @@ fn nominator_bond_more_updates_candidate_state() {
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
 			assert_eq!(
 				Stake::collator_state2(1).expect("exists").top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 15
+				}
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_more_updates_candidate_state_bottom_nominators() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![
+			(2, 1, 10),
+			(3, 1, 20),
+			(4, 1, 20),
+			(5, 1, 20),
+			(6, 1, 20),
+		])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").bottom_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationIncreased(2, 1, 5, false))
+			);
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").bottom_nominators[0],
 				Bond {
 					owner: 2,
 					amount: 15
@@ -2136,7 +2268,7 @@ fn nominator_bond_less_event_emits_correctly() {
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::NominationDecreased(2, 1, 40, true, 35))
+				MetaEvent::Stake(Event::NominationDecreased(2, 1, 5, true))
 			);
 		});
 }
@@ -2338,6 +2470,130 @@ fn cannot_nominator_bond_less_below_min_nomination() {
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(2), 1, 8),
 				Error::<Test>::NominationBelowMin
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_less_updates_just_bottom_nominations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 10),
+			(3, 1, 11),
+			(4, 1, 12),
+			(5, 1, 14),
+			(6, 1, 15),
+		])
+		.build()
+		.execute_with(|| {
+			let pre_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 2));
+			let post_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			let mut not_equal = false;
+			for Bond { owner, amount } in pre_call_collator_state.bottom_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.bottom_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							not_equal = true;
+							break;
+						}
+					}
+				}
+			}
+			assert!(not_equal);
+			let mut equal = true;
+			for Bond { owner, amount } in pre_call_collator_state.top_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.top_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							equal = false;
+							break;
+						}
+					}
+				}
+			}
+			assert!(equal);
+			assert_eq!(
+				pre_call_collator_state.total_backing - 2,
+				post_call_collator_state.total_backing
+			);
+			assert_eq!(
+				pre_call_collator_state.total_counted,
+				post_call_collator_state.total_counted
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_less_does_not_delete_bottom_nominations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![
+			(2, 1, 10),
+			(3, 1, 11),
+			(4, 1, 12),
+			(5, 1, 14),
+			(6, 1, 15),
+		])
+		.build()
+		.execute_with(|| {
+			let pre_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(6), 1, 4));
+			let post_call_collator_state =
+				Stake::collator_state2(&1).expect("nominated by all so exists");
+			let mut equal = true;
+			for Bond { owner, amount } in pre_call_collator_state.bottom_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.bottom_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							equal = false;
+							break;
+						}
+					}
+				}
+			}
+			assert!(equal);
+			let mut not_equal = false;
+			for Bond { owner, amount } in pre_call_collator_state.top_nominators {
+				for Bond {
+					owner: post_owner,
+					amount: post_amount,
+				} in &post_call_collator_state.top_nominators
+				{
+					if &owner == post_owner {
+						if &amount != post_amount {
+							not_equal = true;
+							break;
+						}
+					}
+				}
+			}
+			assert!(not_equal);
+			assert_eq!(
+				pre_call_collator_state.total_backing - 4,
+				post_call_collator_state.total_backing
+			);
+			assert_eq!(
+				pre_call_collator_state.total_counted - 4,
+				post_call_collator_state.total_counted
 			);
 		});
 }
@@ -3464,7 +3720,7 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(3), 1, 8));
-			expected_events.push(Event::NominationIncreased(3, 1, 86, true, 90));
+			expected_events.push(Event::NominationIncreased(3, 1, 8, true));
 			assert_eq!(events(), expected_events);
 			let collator_state = Stake::collator_state2(1).unwrap();
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
@@ -3476,7 +3732,7 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(4), 1, 8));
-			expected_events.push(Event::NominationIncreased(4, 1, 90, true, 94));
+			expected_events.push(Event::NominationIncreased(4, 1, 8, true));
 			assert_eq!(events(), expected_events);
 			let collator_state = Stake::collator_state2(1).unwrap();
 			// 17 + 18 + 19 + 20 + 20 = 94 (top 4 + self bond)
@@ -3488,7 +3744,7 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(5), 1, 8));
-			expected_events.push(Event::NominationIncreased(5, 1, 94, true, 98));
+			expected_events.push(Event::NominationIncreased(5, 1, 8, true));
 			assert_eq!(events(), expected_events);
 			let collator_state = Stake::collator_state2(1).unwrap();
 			// 18 + 19 + 20 + 21 + 20 = 98 (top 4 + self bond)
@@ -3500,7 +3756,7 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(6), 1, 8));
-			expected_events.push(Event::NominationIncreased(6, 1, 98, true, 102));
+			expected_events.push(Event::NominationIncreased(6, 1, 8, true));
 			assert_eq!(events(), expected_events);
 			let collator_state = Stake::collator_state2(1).unwrap();
 			// 19 + 20 + 21 + 22 + 20 = 102 (top 4 + self bond)
@@ -3568,7 +3824,7 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 8 increases nomination to the top
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(8), 1, 3));
-			expected_events.push(Event::NominationIncreased(8, 1, 74, true, 75));
+			expected_events.push(Event::NominationIncreased(8, 1, 3, true));
 			assert_eq!(events(), expected_events);
 			let collator1_state = Stake::collator_state2(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
@@ -3580,7 +3836,7 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 3 increases nomination but stays in bottom
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(3), 1, 1));
-			expected_events.push(Event::NominationIncreased(3, 1, 75, false, 75));
+			expected_events.push(Event::NominationIncreased(3, 1, 1, false));
 			assert_eq!(events(), expected_events);
 			let collator1_state = Stake::collator_state2(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
@@ -3592,7 +3848,7 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination but stays in top
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(6), 1, 2));
-			expected_events.push(Event::NominationDecreased(6, 1, 75, true, 73));
+			expected_events.push(Event::NominationDecreased(6, 1, 2, true));
 			assert_eq!(events(), expected_events);
 			let collator1_state = Stake::collator_state2(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
@@ -3604,7 +3860,7 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination and is bumped to bottom
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(6), 1, 1));
-			expected_events.push(Event::NominationDecreased(6, 1, 73, false, 73));
+			expected_events.push(Event::NominationDecreased(6, 1, 1, false));
 			assert_eq!(events(), expected_events);
 			let collator1_state = Stake::collator_state2(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
