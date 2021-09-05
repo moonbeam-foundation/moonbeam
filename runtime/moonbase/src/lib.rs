@@ -847,7 +847,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// The transactor for our own chain currency.
+/// The transactor for our own chain currency.AssetT
 pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 	// Use this currency:
 	Balances,
@@ -968,7 +968,7 @@ impl pallet_xcm::Config for Runtime {
 	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor;
-	type XcmTeleportFilter = Everything;
+	type XcmTeleportFilter = ();
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
@@ -1179,13 +1179,13 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 23,
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 24,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 26,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 27,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 28,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 29,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 24,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 25,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 26,
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 27,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 28,
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 29,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
 	}
 }

@@ -18,18 +18,19 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{All, Get, OriginTrait},
+	traits::{Everything, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	PalletId,
 };
+use frame_system::{EnsureOneOf, EnsureRoot};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
+use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
 	AccountId32,
 };
-
-use frame_system::{EnsureOneOf, EnsureRoot};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	prelude::*,
@@ -111,8 +112,6 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
-pub type AssetId = u32;
-
 parameter_types! {
 	pub const AssetDeposit: Balance = 0; // Does not really matter as this is forbidden
 	pub const ApprovalDeposit: Balance = 0;
@@ -144,13 +143,11 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const KsmLocation: MultiLocation = MultiLocation::X1(Parent);
-	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
+	pub const KsmLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
+	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	pub SelfAssetLocation: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), Junction::GeneralIndex{ id: 0}.into()).into();
-	pub Local = MultiLocation::Null;
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -195,42 +192,43 @@ parameter_types! {
 /// a Parachain junction, prefixed by some `MultiLocation` value.
 use sp_std::borrow::Borrow;
 use xcm::v0::Junction;
+
 pub struct AsParachainId;
 impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		println!("LOCATION IS {:?}", id.borrow());
-		match id.borrow() {
-			MultiLocation::X1(Junction::Parent) => {
-				println!("I AM HER 3");
-				Ok(0u32.into())
-			}
-			MultiLocation::X3(
-				Junction::Parent,
-				Junction::Parachain(para_id),
-				Junction::GeneralIndex { id },
-			) => {
-				if *id == 0u128 {
-					Ok(*para_id)
-				} else {
-					Err(())
-				}
-			}
-			_ => {
-				println!("THIS LOCATION IS UNHANDLED");
-				Err(())
-			}
-		}
+		println!("Converting to sset Id");
+		let multilocation = id.borrow();
+		Ok(AssetType::Xcm(multilocation.clone()).into())
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		match what.borrow() {
-			0u32 => Ok(MultiLocation::X1(Junction::Parent)),
-			1000u32 => Ok(MultiLocation::X1(Junction::Parachain(1000))),
-			1001u32 => Ok(MultiLocation::X1(Junction::Parachain(1001))),
-			para_id => Ok(MultiLocation::X3(
-				Junction::Parent,
-				Junction::Parachain(*para_id),
-				Junction::GeneralIndex { id: 0 },
-			)),
+		if let Some(AssetType::Xcm(location)) = AssetManager::asset_id_to_type(what.borrow()) {
+			Ok(location)
+		} else {
+			Err(())
+		}
+	}
+}
+
+pub type AssetId = u128;
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum AssetType {
+	Xcm(MultiLocation),
+}
+impl Default for AssetType {
+	fn default() -> Self {
+		Self::Xcm(MultiLocation::Null)
+	}
+}
+
+impl From<AssetType> for AssetId {
+	fn from(asset: AssetType) -> AssetId {
+		match asset {
+			AssetType::Xcm(id) => {
+				let mut result: [u8; 16] = [0u8; 16];
+				let hash: H256 = id.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+				result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+				u128::from_le_bytes(result)
+			}
 		}
 	}
 }
@@ -240,13 +238,12 @@ pub type FungiblesTransactor = xcm_builder::FungiblesAdapter<
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
-	/* 	xcm_builder::ConvertedConcreteAssetId<
+		xcm_builder::ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
 			AsParachainId,
 			xcm_executor::traits::JustTry,
-		>,*/
-	xcm_builder::ConvertedConcreteAssetId<AssetId, Balance, AsPrefixedGeneralIndex<Local, AssetId, JustTry>, JustTry>,
+		>,
 	),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
@@ -263,7 +260,7 @@ pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	xcm_builder::IsConcrete<SelfAssetLocation>,
+	xcm_builder::IsConcrete<Ancestry>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -275,7 +272,7 @@ pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
-pub type Barrier = AllowUnpaidExecutionFrom<All<MultiLocation>>;
+pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
 use xcm_executor::traits::WeightTrader;
 pub struct MyWeightTrader;
@@ -307,7 +304,7 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = orml_xcm_support::MultiNativeAsset;
+	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
@@ -322,14 +319,27 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-pub struct AssetIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
-impl<AssetXConverter> sp_runtime::traits::Convert<AssetId, Option<MultiLocation>>
-	for AssetIdtoMultiLocation<AssetXConverter>
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum CurrencyId {
+	SelfReserve,
+	OtherReserve(AssetId),
+}
+
+pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
+impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
+	for CurrencyIdtoMultiLocation<AssetXConverter>
 where
 	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
 {
-	fn convert(asset: AssetId) -> Option<MultiLocation> {
-		AssetXConverter::reverse_ref(asset).ok()
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::SelfReserve => {
+				let multi: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
+				println!("GOnna output {:?}", Some(multi));
+				Some(Parachain(MsgQueue::parachain_id().into()).into())
+			}
+			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+		}
 	}
 }
 
@@ -351,9 +361,9 @@ parameter_types! {
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type CurrencyId = AssetId;
+	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = AssetIdtoMultiLocation<AsParachainId>;
+	type CurrencyIdConvert = CurrencyIdtoMultiLocation<AsParachainId>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -456,6 +466,7 @@ pub mod mock_msg_queue {
 					Event::BadVersion(Some(hash)),
 				),
 			};
+			println!("{:?}", result);
 			Self::deposit_event(event);
 			result
 		}
@@ -503,6 +514,8 @@ pub mod mock_msg_queue {
 					Ok(Ok(x)) => {
 						println!("XCM is {:?}", x);
 						let outcome = T::XcmExecutor::execute_xcm(Parent.into(), x, limit);
+						println!("outcome is {:?}", outcome);
+
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}
 				}
@@ -547,11 +560,55 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = All<(MultiLocation, Xcm<Call>)>;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = ();
-	type XcmReserveTransferFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
+}
+
+pub struct AssetRegistrar;
+use frame_support::pallet_prelude::DispatchError;
+use frame_support::pallet_prelude::DispatchResult;
+use frame_support::pallet_prelude::DispatchResultWithPostInfo;
+impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
+	fn create_asset(asset: AssetId, min_balance: Balance) -> DispatchResult {
+		Assets::force_create(
+			Origin::root(),
+			asset,
+			PalletId(*b"amngaaar").into_account(),
+			true,
+			min_balance,
+		)
+	}
+
+	fn destroy_asset(asset: AssetId) -> DispatchResult {
+		// These should be 0 if the asset was created with
+		/*let witness: pallet_assets::DestroyWitness = pallet_assets::DestroyWitness {
+			accounts: 0,
+			sufficients: 0,
+			approvals: 0,
+		};
+
+		match Assets::destroy(
+			Origin::signed(PalletId(*b"amngaaar").into_account()),
+			asset,
+			witness,
+		) {
+			Ok(_) => Ok(()),
+			Err(e) => Err(e.error),
+		}*/
+		Ok(())
+	}
+}
+
+impl pallet_asset_manager::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type AssetType = AssetType;
+	type AssetRegistrar = AssetRegistrar;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -569,6 +626,7 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>}
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
+		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 	}
 );
