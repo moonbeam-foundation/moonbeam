@@ -212,7 +212,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = RocksDbWeight;
-	type BaseCallFilter = BaseFilter;
+	type BaseCallFilter = MaintenanceMode;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
@@ -365,7 +365,7 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = AuthorInherent;
 }
@@ -502,7 +502,7 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
-	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 = 100;
 }
 
@@ -587,8 +587,8 @@ parameter_types! {
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 10;
+	/// Maximum 100 nominators per collator
+	pub const MaxNominatorsPerCollator: u32 = 100;
 	/// Maximum 100 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
@@ -639,8 +639,6 @@ impl pallet_author_slot_filter::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO to be revisited
-	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
@@ -777,7 +775,7 @@ impl Contains<Call> for PhaseThreeFilter {
 
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = ();
+	type NormalCallFilter = BaseFilter;
 	type MaintenanceCallFilter = PhaseThreeFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;

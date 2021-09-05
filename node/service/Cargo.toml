@@ -150,6 +150,7 @@ test-spec = []
 runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
 	"moonbase-runtime/runtime-benchmarks",
+	"polkadot-test-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime/try-runtime",

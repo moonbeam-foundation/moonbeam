@@ -2279,7 +2279,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.30.1"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2297,7 +2297,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2308,7 +2308,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2319,7 +2319,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#ef399d0c599bf03ba805a7b7af560efc2db07273"
+source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
 dependencies = [
  "environmental",
  "evm-core",
@@ -4681,12 +4681,14 @@ dependencies = [
  "arrayref",
  "base64 0.12.3",
  "digest 0.9.0",
+ "hmac-drbg 0.3.0",
  "libsecp256k1-core",
  "libsecp256k1-gen-ecmult",
  "libsecp256k1-gen-genmult",
  "rand 0.7.3",
  "serde",
  "sha2 0.9.5",
+ "typenum",
 ]
 
 [[package]]
@@ -5251,6 +5253,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -5617,6 +5620,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "moonbeam-core-primitives",
@@ -6439,7 +6443,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=joshy-polkadot-v0.9.9#6238fc7d67327b62a650f913c3abfd855b7d4f35"
+source = "git+https://github.com/purestake/crowdloan-rewards#0d7f6fdbdc5ae2de3e18ddf200188d7c810de963"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
@@ -6711,6 +6715,7 @@ name = "pallet-indices"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6937,6 +6942,7 @@ name = "pallet-staking"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
 dependencies = [
+ "frame-benchmarking",
  "frame-election-provider-support",
  "frame-support",
  "frame-system",
@@ -6945,6 +6951,7 @@ dependencies = [
  "pallet-session",
  "parity-scale-codec",
  "paste",
+ "rand_chacha 0.2.2",
  "serde",
  "sp-application-crypto",
  "sp-io",
@@ -8456,12 +8463,14 @@ version = "0.9.9-1"
 source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.9#7a9f624777ad2d2adb3a1e6797a31f9d653c9587"
 dependencies = [
  "bitvec 0.20.4",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples 0.2.1",
  "libsecp256k1 0.6.0",
  "log",
  "pallet-authorship",
+ "pallet-babe",
  "pallet-balances",
  "pallet-beefy-mmr",
  "pallet-election-provider-multi-phase",
@@ -8499,6 +8508,7 @@ dependencies = [
  "bitflags",
  "bitvec 0.20.4",
  "derive_more",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
