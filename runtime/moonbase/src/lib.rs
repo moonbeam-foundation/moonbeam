@@ -89,29 +89,6 @@ use precompiles::MoonbasePrecompiles;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-use parity_scale_codec::CompactAs;
-#[derive(
-	Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen,
-)]
-pub struct AssetId(H160);
-
-impl CompactAs for AssetId {
-	type As = [u8; 20];
-	fn encode_as(&self) -> &Self::As {
-		self.0.as_fixed_bytes()
-	}
-	fn decode_from(data: Self::As) -> Result<Self, parity_scale_codec::Error> {
-		let conversion = H160::from_slice(&data);
-		Ok(AssetId(conversion))
-	}
-}
-
-impl From<parity_scale_codec::Compact<AssetId>> for AssetId {
-	fn from(x: parity_scale_codec::Compact<AssetId>) -> AssetId {
-		x.0
-	}
-}
-
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 /// UNIT, the native token, uses 18 decimals of precision.
@@ -834,7 +811,8 @@ use sp_std::borrow::Borrow;
 pub struct AsParachainId;
 impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		Ok(AssetType::Xcm(*(id.borrow())).into())
+		let multilocation = id.borrow();
+		Ok(AssetType::Xcm(multilocation.clone()).into())
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
 		if let Some(AssetType::Xcm(location)) = AssetManager::asset_id_to_type(what.borrow()) {
@@ -1036,6 +1014,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+pub type AssetId = u128;
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum AssetType {
 	Xcm(MultiLocation),
@@ -1050,10 +1029,10 @@ impl From<AssetType> for AssetId {
 	fn from(asset: AssetType) -> AssetId {
 		match asset {
 			AssetType::Xcm(id) => {
-				let hash: H160 = id
-					.using_encoded(<Runtime as frame_system::Config>::Hashing::hash)
-					.into();
-				AssetId(H160::from(hash))
+				let mut result: [u8; 16] = [0u8; 16];
+				let hash: H256 = id.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+				result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+				u128::from_le_bytes(result)
 			}
 		}
 	}
@@ -1076,7 +1055,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	fn destroy_asset(asset: AssetId) -> DispatchResult {
 		// These should be 0 if the asset was created with
-		let witness = pallet_assets::DestroyWitness {
+		/*let witness: pallet_assets::DestroyWitness = pallet_assets::DestroyWitness {
 			accounts: 0,
 			sufficients: 0,
 			approvals: 0,
@@ -1089,7 +1068,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		) {
 			Ok(_) => Ok(()),
 			Err(e) => Err(e.error),
-		}
+		}*/
+		Ok(())
 	}
 }
 
