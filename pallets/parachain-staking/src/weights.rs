@@ -176,6 +176,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
+	// If this takes up too much block space, run again on code
+	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
+	// 15x lower per nominator
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 299_000
@@ -294,6 +297,9 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
+	// If this takes up too much block space, run again on code
+	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
+	// 15x lower per nominator
 	fn active_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 299_000
