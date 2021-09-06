@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use super::{
-	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
-	RuntimeEvent, H160, H256,
-};
-use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
+// use super::{
+// 	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
+// 	RuntimeEvent, H160, H256,
+// };
+use ethereum_types::{H160, H256};
+use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use crate::single::RawStepLog;
+use moonbeam_rpc_primitives_debug::{
+	api::single::RawStepLog,
+	v2::{
+		convert_memory,
+		runtime::{Capture, ExitReason},
+		ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+	},
+};
 
 #[derive(Debug)]
 pub struct Listener {
@@ -80,7 +87,7 @@ impl Listener {
 	}
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		super::listener::using(self, f)
+		moonbeam_rpc_primitives_debug::v2::using(self, f)
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {

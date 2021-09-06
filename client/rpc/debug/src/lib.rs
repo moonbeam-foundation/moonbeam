@@ -29,8 +29,8 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
-use proxy::formats::TraceResponseBuilder;
+use moonbeam_client_evm_tracing::formaters::TraceResponseBuilder;
+use moonbeam_rpc_primitives_debug::api::{single, DebugRuntimeApi, V2_RUNTIME_VERSION};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -260,7 +260,9 @@ where
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
+						Ok(moonbeam_rpc_primitives_debug::v1::Result::V2(
+							moonbeam_rpc_primitives_debug::v1::ResultV2::Single,
+						))
 					} else if api_version == 2 {
 						#[allow(deprecated)]
 						let _result = api.trace_transaction_before_version_3(
@@ -273,7 +275,9 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
+						Ok(moonbeam_rpc_primitives_debug::v1::Result::V2(
+							moonbeam_rpc_primitives_debug::v1::ResultV2::Single,
+						))
 					} else {
 						// For versions < 2 block needs to be manually initialized.
 						api.initialize_block(&parent_block_id, &header)
@@ -291,7 +295,9 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
-						Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result)))
+						Ok(moonbeam_rpc_primitives_debug::v1::Result::V1(
+							moonbeam_rpc_primitives_debug::v1::ResultV1::Single(result),
+						))
 					}
 				};
 				return match trace_type {
@@ -301,23 +307,27 @@ where
 						disable_stack,
 					} => {
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
-							let mut proxy = proxy::v2::raw::Listener::new(
-								disable_storage,
-								disable_memory,
-								disable_stack,
-							);
+							let mut proxy =
+								moonbeam_client_evm_tracing::listeners::raw::Listener::new(
+									disable_storage,
+									disable_memory,
+									disable_stack,
+								);
 							proxy.using(f)?;
-							Ok(proxy::formats::raw::Response::build(proxy).unwrap())
+							Ok(
+								moonbeam_client_evm_tracing::formaters::raw::Response::build(proxy)
+									.unwrap(),
+							)
 						} else if api_version == 2 {
-							let mut proxy = proxy::v1::RawProxy::new();
+							let mut proxy = moonbeam_rpc_primitives_debug::v1::RawProxy::new();
 							proxy.using(f)?;
 							Ok(proxy.into_tx_trace())
 						} else {
-							let mut proxy = proxy::v1::RawProxy::new();
+							let mut proxy = moonbeam_rpc_primitives_debug::v1::RawProxy::new();
 							match proxy.using(f) {
-								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
-									Ok(result)
-								}
+								Ok(moonbeam_rpc_primitives_debug::v1::Result::V1(
+									moonbeam_rpc_primitives_debug::v1::ResultV1::Single(result),
+								)) => Ok(result),
 								Err(e) => Err(e),
 								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}
@@ -325,25 +335,27 @@ where
 					}
 					single::TraceType::CallList { .. } => {
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
-							let mut proxy = proxy::v2::call_list::Listener::default();
+							let mut proxy = moonbeam_client_evm_tracing::listeners::call_list::Listener::default();
 							proxy.using(f)?;
 							proxy.finish_transaction();
-							proxy::formats::blockscout::Response::build(proxy)
-								.ok_or("Trace result is empty.")
-								.map_err(|e| internal_err(format!("{:?}", e)))
+							moonbeam_client_evm_tracing::formaters::blockscout::Response::build(
+								proxy,
+							)
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))
 						} else if api_version == 2 {
-							let mut proxy = proxy::v1::CallListProxy::new();
+							let mut proxy = moonbeam_rpc_primitives_debug::v1::CallListProxy::new();
 							proxy.using(f)?;
 							proxy
 								.into_tx_trace()
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
 						} else {
-							let mut proxy = proxy::v1::CallListProxy::new();
+							let mut proxy = moonbeam_rpc_primitives_debug::v1::CallListProxy::new();
 							match proxy.using(f) {
-								Ok(proxy::v1::Result::V1(proxy::v1::ResultV1::Single(result))) => {
-									Ok(result)
-								}
+								Ok(moonbeam_rpc_primitives_debug::v1::Result::V1(
+									moonbeam_rpc_primitives_debug::v1::ResultV1::Single(result),
+								)) => Ok(result),
 								Err(e) => Err(e),
 								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}

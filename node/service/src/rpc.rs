@@ -19,7 +19,7 @@
 use std::{sync::Arc, time::Duration};
 
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
+use moonbeam_rpc_primitives_debug::api::DebugRuntimeApi;
 use sp_block_builder::BlockBuilder;
 
 use crate::{client::RuntimeApiCollection, TransactionConverters};

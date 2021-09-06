@@ -40,3 +40,4 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-ph
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }

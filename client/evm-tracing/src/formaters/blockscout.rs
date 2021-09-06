@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::proxy::v2::call_list::Listener;
-use crate::single::TransactionTrace;
+use crate::listeners::call_list::Listener;
+use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
 
 pub struct Response;
 
-#[cfg(feature = "std")]
 impl super::TraceResponseBuilder for Response {
 	type Listener = Listener;
 	type Response = TransactionTrace;

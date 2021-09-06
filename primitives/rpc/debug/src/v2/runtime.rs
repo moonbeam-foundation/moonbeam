@@ -16,8 +16,7 @@
 
 extern crate alloc;
 
-use super::evm_types::Context;
-use crate::proxy::v2::opcodes_string;
+use super::{opcodes_string, Context};
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};

@@ -29,12 +29,14 @@
 
 environmental::environmental!(listener: dyn Listener + 'static);
 
-use crate::block::{
-	TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
-	TransactionTraceResult,
+use crate::api::{
+	block::{
+		TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
+		TransactionTraceResult,
+	},
+	single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace},
+	CallResult, CreateResult, CreateType,
 };
-use crate::single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace};
-use crate::{CallResult, CreateResult, CreateType};
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
@@ -201,7 +203,9 @@ impl CallListProxy {
 									output,
 								})
 							}
-							crate::CallResult::Error(error) => TransactionTraceOutput::Error(error),
+							crate::api::CallResult::Error(error) => {
+								TransactionTraceOutput::Error(error)
+							}
 						},
 						subtraces: trace.subtraces,
 						trace_address: trace.trace_address.clone(),
@@ -233,7 +237,7 @@ impl CallListProxy {
 										address: created_contract_address_hash,
 									})
 								}
-								crate::CreateResult::Error { error } => {
+								crate::api::CreateResult::Error { error } => {
 									TransactionTraceOutput::Error(error)
 								}
 							},

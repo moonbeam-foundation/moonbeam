@@ -26,7 +26,6 @@ hex = { version = "0.4", features = ["serde"], optional = true}
 evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
 evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
 evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
-#moonbeam-rpc-core-debug = { path = "../../../client/rpc-core/debug" }
 
 [features]
 default = ["std"]

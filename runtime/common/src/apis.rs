@@ -87,7 +87,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+			impl moonbeam_rpc_primitives_debug::api::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
 					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,

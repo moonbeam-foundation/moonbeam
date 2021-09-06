@@ -14,10 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod evm_gasometer_types;
-pub mod evm_runtime_types;
-pub mod evm_types;
+use crate::listeners::raw::Listener;
+use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
 
-pub use evm_gasometer_types::GasometerEvent;
-pub use evm_runtime_types::RuntimeEvent;
-pub use evm_types::EvmEvent;
+pub struct Response;
+
+impl super::TraceResponseBuilder for Response {
+	type Listener = Listener;
+	type Response = TransactionTrace;
+
+	fn build(listener: Listener) -> Option<TransactionTrace> {
+		Some(TransactionTrace::Raw {
+			step_logs: listener.step_logs,
+			gas: listener.final_gas.into(),
+			return_value: listener.return_value,
+		})
+	}
+}
