@@ -3314,7 +3314,7 @@ dependencies = [
  "httpdate 1.0.1",
  "itoa",
  "pin-project-lite 0.2.7",
- "tokio 1.8.2",
+ "tokio 1.11.0",
  "tower-service",
  "tracing",
  "want 0.3.0",
@@ -5123,7 +5123,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-utils",
- "tokio 0.2.25",
+ "tokio 1.11.0",
 ]
 
 [[package]]
@@ -5186,7 +5186,8 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-utils",
- "tokio 0.2.25",
+ "tokio 1.11.0",
+ "tokio-stream",
  "tracing",
 ]
 
@@ -5393,7 +5394,7 @@ dependencies = [
  "substrate-test-runtime-client",
  "tiny-bip39 0.6.2",
  "tiny-hderive",
- "tokio 0.2.25",
+ "tokio 1.11.0",
  "trie-root 0.15.2",
 ]
 
@@ -12046,18 +12047,19 @@ dependencies = [
  "pin-project-lite 0.1.12",
  "signal-hook-registry",
  "slab",
- "tokio-macros",
  "winapi 0.3.9",
 ]
 
 [[package]]
 name = "tokio"
-version = "1.8.2"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2602b8af3767c285202012822834005f596c811042315fa7e9f5b12b2a43207"
+checksum = "b4efe6fc2395938c8155973d7be49fe8d03a843726e285e100a8a383cc0154ce"
 dependencies = [
  "autocfg 1.0.1",
+ "num_cpus",
  "pin-project-lite 0.2.7",
+ "tokio-macros",
 ]
 
 [[package]]
@@ -12126,9 +12128,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "0.2.6"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e44da00bfc73a25f814cd8d7e57a68a5c31b74b3152a0a1d1f590c97ed06265a"
+checksum = "54473be61f4ebe4efd09cec9bd5d16fa51d70ea0192213d754d2d500457db110"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -12198,6 +12200,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24da22d077e0f15f55162bdbdc661228c1581892f52074fb242678d015b45162"
 dependencies = [
  "futures 0.1.31",
+]
+
+[[package]]
+name = "tokio-stream"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b2f3f698253f03119ac0102beaa64f67a67e08074d03a22d18784104543727f"
+dependencies = [
+ "futures-core",
+ "pin-project-lite 0.2.7",
+ "tokio 1.11.0",
 ]
 
 [[package]]

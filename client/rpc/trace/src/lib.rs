@@ -34,7 +34,7 @@ use futures::{
 use std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
 use tokio::{
 	sync::{mpsc, oneshot, Semaphore},
-	time::delay_for,
+	time::sleep,
 };
 use tracing::{instrument, Instrument};
 
@@ -456,7 +456,7 @@ where
 			let mut batch_expirations = FuturesUnordered::new();
 			let (blocking_tx, blocking_rx) =
 				mpsc::channel(blocking_permits.available_permits() * 2);
-			let mut blocking_rx = blocking_rx.fuse();
+			let mut stream_rx = tokio_stream::wrappers::ReceiverStream::new(blocking_rx).fuse();
 
 			// Contains the inner state of the cache task, excluding the pooled futures/channels.
 			// Having this object allow to refactor each event into its own function, simplifying
@@ -486,7 +486,7 @@ where
 								// Cannot be refactored inside `request_stop_batch` because
 								// it has an unnamable type :C
 								batch_expirations.push(async move {
-									delay_for(cache_duration).await;
+									sleep(cache_duration).await;
 									batch_id
 								});
 
@@ -494,7 +494,7 @@ where
 							},
 						}
 					},
-					message = blocking_rx.next() => {
+					message = stream_rx.next() => {
 						match message {
 							None => (),
 							Some(BlockingTaskMessage::Started { block_hash })
@@ -547,7 +547,7 @@ where
 				let (unqueue_sender, unqueue_receiver) = oneshot::channel();
 				let client = Arc::clone(&self.client);
 				let backend = Arc::clone(&self.backend);
-				let mut blocking_tx = blocking_tx.clone();
+				let blocking_tx = blocking_tx.clone();
 
 				// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.

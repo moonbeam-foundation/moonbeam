@@ -8,7 +8,7 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-tokio = { version = "0.2.21", features = ["sync", "time"] }
+tokio = { version = "1.10", features = ["rt-multi-thread", "sync", "time"] }
 futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 
