@@ -441,7 +441,7 @@ pub fn run() -> Result<()> {
 
 					Ok((
 						command
-							.run::<service::moonbase_runtime::Block, service::MoonriverExecutor>(
+							.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
 								config,
 								service::moonbase_runtime::WASM_BINARY,
 							),
