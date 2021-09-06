@@ -198,7 +198,7 @@
           ]
         ]
       },
-      "treasury": {},
+      "treasury": null,
       "scheduler": null,
       "maintenanceMode": {
         "startInMaintenanceMode": false
