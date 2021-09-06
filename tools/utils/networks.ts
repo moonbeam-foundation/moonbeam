@@ -2,8 +2,9 @@ import { WsProvider } from "@polkadot/api";
 import chalk from "chalk";
 import { ApiPromise } from "@polkadot/api";
 import { typesBundle } from "../../moonbeam-types-bundle/dist";
-import { listenBlocks, printBlockDetails } from "./monitoring";
+import { listenBlocks, printRealtimeBlockDetails } from "./monitoring";
 import { Options } from "yargs";
+import Web3 from "web3";
 
 export type NETWORK_NAME = "stagenet" | "alphanet" | "moonsama" | "moonsilver" | "moonriver";
 
@@ -13,6 +14,13 @@ export const NETWORK_WS_URLS: { [name in NETWORK_NAME]: string } = {
   moonsama: "wss://wss.moonsama.gcp.purestake.run",
   moonsilver: "wss://wss.moonsilver.moonbeam.network",
   moonriver: "wss://wss.moonriver.moonbeam.network",
+};
+export const NETWORK_HTTP_URLS: { [name in NETWORK_NAME]: string } = {
+  stagenet: "https://rpc.stagenet.moonbeam.gcp.purestake.run",
+  alphanet: "https://rpc.testnet.moonbeam.network",
+  moonsama: "https://rpc.moonsama.gcp.purestake.run",
+  moonsilver: "https://rpc.moonsilver.moonbeam.network",
+  moonriver: "https://rpc.moonriver.moonbeam.network",
 };
 export const NETWORK_NAMES = Object.keys(NETWORK_WS_URLS) as NETWORK_NAME[];
 
@@ -68,14 +76,14 @@ export const getApiFor = async (name_or_url: NETWORK_NAME | string) => {
   });
 };
 
-export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string) => {
+export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string, finalized = false) => {
   const wsProvider = getWsProviderFor(name_or_url);
   const api = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle,
   });
-  listenBlocks(api, async (blockDetails) => {
-    printBlockDetails(blockDetails, {
+  listenBlocks(api, finalized, async (blockDetails) => {
+    printRealtimeBlockDetails(blockDetails, {
       prefix: isKnownNetwork(name_or_url)
         ? NETWORK_COLORS[name_or_url](name_or_url.padStart(10, " "))
         : undefined,
@@ -84,9 +92,9 @@ export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string) => 
   return api;
 };
 
-export async function monitorNetwork(name_or_url: NETWORK_NAME | string) {}
-
-type NetworkArgv = {
-  url?: string;
-  network?: string;
+export const getWeb3For = async (name_or_url: NETWORK_NAME | string) => {
+  if (isKnownNetwork(name_or_url)) {
+    return new Web3(NETWORK_WS_URLS[name_or_url]);
+  }
+  return new Web3(name_or_url);
 };

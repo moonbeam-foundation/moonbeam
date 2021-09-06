@@ -19,6 +19,11 @@ const argv = yargs(process.argv.slice(2))
       description: "Known networks",
       string: true,
     },
+    finalized: {
+      type: "boolean",
+      default: false,
+      description: "listen to finalized only",
+    },
   })
   .check(function (argv) {
     if (!argv.url && !argv.networks) {
@@ -29,9 +34,9 @@ const argv = yargs(process.argv.slice(2))
 
 const main = async () => {
   if (argv.networks) {
-    argv.networks.map(getMonitoredApiFor);
+    argv.networks.map((network) => getMonitoredApiFor(network, argv.finalized));
   } else {
-    getMonitoredApiFor(argv.url);
+    getMonitoredApiFor(argv.url, argv.finalized);
   }
 };
 

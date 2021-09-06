@@ -9,15 +9,13 @@ export interface BlockDetails {
   blockTime: number;
   records: EventRecord[];
   txWithEvents: TxWithEvent[];
-  pendingTxs: Extrinsic[];
   weightPercentage: number;
 }
 
 const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash) => {
   const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
-  const [{ block }, pendingTxs, records, blockTime] = await Promise.all([
+  const [{ block }, records, blockTime] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
-    api.rpc.author.pendingExtrinsics(),
     api.query.system.events.at(blockHash),
     api.query.timestamp.now.at(blockHash),
   ]);
@@ -31,7 +29,6 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash) => {
     blockTime: blockTime.toNumber(),
     weightPercentage: Number((blockWeight * 10000n) / maxBlockWeight) / 100,
     txWithEvents,
-    pendingTxs,
     records,
   } as BlockDetails;
 };
@@ -63,13 +60,15 @@ export const exploreBlockRange = async (
   }
 };
 
-export interface ContinuousBlockDetails extends BlockDetails {
+export interface RealtimeBlockDetails extends BlockDetails {
   elapsedMilliSecs: number;
+  pendingTxs: Extrinsic[];
 }
 
 export const listenBlocks = async (
   api: ApiPromise,
-  callBack: (blockDetails: ContinuousBlockDetails) => Promise<void>
+  finalized: boolean,
+  callBack: (blockDetails: RealtimeBlockDetails) => Promise<void>
 ) => {
   let latestBlockTime = 0;
   try {
@@ -80,25 +79,53 @@ export const listenBlocks = async (
     // This can happen if you start at genesis block
     latestBlockTime = 0;
   }
-  const unsubHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-    const blockDetails = await getBlockDetails(api, lastHeader.hash);
-    callBack({ ...blockDetails, elapsedMilliSecs: blockDetails.blockTime - latestBlockTime });
+  const call = finalized ? api.rpc.chain.subscribeFinalizedHeads : api.rpc.chain.subscribeNewHeads;
+  const unsubHeads = await call(async (lastHeader) => {
+    const [blockDetails, pendingTxs] = await Promise.all([
+      getBlockDetails(api, lastHeader.hash),
+      api.rpc.author.pendingExtrinsics(),
+    ]);
+    callBack({
+      ...blockDetails,
+      pendingTxs,
+      elapsedMilliSecs: blockDetails.blockTime - latestBlockTime,
+    });
     latestBlockTime = blockDetails.blockTime;
   });
   return unsubHeads;
 };
 
-export function printBlockDetails(
-  { block, pendingTxs, elapsedMilliSecs, weightPercentage }: ContinuousBlockDetails,
-  options?: { prefix: string }
+export const listenBestBlocks = async (
+  api: ApiPromise,
+  callBack: (blockDetails: RealtimeBlockDetails) => Promise<void>
+) => {
+  listenBlocks(api, false, callBack);
+};
+
+export const listenFinalizedBlocks = async (
+  api: ApiPromise,
+  callBack: (blockDetails: RealtimeBlockDetails) => Promise<void>
+) => {
+  listenBlocks(api, true, callBack);
+};
+
+export function printDetails(
+  block,
+  pendingTxs,
+  elapsedMilliSecs,
+  weightPercentage,
+  options?: { prefix?: string; suffix?: string }
 ) {
-  const seconds = (Math.floor(elapsedMilliSecs / 100) / 10).toFixed(1).padStart(5, " ");
-  const secondText =
-    elapsedMilliSecs > 30000
+  const seconds = elapsedMilliSecs
+    ? (Math.floor(elapsedMilliSecs / 100) / 10).toFixed(1).padStart(5, " ")
+    : null;
+  const secondText = elapsedMilliSecs
+    ? elapsedMilliSecs > 30000
       ? chalk.red(seconds)
       : elapsedMilliSecs > 14000
       ? chalk.yellow(seconds)
-      : seconds;
+      : seconds
+    : null;
 
   const weight = weightPercentage.toFixed(2).padStart(5, " ");
   const weightText =
@@ -108,13 +135,14 @@ export function printBlockDetails(
       ? chalk.yellow(weight)
       : weight;
 
-  const txPool = pendingTxs.length.toString().padStart(5, " ");
-  const txPoolText =
-    pendingTxs.length > 1000
+  const txPool = pendingTxs ? pendingTxs.length.toString().padStart(5, " ") : null;
+  const txPoolText = pendingTxs
+    ? pendingTxs.length > 1000
       ? chalk.red(txPool)
       : pendingTxs.length > 100
       ? chalk.yellow(txPool)
-      : txPool;
+      : txPool
+    : null;
 
   const ext = block.extrinsics.length.toString().padStart(4, " ");
   const extText =
@@ -126,9 +154,28 @@ export function printBlockDetails(
       ? chalk.green(ext)
       : ext;
 
+  const hash = block.header.hash.toString();
   console.log(
     `${options?.prefix ? `${options.prefix} ` : ""}Block ${block.header.number
       .toString()
-      .padEnd(7, " ")} [${weightText}%][Ext:${extText}][Pool:${txPoolText}][${secondText}s]`
+      .padEnd(7, " ")} [${weightText}%][Ext:${extText}]${pendingTxs ? `[Pool:${txPoolText}]` : ``}${
+      elapsedMilliSecs ? `[${secondText}s]` : ""
+    }(hash: ${hash.substring(0, 7)}...${hash.substring(hash.length - 4)})${
+      options?.suffix ? ` ${options.suffix}` : ""
+    }`
   );
+}
+
+export function printRealtimeBlockDetails(
+  { block, pendingTxs, elapsedMilliSecs, weightPercentage }: RealtimeBlockDetails,
+  options?: { prefix?: string; suffix?: string }
+) {
+  return printDetails(block, pendingTxs, elapsedMilliSecs, weightPercentage, options);
+}
+
+export function printBlockDetails(
+  { block, weightPercentage }: BlockDetails,
+  options?: { prefix?: string; suffix?: string }
+) {
+  return printDetails(block, null, null, weightPercentage, options);
 }
