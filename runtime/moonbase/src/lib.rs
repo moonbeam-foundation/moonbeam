@@ -45,7 +45,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use pallet_balances::{NegativeImbalance, PositiveImbalance};
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
@@ -133,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0400,
+	spec_version: 0600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,

@@ -1734,6 +1734,16 @@ pub mod pallet {
 					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
 				}
 			};
+			// only pay out rewards at the end to transfer only total amount due
+			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
+			let mut increase_due_rewards = |amt: BalanceOf<T>, to: T::AccountId| {
+				if let Some(already_due) = due_rewards.get(&to) {
+					let amount = amt.saturating_add(*already_due);
+					due_rewards.insert(to, amount);
+				} else {
+					due_rewards.insert(to, amt);
+				}
+			};
 			let collator_fee = <CollatorCommission<T>>::get();
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
@@ -1754,9 +1764,12 @@ pub mod pallet {
 					for Bond { owner, amount } in state.nominators {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						mint(due, owner);
+						increase_due_rewards(due, owner);
 					}
 				}
+			}
+			for (nominator, total_due) in due_rewards {
+				mint(total_due, nominator);
 			}
 		}
 		/// Executes all collator exits scheduled for when <= now
