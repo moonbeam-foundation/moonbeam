@@ -152,8 +152,8 @@ jobs:
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=docker manifest inspect $DOCKER_TAG > /dev/null && \
-            echo "true" || echo "false"
+          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+            echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
