@@ -853,6 +853,8 @@
 <span id="853">853</span>
 <span id="854">854</span>
 <span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1021,7 +1023,7 @@
 	(
 		<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Client</span><span class="op">&gt;</span>,
 		<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullBackend</span><span class="op">&gt;</span>,
-		<span class="ident">sp_consensus::import_queue::BasicQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">PrefixedMemoryDB</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">sc_consensus::BasicQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">PrefixedMemoryDB</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">TaskManager</span>,
 	),
 	<span class="ident">ServiceError</span>,
@@ -1094,7 +1096,7 @@
 		<span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>,
 		<span class="ident">FullBackend</span>,
 		<span class="ident">MaybeSelectChain</span>,
-		<span class="ident">sp_consensus::DefaultImportQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">sc_consensus::DefaultImportQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">sc_transaction_pool::FullPool</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		(
 			<span class="ident">FrontierBlockImport</span><span class="op">&lt;</span>
@@ -1227,7 +1229,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">transaction</span>: <span class="ident">ethereum_primitives::Transaction</span>,
+		<span class="ident">transaction</span>: <span class="ident">ethereum_primitives::TransactionV0</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">moonbeam_core_primitives::UncheckedExtrinsic</span> {
 		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span> {
 			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">convert_transaction</span>(<span class="ident">transaction</span>),
@@ -1300,6 +1302,7 @@
 			<span class="ident">import_queue</span>: <span class="ident">import_queue</span>.<span class="ident">clone</span>(),
 			<span class="ident">on_demand</span>: <span class="prelude-val">None</span>,
 			<span class="ident">block_announce_validator_builder</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">block_announce_validator</span>)),
+			<span class="ident">warp_sync</span>: <span class="prelude-val">None</span>,
 		})<span class="question-mark">?</span>;
 
 	<span class="kw">let</span> <span class="ident">subscription_task_executor</span> <span class="op">=</span>
@@ -1360,7 +1363,7 @@
 				<span class="ident">transaction_converter</span>,
 			};
 
-			<span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>())
+			<span class="prelude-val">Ok</span>(<span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>()))
 		})
 	};
 
@@ -1521,6 +1524,7 @@
 			<span class="ident">import_queue</span>,
 			<span class="ident">on_demand</span>: <span class="prelude-val">None</span>,
 			<span class="ident">block_announce_validator_builder</span>: <span class="prelude-val">None</span>,
+			<span class="ident">warp_sync</span>: <span class="prelude-val">None</span>,
 		})<span class="question-mark">?</span>;
 
 	<span class="kw">if</span> <span class="ident">config</span>.<span class="ident">offchain_worker</span>.<span class="ident">enabled</span> {
@@ -1604,7 +1608,7 @@
 				<span class="ident">block_import</span>,
 				<span class="ident">env</span>,
 				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
-				<span class="ident">pool</span>: <span class="ident">transaction_pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
+				<span class="ident">pool</span>: <span class="ident">transaction_pool</span>.<span class="ident">clone</span>(),
 				<span class="ident">commands_stream</span>,
 				<span class="ident">select_chain</span>,
 				<span class="ident">consensus_data_provider</span>: <span class="prelude-val">None</span>,
@@ -1685,7 +1689,7 @@
 				<span class="ident">max_past_logs</span>,
 				<span class="ident">transaction_converter</span>,
 			};
-			<span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>())
+			<span class="prelude-val">Ok</span>(<span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>()))
 		})
 	};
 

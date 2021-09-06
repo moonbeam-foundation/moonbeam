@@ -143,6 +143,8 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -166,13 +168,15 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_txpool</span>::{
 	<span class="ident">GetT</span>, <span class="ident">Summary</span>, <span class="ident">Transaction</span>, <span class="ident">TransactionMap</span>, <span class="ident">TxPool</span> <span class="kw">as</span> <span class="ident">TxPoolT</span>, <span class="ident">TxPoolResult</span>, <span class="ident">TxPoolServer</span>,
 };
-<span class="kw">use</span> <span class="ident">sc_transaction_graph</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
+<span class="comment">// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.</span>
+<span class="comment">// Is it only for tests? Should we use it here?</span>
+<span class="kw">use</span> <span class="ident">sc_transaction_pool::test_helpers</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
+<span class="kw">use</span> <span class="ident">sc_transaction_pool_api::InPoolTransaction</span>;
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
-<span class="kw">use</span> <span class="ident">sp_transaction_pool::InPoolTransaction</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">sync::Arc</span>};
 

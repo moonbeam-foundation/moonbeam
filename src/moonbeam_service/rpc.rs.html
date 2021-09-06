@@ -365,6 +365,8 @@
 <span id="365">365</span>
 <span id="366">366</span>
 <span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -420,14 +422,16 @@
 <span class="kw">use</span> <span class="ident">sc_rpc::SubscriptionTaskExecutor</span>;
 <span class="kw">use</span> <span class="ident">sc_rpc_api::DenyUnsafe</span>;
 <span class="kw">use</span> <span class="ident">sc_service::TaskManager</span>;
-<span class="kw">use</span> <span class="ident">sc_transaction_graph</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
+<span class="comment">// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.</span>
+<span class="comment">// Is it only for tests? Should we use it here?</span>
+<span class="kw">use</span> <span class="ident">sc_transaction_pool::test_helpers</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
+<span class="kw">use</span> <span class="ident">sc_transaction_pool_api::TransactionPool</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_core::H256</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>};
-<span class="kw">use</span> <span class="ident">sp_transaction_pool::TransactionPool</span>;
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">substrate_frame_rpc_system</span>::{<span class="ident">FullSystem</span>, <span class="ident">SystemApi</span>};
 <span class="kw">use</span> <span class="ident">tokio::sync::Semaphore</span>;
