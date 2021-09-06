@@ -17,13 +17,13 @@
 use crate::listeners::call_list::Listener;
 use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
 
-pub struct Response;
+pub struct Formatter;
 
-impl super::TraceResponseBuilder for Response {
+impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = TransactionTrace;
 
-	fn build(listener: Listener) -> Option<TransactionTrace> {
+	fn format(listener: Listener) -> Option<TransactionTrace> {
 		if let Some(entry) = listener.entries.last() {
 			return Some(TransactionTrace::CallList(
 				entry.into_iter().map(|(_, value)| value.clone()).collect(),

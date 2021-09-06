@@ -52,7 +52,7 @@ use ethereum_types::H256;
 use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
 
-use moonbeam_client_evm_tracing::formaters::TraceResponseBuilder;
+use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer,
 };
@@ -878,9 +878,7 @@ where
 							height, e
 						))
 					})?;
-				Ok(moonbeam_rpc_primitives_debug::v1::Result::V2(
-					moonbeam_rpc_primitives_debug::v1::ResultV2::Block,
-				))
+				Ok(moonbeam_rpc_primitives_debug::v2::Response::Block.into())
 			} else if api_version == 2 {
 				let _result = api
 					.trace_block(&substrate_parent_id, &block_header, extrinsics)
@@ -901,9 +899,7 @@ where
 							height, e
 						))
 					})?;
-				Ok(moonbeam_rpc_primitives_debug::v1::Result::V2(
-					moonbeam_rpc_primitives_debug::v1::ResultV2::Block,
-				))
+				Ok(moonbeam_rpc_primitives_debug::v2::Response::Block.into())
 			} else {
 				// For versions < 2 block needs to be manually initialized.
 				api.initialize_block(&substrate_parent_id, &block_header)
@@ -928,9 +924,7 @@ where
 							height, e
 						))
 					})?;
-				Ok(moonbeam_rpc_primitives_debug::v1::Result::V1(
-					moonbeam_rpc_primitives_debug::v1::ResultV1::Block(result),
-				))
+				Ok(moonbeam_rpc_primitives_debug::v1::Response::Block(result).into())
 			}
 		};
 
@@ -938,8 +932,7 @@ where
 			let mut proxy = moonbeam_client_evm_tracing::listeners::call_list::Listener::default();
 			proxy.using(f)?;
 			let mut traces: Vec<_> =
-				moonbeam_client_evm_tracing::formaters::trace_filter::Response::build(proxy)
-					.unwrap();
+				moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy).unwrap();
 			// Fill missing data.
 			for trace in traces.iter_mut() {
 				trace.block_hash = eth_block_hash;
@@ -1001,8 +994,8 @@ where
 		} else {
 			let mut proxy = moonbeam_rpc_primitives_debug::v1::CallListProxy::new();
 			match proxy.using(f) {
-				Ok(moonbeam_rpc_primitives_debug::v1::Result::V1(
-					moonbeam_rpc_primitives_debug::v1::ResultV1::Block(result),
+				Ok(moonbeam_rpc_primitives_debug::Response::V1(
+					moonbeam_rpc_primitives_debug::v1::Response::Block(result),
 				)) => Ok(result),
 				Err(e) => Err(e),
 				_ => Err(internal_err(format!(

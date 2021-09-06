@@ -24,13 +24,13 @@ use moonbeam_rpc_primitives_debug::api::{
 	CallResult, CreateResult, CreateType,
 };
 
-pub struct Response;
+pub struct Formatter;
 
-impl super::TraceResponseBuilder for Response {
+impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = Vec<TransactionTrace>;
 
-	fn build(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
+	fn format(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
 		// Remove empty BTreeMaps pushed to `entries`.
 		// I.e. InvalidNonce or other pallet_evm::runner exits
 		listener.entries.retain(|x| !x.is_empty());

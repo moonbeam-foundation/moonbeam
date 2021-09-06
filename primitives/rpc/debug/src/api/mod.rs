@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Runtime API allowing to debug/trace Ethereum transactions.
+//! Runtime API allowing to debug/trace Ethereum
 
 use codec::{Decode, Encode};
 use ethereum::Transaction;

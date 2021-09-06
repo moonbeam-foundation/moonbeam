@@ -18,12 +18,16 @@ pub mod blockscout;
 pub mod raw;
 pub mod trace_filter;
 
+pub use blockscout::Formatter as Blockscout;
+pub use raw::Formatter as Raw;
+pub use trace_filter::Formatter as TraceFilter;
+
 use moonbeam_rpc_primitives_debug::v2::Listener;
 use serde::Serialize;
 
-pub trait TraceResponseBuilder {
+pub trait ResponseFormatter {
 	type Listener: Listener;
 	type Response: Serialize;
 
-	fn build(listener: Self::Listener) -> Option<Self::Response>;
+	fn format(listener: Self::Listener) -> Option<Self::Response>;
 }

@@ -17,13 +17,13 @@
 use crate::listeners::raw::Listener;
 use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
 
-pub struct Response;
+pub struct Formatter;
 
-impl super::TraceResponseBuilder for Response {
+impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = TransactionTrace;
 
-	fn build(listener: Listener) -> Option<TransactionTrace> {
+	fn format(listener: Listener) -> Option<TransactionTrace> {
 		Some(TransactionTrace::Raw {
 			step_logs: listener.step_logs,
 			gas: listener.final_gas.into(),

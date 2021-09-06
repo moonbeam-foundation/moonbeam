@@ -23,3 +23,22 @@ pub mod api;
 
 pub mod v1;
 pub mod v2;
+
+/// Runtime api closure result.
+#[derive(Debug)]
+pub enum Response {
+	V1(v1::Response),
+	V2(v2::Response),
+}
+
+impl From<v1::Response> for Response {
+	fn from(source: v1::Response) -> Self {
+		Self::V1(source)
+	}
+}
+
+impl From<v2::Response> for Response {
+	fn from(source: v2::Response) -> Self {
+		Self::V2(source)
+	}
+}

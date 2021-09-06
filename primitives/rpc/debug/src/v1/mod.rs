@@ -73,24 +73,9 @@ impl Event {
 /// DebugRuntimeApi V1 result. Trace response is stored in runtime memory and returned as part of
 /// the runtime api call.
 #[derive(Debug)]
-pub enum ResultV1 {
+pub enum Response {
 	Single(SingleTrace),
 	Block(Vec<BlockTrace>),
-}
-
-/// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is
-/// empty.
-#[derive(Debug)]
-pub enum ResultV2 {
-	Single,
-	Block,
-}
-
-/// Runtime api closure result.
-#[derive(Debug)]
-pub enum Result {
-	V1(ResultV1),
-	V2(ResultV2),
 }
 
 #[derive(Debug)]
