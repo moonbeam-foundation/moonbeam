@@ -475,35 +475,329 @@ pub mod pallet {
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Nominator state
-	/// -> todo: replace nominator2 with nominator
+	/// -> TODO: replace nominator2 with nominator throughout the code
 	pub struct Nominator<AccountId, Balance> {
 		/// All current nominations
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
 		/// Total balance locked for this nominator
 		pub total: Balance,
-		/// Requests to exit, relevant iff active
-		pub requests: ExitRequests<AccountId, Balance>,
+		/// Requests to change nominations, relevant iff active
+		pub requests: PendingRequests<AccountId, Balance>,
 		/// Status for this nominator
 		pub status: NominatorStatus,
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
-	pub enum ScheduledNominatorAction<AccountId, Balance> {
-		Revoke(AccountId, RoundIndex),
-		BondLess(AccountId, Balance, RoundIndex),
-		BondMore(AccountId, Balance, RoundIndex),
+	impl<
+			AccountId: Ord + Clone + Default,
+			Balance: Copy
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::Add<Output = Balance>
+				+ sp_std::ops::SubAssign
+				+ sp_std::ops::Sub<Output = Balance>
+				+ Ord
+				+ Zero
+				+ Default,
+		> Nominator<AccountId, Balance>
+	{
+		pub fn new(collator: AccountId, amount: Balance) -> Self {
+			Nominator {
+				nominations: OrderedSet::from(vec![Bond {
+					owner: collator,
+					amount,
+				}]),
+				total: amount,
+				requests: PendingRequests::new(),
+				status: NominatorStatus::Active,
+			}
+		}
+		pub fn is_active(&self) -> bool {
+			matches!(self.status, NominatorStatus::Active)
+		}
+		pub fn is_leaving(&self) -> bool {
+			matches!(self.status, NominatorStatus::Leaving(_))
+		}
+		/// Set nominator status to exit
+		pub fn leave(&mut self, when: RoundIndex) {
+			self.status = NominatorStatus::Leaving(when)
+		}
+		pub fn add_nomination(&mut self, bond: Bond<AccountId, Balance>) -> bool {
+			let amt = bond.amount;
+			if self.nominations.insert(bond) {
+				self.total += amt;
+				true
+			} else {
+				false
+			}
+		}
+		// Return Some(remaining balance), must be more than MinNominatorStk
+		// Return None if nomination not found
+		pub fn rm_nomination(&mut self, collator: AccountId) -> Option<Balance> {
+			let mut amt: Option<Balance> = None;
+			let nominations = self
+				.nominations
+				.0
+				.iter()
+				.filter_map(|x| {
+					if x.owner == collator {
+						amt = Some(x.amount);
+						None
+					} else {
+						Some(x.clone())
+					}
+				})
+				.collect();
+			if let Some(balance) = amt {
+				self.nominations = OrderedSet::from(nominations);
+				self.total -= balance;
+				Some(self.total)
+			} else {
+				None
+			}
+		}
+		// Return false if nomination not found
+		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> bool {
+			for x in &mut self.nominations.0 {
+				if x.owner == collator {
+					x.amount += more;
+					self.total += more;
+					return true;
+				}
+			}
+			false
+		}
+		// Return Some(Some(balance)) if successful
+		// Return None if nomination not found
+		// Return Some(None) if less >= nomination_total
+		pub fn dec_nomination(
+			&mut self,
+			collator: AccountId,
+			less: Balance,
+		) -> Option<Option<Balance>> {
+			for x in &mut self.nominations.0 {
+				if x.owner == collator {
+					if x.amount > less {
+						x.amount -= less;
+						self.total -= less;
+						return Some(Some(x.amount));
+					} else {
+						// must rm entire nomination if x.amount <= less
+						return Some(None);
+					}
+				}
+			}
+			None
+		}
+		/// Schedule revocation for the given collator
+		/// TODO: do we ever have amount with caller context, if so write new path to pass as arg
+		pub fn schedule_revoke<T: Config>(
+			&mut self,
+			collator: AccountId,
+			when: RoundIndex,
+		) -> Result<Balance, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			// get nomination amount
+			let mut nomination_amt: Option<Balance> = None;
+			for Bond { owner, amount } in &self.nominations.0 {
+				if owner == &collator {
+					nomination_amt = Some(*amount);
+					break;
+				}
+			}
+			let amount = nomination_amt.ok_or(Error::<T>::NominationDNE)?;
+			// Net Total is total after pending orders are executed
+			let net_total = self.total - self.requests.less_total + self.requests.more_total;
+			// calculate max amount allowed to be revoked for this nominator to not fall below min
+			// if this subtraction underflows, then \exists inconsistency
+			let max_revocation_amount = net_total - T::MinNominatorStk::get().into();
+			ensure!(amount <= max_revocation_amount, Error::<T>::ValBondBelowMin);
+			// add revocation to pending requests
+			self.requests.revoke::<T>(collator, amount, when)?;
+			Ok(amount)
+		}
+		pub fn cancel_revoke<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
+			let request = self
+				.requests
+				.request_per_collator
+				.get(&collator)
+				.ok_or(Error::<T>::NominatorDNE)?; // TODO: relevant error
+			ensure!(
+				matches!(request.action, NominatorAction::Revoke),
+				Error::<T>::NominatorDNE
+			); // TODO relevant error
+			self.requests.rm_request(collator);
+			Ok(())
+		}
+		// TODO: this is the real API, not the returned one I initially wrote up
+		pub fn execute_revoke<T: Config>(
+			&mut self,
+			collator: AccountId,
+			now: RoundIndex,
+		) -> DispatchResult {
+			let request = self
+				.requests
+				.request_per_collator
+				.get(&collator)
+				.ok_or(Error::<T>::NominatorDNE)?; // TODO: relevant error
+			ensure!(
+				matches!(request.action, NominatorAction::Revoke),
+				Error::<T>::NominatorDNE
+			); // TODO relevant error
+			ensure!(request.when <= now, Error::<T>::NominatorDNE); // TODO relevant error
+			self.requests.rm_request(collator);
+			// TODO: remove revocation from local state properly
+			Ok(())
+		}
 	}
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
-	/// Requests to exit and/or change nominations for each nominator
-	pub struct ExitRequests<AccountId, Balance> {
-		pub revocations: OrderedSet<AccountId>,
-		pub bond_less_totals: BTreeMap<AccountId, Balance>,
-		pub bond_more_totals: BTreeMap<AccountId, Balance>,
-		pub requests: Vec<ScheduledNominatorAction<AccountId, Balance>>,
-		pub revocations_total: Balance,
-		pub bond_less_total: Balance,
-		pub bond_more_total: Balance,
+	/// Actions requested by the nominator
+	pub enum NominatorAction {
+		Revoke,
+		BondLess,
+		BondMore,
+	}
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	pub struct NominationChange<AccountId, Balance> {
+		pub collator: AccountId,
+		pub amount: Balance,
+		pub when: RoundIndex,
+		pub action: NominatorAction,
+	}
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	/// Pending requests to mutate nominations for each nominator
+	pub struct PendingRequests<AccountId, Balance> {
+		/// Map from collator -> Request (enforces at most 1 pending request per nomination)
+		pub request_per_collator: BTreeMap<AccountId, NominationChange<AccountId, Balance>>,
+		/// Sum of pending revocation amounts + bond less amounts
+		pub less_total: Balance,
+		/// Sum of pending bond more amounts
+		pub more_total: Balance,
+	}
+
+	impl<A: Ord, B: Zero> Default for PendingRequests<A, B> {
+		fn default() -> PendingRequests<A, B> {
+			PendingRequests {
+				request_per_collator: BTreeMap::new(),
+				less_total: B::zero(),
+				more_total: B::zero(),
+			}
+		}
+	}
+
+	impl<
+			A: Ord + Clone,
+			B: Zero
+				+ Ord
+				+ Copy
+				+ Clone
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::Add<Output = B>
+				+ sp_std::ops::SubAssign
+				+ sp_std::ops::Sub<Output = B>,
+		> PendingRequests<A, B>
+	{
+		/// New default (empty) pending requests
+		pub fn new() -> PendingRequests<A, B> {
+			PendingRequests::default()
+		}
+		/// Add bond more order to pending requests
+		pub fn bond_more<T: Config>(
+			&mut self,
+			collator: A,
+			amount: B,
+			when: RoundIndex,
+		) -> DispatchResult {
+			// cannot make request anything if pending existing request
+			ensure!(
+				self.request_per_collator.get(&collator).is_none(),
+				Error::<T>::NominatorDNE
+			);
+			self.request_per_collator.insert(
+				collator.clone(),
+				NominationChange {
+					collator,
+					amount,
+					when,
+					action: NominatorAction::BondMore,
+				},
+			);
+			self.more_total += amount;
+			Ok(())
+		}
+		/// Add bond less order to pending requests, only succeeds if returns true
+		/// - limit is the maximum amount allowed that can be subtracted from the nomination
+		/// before it would be below the minimum nomination amount
+		pub fn bond_less<T: Config>(
+			&mut self,
+			collator: A,
+			amount: B,
+			when: RoundIndex,
+		) -> DispatchResult {
+			// cannot make request anything if pending existing request
+			ensure!(
+				self.request_per_collator.get(&collator).is_none(),
+				Error::<T>::NominatorDNE
+			);
+			self.request_per_collator.insert(
+				collator.clone(),
+				NominationChange {
+					collator,
+					amount,
+					when,
+					action: NominatorAction::BondLess,
+				},
+			);
+			self.less_total += amount;
+			Ok(())
+		}
+		/// Add revoke order to pending requests
+		/// - limit is the maximum amount allowed that can be subtracted from the nomination
+		/// before it would be below the minimum nomination amount
+		pub fn revoke<T: Config>(
+			&mut self,
+			collator: A,
+			amount: B,
+			when: RoundIndex,
+		) -> DispatchResult {
+			// cannot make request anything if pending existing request
+			ensure!(
+				self.request_per_collator.get(&collator).is_none(),
+				Error::<T>::NominatorDNE
+			);
+			self.request_per_collator.insert(
+				collator.clone(),
+				NominationChange {
+					collator,
+					amount,
+					when,
+					action: NominatorAction::Revoke,
+				},
+			);
+			self.less_total += amount;
+			Ok(())
+		}
+		/// Helper function to isolate request removal logic
+		/// - useful before expected execution or cancellation
+		pub fn rm_request(&mut self, collator: A) {
+			if let Some(order) = self.request_per_collator.get(&collator) {
+				match order.action {
+					NominatorAction::Revoke => {
+						self.less_total -= order.amount;
+					}
+					NominatorAction::BondLess => {
+						self.less_total -= order.amount;
+					}
+					NominatorAction::BondMore => {
+						self.more_total -= order.amount;
+					}
+				}
+				self.request_per_collator.remove(&collator);
+			}
+		}
 	}
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
