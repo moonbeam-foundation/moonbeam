@@ -25,7 +25,7 @@ yarn install
 ### Usage
 
 ```
-yarn run launch --parachain alphanet-8.1
+yarn run launch --parachain moonbase-0.11.2
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).

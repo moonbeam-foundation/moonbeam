@@ -968,3 +968,19 @@ fn multiplier_growth_simulator() {
 		println!("block = {} multiplier {:?}", blocks, multiplier);
 	}
 }
+
+#[test]
+fn ethereum_invalid_transaction() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Ensure an extrinsic not containing enough gas limit to store the transaction
+		// on chain is rejected.
+		assert_eq!(
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
+			Err(
+				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+				)
+			)
+		);
+	});
+}
