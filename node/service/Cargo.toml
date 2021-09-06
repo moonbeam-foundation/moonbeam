@@ -144,6 +144,7 @@ default = [ "kusama-native", "westend-native", "rococo-native" ]
 kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
 westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
 rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
+evm-tracing = [ "moonbeam-runtime/evm-tracing", "moonriver-runtime/evm-tracing", "moonbase-runtime/evm-tracing" ]
 
 test-spec = []
 

@@ -222,16 +222,18 @@ where
 		);
 	};
 
-	if let Some(trace_filter_requester) = trace_filter_requester {
-		io.extend_with(TraceServer::to_delegate(Trace::new(
-			client,
-			trace_filter_requester,
-			trace_filter_max_count,
-		)));
-	}
+	if cfg!(feature = "evm-tracing") {
+		if let Some(trace_filter_requester) = trace_filter_requester {
+			io.extend_with(TraceServer::to_delegate(Trace::new(
+				client,
+				trace_filter_requester,
+				trace_filter_max_count,
+			)));
+		}
 
-	if let Some(debug_requester) = debug_requester {
-		io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
+		if let Some(debug_requester) = debug_requester {
+			io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
+		}
 	}
 
 	io
@@ -246,8 +248,8 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub filter_pool: Option<FilterPool>,
 }
 
-/// Spawn the tasks that are required to run Moonbeam.
-pub fn spawn_tasks<B, C, BE>(
+/// Spawn the tasks that are required to run a Moonbeam tracing node.
+pub fn spawn_tracing_tasks<B, C, BE>(
 	rpc_config: &RpcConfig,
 	params: SpawnTasksParams<B, C, BE>,
 ) -> RpcRequesters
@@ -256,7 +258,7 @@ where
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<B>,
 	C: Send + Sync + 'static,
-	C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B> + DebugRuntimeApi<B>,
+	C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B>,
 	C::Api: BlockBuilder<B>,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	B::Header: HeaderT<Number = u32>,
@@ -290,21 +292,6 @@ where
 		(None, None)
 	};
 
-	// Frontier offchain DB task. Essential.
-	// Maps emulated ethereum data to substrate native data.
-	params.task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		MappingSyncWorker::new(
-			params.client.import_notification_stream(),
-			Duration::new(6, 0),
-			params.client.clone(),
-			params.substrate_backend.clone(),
-			params.frontier_backend.clone(),
-			SyncStrategy::Parachain,
-		)
-		.for_each(|()| futures::future::ready(())),
-	);
-
 	// `trace_filter` cache task. Essential.
 	// Proxies rpc requests to it's handler.
 	if let Some(trace_filter_task) = trace_filter_task {
@@ -322,6 +309,41 @@ where
 			.spawn_essential_handle()
 			.spawn("ethapi-debug", debug_task);
 	}
+
+	RpcRequesters {
+		debug: debug_requester,
+		trace: trace_filter_requester,
+	}
+}
+
+/// Spawn the tasks that are required to run Moonbeam.
+pub fn spawn_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
+where
+	C: ProvideRuntimeApi<B> + BlockOf,
+	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
+	C: BlockchainEvents<B>,
+	C: Send + Sync + 'static,
+	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: BlockBuilder<B>,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	B::Header: HeaderT<Number = u32>,
+	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
+{
+	// Frontier offchain DB task. Essential.
+	// Maps emulated ethereum data to substrate native data.
+	params.task_manager.spawn_essential_handle().spawn(
+		"frontier-mapping-sync-worker",
+		MappingSyncWorker::new(
+			params.client.import_notification_stream(),
+			Duration::new(6, 0),
+			params.client.clone(),
+			params.substrate_backend.clone(),
+			params.frontier_backend.clone(),
+			SyncStrategy::Parachain,
+		)
+		.for_each(|()| futures::future::ready(())),
+	);
 
 	// Frontier `EthFilterApi` maintenance.
 	// Manages the pool of user-created Filters.
@@ -359,9 +381,4 @@ where
 			Arc::clone(&params.frontier_backend),
 		),
 	);
-
-	RpcRequesters {
-		debug: debug_requester,
-		trace: trace_filter_requester,
-	}
 }

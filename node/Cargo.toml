@@ -28,6 +28,7 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
 [features]
+evm-tracing = [ "moonbeam-service/evm-tracing", "moonbeam-cli/evm-tracing" ]
 default = []
 
 test-spec = []

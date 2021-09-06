@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cli_opt::RpcConfig;
+use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -205,6 +205,11 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
+	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
+		&& cfg!(not(feature = "evm-tracing"))
+	{
+		return Err("`--ethapi` only available on `evm-tracing` feature.".into());
+	}
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;

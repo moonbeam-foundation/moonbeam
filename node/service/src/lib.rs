@@ -449,17 +449,33 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let spawned_requesters = rpc::spawn_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	rpc::spawn_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	let spawned_requesters = if cfg!(feature = "evm-tracing") {
+		rpc::spawn_tracing_tasks(
+			&rpc_config,
+			rpc::SpawnTasksParams {
+				task_manager: &task_manager,
+				client: client.clone(),
+				substrate_backend: backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				pending_transactions: pending_transactions.clone(),
+				filter_pool: filter_pool.clone(),
+			},
+		)
+	} else {
+		rpc::RpcRequesters {
+			debug: None,
+			trace: None,
+		}
+	};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -777,17 +793,33 @@ pub fn new_dev(
 		);
 	}
 
-	let spawned_requesters = rpc::spawn_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	rpc::spawn_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	let spawned_requesters = if cfg!(feature = "evm-tracing") {
+		rpc::spawn_tracing_tasks(
+			&rpc_config,
+			rpc::SpawnTasksParams {
+				task_manager: &task_manager,
+				client: client.clone(),
+				substrate_backend: backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				pending_transactions: pending_transactions.clone(),
+				filter_pool: filter_pool.clone(),
+			},
+		)
+	} else {
+		rpc::RpcRequesters {
+			debug: None,
+			trace: None,
+		}
+	};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
