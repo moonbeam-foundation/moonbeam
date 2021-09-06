@@ -144,8 +144,8 @@ Here is the list of cargo aliases allowing you to compile only some native rutim
 | `cargo moonbeam` | `moonbeam, polkadot` |
 | `cargo moonbeam-rococo` | `moonbeam, rococo, polkadot` |
 
-* The `moonbase` mative runtime require `westend` native runtime to compile.
-* The `polkadot` is always included.
+* The `moonbase` native runtime require `westend` native runtime to compile.
+* The `polkadot` native runtime is always included (This is requirement from polkadot repo).
 
 ### Port assignments
 
