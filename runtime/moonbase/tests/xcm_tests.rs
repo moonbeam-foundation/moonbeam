@@ -16,46 +16,20 @@
 
 //! Moonbase Runtime Integration Tests
 
-mod common;
-use common::*;
-
 mod xcm_mock;
-use pallet_society::Judgement;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 
-use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
-use frame_support::{
-	assert_noop, assert_ok,
-	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
-	weights::{DispatchClass, Weight},
-	StorageHasher, Twox128,
-};
-use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
-	ParachainStaking, Precompiles, Runtime, System,
-};
-use nimbus_primitives::NimbusId;
-use pallet_evm::PrecompileSet;
-use pallet_transaction_payment::Multiplier;
-use parachain_staking::{Bond, NominatorAdded};
-use parity_scale_codec::Encode;
-use sha3::{Digest, Keccak256};
-use sp_core::{Public, H160, U256};
-use sp_runtime::{
-	traits::{Convert, One},
-	DispatchError,
-};
+use frame_support::assert_ok;
+
 use xcm::v0::{
-	Junction::{self, Parachain, Parent},
+	Junction::{self, PalletInstance, Parachain, Parent},
 	MultiAsset::*,
 	MultiLocation::*,
-	NetworkId, OriginKind,
-	Xcm::*,
+	NetworkId,
 };
-use xcm_simulator::{MultiAsset, TestExt};
+use xcm_simulator::TestExt;
 
 #[test]
 fn receive_relay_asset_from_relay() {
@@ -233,12 +207,12 @@ fn send_relay_asset_to_para_b() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_para_a_asset_to_para_b() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X2(Junction::Parent, Junction::Parachain(1)));
+	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	ParaB::execute_with(|| {
@@ -248,7 +222,6 @@ fn send_para_a_asset_to_para_b() {
 			1u128
 		));
 	});
-	println!("HERE");
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
@@ -277,17 +250,18 @@ fn send_para_a_asset_to_para_b() {
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(1, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 }
 
-#[ignore]
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X2(Junction::Parent, Junction::Parachain(1)));
+	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
+
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
@@ -324,7 +298,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(1, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
 	ParaB::execute_with(|| {

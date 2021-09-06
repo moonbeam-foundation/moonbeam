@@ -26,7 +26,7 @@ pub mod tests;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::{ensure_root, pallet_prelude::*};
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::AtLeast32BitUnsigned;
@@ -56,6 +56,10 @@ pub mod pallet {
 
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
+
+		/// The AssetManagers's pallet id
+		#[pallet::constant]
+		type PalletId: Get<PalletId>;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
