@@ -45,7 +45,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use pallet_balances::{NegativeImbalance, PositiveImbalance};
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
