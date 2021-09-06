@@ -167,7 +167,10 @@ impl CallListProxy {
 
 	/// Format the RPC output for multiple transactions. Each call-stack represents a single
 	/// transaction/EVM execution.
-	pub fn into_tx_traces(self) -> Vec<BlockTrace> {
+	pub fn into_tx_traces(&mut self) -> Vec<BlockTrace> {
+		// Remove empty BTreeMaps pushed to `entries`.
+		// I.e. InvalidNonce or other pallet_evm::runner exits
+		self.entries.retain(|x| !x.is_empty());
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry

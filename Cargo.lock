@@ -2220,7 +2220,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2245,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fp-storage",
  "kvdb",
@@ -2261,7 +2261,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2279,7 +2279,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2320,7 +2320,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2424,7 +2424,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2438,7 +2438,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2451,7 +2451,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "2.1.0"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2467,7 +2467,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 
 [[package]]
 name = "frame-benchmarking"
@@ -4961,7 +4961,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "assert_cmd",
  "futures 0.3.15",
@@ -4978,7 +4978,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5006,7 +5006,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
@@ -5292,7 +5292,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -6169,7 +6169,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6207,7 +6207,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "5.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -6234,7 +6234,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6246,7 +6246,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6260,7 +6260,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6272,7 +6272,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6284,7 +6284,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four#053352d0555eb47b5777a3df9bec141972a3b024"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
