@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
-import { typesBundle } from "../moonbeam-types-bundle";
+import { typesBundle } from "../../moonbeam-types-bundle";
 import {
   ALITH,
   GERALD,
@@ -12,7 +12,7 @@ import {
   ALITH_PRIVKEY,
   MIN_GLMR_NOMINATOR,
   MIN_GLMR_STAKING,
-} from "./test-constants";
+} from "../test-constants";
 
 function assert(condition: boolean, msg: string) {
   if (!condition) throw new Error(msg);
