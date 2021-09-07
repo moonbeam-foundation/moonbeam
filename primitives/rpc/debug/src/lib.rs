@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
-use ethereum::Transaction;
+use ethereum::TransactionV0 as Transaction;
 use ethereum_types::H160;
 use sp_std::vec::Vec;
 
@@ -25,7 +25,7 @@ use sp_std::vec::Vec;
 use serde::Serialize;
 
 sp_api::decl_runtime_apis! {
-	#[api_version(2)]
+	#[api_version(3)]
 	pub trait DebugRuntimeApi {
 
 		#[changed_in(2)]
@@ -40,11 +40,18 @@ sp_api::decl_runtime_apis! {
 			extrinsics: Vec<Block::Extrinsic>,
 		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
 
+		#[changed_in(3)]
 		fn trace_transaction(
 			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
 			trace_type: single::TraceType,
+		) -> Result<(), sp_runtime::DispatchError>;
+
+		fn trace_transaction(
+			header: &Block::Header,
+			extrinsics: Vec<Block::Extrinsic>,
+			transaction: &Transaction,
 		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_block(
@@ -59,6 +66,8 @@ sp_api::decl_runtime_apis! {
 pub mod serialization;
 #[cfg(feature = "std")]
 use crate::serialization::*;
+
+pub const V2_RUNTIME_VERSION: u32 = 400;
 
 pub mod block;
 pub mod proxy;

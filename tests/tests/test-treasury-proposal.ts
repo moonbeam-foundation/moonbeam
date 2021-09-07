@@ -109,7 +109,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
 });
 
 describeDevMoonbeam("Treasury proposal #5", (context) => {
-  it.skip("should be approvable by root", async function () {
+  it("should be approvable by root", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
@@ -135,7 +135,7 @@ describeDevMoonbeam("Treasury proposal #5", (context) => {
 });
 
 describeDevMoonbeam("Treasury proposal #6", (context) => {
-  it.skip("should be rejectable by root", async function () {
+  it("should be rejectable by root", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
@@ -193,7 +193,10 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     );
     const proposalHash = proposalEvents[0].data[2].toHuman();
 
-    // Dorothy vote for this proposal and close it
+    // Charleth & Dorothy vote for this proposal and close it
+    await context.polkadotApi.tx.councilCollective
+      .vote(proposalHash, 0, true)
+      .signAndSend(charleth);
     await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
     await context.createBlock();
     await context.createBlock();
@@ -237,10 +240,16 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
     );
     const councilProposalHash = rejectEvents[0].data[2].toHuman();
 
-    // Dorothy vote for against proposal and close it
-    await context.polkadotApi.tx.councilCollective
-      .vote(councilProposalHash, 0, true)
-      .signAndSend(dorothy);
+    // Charleth & Dorothy vote for against proposal and close it
+    await Promise.all([
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(charleth),
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(dorothy),
+    ]);
+
     await context.createBlock();
     const { events: closeEvents } = await createBlockWithExtrinsic(
       context,

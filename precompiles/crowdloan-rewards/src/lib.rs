@@ -45,6 +45,15 @@ pub type BalanceOf<Runtime> =
 		<Runtime as frame_system::Config>::AccountId,
 	>>::Balance;
 
+#[precompile_utils::generate_function_selector]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+enum Action {
+	IsContributor = "is_contributor(address)",
+	RewardInfo = "reward_info(address)",
+	Claim = "claim()",
+	UpdateRewardAddress = "update_reward_address(address)",
+}
+
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
 pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 
@@ -65,17 +74,10 @@ where
 
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
-			[0x53, 0x44, 0x0c, 0x90] => Self::is_contributor(input, target_gas),
-			[0x76, 0xf7, 0x02, 0x49] => Self::reward_info(input, target_gas),
-			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim(target_gas, context),
-			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(input, target_gas, context),
-			_ => {
-				log::trace!(
-					target: "crowdloan-rewards-precompile",
-					"Failed to match function selector in crowdloan rewards precompile"
-				);
-				Err(error("unknown selector"))
-			}
+			Action::IsContributor => Self::is_contributor(input, target_gas),
+			Action::RewardInfo => Self::reward_info(input, target_gas),
+			Action::Claim => Self::claim(target_gas, context),
+			Action::UpdateRewardAddress => Self::update_reward_address(input, target_gas, context),
 		}
 	}
 }

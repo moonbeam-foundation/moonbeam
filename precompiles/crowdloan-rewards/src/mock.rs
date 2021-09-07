@@ -16,7 +16,7 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{
 	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
 };
@@ -27,7 +27,7 @@ use frame_support::{
 	dispatch::UnfilteredDispatchable,
 	inherent::{InherentData, ProvideInherent},
 	parameter_types,
-	traits::{GenesisBuild, MaxEncodedLen, OnFinalize, OnInitialize},
+	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
@@ -139,7 +139,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -254,6 +254,7 @@ impl pallet_crowdloan_rewards::Config for Test {
 	type MinimumReward = TestMinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances

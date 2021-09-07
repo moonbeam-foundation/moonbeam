@@ -12,19 +12,18 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
 log = "0.4"
 hex = { version = "0.4", default-features = false }
 sha3 = { version = "0.9", default-features = false }
 
 blake2-rfc = { version = "0.2.18", default-features = false, optional = true }
-sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 libsecp256k1 = { version = "0.6", default-features = false, features = ["hmac"] }
 
 [dev-dependencies]
@@ -42,7 +41,6 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"full_crypto",
-	"pallet-evm/std",
 	"libsecp256k1/std",
 ]
 

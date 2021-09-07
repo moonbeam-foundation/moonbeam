@@ -7,6 +7,8 @@ members = [
     'node/cli',
     'node/service',
     'bin/utils/moonkey',
+    'pallets/maintenance-mode',
+    'precompiles/utils/macro',
 ]
 exclude = [
     'bin/utils/moonkey'
@@ -14,3 +16,11 @@ exclude = [
 
 [profile.release]
 panic = 'unwind'
+
+# @nanocryk, I've updated the patch branch here to the one from your PR. Is this correct?
+# https://github.com/rust-blockchain/evm/pull/53
+# Fix EVM tracing impact in block production pipeline.
+[patch.crates-io]
+evm = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing"}
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing" }
