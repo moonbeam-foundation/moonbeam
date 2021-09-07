@@ -459,6 +459,7 @@ where
 		filter_pool: filter_pool.clone(),
 	});
 
+	#[cfg(feature = "evm-tracing")]
 	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
@@ -510,15 +511,15 @@ where
 				max_past_logs,
 				transaction_converter,
 			};
+			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			if cfg!(feature = "evm-tracing") {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
-			}
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
 			Ok(io)
 		})
 	};
@@ -802,6 +803,7 @@ pub fn new_dev(
 		filter_pool: filter_pool.clone(),
 	});
 
+	#[cfg(feature = "evm-tracing")]
 	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
@@ -851,15 +853,15 @@ pub fn new_dev(
 				max_past_logs,
 				transaction_converter,
 			};
+			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			if cfg!(feature = "evm-tracing") {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
-			}
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
 			Ok(io)
 		})
 	};
