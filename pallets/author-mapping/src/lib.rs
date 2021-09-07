@@ -234,7 +234,7 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn mapping)]
+	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
 	/// to the AccountIds runtime (including the parachain staking pallet).
 	type Mapping<T: Config> = StorageMap<
@@ -280,7 +280,7 @@ pub mod pallet {
 		/// A helper function to lookup the account id associated with the given author id. This is
 		/// the primary lookup that this pallet is responsible for.
 		pub fn account_id_of(author_id: &T::AuthorId) -> Option<T::AccountId> {
-			Self::mapping(author_id).map(|info| info.account)
+			Self::account_and_deposit_of(author_id).map(|info| info.account)
 		}
 	}
 
