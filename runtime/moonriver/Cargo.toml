@@ -15,14 +15,14 @@ log = "0.4"
 
 runtime-common = { path = "../common", default-features = false }
 
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 evm = { version="0.30.1", default-features=false, features=["with-codec"] }
@@ -77,10 +77,10 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-f
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length", optional = true }
@@ -89,8 +89,8 @@ frame-system-benchmarking = { git = "https://github.com/purestake/substrate", de
 frame-try-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length", optional = true }
 
 [dev-dependencies]
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 rlp = "0.5"
 hex = "0.4"

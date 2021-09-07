@@ -29,10 +29,10 @@ pallet-timestamp = { git="https://github.com/purestake/substrate", branch="cryst
 pallet-scheduler = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
 serde = "1.0.100"
 derive_more = "0.99"
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 
 [features]
 default = ["std"]
