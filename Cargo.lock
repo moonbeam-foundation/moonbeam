@@ -20,7 +20,6 @@ dependencies = [
  "hex",
  "libsecp256k1 0.3.5",
  "log",
- "pallet-evm",
  "parity-scale-codec",
  "serde",
  "sha3 0.8.2",
@@ -1378,6 +1377,7 @@ dependencies = [
  "frame-system",
  "log",
  "max-encoded-len",
+ "num_enum",
  "pallet-balances",
  "pallet-crowdloan-rewards",
  "pallet-evm",
@@ -1453,7 +1453,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1463,7 +1463,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1511,7 +1511,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1535,7 +1535,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1559,7 +1559,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "futures 0.3.15",
@@ -1582,7 +1582,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1610,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1638,7 +1638,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
@@ -1649,7 +1649,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -1667,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1688,7 +1688,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "sp-inherents",
@@ -1699,7 +1699,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -2107,8 +2107,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2126,8 +2125,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908739da31125d17a69533c290a6c818b494176e59a2ce8accbf122f7d76835c"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2138,8 +2136,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2150,8 +2147,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
+source = "git+https://github.com/purestake/evm?branch=jeremy-evm27-tracing-performance#9539390e0d0edcf15d795c24960d17c2aff57f98"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2213,12 +2209,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 
 [[package]]
-name = "faster-hex"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b02a61fea82de8484f9d7ce99b698b0e190ef8de71035690a961a43d7b18a2ad"
-
-[[package]]
 name = "fastrand"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2230,7 +2220,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2255,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fp-storage",
  "kvdb",
@@ -2271,7 +2261,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2289,7 +2279,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2330,7 +2320,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2434,7 +2424,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2448,7 +2438,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2461,7 +2451,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "2.1.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2477,7 +2467,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 
 [[package]]
 name = "frame-benchmarking"
@@ -4910,6 +4900,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "max-encoded-len",
@@ -4933,6 +4924,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -4947,6 +4939,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -4967,7 +4960,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.10.0"
+version = "0.11.3"
 dependencies = [
  "assert_cmd",
  "futures 0.3.15",
@@ -4984,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.10.0"
+version = "0.11.3"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5012,12 +5005,11 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.10.0"
+version = "0.11.3"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
  "primitive-types",
- "sc-cli",
  "sha3 0.8.2",
  "sp-runtime",
  "structopt",
@@ -5063,6 +5055,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -5140,6 +5133,9 @@ dependencies = [
  "environmental",
  "ethereum",
  "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5198,13 +5194,13 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum",
  "ethereum-types",
  "fc-rpc",
  "frame-system",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
+ "rlp",
  "sc-transaction-graph",
  "serde",
  "sha3 0.8.2",
@@ -5258,6 +5254,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5272,6 +5269,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -5292,7 +5290,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.10.0"
+version = "0.11.3"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -5426,6 +5424,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "hex",
  "log",
  "max-encoded-len",
@@ -5449,6 +5448,7 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-maintenance-mode",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5462,6 +5462,7 @@ dependencies = [
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "runtime-common",
  "serde",
@@ -5600,7 +5601,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5629,7 +5630,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -5808,6 +5809,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee2c8fd66061a707503d515639b8af10fd3807a5b5ee6959f7ff1bd303634bd5"
+dependencies = [
+ "derivative",
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "474fd1d096da3ad17084694eebed40ba09c4a36c5255cd772bd8b98859cc562e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "object"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5883,7 +5905,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5919,7 +5941,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "frame-support",
@@ -6069,11 +6091,13 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#86387dcb23e86c24c6b58fc9dc86b7986836f298"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#5c96ec664592987d6f577baa3fa4e7b2bdefc055"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "ed25519-dalek",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -6086,6 +6110,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -6141,7 +6166,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6179,7 +6204,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "5.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -6206,7 +6231,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6218,7 +6243,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6232,7 +6257,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6244,7 +6269,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6256,7 +6281,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-pre#6235ebb9afe295e8430ec5a889651f6bd7c17bbb"
+source = "git+https://github.com/purestake/frontier?branch=moonriver-phase-four-transaction-cost-fix#4309eb36cbf5d759589f8cdb5311d66174ea2ad1"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6347,6 +6372,19 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-maintenance-mode"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -6739,7 +6777,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#2c318d4a5a504b85410ab96e0853588c280042cd"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -6772,17 +6810,25 @@ dependencies = [
 name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
+ "derive_more",
  "evm",
  "frame-support",
  "frame-system",
- "hex",
  "log",
+ "max-encoded-len",
+ "num_enum",
+ "pallet-balances",
  "pallet-evm",
+ "pallet-timestamp",
  "parachain-staking",
  "parity-scale-codec",
+ "precompile-utils",
  "rustc-hex",
+ "serde",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -8292,12 +8338,24 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "num_enum",
  "pallet-evm",
  "parity-scale-codec",
- "slices",
+ "precompile-utils-macro",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
  "sp-std",
+]
+
+[[package]]
+name = "precompile-utils-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "sha3 0.8.2",
+ "syn",
 ]
 
 [[package]]
@@ -9084,6 +9142,9 @@ dependencies = [
 [[package]]
 name = "runtime-common"
 version = "0.8.0-dev"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "rustc-demangle"
@@ -10602,18 +10663,6 @@ name = "slab"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f173ac3d1a7e3b28003f40de0b5ce7fe2710f9b9dc3fc38664cebee46b3b6527"
-
-[[package]]
-name = "slices"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2086e458a369cdca838e9f6ed04b4cc2e3ce636d99abb80c9e2eada107749cf"
-dependencies = [
- "faster-hex",
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "slog"

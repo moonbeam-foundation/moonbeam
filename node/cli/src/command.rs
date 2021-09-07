@@ -319,10 +319,14 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let chain_spec = cli.load_spec(&params.chain.clone().unwrap_or_default())?;
+			// Cumulus approach here, we directly call the generic load_spec func
+			let chain_spec = load_spec(
+				&params.chain.clone().unwrap_or_default(),
+				params.parachain_id.unwrap_or(1000).into(),
+				&cli.run,
+			)?;
 			let output_buf = if chain_spec.is_moonbeam() {
-				let block: service::moonbeam_runtime::Block =
-					generate_genesis_block(&chain_spec).map_err(|e| format!("{:?}", e))?;
+				let block: service::moonbeam_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header
@@ -408,6 +412,71 @@ pub fn run() -> Result<()> {
 					.into())
 			}
 		}
+		#[cfg(feature = "try-runtime")]
+		Some(Subcommand::TryRuntime(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => {
+					runner.async_run(|config| {
+						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+						let task_manager =
+							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+								.map_err(|e| {
+									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+								})?;
+
+						Ok((
+							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(config),
+							task_manager,
+						))
+					})
+				}
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => runner.async_run(|config| {
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager =
+						sc_service::TaskManager::new(config.task_executor.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})?;
+
+					Ok((
+						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							config,
+						),
+						task_manager,
+					))
+				}),
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					runner.async_run(|config| {
+						// we don't need any of the components of new_partial, just a runtime, or a task
+						// manager to do `async_run`.
+						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+						let task_manager =
+							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+								.map_err(|e| {
+									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+								})?;
+
+						Ok((
+							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+								config,
+							),
+							task_manager,
+						))
+					})
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			}
+		}
+		#[cfg(not(feature = "try-runtime"))]
+		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
+				You can enable it at build time with `--features try-runtime`."
+			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
@@ -459,18 +528,15 @@ pub fn run() -> Result<()> {
 
 				let genesis_state = if config.chain_spec.is_moonbeam() {
 					let block: service::moonbeam_runtime::Block =
-						generate_genesis_block(&config.chain_spec)
-							.map_err(|e| format!("{:?}", e))?;
+						generate_genesis_block(&config.chain_spec)?;
 					format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 				} else if config.chain_spec.is_moonriver() {
 					let block: service::moonriver_runtime::Block =
-						generate_genesis_block(&config.chain_spec)
-							.map_err(|e| format!("{:?}", e))?;
+						generate_genesis_block(&config.chain_spec)?;
 					format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 				} else {
 					let block: service::moonbase_runtime::Block =
-						generate_genesis_block(&config.chain_spec)
-							.map_err(|e| format!("{:?}", e))?;
+						generate_genesis_block(&config.chain_spec)?;
 					format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 				};
 

@@ -4,6 +4,8 @@ import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
 import fetch from "node-fetch";
+import { DevTestContext } from "./setup-dev-tests";
+import { customWeb3Request } from "./providers";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -17,7 +19,7 @@ export interface TransactionOptions {
   data?: string;
 }
 
-const GENESIS_TRANSACTION: TransactionOptions = {
+export const GENESIS_TRANSACTION: TransactionOptions = {
   from: GENESIS_ACCOUNT,
   privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
   nonce: null,
@@ -133,6 +135,7 @@ export async function createContractExecution(
   return tx;
 }
 
+<<<<<<< HEAD
 /**
  * Send a JSONRPC request to the node at http://localhost:9933.
  *
@@ -160,4 +163,68 @@ export function rpcToLocalNode(rpcPort: number, method: string, params: any[] = 
 
       return result;
     });
+=======
+// The parameters passed to the function are assumed to have all been converted to hexadecimal
+export async function sendPrecompileTx(
+  context: DevTestContext,
+  precompileContractAddress: string,
+  selectors: { [key: string]: string },
+  from: string,
+  privateKey: string,
+  selector: string,
+  parameters: string[]
+) {
+  let data: string;
+  if (selectors[selector]) {
+    data = `0x${selectors[selector]}`;
+  } else {
+    throw new Error(`selector doesn't exist on the precompile contract`);
+  }
+  parameters.forEach((para: string) => {
+    data += para.slice(2).padStart(64, "0");
+  });
+
+  const tx = await createTransaction(context.web3, {
+    from,
+    privateKey,
+    value: "0x0",
+    gas: "0x200000",
+    gasPrice: GENESIS_TRANSACTION.gasPrice,
+    to: precompileContractAddress,
+    data,
+  });
+
+  return context.createBlock({
+    transactions: [tx],
+  });
+}
+const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+export async function callPrecompile(
+  context: DevTestContext,
+  precompileContractAddress: string,
+  selectors: { [key: string]: string },
+  selector: string,
+  parameters: string[]
+) {
+  let data: string;
+  if (selectors[selector]) {
+    data = `0x${selectors[selector]}`;
+  } else {
+    throw new Error(`selector doesn't exist on the precompile contract`);
+  }
+  parameters.forEach((para: string) => {
+    data += para.slice(2).padStart(64, "0");
+  });
+
+  return await customWeb3Request(context.web3, "eth_call", [
+    {
+      from: GENESIS_ACCOUNT,
+      value: "0x0",
+      gas: "0x10000",
+      gasPrice: GAS_PRICE,
+      to: precompileContractAddress,
+      data,
+    },
+  ]);
+>>>>>>> master
 }

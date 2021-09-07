@@ -254,6 +254,7 @@ impl pallet_crowdloan_rewards::Config for Test {
 	type MinimumReward = TestMinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances

@@ -25,7 +25,7 @@ sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
