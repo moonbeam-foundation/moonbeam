@@ -46,13 +46,16 @@ use frame_support::{
 	PalletId,
 };
 
+use sp_runtime::traits::Zero;
+use sp_std::marker::PhantomData;
 use xcm_builder::{
 	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit, UsingComponents,
 };
+
 use xcm_executor::traits::{JustTry, WeightTrader};
 
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -909,17 +912,141 @@ pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everythi
 
 // Needs to be changed.
 // We need to know how to charge for incoming assets
-pub struct MyWeightTrader;
-impl WeightTrader for MyWeightTrader {
+pub struct MyWeightTrader<R: TakeRevenue>(
+	Weight,
+	Option<(MultiLocation, u128, u128)>,
+	PhantomData<R>,
+);
+impl<R: TakeRevenue> WeightTrader for MyWeightTrader<R> {
 	fn new() -> Self {
-		MyWeightTrader
+		MyWeightTrader(0, None, PhantomData)
 	}
 	fn buy_weight(
 		&mut self,
-		_: Weight,
-		a: xcm_executor::Assets,
+		weight: Weight,
+		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
-		Ok(a)
+		let first_asset = payment
+			.clone()
+			.fungible_assets_iter()
+			.next()
+			.ok_or(XcmError::TooExpensive)?;
+
+		// We are only going to check first asset for now. This should be sufficient for simple token
+		// transfers. We will see later if we change this.
+		match first_asset {
+			MultiAsset::ConcreteFungible { id, .. } => {
+				let asset_id: AssetId = AssetType::Xcm(id.clone()).into();
+				if let Some(asset_info) = AssetManager::asset_id_info(asset_id) {
+					let amount = asset_info.units_per_second * (weight as u128)
+						/ (WEIGHT_PER_SECOND as u128);
+					let required = MultiAsset::ConcreteFungible {
+						amount,
+						id: id.clone(),
+					};
+					let (unused, _) = payment.less(required).map_err(|_| XcmError::TooExpensive)?;
+					self.0 = self.0.saturating_add(weight);
+
+					// In case the asset matches the one the trader already stored before, add
+					// to later refund
+
+					// Else we are always going to substract the weight if we can, but we latter do
+					// not refund it
+
+					// In short, we only refund on the asset the trader first succesfully was able
+					// to pay for an execution
+					let new_asset = match self.1.clone() {
+						Some((prev_id, prev_amount, units_per_second)) => {
+							if prev_id == id.clone() {
+								Some((id, prev_amount.saturating_add(amount), units_per_second))
+							} else {
+								None
+							}
+						}
+						None => Some((id, amount, asset_info.units_per_second)),
+						_ => None,
+					};
+
+					// Due to the trait bound, we can only refund one asset.
+					if let Some(new_asset) = new_asset {
+						self.0 = self.0.saturating_add(weight);
+						self.1 = Some(new_asset);
+					};
+					return Ok(unused);
+				} else {
+					return Err(XcmError::TooExpensive);
+				};
+			}
+			_ => return Err(XcmError::TooExpensive),
+		}
+	}
+
+	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+		let result = if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
+			let weight = weight.min(self.0);
+			self.0 -= weight;
+			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
+			self.1 = Some((
+				id.clone(),
+				prev_amount.saturating_sub(amount),
+				units_per_second,
+			));
+			MultiAsset::ConcreteFungible { id, amount }
+		} else {
+			MultiAsset::None
+		};
+		result
+	}
+}
+
+// This defines how multiTraders should be implemented
+// We need to define how we will substract fees in the case of our reserve asset
+pub struct MultiWeightTraders<UsingComponents, MyWeightTrader> {
+	native_trader: UsingComponents,
+	other_trader: MyWeightTrader,
+}
+impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
+	for MultiWeightTraders<NativeTrader, OtherTrader>
+{
+	fn new() -> Self {
+		Self {
+			native_trader: NativeTrader::new(),
+			other_trader: OtherTrader::new(),
+		}
+	}
+	fn buy_weight(
+		&mut self,
+		weight: Weight,
+		payment: xcm_executor::Assets,
+	) -> Result<xcm_executor::Assets, XcmError> {
+		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
+			return Ok(assets);
+		}
+
+		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
+			return Ok(assets);
+		}
+
+		// if let Ok(asset) = self.dummy_trader.buy_weight(weight, payment) {
+		// 	return Ok(assets)
+		// }
+
+		Err(XcmError::TooExpensive)
+	}
+	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+		let native = self.native_trader.refund_weight(weight);
+		match native {
+			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return native,
+			_ => {}
+		}
+
+		let other = self.other_trader.refund_weight(weight);
+		match other {
+			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return other,
+			_ => {}
+		}
+
+		MultiAsset::None
 	}
 }
 
@@ -944,8 +1071,16 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader =
-		xcm_builder::UsingComponents<IdentityFee<Balance>, SelfLocation, AccountId, Balances, ()>;
+	type Trader = MultiWeightTraders<
+		UsingComponents<
+			IdentityFee<Balance>,
+			BalancesLocation,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
+		MyWeightTrader<()>,
+	>;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 

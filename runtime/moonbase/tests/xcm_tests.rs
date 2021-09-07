@@ -29,6 +29,7 @@ use xcm::v0::{
 	MultiLocation::*,
 	NetworkId,
 };
+use xcm_simulator::MultiLocation;
 use xcm_simulator::TestExt;
 
 #[test]
@@ -55,7 +56,7 @@ fn receive_relay_asset_from_relay() {
 				key: PARAALICE
 			}),
 			vec![ConcreteFungible {
-				id: Null,
+				id: MultiLocation::Here,
 				amount: 123
 			}],
 			123,
