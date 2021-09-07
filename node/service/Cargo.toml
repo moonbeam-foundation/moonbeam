@@ -44,42 +44,42 @@ moonbeam-primitives-ext = { path = "../../primitives/ext" }
 moonbeam-core-primitives = { path = "../../core-primitives" }
 
 # Substrate dependencies
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["wasmtime"] }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-executor = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["wasmtime"] }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["test-helpers"] }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-network = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-trie = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-informant = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-storage = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-session = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["wasmtime"] }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["wasmtime"] }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["test-helpers"] }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-network = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-trie = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-finality-grandpa = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-informant = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-rpc-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-storage = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-offchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-session = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
@@ -118,11 +118,11 @@ polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = 
 polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # benchmarking dependencies
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 [dev-dependencies]
 assert_cmd = "0.12"
@@ -134,9 +134,9 @@ polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", bran
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # Substrate dev-dependencies
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-substrate-test-client = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 
 [features]
