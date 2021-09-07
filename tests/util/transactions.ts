@@ -135,7 +135,6 @@ export async function createContractExecution(
   return tx;
 }
 
-<<<<<<< HEAD
 /**
  * Send a JSONRPC request to the node at http://localhost:9933.
  *
@@ -163,7 +162,7 @@ export function rpcToLocalNode(rpcPort: number, method: string, params: any[] = 
 
       return result;
     });
-=======
+}
 // The parameters passed to the function are assumed to have all been converted to hexadecimal
 export async function sendPrecompileTx(
   context: DevTestContext,
@@ -226,5 +225,4 @@ export async function callPrecompile(
       data,
     },
   ]);
->>>>>>> master
 }

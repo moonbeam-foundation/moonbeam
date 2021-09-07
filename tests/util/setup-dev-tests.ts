@@ -75,7 +75,6 @@ export function describeDevMoonbeam(
             rpcPort: 19932,
           };
       moonbeamProcess = init.runningNode;
-      console.log("INIT", init.rpcPort);
       context.rpcPort = init.rpcPort;
 
       // Context is given prior to this assignement, so doing

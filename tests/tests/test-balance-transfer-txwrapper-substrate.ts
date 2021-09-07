@@ -1,80 +1,105 @@
+// As inspired by https://github.com/paritytech/txwrapper/blob/master/examples/polkadot.ts
+// This flow is used by some exchange partners like kraken
+
 import { expect } from "chai";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
-// import {
-//   construct,
-//   decode,
-//   deriveAddress,
-//   getRegistry,
-//   methods,
-//   PolkadotSS58Format,
-// } from "@substrate/txwrapper-polkadot";
+import {
+  createSignedTx,
+  createSigningPayload,
+  KeyringPair,
+  OptionsWithMeta,
+} from "@substrate/txwrapper";
+import { Keyring } from "@polkadot/api";
 import { getRegistry } from "@substrate/txwrapper-registry";
 
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createTransfer, rpcToLocalNode } from "../util/transactions";
+import { rpcToLocalNode } from "../util/transactions";
+import { createMetadata } from "@substrate/txwrapper/lib/util";
+import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
+
+/**
+ * Signing function. Implement this on the OFFLINE signing device.
+ *
+ * @param pair - The signing pair.
+ * @param signingPayload - Payload to sign.
+ */
+export function signWith(
+  pair: KeyringPair,
+  signingPayload: string,
+  options: OptionsWithMeta
+): string {
+  const { registry, metadataRpc } = options;
+  // Important! The registry needs to be updated with latest metadata, so make
+  // sure to run `registry.setMetadata(metadata)` before signing.
+  registry.setMetadata(createMetadata(registry, metadataRpc));
+
+  const { signature } = registry
+    .createType("ExtrinsicPayload", signingPayload, {
+      version: EXTRINSIC_VERSION,
+    })
+    .sign(pair);
+
+  return signature;
+}
 
 describeDevMoonbeam("Balance transfer", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   before("Create block with transfer to test account of 512", async () => {
-    // await context.createBlock({
-    //   transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
-    // });
     const { block } = await rpcToLocalNode(context.rpcPort, "chain_getBlock");
     const blockHash = await rpcToLocalNode(context.rpcPort, "chain_getBlockHash");
     const genesisHash = await rpcToLocalNode(context.rpcPort, "chain_getBlockHash", [0]);
     const metadataRpc = await rpcToLocalNode(context.rpcPort, "state_getMetadata");
-    const metadata = await context.polkadotApi.rpc.state.getMetadata();
-    // const registry = await context.polkadotApi.registry; //.getChainProperties();
-    // const knownTypes = await context.polkadotApi.registry.get();
-    // console.log("knownTypes", knownTypes);
 
-    const { specVersion, transactionVersion, specName, chainName } = await rpcToLocalNode(
+    const { specVersion, transactionVersion, specName } = await rpcToLocalNode(
       context.rpcPort,
       "state_getRuntimeVersion"
     );
-    console.log("chainName", chainName);
-    console.log("specName", specName);
-    console.log("specVersion", specVersion);
     const registry = getRegistry({
       chainName: "Moonriver",
       specName,
       specVersion,
       metadataRpc,
     });
-    console.log("REGISTRY", registry.knownTypes);
-    console.log("specName2", specName);
-    substrateMethods.balances.transfer(
+    const unsigned = substrateMethods.balances.transfer(
       {
         dest: TEST_ACCOUNT,
         value: 512,
       },
       {
-        address: GENESIS_ACCOUNT, // deriveAddress(GENESIS_ACCOUNT, PolkadotSS58Format.polkadot),
+        address: GENESIS_ACCOUNT,
         blockHash,
         blockNumber: registry.createType("BlockNumber", block.header.number).toNumber(),
         eraPeriod: 64,
         genesisHash,
         metadataRpc,
-        nonce: 0, // Assuming this is Alice's first tx on the chain
+        nonce: 0, // Assuming this is Gerald's first tx on the chain
         specVersion,
         tip: 0,
         transactionVersion,
       },
       {
         metadataRpc,
-        // @ts-ignore
+        // @ts-ignore // looks like txwrpper doesnt have the latest versions
         registry,
       }
     );
-  });
+    //@ts-ignore
+    const signingPayload = createSigningPayload(unsigned, { registry });
+    const keyring = new Keyring({ type: "ethereum" });
+    const genesis = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    const signature = signWith(genesis, signingPayload, {
+      metadataRpc,
+      //@ts-ignore
+      registry,
+    });
+    // Serialize a signed transaction.
+    //@ts-ignore
+    const tx = createSignedTx(unsigned, signature, { metadataRpc, registry });
 
-  it("should decrease from account", async function () {
-    // 21000 covers the cost of the transaction
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
-      (GENESIS_ACCOUNT_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
-    );
+    await rpcToLocalNode(context.rpcPort, "author_submitExtrinsic", [tx]);
+    await context.createBlock();
   });
 
   it("should increase to account", async function () {
