@@ -21,7 +21,7 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{OnFinalize, OnInitialize},
+	traits::{Everything, OnFinalize, OnInitialize},
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
@@ -111,7 +111,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;

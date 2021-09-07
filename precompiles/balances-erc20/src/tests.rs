@@ -314,7 +314,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 198269756u64, // 1 weight => 1 gas in mock
+					cost: 197230756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -440,7 +440,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 198269756u64, // 1 weight => 1 gas in mock
+					cost: 197230756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -589,7 +589,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 198269756u64, // 1 weight => 1 gas in mock
+					cost: 197230756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
