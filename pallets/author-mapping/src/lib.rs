@@ -163,13 +163,8 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-<<<<<<< HEAD
-			let stored_info =
-				Mapping::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
-=======
 			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
->>>>>>> parent of 1a3231924 (Pallet compiles)
 
 			ensure!(
 				account_id == stored_info.account,
@@ -292,38 +287,39 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			// https://crates.parity.io/frame_support/storage/migration/fn.move_prefix.html
-			move_prefix(from_prefix: &[u8], to_prefix: &[u8])
+			use frame_support::storage::migration::{remove_storage_prefix, storage_key_iter};
+			use sp_std::convert::TryInto;
 
-			let mut migrated_entries: Weight = 0;
+			let pallet_prefix: &[u8] = b"AuthorMapping";
+			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
-			// Move the mappings to the new storage location
+			// Read all the data into memory.
 			// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-			for (author_id, account_id) in frame_support::storage::migration::storage_key_iter::<
+			let stored_data: Vec<_> = storage_key_iter::<
 				T::AuthorId,
 				RegistrationInfo<T::AccountId, BalanceOf<T>>,
 				Twox64Concat,
-			>(pallet_prefix, old_storage_item_prefix)
-			{
-				Mapping::<T>::insert(author_id, account_id);
-				migrated_entries += 1;
-			}
+			>(pallet_prefix, storage_item_prefix)
+			.collect();
+
+			let migrated_count: Weight = stored_data
+				.len()
+				.try_into()
+				.expect("There are between 0 and 2**64 mappings stored.");
 
 			// Now remove the old storage
 			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
-			frame_support::storage::migration::remove_storage_prefix(
-				pallet_prefix,
-				old_storage_item_prefix,
-				&[],
-			);
+			remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
 
-			// Return the weight used.
+			// Write the mappings back to storage with the new secure hasher
+			for (author_id, account_id) in stored_data {
+				MappingWithDeposit::<T>::insert(author_id, account_id);
+			}
+
+			// Return the weight used. For each migrated mapping there is a red to get it into
+			// memory, a write to clear the old stored value, and a write to re-store it.
 			let db_weights = T::DbWeight::get();
-			// One read and one write for each entry migrated
-			migrated_entries
-				.saturating_mul(db_weights.write + db_weights.read)
-				// One more write to clear the old entries
-				.saturating_add(db_weights.write)
+			migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)
 		}
 	}
 }
