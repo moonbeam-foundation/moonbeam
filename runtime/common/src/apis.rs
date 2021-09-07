@@ -206,7 +206,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					<pallet_evm::Module<Runtime>>::find_author()
+					<pallet_evm::Pallet<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -381,6 +381,30 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
+
+				fn benchmark_metadata(extra: bool) -> (
+					Vec<frame_benchmarking::BenchmarkList>,
+					Vec<frame_support::traits::StorageInfo>,
+				) {
+					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					use frame_support::traits::StorageInfoTrait;
+					use frame_system_benchmarking::Pallet as SystemBench;
+					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
+					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+
+					let mut list = Vec::<BenchmarkList>::new();
+
+					list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
+
+					let storage_info = AllPalletsWithSystem::storage_info();
+
+					return (list, storage_info)
+				}
+
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {

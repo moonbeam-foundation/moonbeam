@@ -440,11 +440,10 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-						command
-							.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
-								config,
-								service::moonbase_runtime::WASM_BINARY,
-							),
+						command.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+							config,
+							service::moonbase_runtime::WASM_BINARY,
+						),
 						task_manager,
 					))
 				});
