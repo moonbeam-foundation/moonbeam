@@ -9,6 +9,7 @@ members = [
     'bin/utils/moonkey',
     'pallets/maintenance-mode',
     'precompiles/utils/macro',
+    'primitives/xcm'
 ]
 exclude = [
     'bin/utils/moonkey'

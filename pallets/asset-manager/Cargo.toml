@@ -11,6 +11,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
@@ -31,5 +32,6 @@ std = [
 	"sp-io/std",
 	"frame-support/std",
 	"xcm/std",
-	"frame-system/std"
+	"frame-system/std",
+	"xcm-primitives/std"
 ]

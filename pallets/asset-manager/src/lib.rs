@@ -41,6 +41,26 @@ pub mod pallet {
 		fn destroy_asset(asset: T::AssetId) -> DispatchResult;
 	}
 
+	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
+		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
+			if let Some(asset_info) = AssetIdInfo::<T>::get(asset_id) {
+				Some(asset_info.asset_type)
+			} else {
+				None
+			}
+		}
+	}
+
+	impl<T: Config> xcm_primitives::UnitsPerSecondGetter<T::AssetId> for Pallet<T> {
+		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
+			if let Some(asset_info) = AssetIdInfo::<T>::get(asset_id) {
+				Some(asset_info.units_per_second)
+			} else {
+				None
+			}
+		}
+	}
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
