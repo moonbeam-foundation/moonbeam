@@ -148,12 +148,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=docker manifest inspect $DOCKER_TAG > /dev/null && \
-            echo "true" || echo "false"
+          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+            echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
@@ -317,39 +322,9 @@ jobs:
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
 
-  ####### Prepare and Deploy Docker images #######
-
-  generate-parachain-specs:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: ["build", "typescript-tests", "typescript-para-tests"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-      - name: Make moonbeam executable
-        run: |
-          chmod uog+x build/moonbeam
-      - name: Generate specs
-        run: |
-          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
-      - name: Generate runtimes
-        run: |
-          MOONBEAM_BINARY=build/moonbeam scripts/generate-runtimes.sh
-      - name: Upload parachain specs
-        uses: actions/upload-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["set-tags", "build", "generate-parachain-specs"]
+    needs: ["set-tags", "build"]
     if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
@@ -400,7 +375,7 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs: ["set-tags", "build", "generate-parachain-specs"]
+    needs: ["set-tags", "build"]
     if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout

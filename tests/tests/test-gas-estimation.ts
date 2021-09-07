@@ -45,6 +45,8 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
   // account by the estimation, so any provided gas limit should work:
   // https://github.com/PureStake/frontier/blob/moonbeam-polkadot-v0.9.8-binary-search/client/rpc/
   // src/eth.rs#L907
+  //TODO ^^ What is this link supposed to link to? not best = mid right? Can we link to master?
+  // To a specific commit?
   it("should work with a lower gas limit", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
