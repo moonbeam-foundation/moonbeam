@@ -30,9 +30,9 @@ tokio = { version = "0.2.13", features = ["macros", "sync"] }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
 # Runtimes
-moonbeam-runtime = { path = "../../runtime/moonbeam" }
-moonriver-runtime = { path = "../../runtime/moonriver" }
-moonbase-runtime = { path = "../../runtime/moonbase" }
+moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
+moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
+moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
@@ -115,6 +115,7 @@ polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "r
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
@@ -130,7 +131,6 @@ rand = "0.7.3"
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # Substrate dev-dependencies
@@ -140,18 +140,34 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 
 
 [features]
-default = [ "kusama-native", "westend-native", "rococo-native" ]
-kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
-westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+default = [
+	"rococo-native",
+	"westend-native",
+	"kusama-native",
+	"moonbase-native",
+	"moonriver-native",
+	"moonbeam-native"
+]
+
 rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
+westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
+
+moonbase-native = [ "moonbase-runtime", "westend-native" ]
+moonriver-native = [ "moonriver-runtime" ]
+moonbeam-native = [ "moonbeam-runtime" ]
 
 test-spec = []
 
 runtime-benchmarks = [
-	"moonbeam-runtime/runtime-benchmarks",
+	"moonbase-native",
 	"moonbase-runtime/runtime-benchmarks",
+	"moonriver-native",
+	"moonriver-runtime/runtime-benchmarks",
+	"moonbeam-native",
+	"moonbeam-runtime/runtime-benchmarks",
 	"polkadot-test-runtime/runtime-benchmarks"
 ]
 try-runtime = [
-	"moonbase-runtime/try-runtime",
+	"moonbase-runtime", "moonbase-runtime/try-runtime",
 ]
