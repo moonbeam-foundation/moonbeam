@@ -9,15 +9,15 @@ description = "Utils to write EVM precompiles."
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four-transaction-cost-fix" }
-evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
+evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 
 precompile-utils-macro = { path = "macro" }
 

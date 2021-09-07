@@ -12,21 +12,21 @@ tokio = { version = "0.2.21", features = ["sync", "time"] }
 futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 
-ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
-ethereum-types = "0.11.0"
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.12.0"
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
