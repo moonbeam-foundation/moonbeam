@@ -36,10 +36,11 @@ moonbase-runtime = { path = "../../runtime/moonbase" }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
-moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
-moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-primitives-ext = { path = "../../primitives/ext" }
+
+moonbeam-rpc-debug = { path = "../../client/rpc/debug", optional = true }
+moonbeam-rpc-trace = { path = "../../client/rpc/trace", optional = true }
 
 moonbeam-core-primitives = { path = "../../core-primitives" }
 
@@ -144,7 +145,13 @@ default = [ "kusama-native", "westend-native", "rococo-native" ]
 kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
 westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
 rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
-evm-tracing = [ "moonbeam-runtime/evm-tracing", "moonriver-runtime/evm-tracing", "moonbase-runtime/evm-tracing" ]
+evm-tracing = [
+	"moonbeam-rpc-debug",
+	"moonbeam-rpc-trace",
+	"moonbeam-runtime/evm-tracing",
+	"moonriver-runtime/evm-tracing",
+	"moonbase-runtime/evm-tracing"
+]
 
 test-spec = []
 

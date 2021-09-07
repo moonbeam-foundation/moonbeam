@@ -449,7 +449,7 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	rpc::spawn_tasks(rpc::SpawnTasksParams {
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
 		client: client.clone(),
 		substrate_backend: backend.clone(),
@@ -458,24 +458,17 @@ where
 		filter_pool: filter_pool.clone(),
 	});
 
-	let spawned_requesters = if cfg!(feature = "evm-tracing") {
-		rpc::spawn_tracing_tasks(
-			&rpc_config,
-			rpc::SpawnTasksParams {
-				task_manager: &task_manager,
-				client: client.clone(),
-				substrate_backend: backend.clone(),
-				frontier_backend: frontier_backend.clone(),
-				pending_transactions: pending_transactions.clone(),
-				filter_pool: filter_pool.clone(),
-			},
-		)
-	} else {
-		rpc::RpcRequesters {
-			debug: None,
-			trace: None,
-		}
-	};
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
+		&rpc_config,
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			pending_transactions: pending_transactions.clone(),
+			filter_pool: filter_pool.clone(),
+		},
+	);
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -513,14 +506,20 @@ where
 				command_sink: None,
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
 
-			rpc::create_full(deps, subscription_task_executor.clone())
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			if cfg!(feature = "evm-tracing") {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
+			io
 		})
 	};
 
@@ -793,7 +792,7 @@ pub fn new_dev(
 		);
 	}
 
-	rpc::spawn_tasks(rpc::SpawnTasksParams {
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
 		client: client.clone(),
 		substrate_backend: backend.clone(),
@@ -802,24 +801,17 @@ pub fn new_dev(
 		filter_pool: filter_pool.clone(),
 	});
 
-	let spawned_requesters = if cfg!(feature = "evm-tracing") {
-		rpc::spawn_tracing_tasks(
-			&rpc_config,
-			rpc::SpawnTasksParams {
-				task_manager: &task_manager,
-				client: client.clone(),
-				substrate_backend: backend.clone(),
-				frontier_backend: frontier_backend.clone(),
-				pending_transactions: pending_transactions.clone(),
-				filter_pool: filter_pool.clone(),
-			},
-		)
-	} else {
-		rpc::RpcRequesters {
-			debug: None,
-			trace: None,
-		}
-	};
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
+		&rpc_config,
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			pending_transactions: pending_transactions.clone(),
+			filter_pool: filter_pool.clone(),
+		},
+	);
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -855,13 +847,19 @@ pub fn new_dev(
 				command_sink: command_sink.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
-			rpc::create_full(deps, subscription_task_executor.clone())
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			if cfg!(feature = "evm-tracing") {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
+			io
 		})
 	};
 

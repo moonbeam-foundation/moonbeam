@@ -35,11 +35,6 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
-use moonbeam_rpc_debug::DebugHandler;
-use moonbeam_rpc_debug::{Debug, DebugRequester, DebugServer};
-use moonbeam_rpc_trace::{
-	CacheRequester as TraceFilterCacheRequester, CacheTask, Trace, TraceServer,
-};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
@@ -62,12 +57,6 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use sp_transaction_pool::TransactionPool;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
-use tokio::sync::Semaphore;
-
-pub struct RpcRequesters {
-	pub debug: Option<DebugRequester>,
-	pub trace: Option<TraceFilterCacheRequester>,
-}
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, A: ChainApi, BE> {
@@ -95,12 +84,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub backend: Arc<BE>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
-	/// Debug server requester.
-	pub debug_requester: Option<DebugRequester>,
-	/// Trace filter cache server requester.
-	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
-	/// Trace filter max count.
-	pub trace_filter_max_count: u32,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
 	/// Ethereum transaction to Extrinsic converter.
@@ -137,9 +120,9 @@ where
 		command_sink,
 		frontier_backend,
 		backend: _,
-		debug_requester,
-		trace_filter_requester,
-		trace_filter_max_count,
+		// debug_requester,
+		// trace_filter_requester,
+		// trace_filter_max_count,
 		max_past_logs,
 		transaction_converter,
 	} = deps;
@@ -222,20 +205,6 @@ where
 		);
 	};
 
-	if cfg!(feature = "evm-tracing") {
-		if let Some(trace_filter_requester) = trace_filter_requester {
-			io.extend_with(TraceServer::to_delegate(Trace::new(
-				client,
-				trace_filter_requester,
-				trace_filter_max_count,
-			)));
-		}
-
-		if let Some(debug_requester) = debug_requester {
-			io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
-		}
-	}
-
 	io
 }
 
@@ -248,76 +217,8 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub filter_pool: Option<FilterPool>,
 }
 
-/// Spawn the tasks that are required to run a Moonbeam tracing node.
-pub fn spawn_tracing_tasks<B, C, BE>(
-	rpc_config: &RpcConfig,
-	params: SpawnTasksParams<B, C, BE>,
-) -> RpcRequesters
-where
-	C: ProvideRuntimeApi<B> + BlockOf,
-	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
-	C: BlockchainEvents<B>,
-	C: Send + Sync + 'static,
-	C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B>,
-	C::Api: BlockBuilder<B>,
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	B::Header: HeaderT<Number = u32>,
-	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-{
-	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
-
-	let (trace_filter_task, trace_filter_requester) =
-		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
-			let (trace_filter_task, trace_filter_requester) = CacheTask::create(
-				Arc::clone(&params.client),
-				Arc::clone(&params.substrate_backend),
-				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
-				Arc::clone(&permit_pool),
-			);
-			(Some(trace_filter_task), Some(trace_filter_requester))
-		} else {
-			(None, None)
-		};
-
-	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
-		let (debug_task, debug_requester) = DebugHandler::task(
-			Arc::clone(&params.client),
-			Arc::clone(&params.substrate_backend),
-			Arc::clone(&params.frontier_backend),
-			Arc::clone(&permit_pool),
-		);
-		(Some(debug_task), Some(debug_requester))
-	} else {
-		(None, None)
-	};
-
-	// `trace_filter` cache task. Essential.
-	// Proxies rpc requests to it's handler.
-	if let Some(trace_filter_task) = trace_filter_task {
-		params
-			.task_manager
-			.spawn_essential_handle()
-			.spawn("trace-filter-cache", trace_filter_task);
-	}
-
-	// `debug` task if enabled. Essential.
-	// Proxies rpc requests to it's handler.
-	if let Some(debug_task) = debug_task {
-		params
-			.task_manager
-			.spawn_essential_handle()
-			.spawn("ethapi-debug", debug_task);
-	}
-
-	RpcRequesters {
-		debug: debug_requester,
-		trace: trace_filter_requester,
-	}
-}
-
 /// Spawn the tasks that are required to run Moonbeam.
-pub fn spawn_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
+pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
@@ -381,4 +282,155 @@ where
 			Arc::clone(&params.frontier_backend),
 		),
 	);
+}
+
+#[cfg(feature = "evm-tracing")]
+pub mod tracing {
+
+	use super::*;
+
+	use moonbeam_rpc_debug::DebugHandler;
+	use moonbeam_rpc_debug::{Debug, DebugRequester, DebugServer};
+	use moonbeam_rpc_trace::{
+		CacheRequester as TraceFilterCacheRequester, CacheTask, Trace, TraceServer,
+	};
+	use tokio::sync::Semaphore;
+
+	#[derive(Clone)]
+	pub struct RpcRequesters {
+		pub debug: Option<DebugRequester>,
+		pub trace: Option<TraceFilterCacheRequester>,
+	}
+
+	pub fn extend_with_tracing<C, BE>(
+		client: Arc<C>,
+		requesters: RpcRequesters,
+		trace_filter_max_count: u32,
+		io: &mut jsonrpc_core::IoHandler<sc_rpc::Metadata>,
+	) where
+		BE: Backend<Block> + 'static,
+		BE::State: StateBackend<BlakeTwo256>,
+		BE::Blockchain: BlockchainBackend<Block>,
+		C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+		C: BlockchainEvents<Block>,
+		C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+		C: Send + Sync + 'static,
+		C::Api: RuntimeApiCollection<StateBackend = BE::State>,
+	{
+		if let Some(trace_filter_requester) = requesters.trace {
+			io.extend_with(TraceServer::to_delegate(Trace::new(
+				client,
+				trace_filter_requester,
+				trace_filter_max_count,
+			)));
+		}
+
+		if let Some(debug_requester) = requesters.debug {
+			io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
+		}
+	}
+
+	// Spawn the tasks that are required to run a Moonbeam tracing node.
+	pub fn spawn_tracing_tasks<B, C, BE>(
+		rpc_config: &RpcConfig,
+		params: SpawnTasksParams<B, C, BE>,
+	) -> RpcRequesters
+	where
+		C: ProvideRuntimeApi<B> + BlockOf,
+		C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
+		C: BlockchainEvents<B>,
+		C: Send + Sync + 'static,
+		C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B>,
+		C::Api: BlockBuilder<B>,
+		B: BlockT<Hash = H256> + Send + Sync + 'static,
+		B::Header: HeaderT<Number = u32>,
+		BE: Backend<B> + 'static,
+		BE::State: StateBackend<BlakeTwo256>,
+	{
+		let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
+
+		let (trace_filter_task, trace_filter_requester) =
+			if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
+				let (trace_filter_task, trace_filter_requester) = CacheTask::create(
+					Arc::clone(&params.client),
+					Arc::clone(&params.substrate_backend),
+					Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+					Arc::clone(&permit_pool),
+				);
+				(Some(trace_filter_task), Some(trace_filter_requester))
+			} else {
+				(None, None)
+			};
+
+		let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
+			let (debug_task, debug_requester) = DebugHandler::task(
+				Arc::clone(&params.client),
+				Arc::clone(&params.substrate_backend),
+				Arc::clone(&params.frontier_backend),
+				Arc::clone(&permit_pool),
+			);
+			(Some(debug_task), Some(debug_requester))
+		} else {
+			(None, None)
+		};
+
+		// `trace_filter` cache task. Essential.
+		// Proxies rpc requests to it's handler.
+		if let Some(trace_filter_task) = trace_filter_task {
+			params
+				.task_manager
+				.spawn_essential_handle()
+				.spawn("trace-filter-cache", trace_filter_task);
+		}
+
+		// `debug` task if enabled. Essential.
+		// Proxies rpc requests to it's handler.
+		if let Some(debug_task) = debug_task {
+			params
+				.task_manager
+				.spawn_essential_handle()
+				.spawn("ethapi-debug", debug_task);
+		}
+
+		RpcRequesters {
+			debug: debug_requester,
+			trace: trace_filter_requester,
+		}
+	}
+}
+
+#[cfg(not(feature = "evm-tracing"))]
+pub mod tracing {
+
+	use super::*;
+
+	#[derive(Clone)]
+	pub struct RpcRequesters {}
+
+	pub fn extend_with_tracing<C>(
+		_client: Arc<C>,
+		_requesters: RpcRequesters,
+		_trace_filter_max_count: u32,
+		_io: &mut jsonrpc_core::IoHandler<sc_rpc::Metadata>,
+	) {
+	}
+
+	pub fn spawn_tracing_tasks<B, C, BE>(
+		_rpc_config: &RpcConfig,
+		_params: crate::rpc::SpawnTasksParams<B, C, BE>,
+	) -> RpcRequesters
+	where
+		C: ProvideRuntimeApi<B> + BlockOf,
+		C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
+		C: BlockchainEvents<B>,
+		C: Send + Sync + 'static,
+		C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B>,
+		C::Api: BlockBuilder<B>,
+		B: BlockT<Hash = H256> + Send + Sync + 'static,
+		B::Header: HeaderT<Number = u32>,
+		BE: Backend<B> + 'static,
+		BE::State: StateBackend<BlakeTwo256>,
+	{
+		RpcRequesters {}
+	}
 }
