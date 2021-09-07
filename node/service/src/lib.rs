@@ -165,7 +165,7 @@ pub fn new_chain_ops(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		TaskManager,
 	),
 	ServiceError,
@@ -238,7 +238,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 		TFullClient<Block, RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
@@ -371,7 +371,7 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::Transaction,
+		transaction: ethereum_primitives::TransactionV0,
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
@@ -444,6 +444,7 @@ where
 			import_queue: import_queue.clone(),
 			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+			warp_sync: None,
 		})?;
 
 	let subscription_task_executor =
@@ -509,7 +510,6 @@ where
 				max_past_logs,
 				transaction_converter,
 			};
-
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if cfg!(feature = "evm-tracing") {
 				rpc::tracing::extend_with_tracing(
@@ -519,7 +519,7 @@ where
 					&mut io,
 				);
 			}
-			io
+			Ok(io)
 		})
 	};
 
@@ -680,6 +680,7 @@ pub fn new_dev(
 			import_queue,
 			on_demand: None,
 			block_announce_validator_builder: None,
+			warp_sync: None,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -763,7 +764,7 @@ pub fn new_dev(
 				block_import,
 				env,
 				client: client.clone(),
-				pool: transaction_pool.pool().clone(),
+				pool: transaction_pool.clone(),
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
@@ -859,7 +860,7 @@ pub fn new_dev(
 					&mut io,
 				);
 			}
-			io
+			Ok(io)
 		})
 	};
 

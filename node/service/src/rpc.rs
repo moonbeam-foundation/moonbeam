@@ -47,14 +47,16 @@ use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
-use sc_transaction_graph::{ChainApi, Pool};
+// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
+// Is it only for tests? Should we use it here?
+use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool_api::TransactionPool;
 use sp_api::{HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use sp_transaction_pool::TransactionPool;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
 

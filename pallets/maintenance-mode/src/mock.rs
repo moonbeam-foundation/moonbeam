@@ -17,8 +17,11 @@
 //! A minimal runtime including the maintenance-mode pallet
 use super::*;
 use crate as pallet_maintenance_mode;
-use frame_support::traits::Filter;
-use frame_support::{construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Contains, Everything, GenesisBuild},
+	weights::Weight,
+};
 use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_runtime::{
@@ -81,15 +84,15 @@ impl frame_system::Config for Test {
 
 /// During maintenance mode we will not allow any calls.
 pub struct MaintenanceCallFilter;
-impl Filter<Call> for MaintenanceCallFilter {
-	fn filter(_: &Call) -> bool {
+impl Contains<Call> for MaintenanceCallFilter {
+	fn contains(_: &Call) -> bool {
 		false
 	}
 }
 
 impl Config for Test {
 	type Event = Event;
-	type NormalCallFilter = ();
+	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = MaintenanceCallFilter;
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
 }

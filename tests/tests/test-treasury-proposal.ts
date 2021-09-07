@@ -193,7 +193,10 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     );
     const proposalHash = proposalEvents[0].data[2].toHuman();
 
-    // Dorothy vote for this proposal and close it
+    // Charleth & Dorothy vote for this proposal and close it
+    await context.polkadotApi.tx.councilCollective
+      .vote(proposalHash, 0, true)
+      .signAndSend(charleth);
     await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
     await context.createBlock();
     await context.createBlock();
@@ -237,10 +240,16 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
     );
     const councilProposalHash = rejectEvents[0].data[2].toHuman();
 
-    // Dorothy vote for against proposal and close it
-    await context.polkadotApi.tx.councilCollective
-      .vote(councilProposalHash, 0, true)
-      .signAndSend(dorothy);
+    // Charleth & Dorothy vote for against proposal and close it
+    await Promise.all([
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(charleth),
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(dorothy),
+    ]);
+
     await context.createBlock();
     const { events: closeEvents } = await createBlockWithExtrinsic(
       context,

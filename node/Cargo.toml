@@ -24,8 +24,8 @@ nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 [features]
 evm-tracing = [ "moonbeam-service/evm-tracing", "moonbeam-cli/evm-tracing" ]
