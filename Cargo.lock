@@ -1546,7 +1546,7 @@ source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1595,7 +1595,7 @@ source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1642,7 +1642,7 @@ name = "cumulus-client-pov-recovery"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9)",
  "futures 0.3.16",
  "futures-timer 3.0.2",
  "parity-scale-codec",
@@ -1803,7 +1803,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.9#a214d80d84409be1655f28ff897dfc61f347cfdb"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.9#fd80849dde5c209c20a996cfcc5aaacd4666dcbe"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -8928,7 +8928,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "syn-mid",
  "version_check",
 ]
 
