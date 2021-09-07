@@ -55,7 +55,8 @@ describeDevMoonbeam("Staking - Parachain Bond - no sudo on setParachainBondAccou
         context.polkadotApi.tx.authorMapping.setParachainBondAccount(GENESIS_ACCOUNT)
       );
     } catch (e) {
-      // NB: This test used to check events for ExtrinsicFailed, but now the api prevents the call from happening
+      // NB: This test used to check events for ExtrinsicFailed,
+      // but now the api prevents the call from happening
       expect(e.toString().substring(0, 90)).to.eq(
         "TypeError: context.polkadotApi.tx.authorMapping.setParachainBondAccount is not a function"
       );
@@ -99,9 +100,10 @@ describeDevMoonbeam(
           context.polkadotApi.tx.authorMapping.setParachainBondReservePercent(TWENTY_PERCENT)
         );
       } catch (e) {
-        // NB: This test used to check events for ExtrinsicFailed, but now the api prevents the call from happening
-        expect(e.toString().substring(0, 90)).to.eq(
-          "TypeError: context.polkadotApi.tx.authorMapping.setParachainBondReservePercent is not a fu"
+        // NB: This test used to check events for ExtrinsicFailed,
+        // but now the api prevents the call from happening
+        expect(e.toString().substring(0, 88)).to.eq(
+          "TypeError: context.polkadotApi.tx.authorMapping.setParachainBondReservePercent is not a "
         );
       }
     });
