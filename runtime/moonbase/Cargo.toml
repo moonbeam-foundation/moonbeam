@@ -27,11 +27,11 @@ nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "no
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 
 
 # Substrate dependencies
@@ -58,11 +58,11 @@ pallet-transaction-payment = { git = "https://github.com/purestake/substrate", d
 
 frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-utility = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 
 pallet-democracy = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }

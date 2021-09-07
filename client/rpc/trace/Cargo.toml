@@ -28,14 +28,14 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-v
 sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Client and RPC
 jsonrpc-core = "15.0.0"
 sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-network = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9", features = ["rpc_binary_search_estimate"] }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length", features = ["rpc_binary_search_estimate"] }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
