@@ -288,7 +288,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
 			use frame_support::storage::migration::{remove_storage_prefix, storage_key_iter};
-			use sp_std::convert::TryInto;
+			use sp_std::{convert::TryInto, vec::Vec};
 
 			let pallet_prefix: &[u8] = b"AuthorMapping";
 			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
