@@ -7,7 +7,7 @@ description = "Maps AuthorIds to AccountIds Useful for associating consensus aut
 
 [dependencies]
 log = { version="0.4", default-features=false }
-nimbus-primitives = { git="https://github.com/purestake/cumulus", branch="nimbus-polkadot-v0.9.9", default-features=false }
+nimbus-primitives = { git="https://github.com/purestake/cumulus", branch="notlesh-nimbus-v0.9.9-block-response-length", default-features=false }
 frame-support = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length", default-features=false }
 frame-system = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length", default-features=false }
 parity-scale-codec = { version="2.0.0", default-features=false, features=["derive"] }
