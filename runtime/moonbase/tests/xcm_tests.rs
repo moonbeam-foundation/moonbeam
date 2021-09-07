@@ -41,7 +41,8 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0u128
 		));
 	});
 
@@ -77,7 +78,8 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0u128
 		));
 	});
 
@@ -145,6 +147,7 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location.clone(),
+			1u128,
 			1u128
 		));
 	});
@@ -153,7 +156,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0u128
 		));
 	});
 
@@ -219,7 +223,8 @@ fn send_para_a_asset_to_para_b() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0u128
 		));
 	});
 
@@ -266,7 +271,8 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		assert_ok!(AssetManager::xcm_asset_register(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0u128
 		));
 	});
 
@@ -325,5 +331,49 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			ParaBalances::free_balance(&PARAALICE.into()),
 			INITIAL_BALANCE
 		);
+	});
+}
+
+#[test]
+fn receive_relay_asset_with_trader() {
+	MockNet::reset();
+
+	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	// This time we are gonna put a rather high number of units per second
+	// we know later we will divide by 1e12
+	// Lets put 1e6 as units per second
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::xcm_asset_register(
+			parachain::Origin::root(),
+			source_location,
+			1u128,
+			1_000_000u128
+		));
+	});
+
+	// We are sending 100 tokens from relay.
+	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
+	// Therefore with no refund, we should receive 10 tokens less
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			X1(Parachain(1)),
+			X1(Junction::AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE
+			}),
+			vec![ConcreteFungible {
+				id: Null,
+				amount: 100
+			}],
+			10_000_000u64,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
 	});
 }

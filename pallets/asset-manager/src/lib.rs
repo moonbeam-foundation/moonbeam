@@ -62,6 +62,11 @@ pub mod pallet {
 		type PalletId: Get<PalletId>;
 	}
 
+	#[derive(Default, Clone, Encode, Decode, PartialEq, RuntimeDebug)]
+	pub struct AssetInfo<T: Config> {
+		pub asset_type: T::AssetType,
+		pub units_per_second: u128,
+	}
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -75,14 +80,13 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		XcmAssetRegistered(T::AssetType, T::AssetId),
+		XcmAssetRegistered(T::AssetId, T::AssetType, u128),
 		XcmAssetDestroyed(T::AssetId),
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn asset_id_to_type)]
-	pub type AssetIdToAssetType<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
+	#[pallet::getter(fn asset_id_info)]
+	pub type AssetIdInfo<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, AssetInfo<T>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -91,18 +95,24 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset: T::AssetType,
 			min_amount: T::Balance,
+			units_per_second: u128,
 		) -> DispatchResult {
 			ensure_root(origin)?;
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
-				AssetIdToAssetType::<T>::get(&asset_id).is_none(),
+				AssetIdInfo::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
 			T::AssetRegistrar::create_asset(asset_id, min_amount)
 				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
-			AssetIdToAssetType::<T>::insert(&asset_id, &asset);
 
-			Self::deposit_event(Event::XcmAssetRegistered(asset, asset_id));
+			let asset_info = AssetInfo {
+				asset_type: asset.clone(),
+				units_per_second: units_per_second.clone(),
+			};
+			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
+
+			Self::deposit_event(Event::XcmAssetRegistered(asset_id, asset, units_per_second));
 			Ok(())
 		}
 		#[pallet::weight(0)]
@@ -110,12 +120,12 @@ pub mod pallet {
 			ensure_root(origin)?;
 
 			ensure!(
-				AssetIdToAssetType::<T>::get(asset_id).is_some(),
+				AssetIdInfo::<T>::get(asset_id).is_some(),
 				Error::<T>::AssetDoestNotExist
 			);
 			T::AssetRegistrar::destroy_asset(asset_id)
 				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
-			AssetIdToAssetType::<T>::remove(asset_id);
+			AssetIdInfo::<T>::remove(asset_id);
 
 			Self::deposit_event(Event::XcmAssetDestroyed(asset_id));
 

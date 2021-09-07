@@ -16,6 +16,7 @@
 
 //! Parachain runtime mock.
 
+use frame_support::weights::constants::WEIGHT_PER_SECOND;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, OriginTrait, PalletInfo as PalletInfoTrait},
@@ -23,9 +24,11 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
+use moonbase_runtime::DealWithFees;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::Zero;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
@@ -50,15 +53,17 @@ use xcm::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, CurrencyAdapter as XcmCurrencyAdapter,
-	EnsureXcmOrigin, FixedWeightBounds, IsConcrete, LocationInverter, ParentAsSuperuser,
-	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
+	EnsureXcmOrigin, FixedRateOfConcreteFungible, FixedWeightBounds, IsConcrete, LocationInverter,
+	ParentAsSuperuser, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeRevenue, TakeWeightCredit,
 };
 use xcm_executor::{
 	traits::{FilterAssetLocation, WeightTrader},
 	Config, XcmExecutor,
 };
 
+use sp_std::marker::PhantomData;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -176,12 +181,10 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	pub const UnitWeightCost: Weight = 1;
-	pub KsmPerSecond: (MultiLocation, u128) = (X1(Parent), 1);
 }
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
 /// its multiLocation value, which will be stored in AssetManager if it exists
-
 pub struct AsAssetType;
 impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsAssetType {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
@@ -189,8 +192,10 @@ impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsAssetType {
 		Ok(AssetType::Xcm(multilocation.clone()).into())
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(AssetType::Xcm(location)) = AssetManager::asset_id_to_type(what.borrow()) {
-			Ok(location)
+		if let Some(asset_info) = AssetManager::asset_id_info(what.borrow()) {
+			match asset_info.asset_type {
+				AssetType::Xcm(location) => Ok(location),
+			}
 		} else {
 			Err(())
 		}
@@ -242,20 +247,147 @@ pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>
 
 // Needs to be changed.
 // We need to know how to charge for incoming assets
-pub struct MyWeightTrader;
-impl WeightTrader for MyWeightTrader {
+pub struct MyWeightTrader<R: TakeRevenue>(
+	Weight,
+	Option<(MultiLocation, u128, u128)>,
+	PhantomData<R>,
+);
+impl<R: TakeRevenue> WeightTrader for MyWeightTrader<R> {
 	fn new() -> Self {
-		MyWeightTrader
+		MyWeightTrader(0, None, PhantomData)
 	}
 	fn buy_weight(
 		&mut self,
-		_: Weight,
-		a: xcm_executor::Assets,
+		weight: Weight,
+		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
-		Ok(a)
+		let first_asset = payment
+			.clone()
+			.fungible_assets_iter()
+			.next()
+			.ok_or(XcmError::TooExpensive)?;
+
+		// We are only going to check first asset for now. This should be sufficient for simple token
+		// transfers. We will see later if we change this.
+		match first_asset {
+			MultiAsset::ConcreteFungible { id, .. } => {
+				let asset_id: AssetId = AssetType::Xcm(id.clone()).into();
+				if let Some(asset_info) = AssetManager::asset_id_info(asset_id) {
+					let amount = asset_info.units_per_second * (weight as u128)
+						/ (WEIGHT_PER_SECOND as u128);
+					let required = MultiAsset::ConcreteFungible {
+						amount,
+						id: id.clone(),
+					};
+					let (unused, _) = payment.less(required).map_err(|_| XcmError::TooExpensive)?;
+					self.0 = self.0.saturating_add(weight);
+
+					// In case the asset matches the one the trader already stored before, add
+					// to later refund
+
+					// Else we are always going to substract the weight if we can, but we latter do
+					// not refund it
+
+					// In short, we only refund on the asset the trader first succesfully was able
+					// to pay for an execution
+					let new_asset = match self.1.clone() {
+						Some((prev_id, prev_amount, units_per_second)) => {
+							if prev_id == id.clone() {
+								Some((id, prev_amount.saturating_add(amount), units_per_second))
+							} else {
+								None
+							}
+						}
+						None => Some((id, amount, asset_info.units_per_second)),
+						_ => None,
+					};
+
+					// Due to the trait bound, we can only refund one asset.
+					if let Some(new_asset) = new_asset {
+						self.0 = self.0.saturating_add(weight);
+						self.1 = Some(new_asset);
+					};
+					return Ok(unused);
+				} else {
+					return Err(XcmError::TooExpensive);
+				};
+			}
+			_ => return Err(XcmError::TooExpensive),
+		}
+	}
+
+	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+		let result = if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
+			let weight = weight.min(self.0);
+			self.0 -= weight;
+			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
+			self.1 = Some((
+				id.clone(),
+				prev_amount.saturating_sub(amount),
+				units_per_second,
+			));
+			MultiAsset::ConcreteFungible { id, amount }
+		} else {
+			MultiAsset::None
+		};
+		result
 	}
 }
 
+// This defines how multiTraders should be implemented
+// We need to define how we will substract fees in the case of our reserve asset
+pub struct MultiWeightTraders<FixedRateOfConcreteFungible, MyWeightTrader> {
+	native_trader: FixedRateOfConcreteFungible,
+	other_trader: MyWeightTrader,
+}
+impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
+	for MultiWeightTraders<NativeTrader, OtherTrader>
+{
+	fn new() -> Self {
+		Self {
+			native_trader: NativeTrader::new(),
+			other_trader: OtherTrader::new(),
+		}
+	}
+	fn buy_weight(
+		&mut self,
+		weight: Weight,
+		payment: xcm_executor::Assets,
+	) -> Result<xcm_executor::Assets, XcmError> {
+		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
+			return Ok(assets);
+		}
+
+		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
+			return Ok(assets);
+		}
+
+		// if let Ok(asset) = self.dummy_trader.buy_weight(weight, payment) {
+		// 	return Ok(assets)
+		// }
+
+		Err(XcmError::TooExpensive)
+	}
+	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+		let native = self.native_trader.refund_weight(weight);
+		match native {
+			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return native,
+			_ => {}
+		}
+
+		let other = self.other_trader.refund_weight(weight);
+		match other {
+			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return other,
+			_ => {}
+		}
+
+		MultiAsset::None
+	}
+}
+
+parameter_types! {
+	pub ParaTokensPerSecond: (MultiLocation, u128) = (BalancesLocation::get(), 1);
+}
 // This needs to be changed
 // For now we accept everything
 pub struct MultiNativeAsset;
@@ -283,7 +415,10 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader = MyWeightTrader;
+	type Trader = MultiWeightTraders<
+		FixedRateOfConcreteFungible<ParaTokensPerSecond, ()>,
+		MyWeightTrader<()>,
+	>;
 	type ResponseHandler = ();
 }
 
@@ -329,7 +464,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 1;
+	pub const BaseXcmWeight: Weight = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent, Parachain(MsgQueue::parachain_id().into()).into());
 }
 
@@ -431,7 +566,6 @@ pub mod mock_msg_queue {
 					Event::BadVersion(Some(hash)),
 				),
 			};
-			println!("{:?}", result);
 			Self::deposit_event(event);
 			result
 		}

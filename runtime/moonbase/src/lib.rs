@@ -838,8 +838,10 @@ impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsAssetType {
 		Ok(AssetType::Xcm(multilocation.clone()).into())
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(AssetType::Xcm(location)) = AssetManager::asset_id_to_type(what.borrow()) {
-			Ok(location)
+		if let Some(asset_info) = AssetManager::asset_id_info(what.borrow()) {
+			match asset_info.asset_type {
+				AssetType::Xcm(location) => Ok(location),
+			}
 		} else {
 			Err(())
 		}
@@ -942,7 +944,8 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader = MyWeightTrader;
+	type Trader =
+		xcm_builder::UsingComponents<IdentityFee<Balance>, SelfLocation, AccountId, Balances, ()>;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
