@@ -10,7 +10,9 @@ const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 // We are trying to call candidate_count() on the staking precompile
 const dataCall = `0x4b1c4c29`;
 // We are trying to call join_candidate(min,1) on the staking precompile
-const dataSend = `0x0a1bff6000000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000000000000001`;
+const dataSend =
+  `0x0a1bff6000000000000000000000000000000000000000000000003635c9adc5dea00000000` +
+  `0000000000000000000000000000000000000000000000000000000000001`;
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
