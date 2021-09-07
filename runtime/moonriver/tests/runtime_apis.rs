@@ -24,29 +24,10 @@ use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAc
 use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use fp_rpc::ConvertTransaction;
 use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
-
-fn ethereum_transaction() -> pallet_ethereum::Transaction {
-	// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
-	let bytes = hex::decode(
-		"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a0\
-		8c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61\
-		125a81a582a717d9c5d6554326c01b878297c6522b12282",
-	)
-	.expect("Transaction bytes.");
-	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
-	assert!(transaction.is_ok());
-	transaction.unwrap()
-}
-
-fn uxt() -> UncheckedExtrinsic {
-	let converter = TransactionConverter;
-	converter.convert_transaction(ethereum_transaction())
-}
 
 #[test]
 fn ethereum_runtime_rpc_api_chain_id() {
@@ -225,7 +206,8 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_eq!(result, Ok(()));
 			run_to_block(2);
 			let statuses =
@@ -287,7 +269,8 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_eq!(result, Ok(()));
 			run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
@@ -301,10 +284,10 @@ fn txpool_runtime_api_extrinsic_filter() {
 		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
 		);
-		let eth_uxt = uxt();
+		let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 		let txpool = <Runtime as TxPoolRuntimeApi<moonriver_runtime::Block>>::extrinsic_filter(
 			vec![eth_uxt.clone(), non_eth_uxt.clone()],
-			vec![uxt(), non_eth_uxt],
+			vec![unchecked_eth_tx(VALID_ETH_TX), non_eth_uxt],
 		);
 		assert_eq!(txpool.ready.len(), 1);
 		assert_eq!(txpool.future.len(), 1);
@@ -328,8 +311,8 @@ fn debug_runtime_api_trace_transaction() {
 			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
 			);
-			let transaction = ethereum_transaction();
-			let eth_uxt = uxt();
+			let transaction = ethereum_transaction(VALID_ETH_TX);
+			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 			let header = System::finalize();
 			assert!(Runtime::trace_transaction(
 				&header,
@@ -357,7 +340,7 @@ fn debug_runtime_api_trace_block() {
 			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
 			);
-			let eth_uxt = uxt();
+			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 			let header = System::finalize();
 			assert!(Runtime::trace_block(
 				&header,

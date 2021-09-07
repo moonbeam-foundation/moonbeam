@@ -23,7 +23,7 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
   // This test is based on the time needed for trace_filter to perform those actions.
   // It will start a slow query (taking 1s) and will try to execute a fast one after to see if it
   // goes through or wait for the first one to finish
-  it("should allow concurrent execution", async function () {
+  it.skip("should allow concurrent execution", async function () {
     this.timeout(10000);
     const queryRange = async (range, index) => {
       const start = Date.now();
