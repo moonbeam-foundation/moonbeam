@@ -295,6 +295,7 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
         env:
           BINARY_PATH: ../build/moonbeam
+          ETHAPI_CMD: --ethapi=txpool,debug,trace
         run: |
           cd moonbeam-types-bundle
           npm install
