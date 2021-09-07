@@ -649,12 +649,13 @@ impl ListenerT for Listener {
 #[allow(unused)]
 mod tests {
 	use super::*;
-	use crate::proxy::types::{
-		evm::{Context as EvmContext, CreateScheme},
+	use ethereum_types::H256;
+	use moonbeam_rpc_primitives_debug::v2::{
+		evm::CreateScheme,
 		gasometer::Snapshot,
 		runtime::{Memory, Stack},
+		Context as EvmContext,
 	};
-	use ethereum_types::H256;
 
 	enum TestEvmEvent {
 		Call,
