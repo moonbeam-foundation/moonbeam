@@ -2,16 +2,16 @@
 name = 'moonbeam-cli-opt'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.10.0'
+version = '0.11.3'
 authors = ["PureStake"]
 edition = '2018'
 
 [dependencies]
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 structopt = "0.3.8"
 tiny-bip39 = { version = "0.6" }
 libsecp256k1 = { version = "0.3.2" }
-primitive-types = "0.9.0"
+primitive-types = "0.10.0"
 sha3 = "0.8"
 tiny-hderive = "0.3.0"
 account = { path = "../../primitives/account" }

@@ -18,10 +18,10 @@
 
 use super::*;
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{MaxEncodedLen, OnFinalize, OnInitialize},
+	traits::{OnFinalize, OnInitialize},
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};

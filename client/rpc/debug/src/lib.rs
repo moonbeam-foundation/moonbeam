@@ -30,6 +30,7 @@ use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, V2_RUNTIME_VERSION};
+use proxy::formats::TraceResponseBuilder;
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -169,6 +170,35 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
+		// Set trace type
+		let trace_type = match params {
+			Some(TraceParams {
+				tracer: Some(tracer),
+				..
+			}) => {
+				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+				if hash == blockscout_hash {
+					single::TraceType::CallList
+				} else {
+					return Err(internal_err(format!(
+						"javascript based tracing is not available (hash :{:?})",
+						hash
+					)));
+				}
+			}
+			Some(params) => single::TraceType::Raw {
+				disable_storage: params.disable_storage.unwrap_or(false),
+				disable_memory: params.disable_memory.unwrap_or(false),
+				disable_stack: params.disable_stack.unwrap_or(false),
+			},
+			_ => single::TraceType::Raw {
+				disable_storage: false,
+				disable_memory: false,
+				disable_stack: false,
+			},
+		};
+
 		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
@@ -217,35 +247,6 @@ where
 			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
 		};
 
-		// Set trace type
-		let trace_type = match params {
-			Some(TraceParams {
-				tracer: Some(tracer),
-				..
-			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
-				} else {
-					return Err(internal_err(format!(
-						"javascript based tracing is not available (hash :{:?})",
-						hash
-					)));
-				}
-			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
-		};
-
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
@@ -261,12 +262,16 @@ where
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else if api_version == 2 {
-						let _result = api
-							.trace_transaction(&parent_block_id, &header, ext, &transaction)
-							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
-							})?
-							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+						#[allow(deprecated)]
+						let _result = api.trace_transaction_before_version_3(
+							&parent_block_id,
+							&header,
+							ext,
+							&transaction,
+							trace_type,
+						)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
 						Ok(proxy::v1::Result::V2(proxy::v1::ResultV2::Single))
 					} else {
@@ -302,7 +307,7 @@ where
 								disable_stack,
 							);
 							proxy.using(f)?;
-							Ok(proxy.into_tx_trace())
+							Ok(proxy::formats::raw::Response::build(proxy).unwrap())
 						} else if api_version == 2 {
 							let mut proxy = proxy::v1::RawProxy::new();
 							proxy.using(f)?;
@@ -314,9 +319,7 @@ where
 									Ok(result)
 								}
 								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
+								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}
 						}
 					}
@@ -324,8 +327,8 @@ where
 						if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 							let mut proxy = proxy::v2::call_list::Listener::default();
 							proxy.using(f)?;
-							proxy
-								.into_tx_trace()
+							proxy.finish_transaction();
+							proxy::formats::blockscout::Response::build(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
 						} else if api_version == 2 {
@@ -342,9 +345,7 @@ where
 									Ok(result)
 								}
 								Err(e) => Err(e),
-								_ => Err(internal_err(format!(
-									"Bug: Api and result versions must match"
-								))),
+								_ => Err(internal_err("Bug: Api and result versions must match")),
 							}
 						}
 					}
