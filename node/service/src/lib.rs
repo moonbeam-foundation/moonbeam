@@ -199,7 +199,7 @@ fn new_chain_ops_inner<RuntimeApi, Executor>(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		TaskManager,
 	),
 	ServiceError,

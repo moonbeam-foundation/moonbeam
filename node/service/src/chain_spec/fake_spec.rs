@@ -64,6 +64,10 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
+	fn extensions_mut(&mut self) -> &mut dyn sc_chain_spec::GetExtension {
+		todo!()
+	}
+
 	fn add_boot_node(&mut self, _addr: sc_network::config::MultiaddrWithPeerId) {
 		todo!()
 	}
@@ -81,13 +85,6 @@ impl sc_service::ChainSpec for FakeSpec {
 	}
 
 	fn set_storage(&mut self, _storage: sp_runtime::Storage) {
-		todo!()
-	}
-
-	fn set_light_sync_state(
-		&mut self,
-		_light_sync_state: sc_chain_spec::SerializableLightSyncState,
-	) {
 		todo!()
 	}
 
