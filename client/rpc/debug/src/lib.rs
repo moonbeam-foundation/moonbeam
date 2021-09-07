@@ -30,7 +30,10 @@ use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
-use moonbeam_rpc_primitives_debug::api::{single, DebugRuntimeApi, V2_RUNTIME_VERSION};
+use moonbeam_rpc_primitives_debug::{
+	api::{single, V2_RUNTIME_VERSION},
+	DebugRuntimeApi,
+};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;

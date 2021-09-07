@@ -56,9 +56,12 @@ use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer,
 };
-use moonbeam_rpc_primitives_debug::api::{
-	block::{self, TransactionTrace},
-	DebugRuntimeApi, V2_RUNTIME_VERSION,
+use moonbeam_rpc_primitives_debug::{
+	api::{
+		block::{self, TransactionTrace},
+		V2_RUNTIME_VERSION,
+	},
+	DebugRuntimeApi,
 };
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.

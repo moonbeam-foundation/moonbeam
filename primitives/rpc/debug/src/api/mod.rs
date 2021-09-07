@@ -17,7 +17,6 @@
 //! Runtime API allowing to debug/trace Ethereum
 
 use codec::{Decode, Encode};
-use ethereum::TransactionV0 as Transaction;
 use ethereum_types::H160;
 use sp_std::vec::Vec;
 
@@ -30,43 +29,6 @@ pub mod block;
 pub mod single;
 
 pub const V2_RUNTIME_VERSION: u32 = 400;
-
-sp_api::decl_runtime_apis! {
-	#[api_version(3)]
-	pub trait DebugRuntimeApi {
-
-		#[changed_in(2)]
-		fn trace_transaction(
-			extrinsics: Vec<Block::Extrinsic>,
-			transaction: &Transaction,
-			trace_type: single::TraceType,
-		) -> Result<single::TransactionTrace, sp_runtime::DispatchError>;
-
-		#[changed_in(2)]
-		fn trace_block(
-			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
-
-		#[changed_in(3)]
-		fn trace_transaction(
-			header: &Block::Header,
-			extrinsics: Vec<Block::Extrinsic>,
-			transaction: &Transaction,
-			trace_type: single::TraceType,
-		) -> Result<(), sp_runtime::DispatchError>;
-
-		fn trace_transaction(
-			header: &Block::Header,
-			extrinsics: Vec<Block::Extrinsic>,
-			transaction: &Transaction,
-		) -> Result<(), sp_runtime::DispatchError>;
-
-		fn trace_block(
-			header: &Block::Header,
-			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<(), sp_runtime::DispatchError>;
-	}
-}
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]

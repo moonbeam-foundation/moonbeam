@@ -25,7 +25,7 @@ use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
 use frame_support::assert_noop;
-use moonbeam_rpc_primitives_debug::api::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
+use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
