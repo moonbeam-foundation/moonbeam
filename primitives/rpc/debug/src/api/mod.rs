@@ -17,7 +17,7 @@
 //! Runtime API allowing to debug/trace Ethereum
 
 use codec::{Decode, Encode};
-use ethereum::Transaction;
+use ethereum::TransactionV0 as Transaction;
 use ethereum_types::H160;
 use sp_std::vec::Vec;
 
