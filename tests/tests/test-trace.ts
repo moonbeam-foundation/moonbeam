@@ -194,3 +194,59 @@ describeDevMoonbeam(
   },
   true
 );
+
+describeDevMoonbeam("Trace", (context) => {
+  it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
+    this.timeout(10000);
+
+    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    await context.createBlock({ transactions: [rawTx] });
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contract.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: "0x5bec9e67",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: BS_TRACER.body },
+    ]);
+
+    expect(trace.result.length).to.be.eq(1);
+    expect(trace.result[0].error).to.be.equal("out of gas");
+  });
+
+  it("should trace correctly precompiles (Blockscout)", async function () {
+    this.timeout(10000);
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: "0x0000000000000000000000000000000000000801",
+        gas: "0xdb3b",
+        value: "0x0",
+        data: "0x4e71d92d",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: BS_TRACER.body },
+    ]);
+
+    expect(trace.result.length).to.be.eq(1);
+  });
+});
