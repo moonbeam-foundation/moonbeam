@@ -20,21 +20,21 @@ futures = { version = "0.3", features = ["compat"] }
 tracing = "0.1.25"
 
 # Primitives
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-utils = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Client and RPC
 jsonrpc-core = "15.0.0"
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
-sc-network = { git = "https://github.com/paritytech/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-network = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "crystalin-v0.9.9-block-response-length", features = ["rpc_binary_search_estimate"] }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "crystalin-v0.9.9-block-response-length" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "crystalin-v0.9.9-block-response-length" }
