@@ -56,6 +56,7 @@ pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
 use moonbeam_rpc_primitives_debug::{block, proxy, DebugRuntimeApi, V2_RUNTIME_VERSION};
+use proxy::formats::TraceResponseBuilder;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
@@ -927,7 +928,7 @@ where
 		if runtime_version.spec_version >= V2_RUNTIME_VERSION && api_version >= 3 {
 			let mut proxy = proxy::v2::call_list::Listener::default();
 			proxy.using(f)?;
-			let mut traces: Vec<_> = proxy.into_tx_traces();
+			let mut traces: Vec<_> = proxy::formats::trace_filter::Response::build(proxy).unwrap();
 			// Fill missing data.
 			for trace in traces.iter_mut() {
 				trace.block_hash = eth_block_hash;

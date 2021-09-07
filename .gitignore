@@ -4,7 +4,6 @@
 # Rust directories
 **/target
 **/scripts/tmp
-.cargo/
 
 # Typescript directories
 **/node_modules
