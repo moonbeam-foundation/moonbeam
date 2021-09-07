@@ -401,55 +401,6 @@
 <span id="401">401</span>
 <span id="402">402</span>
 <span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -598,34 +549,76 @@
 <span class="doccomment">/// A client instance of Moonbeam.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Client</span> {
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
 	<span class="ident">Moonbeam</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbeam_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbeamExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
 	<span class="ident">Moonriver</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonriver_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonriverExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
 	<span class="ident">Moonbase</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbase_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbaseExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbeam_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbeamExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+	<span class="kw">for</span> <span class="ident">Client</span>
+{
+	<span class="kw">fn</span> <span class="ident">from</span>(
+		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbeam_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbeamExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>)
+	}
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonriver_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonriverExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+	<span class="kw">for</span> <span class="ident">Client</span>
+{
+	<span class="kw">fn</span> <span class="ident">from</span>(
+		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonriver_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonriverExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>)
+	}
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbase_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbaseExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+	<span class="kw">for</span> <span class="ident">Client</span>
+{
+	<span class="kw">fn</span> <span class="ident">from</span>(
+		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullClient</span><span class="op">&lt;</span><span class="ident">moonbase_runtime::RuntimeApi</span>, <span class="kw">crate</span><span class="ident">::MoonbaseExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>)
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">ClientHandle</span> <span class="kw">for</span> <span class="ident">Client</span> {
 	<span class="kw">fn</span> <span class="ident">execute_with</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ExecuteWithClient</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T::Output</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
-			}
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
-			}
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
-			}
+			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>()),
+			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>()),
+			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T::execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span><span class="ident">::FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>()),
 		}
 	}
 }
 
+<span class="macro">macro_rules!</span> <span class="ident">match_client</span> {
+	(<span class="macro-nonterminal">$</span><span class="self">self</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+		<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="self">self</span> {
+			<span class="attribute">#[<span class="macro-nonterminal">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span>),<span class="kw-2">*</span>),
+			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span>),<span class="kw-2">*</span>),
+			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
+			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span>),<span class="kw-2">*</span>),
+		}
+	};
+}
+
 <span class="kw">impl</span> <span class="ident">sc_client_api::UsageProvider</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Client</span> {
 	<span class="kw">fn</span> <span class="ident">usage_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_client_api::ClientInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">usage_info</span>())
 	}
 }
 
@@ -634,79 +627,47 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">block_body</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">block_indexed_body</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">block_indexed_body</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SignedBlock</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">block</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">block_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">BlockStatus</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">block_status</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">justifications</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Justifications</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">justifications</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">block_hash</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">number</span>: <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">block_hash</span>(<span class="ident">number</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">indexed_transaction</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">hash</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">indexed_transaction</span>(<span class="ident">hash</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">has_indexed_transaction</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">hash</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>))
 	}
 }
 
@@ -716,11 +677,7 @@
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StorageData</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">storage_keys</span>(
@@ -728,11 +685,7 @@
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 		<span class="ident">key_prefix</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StorageKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">storage_hash</span>(
@@ -740,11 +693,7 @@
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">storage_pairs</span>(
@@ -752,11 +701,7 @@
 		<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 		<span class="ident">key_prefix</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">StorageKey</span>, <span class="ident">StorageData</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">storage_keys_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -767,11 +712,7 @@
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span>
 		<span class="ident">KeyIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullBackend</span> <span class="kw">as</span> <span class="ident">sc_client_api::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::State</span>, <span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">child_storage</span>(
@@ -780,11 +721,7 @@
 		<span class="ident">child_info</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>,
 		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StorageData</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">child_storage_keys</span>(
@@ -793,11 +730,7 @@
 		<span class="ident">child_info</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>,
 		<span class="ident">key_prefix</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StorageKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">child_storage_keys_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -828,11 +761,7 @@
 		<span class="ident">child_info</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>,
 		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">max_key_changes_range</span>(
@@ -840,11 +769,7 @@
 		<span class="ident">first</span>: <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 		<span class="ident">last</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">key_changes</span>(
@@ -854,53 +779,30 @@
 		<span class="ident">storage_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PrefixedStorageKey</span><span class="op">&gt;</span>,
 		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">StorageKey</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>))
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">sp_blockchain::HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Client</span> {
 	<span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
-		}
+		<span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span>;
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">header</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Info</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">info</span>())
 	}
 
 	<span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="ident">sp_blockchain::BlockStatus</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">status</span>(<span class="ident">id</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hash</span>: <span class="ident">Hash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">number</span>(<span class="ident">hash</span>))
 	}
 
 	<span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">number</span>: <span class="ident">BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
-		}
+		<span class="macro">match_client!</span>(<span class="self">self</span>, <span class="ident">hash</span>(<span class="ident">number</span>))
 	}
 }
 </pre></div>
