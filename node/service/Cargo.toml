@@ -115,6 +115,7 @@ polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "r
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
@@ -130,7 +131,6 @@ rand = "0.7.3"
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9", features = ["runtime-benchmarks"] }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # Substrate dev-dependencies
@@ -165,7 +165,8 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"moonbeam-native",
-	"moonbeam-runtime/runtime-benchmarks"
+	"moonbeam-runtime/runtime-benchmarks",
+	"polkadot-test-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",
