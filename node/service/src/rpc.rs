@@ -120,9 +120,6 @@ where
 		command_sink,
 		frontier_backend,
 		backend: _,
-		// debug_requester,
-		// trace_filter_requester,
-		// trace_filter_max_count,
 		max_past_logs,
 		transaction_converter,
 	} = deps;
