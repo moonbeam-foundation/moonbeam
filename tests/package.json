@@ -36,7 +36,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-precompile-revert-attack.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-parachain-bond.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
