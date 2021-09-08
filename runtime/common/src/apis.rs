@@ -96,7 +96,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
+					use moonbeam_evm_tracer::tracer::EvmTracer;
 
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
@@ -130,7 +130,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
+					use moonbeam_evm_tracer::tracer::EvmTracer;
 					// Explicit initialize.
 					// Needed because https://github.com/paritytech/substrate/pull/8953
 					Executive::initialize_block(header);
