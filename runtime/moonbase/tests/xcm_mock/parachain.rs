@@ -16,15 +16,13 @@
 
 //! Parachain runtime mock.
 
-use frame_support::weights::constants::WEIGHT_PER_SECOND;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, OriginTrait, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use moonbase_runtime::DealWithFees;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::traits::AccountIdConversion;
@@ -33,21 +31,15 @@ use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
 };
-use sp_std::{
-	borrow::Borrow,
-	convert::{TryFrom, TryInto},
-	prelude::*,
-};
+use sp_std::{convert::TryFrom, prelude::*};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::{
 	v0::{
 		Error as XcmError, ExecuteXcm,
-		Junction::{AccountKey20, PalletInstance, Parachain, Parent},
-		MultiAsset,
-		MultiLocation::{self, X1},
-		NetworkId, Outcome, Xcm,
+		Junction::{PalletInstance, Parachain, Parent},
+		MultiAsset, MultiLocation, NetworkId, Outcome, Xcm,
 	},
 	VersionedXcm,
 };
@@ -56,14 +48,13 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfConcreteFungible,
 	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser,
 	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{
-	traits::{FilterAssetLocation, JustTry, WeightTrader},
+	traits::{JustTry, WeightTrader},
 	Config, XcmExecutor,
 };
 
-use sp_std::marker::PhantomData;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -280,14 +271,6 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 parameter_types! {
 	pub ParaTokensPerSecond: (MultiLocation, u128) = (SelfReserve::get(), 1);
 }
-// This needs to be changed
-// For now we accept everything
-pub struct MultiNativeAsset;
-impl FilterAssetLocation for MultiNativeAsset {
-	fn filter_asset_location(_asset: &MultiAsset, _origin: &MultiLocation) -> bool {
-		return true;
-	}
-}
 
 parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
@@ -302,7 +285,7 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = xcm_primitives::MultiNativeAsset;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;

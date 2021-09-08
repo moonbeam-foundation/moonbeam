@@ -23,8 +23,13 @@ use frame_support::{
 	traits::{Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use xcm::v0::{Error as XcmError, Junction::AccountKey20, MultiAsset, MultiLocation, NetworkId};
+use xcm::v0::{
+	Error as XcmError,
+	Junction::{AccountKey20, Parachain, Parent},
+	MultiAsset, MultiLocation, NetworkId,
+};
 use xcm_builder::TakeRevenue;
+use xcm_executor::traits::FilterAssetLocation;
 use xcm_executor::traits::WeightTrader;
 
 use sp_runtime::traits::Zero;
@@ -245,6 +250,40 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 		}
 
 		MultiAsset::None
+	}
+}
+
+pub trait Reserve {
+	/// Returns assets reserve location.
+	fn reserve(&self) -> Option<MultiLocation>;
+}
+
+impl Reserve for MultiAsset {
+	fn reserve(&self) -> Option<MultiLocation> {
+		if let MultiAsset::ConcreteFungible { id, .. } = self {
+			match (id.first(), id.at(1)) {
+				(Some(Parent), Some(Parachain(id))) => Some((Parent, Parachain(*id)).into()),
+				(Some(Parent), _) => Some(Parent.into()),
+				(Some(Parachain(id)), _) => Some(Parachain(*id).into()),
+				_ => None,
+			}
+		} else {
+			None
+		}
+	}
+}
+
+/// A `FilterAssetLocation` implementation. Filters multi native assets whose
+/// reserve is same with `origin`.
+pub struct MultiNativeAsset;
+impl FilterAssetLocation for MultiNativeAsset {
+	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+		if let Some(ref reserve) = asset.reserve() {
+			if reserve == origin {
+				return true;
+			}
+		}
+		false
 	}
 }
 

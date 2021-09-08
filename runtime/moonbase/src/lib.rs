@@ -36,7 +36,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Filter, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait,
+		Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -46,17 +46,15 @@ use frame_support::{
 	PalletId,
 };
 
-use sp_runtime::traits::Zero;
-use sp_std::marker::PhantomData;
 use xcm_builder::{
 	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit, UsingComponents,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
 
-use xcm_executor::traits::{JustTry, WeightTrader};
+use xcm_executor::traits::JustTry;
 
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
@@ -83,17 +81,16 @@ use sp_runtime::{
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::{
-	convert::{From, Into, TryFrom, TryInto},
+	convert::{From, Into, TryFrom},
 	prelude::*,
 };
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::v0::{
-	BodyId, Error as XcmError,
-	Junction::{AccountKey20, PalletInstance, Parachain, Parent},
-	MultiAsset,
-	MultiLocation::{self, X1, X2, X3},
+	BodyId,
+	Junction::{PalletInstance, Parachain, Parent},
+	MultiLocation::{self, X2, X3},
 	NetworkId,
 };
 
@@ -898,15 +895,6 @@ parameter_types! {
 // Allow paid executions
 pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
-use xcm_executor::traits::FilterAssetLocation;
-// Change
-pub struct MultiNativeAsset;
-impl FilterAssetLocation for MultiNativeAsset {
-	fn filter_asset_location(_asset: &MultiAsset, _origin: &MultiLocation) -> bool {
-		return true;
-	}
-}
-
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -915,7 +903,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = xcm_primitives::MultiNativeAsset;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
@@ -1041,6 +1029,7 @@ impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
+			// Unreachable for now
 			_ => None,
 		}
 	}

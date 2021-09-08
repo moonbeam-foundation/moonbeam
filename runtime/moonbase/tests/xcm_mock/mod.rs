@@ -17,9 +17,7 @@
 pub mod parachain;
 pub mod relay_chain;
 
-use moonbeam_core_primitives::AccountId;
 use sp_runtime::AccountId32;
-use xcm::v0::{MultiAsset, MultiLocation};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
