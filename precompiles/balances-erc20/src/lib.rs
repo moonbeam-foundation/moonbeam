@@ -127,7 +127,7 @@ pub enum Action {
 
 /// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
-/// The precompile used an additional storage to store approvals.
+/// The precompile uses an additional storage to store approvals.
 pub struct Erc20BalancesPrecompile<Runtime, Instance: 'static = ()>(
 	PhantomData<(Runtime, Instance)>,
 );
