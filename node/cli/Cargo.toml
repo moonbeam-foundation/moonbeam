@@ -1,43 +1,51 @@
 [package]
 name = "moonbeam-cli"
-version = "0.10.0"
+version = "0.11.3"
 authors = ["PureStake"]
 edition = "2018"
 
 [dependencies]
 log = "0.4.8"
 structopt = "0.3.8"
-parity-scale-codec = '2.0.0'
+parity-scale-codec = '2.2'
 
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", optional = true }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", optional = true }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 [features]
-default = ["wasmtime"]
+default = ["wasmtime", "westend-native", "moonbase-native", "moonriver-native", "moonbeam-native"]
+
+westend-native = [ "polkadot-service/westend-native" ]
+
+moonbase-native = ["service/moonbase-native"]
+moonriver-native = ["service/moonriver-native"]
+moonbeam-native = ["service/moonbeam-native"]
+
 wasmtime = ["sc-cli/wasmtime"]
 runtime-benchmarks = ["service/runtime-benchmarks"]
+evm-tracing = []
 try-runtime = [
 	"try-runtime-cli",
 	"service/try-runtime",

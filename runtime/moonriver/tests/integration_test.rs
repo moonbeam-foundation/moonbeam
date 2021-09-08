@@ -59,8 +59,8 @@ fn verify_pallet_prefixes() {
 			Some(name)
 		);
 	}
-	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
-	// is pulled in substrate deps.
+	// TODO: use StorageInfoTrait from https://github.com/paritytech/substrate/pull/9246
+	// This is now available with polkadot-v0.9.9 dependencies
 	is_pallet_prefix::<moonriver_runtime::System>("System");
 	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
 	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
@@ -71,6 +71,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonriver_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonriver_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonriver_runtime::MaintenanceMode>("MaintenanceMode");
 	is_pallet_prefix::<moonriver_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
@@ -84,17 +85,21 @@ fn verify_pallet_prefixes() {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
 		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
-		res
+		res.to_vec()
 	};
 	assert_eq!(
 		<moonriver_runtime::Timestamp as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"Now".to_vec(),
 				prefix: prefix(b"Timestamp", b"Now"),
 				max_values: Some(1),
 				max_size: Some(8),
 			},
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"DidUpdate".to_vec(),
 				prefix: prefix(b"Timestamp", b"DidUpdate"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -105,26 +110,36 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"TotalIssuance".to_vec(),
 				prefix: prefix(b"Balances", b"TotalIssuance"),
 				max_values: Some(1),
 				max_size: Some(16),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: Some(300_000),
 				max_size: Some(100),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
 				max_values: Some(300_000),
 				max_size: Some(1287),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Reserves".to_vec(),
 				prefix: prefix(b"Balances", b"Reserves"),
 				max_values: None,
 				max_size: Some(1037),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"StorageVersion".to_vec(),
 				prefix: prefix(b"Balances", b"StorageVersion"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -135,16 +150,30 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Proxies".to_vec(),
 				prefix: prefix(b"Proxy", b"Proxies"),
 				max_values: None,
 				max_size: Some(845),
 			},
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Announcements".to_vec(),
 				prefix: prefix(b"Proxy", b"Announcements"),
 				max_values: None,
 				max_size: Some(1837),
 			}
 		]
+	);
+	assert_eq!(
+		<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			pallet_name: b"MaintenanceMode".to_vec(),
+			storage_name: b"MaintenanceMode".to_vec(),
+			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+			max_values: Some(1),
+			max_size: Some(1),
+		},]
 	);
 }
 
@@ -173,7 +202,8 @@ fn verify_pallet_indices() {
 	// Handy utilities
 	is_pallet_index::<moonriver_runtime::Utility>(30);
 	is_pallet_index::<moonriver_runtime::Proxy>(31);
-	// Sudo was previously index 40
+	is_pallet_index::<moonriver_runtime::MaintenanceMode>(32);
+	// TODO Sudo was previously index 40, should we test that there is nothing there now?
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
@@ -531,7 +561,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
-#[ignore]
 #[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
@@ -831,7 +860,6 @@ fn reward_info_via_precompile() {
 		})
 }
 
-#[ignore]
 #[test]
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
@@ -974,4 +1002,20 @@ fn multiplier_growth_simulator() {
 		blocks += 1;
 		println!("block = {} multiplier {:?}", blocks, multiplier);
 	}
+}
+
+#[test]
+fn ethereum_invalid_transaction() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Ensure an extrinsic not containing enough gas limit to store the transaction
+		// on chain is rejected.
+		assert_eq!(
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
+			Err(
+				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+				)
+			)
+		);
+	});
 }

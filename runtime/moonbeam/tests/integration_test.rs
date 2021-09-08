@@ -83,21 +83,26 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbeam_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("AuthorMapping");
+	is_pallet_prefix::<moonbeam_runtime::MaintenanceMode>("MaintenanceMode");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
 		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
-		res
+		res.to_vec()
 	};
 	assert_eq!(
 		<moonbeam_runtime::Timestamp as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"Now".to_vec(),
 				prefix: prefix(b"Timestamp", b"Now"),
 				max_values: Some(1),
 				max_size: Some(8),
 			},
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"DidUpdate".to_vec(),
 				prefix: prefix(b"Timestamp", b"DidUpdate"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -108,26 +113,36 @@ fn verify_pallet_prefixes() {
 		<moonbeam_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"TotalIssuance".to_vec(),
 				prefix: prefix(b"Balances", b"TotalIssuance"),
 				max_values: Some(1),
 				max_size: Some(16),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: Some(300_000),
 				max_size: Some(100),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
 				max_values: Some(300_000),
 				max_size: Some(1287),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Reserves".to_vec(),
 				prefix: prefix(b"Balances", b"Reserves"),
 				max_values: None,
 				max_size: Some(1037),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"StorageVersion".to_vec(),
 				prefix: prefix(b"Balances", b"StorageVersion"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -137,6 +152,8 @@ fn verify_pallet_prefixes() {
 	assert_eq!(
 		<moonbeam_runtime::Sudo as StorageInfoTrait>::storage_info(),
 		vec![StorageInfo {
+			pallet_name: b"Sudo".to_vec(),
+			storage_name: b"Key".to_vec(),
 			prefix: prefix(b"Sudo", b"Key"),
 			max_values: Some(1),
 			max_size: Some(20),
@@ -146,16 +163,30 @@ fn verify_pallet_prefixes() {
 		<moonbeam_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Proxies".to_vec(),
 				prefix: prefix(b"Proxy", b"Proxies"),
 				max_values: None,
 				max_size: Some(845),
 			},
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Announcements".to_vec(),
 				prefix: prefix(b"Proxy", b"Announcements"),
 				max_values: None,
 				max_size: Some(1837),
 			}
 		]
+	);
+	assert_eq!(
+		<moonbeam_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			pallet_name: b"MaintenanceMode".to_vec(),
+			storage_name: b"MaintenanceMode".to_vec(),
+			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+			max_values: Some(1),
+			max_size: Some(1),
+		},]
 	);
 }
 
@@ -190,6 +221,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::CrowdloanRewards>(20);
 	is_pallet_index::<moonbeam_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbeam_runtime::Proxy>(22);
+	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(23);
 }
 
 #[test]
@@ -972,4 +1004,20 @@ fn multiplier_growth_simulator() {
 		blocks += 1;
 		println!("block = {} multiplier {:?}", blocks, multiplier);
 	}
+}
+
+#[test]
+fn ethereum_invalid_transaction() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Ensure an extrinsic not containing enough gas limit to store the transaction
+		// on chain is rejected.
+		assert_eq!(
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
+			Err(
+				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+				)
+			)
+		);
+	});
 }

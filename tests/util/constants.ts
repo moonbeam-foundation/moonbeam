@@ -7,9 +7,11 @@ export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
 export const SPAWNING_TIME = 20000;
+export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
 
 // Test variables
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const TREASURY_ACCOUNT = "0x6d6f646c70632f74727372790000000000000000";
 export const GENESIS_ACCOUNT = "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b";
 export const GENESIS_ACCOUNT_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";

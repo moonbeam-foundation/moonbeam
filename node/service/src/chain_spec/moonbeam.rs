@@ -27,9 +27,9 @@ use evm::GenesisAccount;
 use moonbeam_runtime::{
 	currency::GLMR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, WASM_BINARY,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
+	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig,
+	SystemConfig, TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -251,6 +251,9 @@ pub fn testnet_genesis(
 		},
 		treasury: Default::default(),
 		migrations: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: false,
+		},
 	}
 }
 
