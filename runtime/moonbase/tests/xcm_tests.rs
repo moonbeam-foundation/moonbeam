@@ -56,7 +56,7 @@ fn receive_relay_asset_from_relay() {
 				key: PARAALICE
 			}),
 			vec![ConcreteFungible {
-				id: MultiLocation::Here,
+				id: MultiLocation::Null,
 				amount: 123
 			}],
 			123,

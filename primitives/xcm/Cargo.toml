@@ -1,0 +1,43 @@
+[package]
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+name = 'xcm-primitives'
+repository = 'https://github.com/PureStake/moonbeam/'
+version = '0.1.1'
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
+log = "0.4"
+hex = { version = "0.4", default-features = false }
+sha3 = { version = "0.8", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
+
+[dev-dependencies]
+hex = "0.4.3"
+
+[features]
+default = ["std"]
+std = [
+	"parity-scale-codec/std",
+	"serde/std",
+	"hex/std",
+	"sha3/std",
+	"sp-std/std",
+	"sp-runtime/std",
+	"xcm/std",
+	"xcm-builder/std"
+]
+

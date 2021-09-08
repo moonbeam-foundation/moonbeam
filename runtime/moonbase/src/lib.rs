@@ -831,26 +831,6 @@ pub type LocationToAccountId = (
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
-/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// a Parachain junction, prefixed by some `MultiLocation` value.
-use sp_std::borrow::Borrow;
-pub struct AsAssetType;
-impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsAssetType {
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		let multilocation = id.borrow();
-		Ok(AssetType::Xcm(multilocation.clone()).into())
-	}
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(asset_info) = AssetManager::asset_id_info(what.borrow()) {
-			match asset_info.asset_type {
-				AssetType::Xcm(location) => Ok(location),
-			}
-		} else {
-			Err(())
-		}
-	}
-}
-
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
@@ -1044,14 +1024,15 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(MultiLocation::Null)
+		Self::Xcm(location)
 	}
 }
 
-impl Into<MultiLocation> for AssetType {
-	fn into(self: Self) -> MultiLocation {
+impl Into<Option<MultiLocation>> for AssetType {
+	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
-			Self::Xcm(location) => location,
+			Self::Xcm(location) => Some(location),
+			_ => None,
 		}
 	}
 }
@@ -1140,7 +1121,8 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
-	type CurrencyIdConvert = CurrencyIdtoMultiLocation<AsAssetType>;
+	type CurrencyIdConvert =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;

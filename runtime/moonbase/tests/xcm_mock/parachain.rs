@@ -52,14 +52,14 @@ use xcm::{
 	VersionedXcm,
 };
 use xcm_builder::{
-	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, CurrencyAdapter as XcmCurrencyAdapter,
-	EnsureXcmOrigin, FixedRateOfConcreteFungible, FixedWeightBounds, IsConcrete, LocationInverter,
-	ParentAsSuperuser, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeRevenue, TakeWeightCredit,
+	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfConcreteFungible,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser,
+	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit,
 };
 use xcm_executor::{
-	traits::{FilterAssetLocation, WeightTrader},
+	traits::{FilterAssetLocation, JustTry, WeightTrader},
 	Config, XcmExecutor,
 };
 
@@ -183,36 +183,17 @@ parameter_types! {
 	pub const UnitWeightCost: Weight = 1;
 }
 
-/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// its multiLocation value, which will be stored in AssetManager if it exists
-pub struct AsAssetType;
-impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsAssetType {
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		let multilocation = id.borrow();
-		Ok(AssetType::Xcm(multilocation.clone()).into())
-	}
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(asset_info) = AssetManager::asset_id_info(what.borrow()) {
-			match asset_info.asset_type {
-				AssetType::Xcm(location) => Ok(location),
-			}
-		} else {
-			Err(())
-		}
-	}
-}
-
 // Instructing how incoming xcm assets will be handled
-pub type FungiblesTransactor = xcm_builder::FungiblesAdapter<
+pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
-		xcm_builder::ConvertedConcreteAssetId<
+		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
-			AsAssetType,
-			xcm_executor::traits::JustTry,
+			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
+			JustTry,
 		>,
 	),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
@@ -244,95 +225,6 @@ pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
-
-// Needs to be changed.
-// We need to know how to charge for incoming assets
-pub struct MyWeightTrader<R: TakeRevenue>(
-	Weight,
-	Option<(MultiLocation, u128, u128)>,
-	PhantomData<R>,
-);
-impl<R: TakeRevenue> WeightTrader for MyWeightTrader<R> {
-	fn new() -> Self {
-		MyWeightTrader(0, None, PhantomData)
-	}
-	fn buy_weight(
-		&mut self,
-		weight: Weight,
-		payment: xcm_executor::Assets,
-	) -> Result<xcm_executor::Assets, XcmError> {
-		let first_asset = payment
-			.clone()
-			.fungible_assets_iter()
-			.next()
-			.ok_or(XcmError::TooExpensive)?;
-
-		// We are only going to check first asset for now. This should be sufficient for simple token
-		// transfers. We will see later if we change this.
-		match first_asset {
-			MultiAsset::ConcreteFungible { id, .. } => {
-				let asset_id: AssetId = AssetType::Xcm(id.clone()).into();
-				if let Some(asset_info) = AssetManager::asset_id_info(asset_id) {
-					let amount = asset_info.units_per_second * (weight as u128)
-						/ (WEIGHT_PER_SECOND as u128);
-					let required = MultiAsset::ConcreteFungible {
-						amount,
-						id: id.clone(),
-					};
-					let (unused, _) = payment.less(required).map_err(|_| XcmError::TooExpensive)?;
-					self.0 = self.0.saturating_add(weight);
-
-					// In case the asset matches the one the trader already stored before, add
-					// to later refund
-
-					// Else we are always going to substract the weight if we can, but we latter do
-					// not refund it
-
-					// In short, we only refund on the asset the trader first succesfully was able
-					// to pay for an execution
-					let new_asset = match self.1.clone() {
-						Some((prev_id, prev_amount, units_per_second)) => {
-							if prev_id == id.clone() {
-								Some((id, prev_amount.saturating_add(amount), units_per_second))
-							} else {
-								None
-							}
-						}
-						None => Some((id, amount, asset_info.units_per_second)),
-						_ => None,
-					};
-
-					// Due to the trait bound, we can only refund one asset.
-					if let Some(new_asset) = new_asset {
-						self.0 = self.0.saturating_add(weight);
-						self.1 = Some(new_asset);
-					};
-					return Ok(unused);
-				} else {
-					return Err(XcmError::TooExpensive);
-				};
-			}
-			_ => return Err(XcmError::TooExpensive),
-		}
-	}
-
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
-		let result = if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
-			let weight = weight.min(self.0);
-			self.0 -= weight;
-			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
-			self.1 = Some((
-				id.clone(),
-				prev_amount.saturating_sub(amount),
-				units_per_second,
-			));
-			MultiAsset::ConcreteFungible { id, amount }
-		} else {
-			MultiAsset::None
-		};
-		result
-	}
-}
 
 // This defines how multiTraders should be implemented
 // We need to define how we will substract fees in the case of our reserve asset
@@ -417,7 +309,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 	type Trader = MultiWeightTraders<
 		FixedRateOfConcreteFungible<ParaTokensPerSecond, ()>,
-		MyWeightTrader<()>,
+		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;
 	type ResponseHandler = ();
 }
@@ -452,17 +344,6 @@ where
 	}
 }
 
-//How to convert an accountId to MultiLocation
-pub struct AccountIdToMultiLocation;
-impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
-	fn convert(account: AccountId) -> MultiLocation {
-		X1(AccountKey20 {
-			network: NetworkId::Any,
-			key: account.into(),
-		})
-	}
-}
-
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent, Parachain(MsgQueue::parachain_id().into()).into());
@@ -473,8 +354,9 @@ impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = CurrencyIdtoMultiLocation<AsAssetType>;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdConvert =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -627,30 +509,8 @@ impl mock_msg_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-pub struct SignedToAccountId20<Origin, AccountId, Network>(
-	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
-);
-impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
-	xcm_executor::traits::Convert<Origin, MultiLocation>
-	for SignedToAccountId20<Origin, AccountId, Network>
-where
-	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
-		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
-{
-	fn convert(o: Origin) -> Result<MultiLocation, Origin> {
-		o.try_with_caller(|caller| match caller.try_into() {
-			Ok(frame_system::RawOrigin::Signed(who)) => Ok(AccountKey20 {
-				key: who.into(),
-				network: Network::get(),
-			}
-			.into()),
-			Ok(other) => Err(other.into()),
-			Err(other) => Err(other),
-		})
-	}
-}
-
-pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+pub type LocalOriginToLocation =
+	xcm_primitives::SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
@@ -674,6 +534,21 @@ pub enum AssetType {
 impl Default for AssetType {
 	fn default() -> Self {
 		Self::Xcm(MultiLocation::Null)
+	}
+}
+
+impl From<MultiLocation> for AssetType {
+	fn from(location: MultiLocation) -> Self {
+		Self::Xcm(location)
+	}
+}
+
+impl Into<Option<MultiLocation>> for AssetType {
+	fn into(self: Self) -> Option<MultiLocation> {
+		match self {
+			Self::Xcm(location) => Some(location),
+			_ => None,
+		}
 	}
 }
 
