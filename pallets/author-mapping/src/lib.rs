@@ -245,18 +245,6 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
-	#[pallet::storage]
-	#[pallet::storage_prefix = "MappingWithDeposit"]
-	/// This is the old storage item with the non-cryptographic hasher. The definition is retained
-	/// for now so that it can be used in migrations.
-	type OldMappingWithDeposit<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AuthorId,
-		RegistrationInfo<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
 	pub struct GenesisConfig<T: Config> {
@@ -336,11 +324,6 @@ pub mod pallet {
 
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<(), &'static str> {
-			use frame_support::storage::migration::storage_key_iter;
-
-			let pallet_prefix: &[u8] = b"AuthorMapping";
-			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
-
 			// We want to test that:
 			// There are no entries in the new storage beforehand
 			// The same number of mappings exist before and after
@@ -348,27 +331,11 @@ pub mod pallet {
 			// same value after the migration.
 			// There are no entries in the old storage afterward
 
-			// Assert new storage is empty
-			assert!(MappingWithDeposit::<T>::iter().next().is_none());
+			//TODO assert new storage is empty
 
-			// Check number of entries, and set it aside in temp storage
-			//TODO, maybe I don't need to fetch the keys here?
-			let mapping_count = storage_key_iter::<
-				T::AuthorId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-				Twox64Concat,
-			>(pallet_prefix, storage_item_prefix)
-			.count();
-			//TODO put it in temp storage
+			//TODO check number of entries, and set it aside in temp storage
 
-			// Read an example pair from old storage and set it aside in temp storage
-			let maybe_first_pair = storage_key_iter::<
-				T::AuthorId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-				Twox64Concat,
-			>(pallet_prefix, storage_item_prefix)
-			.next();
-			//TODO put it in temp storage
+			//TODO read an example pair from old storage and set it aside in temp storage
 
 			Ok(())
 		}
