@@ -233,21 +233,6 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
-pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(c: &Call) -> bool {
-		match c {
-			Call::Assets(method) => match method {
-				pallet_assets::Call::create(..) => false,
-				pallet_assets::Call::set_metadata(..) => false,
-				pallet_assets::Call::destroy(..) => false,
-				_ => true,
-			},
-			_ => true,
-		}
-	}
-}
-
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -1152,6 +1137,7 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
 }
+
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
@@ -1161,6 +1147,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}
@@ -1209,8 +1196,9 @@ construct_runtime! {
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 24,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 25,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 26,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 27,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 28,
+		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
+		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 27,
+		Assets: pallet_assets::{Pallet, Storage, Event<T>} = 28,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 29,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
 	}
