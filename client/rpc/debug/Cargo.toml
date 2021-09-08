@@ -12,20 +12,20 @@ tokio = { version = "0.2.21", features = ["sync", "time"] }
 futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 
-ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
-ethereum-types = "0.11.0"
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
-sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.12.0"
+sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonriver-phase-four-transaction-cost-fix" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }

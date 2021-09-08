@@ -13,8 +13,8 @@ path = 'src/main.rs'
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat"] }
-moonbeam-cli = { path = "cli" }
-moonbeam-service = { path = "service" }
+moonbeam-cli = { path = "cli", default-features = false }
+moonbeam-service = { path = "service", default-features = false }
 
 [dev-dependencies]
 serde = { version = "1.0.101", features = ["derive"] }
@@ -24,11 +24,20 @@ nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 [features]
-default = []
+default = [ "moonbase-native", "moonriver-native", "moonbeam-native" ]
+evm-tracing = [ "moonbeam-service/evm-tracing", "moonbeam-cli/evm-tracing" ]
+
+rococo-native = [ "moonbeam-service/rococo-native" ]
+westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]
+kusama-native = [ "moonbeam-service/kusama-native" ]
+
+moonbase-native = [ "moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-native" ]
+moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native" ]
+moonbeam-native = [ "moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native" ]
 
 test-spec = []
 

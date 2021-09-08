@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -54,7 +54,7 @@ use pallet_evm::{
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -153,8 +153,8 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Returns if calls are allowed through the filter
 pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(c: &Call) -> bool {
+impl Contains<Call> for BaseFilter {
+	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
@@ -261,15 +261,15 @@ pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
+	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -356,7 +356,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
-	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -526,6 +526,44 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 }
 
+parameter_types! {
+	// Add one item in storage and take 258 bytes
+	pub const BasicDeposit: Balance = currency::deposit(1, 258);
+	// Not add any item to the storage but takes 66 bytes
+	pub const FieldDeposit: Balance = currency::deposit(0, 66);
+	// Add one item in storage and take 53 bytes
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 53);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+type IdentityForceOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+type IdentityRegistrarOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = IdentityForceOrigin;
+	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -685,18 +723,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	Debug,
-	max_encoded_len::MaxEncodedLen,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -772,8 +799,8 @@ impl pallet_proxy::Config for Runtime {
 /// Call filter expected to be used during Phase 3 of the Moonbeam rollout
 /// At least it was used in Moonriver phase3
 pub struct PhaseThreeFilter;
-impl Filter<Call> for PhaseThreeFilter {
-	fn filter(c: &Call) -> bool {
+impl Contains<Call> for PhaseThreeFilter {
+	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
@@ -824,6 +851,7 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
@@ -854,7 +882,19 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	MigratePalletVersionToStorageVersion,
 >;
+
+/// Migrate from `PalletVersion` to the new `StorageVersion`
+pub struct MigratePalletVersionToStorageVersion;
+
+impl frame_support::traits::OnRuntimeUpgrade for MigratePalletVersionToStorageVersion {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		frame_support::migrations::migrate_from_pallet_version_to_storage_version::<
+			AllPalletsWithSystem,
+		>(&RocksDbWeight::get())
+	}
+}
 
 // All of our runtimes share most of their Runtime API implementations.
 // We use a macro to implement this common part and add runtime-specific additional implementations.
@@ -875,7 +915,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
 			let allowed = <Runtime as frame_system::Config>
-				::BaseCallFilter::filter(&tx.function);
+				::BaseCallFilter::contains(&tx.function);
 
 			if allowed {
 				Executive::validate_transaction(source, tx, block_hash)
