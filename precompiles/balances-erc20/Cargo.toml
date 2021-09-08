@@ -9,22 +9,22 @@ description = "A Precompile to expose a Balances pallet through an ERC20-complia
 log = "0.4"
 slices = "0.2.0"
 
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["max-encoded-len"] }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 
-pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
+pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
-sp-runtime = { git="https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
 serde = { version = "1.0.100" }
 derive_more = { version = "0.99"}
 sha3 = "0.8"
