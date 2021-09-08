@@ -38,10 +38,16 @@ fn receive_relay_asset_from_relay() {
 
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			0u128
 		));
@@ -75,10 +81,18 @@ fn send_relay_asset_to_relay() {
 
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			0u128
 		));
@@ -144,19 +158,28 @@ fn send_relay_asset_to_para_b() {
 
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location.clone(),
+			asset_metadata.clone(),
 			1u128,
-			1u128
+			0u128
 		));
 	});
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			0u128
 		));
@@ -220,10 +243,17 @@ fn send_para_a_asset_to_para_b() {
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			0u128
 		));
@@ -268,10 +298,17 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			0u128
 		));
@@ -342,13 +379,20 @@ fn receive_relay_asset_with_trader() {
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
 
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
 	// This time we are gonna put a rather high number of units per second
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			parachain::Origin::root(),
 			source_location,
+			asset_metadata,
 			1u128,
 			1_000_000u128
 		));

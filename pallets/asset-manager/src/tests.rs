@@ -19,63 +19,58 @@
 use crate::*;
 use mock::*;
 
-use frame_support::{
-	assert_noop, assert_ok, dispatch::DispatchError, parameter_types, traits::Filter, RuntimeDebug,
-};
+use frame_support::{assert_noop, assert_ok};
 
 #[test]
 fn registering_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			1u32.into()
+			0u32.into(),
+			1u32.into(),
+			100u128.into()
 		));
 
 		assert_eq!(
-			AssetManager::asset_id_to_type(1).unwrap(),
+			AssetManager::asset_id_info(1).unwrap().asset_type,
 			MockAssetType::MockAsset(1)
 		);
-	});
-}
-
-#[test]
-fn unregistering_works() {
-	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
-			Origin::root(),
-			MockAssetType::MockAsset(1),
-			1u32.into()
-		));
-
 		assert_eq!(
-			AssetManager::asset_id_to_type(1).unwrap(),
-			MockAssetType::MockAsset(1)
+			AssetManager::asset_id_info(1).unwrap().units_per_second,
+			100u128
 		);
-
-		assert_ok!(AssetManager::xcm_asset_destroy(Origin::root(), 1));
-		assert!(AssetManager::asset_id_to_type(1).is_none());
+		expect_events(vec![crate::Event::AssetRegistered(
+			1,
+			MockAssetType::MockAsset(1),
+			0u32,
+			100,
+		)])
 	});
 }
 
 #[test]
 fn test_asset_exists_error() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::xcm_asset_register(
+		assert_ok!(AssetManager::asset_register(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			1u32.into()
+			0u32.into(),
+			1u32.into(),
+			0u128.into()
 		));
 
 		assert_eq!(
-			AssetManager::asset_id_to_type(1).unwrap(),
+			AssetManager::asset_id_info(1).unwrap().asset_type,
 			MockAssetType::MockAsset(1)
 		);
 		assert_noop!(
-			AssetManager::xcm_asset_register(
+			AssetManager::asset_register(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
-				1u32.into()
+				0u32.into(),
+				1u32.into(),
+				0u128.into()
 			),
 			Error::<Test>::AssetAlreadyExists
 		);
@@ -83,11 +78,36 @@ fn test_asset_exists_error() {
 }
 
 #[test]
-fn test_asset_does_not_exist_error() {
+fn test_root_can_change_units_per_second() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::asset_register(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			0u128.into()
+		));
+
+		assert_eq!(AssetManager::asset_id_info(1).unwrap().units_per_second, 0);
+		assert_ok!(AssetManager::asset_change_units_per_second(
+			Origin::root(),
+			1,
+			200u128.into()
+		));
+
+		assert_eq!(
+			AssetManager::asset_id_info(1).unwrap().units_per_second,
+			200
+		);
+	});
+}
+
+#[test]
+fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::xcm_asset_destroy(Origin::root(), 1),
-			Error::<Test>::AssetDoestNotExist
+			AssetManager::asset_change_units_per_second(Origin::root(), 1, 200u128.into()),
+			Error::<Test>::AssetDoesNotExist
 		);
 	});
 }

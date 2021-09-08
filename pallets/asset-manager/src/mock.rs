@@ -18,6 +18,7 @@ use super::*;
 use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 
+use frame_support::PalletId;
 use frame_support::{construct_runtime, parameter_types, RuntimeDebug};
 use sp_core::H256;
 use sp_runtime::DispatchError;
@@ -25,6 +26,7 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -118,20 +120,23 @@ impl From<MockAssetType> for AssetId {
 pub struct MockAssetPalletRegistrar;
 
 impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
-	fn create_asset(asset: u32, min_balance: u64) -> Result<(), DispatchError> {
+	fn create_asset(_asset: u32, _min_balance: u64, _metadata: u32) -> Result<(), DispatchError> {
 		Ok(())
 	}
-	fn destroy_asset(asset: u32) -> Result<(), DispatchError> {
-		Ok(())
-	}
+}
+
+parameter_types! {
+	pub const MockPalletId: PalletId = PalletId(*b"pc/mtest");
 }
 
 impl Config for Test {
 	type Event = Event;
 	type Balance = u64;
 	type AssetId = u32;
+	type AssetMetaData = u32;
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
+	type PalletId = MockPalletId;
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
@@ -144,16 +149,20 @@ pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_events(n: usize) -> Vec<Event> {
+pub(crate) fn events() -> Vec<super::Event<Test>> {
 	System::events()
 		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let Event::AssetManager(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
 }
 
-fn expect_events(e: Vec<Event>) {
-	assert_eq!(last_events(e.len()), e);
+pub fn expect_events(e: Vec<super::Event<Test>>) {
+	assert_eq!(events(), e);
 }

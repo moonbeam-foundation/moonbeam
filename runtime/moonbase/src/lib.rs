@@ -986,9 +986,10 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-// We probably need to check this.
+// These parameters dont matter much as this will only be called by root with the forced arguments
+// No deposit is substracted with those methods
 parameter_types! {
-	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
+	pub const AssetDeposit: Balance = 0;
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 0;
@@ -1065,19 +1066,34 @@ impl From<AssetType> for AssetId {
 pub struct AssetRegistrar;
 use frame_support::pallet_prelude::DispatchResult;
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	fn create_asset(asset: AssetId, min_balance: Balance) -> DispatchResult {
+	fn create_asset(
+		asset: AssetId,
+		min_balance: Balance,
+		metadata: AssetMetaData,
+	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManagerId::get().into_account(),
 			true,
 			min_balance,
+		)?;
+		Assets::force_set_metadata(
+			Origin::root(),
+			asset,
+			metadata.name,
+			metadata.symbol,
+			metadata.decimals,
+			false,
 		)
 	}
+}
 
-	fn destroy_asset(_asset: AssetId) -> DispatchResult {
-		Ok(())
-	}
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct AssetMetaData {
+	pub name: Vec<u8>,
+	pub symbol: Vec<u8>,
+	pub decimals: u8,
 }
 
 parameter_types! {
@@ -1088,6 +1104,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
+	type AssetMetaData = AssetMetaData;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type PalletId = AssetManagerId;

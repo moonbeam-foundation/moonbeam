@@ -37,8 +37,11 @@ pub mod pallet {
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
 		// How to create an asset
-		fn create_asset(asset: T::AssetId, min_balance: T::Balance) -> DispatchResult;
-		fn destroy_asset(asset: T::AssetId) -> DispatchResult;
+		fn create_asset(
+			asset: T::AssetId,
+			min_balance: T::Balance,
+			metadata: T::AssetMetaData,
+		) -> DispatchResult;
 	}
 
 	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
@@ -68,6 +71,9 @@ pub mod pallet {
 		/// The Asset Id. This will be used to register the asset in Assets
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
+		/// The Asset Metadata we want to store
+		type AssetMetaData: Member + Parameter;
+
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
 
@@ -91,17 +97,14 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		ErrorCreatingAsset,
-		ErrorDestroyingAsset,
 		AssetAlreadyExists,
-		MultiLocationAlreadyExists,
-		AssetDoestNotExist,
+		AssetDoesNotExist,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		XcmAssetRegistered(T::AssetId, T::AssetType, u128),
-		XcmAssetDestroyed(T::AssetId),
+		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetaData, u128),
 	}
 
 	#[pallet::storage]
@@ -110,10 +113,12 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Register new asset with the asset manager
 		#[pallet::weight(0)]
-		pub fn xcm_asset_register(
+		pub fn asset_register(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
+			metadata: T::AssetMetaData,
 			min_amount: T::Balance,
 			units_per_second: u128,
 		) -> DispatchResult {
@@ -123,7 +128,7 @@ pub mod pallet {
 				AssetIdInfo::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
-			T::AssetRegistrar::create_asset(asset_id, min_amount)
+			T::AssetRegistrar::create_asset(asset_id, min_amount, metadata.clone())
 				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			let asset_info = AssetInfo {
@@ -132,23 +137,28 @@ pub mod pallet {
 			};
 			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
 
-			Self::deposit_event(Event::XcmAssetRegistered(asset_id, asset, units_per_second));
+			Self::deposit_event(Event::AssetRegistered(
+				asset_id,
+				asset,
+				metadata,
+				units_per_second,
+			));
 			Ok(())
 		}
+
+		/// Change the units per second for a given AssetId
 		#[pallet::weight(0)]
-		pub fn xcm_asset_destroy(origin: OriginFor<T>, asset_id: T::AssetId) -> DispatchResult {
+		pub fn asset_change_units_per_second(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			units_per_second: u128,
+		) -> DispatchResult {
 			ensure_root(origin)?;
+			let mut asset_info: AssetInfo<T> =
+				AssetIdInfo::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			ensure!(
-				AssetIdInfo::<T>::get(asset_id).is_some(),
-				Error::<T>::AssetDoestNotExist
-			);
-			T::AssetRegistrar::destroy_asset(asset_id)
-				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
-			AssetIdInfo::<T>::remove(asset_id);
-
-			Self::deposit_event(Event::XcmAssetDestroyed(asset_id));
-
+			asset_info.units_per_second = units_per_second;
+			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
 			Ok(())
 		}
 	}

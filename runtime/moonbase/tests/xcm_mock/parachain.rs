@@ -572,19 +572,35 @@ impl From<AssetType> for AssetId {
 pub struct AssetRegistrar;
 use frame_support::pallet_prelude::DispatchResult;
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	fn create_asset(asset: AssetId, min_balance: Balance) -> DispatchResult {
+	fn create_asset(
+		asset: AssetId,
+		min_balance: Balance,
+		metadata: AssetMetaData,
+	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManagerId::get().into_account(),
 			true,
 			min_balance,
+		)?;
+
+		Assets::force_set_metadata(
+			Origin::root(),
+			asset,
+			metadata.name,
+			metadata.symbol,
+			metadata.decimals,
+			false,
 		)
 	}
+}
 
-	fn destroy_asset(_asset: AssetId) -> DispatchResult {
-		Ok(())
-	}
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct AssetMetaData {
+	pub name: Vec<u8>,
+	pub symbol: Vec<u8>,
+	pub decimals: u8,
 }
 
 parameter_types! {
@@ -595,6 +611,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
+	type AssetMetaData = AssetMetaData;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type PalletId = AssetManagerId;
