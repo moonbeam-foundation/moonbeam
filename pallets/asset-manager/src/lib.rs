@@ -47,21 +47,13 @@ pub mod pallet {
 	// We implement this trait to be able to get the AssetType and units per second registered
 	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
 		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
-			if let Some(asset_info) = AssetIdInfo::<T>::get(asset_id) {
-				Some(asset_info.asset_type)
-			} else {
-				None
-			}
+			AssetIdType::<T>::get(asset_id)
 		}
 	}
 
 	impl<T: Config> xcm_primitives::UnitsPerSecondGetter<T::AssetId> for Pallet<T> {
 		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
-			if let Some(asset_info) = AssetIdInfo::<T>::get(asset_id) {
-				Some(asset_info.units_per_second)
-			} else {
-				None
-			}
+			AssetIdUnitsPerSecond::<T>::get(asset_id)
 		}
 	}
 
@@ -89,11 +81,6 @@ pub mod pallet {
 		type PalletId: Get<PalletId>;
 	}
 
-	#[derive(Default, Clone, Encode, Decode, PartialEq, RuntimeDebug)]
-	pub struct AssetInfo<T: Config> {
-		pub asset_type: T::AssetType,
-		pub units_per_second: u128,
-	}
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -105,14 +92,20 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetaData, u128),
-		UnitsPerSecondChaned(T::AssetId, u128),
+		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetaData),
+		UnitsPerSecondChanged(T::AssetId, u128),
 	}
 
-	// Stores the asset info
+	// Stores the asset TYPE
 	#[pallet::storage]
-	#[pallet::getter(fn asset_id_info)]
-	pub type AssetIdInfo<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, AssetInfo<T>>;
+	#[pallet::getter(fn asset_id_type)]
+	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
+
+	// Stores the units per second. Not all assets might contain units per second, hence the
+	// different storage
+	#[pallet::storage]
+	#[pallet::getter(fn asset_id_units_per_second)]
+	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -123,47 +116,39 @@ pub mod pallet {
 			asset: T::AssetType,
 			metadata: T::AssetMetaData,
 			min_amount: T::Balance,
-			units_per_second: u128,
 		) -> DispatchResult {
 			ensure_root(origin)?;
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
-				AssetIdInfo::<T>::get(&asset_id).is_none(),
+				AssetIdType::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
 			T::AssetRegistrar::create_asset(asset_id, min_amount, metadata.clone())
 				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
-			let asset_info = AssetInfo {
-				asset_type: asset.clone(),
-				units_per_second: units_per_second.clone(),
-			};
-			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
+			AssetIdType::<T>::insert(&asset_id, &asset);
 
-			Self::deposit_event(Event::AssetRegistered(
-				asset_id,
-				asset,
-				metadata,
-				units_per_second,
-			));
+			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
 			Ok(())
 		}
 
 		/// Change the units per second for a given AssetId
 		#[pallet::weight(0)]
-		pub fn asset_change_units_per_second(
+		pub fn asset_set_units_per_second(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			units_per_second: u128,
 		) -> DispatchResult {
 			ensure_root(origin)?;
-			let mut asset_info: AssetInfo<T> =
-				AssetIdInfo::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			asset_info.units_per_second = units_per_second;
-			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
+			ensure!(
+				AssetIdType::<T>::get(&asset_id).is_some(),
+				Error::<T>::AssetDoesNotExist
+			);
 
-			Self::deposit_event(Event::UnitsPerSecondChaned(asset_id, units_per_second));
+			AssetIdUnitsPerSecond::<T>::insert(&asset_id, &units_per_second);
+
+			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
 			Ok(())
 		}
 	}

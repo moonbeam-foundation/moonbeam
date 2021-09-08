@@ -29,22 +29,16 @@ fn registering_works() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
-			100u128.into()
 		));
 
 		assert_eq!(
-			AssetManager::asset_id_info(1).unwrap().asset_type,
+			AssetManager::asset_id_type(1).unwrap(),
 			MockAssetType::MockAsset(1)
-		);
-		assert_eq!(
-			AssetManager::asset_id_info(1).unwrap().units_per_second,
-			100u128
 		);
 		expect_events(vec![crate::Event::AssetRegistered(
 			1,
 			MockAssetType::MockAsset(1),
 			0u32,
-			100,
 		)])
 	});
 }
@@ -57,11 +51,10 @@ fn test_asset_exists_error() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
-			0u128.into()
 		));
 
 		assert_eq!(
-			AssetManager::asset_id_info(1).unwrap().asset_type,
+			AssetManager::asset_id_type(1).unwrap(),
 			MockAssetType::MockAsset(1)
 		);
 		assert_noop!(
@@ -70,7 +63,6 @@ fn test_asset_exists_error() {
 				MockAssetType::MockAsset(1),
 				0u32.into(),
 				1u32.into(),
-				0u128.into()
 			),
 			Error::<Test>::AssetAlreadyExists
 		);
@@ -85,24 +77,19 @@ fn test_root_can_change_units_per_second() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
-			0u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_info(1).unwrap().units_per_second, 0);
-		assert_ok!(AssetManager::asset_change_units_per_second(
+		assert_ok!(AssetManager::asset_set_units_per_second(
 			Origin::root(),
 			1,
 			200u128.into()
 		));
 
-		assert_eq!(
-			AssetManager::asset_id_info(1).unwrap().units_per_second,
-			200
-		);
+		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0, 0),
-			crate::Event::UnitsPerSecondChaned(1, 200),
+			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::UnitsPerSecondChanged(1, 200),
 		])
 	});
 }
@@ -111,7 +98,7 @@ fn test_root_can_change_units_per_second() {
 fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::asset_change_units_per_second(Origin::root(), 1, 200u128.into()),
+			AssetManager::asset_set_units_per_second(Origin::root(), 1, 200u128.into()),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});

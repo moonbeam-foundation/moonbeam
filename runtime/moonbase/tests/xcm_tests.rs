@@ -49,6 +49,10 @@ fn receive_relay_asset_from_relay() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -94,6 +98,10 @@ fn send_relay_asset_to_relay() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -171,6 +179,10 @@ fn send_relay_asset_to_para_b() {
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -181,6 +193,10 @@ fn send_relay_asset_to_para_b() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -255,6 +271,10 @@ fn send_para_a_asset_to_para_b() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -310,6 +330,10 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			0u128
 		));
 	});
@@ -394,6 +418,10 @@ fn receive_relay_asset_with_trader() {
 			source_location,
 			asset_metadata,
 			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
 			1_000_000u128
 		));
 	});
