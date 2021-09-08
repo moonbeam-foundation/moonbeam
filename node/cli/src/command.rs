@@ -542,11 +542,28 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					#[cfg(feature = "moonbase-native")]
-					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
-						.map_err(Into::into);
-					#[cfg(not(feature = "moonbase-native"))]
-					return Err("dev spec require feature moonbase-native".into());
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => service::new_dev::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => service::new_dev::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => service::new_dev::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
 				}
 
 				let polkadot_cli = RelayChainCli::new(
