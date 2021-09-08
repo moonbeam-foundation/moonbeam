@@ -32,7 +32,10 @@ export const execFromTwoThirdsOfCouncil = async <
   const proposalHash = proposalEvents[0].data[2].toHuman() as string;
 
   // Dorothy vote for this proposal and close it
-  await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
+  await Promise.all([
+    context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(charleth),
+    context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy),
+  ]);
   await context.createBlock();
 
   return await createBlockWithExtrinsic(
@@ -62,10 +65,14 @@ export const execFromAllMembersOfTechCommittee = async <
   );
   const proposalHash = proposalEvents[0].data[2].toHuman() as string;
 
-  // Baltathar vote for this proposal and close it
-  await context.polkadotApi.tx.techComitteeCollective
-    .vote(proposalHash, 0, true)
-    .signAndSend(baltathar);
+  // Alith, Baltathar vote for this proposal and close it
+  await Promise.all([
+    context.polkadotApi.tx.techComitteeCollective.vote(proposalHash, 0, true).signAndSend(alith),
+    context.polkadotApi.tx.techComitteeCollective
+      .vote(proposalHash, 0, true)
+      .signAndSend(baltathar),
+  ]);
+
   await context.createBlock();
   await context.createBlock();
   return await createBlockWithExtrinsic(
