@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["EvmTracer",""]]});
+initSidebarItems({"mod":[["tracer",""]]});

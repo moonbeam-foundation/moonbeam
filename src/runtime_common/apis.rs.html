@@ -552,7 +552,7 @@
 					(),
 					<span class="ident">sp_runtime::DispatchError</span>,
 				<span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::EvmTracer</span>;
+					<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
 
 					<span class="comment">// Explicit initialize.</span>
 					<span class="comment">// Needed because https://github.com/paritytech/substrate/pull/8953</span>
@@ -586,7 +586,7 @@
 					(),
 					<span class="ident">sp_runtime::DispatchError</span>,
 				<span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::EvmTracer</span>;
+					<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
 					<span class="comment">// Explicit initialize.</span>
 					<span class="comment">// Needed because https://github.com/paritytech/substrate/pull/8953</span>
 					<span class="ident">Executive::initialize_block</span>(<span class="ident">header</span>);
