@@ -33,10 +33,16 @@ const main = async () => {
   const toBlockNumber = argv.to || (await api.rpc.chain.getBlock()).block.header.number.toNumber();
   const fromBlockNumber = argv.from;
 
+  let totalExtrinsics = 0;
+  let totalPercentages = 0;
+  let blockCount = 0;
   await exploreBlockRange(
     api,
     { from: fromBlockNumber, to: toBlockNumber, concurrency: 5 },
     async (blockDetails) => {
+      totalExtrinsics += blockDetails.txWithEvents.length;
+      totalPercentages += blockDetails.weightPercentage;
+      blockCount++;
       if (blockDetails.weightPercentage > 15) {
         printBlockDetails(blockDetails, {
           prefix: isKnownNetwork(nameOrUrl)
@@ -45,6 +51,11 @@ const main = async () => {
         });
       }
     }
+  );
+  console.log(
+    `Total blocks: ${blockCount}, ${
+      Number((totalPercentages / blockCount) * 100) / 100
+    }% fullness, ${Number((totalExtrinsics / blockCount) * 100) / 100} extrinsics`
   );
 };
 
