@@ -44,6 +44,7 @@ pub mod pallet {
 		) -> DispatchResult;
 	}
 
+	// We implement this trait to be able to get the AssetType and units per second registered
 	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
 		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
 			if let Some(asset_info) = AssetIdInfo::<T>::get(asset_id) {
@@ -105,8 +106,10 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetaData, u128),
+		UnitsPerSecondChaned(T::AssetId, u128),
 	}
 
+	// Stores the asset info
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_info)]
 	pub type AssetIdInfo<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, AssetInfo<T>>;
@@ -159,6 +162,8 @@ pub mod pallet {
 
 			asset_info.units_per_second = units_per_second;
 			AssetIdInfo::<T>::insert(&asset_id, &asset_info);
+
+			Self::deposit_event(Event::UnitsPerSecondChaned(asset_id, units_per_second));
 			Ok(())
 		}
 	}

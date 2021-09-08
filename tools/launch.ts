@@ -10,7 +10,7 @@
  *
  */
 
-import yargs, { strict } from "yargs";
+import yargs from "yargs";
 import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
@@ -98,30 +98,6 @@ const relays: { [name: string]: NetworkConfig } = {
   },
   "kusama-9040": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
-    chain: "kusama-local",
-  },
-  "kusama-9050": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.5",
-    chain: "kusama-local",
-  },
-  "kusama-9070": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.7",
-    chain: "kusama-local",
-  },
-  "rococo-9070": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.7",
-    chain: "rococo-local",
-  },
-  "rococo-9080": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.8",
-    chain: "rococo-local",
-  },
-  "rococo-9050": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.5",
-    chain: "rococo-local",
-  },
-  "kusama-9080": {
-    docker: "purestake/moonbase-relay-testnet:v0.9.8",
     chain: "kusama-local",
   },
   "kusama-9030-fast": {
@@ -425,7 +401,6 @@ function start() {
   process.on("SIGINT", function () {
     process.exit(2);
   });
-
 
   run(__dirname, launchConfig);
 }

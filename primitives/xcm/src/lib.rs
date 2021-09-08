@@ -258,6 +258,7 @@ pub trait Reserve {
 	fn reserve(&self) -> Option<MultiLocation>;
 }
 
+// Takes the chain part of a MultiAsset
 impl Reserve for MultiAsset {
 	fn reserve(&self) -> Option<MultiLocation> {
 		if let MultiAsset::ConcreteFungible { id, .. } = self {

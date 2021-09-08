@@ -99,6 +99,11 @@ fn test_root_can_change_units_per_second() {
 			AssetManager::asset_id_info(1).unwrap().units_per_second,
 			200
 		);
+
+		expect_events(vec![
+			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0, 0),
+			crate::Event::UnitsPerSecondChaned(1, 200),
+		])
 	});
 }
 

@@ -25,9 +25,6 @@ xcm = { git = "https://github.com/paritytech/polkadot", default-features = false
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.9" }
 
-[dev-dependencies]
-hex = "0.4.3"
-
 [features]
 default = ["std"]
 std = [
