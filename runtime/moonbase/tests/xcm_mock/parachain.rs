@@ -217,57 +217,6 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
-// This defines how multiTraders should be implemented
-// We need to define how we will substract fees in the case of our reserve asset
-pub struct MultiWeightTraders<FixedRateOfConcreteFungible, MyWeightTrader> {
-	native_trader: FixedRateOfConcreteFungible,
-	other_trader: MyWeightTrader,
-}
-impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
-	for MultiWeightTraders<NativeTrader, OtherTrader>
-{
-	fn new() -> Self {
-		Self {
-			native_trader: NativeTrader::new(),
-			other_trader: OtherTrader::new(),
-		}
-	}
-	fn buy_weight(
-		&mut self,
-		weight: Weight,
-		payment: xcm_executor::Assets,
-	) -> Result<xcm_executor::Assets, XcmError> {
-		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
-			return Ok(assets);
-		}
-
-		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
-			return Ok(assets);
-		}
-
-		// if let Ok(asset) = self.dummy_trader.buy_weight(weight, payment) {
-		// 	return Ok(assets)
-		// }
-
-		Err(XcmError::TooExpensive)
-	}
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
-		let native = self.native_trader.refund_weight(weight);
-		match native {
-			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return native,
-			_ => {}
-		}
-
-		let other = self.other_trader.refund_weight(weight);
-		match other {
-			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return other,
-			_ => {}
-		}
-
-		MultiAsset::None
-	}
-}
-
 parameter_types! {
 	pub ParaTokensPerSecond: (MultiLocation, u128) = (SelfReserve::get(), 1);
 }
@@ -290,7 +239,7 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader = MultiWeightTraders<
+	type Trader = xcm_primitives::MultiWeightTraders<
 		FixedRateOfConcreteFungible<ParaTokensPerSecond, ()>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;

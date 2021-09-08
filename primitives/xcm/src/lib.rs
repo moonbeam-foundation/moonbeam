@@ -208,9 +208,9 @@ impl<
 
 // This defines how multiTraders should be implemented
 // The intention is to distinguish between non-self-reserve assets and the reserve asset
-pub struct MultiWeightTraders<UsingComponents, FirstAssetTrader> {
-	native_trader: UsingComponents,
-	other_trader: FirstAssetTrader,
+pub struct MultiWeightTraders<NativeTrader, OtherTrader> {
+	native_trader: NativeTrader,
+	other_trader: OtherTrader,
 }
 impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 	for MultiWeightTraders<NativeTrader, OtherTrader>
