@@ -310,8 +310,8 @@ jobs:
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All package-lock.json files are valid"
           else
-            echo "The following Cargo.lock files have uncommitted changes"
-            echo $DIFF_INDEX | grep Cargo.lock
+            echo "The following package-lock.json files have uncommitted changes"
+            echo $DIFF_INDEX | grep package-lock.json
             false
           fi
 
