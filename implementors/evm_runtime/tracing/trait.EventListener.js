@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["moonbeam_evm_tracer"] = [{"text":"impl EventListener for <a class=\"struct\" href=\"moonbeam_evm_tracer/struct.EvmTracer.html\" title=\"struct moonbeam_evm_tracer::EvmTracer\">EvmTracer</a>","synthetic":false,"types":["moonbeam_evm_tracer::EvmTracer"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
