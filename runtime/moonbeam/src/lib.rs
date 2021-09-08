@@ -52,7 +52,7 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
-use pallet_migrations::{Pallet, Storage, Config, Event};
+use pallet_migrations::{Pallet, Config};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -856,9 +856,9 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>},
 	}
 }
 
