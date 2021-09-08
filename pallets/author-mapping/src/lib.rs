@@ -49,7 +49,7 @@ pub mod pallet {
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
-	#[derive(Encode, Decode, PartialEq, Eq)]
+	#[derive(Encode, Decode, PartialEq, Eq, Debug)]
 	pub struct RegistrationInfo<AccountId, Balance> {
 		account: AccountId,
 		deposit: Balance,
@@ -324,6 +324,11 @@ pub mod pallet {
 
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<(), &'static str> {
+			use frame_support::storage::migration::storage_key_iter;
+
+			let pallet_prefix: &[u8] = b"AuthorMapping";
+			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
+
 			// We want to test that:
 			// There are no entries in the new storage beforehand
 			// The same number of mappings exist before and after
@@ -331,22 +336,64 @@ pub mod pallet {
 			// same value after the migration.
 			// There are no entries in the old storage afterward
 
-			//TODO assert new storage is empty
+			// Assert new storage is empty
+			//TODO will this actually work? I wonder if the entries from the old map
+			// but the same prefix will confuse it. If so, we could move this assert into the
+			// migration itself to be done after the old storage is cleared.
+			assert!(MappingWithDeposit::<T>::iter().next().is_none());
 
-			//TODO check number of entries, and set it aside in temp storage
+			// Check number of entries, and set it aside in temp storage
+			//TODO, maybe I don't need to fetch the keys here?
+			let mapping_count = storage_key_iter::<
+				T::AuthorId,
+				RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				Twox64Concat,
+			>(pallet_prefix, storage_item_prefix)
+			.count();
+			//TODO put it in temp storage
 
-			//TODO read an example pair from old storage and set it aside in temp storage
+			// Read an example pair from old storage and set it aside in temp storage
+			if mapping_count > 0 {
+				let example_pair = storage_key_iter::<
+					T::AuthorId,
+					RegistrationInfo<T::AccountId, BalanceOf<T>>,
+					Twox64Concat,
+				>(pallet_prefix, storage_item_prefix)
+				.next()
+				.expect("We already confirmed that there was at least one item stored");
+				//TODO put it in temp storage
+			}
 
 			Ok(())
 		}
 
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade() -> Result<(), &'static str> {
-			//TODO Assert that old storage is empty
+			use frame_support::storage::migration::storage_key_iter;
 
-			//TODO check number of entries matches what was set aside in pre_upgrade
+			let pallet_prefix: &[u8] = b"AuthorMapping";
+			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
-			//TODO check that our example pair is still well-mapped after the migration
+			// Assert that old storage is empty
+			assert!(storage_key_iter::<
+				T::AuthorId,
+				RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				Twox64Concat,
+			>(pallet_prefix, storage_item_prefix)
+			.next()
+			.is_none());
+
+			// Check number of entries matches what was set aside in pre_upgrade
+			let old_mapping_count = 0; //TODO fetch it from temp storage
+			let new_mapping_count = MappingWithDeposit::<T>::iter().count();
+			assert_eq!(old_mapping_count, new_mapping_count);
+
+			// Check that our example pair is still well-mapped after the migration
+			if new_mapping_count > 0 {
+				let (account, original_info) = todo!(); // get it from temp storage
+				let migrated_info = MappingWithDeposit::<T>::get(account);
+				assert_eq!(original_info, migrated_info); //TODO this needs debug. Maybe I can derive it, or just compare the fields myself
+			}
 
 			Ok(())
 		}
