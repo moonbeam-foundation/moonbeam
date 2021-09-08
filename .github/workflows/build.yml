@@ -373,7 +373,7 @@ jobs:
   typescript-tracing-tests:
     if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on: self-hosted
-    needs: build
+    needs: tracing-build
     steps:
       - name: Checkout
         uses: actions/checkout@v2
