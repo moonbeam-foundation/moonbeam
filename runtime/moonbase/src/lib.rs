@@ -812,12 +812,20 @@ impl pallet_proxy::Config for Runtime {
 }
 
 parameter_types! {
-	pub const KsmLocation: MultiLocation = X1(Parent);
+	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
-	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
+	// The relay chain Origin type
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
+	// The ancestry, defines the multilocation describing this consensus system
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	pub BalancesLocation: MultiLocation = X3(Parent, Parachain(ParachainInfo::parachain_id().into()).into(), PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
+	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it against our Balances pallet when we receive such a MultiLocation
+	// (Parent, Self Para Id, Self Balances pallet index)
+	pub SelfReserve: MultiLocation = X3(
+		Parent,
+		Parachain(ParachainInfo::parachain_id().into()).into(),
+		PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+	);
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -828,9 +836,12 @@ pub type LocationToAccountId = (
 	ParentIsDefault<AccountId>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
+	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
+// The non-reserve fungible transactor type
+// It will use pallet-assets, and the Id will be matched against AsAssetType
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
@@ -843,7 +854,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 			JustTry,
 		>,
 	),
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
+	// Do a simple punn to convert an AccountId20 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -853,12 +864,12 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// The transactor for our own chain currency.AssetT
+/// The transactor for our own chain currency.
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<BalancesLocation>,
+	IsConcrete<SelfReserve>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -867,7 +878,9 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
+// We use both transactors
 pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
+
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
@@ -887,14 +900,17 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	ParentAsSuperuser<Origin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	pallet_xcm::XcmPassthrough<Origin>,
+	// Xcm Origins defined by a Multilocation of type AccountKey20 can be converted to a 20 byte-
+	// account local origin
 	SignedAccountKey20AsNative<RelayNetwork, Origin>,
 );
 
 parameter_types! {
-	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
+	// To be changed probably with a value we feel comfortable
 	pub UnitWeightCost: Weight = 200_000_000;
 }
 
+// Allow paid executions
 pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 use xcm_executor::traits::FilterAssetLocation;
@@ -913,15 +929,20 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
+	// Filter to the reserve withdraw operations
 	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	// We use two traders
+	// When we receive the self-reserve asset, we use pallet-transaction-payment
+	// When we receive a non-reserve asset, we use AssetManager to fetch how many
+	// units per second we should charge
 	type Trader = xcm_primitives::MultiWeightTraders<
 		UsingComponents<
 			IdentityFee<Balance>,
-			BalancesLocation,
+			SelfReserve,
 			AccountId,
 			Balances,
 			DealWithFees<Runtime>,
@@ -937,6 +958,7 @@ parameter_types! {
 	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
 }
 
+// Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation =
 	xcm_primitives::SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
@@ -979,6 +1001,7 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
+// We probably need to check this.
 parameter_types! {
 	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
 	pub const ApprovalDeposit: Balance = 0;
@@ -1102,7 +1125,7 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = BalancesLocation::get();
+				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
@@ -1113,6 +1136,7 @@ where
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	// This is how we are going to detect whether the asset is a Reserve asset
+	// This however is the chain part only
 	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::parachain_id().into()));
 }
 

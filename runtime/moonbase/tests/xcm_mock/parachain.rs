@@ -211,7 +211,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<BalancesLocation>,
+	IsConcrete<SelfReserve>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -278,7 +278,7 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 }
 
 parameter_types! {
-	pub ParaTokensPerSecond: (MultiLocation, u128) = (BalancesLocation::get(), 1);
+	pub ParaTokensPerSecond: (MultiLocation, u128) = (SelfReserve::get(), 1);
 }
 // This needs to be changed
 // For now we accept everything
@@ -293,7 +293,7 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	pub BalancesLocation: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
+	pub SelfReserve: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
 }
 
 pub struct XcmConfig;
@@ -336,7 +336,7 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = BalancesLocation::get();
+				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),

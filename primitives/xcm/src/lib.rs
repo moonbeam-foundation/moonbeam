@@ -33,7 +33,8 @@ use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// a Parachain junction, prefixed by some `MultiLocation` value.
+/// a MultiLocation Value and Viceversa through an intermediate generic type AssetType.
+/// The assumption is that the AssetTypeGetter trait is also implemented for AssetIdInfoGetter
 pub struct AsAssetType<AssetId, AssetType, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetType, AssetIdInfoGetter)>,
 );
@@ -61,6 +62,7 @@ where
 	}
 }
 
+/// Instructs how to convert a 20 byte accountId into a MultiLocation
 pub struct AccountIdToMultiLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
 impl<AccountId> sp_runtime::traits::Convert<AccountId, MultiLocation>
 	for AccountIdToMultiLocation<AccountId>
@@ -75,7 +77,7 @@ where
 	}
 }
 
-// Convert an AccountId20 to a Multilocation
+// Convert a local Origin (i.e., a signed 20 byte account Origin)  to a Multilocation
 pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
@@ -100,7 +102,8 @@ where
 }
 
 // We need to know how to charge for incoming assets
-// This takes the first asset, and takes whatever UnitPerSecondGetter establishes
+// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
+// UnitsPerSecondGetter trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
 	AssetId: From<AssetType> + Clone,
 	AssetType: From<MultiLocation> + Clone,
@@ -199,7 +202,7 @@ impl<
 }
 
 // This defines how multiTraders should be implemented
-// We need to define how we will substract fees in the case of our reserve asset
+// The intention is to distinguish between non-self-reserve assets and the reserve asset
 pub struct MultiWeightTraders<UsingComponents, FirstAssetTrader> {
 	native_trader: UsingComponents,
 	other_trader: FirstAssetTrader,
@@ -245,11 +248,13 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 	}
 }
 
+// Defines the trait to obtain a generic AssetType from a generic AssetId
 pub trait AssetTypeGetter<AssetId, AssetType> {
 	// Get units per second from asset type
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;
 }
 
+// Defines the trait to obtain the units per second of a give assetId
 pub trait UnitsPerSecondGetter<AssetId> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
