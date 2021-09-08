@@ -22,7 +22,7 @@ pub use blockscout::Formatter as Blockscout;
 pub use raw::Formatter as Raw;
 pub use trace_filter::Formatter as TraceFilter;
 
-use moonbeam_rpc_primitives_debug::v2::Listener;
+use moonbeam_rpc_primitives_debug::events::Listener;
 use serde::Serialize;
 
 pub trait ResponseFormatter {

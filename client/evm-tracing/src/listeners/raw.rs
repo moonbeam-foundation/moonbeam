@@ -23,7 +23,7 @@ use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
 use moonbeam_rpc_primitives_debug::{
 	api::single::RawStepLog,
-	v2::{
+	events::{
 		convert_memory,
 		runtime::{Capture, ExitReason},
 		ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
@@ -87,7 +87,7 @@ impl Listener {
 	}
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		moonbeam_rpc_primitives_debug::v2::using(self, f)
+		moonbeam_rpc_primitives_debug::events::using(self, f)
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {

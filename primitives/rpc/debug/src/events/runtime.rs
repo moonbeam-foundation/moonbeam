@@ -120,9 +120,7 @@ impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 					Ok(_) => Ok(()),
 					Err(capture) => match capture {
 						evm::Capture::Exit(e) => Err(Capture::Exit(e.clone())),
-						evm::Capture::Trap(t) => {
-							Err(Capture::Trap(opcodes_string(*t)))
-						}
+						evm::Capture::Trap(t) => Err(Capture::Trap(opcodes_string(*t))),
 					},
 				},
 				return_value: return_value.to_vec(),

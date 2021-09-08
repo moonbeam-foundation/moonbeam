@@ -24,7 +24,7 @@ use moonbeam_rpc_primitives_debug::{
 		single::{Call, CallInner},
 		CallResult, CallType, CreateResult,
 	},
-	v2::{
+	events::{
 		runtime::{Capture, ExitError, ExitReason, ExitSucceed},
 		ContextType, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
 	},
@@ -129,7 +129,7 @@ impl Default for Listener {
 
 impl Listener {
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		moonbeam_rpc_primitives_debug::v2::using(self, f)
+		moonbeam_rpc_primitives_debug::events::using(self, f)
 	}
 
 	/// Called at the end of each transaction when tracing.
@@ -650,7 +650,7 @@ impl ListenerT for Listener {
 mod tests {
 	use super::*;
 	use ethereum_types::H256;
-	use moonbeam_rpc_primitives_debug::v2::{
+	use moonbeam_rpc_primitives_debug::events::{
 		evm::CreateScheme,
 		gasometer::Snapshot,
 		runtime::{Memory, Stack},

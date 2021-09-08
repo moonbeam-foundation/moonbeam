@@ -39,7 +39,7 @@ pub mod tracer {
 #[cfg(feature = "evm-tracing")]
 pub mod tracer {
 	use codec::Encode;
-	use moonbeam_rpc_primitives_debug::v2::{EvmEvent, GasometerEvent, RuntimeEvent};
+	use moonbeam_rpc_primitives_debug::events::{EvmEvent, GasometerEvent, RuntimeEvent};
 
 	use evm::tracing::{using as evm_using, EventListener as EvmListener};
 	use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};

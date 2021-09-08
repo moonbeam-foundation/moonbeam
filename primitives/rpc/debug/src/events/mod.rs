@@ -50,14 +50,6 @@ pub fn using<R, F: FnOnce() -> R>(l: &mut (dyn Listener + 'static), f: F) -> R {
 	listener::using(l, f)
 }
 
-/// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is
-/// empty.
-#[derive(Debug)]
-pub enum Response {
-	Single,
-	Block,
-}
-
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum Event {
 	Evm(evm::EvmEvent),

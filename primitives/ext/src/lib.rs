@@ -38,46 +38,11 @@ use ethereum_types::U256;
 
 use moonbeam_rpc_primitives_debug::{
 	api::single::{Call, RawStepLog},
-	v1::Event as EventV1,
-	v2::{Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent},
+	events::{Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent},
 };
 
 #[runtime_interface]
 pub trait MoonbeamExt {
-	// Old format to be deprecated.
-	fn raw_step(&mut self, data: Vec<u8>) {
-		if let Ok(data) = RawStepLog::decode(&mut &data[..]) {
-			EventV1::RawStep(data).emit();
-		} else {
-			tracing::warn!("Failed to decode RawStepLog from bytes : {:?}", data);
-		}
-	}
-	fn raw_gas(&mut self, data: Vec<u8>) {
-		if let Ok(data) = U256::decode(&mut &data[..]) {
-			EventV1::RawGas(data).emit();
-		} else {
-			tracing::warn!("Failed to decode U256 (raw_gas) from bytes : {:?}", data);
-		}
-	}
-	fn raw_return_value(&mut self, data: Vec<u8>) {
-		EventV1::RawReturnValue(data).emit();
-	}
-	fn call_list_entry(&mut self, index: u32, value: Vec<u8>) {
-		if let Ok(value) = Call::decode(&mut &value[..]) {
-			EventV1::CallListEntry((index, value)).emit();
-		} else {
-			tracing::warn!(
-				"Failed to decode Call (call_list_entry) with index {} from bytes : {:?}",
-				index,
-				value
-			);
-		}
-	}
-
-	fn call_list_new(&mut self) {
-		EventV1::CallListNew().emit();
-	}
-
 	// New design, proxy events.
 	/// An `Evm` event proxied by the Moonbeam runtime to this host function.
 	/// evm -> moonbeam_runtime -> host.
@@ -107,7 +72,6 @@ pub trait MoonbeamExt {
 		}
 	}
 	/// An event to create a new CallList (currently a new transaction when tracing a block).
-	#[version(2)]
 	fn call_list_new(&mut self) {
 		EventV2::CallListNew().emit();
 	}
