@@ -321,5 +321,34 @@ pub mod pallet {
 			let db_weights = T::DbWeight::get();
 			migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)
 		}
+
+		#[cfg(feature = "try-runtime")]
+		fn pre_upgrade() -> Result<(), &'static str> {
+			// We want to test that:
+			// There are no entries in the new storage beforehand
+			// The same number of mappings exist before and after
+			// As long as there are some mappings stored, one representative key maps to the
+			// same value after the migration.
+			// There are no entries in the old storage afterward
+
+			//TODO assert new storage is empty
+
+			//TODO check number of entries, and set it aside in temp storage
+
+			//TODO read an example pair from old storage and set it aside in temp storage
+
+			Ok(())
+		}
+
+		#[cfg(feature = "try-runtime")]
+		fn post_upgrade() -> Result<(), &'static str> {
+			//TODO Assert that old storage is empty
+
+			//TODO check number of entries matches what was set aside in pre_upgrade
+
+			//TODO check that our example pair is still well-mapped after the migration
+
+			Ok(())
+		}
 	}
 }
