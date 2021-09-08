@@ -24,8 +24,8 @@ nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 [features]
 default = [ "moonbase-native", "moonriver-native", "moonbeam-native" ]
