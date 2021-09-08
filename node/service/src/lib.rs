@@ -661,6 +661,7 @@ where
 	start_node_impl(parachain_config, polkadot_config, id, rpc_config).await
 }
 
+#[cfg(feature = "moonbase-native")]
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
 pub fn new_dev(

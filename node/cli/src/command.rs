@@ -412,7 +412,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonriver_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
 								config,
 							)
 						})
@@ -420,7 +420,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonbeam_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
 								config,
 							)
 						})
@@ -542,8 +542,11 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
+					#[cfg(feature = "moonbase-native")]
 					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
 						.map_err(Into::into);
+					#[cfg(not(feature = "moonbase-native"))]
+					return Err("dev spec require feature moonbase-native".into());
 				}
 
 				let polkadot_cli = RelayChainCli::new(
