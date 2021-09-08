@@ -31,7 +31,7 @@ use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
 use moonbeam_rpc_primitives_debug::{
-	api::{single, V2_RUNTIME_VERSION},
+	api::{single, MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION},
 	DebugRuntimeApi,
 };
 use sc_client_api::backend::Backend;
@@ -230,16 +230,6 @@ where
 		let runtime_version = api
 			.version(&parent_block_id)
 			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
-		// Get `DebugRuntimeApi` version.
-		let api_version = api
-			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
-			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-			.ok_or_else(|| {
-				internal_err(format!(
-					"Could not find `DebugRuntimeApi` at {:?}.",
-					parent_block_id
-				))
-			})?;
 
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
@@ -255,11 +245,12 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					// TODO : Handle initialization when necessary
-					// api.initialize_block(&parent_block_id, &header)
-					// 	.map_err(|e| {
-					// 		internal_err(format!("Runtime api access error: {:?}", e))
-					// 	})?;
+					if runtime_version.spec_version >= MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION {
+						api.initialize_block(&parent_block_id, &header)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?;
+					}
 
 					let _result = api
 						.trace_transaction(&parent_block_id, &header, ext, &transaction)

@@ -28,7 +28,7 @@ use serde::Serialize;
 pub mod block;
 pub mod single;
 
-pub const V2_RUNTIME_VERSION: u32 = 400;
+pub const MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION: u32 = 159;
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]

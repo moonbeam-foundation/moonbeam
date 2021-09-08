@@ -59,7 +59,7 @@ pub use moonbeam_rpc_core_trace::{
 use moonbeam_rpc_primitives_debug::{
 	api::{
 		block::{self, TransactionTrace},
-		V2_RUNTIME_VERSION,
+		MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION,
 	},
 	DebugRuntimeApi,
 };
@@ -809,16 +809,6 @@ where
 		let runtime_version = api
 			.version(&substrate_parent_id)
 			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
-		// Get `DebugRuntimeApi` version.
-		let api_version = api
-			.api_version::<dyn DebugRuntimeApi<B>>(&substrate_parent_id)
-			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-			.ok_or_else(|| {
-				internal_err(format!(
-					"Could not find `DebugRuntimeApi` at {:?}.",
-					substrate_parent_id
-				))
-			})?;
 
 		// Get Ethereum block data.
 		let (eth_block, _, eth_transactions) = api
@@ -861,9 +851,10 @@ where
 
 		// Trace the block.
 		let f = || -> Result<_> {
-			// TODO :
-			// api.initialize_block(&substrate_parent_id, &block_header)
-			// .map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+			if runtime_version.spec_version >= MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION {
+				api.initialize_block(&substrate_parent_id, &block_header)
+					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+			}
 
 			let _result = api
 				.trace_block(&substrate_parent_id, &block_header, extrinsics)
