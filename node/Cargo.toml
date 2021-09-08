@@ -29,6 +29,7 @@ xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "notlesh
 
 [features]
 default = [ "moonbase-native", "moonriver-native", "moonbeam-native" ]
+evm-tracing = [ "moonbeam-service/evm-tracing", "moonbeam-cli/evm-tracing" ]
 
 rococo-native = [ "moonbeam-service/rococo-native" ]
 westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]
