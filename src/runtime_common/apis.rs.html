@@ -453,6 +453,10 @@
 <span id="453">453</span>
 <span id="454">454</span>
 <span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -801,22 +805,26 @@
 
 					<span class="comment">// Because the staking solution calculates the next staking set at the beginning</span>
 					<span class="comment">// of the first block in the new round, the only way to accurately predict the</span>
-					<span class="comment">// authors would be to run the staking election while predicting. However this</span>
-					<span class="comment">// election is heavy and will take too long during prediction. So instead we</span>
-					<span class="comment">// work around it by always authoring the first slot in a new round. A longer-</span>
-					<span class="comment">// term solution will be to calculate the staking election result in the last</span>
-					<span class="comment">// block of the ending round.</span>
+					<span class="comment">// authors is to compute the selection during prediction.</span>
 					<span class="kw">if</span> <span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">should_update</span>(<span class="ident">block_number</span>) {
-						<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;nimbus-staking-workaround&quot;</span>, <span class="string">&quot;A new round is starting.\
-						Moonbeam will author during this slot without predicting eligibility first.\
-						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
-						It will be resolved soon.&quot;</span>);
-
-						<span class="bool-val">true</span>
-					}
-					<span class="kw">else</span> {
+						<span class="comment">// get author account id</span>
+						<span class="kw">use</span> <span class="ident">nimbus_primitives::AccountLookup</span>;
+						<span class="kw">let</span> <span class="ident">author_account_id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">account</span>) <span class="op">=</span>
+							<span class="ident">pallet_author_mapping::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::lookup_account</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>) {
+							<span class="ident">account</span>
+						} <span class="kw">else</span> {
+							<span class="comment">// return false if author mapping not registered like in can_author impl</span>
+							<span class="kw">return</span> <span class="bool-val">false</span>
+						};
+						<span class="comment">// predict eligibility post-selection by computing selection results now</span>
+						<span class="kw">let</span> (<span class="ident">eligible</span>, <span class="kw">_</span>) <span class="op">=</span>
+							<span class="ident">pallet_author_slot_filter::compute_pseudo_random_subset</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>(
+								<span class="ident">parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::compute_top_candidates</span>(),
+								<span class="kw-2">&amp;</span><span class="ident">slot</span>
+							);
+						<span class="ident">eligible</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">author_account_id</span>)
+					} <span class="kw">else</span> {
 						<span class="ident">AuthorInherent::can_author</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>, <span class="kw-2">&amp;</span><span class="ident">slot</span>)
-
 					}
 				}
 			}
