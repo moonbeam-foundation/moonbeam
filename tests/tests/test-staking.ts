@@ -29,7 +29,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
       COLLATOR_ACCOUNT
     );
     expect(candidates.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
-    expect(Object.keys(candidates.toHuman()["state"])[0]).equal("Active");
+    expect(candidates.toHuman()["state"]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
@@ -150,7 +150,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+    expect(nominatorsAfter.toHuman()["status"]).equal("Active");
   });
   it("should succesfully revoke nomination on ALITH", async function () {
     await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);

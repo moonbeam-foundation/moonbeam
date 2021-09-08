@@ -195,7 +195,8 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+    console.log("1", nominatorsAfter.toHuman());
+    expect(nominatorsAfter.toHuman()["status"]).equal("Active");
 
     expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
   });
@@ -211,6 +212,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     );
 
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
+    console.log("2", nominatorsAfter.toHuman());
     expect(nominatorsAfter.toHuman()["status"].Leaving).equal("3");
   });
 });
