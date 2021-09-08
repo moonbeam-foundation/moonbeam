@@ -911,6 +911,18 @@
 <span id="911">911</span>
 <span id="912">912</span>
 <span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1763,7 +1775,19 @@
 	<span class="ident">frame_system::ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
 	<span class="ident">AllPallets</span>,
+	<span class="ident">MigratePalletVersionToStorageVersion</span>,
 <span class="op">&gt;</span>;
+
+<span class="doccomment">/// Migrate from `PalletVersion` to the new `StorageVersion`</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigratePalletVersionToStorageVersion</span>;
+
+<span class="kw">impl</span> <span class="ident">frame_support::traits::OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MigratePalletVersionToStorageVersion</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">frame_support::weights::Weight</span> {
+		<span class="ident">frame_support::migrations::migrate_from_pallet_version_to_storage_version</span>::<span class="op">&lt;</span>
+			<span class="ident">AllPalletsWithSystem</span>,
+		<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">RocksDbWeight::get</span>())
+	}
+}
 
 <span class="comment">// All of our runtimes share most of their Runtime API implementations.</span>
 <span class="comment">// We use a macro to implement this common part and add runtime-specific additional implementations.</span>
