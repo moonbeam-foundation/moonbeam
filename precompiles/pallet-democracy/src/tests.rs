@@ -142,7 +142,23 @@ fn deposit_of_non_zero() {
 
 #[test]
 fn deposit_of_bad_index() {
-	todo!()
+	ExtBuilder::default().build().execute_with(|| {
+		let selector = &Keccak256::digest(b"deposit_of(uint256)")[0..4];
+
+		// Construct data to read prop count
+		let input = EvmDataWriter::new()
+			.write_raw_bytes(selector)
+			.write(10u32)
+			.build();
+
+		// Expected result is an error stating there is no such proposal in the underlying pallet
+		let expected_result = Some(Err(error("No such proposal in pallet democracy")));
+
+		assert_eq!(
+			Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
+			expected_result
+		);
+	});
 }
 
 #[test]
