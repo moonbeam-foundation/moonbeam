@@ -28,10 +28,11 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -53,13 +54,13 @@ use pallet_evm::{
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -81,16 +82,20 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROUNIT: Balance = 1_000_000_000_000;
+	pub const MILLIUNIT: Balance = 1_000_000_000_000_000;
 	pub const UNIT: Balance = 1_000_000_000_000_000_000;
-	pub const KILOUNIT: Balance = UNIT * 1_000;
-	pub const MILLIUNIT: Balance = UNIT / 1_000;
-	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
-	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
+	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -128,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0155,
+	spec_version: 0600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -192,7 +197,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = RocksDbWeight;
-	type BaseCallFilter = ();
+	type BaseCallFilter = MaintenanceMode;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
@@ -241,21 +246,31 @@ pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
+	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
+	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+		// total_supply accordingly
+		let (_, to_treasury) = amount.ration(80, 20);
+		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 	}
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -315,7 +330,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOUNIT).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 
@@ -336,6 +351,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -344,8 +360,9 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = MoonbasePrecompiles<Self>;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
+	type FindAuthor = AuthorInherent;
 }
 
 parameter_types! {
@@ -416,7 +433,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
@@ -515,6 +532,44 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 }
 
+parameter_types! {
+	// Add one item in storage and take 258 bytes
+	pub const BasicDeposit: Balance = currency::deposit(1, 258);
+	// Not add any item to the storage but takes 66 bytes
+	pub const FieldDeposit: Balance = currency::deposit(0, 66);
+	// Add one item in storage and take 53 bytes
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 53);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+type IdentityForceOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+type IdentityRegistrarOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = IdentityForceOrigin;
+	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -541,7 +596,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -567,22 +621,28 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 10;
 	/// Default BlocksPerRound is every hour (300 * 12 second block times)
 	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)
-	pub const BondDuration: u32 = 2;
+	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveCandidatesDelay: u32 = 2;
+	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveNominatorsDelay: u32 = 2;
+	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
+	pub const RevokeNominationDelay: u32 = 2;
+	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 25 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// Maximum 100 nominators per collator
+	pub const MaxNominatorsPerCollator: u32 = 100;
+	/// Maximum 100 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT;
-	/// Minimum stake required to be reserved to be a candidate is 100
-	pub const MinCollatorCandidateStk: u128 = 100 * currency::UNIT;
+	/// Minimum stake required to be reserved to be a candidate is 1_000
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOUNIT;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::UNIT;
 }
@@ -592,7 +652,10 @@ impl parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
-	type BondDuration = BondDuration;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
@@ -607,7 +670,7 @@ impl parachain_staking::Config for Runtime {
 
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
-	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
+	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
@@ -621,11 +684,10 @@ impl pallet_author_slot_filter::Config for Runtime {
 
 parameter_types! {
 	// TODO to be revisited
-	pub const VestingPeriod: BlockNumber = 4 * WEEKS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
-	pub const MaxInitContributorsBatchSizes: u32 = 1000;
+	pub const MaxInitContributorsBatchSizes: u32 = 500;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -636,6 +698,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -648,9 +711,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
-	}
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -669,18 +730,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	Debug,
-	max_encoded_len::MaxEncodedLen,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -753,38 +803,61 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+/// Call filter used during Phase 3 of the Moonriver rollout
+pub struct MaintenanceFilter;
+impl Contains<Call> for MaintenanceFilter {
+	fn contains(c: &Call) -> bool {
+		match c {
+			Call::Balances(_) => false,
+			Call::CrowdloanRewards(_) => false,
+			Call::Ethereum(_) => false,
+			Call::EVM(_) => false,
+			_ => true,
+		}
+	}
+}
+
+impl pallet_maintenance_mode::Config for Runtime {
+	type Event = Event;
+	type NormalCallFilter = Everything;
+	type MaintenanceCallFilter = MaintenanceFilter;
+	type MaintenanceOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
-		ParachainSystem:
-			cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
+		Utility: pallet_utility::{Pallet, Call, Event} = 1,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 11,
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 17,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 19,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
 	}
 }
 
@@ -815,7 +888,19 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	MigratePalletVersionToStorageVersion,
 >;
+
+/// Migrate from `PalletVersion` to the new `StorageVersion`
+pub struct MigratePalletVersionToStorageVersion;
+
+impl frame_support::traits::OnRuntimeUpgrade for MigratePalletVersionToStorageVersion {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		frame_support::migrations::migrate_from_pallet_version_to_storage_version::<
+			AllPalletsWithSystem,
+		>(&RocksDbWeight::get())
+	}
+}
 
 // All of our runtimes share most of their Runtime API implementations.
 // We use a macro to implement this common part and add runtime-specific additional implementations.
@@ -832,8 +917,17 @@ runtime_common::impl_runtime_apis_plus_common! {
 		fn validate_transaction(
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
+			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx)
+			// Filtered calls should not enter the tx pool as they'll fail if inserted.
+			let allowed = <Runtime as frame_system::Config>
+				::BaseCallFilter::contains(&tx.function);
+
+			if allowed {
+				Executive::validate_transaction(source, tx, block_hash)
+			} else {
+				InvalidTransaction::Call.into()
+			}
 		}
 	}
 }

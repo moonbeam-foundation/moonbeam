@@ -5,10 +5,13 @@ export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
-export const SPAWNING_TIME = 10000;
+export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
+export const SPAWNING_TIME = 20000;
+export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
 
 // Test variables
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const TREASURY_ACCOUNT = "0x6d6f646c70632f74727372790000000000000000";
 export const GENESIS_ACCOUNT = "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b";
 export const GENESIS_ACCOUNT_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
@@ -37,6 +40,8 @@ export const VOTE_AMOUNT = 10n * GLMR;
 export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_NOMINATOR = 5n * GLMR;
 export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
+export const PROPOSAL_AMOUNT = 1000n * GLMR;
+export const VOTE_AMOUNT = 10n * GLMR;
 
 // This is Alice
 export const COLLATOR_ACCOUNT = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";

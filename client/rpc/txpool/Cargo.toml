@@ -8,20 +8,20 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
+rlp = "0.5"
 sha3 = "0.8"
 jsonrpc-core = "15.0.0"
-ethereum-types = "0.11.0"
-ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.12.0"
 moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", features = ["test-helpers"] }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.6" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length", features = ["rpc_binary_search_estimate"] }

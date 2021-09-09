@@ -17,7 +17,7 @@
 mod content;
 mod inspect;
 
-use ethereum::Transaction as EthereumTransaction;
+use ethereum::TransactionV0 as EthereumTransaction;
 use ethereum_types::{H160, H256, U256};
 use serde::Serialize;
 use std::collections::HashMap;

@@ -9,10 +9,11 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --chain dev \
     --execution=wasm \
     --wasm-execution=compiled \
-    --pallet "parachain_staking" \
+    --pallet "pallet_author_mapping" \
     --extrinsic "*" \
     --steps 32 \
     --repeat 64 \
     --raw \
     --template=./benchmarking/frame-weight-template.hbs \
-    --output /tmp/
+    --output /tmp/ \
+    --record-proof

@@ -16,7 +16,11 @@
 
 //! A minimal runtime including the author-mapping pallet
 use crate as pallet_author_mapping;
-use frame_support::{construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, GenesisBuild},
+	weights::Weight,
+};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -36,6 +40,11 @@ pub enum TestAuthor {
 	Charlie,
 	Dave,
 	Eve,
+}
+impl Default for TestAuthor {
+	fn default() -> TestAuthor {
+		TestAuthor::Alice
+	}
 }
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -64,7 +73,7 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -111,11 +120,7 @@ impl pallet_author_mapping::Config for Test {
 	type AuthorId = TestAuthor;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-
-	// For this mock runtime, we'll only allow even accounts to register.
-	fn can_register(account: &AccountId) -> bool {
-		account % 2 == 0
-	}
+	type WeightInfo = ();
 }
 
 /// Externality builder for pallet author mapping's mock runtime

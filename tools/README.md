@@ -25,7 +25,7 @@ yarn install
 ### Usage
 
 ```
-yarn run launch --parachain alphanet-8.1
+yarn run launch --parachain moonbase-0.11.2
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
@@ -90,8 +90,8 @@ Options:
                       "alphanet-8.1", "alphanet-8.0", "local"] [default: "local"]
 
   --parachain-chain  overrides parachain chain/runtime                  [string]
-                     [choices: "moonbase", "moonshadow", "moonriver", "moonbeam",
-                      "moonbase-local", "moonshadow-local", "moonriver-local",
+                     [choices: "moonbase", "moonriver", "moonbeam",
+                      "moonbase-local", "moonriver-local",
                       "moonbeam-local"]
 
   --parachain-id     overrides parachain-id             [number] [default: 1000]
@@ -124,6 +124,28 @@ Ex: _Run alphanet-8.1 with westend 9030 runtime_
 ```
 npm run launch --parachain alphanet-8.1 --relay westend-9030
 ```
+
+### Fast local build
+
+If you want to use your local binary for parachain or relay chain, you can reduce your compilation
+time by including only the native runtimes you need.
+For that you have to carefully check which runtimes you need, both on the moonbeam side and on the
+polkadot side.
+
+Here is the list of cargo aliases allowing you to compile only some native rutimes:
+
+| command | native runtimes |
+|-|-|
+| `cargo moonbase`  | `moonbase, westend, polkadot`  |
+| `cargo moonbase-rococo`  | `moonbase, rococo, westend, polkadot` |
+| `cargo moonriver` | `moonriver, polkadot` |
+| `cargo moonriver-rococo` | `moonriver, rococo, polkadot` |
+| `cargo moonriver-kusama` | `moonriver, kusama, polkadot` |
+| `cargo moonbeam` | `moonbeam, polkadot` |
+| `cargo moonbeam-rococo` | `moonbeam, rococo, polkadot` |
+
+* The `moonbase` native runtime require `westend` native runtime to compile.
+* The `polkadot` native runtime is always included (This is requirement from polkadot repo).
 
 ### Port assignments
 

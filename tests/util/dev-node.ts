@@ -1,6 +1,6 @@
 import tcpPortUsed from "tcp-port-used";
 import { spawn, ChildProcess } from "child_process";
-import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "./constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, ETHAPI_CMD } from "./constants";
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -38,7 +38,7 @@ let nodeStarted = false;
 
 // This will start a moonbeam dev node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startMoonbeamDevNode(): Promise<{
+export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
@@ -55,11 +55,11 @@ export async function startMoonbeamDevNode(): Promise<{
 
   const cmd = BINARY_PATH;
   const args = [
-    `--execution=Native`, // Faster execution using native
+    withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
-    `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,

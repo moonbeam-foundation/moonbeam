@@ -26,21 +26,25 @@ use cli_opt::RpcConfig;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
+#[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
+#[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
+#[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
-pub use moonshadow_runtime;
 use sc_service::BasePath;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
 	time::Duration,
 };
-mod inherents;
 mod rpc;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+};
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
@@ -65,32 +69,37 @@ type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
+#[cfg(feature = "moonbeam-native")]
 native_executor_instance!(
 	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
+#[cfg(feature = "moonriver-native")]
 native_executor_instance!(
 	pub MoonriverExecutor,
 	moonriver_runtime::api::dispatch,
 	moonriver_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
-native_executor_instance!(
-	pub MoonshadowExecutor,
-	moonshadow_runtime::api::dispatch,
-	moonshadow_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
-
+#[cfg(feature = "moonbase-native")]
 native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
 	moonbase_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
 /// Can be called for a `Configuration` to check if it is a configuration for
@@ -104,9 +113,6 @@ pub trait IdentifyVariant {
 
 	/// Returns `true` if this is a configuration for the `Moonriver` network.
 	fn is_moonriver(&self) -> bool;
-
-	/// Returns `true` if this is a configuration for the `Moonshadow` network.
-	fn is_moonshadow(&self) -> bool;
 
 	/// Returns `true` if this is a configuration for a dev network.
 	fn is_dev(&self) -> bool;
@@ -123,10 +129,6 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 
 	fn is_moonriver(&self) -> bool {
 		self.id().starts_with("moonriver")
-	}
-
-	fn is_moonshadow(&self) -> bool {
-		self.id().starts_with("moonshadow")
 	}
 
 	fn is_dev(&self) -> bool {
@@ -164,86 +166,66 @@ use sp_trie::PrefixedMemoryDB;
 /// Builds a new object suitable for chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
+	config: &mut Configuration,
+) -> Result<
+	(
+		Arc<Client>,
+		Arc<FullBackend>,
+		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		TaskManager,
+	),
+	ServiceError,
+> {
+	match &config.chain_spec {
+		#[cfg(feature = "moonriver-native")]
+		spec if spec.is_moonriver() => {
+			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
+		}
+		#[cfg(feature = "moonbeam-native")]
+		spec if spec.is_moonbeam() => {
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
+		}
+		#[cfg(feature = "moonbase-native")]
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
+		#[cfg(not(feature = "moonbase-native"))]
+		_ => panic!("invalid chain spec"),
+	}
+}
+
+#[allow(clippy::type_complexity)]
+fn new_chain_ops_inner<RuntimeApi, Executor>(
 	mut config: &mut Configuration,
 ) -> Result<
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		TaskManager,
 	),
 	ServiceError,
-> {
+>
+where
+	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
-	if config.chain_spec.is_moonbase() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbase(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonriver() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonriver(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonshadow() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonshadow(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbeam(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	}
+	let PartialComponents {
+		client,
+		backend,
+		import_queue,
+		task_manager,
+		..
+	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev())?;
+	Ok((
+		Arc::new(Client::from(client)),
+		backend,
+		import_queue,
+		task_manager,
+	))
 }
 
 /// Builds the PartialComponents for a parachain or development service
@@ -259,7 +241,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 		TFullClient<Block, RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
@@ -382,10 +364,39 @@ where
 /// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
 /// each runtime implementation.
 pub enum TransactionConverters {
+	#[cfg(feature = "moonbeam-native")]
 	Moonbeam(moonbeam_runtime::TransactionConverter),
+	#[cfg(feature = "moonbase-native")]
 	Moonbase(moonbase_runtime::TransactionConverter),
+	#[cfg(feature = "moonriver-native")]
 	Moonriver(moonriver_runtime::TransactionConverter),
-	Moonshadow(moonshadow_runtime::TransactionConverter),
+}
+
+impl TransactionConverters {
+	#[cfg(feature = "moonbeam-native")]
+	fn moonbeam() -> Self {
+		TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonbeam-native"))]
+	fn moonbeam() -> Self {
+		unimplemented!()
+	}
+	#[cfg(feature = "moonriver-native")]
+	fn moonriver() -> Self {
+		TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonriver-native"))]
+	fn moonriver() -> Self {
+		unimplemented!()
+	}
+	#[cfg(feature = "moonbase-native")]
+	fn moonbase() -> Self {
+		TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+	}
+	#[cfg(not(feature = "moonbase-native"))]
+	fn moonbase() -> Self {
+		unimplemented!()
+	}
 }
 
 impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
@@ -393,12 +404,14 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::Transaction,
+		transaction: ethereum_primitives::TransactionV0,
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
+			#[cfg(feature = "moonbeam-native")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
+			#[cfg(feature = "moonriver-native")]
 			Self::Moonriver(inner) => inner.convert_transaction(transaction),
-			Self::Moonshadow(inner) => inner.convert_transaction(transaction),
+			#[cfg(feature = "moonbase-native")]
 			Self::Moonbase(inner) => inner.convert_transaction(transaction),
 		}
 	}
@@ -467,12 +480,23 @@ where
 			import_queue: import_queue.clone(),
 			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+			warp_sync: None,
 		})?;
 
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let spawned_requesters = rpc::spawn_tasks(
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	#[cfg(feature = "evm-tracing")]
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -497,17 +521,14 @@ where
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
-		let is_moonshadow = parachain_config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+				TransactionConverters::moonbeam()
 			} else if is_moonriver {
-				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-			} else if is_moonshadow {
-				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+				TransactionConverters::moonriver()
 			} else {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+				TransactionConverters::moonbase()
 			};
 
 			let deps = rpc::FullDeps {
@@ -523,16 +544,23 @@ where
 				command_sink: None,
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
-
-			rpc::create_full(deps, subscription_task_executor.clone())
+			#[allow(unused_mut)]
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
+			Ok(io)
 		})
 	};
+
+	let skip_prediction = parachain_config.force_authoring;
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
@@ -574,16 +602,15 @@ where
 			relay_chain_backend: relay_chain_full_node.backend.clone(),
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
+			skip_prediction,
 			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
-				let parachain_inherent =
-							cumulus_primitives_parachain_inherent::ParachainInherentData::
-							create_at_with_client(
-								relay_parent,
-								&relay_chain_client,
-								&*relay_chain_backend,
-								&validation_data,
-								id,
-							);
+				let parachain_inherent = ParachainInherentData::create_at_with_client(
+					relay_parent,
+					&relay_chain_client,
+					&*relay_chain_backend,
+					&validation_data,
+					id,
+				);
 				async move {
 					let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -690,6 +717,7 @@ pub fn new_dev(
 			import_queue,
 			on_demand: None,
 			block_announce_validator_builder: None,
+			warp_sync: None,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -773,7 +801,7 @@ pub fn new_dev(
 				block_import,
 				env,
 				client: client.clone(),
-				pool: transaction_pool.pool().clone(),
+				pool: transaction_pool.clone(),
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
@@ -787,7 +815,7 @@ pub fn new_dev(
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let mocked_parachain = inherents::MockValidationDataInherentDataProvider {
+						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -802,7 +830,17 @@ pub fn new_dev(
 		);
 	}
 
-	let spawned_requesters = rpc::spawn_tasks(
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	#[cfg(feature = "evm-tracing")]
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -825,17 +863,14 @@ pub fn new_dev(
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
-		let is_moonshadow = config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+				TransactionConverters::moonbeam()
 			} else if is_moonriver {
-				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-			} else if is_moonshadow {
-				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+				TransactionConverters::moonriver()
 			} else {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+				TransactionConverters::moonbase()
 			};
 
 			let deps = rpc::FullDeps {
@@ -851,13 +886,19 @@ pub fn new_dev(
 				command_sink: command_sink.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
-			rpc::create_full(deps, subscription_task_executor.clone())
+			#[allow(unused_mut)]
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
+			Ok(io)
 		})
 	};
 
