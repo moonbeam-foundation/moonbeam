@@ -56,7 +56,6 @@ fn selector_less_than_four_bytes() {
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		// Expected result is an error stating there are too few bytes
