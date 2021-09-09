@@ -16,14 +16,16 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{MaxEncodedLen, OnFinalize, OnInitialize},
+	traits::{Everything, OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
 use pallet_democracy::VoteThreshold;
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -109,7 +111,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -167,6 +169,8 @@ impl pallet_evm::Config for Test {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
+	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
 }
 
 parameter_types! {
@@ -257,7 +261,10 @@ impl ExtBuilder {
 	}
 
 	/// Put some referenda into storage before starting the test
-	pub(crate) fn with_referenda(mut self, referenda: Vec<(H256, VoteThreshold, BlockNumber)>) -> Self {
+	pub(crate) fn with_referenda(
+		mut self,
+		referenda: Vec<(H256, VoteThreshold, BlockNumber)>,
+	) -> Self {
 		self.referenda = referenda;
 		self
 	}

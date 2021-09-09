@@ -160,7 +160,7 @@ where
 {
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
-	/// If succesful returns the used gas using the Runtime GasWeightMapping.
+	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
@@ -181,14 +181,14 @@ where
 		}
 
 		// Dispatch call.
-		// It may be possible to not record gas cost if the call returnes Pays::No.
+		// It may be possible to not record gas cost if the call returns Pays::No.
 		// However while Substrate handle checking weight while not making the sender pay for it,
 		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
 			.map_err(|e| {
-				let error_message = format!("Dispatched call failed: {:?}", e);
+				let error_message = alloc::format!("Dispatched call failedwith error: {:?}", e);
 				println!("{:?}", error_message);
 				error(error_message)
 			})?
