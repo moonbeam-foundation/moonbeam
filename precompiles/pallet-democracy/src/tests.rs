@@ -61,9 +61,7 @@ fn no_selector_exists_but_length_is_right() {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(ExitError::Other(
-			"No democracy wrapper method at given selector".into(),
-		)));
+		let expected_result = Some(Err(error("unknown selector")));
 
 		assert_eq!(
 			Precompiles::execute(
