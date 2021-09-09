@@ -19,16 +19,14 @@ use crate::mock::{
 	Origin, Precompiles, Test,
 	TestAccount::{self, Alice, Bob},
 };
-//TODO Can PrecompileOutput come from somewhere better?
-use crate::PrecompileOutput;
+use evm::executor::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
 	VoteThreshold, Voting,
 };
-use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
