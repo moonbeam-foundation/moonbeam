@@ -24,7 +24,8 @@ use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, VoteThreshold, Voting,
+	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
+	VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
@@ -214,9 +215,76 @@ fn lowest_unbaked_zero() {
 	});
 }
 
+// This test is currently failing. I believe it is caused by a bug in the underlying pallet. I've
+// asked about it in https://github.com/paritytech/substrate/issues/9739
+#[ignore]
 #[test]
 fn lowest_unbaked_non_zero() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![
+			(Default::default(), VoteThreshold::SimpleMajority, 10),
+			(Default::default(), VoteThreshold::SimpleMajority, 10),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"lowest_unbaked()")[0..4];
+
+			// To ensure the referendum passes, we need an Aye vote on it
+			assert_ok!(Call::Democracy(DemocracyCall::vote(
+				0, // referendum 0
+				AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			))
+			.dispatch(Origin::signed(Alice)));
+
+			// Assert that the vote was recorded in storage
+			assert_eq!(
+				pallet_democracy::VotingOf::<Test>::get(Alice),
+				Voting::Direct {
+					votes: vec![(
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100_000,
+						}
+					)],
+					delegations: Default::default(),
+					prior: Default::default(),
+				},
+			);
+
+			// Run it through until it is baked
+			roll_to(
+				<Test as DemocracyConfig>::VotingPeriod::get()
+					+ <Test as DemocracyConfig>::LaunchPeriod::get()
+					+ 1000,
+			);
+
+			// Construct data to read lowest unbaked referendum index
+			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+
+			// Expected result is one
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(1u32).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				expected_one_result
+			)
+		});
 }
 
 // waiting on https://github.com/paritytech/substrate/pull/9565
@@ -575,6 +643,7 @@ fn remove_vote_dne() {
 			.dispatch(Origin::signed(Alice)));
 
 			// Wait until it becomes a referendum (10 block launch period)
+			//TODO
 			roll_to(11);
 
 			// Construct input data to remove a non-existant vote
