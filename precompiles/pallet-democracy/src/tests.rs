@@ -109,11 +109,6 @@ fn prop_count_non_zero() {
 			let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
 
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
-
-			//TODO is this comment about not compiling still relevant?
-			// This line doesn't compile becuase it says `propose` is a private function.
-			// Why is this a private function? It is defined as `pub(crate) fn propose`
-			// https://github.com/paritytech/substrate/blob/polkadot-v0.9.4/frame/democracy/src/lib.rs#L637
 			assert_ok!(
 				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
 					.dispatch(Origin::signed(Alice))
