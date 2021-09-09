@@ -151,7 +151,40 @@ pub mod pallet {
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade() -> Result<(), &'static str> {
-			todo!();
+			// TODO: my desire to DRY all the things feels like this code is very repetitive...
+
+			let mut failed = false;
+			for migration in &T::MigrationsList::get() {
+				let migration_name = migration.friendly_name();
+				// let migration_name_as_bytes = migration_name.as_bytes();
+
+				// TODO: filter these migrations by the ones that weren't done prior to
+				//       pre_upgrade() -- see the related comment above.
+				/*
+				let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
+				if migration_done {
+					continue;
+				}
+				*/
+				log::trace!("invoking post_upgrade() on migration {}", migration_name);
+
+				let result = migration.post_upgrade();
+				match result {
+					Ok(()) => {
+						log::info!("migration {} post_upgrade() => Ok()", migration_name);
+					},
+					Err(msg) => {
+						log::error!("migration {} post_upgrade() => Err({})", migration_name, msg);
+						failed = true;
+					},
+				}
+			}
+
+			if failed {
+				Err("One or more post_upgrade tests failed; see output above.")
+			} else {
+				Ok(())
+			}
 		}
 	}
 
