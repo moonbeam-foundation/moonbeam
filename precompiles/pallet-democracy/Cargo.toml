@@ -39,8 +39,9 @@ std = [
     "evm/std",
     "sp-std/std",
     "sp-core/std",
+    "sp-io/std",
+    "pallet-evm/std",
     "pallet-democracy/std",
     "frame-system/std",
-    "pallet-evm/std",
     "precompile-utils/std",
 ]
