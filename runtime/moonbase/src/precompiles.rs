@@ -71,11 +71,18 @@ impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config + pallet_crowdloan_rewards::Config,
-	R::AccountId: From<H160>,
+	R: parachain_staking::Config
+		+ pallet_evm::Config
+		+ pallet_crowdloan_rewards::Config
+		+ pallet_democracy::Config,
+	R::AccountId: From<H160>, //TODO we shouldn't need this. There is a method for it in frontier.
 	BalanceOf<R>: Debug + precompile_utils::EvmData,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<parachain_staking::Call<R>> + From<pallet_crowdloan_rewards::Call<R>>,
+	R::Call: From<parachain_staking::Call<R>>
+		+ From<pallet_crowdloan_rewards::Call<R>>
+		+ From<pallet_democracy::Call<R>>,
+	DemocracyWrapper<R>: Precompile, //TODO this should not be necessary, why does it say the trait
+	                                 // isn't implemented when I remove this last trait bound??
 {
 	fn execute(
 		address: H160,
@@ -104,7 +111,9 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(input, target_gas.context)),
+			a if a == hash(2051) => {
+				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
+			}
 			_ => None,
 		}
 	}
