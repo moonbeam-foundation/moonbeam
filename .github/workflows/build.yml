@@ -10,6 +10,9 @@ name: Build
 on:
   pull_request:
     types: [opened, edited, unassigned, synchronize]
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       pull_request:
