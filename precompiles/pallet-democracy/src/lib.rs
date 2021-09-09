@@ -21,11 +21,11 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote, ReferendumInfo};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, ReferendumInfo, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	error, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper, Address,
+	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 // TODO there is a warning about H160 not being used. But when I remove it I get errors.
 use sp_core::{H160, H256, U256};
@@ -65,8 +65,7 @@ enum Action {
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
 ///
-/// EXAMPLE USECASE:
-/// A political party that citizens delegate their vote to, and the party votes on their behalf.
+/// For an example of a political party that operates as a DAO, see PoliticalPartyDAao.sol
 pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for DemocracyWrapper<Runtime>
@@ -98,7 +97,7 @@ where
 			Action::LowestUnbaked => Self::lowest_unbaked(target_gas),
 			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(input, target_gas),
 			Action::FinishedReferendumInfo => Self::finished_referendum_info(input, target_gas),
-			
+
 			// Dispatchables
 			Action::Propose => Self::propose(input, target_gas, context),
 			Action::Second => Self::second(input, target_gas, context),
@@ -123,7 +122,6 @@ where
 	// The accessors are first. They directly return their result.
 
 	fn public_prop_count(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Fetch data from pallet
@@ -139,7 +137,10 @@ where
 		})
 	}
 
-	fn deposit_of(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn deposit_of(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -151,7 +152,7 @@ where
 		let deposit = match DemocracyOf::<Runtime>::deposit_of(prop_index) {
 			None => {
 				return Err(error("No such proposal in pallet democracy"));
-			},
+			}
 			Some((_, deposit)) => deposit,
 		};
 		log::trace!(target: "democracy-precompile", "Deposit of proposal {:?} is {:?}", prop_index, deposit);
@@ -180,7 +181,10 @@ where
 		})
 	}
 
-	fn ongoing_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn ongoing_referendum_info(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		todo!()
 		// let mut gasometer = Gasometer::new(target_gas);
 
@@ -213,7 +217,7 @@ where
 		// 	.write(ref_status.tally.ayes)
 		// 	.write(ref_status.tally.nays)
 		// 	.write(ref_status.tally.turnout);
-		
+
 		// Ok(PrecompileOutput {
 		// 	exit_status: ExitSucceed::Returned,
 		// 	cost: gasometer.used_gas(),
@@ -222,7 +226,10 @@ where
 		// })
 	}
 
-	fn finished_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn finished_referendum_info(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		todo!()
 	}
 
@@ -393,7 +400,10 @@ where
 			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
 		let balance = input.read()?;
 
-		println!("Delegating vote to {:?} with balance {:?} and {:?}", to_account, conviction, balance);
+		println!(
+			"Delegating vote to {:?} with balance {:?} and {:?}",
+			to_account, conviction, balance
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::delegate(to_account, conviction, balance);
@@ -413,10 +423,7 @@ where
 		})
 	}
 
-	fn un_delegate(
-		target_gas: Option<u64>,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn un_delegate(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		println!("Undelegating vote");
