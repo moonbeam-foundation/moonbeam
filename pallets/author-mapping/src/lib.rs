@@ -388,7 +388,7 @@ pub mod pallet {
 			.is_none());
 
 			// Check number of entries matches what was set aside in pre_upgrade
-			let old_mapping_count: u64 = Self::get_temp_storage("mapping_cout")
+			let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
 				.expect("We stored a mapping count; it should be there; qed");
 			let new_mapping_count = MappingWithDeposit::<T>::iter().count() as u64;
 			assert_eq!(old_mapping_count, new_mapping_count);
