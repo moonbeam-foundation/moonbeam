@@ -133,13 +133,8 @@ fn prop_count_non_zero() {
 		});
 }
 
-//TODO is this even possible? When the proposal is made, the proposer makes a deposit.
-// So there is always at least one depositor, right?
-#[test]
-fn deposit_of_zero() {
-	todo!()
-}
-
+// It is impossible to have a proposal with zero deposits. When the proposal is made, the proposer
+// makes a deposit. So there is always at least one depositor.
 #[test]
 fn deposit_of_non_zero() {
 	todo!()
