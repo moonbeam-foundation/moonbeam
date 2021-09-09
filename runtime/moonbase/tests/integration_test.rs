@@ -19,6 +19,11 @@
 mod common;
 use common::*;
 
+use xcm::v0::{
+	Junction::{self, PalletInstance, Parachain, Parent},
+	MultiLocation::*,
+};
+
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
@@ -28,8 +33,8 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
-	ParachainStaking, Precompiles, Runtime, System,
+	currency::UNIT, AccountId, AssetManager, AssetMetaData, AssetType, Balances, BlockWeights,
+	Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -926,6 +931,26 @@ fn update_reward_address_via_precompile() {
 				(450_000 * UNIT)
 			);
 		})
+}
+
+#[test]
+fn asset_can_be_registered() {
+	ExtBuilder::default().build().execute_with(|| {
+		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
+		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+		let asset_metadata = moonbase_runtime::AssetMetaData {
+			name: b"RelayToken".to_vec(),
+			symbol: b"Relay".to_vec(),
+			decimals: 12,
+		};
+		assert_ok!(AssetManager::asset_register(
+			moonbase_runtime::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert!(AssetManager::asset_id_type(source_id).is_some());
+	});
 }
 
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)
