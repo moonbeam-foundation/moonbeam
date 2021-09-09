@@ -187,11 +187,7 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|e| {
-				let error_message = alloc::format!("Dispatched call failedwith error: {:?}", e);
-				println!("{:?}", error_message);
-				error(error_message)
-			})?
+			.map_err(|e| error(alloc::format!("Dispatched call failed with error: {:?}", e)))?
 			.actual_weight;
 
 		// Return used weight by converting weight to gas.
