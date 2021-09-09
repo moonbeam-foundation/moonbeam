@@ -15,17 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin,
-	Precompiles, Test, TestAccount::{self, Alice, Bob}, Democracy, Balances,
+	events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy, ExtBuilder,
+	Origin, Precompiles, Test,
+	TestAccount::{self, Alice, Bob},
 };
 //TODO Can PrecompileOutput come from somewhere better?
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting, VoteThreshold};
+use pallet_democracy::{
+	AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, VoteThreshold, Voting,
+};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, EvmDataWriter, Address};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use std::convert::TryInto;
@@ -162,31 +165,43 @@ fn lowest_unbaked_non_zero() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn ongoing_ref_info_works() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn ongoing_ref_info_bad_index() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn ongoing_ref_info_is_not_ongoing() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn finished_ref_info_works() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn finished_ref_info_bad_index() {
 	todo!()
 }
 
+// waiting on https://github.com/paritytech/substrate/pull/9565
+#[ignore]
 #[test]
 fn finished_ref_info_is_not_finished() {
 	todo!()
@@ -293,7 +308,11 @@ fn second_works() {
 fn standard_vote_aye_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000_000)])
-		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
@@ -322,11 +341,8 @@ fn standard_vote_aye_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(
-						0,
-						pallet_democracy::VoteThreshold::SimpleMajority
-					)
-					.into(),
+					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
+						.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -357,7 +373,11 @@ fn standard_vote_aye_works() {
 fn standard_vote_nay_conviction_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000_000)])
-		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
@@ -386,11 +406,8 @@ fn standard_vote_nay_conviction_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(
-						0,
-						pallet_democracy::VoteThreshold::SimpleMajority
-					)
-					.into(),
+					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
+						.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -426,7 +443,11 @@ fn standard_vote_nay_conviction_works() {
 fn remove_vote_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
-		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
 		.build()
 		.execute_with(|| {
 			// Vote on it
@@ -465,11 +486,8 @@ fn remove_vote_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(
-						0,
-						pallet_democracy::VoteThreshold::SimpleMajority
-					)
-					.into(),
+					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
+						.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -598,13 +616,16 @@ fn undelegate_works() {
 		.execute_with(|| {
 			// Before we can undelegate there has to be a delegation.
 			// There's no a genesis config or helper function available, so I'll make one here.
-			assert_ok!(Democracy::delegate(Origin::signed(Alice), Bob, 1u8.try_into().unwrap(), 100));
+			assert_ok!(Democracy::delegate(
+				Origin::signed(Alice),
+				Bob,
+				1u8.try_into().unwrap(),
+				100
+			));
 
 			// Construct input data to un-delegate Alice
 			let selector = &Keccak256::digest(b"un_delegate()")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
-				.build();
+			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -643,25 +664,21 @@ fn undelegate_works() {
 
 #[test]
 fn undelegate_dne() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			// Construct input data to un-delegate Alice
-			let selector = &Keccak256::digest(b"un_delegate()")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
-				.build();
+	ExtBuilder::default().build().execute_with(|| {
+		// Construct input data to un-delegate Alice
+		let selector = &Keccak256::digest(b"un_delegate()")[0..4];
+		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
-			// TODO one weakness of try_dispatch is that it doesn't propogate the error
-			// I can't assert that this actually failed for the reason I expected.
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(error("dispatched call failed")));
+		// TODO one weakness of try_dispatch is that it doesn't propogate the error
+		// I can't assert that this actually failed for the reason I expected.
+		// Expected result is an error stating there are too few bytes
+		let expected_result = Some(Err(error("dispatched call failed")));
 
-			assert_eq!(
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
-				expected_result
-			);
-		})
+		assert_eq!(
+			Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
+			expected_result
+		);
+	})
 }
 
 #[test]
@@ -669,18 +686,25 @@ fn undelegate_dne() {
 fn unlock_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
-		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
 		.build()
 		.execute_with(|| {
-
 			// Alice votes to get some tokens locked
-			assert_ok!(Democracy::vote(Origin::signed(Alice), 0, AccountVote::Standard {
-				vote: Vote {
-					aye: true,
-					conviction: 1u8.try_into().unwrap()
-				},
-				balance: 100,
-			}));
+			assert_ok!(Democracy::vote(
+				Origin::signed(Alice),
+				0,
+				AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 1u8.try_into().unwrap()
+					},
+					balance: 100,
+				}
+			));
 
 			// Tokens are locked in `try_vote` when a vote is cast. Why is that not
 			// reflected here?
@@ -688,7 +712,10 @@ fn unlock_works() {
 			// One possible way to look further: I just noticed there is a `Locks` storage item in
 			// the pallet.
 			// And also, maybe write a test in the pallet to ensure the locks work as expected.
-			assert_eq!(<Balances as Currency<TestAccount>>::free_balance(&Alice), 900);
+			assert_eq!(
+				<Balances as Currency<TestAccount>>::free_balance(&Alice),
+				900
+			);
 
 			// Let time elapse until she wins the vote and gets her tokens locked
 			roll_to(11);
@@ -722,11 +749,8 @@ fn unlock_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(
-						0,
-						pallet_democracy::VoteThreshold::SimpleMajority
-					)
-					.into(),
+					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
+						.into(),
 					DemocracyEvent::Passed(0).into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
@@ -762,9 +786,7 @@ fn unlock_with_nothing_locked() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![
-					EvmEvent::Executed(precompile_address()).into(),
-				]
+				vec![EvmEvent::Executed(precompile_address()).into(),]
 			);
 		})
 }
