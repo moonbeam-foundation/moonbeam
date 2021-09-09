@@ -27,7 +27,6 @@ use pallet_evm::Precompile;
 use precompile_utils::{
 	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
-// TODO there is a warning about H160 not being used. But when I remove it I get errors.
 use sp_core::{H160, H256, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
