@@ -311,6 +311,15 @@ pub mod pallet {
 			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
 			remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
 
+			// Assert that old storage is empty
+			assert!(storage_key_iter::<
+				T::AuthorId,
+				RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				Twox64Concat,
+			>(pallet_prefix, storage_item_prefix)
+			.next()
+			.is_none());
+
 			// Write the mappings back to storage with the new secure hasher
 			for (author_id, account_id) in stored_data {
 				MappingWithDeposit::<T>::insert(author_id, account_id);
@@ -376,16 +385,6 @@ pub mod pallet {
 
 			let pallet_prefix: &[u8] = b"AuthorMapping";
 			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
-
-			// Will this assertion work here? Maybe not because it still iterates the newly migrated values?
-			// Assert that old storage is empty
-			assert!(storage_key_iter::<
-				T::AuthorId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-				Twox64Concat,
-			>(pallet_prefix, storage_item_prefix)
-			.next()
-			.is_none());
 
 			// Check number of entries matches what was set aside in pre_upgrade
 			let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
