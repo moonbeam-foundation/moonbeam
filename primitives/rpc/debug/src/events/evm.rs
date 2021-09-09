@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
+use evm::ExitReason;
 
 #[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Transfer {
@@ -78,26 +79,6 @@ impl From<evm_runtime::CreateScheme> for CreateScheme {
 	}
 }
 
-#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
-pub struct Context {
-	/// Execution address.
-	pub address: H160,
-	/// Caller of the EVM.
-	pub caller: H160,
-	/// Apparent value of the EVM.
-	pub apparent_value: U256,
-}
-
-impl From<evm_runtime::Context> for Context {
-	fn from(i: evm_runtime::Context) -> Self {
-		Self {
-			address: i.address,
-			caller: i.caller,
-			apparent_value: i.apparent_value,
-		}
-	}
-}
-
 #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq)]
 pub enum EvmEvent {
 	Call {
@@ -106,7 +87,7 @@ pub enum EvmEvent {
 		input: Vec<u8>,
 		target_gas: Option<u64>,
 		is_static: bool,
-		context: Context,
+		context: super::Context,
 	},
 	Create {
 		caller: H160,
@@ -121,8 +102,35 @@ pub enum EvmEvent {
 		target: H160,
 		balance: U256,
 	},
+	Exit {
+		reason: ExitReason,
+		return_value: Vec<u8>,
+	},
+	TransactCall {
+		caller: H160,
+		address: H160,
+		value: U256,
+		data: Vec<u8>,
+		gas_limit: u64,
+	},
+	TransactCreate {
+		caller: H160,
+		value: U256,
+		init_code: Vec<u8>,
+		gas_limit: u64,
+		address: H160,
+	},
+	TransactCreate2 {
+		caller: H160,
+		value: U256,
+		init_code: Vec<u8>,
+		salt: H256,
+		gas_limit: u64,
+		address: H160,
+	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 	fn from(i: evm::tracing::Event<'a>) -> Self {
 		match i {
@@ -168,6 +176,54 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				address,
 				target,
 				balance,
+			},
+			evm::tracing::Event::Exit {
+				reason,
+				return_value,
+			} => Self::Exit {
+				reason: reason.clone(),
+				return_value: return_value.to_vec(),
+			},
+			evm::tracing::Event::TransactCall {
+				caller,
+				address,
+				value,
+				data,
+				gas_limit,
+			} => Self::TransactCall {
+				caller,
+				address,
+				value,
+				data: data.to_vec(),
+				gas_limit,
+			},
+			evm::tracing::Event::TransactCreate {
+				caller,
+				value,
+				init_code,
+				gas_limit,
+				address,
+			} => Self::TransactCreate {
+				caller,
+				value,
+				init_code: init_code.to_vec(),
+				gas_limit,
+				address,
+			},
+			evm::tracing::Event::TransactCreate2 {
+				caller,
+				value,
+				init_code,
+				salt,
+				gas_limit,
+				address,
+			} => Self::TransactCreate2 {
+				caller,
+				value,
+				init_code: init_code.to_vec(),
+				salt,
+				gas_limit,
+				address,
 			},
 		}
 	}

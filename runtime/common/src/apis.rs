@@ -89,18 +89,13 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+					use moonbeam_evm_tracer::tracer::EvmTracer;
 
 					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 					// transactions that preceded the requested transaction.
@@ -124,16 +119,12 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+					use moonbeam_evm_tracer::tracer::EvmTracer;
 
 					let mut config = <Runtime as pallet_evm::Config>::config().clone();
 					config.estimate = true;
@@ -179,6 +170,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 				}
 			}
+
 
 			impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 				fn chain_id() -> u64 {
