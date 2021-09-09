@@ -81,8 +81,7 @@ where
 	R::Call: From<parachain_staking::Call<R>>
 		+ From<pallet_crowdloan_rewards::Call<R>>
 		+ From<pallet_democracy::Call<R>>,
-	DemocracyWrapper<R>: Precompile, //TODO this should not be necessary, why does it say the trait
-	                                 // isn't implemented when I remove this last trait bound??
+	DemocracyWrapper<R>: Precompile, //TODO why is this necessary? And why only for democracy?
 {
 	fn execute(
 		address: H160,

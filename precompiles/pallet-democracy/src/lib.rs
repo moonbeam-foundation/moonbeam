@@ -154,7 +154,10 @@ where
 			}
 			Some((_, deposit)) => deposit,
 		};
-		log::trace!(target: "democracy-precompile", "Deposit of proposal {:?} is {:?}", prop_index, deposit);
+		log::trace!(
+			target: "democracy-precompile",
+			"Deposit of proposal {:?} is {:?}", prop_index, deposit
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -170,7 +173,10 @@ where
 		// Fetch data from pallet
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let lowest_unbaked = DemocracyOf::<Runtime>::lowest_unbaked();
-		log::trace!(target: "democracy-precompile", "lowest unbaked referendum is {:?}", lowest_unbaked);
+		log::trace!(
+			target: "democracy-precompile",
+			"lowest unbaked referendum is {:?}", lowest_unbaked
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -203,7 +209,10 @@ where
 		// 	Some(ReferendumInfo::Finished{..}) => Err(error("Referendum is finished"))?,
 		// 	None => Err(error("failed to get ongoing (or finished for that matter) referendum"))?,
 		// };
-		// log::trace!(target: "democracy-precompile", "Ongoing Referendum info for ref {:?} is {:?}", ref_index, ref_status);
+		// log::trace!(
+		// 	target: "democracy-precompile",
+		// 	"Ongoing Referendum info for ref {:?} is {:?}", ref_index, ref_status
+		// );
 
 		// // Write data
 		// //TODO woof, between private fields and generic types, this is pretty complicated
@@ -257,7 +266,10 @@ where
 		let proposal_hash = input.read::<H256>()?;
 		let amount = input.read::<BalanceOf<Runtime>>()?;
 
-		log::trace!(target: "democracy-precompile", "Proposing with hash {:?}, and amount {:?}", proposal_hash, amount);
+		log::trace!(
+			target: "democracy-precompile",
+			"Proposing with hash {:?}, and amount {:?}", proposal_hash, amount
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::propose(proposal_hash.into(), amount);
@@ -290,7 +302,10 @@ where
 		let proposal_index = input.read()?;
 		let seconds_upper_bound = input.read()?;
 
-		log::trace!(target: "democracy-precompile", "Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound);
+		log::trace!(
+			target: "democracy-precompile",
+			"Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::second(proposal_index, seconds_upper_bound);
@@ -462,7 +477,10 @@ where
 		let target_address: H160 = input.read::<Address>()?.into();
 		let target_account = Runtime::AddressMapping::into_account_id(target_address);
 
-		log::trace!(target: "democracy-precompile", "Unlocking democracy tokens for {:?}", target_account);
+		log::trace!(
+			target: "democracy-precompile",
+			"Unlocking democracy tokens for {:?}", target_account
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::unlock(target_account);
