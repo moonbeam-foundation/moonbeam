@@ -137,7 +137,37 @@ fn prop_count_non_zero() {
 // makes a deposit. So there is always at least one depositor.
 #[test]
 fn deposit_of_non_zero() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"deposit_of(uint256)")[0..4];
+
+			// There is no interesting genesis config for pallet democracy so we make the proposal here
+			assert_ok!(
+				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
+					.dispatch(Origin::signed(Alice))
+			);
+
+			// Construct data to read prop count
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(0u32)
+				.build();
+
+			// Expected result is Alice's deposit of 1000
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(1000u32).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				expected_result
+			)
+		});
 }
 
 #[test]
