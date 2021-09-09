@@ -11,9 +11,9 @@ repository = 'https://github.com/PureStake/moonbeam/'
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
-evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
-evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+evm-runtime = { version = "0.27.0", default-features = false }
+evm-gasometer = { version = "0.27.0", default-features = false }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
@@ -24,6 +24,7 @@ ethereum-types = { version = "0.11.0", default-features = false }
 
 [features]
 default = ["std"]
+evm-tracing = ["evm/tracing", "evm-runtime/tracing", "evm-gasometer/tracing"]
 std = [
 	"codec/std",
 	"evm/std",
