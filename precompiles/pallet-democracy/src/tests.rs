@@ -193,7 +193,25 @@ fn deposit_of_bad_index() {
 
 #[test]
 fn lowest_unbaked_zero() {
-	todo!()
+	ExtBuilder::default().build().execute_with(|| {
+		let selector = &Keccak256::digest(b"lowest_unbaked()")[0..4];
+
+		// Construct data to read lowest unbaked referendum index
+		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+
+		// Expected result is zero
+		let expected_zero_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(0u32).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+
+		assert_eq!(
+			Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+			expected_zero_result
+		)
+	});
 }
 
 #[test]
