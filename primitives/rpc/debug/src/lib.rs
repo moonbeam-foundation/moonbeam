@@ -30,13 +30,11 @@ use sp_std::vec::Vec;
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
 		fn trace_transaction(
-			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
 		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_block(
-			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}

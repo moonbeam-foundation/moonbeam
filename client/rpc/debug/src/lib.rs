@@ -35,7 +35,7 @@ use moonbeam_rpc_primitives_debug::{
 	DebugRuntimeApi,
 };
 use sc_client_api::backend::Backend;
-use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -253,7 +253,7 @@ where
 					}
 
 					let _result = api
-						.trace_transaction(&parent_block_id, &header, ext, &transaction)
+						.trace_transaction(&parent_block_id, ext, &transaction)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 

@@ -28,16 +28,8 @@ use sp_runtime_interface::runtime_interface;
 use codec::Decode;
 use sp_std::vec::Vec;
 
-use ethereum_types::U256;
-// use moonbeam_rpc_primitives_debug::{
-// 	proxy::types::{EvmEvent, GasometerEvent, RuntimeEvent},
-// 	proxy::v1::Event as EventV1,
-// 	proxy::v2::Event as EventV2,
-// 	single::{Call, RawStepLog},
-// };
 
 use moonbeam_rpc_primitives_debug::{
-	api::single::{Call, RawStepLog},
 	events::{Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent},
 };
 
