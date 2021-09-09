@@ -126,7 +126,7 @@ where
 		// Fetch data from pallet
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
-		log::trace!(target: "democracy-precompile", "Result from pallet is {:?}", prop_count);
+		log::trace!(target: "democracy-precompile", "Prop count from pallet is {:?}", prop_count);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -282,7 +282,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		println!("in second");
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -316,8 +315,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		// TODO Why arethese not printing??
-		println!("in standard vote");
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -335,7 +332,7 @@ where
 			balance,
 		};
 
-		println!(
+		log::trace!(target: "democracy-precompile",
 			"Voting {:?} on referendum #{:?}, with conviction {:?}",
 			aye, ref_index, conviction
 		);
@@ -371,7 +368,7 @@ where
 
 		let ref_index = input.read()?;
 
-		println!("Removing vote from referendum {:?}", ref_index);
+		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", ref_index);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::remove_vote(ref_index);
@@ -409,7 +406,7 @@ where
 			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
 		let balance = input.read()?;
 
-		println!(
+		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
 			to_account, conviction, balance
 		);
@@ -434,8 +431,6 @@ where
 
 	fn un_delegate(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-
-		println!("Undelegating vote");
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::undelegate();
@@ -468,7 +463,7 @@ where
 		let target_address: H160 = input.read::<Address>()?.into();
 		let target_account = Runtime::AddressMapping::into_account_id(target_address);
 
-		println!("Unlocking democracy tokens for {:?}", target_account);
+		log::trace!(target: "democracy-precompile", "Unlocking democracy tokens for {:?}", target_account);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::unlock(target_account);
