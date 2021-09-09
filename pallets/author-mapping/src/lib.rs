@@ -325,6 +325,7 @@ pub mod pallet {
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<(), &'static str> {
 			use frame_support::storage::migration::storage_key_iter;
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let pallet_prefix: &[u8] = b"AuthorMapping";
 			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
@@ -349,8 +350,8 @@ pub mod pallet {
 				RegistrationInfo<T::AccountId, BalanceOf<T>>,
 				Twox64Concat,
 			>(pallet_prefix, storage_item_prefix)
-			.count();
-			//TODO put it in temp storage
+			.count() as u64;
+			Self::set_temp_storage(mapping_count, "mapping_count");
 
 			// Read an example pair from old storage and set it aside in temp storage
 			if mapping_count > 0 {
@@ -361,7 +362,8 @@ pub mod pallet {
 				>(pallet_prefix, storage_item_prefix)
 				.next()
 				.expect("We already confirmed that there was at least one item stored");
-				//TODO put it in temp storage
+
+				Self::set_temp_storage(example_pair, "example_pair");
 			}
 
 			Ok(())
@@ -370,10 +372,12 @@ pub mod pallet {
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade() -> Result<(), &'static str> {
 			use frame_support::storage::migration::storage_key_iter;
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let pallet_prefix: &[u8] = b"AuthorMapping";
 			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
+			// Will this assertion work here? Maybe not because it still iterates the newly migrated values?
 			// Assert that old storage is empty
 			assert!(storage_key_iter::<
 				T::AuthorId,
@@ -384,15 +388,19 @@ pub mod pallet {
 			.is_none());
 
 			// Check number of entries matches what was set aside in pre_upgrade
-			let old_mapping_count = 0; //TODO fetch it from temp storage
-			let new_mapping_count = MappingWithDeposit::<T>::iter().count();
+			let old_mapping_count: u64 = Self::get_temp_storage("mapping_cout")
+				.expect("We stored a mapping count; it should be there; qed");
+			let new_mapping_count = MappingWithDeposit::<T>::iter().count() as u64;
 			assert_eq!(old_mapping_count, new_mapping_count);
 
 			// Check that our example pair is still well-mapped after the migration
 			if new_mapping_count > 0 {
-				let (account, original_info) = todo!(); // get it from temp storage
-				let migrated_info = MappingWithDeposit::<T>::get(account);
-				assert_eq!(original_info, migrated_info); //TODO this needs debug. Maybe I can derive it, or just compare the fields myself
+				let (account, original_info): (
+					T::AuthorId,
+					RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				) = Self::get_temp_storage("example_pair").expect("qed");
+				let migrated_info = MappingWithDeposit::<T>::get(account).expect("qed");
+				assert_eq!(original_info, migrated_info);
 			}
 
 			Ok(())
