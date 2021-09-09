@@ -21,7 +21,7 @@ use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 
-use frame_support::assert_ok;
+use frame_support::{assert_noop, assert_ok};
 
 use xcm::v0::{
 	Junction::{self, PalletInstance, Parachain, Parent},
@@ -448,5 +448,60 @@ fn receive_relay_asset_with_trader() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
+	});
+}
+
+#[test]
+fn error_when_not_paying_enough() {
+	MockNet::reset();
+
+	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	// This time we are gonna put a rather high number of units per second
+	// we know later we will divide by 1e12
+	// Lets put 1e6 as units per second
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::asset_register(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			1_000_000u128
+		));
+	});
+
+	// We are sending 100 tokens from relay.
+	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
+	// Therefore with no refund, we should receive 10 tokens less
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			X1(Parachain(1)),
+			X1(Junction::AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE
+			}),
+			vec![ConcreteFungible {
+				id: Null,
+				amount: 5
+			}],
+			10_000_000u64,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// famount not received as it is not paying enough
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 }
