@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,38 +14,134 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use ethereum_types::H256;
-pub use evm::tracing::{using as evm_using, Event as EvmEvent, EventListener as EvmListener};
-pub use evm::Opcode;
-pub use evm_gasometer::tracing::{
-	using as gasometer_using, Event as GasometerEvent, EventListener as GasometerListener,
-};
-pub use evm_runtime::tracing::{
-	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
-};
-use moonbeam_rpc_primitives_debug::CallType;
-pub use sp_std::{cell::RefCell, fmt::Debug, rc::Rc, vec, vec::Vec};
-pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
+//! A Proxy in this context is an environmental trait implementor meant to be used for capturing
+//! EVM trace events sent to a Host function from the Runtime. Works like:
+//! - Runtime Api call `using` environmental.
+//! - Runtime calls a Host function with some scale-encoded Evm event.
+//! - Host function emits an additional event to this Listener.
+//! - Proxy listens for the event and format the actual trace response.
+//!
+//! There are two proxy types: `Raw` and `CallList`.
+//! - `Raw` - used for opcode-level traces.
+//! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
+//!
+//! The EVM event types may contain references and not implement Encode/Decode.
+//! This module provide mirror types and conversion into them from the original events.
 
-impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
-	fn event(&mut self, event: GasometerEvent) {
-		self.0.borrow_mut().event(event);
+extern crate alloc;
+
+pub mod evm;
+pub mod gasometer;
+pub mod runtime;
+
+pub use self::evm::EvmEvent;
+pub use gasometer::GasometerEvent;
+pub use runtime::RuntimeEvent;
+
+use crate::api::CallType;
+use ::evm::Opcode;
+use alloc::{vec, vec::Vec};
+use codec::{Decode, Encode};
+use ethereum_types::{H160, H256, U256};
+
+environmental::environmental!(listener: dyn Listener + 'static);
+
+pub fn using<R, F: FnOnce() -> R>(l: &mut (dyn Listener + 'static), f: F) -> R {
+	listener::using(l, f)
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum Event {
+	Evm(evm::EvmEvent),
+	Gasometer(gasometer::GasometerEvent),
+	Runtime(runtime::RuntimeEvent),
+	CallListNew(),
+}
+
+impl Event {
+	/// Access the global reference and call it's `event` method, passing the `Event` itself as
+	/// argument.
+	///
+	/// This only works if we are `using` a global reference to a `Listener` implementor.
+	pub fn emit(self) {
+		listener::with(|listener| listener.event(self));
 	}
 }
 
-impl<T: RuntimeListener> RuntimeListener for ListenerProxy<T> {
-	fn event(&mut self, event: RuntimeEvent) {
-		self.0.borrow_mut().event(event);
+/// Main trait to proxy emitted messages.
+/// Used 2 times :
+/// - Inside the runtime to proxy the events throught the host functions
+/// - Inside the client to forward those events to the client listener.
+pub trait Listener {
+	fn event(&mut self, event: Event);
+}
+
+#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+pub struct Context {
+	/// Execution address.
+	pub address: H160,
+	/// Caller of the EVM.
+	pub caller: H160,
+	/// Apparent value of the EVM.
+	pub apparent_value: U256,
+}
+
+impl From<evm_runtime::Context> for Context {
+	fn from(i: evm_runtime::Context) -> Self {
+		Self {
+			address: i.address,
+			caller: i.caller,
+			apparent_value: i.apparent_value,
+		}
 	}
 }
 
-impl<T: EvmListener> EvmListener for ListenerProxy<T> {
-	fn event(&mut self, event: EvmEvent) {
-		self.0.borrow_mut().event(event);
+#[derive(Debug)]
+pub enum ContextType {
+	Call(CallType),
+	Create,
+}
+
+impl ContextType {
+	pub fn from(opcode: Vec<u8>) -> Option<Self> {
+		let opcode = match alloc::str::from_utf8(&opcode[..]) {
+			Ok(op) => op.to_uppercase(),
+			_ => return None,
+		};
+		match &opcode[..] {
+			"CREATE" | "CREATE2" => Some(ContextType::Create),
+			"CALL" => Some(ContextType::Call(CallType::Call)),
+			"CALLCODE" => Some(ContextType::Call(CallType::CallCode)),
+			"DELEGATECALL" => Some(ContextType::Call(CallType::DelegateCall)),
+			"STATICCALL" => Some(ContextType::Call(CallType::StaticCall)),
+			_ => None,
+		}
 	}
 }
 
+pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
+	let size = 32;
+	memory
+		.chunks(size)
+		.map(|c| {
+			let mut msg = [0u8; 32];
+			let chunk = c.len();
+			if chunk < size {
+				let left = size - chunk;
+				let remainder = vec![0; left];
+				msg[0..left].copy_from_slice(&remainder[..]);
+				msg[left..size].copy_from_slice(c);
+			} else {
+				msg[0..size].copy_from_slice(c)
+			}
+			H256::from_slice(&msg[..])
+		})
+		.collect()
+}
+
+/// Converts an Opcode into its name, stored in a `Vec<u8>`.
 pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
+	let tmp;
 	let out = match opcode {
 		Opcode(0) => "Stop",
 		Opcode(1) => "Add",
@@ -201,46 +297,10 @@ pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 		Opcode(253) => "Revert",
 		Opcode(254) => "Invalid",
 		Opcode(255) => "SelfDestruct",
-		_ => unreachable!("Unreachable Opcode identifier."),
+		Opcode(n) => {
+			tmp = alloc::format!("Unknown({})", n);
+			&tmp
+		}
 	};
 	out.as_bytes().to_vec()
-}
-
-#[derive(Debug)]
-pub enum ContextType {
-	Call(CallType),
-	Create,
-}
-
-impl ContextType {
-	pub fn from(opcode: Opcode) -> Option<Self> {
-		match opcode.0 {
-			0xF0 | 0xF5 => Some(ContextType::Create),
-			0xF1 => Some(ContextType::Call(CallType::Call)),
-			0xF2 => Some(ContextType::Call(CallType::CallCode)),
-			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
-			0xFA => Some(ContextType::Call(CallType::StaticCall)),
-			_ => None,
-		}
-	}
-}
-
-pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
-	let size = 32;
-	memory
-		.chunks(size)
-		.map(|c| {
-			let mut msg = [0u8; 32];
-			let chunk = c.len();
-			if chunk < size {
-				let left = size - chunk;
-				let remainder = vec![0; left];
-				msg[0..left].copy_from_slice(&remainder[..]);
-				msg[left..size].copy_from_slice(c);
-			} else {
-				msg[0..size].copy_from_slice(c)
-			}
-			H256::from_slice(&msg[..])
-		})
-		.collect()
 }

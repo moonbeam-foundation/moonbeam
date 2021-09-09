@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 use ethereum_types::H160;
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
-pub use moonbeam_rpc_primitives_debug::block::TransactionTrace;
+use moonbeam_rpc_primitives_debug::api::block::TransactionTrace;
 use serde::{de::Error, Deserialize, Deserializer};
 
 pub use rpc_impl_Trace::gen_server::Trace as TraceServer;

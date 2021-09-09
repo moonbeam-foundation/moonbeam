@@ -860,192 +860,59 @@ impl_runtime_apis! {
 		fn trace_transaction(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 			transaction: &EthereumTransaction,
-			trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 		) -> Result<
-			moonbeam_rpc_primitives_debug::single::TransactionTrace,
-			sp_runtime::DispatchError
+			(),
+			sp_runtime::DispatchError,
 		> {
-			use moonbeam_rpc_primitives_debug::single::TraceType;
-			use moonbeam_evm_tracer::{RawTracer, CallListTracer};
+			use moonbeam_evm_tracer::tracer::EvmTracer;
 
-			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
-			// that preceded the requested transaction.
+			// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+			// transactions that preceded the requested transaction.
 			for ext in extrinsics.into_iter() {
 				let _ = match &ext.function {
 					Call::Ethereum(transact(t)) => {
 						if t == transaction {
-							return match trace_type {
-								TraceType::Raw {
-									disable_storage,
-									disable_memory,
-									disable_stack,
-								} => {
-									Ok(RawTracer::new(disable_storage,
-										disable_memory,
-										disable_stack,)
-										.trace(|| Executive::apply_extrinsic(ext))
-										.0
-										.into_tx_trace()
-									)
-								},
-								TraceType::CallList => {
-									Ok(CallListTracer::new()
-										.trace(|| Executive::apply_extrinsic(ext))
-										.0
-										.into_tx_trace()
-									)
-								}
-							}
-
+							EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+							return Ok(());
 						} else {
 							Executive::apply_extrinsic(ext)
 						}
-					},
-					_ => Executive::apply_extrinsic(ext)
+					}
+					_ => Executive::apply_extrinsic(ext),
 				};
 			}
 
 			Err(sp_runtime::DispatchError::Other(
-				"Failed to find Ethereum transaction among the extrinsics."
+				"Failed to find Ethereum transaction among the extrinsics.",
 			))
 		}
 
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 		) -> Result<
-			Vec<
-				moonbeam_rpc_primitives_debug::block::TransactionTrace>,
-				sp_runtime::DispatchError
-			> {
-			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
-			use moonbeam_evm_tracer::CallListTracer;
+			(),
+			sp_runtime::DispatchError,
+		> {
+			use moonbeam_evm_tracer::tracer::EvmTracer;
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
-
-			let mut traces = vec![];
-			let mut eth_tx_index = 0;
 
 			// Apply all extrinsics. Ethereum extrinsics are traced.
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(_transaction)) => {
-						let tx_traces = CallListTracer::new()
-							.trace(|| Executive::apply_extrinsic(ext))
-							.0
-							.into_tx_trace();
-
-						let tx_traces = match tx_traces {
-							single::TransactionTrace::CallList(t) => t,
-							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
-						};
-
-						// Convert traces from "single" format to "block" format.
-						let mut tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
-							match trace.inner {
-								single::CallInner::Call {
-									input, to, res, call_type
-								} => block::TransactionTrace {
-									action: block::TransactionTraceAction::Call {
-										call_type,
-										from: trace.from,
-										gas: trace.gas,
-										input,
-										to,
-										value: trace.value,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: match res {
-										CallResult::Output(output) => {
-											block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Call {
-													gas_used: trace.gas_used,
-													output
-												})
-										},
-										CallResult::Error(error) =>
-											block::TransactionTraceOutput::Error(error),
-									},
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-								},
-								single::CallInner::Create { init, res } => block::TransactionTrace {
-									action: block::TransactionTraceAction::Create {
-										creation_method: CreateType::Create,
-										from: trace.from,
-										gas: trace.gas,
-										init,
-										value: trace.value,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: match res {
-										CreateResult::Success {
-											created_contract_address_hash,
-											created_contract_code
-										} => {
-											block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Create {
-													gas_used: trace.gas_used,
-													code: created_contract_code,
-													address: created_contract_address_hash,
-												}
-											)
-										},
-										CreateResult::Error {
-											error
-										} => block::TransactionTraceOutput::Error(error),
-									},
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-
-								},
-								single::CallInner::SelfDestruct {
-									balance,
-									refund_address
-								} => block::TransactionTrace {
-									action: block::TransactionTraceAction::Suicide {
-										address: trace.from,
-										balance,
-										refund_address,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Suicide
-											),
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-
-								},
-							}
-						).collect();
-
-						traces.append(&mut tx_traces);
-
-						eth_tx_index += 1;
-					},
-					_ => {let _ = Executive::apply_extrinsic(ext); }
+						// Each extrinsic is a new call stack.
+						EvmTracer::emit_new();
+						EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+					}
+					_ => {
+						let _ = Executive::apply_extrinsic(ext);
+					}
 				};
 			}
 
-			Ok(traces)
+			Ok(())
 		}
 	}
 
