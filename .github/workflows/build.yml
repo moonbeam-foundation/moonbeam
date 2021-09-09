@@ -402,6 +402,7 @@ jobs:
           BINARY_PATH: ../build/moonbeam-tracing
           ETHAPI_CMD: --ethapi=txpool,debug,trace
         run: |
+          cd tests
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
