@@ -296,6 +296,9 @@ impl ExtBuilder {
 }
 
 pub(crate) fn roll_to(n: u64) {
+	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
+	// We may be able to simulate this by poking its storage directly, but I don't see any value
+	// added from doing that.
 	while System::block_number() < n {
 		Scheduler::on_finalize(System::block_number());
 		Democracy::on_finalize(System::block_number());
@@ -309,7 +312,7 @@ pub(crate) fn roll_to(n: u64) {
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		Evm::on_initialize(System::block_number());
-		// Timestamp::on_initialize(System::block_number());
+		Timestamp::on_initialize(System::block_number());
 		Democracy::on_initialize(System::block_number());
 		Scheduler::on_initialize(System::block_number());
 	}
