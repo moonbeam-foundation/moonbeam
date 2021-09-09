@@ -15,6 +15,7 @@ const argv = yargs(process.argv.slice(2))
     from: {
       type: "string",
       description: "Private key to transfer from",
+      demandOption: true,
     },
     count: {
       type: "number",
@@ -39,7 +40,7 @@ const main = async () => {
 
   let fromNonce = (await polkadotApi.rpc.system.accountNextIndex(fromAccount.address)).toNumber();
 
-  console.log(`Creating ${argv.count} balance tranfers of ${argv.amount} Tokens...`);
+  console.log(`Creating ${argv.count} balance tranfers of ${argv.count} Tokens...`);
   const transferTxs = await Promise.all(
     new Array(argv.count).fill(0).map((_, index) => {
       return polkadotApi.tx.system
