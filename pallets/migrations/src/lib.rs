@@ -44,6 +44,14 @@ pub trait Migration {
 	/// constraints will lead to a bricked chain upon a runtime upgrade because the parachain will
 	/// not be able to produce a block that the relay chain will accept.
 	fn migrate(&self, available_weight: Weight) -> Weight;
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> { Ok(()) }
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> { Ok(()) }
 }
 
 #[pallet]
@@ -102,6 +110,48 @@ pub mod pallet {
 			}
 
 			weight
+		}
+
+		#[cfg(feature = "try-runtime")]
+		fn pre_upgrade() -> Result<(), &'static str> {
+			let mut failed = false;
+			for migration in &T::MigrationsList::get() {
+				let migration_name = migration.friendly_name();
+				let migration_name_as_bytes = migration_name.as_bytes();
+
+				let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
+				if migration_done {
+					continue;
+				}
+				log::trace!("invoking pre_upgrade() on migration {}", migration_name);
+
+				// TODO: use temp storage to make note of any migration that hasn't been performed.
+				//       this is required because we won't know in post_upgrade() which migrations
+				//       should have their own post_upgrade() hooks called since all upgrades will
+				//       appear to be done by that point.
+				let result = migration.pre_upgrade();
+				match result {
+					Ok(()) => {
+						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
+					},
+					Err(msg) => {
+						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
+						failed = true;
+					},
+				}
+			}
+
+			if failed {
+				Err("One or more pre_upgrade tests failed; see output above.")
+			} else {
+				Ok(())
+			}
+		}
+
+		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+		#[cfg(feature = "try-runtime")]
+		fn post_upgrade() -> Result<(), &'static str> {
+			todo!();
 		}
 	}
 
