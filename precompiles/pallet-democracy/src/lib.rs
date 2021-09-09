@@ -64,7 +64,7 @@ enum Action {
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
 ///
-/// For an example of a political party that operates as a DAO, see PoliticalPartyDAao.sol
+/// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol
 pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for DemocracyWrapper<Runtime>
