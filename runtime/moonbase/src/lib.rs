@@ -1067,6 +1067,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			true,
 			min_balance,
 		)?;
+
 		Assets::force_set_metadata(
 			Origin::root(),
 			asset,
@@ -1159,9 +1160,28 @@ impl Contains<Call> for MaintenanceFilter {
 	}
 }
 
+/// Normal Call Filter
+/// We dont allow to create nor mint assets, this for now is disabled
+/// We only allow transfers. For now creation of assets will go through
+/// asset-manager, while minting/burning only happens through xcm messages
+/// This can change in the future
+pub struct NormalFilter;
+impl Contains<Call> for NormalFilter {
+	fn contains(c: &Call) -> bool {
+		match c {
+			Call::Assets(method) => match method {
+				pallet_assets::Call::transfer(..) => true,
+				pallet_assets::Call::transfer_keep_alive(..) => true,
+				_ => false,
+			},
+			_ => true,
+		}
+	}
+}
+
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = Everything;
+	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
@@ -1204,7 +1224,7 @@ construct_runtime! {
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 26,
 		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
 		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 27,
-		Assets: pallet_assets::{Pallet, Storage, Event<T>} = 28,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 28,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 29,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
 	}
