@@ -3,12 +3,7 @@
 
 import { expect } from "chai";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
-import {
-  createSignedTx,
-  createSigningPayload,
-  KeyringPair,
-  OptionsWithMeta,
-} from "@substrate/txwrapper";
+import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import { Keyring } from "@polkadot/api";
 import { getRegistry } from "@substrate/txwrapper-registry";
 
@@ -16,8 +11,8 @@ import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants"
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { rpcToLocalNode } from "../util/transactions";
-import { createMetadata } from "@substrate/txwrapper/lib/util";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
+import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
 
 /**
  * Signing function. Implement this on the OFFLINE signing device.
@@ -81,21 +76,18 @@ describeDevMoonbeam("Balance transfer", (context) => {
       },
       {
         metadataRpc,
-        // @ts-ignore // looks like txwrpper doesnt have the latest versions
         registry,
       }
     );
-    //@ts-ignore
+
     const signingPayload = createSigningPayload(unsigned, { registry });
     const keyring = new Keyring({ type: "ethereum" });
     const genesis = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     const signature = signWith(genesis, signingPayload, {
       metadataRpc,
-      //@ts-ignore
       registry,
     });
     // Serialize a signed transaction.
-    //@ts-ignore
     const tx = createSignedTx(unsigned, signature, { metadataRpc, registry });
 
     await rpcToLocalNode(context.rpcPort, "author_submitExtrinsic", [tx]);
