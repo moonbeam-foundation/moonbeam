@@ -340,7 +340,6 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
 
-		//TODO would be slightly ncer to pass a mutable gasometer.
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
 			call,

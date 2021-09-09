@@ -365,9 +365,9 @@ fn propose_works() {
 		})
 }
 
-// TODO propose error cases
-// propose_bad_length
-// proposing fails when you don't have enough funds to cover the deposit
+// Potential additional `propose` error cases:
+// * propose_bad_length
+// * proposing fails when you don't have enough funds to cover the deposit
 
 #[test]
 fn second_works() {
@@ -419,9 +419,9 @@ fn second_works() {
 		})
 }
 
-// TODO Second error cases
-// proposal doesn't exist
-// you can't afford it
+// Potential additional `second` error cases:
+// * proposal doesn't exist
+// * you can't afford it
 
 #[test]
 fn standard_vote_aye_works() {
@@ -553,10 +553,10 @@ fn standard_vote_nay_conviction_works() {
 		})
 }
 
-//TODO Standard vote error cases
-// can't afford it
-// invalid conviction
-// referendum doesn't exist
+//Potential additional `standard_vote` error cases:
+// * can't afford it
+// * invalid conviction
+// * referendum doesn't exist
 
 #[test]
 fn remove_vote_works() {
@@ -670,7 +670,7 @@ fn delegate_works() {
 			let selector = &Keccak256::digest(b"delegate(address,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
-				.write::<Address>(H160::from(Bob).into()) // Delegate to //TODO this needs to be an address somehow
+				.write::<Address>(H160::from(Bob).into()) // Delegate to
 				.write(2u8) // 2X conviction
 				.write(100u128) // 100 tokens
 				.build();
