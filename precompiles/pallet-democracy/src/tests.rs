@@ -78,7 +78,7 @@ fn no_selector_exists_but_length_is_right() {
 #[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
-		let selector = hex_literal::hex!("56fdf547");
+		let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
 
 		// Construct data to read prop count
 		let mut input_data = Vec::<u8>::from([0u8; 4]);
@@ -133,6 +133,8 @@ fn prop_count_non_zero() {
 		});
 }
 
+//TODO is this even possible? When the proposal is made, the proposer makes a deposit.
+// So there is always at least one depositor, right?
 #[test]
 fn deposit_of_zero() {
 	todo!()
