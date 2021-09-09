@@ -188,7 +188,9 @@ where
 		mut _input: EvmDataReader,
 		_target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
-		unimplemented!("This method depends on https://github.com/paritytech/substrate/pull/9565")
+		Err(error(
+			"This method depends on https://github.com/paritytech/substrate/pull/9565",
+		))
 		// let mut gasometer = Gasometer::new(target_gas);
 
 		// // Bound check
@@ -236,7 +238,9 @@ where
 		mut _input: EvmDataReader,
 		_target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
-		unimplemented!("This method depends on https://github.com/paritytech/substrate/pull/9565")
+		Err(error(
+			"This method depends on https://github.com/paritytech/substrate/pull/9565",
+		))
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
