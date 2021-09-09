@@ -659,9 +659,6 @@ fn delegate_works() {
 		})
 }
 
-//TODO Delecate error cases
-// invalid conviction
-
 #[test]
 fn undelegate_works() {
 	ExtBuilder::default()
