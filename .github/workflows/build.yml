@@ -387,15 +387,21 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
+      - name: Typescript integration tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam-tracing
+        run: |
+          chmod uog+x build/moonbeam-tracing
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
+          npm install
+          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
       - name: Typescript evm-tracing tests (against dev service)
         env:
           BINARY_PATH: ../build/moonbeam-tracing
           ETHAPI_CMD: --ethapi=txpool,debug,trace
         run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
