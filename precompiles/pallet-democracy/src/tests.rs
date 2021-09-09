@@ -26,7 +26,7 @@ use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
 	VoteThreshold, Voting,
 };
-use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitSucceed, PrecompileSet};
+use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
@@ -639,9 +639,8 @@ fn remove_vote_dne() {
 			))
 			.dispatch(Origin::signed(Alice)));
 
-			// Wait until it becomes a referendum (10 block launch period)
-			//TODO
-			roll_to(11);
+			// Wait until it becomes a referendum
+			roll_to(<Test as DemocracyConfig>::LaunchPeriod::get());
 
 			// Construct input data to remove a non-existant vote
 			let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
@@ -650,15 +649,14 @@ fn remove_vote_dne() {
 				.write(0u32) // Referendum index 0
 				.build();
 
-			// TODO one weakness of try_dispatch is that it doesn't propogate the error
-			// I can't assert that this actually failed for the reason I expected.
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(error("dispatched call failed")));
-
-			assert_eq!(
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
-				expected_result
-			);
+			// Expected result is an error from the pallet
+			if let Some(Err(ExitError::Other(e))) =
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context())
+			{
+				assert!(e.contains("NotVoter"));
+			} else {
+				panic!("Expected an ExitError, but didn't get one.")
+			}
 		})
 }
 
@@ -786,15 +784,14 @@ fn undelegate_dne() {
 		let selector = &Keccak256::digest(b"un_delegate()")[0..4];
 		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
-		// TODO one weakness of try_dispatch is that it doesn't propogate the error
-		// I can't assert that this actually failed for the reason I expected.
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("dispatched call failed")));
-
-		assert_eq!(
-			Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
-			expected_result
-		);
+		// Expected result is an error from the pallet
+		if let Some(Err(ExitError::Other(e))) =
+			Precompiles::execute(precompile_address(), &input, None, &evm_test_context())
+		{
+			assert!(e.contains("NotDelegating"));
+		} else {
+			panic!("Expected an ExitError, but didn't get one.")
+		}
 	})
 }
 
