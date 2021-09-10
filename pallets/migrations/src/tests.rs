@@ -265,3 +265,49 @@ fn overweight_migrations_tolerated() {
 		},
 	);
 }
+
+#[test]
+fn try_runtime_functions_work() {
+	let pre_fn_called = Arc::new(Mutex::new(false));
+	let post_fn_called = Arc::new(Mutex::new(false));
+
+	crate::mock::execute_with_mock_migrations(
+		&mut |mgr: &mut MockMigrationManager| {
+			let pre_fn_called = Arc::clone(&pre_fn_called);
+			let post_fn_called = Arc::clone(&post_fn_called);
+			mgr.register_callback_with_try_fns(
+				move || {
+					"dummy_step"
+				},
+				move |_| -> Weight {
+					0u64.into()
+				},
+				move || -> Result<(), &'static str> {
+					*pre_fn_called.lock().unwrap() = true;
+					Ok(())
+				},
+				move || -> Result<(), &'static str> {
+					*post_fn_called.lock().unwrap() = true;
+					Ok(())
+				},
+			);
+		},
+		&mut || {
+			ExtBuilder::default().build().execute_with(|| {
+				crate::mock::roll_until_upgraded(true);
+			});
+		},
+	);
+
+	assert_eq!(
+		*pre_fn_called.lock().unwrap(),
+		true,
+		"mock migration should call pre_upgrade()"
+	);
+
+	assert_eq!(
+		*post_fn_called.lock().unwrap(),
+		true,
+		"mock migration should call post_upgrade()"
+	);
+}
