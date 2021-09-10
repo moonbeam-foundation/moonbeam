@@ -99,6 +99,9 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
+    //launchPeriod
+    launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
+
     // notePreimage
     encodedHash = await notePreimage(
       context,
@@ -111,12 +114,12 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
       .propose(encodedHash, PROPOSAL_AMOUNT)
       .signAndSend(genesisAccount);
     await context.createBlock();
-  });
-  it("second proposal", async function () {
+
     // second
     await context.polkadotApi.tx.democracy.second(0, 1000).signAndSend(alith);
     await context.createBlock();
-
+  });
+  it("second proposal", async function () {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
@@ -131,7 +134,6 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
   });
   it("check launch period", async function () {
     // launchPeriod
-    launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
     expect(launchPeriod.toHuman()).to.equal("7,200");
   });
   it("check referendum is up", async function () {
@@ -165,6 +167,11 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
+    // enactmentPeriod
+    enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
+    // votingPeriod
+    votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
+
     // notePreimage
     encodedHash = await notePreimage(
       context,
@@ -182,12 +189,10 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   });
   it("check enactment period", async function () {
     // enactmentPeriod
-    enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
     expect(enactmentPeriod.toHuman()).to.equal("7,200");
   });
   it("check voting Period", async function () {
     // votingPeriod
-    votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
   it("vote", async function () {
