@@ -16,7 +16,6 @@ moonbeam-rpc-primitives-debug = { path = "../rpc/debug", default-features = fals
 sp-runtime-interface = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
 sp-externalities = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8", default-features = false }
-tracing = { version = "0.1.25", optional = true }
 
 [features]
 default = ["std"]
@@ -27,5 +26,4 @@ std = [
 	"sp-runtime-interface/std",
 	"sp-externalities/std",
 	"sp-std/std",
-	"tracing",
 ]
