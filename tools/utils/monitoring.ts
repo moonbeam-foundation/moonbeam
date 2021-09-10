@@ -110,7 +110,7 @@ export const listenFinalizedBlocks = async (
 };
 
 export function printDetails(
-  block,
+  block: Block,
   pendingTxs,
   elapsedMilliSecs,
   weightPercentage,
@@ -154,6 +154,10 @@ export function printDetails(
       ? chalk.green(ext)
       : ext;
 
+  const authorId = block.extrinsics
+    .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
+    .args[0].toString();
+
   const hash = block.header.hash.toString();
   console.log(
     `${options?.prefix ? `${options.prefix} ` : ""}Block ${block.header.number
@@ -162,7 +166,7 @@ export function printDetails(
       elapsedMilliSecs ? `[${secondText}s]` : ""
     }(hash: ${hash.substring(0, 7)}...${hash.substring(hash.length - 4)})${
       options?.suffix ? ` ${options.suffix}` : ""
-    }`
+    } by ${authorId.substring(0, 7)}...${authorId.substring(authorId.length - 4)}`
   );
 }
 
