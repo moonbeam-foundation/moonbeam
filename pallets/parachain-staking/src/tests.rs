@@ -25,7 +25,7 @@ use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
 };
-use crate::{Bond, CollatorState2, CollatorStatus, Error, Event, NominatorAdded, Range};
+use crate::{Bond, CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
@@ -2312,8 +2312,24 @@ fn nominator_bond_less_updates_nominator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 10);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0].amount,
+				10
+			);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0].owner,
+				1
+			);
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 5);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0].amount,
+				5
+			);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0].owner,
+				1
+			);
 		});
 }
 
