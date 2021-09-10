@@ -15,3 +15,8 @@ exclude = [
 
 [profile.release]
 panic = 'unwind'
+
+[patch.crates-io]
+evm = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.27.1"}
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.27.1" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.27.1" }

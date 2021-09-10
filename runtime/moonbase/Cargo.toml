@@ -98,6 +98,7 @@ hex = "0.4"
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 
 [features]
+evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
 default = ["std"]
 std = [
 	"runtime-common/std",
