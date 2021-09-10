@@ -34,6 +34,26 @@ use moonbeam_rpc_primitives_debug::events::{
 
 #[runtime_interface]
 pub trait MoonbeamExt {
+	fn raw_step(&mut self, _data: Vec<u8>) {
+		tracing::warn!("raw_step no longer supported");
+	}
+
+	fn raw_gas(&mut self, _data: Vec<u8>) {
+		tracing::warn!("raw_gas no longer supported");
+	}
+
+	fn raw_return_value(&mut self, _data: Vec<u8>) {
+		tracing::warn!("raw_return_value no longer supported");
+	}
+
+	fn call_list_entry(&mut self, _index: u32, _value: Vec<u8>) {
+		tracing::warn!("call_list_entry no longer supported");
+	}
+
+	fn call_list_new(&mut self) {
+		tracing::warn!("call_list_new no longer supported");
+	}
+
 	// New design, proxy events.
 	/// An `Evm` event proxied by the Moonbeam runtime to this host function.
 	/// evm -> moonbeam_runtime -> host.
@@ -44,6 +64,7 @@ pub trait MoonbeamExt {
 			tracing::warn!("Failed to decode EvmEvent from bytes : {:?}", event);
 		}
 	}
+
 	/// A `Gasometer` event proxied by the Moonbeam runtime to this host function.
 	/// evm_gasometer -> moonbeam_runtime -> host.
 	fn gasometer_event(&mut self, event: Vec<u8>) {
@@ -53,6 +74,7 @@ pub trait MoonbeamExt {
 			tracing::warn!("Failed to decode GasometerEvent from bytes : {:?}", event);
 		}
 	}
+
 	/// A `Runtime` event proxied by the Moonbeam runtime to this host function.
 	/// evm_runtime -> moonbeam_runtime -> host.
 	fn runtime_event(&mut self, event: Vec<u8>) {
@@ -62,7 +84,9 @@ pub trait MoonbeamExt {
 			tracing::warn!("Failed to decode RuntimeEvent from bytes : {:?}", event);
 		}
 	}
+
 	/// An event to create a new CallList (currently a new transaction when tracing a block).
+	#[version(2)]
 	fn call_list_new(&mut self) {
 		EventV2::CallListNew().emit();
 	}
