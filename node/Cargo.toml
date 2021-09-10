@@ -3,7 +3,7 @@ name = 'moonbeam'
 description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.11.3'
+version = '0.12.0'
 authors = ["PureStake"]
 edition = '2018'
 
