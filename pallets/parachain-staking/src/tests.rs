@@ -2083,8 +2083,22 @@ fn nominator_bond_more_updates_nominator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 10);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0],
+				Bond {
+					owner: 1,
+					amount: 10
+				}
+			);
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 15);
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").nominations.0[0],
+				Bond {
+					owner: 1,
+					amount: 15
+				}
+			);
 		});
 }
 
@@ -2313,22 +2327,20 @@ fn nominator_bond_less_updates_nominator_state() {
 		.execute_with(|| {
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 10);
 			assert_eq!(
-				Stake::nominator_state2(2).expect("exists").nominations.0[0].amount,
-				10
-			);
-			assert_eq!(
-				Stake::nominator_state2(2).expect("exists").nominations.0[0].owner,
-				1
+				Stake::nominator_state2(2).expect("exists").nominations.0[0],
+				Bond {
+					owner: 1,
+					amount: 10
+				}
 			);
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
 			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 5);
 			assert_eq!(
-				Stake::nominator_state2(2).expect("exists").nominations.0[0].amount,
-				5
-			);
-			assert_eq!(
-				Stake::nominator_state2(2).expect("exists").nominations.0[0].owner,
-				1
+				Stake::nominator_state2(2).expect("exists").nominations.0[0],
+				Bond {
+					owner: 1,
+					amount: 5
+				}
 			);
 		});
 }
