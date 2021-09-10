@@ -347,8 +347,8 @@ pub mod pallet {
 			// There are no entries in the old storage afterward
 
 			// Assert new storage is empty
-			// Because the pallet and item prefixes are the same, the old storage is still at this key. However,
-			// the values can't be decoded so the assertion passes.
+			// Because the pallet and item prefixes are the same, the old storage is still at this
+			// key. However, the values can't be decoded so the assertion passes.
 			assert!(MappingWithDeposit::<T>::iter().next().is_none());
 
 			// Check number of entries, and set it aside in temp storage
