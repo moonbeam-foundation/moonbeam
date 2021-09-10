@@ -30,10 +30,7 @@ use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
-use moonbeam_rpc_primitives_debug::{
-	api::{single, MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION},
-	DebugRuntimeApi,
-};
+use moonbeam_rpc_primitives_debug::{api::single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
 use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -226,10 +223,6 @@ where
 		let header = client.header(reference_id).unwrap().unwrap();
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
-		// Runtime version
-		let runtime_version = api
-			.version(&parent_block_id)
-			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
@@ -245,12 +238,8 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					if runtime_version.spec_version >= MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION {
-						api.initialize_block(&parent_block_id, &header)
-							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
-							})?;
-					}
+					api.initialize_block(&parent_block_id, &header)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 					let _result = api
 						.trace_transaction(&parent_block_id, ext, &transaction)

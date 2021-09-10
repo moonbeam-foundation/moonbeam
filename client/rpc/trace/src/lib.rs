@@ -57,10 +57,7 @@ pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer,
 };
 use moonbeam_rpc_primitives_debug::{
-	api::{
-		block::{self, TransactionTrace},
-		MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION,
-	},
+	api::block::{self, TransactionTrace},
 	DebugRuntimeApi,
 };
 
@@ -805,11 +802,6 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		// Runtime version
-		let runtime_version = api
-			.version(&substrate_parent_id)
-			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
-
 		// Get Ethereum block data.
 		let (eth_block, _, eth_transactions) = api
 			.current_all(&BlockId::Hash(substrate_hash))
@@ -851,10 +843,8 @@ where
 
 		// Trace the block.
 		let f = || -> Result<_> {
-			if runtime_version.spec_version >= MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION {
-				api.initialize_block(&substrate_parent_id, &block_header)
-					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
-			}
+			api.initialize_block(&substrate_parent_id, &block_header)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
 				.trace_block(&substrate_parent_id, extrinsics)

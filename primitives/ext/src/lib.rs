@@ -28,9 +28,8 @@ use sp_runtime_interface::runtime_interface;
 use codec::Decode;
 use sp_std::vec::Vec;
 
-
-use moonbeam_rpc_primitives_debug::{
-	events::{Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent},
+use moonbeam_rpc_primitives_debug::events::{
+	Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent,
 };
 
 #[runtime_interface]
