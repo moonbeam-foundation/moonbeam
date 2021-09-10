@@ -181,7 +181,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it.only("nominatorState should increase the nomination for ALITH", async function () {
+  it("nominatorState should increase the nomination for ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
@@ -192,7 +192,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     ).to.equal(true, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
-  it.only("should succesfully call nominatorBondLess on ALITH", async function () {
+  it("should succesfully call nominatorBondLess on ALITH", async function () {
     // await context.polkadotApi.tx.parachainStaking
     //   .nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
     //   .signAndSend(ethan);
@@ -208,7 +208,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       console.log(e.toHuman());
     });
   });
-  it.only("nominatorState should decrease the nomination for ALITH", async function () {
+  it("nominatorState should decrease the nomination for ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     console.log("nom", nominatorsAfter.toHuman());
     expect(
