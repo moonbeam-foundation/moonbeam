@@ -5,7 +5,7 @@ homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 name = 'xcm-primitives'
 repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.1.1'
+version = '0.1.0'
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
