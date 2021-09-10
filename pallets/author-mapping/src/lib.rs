@@ -333,7 +333,7 @@ pub mod pallet {
 
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<(), &'static str> {
-			use frame_support::storage::migration::storage_key_iter;
+			use frame_support::storage::migration::{storage_iter, storage_key_iter};
 			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let pallet_prefix: &[u8] = b"AuthorMapping";
@@ -352,12 +352,10 @@ pub mod pallet {
 			assert!(MappingWithDeposit::<T>::iter().next().is_none());
 
 			// Check number of entries, and set it aside in temp storage
-			//TODO, maybe I don't need to fetch the keys here?
-			let mapping_count = storage_key_iter::<
-				T::AuthorId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-				Twox64Concat,
-			>(pallet_prefix, storage_item_prefix)
+			let mapping_count = storage_iter::<RegistrationInfo<T::AccountId, BalanceOf<T>>>(
+				pallet_prefix,
+				storage_item_prefix,
+			)
 			.count() as u64;
 			Self::set_temp_storage(mapping_count, "mapping_count");
 
