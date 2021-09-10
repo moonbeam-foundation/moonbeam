@@ -447,7 +447,7 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -484,7 +484,6 @@ jobs:
           context: .
           file: ./docker/moonbase-parachain.Dockerfile
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
@@ -498,7 +497,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -535,7 +534,6 @@ jobs:
           context: .
           file: ./docker/moonbeam.Dockerfile
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
