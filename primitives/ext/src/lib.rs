@@ -34,25 +34,15 @@ use moonbeam_rpc_primitives_debug::events::{
 
 #[runtime_interface]
 pub trait MoonbeamExt {
-	fn raw_step(&mut self, _data: Vec<u8>) {
-		tracing::warn!("raw_step no longer supported");
-	}
+	fn raw_step(&mut self, _data: Vec<u8>) {}
 
-	fn raw_gas(&mut self, _data: Vec<u8>) {
-		tracing::warn!("raw_gas no longer supported");
-	}
+	fn raw_gas(&mut self, _data: Vec<u8>) {}
 
-	fn raw_return_value(&mut self, _data: Vec<u8>) {
-		tracing::warn!("raw_return_value no longer supported");
-	}
+	fn raw_return_value(&mut self, _data: Vec<u8>) {}
 
-	fn call_list_entry(&mut self, _index: u32, _value: Vec<u8>) {
-		tracing::warn!("call_list_entry no longer supported");
-	}
+	fn call_list_entry(&mut self, _index: u32, _value: Vec<u8>) {}
 
-	fn call_list_new(&mut self) {
-		tracing::warn!("call_list_new no longer supported");
-	}
+	fn call_list_new(&mut self) {}
 
 	// New design, proxy events.
 	/// An `Evm` event proxied by the Moonbeam runtime to this host function.
@@ -60,8 +50,6 @@ pub trait MoonbeamExt {
 	fn evm_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = EvmEvent::decode(&mut &event[..]) {
 			EventV2::Evm(event).emit();
-		} else {
-			tracing::warn!("Failed to decode EvmEvent from bytes : {:?}", event);
 		}
 	}
 
@@ -70,8 +58,6 @@ pub trait MoonbeamExt {
 	fn gasometer_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = GasometerEvent::decode(&mut &event[..]) {
 			EventV2::Gasometer(event).emit();
-		} else {
-			tracing::warn!("Failed to decode GasometerEvent from bytes : {:?}", event);
 		}
 	}
 
@@ -80,8 +66,6 @@ pub trait MoonbeamExt {
 	fn runtime_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = RuntimeEvent::decode(&mut &event[..]) {
 			EventV2::Runtime(event).emit();
-		} else {
-			tracing::warn!("Failed to decode RuntimeEvent from bytes : {:?}", event);
 		}
 	}
 

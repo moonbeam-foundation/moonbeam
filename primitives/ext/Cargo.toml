@@ -16,7 +16,6 @@ moonbeam-rpc-primitives-debug = { path = "../rpc/debug", default-features = fals
 sp-runtime-interface = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
 sp-externalities = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-tracing = { version = "0.1.25", optional = true }
 
 [features]
 default = ["std"]
@@ -27,5 +26,4 @@ std = [
 	"sp-runtime-interface/std",
 	"sp-externalities/std",
 	"sp-std/std",
-	"tracing"
 ]

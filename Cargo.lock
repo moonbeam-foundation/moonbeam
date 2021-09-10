@@ -5159,7 +5159,6 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
- "tracing",
 ]
 
 [[package]]
