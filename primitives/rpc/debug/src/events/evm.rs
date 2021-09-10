@@ -79,26 +79,6 @@ impl From<evm_runtime::CreateScheme> for CreateScheme {
 	}
 }
 
-#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
-pub struct Context {
-	/// Execution address.
-	pub address: H160,
-	/// Caller of the EVM.
-	pub caller: H160,
-	/// Apparent value of the EVM.
-	pub apparent_value: U256,
-}
-
-impl From<evm_runtime::Context> for Context {
-	fn from(i: evm_runtime::Context) -> Self {
-		Self {
-			address: i.address,
-			caller: i.caller,
-			apparent_value: i.apparent_value,
-		}
-	}
-}
-
 #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq)]
 pub enum EvmEvent {
 	Call {
@@ -107,7 +87,7 @@ pub enum EvmEvent {
 		input: Vec<u8>,
 		target_gas: Option<u64>,
 		is_static: bool,
-		context: Context,
+		context: super::Context,
 	},
 	Create {
 		caller: H160,
@@ -150,6 +130,7 @@ pub enum EvmEvent {
 	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 	fn from(i: evm::tracing::Event<'a>) -> Self {
 		match i {

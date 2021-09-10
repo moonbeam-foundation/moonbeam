@@ -104,6 +104,7 @@ substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/parityte
 
 [features]
 default = ["std"]
+evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
 std = [
 	"runtime-common/std",
 	"parity-scale-codec/std",
