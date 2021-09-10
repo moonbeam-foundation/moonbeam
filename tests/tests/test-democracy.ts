@@ -137,7 +137,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     expect(launchPeriod.toHuman()).to.equal("7,200");
   });
   it("check referendum is up", async function () {
-    this.timeout(20000);
+    this.timeout(1000000);
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
     for (let i = 0; i < Number(launchPeriod) - 3; i++) {
@@ -196,7 +196,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
   it("vote", async function () {
-    this.timeout(200000);
+    this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
     for (let i = 0; i < 7200 - 3; i++) {
