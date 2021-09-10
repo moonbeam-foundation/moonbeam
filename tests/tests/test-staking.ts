@@ -181,7 +181,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it("nominatorState should increase the nomination for ALITH", async function () {
+  it.only("nominatorState should increase the nomination for ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
@@ -192,23 +192,30 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     ).to.equal(true, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
-  it("should succesfully call nominatorBondLess on ALITH", async function () {
-    // await context.polkadotApi.tx.parachainStaking
-    //   .nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
-    //   .signAndSend(ethan);
-    // await context.createBlock();
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      ethan,
-      context.polkadotApi.tx.parachainStaking.nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
-    );
+});
+
+describeDevMoonbeam("Staking - Nominators Bond Less", (context) => {
+  let ethan;
+  beforeEach("should succesfully call nominatorBondLess on ALITH", async function () {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    // Nominate
+    await context.polkadotApi.tx.parachainStaking
+      .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
+      .signAndSend(ethan);
     await context.createBlock();
-    // console.log("events", events);
-    events.forEach((e) => {
-      console.log(e.toHuman());
-    });
+    // Bond More
+    await context.polkadotApi.tx.parachainStaking
+      .nominatorBondMore(ALITH, MIN_GLMR_NOMINATOR_PLUS_ONE)
+      .signAndSend(ethan);
+    await context.createBlock();
+    // Bond Less
+    await context.polkadotApi.tx.parachainStaking
+      .nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
+      .signAndSend(ethan);
+    await context.createBlock();
   });
-  it("nominatorState should decrease the nomination for ALITH", async function () {
+  it.only("nominatorState should decrease the nomination for ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     console.log("nom", nominatorsAfter.toHuman());
     expect(
