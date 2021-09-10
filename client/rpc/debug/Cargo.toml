@@ -24,8 +24,9 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2", features = ["rpc_binary_search_estimate"] }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }

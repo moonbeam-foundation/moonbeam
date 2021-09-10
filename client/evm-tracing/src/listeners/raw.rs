@@ -14,46 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::util::*;
-
+// use super::{
+// 	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
+// 	RuntimeEvent, H160, H256,
+// };
 use ethereum_types::{H160, H256};
-use evm::{Capture, ExitReason};
-use moonbeam_rpc_primitives_debug::single::{RawStepLog, TransactionTrace};
-use sp_std::{collections::btree_map::BTreeMap, vec, vec::Vec};
+use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-/// Listen to EVM events to provide the intermediate machine state between opcode executions
-/// (stepping), resulting in a granular per opcode output.
-///
-/// # Output example
-///
-/// ```json
-/// {
-///   "pc": 230,
-///   "op": "SSTORE",
-///   "gas": 62841,
-///   "gasCost": 20000,
-///   "depth": 1,
-///   "stack": [
-///     "00000000000000000000000000000000000000000000000000000000398f7223",
-///   ],
-///   "memory": [
-///     "0000000000000000000000000000000000000000000000000000000000000000",
-///   ],
-///   "storage": {"0x":"0x"}
-/// }
-/// ```
+use moonbeam_rpc_primitives_debug::{
+	api::single::RawStepLog,
+	events::{
+		convert_memory,
+		runtime::{Capture, ExitReason},
+		ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+	},
+};
+
 #[derive(Debug)]
-pub struct RawTracer {
+pub struct Listener {
 	disable_storage: bool,
 	disable_memory: bool,
 	disable_stack: bool,
 
-	step_logs: Vec<RawStepLog>,
-	return_value: Vec<u8>,
-	final_gas: u64,
-
 	new_context: bool,
 	context_stack: Vec<Context>,
+
+	pub step_logs: Vec<RawStepLog>,
+	pub return_value: Vec<u8>,
+	pub final_gas: u64,
 }
 
 #[derive(Debug)]
@@ -67,7 +55,7 @@ struct Context {
 #[derive(Debug)]
 struct Step {
 	/// Current opcode.
-	opcode: Opcode,
+	opcode: Vec<u8>,
 	/// Depth of the context.
 	depth: usize,
 	/// Remaining gas.
@@ -82,7 +70,7 @@ struct Step {
 	stack: Option<Vec<H256>>,
 }
 
-impl RawTracer {
+impl Listener {
 	pub fn new(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
 		Self {
 			disable_storage,
@@ -98,39 +86,11 @@ impl RawTracer {
 		}
 	}
 
-	/// Setup event listeners and execute provided closure.
-	///
-	/// Consume the tracer and return it alongside the return value of
-	/// the closure.
-	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
-		let wrapped = Rc::new(RefCell::new(self));
-
-		let result = {
-			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
-			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
-
-			// Each line wraps the previous `f` into a `using` call.
-			// Listening to new events results in adding one new line.
-			// Order is irrelevant when registering listeners.
-			let f = || runtime_using(&mut runtime, f);
-			let f = || gasometer_using(&mut gasometer, f);
-			f()
-		};
-
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		moonbeam_rpc_primitives_debug::events::using(self, f)
 	}
 
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::Raw {
-			step_logs: self.step_logs,
-			gas: self.final_gas.into(),
-			return_value: self.return_value,
-		}
-	}
-}
-
-impl GasometerListener for RawTracer {
-	fn event(&mut self, event: GasometerEvent) {
+	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
 			GasometerEvent::RecordTransaction { .. } => {
 				// First event of a transaction.
@@ -164,10 +124,8 @@ impl GasometerListener for RawTracer {
 			_ => (),
 		}
 	}
-}
 
-impl RuntimeListener for RawTracer {
-	fn event(&mut self, event: RuntimeEvent) {
+	pub fn runtime_event(&mut self, event: RuntimeEvent) {
 		match event {
 			RuntimeEvent::Step {
 				context,
@@ -197,16 +155,16 @@ impl RuntimeListener for RawTracer {
 						depth,
 						gas: 0,      // 0 for now, will add with gas events
 						gas_cost: 0, // 0 for now, will add with gas events
-						position: *position.as_ref().unwrap_or(&0),
+						position: *position.as_ref().unwrap_or(&0) as usize,
 						memory: if self.disable_memory {
 							None
 						} else {
-							Some(memory.data().clone())
+							Some(memory.data.clone())
 						},
 						stack: if self.disable_stack {
 							None
 						} else {
-							Some(stack.data().clone())
+							Some(stack.data.clone())
 						},
 					});
 				}
@@ -244,7 +202,7 @@ impl RuntimeListener for RawTracer {
 							gas: gas.into(),
 							gas_cost: gas_cost.into(),
 							memory,
-							op: opcodes_string(opcode),
+							op: opcode,
 							pc: position.into(),
 							stack,
 							storage,
@@ -264,7 +222,7 @@ impl RuntimeListener for RawTracer {
 
 							// If the context exited without revert we must keep track of the
 							// updated storage keys.
-							if !self.disable_storage && matches!(reason, &ExitReason::Succeed(_)) {
+							if !self.disable_storage && matches!(reason, ExitReason::Succeed(_)) {
 								if let Some(parent_context) = self.context_stack.last_mut() {
 									// Add cache to storage changes.
 									context
@@ -298,7 +256,7 @@ impl RuntimeListener for RawTracer {
 							}
 						}
 					}
-					Err(Capture::Trap(opcode)) if ContextType::from(*opcode).is_some() => {
+					Err(Capture::Trap(opcode)) if ContextType::from(opcode.clone()).is_some() => {
 						self.new_context = true;
 					}
 					_ => (),
@@ -324,5 +282,15 @@ impl RuntimeListener for RawTracer {
 			#[allow(unreachable_patterns)]
 			_ => (),
 		}
+	}
+}
+
+impl ListenerT for Listener {
+	fn event(&mut self, event: Event) {
+		match event {
+			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),
+			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
+			_ => {}
+		};
 	}
 }

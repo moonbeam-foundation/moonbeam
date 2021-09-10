@@ -2075,8 +2075,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.27.1#81e8e5fd15f28a80bcd3c5967c5337ca58f82516"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2094,8 +2093,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908739da31125d17a69533c290a6c818b494176e59a2ce8accbf122f7d76835c"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.27.1#81e8e5fd15f28a80bcd3c5967c5337ca58f82516"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2106,8 +2104,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.27.1#81e8e5fd15f28a80bcd3c5967c5337ca58f82516"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2118,8 +2115,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.27.1#81e8e5fd15f28a80bcd3c5967c5337ca58f82516"
 dependencies = [
  "environmental",
  "evm-core",
@@ -4891,6 +4887,15 @@ name = "moonbeam-cli-opt"
 version = "0.8.4"
 
 [[package]]
+name = "moonbeam-client-evm-tracing"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "moonbeam-rpc-primitives-debug",
+ "serde",
+]
+
+[[package]]
 name = "moonbeam-core-primitives"
 version = "0.1.1"
 dependencies = [
@@ -4908,12 +4913,27 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "fp-evm",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
+ "parity-scale-codec",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "moonbeam-primitives-ext"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "moonbeam-rpc-primitives-debug",
+ "parity-scale-codec",
+ "sp-externalities",
+ "sp-runtime-interface",
+ "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -4971,6 +4991,7 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.14",
  "jsonrpc-core 15.1.0",
+ "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
@@ -4988,8 +5009,12 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
+ "environmental",
  "ethereum",
  "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5025,11 +5050,11 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.14",
  "jsonrpc-core 15.1.0",
+ "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-trace",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-network",
- "sc-transaction-graph",
  "serde",
  "sha3 0.8.2",
  "sp-api",
@@ -6719,24 +6744,25 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec"
-version = "2.1.1"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0f518afaa5a47d0d6386229b0a6e01e86427291d643aa4cabb4992219f504f8"
+checksum = "8975095a2a03bbbdc70a74ab11a4f76a6d0b84680d87c68d722531b0ac28e8a9"
 dependencies = [
  "arrayvec 0.7.0",
  "bitvec",
  "byte-slice-cast",
+ "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec-derive",
  "serde",
 ]
 
 [[package]]
 name = "parity-scale-codec-derive"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f44c5f94427bd0b5076e8f7e15ca3f60a4d8ac0077e4793884e6fdfd8915344e"
+checksum = "40dbbfef7f0a1143c5b06e0d76a6278e25dac0bc1af4be51a0fbb73f07e7ad09"
 dependencies = [
- "proc-macro-crate 0.1.5",
+ "proc-macro-crate 1.0.0",
  "proc-macro2",
  "quote",
  "syn",
