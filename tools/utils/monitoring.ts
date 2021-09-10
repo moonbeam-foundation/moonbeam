@@ -154,6 +154,19 @@ export function printDetails(
       ? chalk.green(ext)
       : ext;
 
+  const ethTxs = block.extrinsics.filter(
+    (tx) => tx.method.section == "ethereum" && tx.method.method == "transact"
+  ).length;
+  const eths = ethTxs.toString().padStart(4, " ");
+  const evmText =
+    ethTxs >= 40
+      ? chalk.red(eths)
+      : ethTxs >= 10
+      ? chalk.yellow(eths)
+      : ethTxs > 3
+      ? chalk.green(eths)
+      : eths;
+
   const authorId = block.extrinsics
     .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
     .args[0].toString();
@@ -162,11 +175,14 @@ export function printDetails(
   console.log(
     `${options?.prefix ? `${options.prefix} ` : ""}Block ${block.header.number
       .toString()
-      .padEnd(7, " ")} [${weightText}%][Ext:${extText}]${pendingTxs ? `[Pool:${txPoolText}]` : ``}${
-      elapsedMilliSecs ? `[${secondText}s]` : ""
-    }(hash: ${hash.substring(0, 7)}...${hash.substring(hash.length - 4)})${
-      options?.suffix ? ` ${options.suffix}` : ""
-    } by ${authorId.substring(0, 7)}...${authorId.substring(authorId.length - 4)}`
+      .padEnd(7, " ")} [${weightText}%][Ext:${extText} < Eth:${evmText}]${
+      pendingTxs ? `[Pool:${txPoolText}]` : ``
+    }${elapsedMilliSecs ? `[${secondText}s]` : ""}(hash: ${hash.substring(0, 7)}...${hash.substring(
+      hash.length - 4
+    )})${options?.suffix ? ` ${options.suffix}` : ""} by ${authorId.substring(
+      0,
+      7
+    )}...${authorId.substring(authorId.length - 4)}`
   );
 }
 
