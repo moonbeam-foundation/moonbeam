@@ -9,6 +9,7 @@ import {
   ETHAN,
   ALITH,
   MIN_GLMR_NOMINATOR,
+  MIN_GLMR_NOMINATOR_PLUS_ONE,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
@@ -176,9 +177,14 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     await context.createBlock();
     // Bond More
     await context.polkadotApi.tx.parachainStaking
-      .nominatorBondMore(ALITH, MIN_GLMR_NOMINATOR)
+      .nominatorBondMore(ALITH, MIN_GLMR_NOMINATOR_PLUS_ONE)
       .signAndSend(ethan);
     await context.createBlock();
+    // Bond More
+    // await context.polkadotApi.tx.parachainStaking
+    //   .nominatorBondMore(ALITH, MIN_GLMR_NOMINATOR)
+    //   .signAndSend(ethan);
+    // await context.createBlock();
   });
   it.only("should succesfully call nominatorBondMore on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
@@ -189,7 +195,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("10.0000 UNIT");
+    expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
   it.only("should succesfully call nominatorBondLess on ALITH", async function () {
     // await context.polkadotApi.tx.parachainStaking
@@ -206,6 +212,9 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     events.forEach((e) => {
       console.log(e.toHuman());
     });
+    await context.createBlock();
+    await context.createBlock();
+    await context.createBlock();
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     console.log("nom", nominatorsAfter.toHuman());
     expect(
@@ -215,7 +224,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("5.0000 UNIT");
+    expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("6.0000 UNIT");
   });
 });
 
