@@ -44,13 +44,13 @@ fn receive_relay_asset_from_relay() {
 		decimals: 12,
 	};
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -93,13 +93,13 @@ fn send_relay_asset_to_relay() {
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -174,13 +174,13 @@ fn send_relay_asset_to_para_b() {
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -188,13 +188,13 @@ fn send_relay_asset_to_para_b() {
 	});
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -266,13 +266,13 @@ fn send_para_a_asset_to_para_b() {
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -325,13 +325,13 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -339,13 +339,13 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	});
 
 	ParaC::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -422,13 +422,13 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			0u128
@@ -510,13 +510,13 @@ fn receive_relay_asset_with_trader() {
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			1_000_000u128
@@ -565,13 +565,13 @@ fn error_when_not_paying_enough() {
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
 			asset_metadata,
 			1u128,
 		));
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
 			1_000_000u128

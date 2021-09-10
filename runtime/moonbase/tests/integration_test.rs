@@ -943,7 +943,7 @@ fn asset_can_be_registered() {
 			symbol: b"Relay".to_vec(),
 			decimals: 12,
 		};
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			moonbase_runtime::Origin::root(),
 			source_location,
 			asset_metadata,

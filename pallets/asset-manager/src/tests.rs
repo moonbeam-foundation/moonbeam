@@ -24,7 +24,7 @@ use frame_support::{assert_noop, assert_ok};
 #[test]
 fn registering_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -46,7 +46,7 @@ fn registering_works() {
 #[test]
 fn test_asset_exists_error() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -58,7 +58,7 @@ fn test_asset_exists_error() {
 			MockAssetType::MockAsset(1)
 		);
 		assert_noop!(
-			AssetManager::asset_register(
+			AssetManager::register_asset(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
 				0u32.into(),
@@ -72,14 +72,14 @@ fn test_asset_exists_error() {
 #[test]
 fn test_root_can_change_units_per_second() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::asset_register(
+		assert_ok!(AssetManager::register_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
 		));
 
-		assert_ok!(AssetManager::asset_set_units_per_second(
+		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			1,
 			200u128.into()
@@ -98,7 +98,7 @@ fn test_root_can_change_units_per_second() {
 fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::asset_set_units_per_second(Origin::root(), 1, 200u128.into()),
+			AssetManager::set_asset_units_per_second(Origin::root(), 1, 200u128.into()),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});

@@ -111,7 +111,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
 		#[pallet::weight(0)]
-		pub fn asset_register(
+		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
 			metadata: T::AssetMetaData,
@@ -134,7 +134,7 @@ pub mod pallet {
 
 		/// Change the units per second for a given AssetId
 		#[pallet::weight(0)]
-		pub fn asset_set_units_per_second(
+		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			units_per_second: u128,
