@@ -311,6 +311,103 @@ fn send_para_a_asset_to_para_b() {
 }
 
 #[test]
+fn send_para_a_asset_from_para_b_to_para_c() {
+	MockNet::reset();
+
+	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetaData {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::asset_register(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	ParaC::execute_with(|| {
+		assert_ok!(AssetManager::asset_register(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert_ok!(AssetManager::asset_set_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			X3(
+				Junction::Parent,
+				Junction::Parachain(2),
+				Junction::AccountKey20 {
+					network: NetworkId::Any,
+					key: PARAALICE.into()
+				}
+			),
+			800000
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::OtherReserve(source_id),
+			100,
+			X3(
+				Junction::Parent,
+				Junction::Parachain(3),
+				Junction::AccountKey20 {
+					network: NetworkId::Any,
+					key: PARAALICE.into()
+				}
+			),
+			800000
+		));
+	});
+
+	ParaC::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+}
+
+#[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
