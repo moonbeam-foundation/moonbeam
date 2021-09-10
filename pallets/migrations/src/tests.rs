@@ -294,7 +294,7 @@ fn try_runtime_functions_work() {
 		},
 		&mut || {
 			ExtBuilder::default().build().execute_with(|| {
-				crate::mock::roll_until_upgraded(true);
+				crate::mock::invoke_all_upgrade_hooks();
 			});
 		},
 	);

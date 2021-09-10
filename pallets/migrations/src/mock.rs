@@ -287,6 +287,15 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
+pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
+	let mut weight: Weight = 0u64.into();
+	Migrations::pre_upgrade();
+	weight = Migrations::on_runtime_upgrade();
+	Migrations::post_upgrade();
+
+	weight
+}
+
 pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
