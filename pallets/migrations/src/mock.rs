@@ -121,8 +121,13 @@ impl<'test> MockMigrationManager<'test> {
 		self.pre_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
 		self.post_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
 	}
-	pub fn register_callback_with_try_fns<FN, FM, FT1, FT2>(&mut self, name_fn: FN, migrate_fn: FM, pre_upgrade_fn: FT1, post_upgrade_fn: FT2)
-	where
+	pub fn register_callback_with_try_fns<FN, FM, FT1, FT2>(
+		&mut self,
+		name_fn: FN,
+		migrate_fn: FM,
+		pre_upgrade_fn: FT1,
+		post_upgrade_fn: FT2,
+	) where
 		FN: 'test + FnMut() -> &'static str,
 		FM: 'test + FnMut(Weight) -> Weight,
 		FT1: 'test + FnMut() -> Result<(), &'static str>,
@@ -132,7 +137,8 @@ impl<'test> MockMigrationManager<'test> {
 		self.name_fn_callbacks.push(Box::new(name_fn));
 		self.migrate_fn_callbacks.push(Box::new(migrate_fn));
 		self.pre_upgrade_fn_callbacks.push(Box::new(pre_upgrade_fn));
-		self.post_upgrade_fn_callbacks.push(Box::new(post_upgrade_fn));
+		self.post_upgrade_fn_callbacks
+			.push(Box::new(post_upgrade_fn));
 	}
 
 	pub(crate) fn invoke_name_fn(&mut self, index: usize) -> &'static str {

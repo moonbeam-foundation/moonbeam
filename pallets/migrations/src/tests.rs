@@ -276,12 +276,8 @@ fn try_runtime_functions_work() {
 			let pre_fn_called = Arc::clone(&pre_fn_called);
 			let post_fn_called = Arc::clone(&post_fn_called);
 			mgr.register_callback_with_try_fns(
-				move || {
-					"dummy_step"
-				},
-				move |_| -> Weight {
-					0u64.into()
-				},
+				move || "dummy_step",
+				move |_| -> Weight { 0u64.into() },
 				move || -> Result<(), &'static str> {
 					*pre_fn_called.lock().unwrap() = true;
 					Ok(())

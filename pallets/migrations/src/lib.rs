@@ -47,11 +47,15 @@ pub trait Migration {
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> { Ok(()) }
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		Ok(())
+	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> { Ok(()) }
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		Ok(())
+	}
 }
 
 #[pallet]
@@ -135,11 +139,11 @@ pub mod pallet {
 				match result {
 					Ok(()) => {
 						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
-					},
+					}
 					Err(msg) => {
 						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
 						failed = true;
-					},
+					}
 				}
 			}
 
@@ -175,11 +179,15 @@ pub mod pallet {
 				match result {
 					Ok(()) => {
 						log::info!("migration {} post_upgrade() => Ok()", migration_name);
-					},
+					}
 					Err(msg) => {
-						log::error!("migration {} post_upgrade() => Err({})", migration_name, msg);
+						log::error!(
+							"migration {} post_upgrade() => Err({})",
+							migration_name,
+							msg
+						);
 						failed = true;
-					},
+					}
 				}
 			}
 
