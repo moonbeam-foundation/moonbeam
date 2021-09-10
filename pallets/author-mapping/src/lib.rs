@@ -347,9 +347,8 @@ pub mod pallet {
 			// There are no entries in the old storage afterward
 
 			// Assert new storage is empty
-			//TODO will this actually work? I wonder if the entries from the old map
-			// but the same prefix will confuse it. If so, we could move this assert into the
-			// migration itself to be done after the old storage is cleared.
+			// Because the pallet and item prefixes are the same, the old storage is still at this key. However,
+			// the values can't be decoded so the assertion passes.
 			assert!(MappingWithDeposit::<T>::iter().next().is_none());
 
 			// Check number of entries, and set it aside in temp storage
