@@ -311,3 +311,5 @@ fn try_runtime_functions_work() {
 		"mock migration should call post_upgrade()"
 	);
 }
+// TODO: a test to ensure that post_upgrade invokes the same set of migrations that pre_upgrade
+// does would be useful

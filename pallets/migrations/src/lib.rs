@@ -114,6 +114,8 @@ pub mod pallet {
 
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<(), &'static str> {
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
 			let mut failed = false;
 			for migration in &T::MigrationsList::get() {
 				let migration_name = migration.friendly_name();
@@ -125,10 +127,10 @@ pub mod pallet {
 				}
 				log::trace!("invoking pre_upgrade() on migration {}", migration_name);
 
-				// TODO: use temp storage to make note of any migration that hasn't been performed.
-				//       this is required because we won't know in post_upgrade() which migrations
-				//       should have their own post_upgrade() hooks called since all upgrades will
-				//       appear to be done by that point.
+				// dump the migration name to temp storage so post_upgrade will know which
+				// migrations were performed (as opposed to skipped)
+				Self::set_temp_storage(true, migration_name);
+
 				let result = migration.pre_upgrade();
 				match result {
 					Ok(()) => {
@@ -151,21 +153,22 @@ pub mod pallet {
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade() -> Result<(), &'static str> {
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
 
 			let mut failed = false;
 			for migration in &T::MigrationsList::get() {
 				let migration_name = migration.friendly_name();
-				// let migration_name_as_bytes = migration_name.as_bytes();
 
-				// TODO: filter these migrations by the ones that weren't done prior to
-				//       pre_upgrade() -- see the related comment above.
-				/*
-				let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
-				if migration_done {
-					continue;
+				// we can't query MigrationState because on_runtime_upgrade() would have
+				// unconditionally set it to true, so we read a hint from temp storage which was
+				// left for us by pre_upgrade()
+				match Self::get_temp_storage::<bool>(migration_name) {
+					Some(value) => assert!(true == value, "our dummy value might as well be true"),
+					None => continue,
 				}
-				*/
+
 				log::trace!("invoking post_upgrade() on migration {}", migration_name);
 
 				let result = migration.post_upgrade();
