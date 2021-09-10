@@ -379,11 +379,7 @@ pub mod pallet {
 
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade() -> Result<(), &'static str> {
-			use frame_support::storage::migration::storage_key_iter;
 			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-			let pallet_prefix: &[u8] = b"AuthorMapping";
-			let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
 			// Check number of entries matches what was set aside in pre_upgrade
 			let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
