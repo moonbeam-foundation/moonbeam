@@ -29,9 +29,13 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
+use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
+use moonbeam_rpc_primitives_debug::{
+	api::{single, MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION},
+	DebugRuntimeApi,
+};
 use sc_client_api::backend::Backend;
-use sp_api::{ApiExt, BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -169,50 +173,6 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
-			client.as_ref(),
-			frontier_backend.as_ref(),
-			transaction_hash,
-		) {
-			Ok(Some((hash, index))) => (hash, index as usize),
-			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
-
-		let reference_id =
-			match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), hash) {
-				Ok(Some(hash)) => hash,
-				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-				Err(e) => return Err(e),
-			};
-		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		let api = client.runtime_api();
-		// Get Blockchain backend
-		let blockchain = backend.blockchain();
-		// Get the header I want to work with.
-		let header = client.header(reference_id).unwrap().unwrap();
-		// Get parent blockid.
-		let parent_block_id = BlockId::Hash(*header.parent_hash());
-		// Get `DebugRuntimeApi` version.
-		let api_version = api
-			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
-			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-			.ok_or_else(|| {
-				internal_err(format!(
-					"Could not find `DebugRuntimeApi` at {:?}.",
-					parent_block_id
-				))
-			})?;
-
-		// Get the extrinsics.
-		let ext = blockchain.body(reference_id).unwrap().unwrap();
-
-		// Get the block that contains the requested transaction.
-		let reference_block = match api.current_block(&reference_id) {
-			Ok(block) => block,
-			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
-		};
-
 		// Set trace type
 		let trace_type = match params {
 			Some(TraceParams {
@@ -242,45 +202,87 @@ where
 			},
 		};
 
+		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			transaction_hash,
+		) {
+			Ok(Some((hash, index))) => (hash, index as usize),
+			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
+			Err(e) => return Err(e),
+		};
+
+		let reference_id =
+			match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), hash) {
+				Ok(Some(hash)) => hash,
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		let api = client.runtime_api();
+		// Get Blockchain backend
+		let blockchain = backend.blockchain();
+		// Get the header I want to work with.
+		let header = client.header(reference_id).unwrap().unwrap();
+		// Get parent blockid.
+		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		// Runtime version
+		let runtime_version = api
+			.version(&parent_block_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
+		// Get the extrinsics.
+		let ext = blockchain.body(reference_id).unwrap().unwrap();
+
+		// Get the block that contains the requested transaction.
+		let reference_block = match api.current_block(&reference_id) {
+			Ok(block) => block,
+			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+		};
+
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				let f = || {
-					if api_version >= 2 {
-						api.trace_transaction(
-							&parent_block_id,
-							&header,
-							ext,
-							&transaction,
-							trace_type,
-						)
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
-					} else {
-						#[allow(deprecated)]
-						api.trace_transaction_before_version_2(
-							&parent_block_id,
-							ext,
-							&transaction,
-							trace_type,
-						)
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
+				let f = || -> RpcResult<_> {
+					if runtime_version.spec_version >= MANUAL_BLOCK_INITIALIZATION_RUNTIME_VERSION {
+						api.initialize_block(&parent_block_id, &header)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?;
 					}
+
+					let _result = api
+						.trace_transaction(&parent_block_id, &header, ext, &transaction)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+					Ok(moonbeam_rpc_primitives_debug::Response::Single)
 				};
-				return Ok(match trace_type {
-					single::TraceType::Raw { .. } => {
-						let mut proxy = proxy::RawProxy::new();
-						proxy.using(f);
-						proxy.into_tx_trace()
+
+				return match trace_type {
+					single::TraceType::Raw {
+						disable_storage,
+						disable_memory,
+						disable_stack,
+					} => {
+						let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
+							disable_storage,
+							disable_memory,
+							disable_stack,
+						);
+						proxy.using(f)?;
+						Ok(moonbeam_client_evm_tracing::formatters::Raw::format(proxy).unwrap())
 					}
 					single::TraceType::CallList { .. } => {
-						let mut proxy = proxy::CallListProxy::new();
-						proxy.using(f);
-						proxy.into_tx_trace()
+						let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+						proxy.using(f)?;
+						proxy.finish_transaction();
+						moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))
 					}
-				});
+				};
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))

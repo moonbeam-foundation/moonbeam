@@ -18,6 +18,7 @@
 //! Structure from "raw" debug_trace and a "call list" matching
 //! Blockscout formatter. This "call list" is also used to build
 //! the whole block tracing output.
+
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]
@@ -106,13 +107,13 @@ pub enum CallInner {
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Call {
 		/// Type of call.
-		call_type: crate::CallType,
+		call_type: super::CallType,
 		to: H160,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 		input: Vec<u8>,
 		/// "output" or "error" field
 		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CallResult,
+		res: super::CallResult,
 	},
 
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
@@ -120,7 +121,7 @@ pub enum CallInner {
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 		init: Vec<u8>,
 		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CreateResult,
+		res: super::CreateResult,
 	},
 	// Revert,
 	SelfDestruct {
