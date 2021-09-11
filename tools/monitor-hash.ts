@@ -2,9 +2,10 @@
 import chalk from "chalk";
 import yargs from "yargs";
 import {
+  BlockDetails,
   listenBestBlocks,
   listenFinalizedBlocks,
-  printRealtimeBlockDetails,
+  printBlockDetails,
 } from "./utils/monitoring";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "../moonbeam-types-bundle";
@@ -60,6 +61,7 @@ const main = async () => {
     bestHashes[block.header.number.toString()] = block.header.hash.toString();
   });
 
+  let previousBlockDetails: BlockDetails = null;
   listenFinalizedBlocks(nodes[0].api, async (blockDetails) => {
     const blockNumber = blockDetails.block.header.number;
     const blockHash = blockDetails.block.header.hash;
@@ -90,16 +92,21 @@ const main = async () => {
     }
     const isBestHashValid = bestHashes[blockNumber.toString()] == blockHash.toString();
 
-    printRealtimeBlockDetails(blockDetails, {
-      prefix: isKnownNetwork(`moonriver`)
-        ? NETWORK_COLORS[`moonriver`](`moonriver`.padStart(10, " "))
-        : undefined,
-      suffix: `getBlockHash: ${isGetHashValid ? chalk.green(`✓`) : chalk.red(`X`)} - ${
-        !started
-          ? `...waiting more best blocks`
-          : `Best: ${isBestHashValid ? chalk.green(`✓`) : ``}`
-      }`,
-    });
+    printBlockDetails(
+      blockDetails,
+      {
+        prefix: isKnownNetwork(`moonriver`)
+          ? NETWORK_COLORS[`moonriver`](`moonriver`.padStart(10, " "))
+          : undefined,
+        suffix: `getBlockHash: ${isGetHashValid ? chalk.green(`✓`) : chalk.red(`X`)} - ${
+          !started
+            ? `...waiting more best blocks`
+            : `Best: ${isBestHashValid ? chalk.green(`✓`) : ``}`
+        }`,
+      },
+      previousBlockDetails
+    );
+    previousBlockDetails = blockDetails;
     if (!isGetHashValid) {
       console.log(
         `ERROR: ${blockDetails.block.header.number} not matching !!! (getHash ${hashes.join(

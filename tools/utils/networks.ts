@@ -2,7 +2,7 @@ import { WsProvider } from "@polkadot/api";
 import chalk from "chalk";
 import { ApiPromise } from "@polkadot/api";
 import { typesBundle } from "../../moonbeam-types-bundle/dist";
-import { listenBlocks, printRealtimeBlockDetails } from "./monitoring";
+import { listenBlocks, printBlockDetails, RealtimeBlockDetails } from "./monitoring";
 import { Options } from "yargs";
 import Web3 from "web3";
 
@@ -82,12 +82,18 @@ export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string, fin
     provider: wsProvider,
     typesBundle: typesBundle,
   });
+  let previousBlockDetails: RealtimeBlockDetails = null;
   listenBlocks(api, finalized, async (blockDetails) => {
-    printRealtimeBlockDetails(blockDetails, {
-      prefix: isKnownNetwork(name_or_url)
-        ? NETWORK_COLORS[name_or_url](name_or_url.padStart(10, " "))
-        : undefined,
-    });
+    printBlockDetails(
+      blockDetails,
+      {
+        prefix: isKnownNetwork(name_or_url)
+          ? NETWORK_COLORS[name_or_url](name_or_url.padStart(10, " "))
+          : undefined,
+      },
+      previousBlockDetails
+    );
+    previousBlockDetails = blockDetails;
   });
   return api;
 };

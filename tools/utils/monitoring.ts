@@ -109,93 +109,93 @@ export const listenFinalizedBlocks = async (
   listenBlocks(api, true, callBack);
 };
 
-export function printDetails(
-  block: Block,
-  pendingTxs,
-  elapsedMilliSecs,
-  weightPercentage,
-  options?: { prefix?: string; suffix?: string }
+export function printBlockDetails(
+  blockDetails: BlockDetails | RealtimeBlockDetails,
+  options?: { prefix?: string; suffix?: string },
+  previousBlockDetails?: BlockDetails | RealtimeBlockDetails
 ) {
-  const seconds = elapsedMilliSecs
-    ? (Math.floor(elapsedMilliSecs / 100) / 10).toFixed(1).padStart(5, " ")
-    : null;
-  const secondText = elapsedMilliSecs
-    ? elapsedMilliSecs > 30000
-      ? chalk.red(seconds)
-      : elapsedMilliSecs > 14000
-      ? chalk.yellow(seconds)
-      : seconds
-    : null;
+  let secondText = null;
+  if (previousBlockDetails) {
+    const elapsedMilliSecs = blockDetails.blockTime - previousBlockDetails.blockTime;
+    const seconds = (Math.floor(elapsedMilliSecs / 100) / 10).toFixed(1).padStart(5, " ");
+    secondText =
+      elapsedMilliSecs > 30000
+        ? chalk.red(seconds)
+        : elapsedMilliSecs > 14000
+        ? chalk.yellow(seconds)
+        : seconds;
+  }
 
-  const weight = weightPercentage.toFixed(2).padStart(5, " ");
+  const weight = blockDetails.weightPercentage.toFixed(2).padStart(5, " ");
   const weightText =
-    weightPercentage > 60
+    blockDetails.weightPercentage > 60
       ? chalk.red(weight)
-      : weightPercentage > 30
+      : blockDetails.weightPercentage > 30
       ? chalk.yellow(weight)
+      : blockDetails.weightPercentage > 10
+      ? chalk.green(weight)
       : weight;
 
-  const txPool = pendingTxs ? pendingTxs.length.toString().padStart(5, " ") : null;
-  const txPoolText = pendingTxs
-    ? pendingTxs.length > 1000
-      ? chalk.red(txPool)
-      : pendingTxs.length > 100
-      ? chalk.yellow(txPool)
-      : txPool
-    : null;
+  let txPoolText = null;
+  let poolIncText = null;
+  if ("pendingTxs" in blockDetails) {
+    const txPool = blockDetails.pendingTxs.length.toString().padStart(4, " ");
+    txPoolText =
+      blockDetails.pendingTxs.length > 1000
+        ? chalk.red(txPool)
+        : blockDetails.pendingTxs.length > 100
+        ? chalk.yellow(txPool)
+        : txPool;
 
-  const ext = block.extrinsics.length.toString().padStart(4, " ");
+    if (previousBlockDetails && "pendingTxs" in previousBlockDetails) {
+      const newPendingHashes = previousBlockDetails.pendingTxs.map((tx) => tx.hash.toString());
+      const txPoolDiff = blockDetails.pendingTxs
+        .map((tx) => tx.hash.toString())
+        .filter((x) => !newPendingHashes.includes(x)).length;
+      const poolInc = txPoolDiff.toString().padStart(3, " ");
+      poolIncText =
+        txPoolDiff > 80 ? chalk.red(poolInc) : txPoolDiff > 30 ? chalk.yellow(poolInc) : poolInc;
+    }
+  }
+
+  const ext = blockDetails.block.extrinsics.length.toString().padStart(3, " ");
   const extText =
-    block.extrinsics.length >= 40
+    blockDetails.block.extrinsics.length >= 100
       ? chalk.red(ext)
-      : block.extrinsics.length >= 10
+      : blockDetails.block.extrinsics.length >= 50
       ? chalk.yellow(ext)
-      : block.extrinsics.length > 3
+      : blockDetails.block.extrinsics.length > 15
       ? chalk.green(ext)
       : ext;
 
-  const ethTxs = block.extrinsics.filter(
+  const ethTxs = blockDetails.block.extrinsics.filter(
     (tx) => tx.method.section == "ethereum" && tx.method.method == "transact"
   ).length;
-  const eths = ethTxs.toString().padStart(4, " ");
+  const eths = ethTxs.toString().padStart(3, " ");
   const evmText =
-    ethTxs >= 40
+    ethTxs >= 97
       ? chalk.red(eths)
-      : ethTxs >= 10
+      : ethTxs >= 47
       ? chalk.yellow(eths)
-      : ethTxs > 3
+      : ethTxs > 12
       ? chalk.green(eths)
       : eths;
 
-  const authorId = block.extrinsics
+  const authorId = blockDetails.block.extrinsics
     .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
     .args[0].toString();
 
-  const hash = block.header.hash.toString();
+  const hash = blockDetails.block.header.hash.toString();
   console.log(
-    `${options?.prefix ? `${options.prefix} ` : ""}Block ${block.header.number
+    `${options?.prefix ? `${options.prefix} ` : ""}Block ${blockDetails.block.header.number
       .toString()
-      .padEnd(7, " ")} [${weightText}%][Ext:${extText} < Eth:${evmText}]${
-      pendingTxs ? `[Pool:${txPoolText}]` : ``
-    }${elapsedMilliSecs ? `[${secondText}s]` : ""}(hash: ${hash.substring(0, 7)}...${hash.substring(
+      .padEnd(7, " ")} [${weightText}%][Ext:${extText}(Eth:${evmText})]${
+      txPoolText ? `[Pool:${txPoolText}${poolIncText ? `(+${poolIncText})` : ""}]` : ``
+    }${secondText ? `[${secondText}s]` : ""}(hash: ${hash.substring(0, 7)}..${hash.substring(
       hash.length - 4
     )})${options?.suffix ? ` ${options.suffix}` : ""} by ${authorId.substring(
       0,
       7
-    )}...${authorId.substring(authorId.length - 4)}`
+    )}..${authorId.substring(authorId.length - 4)}`
   );
-}
-
-export function printRealtimeBlockDetails(
-  { block, pendingTxs, elapsedMilliSecs, weightPercentage }: RealtimeBlockDetails,
-  options?: { prefix?: string; suffix?: string }
-) {
-  return printDetails(block, pendingTxs, elapsedMilliSecs, weightPercentage, options);
-}
-
-export function printBlockDetails(
-  { block, weightPercentage }: BlockDetails,
-  options?: { prefix?: string; suffix?: string }
-) {
-  return printDetails(block, null, null, weightPercentage, options);
 }
