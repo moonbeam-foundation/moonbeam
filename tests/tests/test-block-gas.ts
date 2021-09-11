@@ -4,6 +4,7 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { EXTRINSIC_GAS_LIMIT } from "../util/constants";
 import { createContract } from "../util/transactions";
 import { customWeb3Request } from "../util/providers";
+import { createTransfer } from "../util/transactions";
 
 describeDevMoonbeam("Block Gas - Limit", (context) => {
   it("should be allowed to the max block gas", async function () {
@@ -41,5 +42,29 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
 
     //console.log("gaslimit", await contract.methods.gaslimit().call());
     expect((await contract.methods.gaslimit().call()) !== "0").to.eq(true);
+  });
+});
+
+describeDevMoonbeam("Block Gas - fill block with balance transfers", (context) => {
+  it("should fill block with balance transfers", async function () {
+    const testAccount = "0x1111111111111111111111111111111111111111";
+    console.log("EXTRINSIC_GAS_LIMIT: ", EXTRINSIC_GAS_LIMIT);
+    let numTransfers = Math.floor(EXTRINSIC_GAS_LIMIT / 21000); // 618.8095238095239
+    console.log("maximum number of balance transfers: ", numTransfers);
+
+    // precondition: testAccount should have 0 balance
+    expect(await context.web3.eth.getBalance(testAccount, 0)).to.equal('0');
+
+    let transactions = [];
+    for (let i=0; i<numTransfers; i++) {
+      let txn = await createTransfer(context.web3, testAccount, 1, { nonce: i });
+      transactions.push(txn);
+    }
+
+    console.log("num txns pushed: ", transactions.length);
+
+    await context.createBlock({ transactions });
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(numTransfers);
+
   });
 });
