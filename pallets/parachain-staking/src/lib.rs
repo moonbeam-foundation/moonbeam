@@ -192,11 +192,11 @@ pub mod pallet {
 		pub fn is_leaving(&self) -> bool {
 			matches!(self.state, CollatorStatus::Leaving(_))
 		}
-		pub fn can_leave(&self, now: RoundIndex) -> bool {
+		pub fn can_leave<T: Config>(&self) -> Result<bool, DispatchError> {
 			if let CollatorStatus::Leaving(when) = self.state {
-				now <= when
+				Ok(<Round<T>>::get().current >= when)
 			} else {
-				false
+				Err(Error::<T>::CandidateNotLeaving.into())
 			}
 		}
 		pub fn bond_more(&mut self, more: B) {
@@ -450,8 +450,12 @@ pub mod pallet {
 		pub fn go_online(&mut self) {
 			self.state = CollatorStatus::Active;
 		}
-		pub fn leave(&mut self, when: RoundIndex) {
+		pub fn leave<T: Config>(&mut self) -> Result<(RoundIndex, RoundIndex), DispatchError> {
+			ensure!(!self.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
+			let now = <Round<T>>::get().current;
+			let when = now + T::LeaveCandidatesDelay::get();
 			self.state = CollatorStatus::Leaving(when);
+			Ok((now, when))
 		}
 	}
 
@@ -518,16 +522,19 @@ pub mod pallet {
 		}
 		/// Can only leave if the current round is less than or equal to scheduled execution round
 		/// - returns None if not in leaving state
-		pub fn can_leave(&self, now: RoundIndex) -> Option<bool> {
+		pub fn can_leave<T: Config>(&self) -> Result<bool, DispatchError> {
 			if let NominatorStatus::Leaving(when) = self.status {
-				Some(now <= when)
+				Ok(<Round<T>>::get().current >= when)
 			} else {
-				None
+				Err(Error::<T>::NominatorNotLeaving.into())
 			}
 		}
 		/// Set nominator status to leaving (prevent any changes until exit or cancellation)
-		pub fn leave(&mut self, when: RoundIndex) {
-			self.status = NominatorStatus::Leaving(when)
+		pub fn leave<T: Config>(&mut self) -> (RoundIndex, RoundIndex) {
+			let now = <Round<T>>::get().current;
+			let when = now + T::LeaveNominatorsDelay::get();
+			self.status = NominatorStatus::Leaving(when);
+			(now, when)
 		}
 		/// Set nominator status to active
 		pub fn activate(&mut self) {
@@ -571,14 +578,14 @@ pub mod pallet {
 			&mut self,
 			collator: AccountId,
 			more: Balance,
-			when: RoundIndex,
-		) -> DispatchResult {
+		) -> Result<RoundIndex, DispatchError> {
 			ensure!(
 				&self.nominations.0.iter().any(|x| x.owner == collator),
 				Error::<T>::NominatorDNE
 			);
+			let when = <Round<T>>::get().current + T::NominatorBondDelay::get();
 			self.requests.bond_more::<T>(collator, more, when)?;
-			Ok(())
+			Ok(when)
 		}
 		/// Cancel a `bond_more` request for a nomination
 		pub fn cancel_inc_nomination<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
@@ -624,14 +631,14 @@ pub mod pallet {
 			&mut self,
 			collator: AccountId,
 			less: Balance,
-			when: RoundIndex,
-		) -> DispatchResult {
+		) -> Result<RoundIndex, DispatchError> {
 			ensure!(
 				&self.nominations.0.iter().any(|x| x.owner == collator),
 				Error::<T>::NominatorDNE
 			);
+			let when = <Round<T>>::get().current + T::NominatorBondDelay::get();
 			self.requests.bond_less::<T>(collator, less, when)?;
-			Ok(())
+			Ok(when)
 		}
 		/// Cancel `bond_less` request to decrease nomination
 		pub fn cancel_dec_nomination<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
@@ -677,15 +684,18 @@ pub mod pallet {
 			Err(Error::<T>::NominationDNE.into())
 		}
 		/// Schedule revocation for the given collator
-		/// TODO: do we ever have amount with caller context, if so write new path to pass as arg
 		pub fn schedule_revoke<T: Config>(
 			&mut self,
 			collator: AccountId,
-			when: RoundIndex,
-		) -> Result<Option<Balance>, DispatchError>
+		) -> Result<Option<(Balance, RoundIndex, RoundIndex)>, DispatchError>
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
+			if self.nominations.0.len() == 1usize {
+				return Ok(None); // leave set of nominator instead of revoking bc only 1 remaining
+			}
+			let now = <Round<T>>::get().current;
+			let when = now + T::RevokeNominationDelay::get();
 			// get nomination amount
 			let mut nomination_amt: Option<Balance> = None;
 			for Bond { owner, amount } in &self.nominations.0 {
@@ -695,9 +705,6 @@ pub mod pallet {
 				}
 			}
 			let amount = nomination_amt.ok_or(Error::<T>::NominationDNE)?;
-			if self.nominations.0.len() == 1usize {
-				return Ok(None); // leave set of nominator instead
-			}
 			// Net Total is total after pending orders are executed
 			let net_total = self.total - self.requests.less_total + self.requests.more_total;
 			// calculate max amount allowed to be revoked for this nominator to not fall below min
@@ -707,7 +714,7 @@ pub mod pallet {
 			let new_expected_total = self.total - amount;
 			// add revocation to pending requests
 			self.requests.revoke::<T>(collator, amount, when)?;
-			Ok(Some(new_expected_total))
+			Ok(Some((new_expected_total, now, when)))
 		}
 		/// Cancel revocation request
 		pub fn cancel_revoke<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
@@ -1217,6 +1224,8 @@ pub mod pallet {
 		AlreadyOffline,
 		AlreadyActive,
 		NominatorAlreadyLeaving,
+		NominatorNotLeaving,
+		NominatorCannotLeaveYet,
 		NominationAlreadyRevoked,
 		CandidateAlreadyLeaving,
 		CandidateNotLeaving,
@@ -1759,10 +1768,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
-			let now = <Round<T>>::get().current;
-			let when = now + T::LeaveCandidatesDelay::get();
-			state.leave(when);
+			let (now, when) = state.leave::<T>()?;
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidate_count >= candidates.0.len() as u32,
@@ -1780,10 +1786,8 @@ pub mod pallet {
 		pub fn execute_leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// TODO: should we let anyone call this by adding arg `collator: AccountId`
 			let collator = ensure_signed(origin)?;
-			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.is_leaving(), Error::<T>::CandidateNotLeaving);
-			let now = <Round<T>>::get().current;
-			ensure!(state.can_leave(now), Error::<T>::CandidateCannotLeaveYet);
+			let state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.can_leave::<T>()?, Error::<T>::CandidateCannotLeaveYet);
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);
 				// remove nomination from nominator state
@@ -2022,9 +2026,7 @@ pub mod pallet {
 				nomination_count >= (state.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			let now = <Round<T>>::get().current;
-			let when = now + T::LeaveNominatorsDelay::get();
-			state.leave(when);
+			let (now, when) = state.leave::<T>();
 			<DelegatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
@@ -2034,10 +2036,7 @@ pub mod pallet {
 		pub fn execute_leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			let allowed_to_leave = state
-				.can_leave(<Round<T>>::get().current)
-				.ok_or(Error::<T>::NominatorDNE)?; // Not leaving state
-			ensure!(allowed_to_leave, Error::<T>::NominatorDNE); // cannot leave yet because not scheduled to leave yet (change error)
+			ensure!(state.can_leave::<T>()?, Error::<T>::NominatorCannotLeaveYet);
 			for bond in state.nominations.0 {
 				if let Err(error) =
 					Self::nominator_leaves_collator(nominator.clone(), bond.owner.clone())
@@ -2074,11 +2073,9 @@ pub mod pallet {
 			let nominator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
-			let now = <Round<T>>::get().current;
-			let when = now + T::RevokeNominationDelay::get();
 			// if >1 nominations then only revoke 1, else schedule to leave set of nominators
-			if let Some(remaining_future_total) =
-				state.schedule_revoke::<T>(collator.clone(), when)?
+			if let Some((remaining_future_total, now, when)) =
+				state.schedule_revoke::<T>(collator.clone())?
 			{
 				// schedule revocation iff remaining total is not below min nominator stake
 				ensure!(
@@ -2091,7 +2088,12 @@ pub mod pallet {
 				));
 			} else {
 				// was last nomination so will exit instead
-				state.leave(when);
+				// ensure the last nomination matches revocation to trigger scheduled exit
+				ensure!(
+					state.nominations.0[0].owner == collator,
+					Error::<T>::NominationDNE
+				);
+				let (now, when) = state.leave::<T>();
 				<DelegatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			}
@@ -2136,9 +2138,7 @@ pub mod pallet {
 			let nominator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
-			let now = <Round<T>>::get().current;
-			let when = now + T::NominatorBondDelay::get();
-			state.schedule_inc_nomination::<T>(candidate.clone(), more, when)?;
+			let when = state.schedule_inc_nomination::<T>(candidate.clone(), more)?;
 			<DelegatorState<T>>::insert(&nominator, state);
 			Self::deposit_event(Event::NominationIncreaseScheduled(
 				nominator, candidate, more, when,
@@ -2182,7 +2182,6 @@ pub mod pallet {
 		pub fn cancel_increase_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
@@ -2204,9 +2203,7 @@ pub mod pallet {
 			let caller = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&caller).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
-			let now = <Round<T>>::get().current;
-			let when = now + T::NominatorBondDelay::get();
-			state.schedule_dec_nomination::<T>(candidate.clone(), less, when)?;
+			let when = state.schedule_dec_nomination::<T>(candidate.clone(), less)?;
 			<DelegatorState<T>>::insert(&caller, state);
 			Self::deposit_event(Event::NominationDecreaseScheduled(
 				caller, candidate, less, when,
@@ -2453,7 +2450,7 @@ pub mod pallet {
 							if let Some(mut state) = <DelegatorState<T>>::get(&nominator) {
 								let pre_total = state.total;
 								if let Some(remaining) = state.rm_nomination(collator.clone()) {
-									let amount = pre_total - remaining;
+									// let amount = pre_total - remaining;
 									// state.scheduled_revocations_total -= amount;
 									// state.scheduled_revocations_count -= 1u32;
 									// state.revocations.remove(&collator);
