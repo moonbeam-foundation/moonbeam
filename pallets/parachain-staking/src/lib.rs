@@ -835,9 +835,10 @@ pub mod pallet {
 		),
 		/// Nominator, Collator, Amount Unstaked, New Total Amt Staked for Collator
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Nominator, Collator, Due reward as per nomination to the collator
+		NominatorDueReward(T::AccountId, T::AccountId, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
-		/// event properties: (recipient, collator, reward_amount)
-		Rewarded(T::AccountId, T::AccountId, BalanceOf<T>),
+		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Transferred to account which holds funds reserved for parachain bond
 		ReservedForParachainBond(T::AccountId, BalanceOf<T>),
 		/// Account (re)set for parachain bond treasury [old, new]
@@ -1731,7 +1732,9 @@ pub mod pallet {
 				));
 			}
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				T::Currency::deposit_into_existing(&to, amt);
+				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to, amount_transferred.peek()));
+				}
 			};
 			// only pay out rewards at the end to transfer only total amount due
 			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
@@ -1752,7 +1755,6 @@ pub mod pallet {
 				if state.nominators.is_empty() {
 					// solo collator with no nominators
 					mint(amt_due, collator.clone());
-					Self::deposit_event(Event::Rewarded(collator.clone(), collator.clone(), amt_due));
 				} else {
 					// pay collator first; commission + due_portion
 					let val_pct = Perbill::from_rational(state.bond, state.total);
@@ -1760,13 +1762,16 @@ pub mod pallet {
 					amt_due -= commission;
 					let val_due = (val_pct * amt_due) + commission;
 					mint(val_due, collator.clone());
-					Self::deposit_event(Event::Rewarded(collator.clone(), collator.clone(), val_due));
 					// pay nominators due portion
 					for Bond { owner, amount } in state.nominators {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						increase_due_rewards(due, owner.clone());
-						Self::deposit_event(Event::Rewarded(owner.clone(), collator.clone(), due));
+						Self::deposit_event(Event::NominatorDueReward(
+							owner.clone(),
+							collator.clone(),
+							due,
+						));
 					}
 				}
 			}
