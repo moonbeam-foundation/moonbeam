@@ -197,6 +197,7 @@ export async function sendPrecompileTx(
     transactions: [tx],
   });
 }
+
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 export async function callPrecompile(
   context: DevTestContext,
