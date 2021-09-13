@@ -872,7 +872,7 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
-/// There are two extnsions returning the priority:
+/// There are two extensions returning the priority:
 /// 1. The `CheckWeight` extension.
 /// 2. The `TransactionPayment` extension.
 ///
