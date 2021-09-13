@@ -755,6 +755,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::Democracy(..) | Call::CouncilCollective(..)
 						| Call::TechComitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
+						| Call::AuthorMapping(..)
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -764,7 +765,10 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::TechComitteeCollective(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
+			ProxyType::Staking => matches!(
+				c,
+				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
 			}
