@@ -479,7 +479,7 @@ pub mod pallet {
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
 	/// Nominator state
-	/// -> TODO: replace nominator2 with nominator throughout the code
+	/// -> DEPRECATED: replace nominator2 with delegator throughout the code
 	pub struct Nominator<AccountId, Balance> {
 		/// All current nominations
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
@@ -581,7 +581,7 @@ pub mod pallet {
 		) -> Result<RoundIndex, DispatchError> {
 			ensure!(
 				&self.nominations.0.iter().any(|x| x.owner == collator),
-				Error::<T>::NominatorDNE
+				Error::<T>::NominationDNE
 			);
 			let when = <Round<T>>::get().current + T::NominatorBondDelay::get();
 			self.requests.bond_more::<T>(collator, more, when)?;
@@ -590,7 +590,7 @@ pub mod pallet {
 		/// Cancel a `bond_more` request for a nomination
 		pub fn cancel_inc_nomination<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
 			self.requests
-				.ensure_rm_request::<T>(NominatorAction::BondMore, collator)
+				.ensure_rm_request::<T>(NominatorAction::IncreaseNomination, collator)
 		}
 		/// Execute a `bond_more` request for a nomination
 		/// Returns `Ok(more, new_nom_amt)` if the queued request was BondMore and it was due
@@ -607,12 +607,15 @@ pub mod pallet {
 				.requests
 				.request_per_collator
 				.get(&collator)
-				.ok_or(Error::<T>::NominatorDNE)?;
+				.ok_or(Error::<T>::PendingNominatorRequestDNE)?;
 			ensure!(
-				action == &NominatorAction::BondMore,
-				Error::<T>::NominatorDNE
-			); // TODO: relevant error
-			ensure!(when <= &<Round<T>>::get().current, Error::<T>::NominatorDNE); // TODO relevant error
+				action == &NominatorAction::IncreaseNomination,
+				Error::<T>::PendingNominatorRequestDoesNotMatchCall
+			);
+			ensure!(
+				when <= &<Round<T>>::get().current,
+				Error::<T>::PendingNominatorRequestNotDueYet
+			);
 			let amt = amount.clone();
 			self.requests.more_total -= amt;
 			self.requests.request_per_collator.remove(&collator);
@@ -643,7 +646,7 @@ pub mod pallet {
 		/// Cancel `bond_less` request to decrease nomination
 		pub fn cancel_dec_nomination<T: Config>(&mut self, collator: AccountId) -> DispatchResult {
 			self.requests
-				.ensure_rm_request::<T>(NominatorAction::BondLess, collator)
+				.ensure_rm_request::<T>(NominatorAction::DecreaseNomination, collator)
 		}
 		/// Decrease nomination
 		pub fn execute_dec_nomination<T: Config>(
@@ -659,12 +662,15 @@ pub mod pallet {
 				.requests
 				.request_per_collator
 				.get(&collator)
-				.ok_or(Error::<T>::NominatorDNE)?;
+				.ok_or(Error::<T>::PendingNominatorRequestDNE)?;
 			ensure!(
-				action == &NominatorAction::BondLess,
-				Error::<T>::NominatorDNE
-			); // TODO: relevant error
-			ensure!(when <= &<Round<T>>::get().current, Error::<T>::NominatorDNE); // TODO relevant error
+				action == &NominatorAction::DecreaseNomination,
+				Error::<T>::PendingNominatorRequestDoesNotMatchCall
+			);
+			ensure!(
+				when <= &<Round<T>>::get().current,
+				Error::<T>::PendingNominatorRequestNotDueYet
+			);
 			let amt = amount.clone();
 			self.requests.more_total -= amt;
 			self.requests.request_per_collator.remove(&collator);
@@ -736,23 +742,28 @@ pub mod pallet {
 				.requests
 				.request_per_collator
 				.get(&collator)
-				.ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(action == &NominatorAction::Revoke, Error::<T>::NominatorDNE); // TODO: relevant error
-			ensure!(when <= &now, Error::<T>::NominatorDNE); // TODO relevant error
+				.ok_or(Error::<T>::PendingNominatorRequestDNE)?;
+			ensure!(
+				action == &NominatorAction::Revoke,
+				Error::<T>::PendingNominatorRequestDoesNotMatchCall
+			);
+			ensure!(when <= &now, Error::<T>::PendingNominatorRequestNotDueYet);
 			let amt = amount.clone();
 			self.requests.less_total -= amt;
 			self.requests.request_per_collator.remove(&collator);
-			self.rm_nomination(collator); // TODO: make infallible without ret type
+			self.rm_nomination(collator);
 			Ok(amt)
 		}
 	}
 
 	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug)]
 	/// Actions requested by the nominator
+	/// - limit of 1 ongoing request per nomination
+	/// - no requests allowed/executable if nominator is leaving
 	pub enum NominatorAction {
 		Revoke,
-		BondLess,
-		BondMore,
+		IncreaseNomination,
+		DecreaseNomination,
 	}
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
@@ -807,10 +818,9 @@ pub mod pallet {
 			amount: B,
 			when: RoundIndex,
 		) -> DispatchResult {
-			// cannot make request anything if pending existing request
 			ensure!(
 				self.request_per_collator.get(&collator).is_none(),
-				Error::<T>::NominatorDNE
+				Error::<T>::PendingNominatorRequestAlreadyExists
 			);
 			self.request_per_collator.insert(
 				collator.clone(),
@@ -818,7 +828,7 @@ pub mod pallet {
 					collator,
 					amount,
 					when,
-					action: NominatorAction::BondMore,
+					action: NominatorAction::IncreaseNomination,
 				},
 			);
 			self.more_total += amount;
@@ -833,10 +843,9 @@ pub mod pallet {
 			amount: B,
 			when: RoundIndex,
 		) -> DispatchResult {
-			// cannot make request anything if pending existing request
 			ensure!(
 				self.request_per_collator.get(&collator).is_none(),
-				Error::<T>::NominatorDNE
+				Error::<T>::PendingNominatorRequestAlreadyExists
 			);
 			self.request_per_collator.insert(
 				collator.clone(),
@@ -844,7 +853,7 @@ pub mod pallet {
 					collator,
 					amount,
 					when,
-					action: NominatorAction::BondLess,
+					action: NominatorAction::DecreaseNomination,
 				},
 			);
 			self.less_total += amount;
@@ -859,10 +868,9 @@ pub mod pallet {
 			amount: B,
 			when: RoundIndex,
 		) -> DispatchResult {
-			// cannot make request anything if pending existing request
 			ensure!(
 				self.request_per_collator.get(&collator).is_none(),
-				Error::<T>::NominatorDNE
+				Error::<T>::PendingNominatorRequestAlreadyExists
 			);
 			self.request_per_collator.insert(
 				collator.clone(),
@@ -877,31 +885,31 @@ pub mod pallet {
 			Ok(())
 		}
 		/// Helper function to isolate request removal logic
-		/// - useful before expected execution or cancellation
-		/// only works for the last 2, might as well just write one per each
 		pub fn ensure_rm_request<T: Config>(
 			&mut self,
 			expect: NominatorAction,
 			collator: A,
 		) -> DispatchResult {
-			if let Some(order) = self.request_per_collator.get(&collator) {
-				ensure!(order.action == expect, Error::<T>::NominatorDNE); // TODO: relevant error
-				match order.action {
-					NominatorAction::Revoke => {
-						self.less_total -= order.amount;
-					}
-					NominatorAction::BondLess => {
-						self.less_total -= order.amount;
-					}
-					NominatorAction::BondMore => {
-						self.more_total -= order.amount;
-					}
+			let order = self
+				.request_per_collator
+				.get(&collator)
+				.ok_or(Error::<T>::PendingNominatorRequestDNE)?;
+			ensure!(
+				order.action == expect,
+				Error::<T>::PendingNominatorRequestDoesNotMatchCall
+			);
+			match order.action {
+				NominatorAction::Revoke => {
+					self.less_total -= order.amount;
 				}
-				self.request_per_collator.remove(&collator);
-			} else {
-				// TODO: decide to keep this in or remove it after testing
-				log::warn!("STATE IS INCONSISTENT");
+				NominatorAction::DecreaseNomination => {
+					self.less_total -= order.amount;
+				}
+				NominatorAction::IncreaseNomination => {
+					self.more_total -= order.amount;
+				}
 			}
+			self.request_per_collator.remove(&collator);
 			Ok(())
 		}
 	}
@@ -1243,6 +1251,10 @@ pub mod pallet {
 		TooLowNominationCountToNominate,
 		TooLowCollatorNominationCountToNominate,
 		TooLowNominationCountToLeaveNominators,
+		PendingNominatorRequestDoesNotMatchCall,
+		PendingNominatorRequestDNE,
+		PendingNominatorRequestAlreadyExists,
+		PendingNominatorRequestNotDueYet,
 	}
 
 	#[pallet::event]
@@ -1798,6 +1810,7 @@ pub mod pallet {
 				);
 				if let Some(remaining) = nominator.rm_nomination(collator.clone()) {
 					if remaining.is_zero() {
+						// TODO: consider NominatorLeft event here? or logging it
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, nominator);
@@ -2012,9 +2025,10 @@ pub mod pallet {
 			Self::deposit_event(Event::Nomination(acc, amount, collator, nominator_position));
 			Ok(().into())
 		}
-		#[pallet::weight(0)] // TODO: redo benchmarks
+		#[pallet::weight(0)]
 		/// Request to leave the set of nominators. If successful, the nominator is scheduled
-		/// to be granted the right to exit
+		/// to be allowed to exit. Success forbids future nominator actions until the request is either
+		/// invoked or cancelled.
 		pub fn schedule_leave_nominators(
 			origin: OriginFor<T>,
 			nomination_count: u32,
@@ -2031,8 +2045,8 @@ pub mod pallet {
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
-		#[pallet::weight(0)] // TODO: benches
-		/// Execute the right to exit, must have been scheduled 2 rounds ago (at least)
+		#[pallet::weight(0)]
+		/// Execute the right to exit the set of nominators and revoke all ongoing nominations.
 		pub fn execute_leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
@@ -2045,12 +2059,12 @@ pub mod pallet {
 				}
 			}
 			<DelegatorState<T>>::remove(&nominator);
-			// TODO: NominatorExited would be more consistent naming for this event
 			Self::deposit_event(Event::NominatorLeft(nominator, state.total));
 			Ok(().into())
 		}
-		#[pallet::weight(0)] // TODO: benchmarking -> weights
-		/// Cancel request to exit the set of delegator
+		#[pallet::weight(0)]
+		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
+		/// request (thereby resetting the delay upon another `schedule_leave_nominators` call).
 		pub fn cancel_leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			// ensure delegator state exists
@@ -2065,7 +2079,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		/// Request to revoke an existing nomination. If successful, the nomination is scheduled
-		/// to exit
+		/// to be allowed to be revoked via the `execute_revoke_nomination` extrinsic.
 		pub fn schedule_revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -2100,7 +2114,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
-		/// Cancel request to revoke an existing nomination
+		/// Cancel request to revoke an existing nomination.
 		pub fn cancel_revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -2114,7 +2128,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
-		/// Execute request to revoke an existing nomination
+		/// Execute request to revoke an existing nomination.
 		pub fn execute_revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -2129,7 +2143,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		/// Request to bond more for delegators with respect to a specific collator candidate
+		/// Request to bond more for delegators wrt a specific collator candidate.
 		pub fn schedule_increase_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -2146,7 +2160,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		/// Execute request to bond more for delegators wrt a specific collator candidate
+		/// Execute request to bond more for delegators wrt a specific collator candidate.
 		pub fn execute_increase_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -2178,7 +2192,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		/// Cancel request to bond more for delegators with respect to a specific collator candidate
+		/// Cancel request to bond more for delegators wrt a specific collator candidate.
 		pub fn cancel_increase_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -2192,9 +2206,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_less())]
-		/// Request bond less for nominators with respect to a specific nominator candidate
-		/// - request can be executed `NominatorBondDelay` rounds after the round in which this
-		/// extrinsic was called.
+		/// Request bond less for nominators wrt a specific collator candidate.
 		pub fn schedule_decrease_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -2211,7 +2223,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_less())]
-		/// Execute request to bond less for nominators wrt a specific collator candidate
+		/// Execute request to bond less for nominators wrt a specific collator candidate.
 		pub fn execute_decrease_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -2246,7 +2258,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_less())]
-		/// Bond less for nominators with respect to a specific nominator candidate
+		/// Cancel request to bond less for nominators wrt a specific collator candidate.
 		pub fn cancel_decrease_delegation(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
