@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy, ExtBuilder,
-	Origin, Precompiles, Test,
-	TestAccount::{self, Alice, Bob},
+use crate::{
+	mock::{
+		events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy,
+		ExtBuilder, Origin, Precompiles, Test,
+		TestAccount::{self, Alice, Bob},
+	},
+	Action,
 };
 use evm::executor::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
@@ -71,6 +74,24 @@ fn no_selector_exists_but_length_is_right() {
 			expected_result
 		);
 	});
+}
+
+#[test]
+fn selectors() {
+	assert_eq!(Action::Delegate as u32, 0x0185921e);
+	assert_eq!(Action::DepositOf as u32, 0xa30305e9);
+	assert_eq!(Action::FinishedReferendumInfo as u32, 0xb1fd383f);
+	assert_eq!(Action::LowestUnbaked as u32, 0x0388f282);
+	assert_eq!(Action::OngoingReferendumInfo as u32, 0x8b93d11a);
+	assert_eq!(Action::Propose as u32, 0x7824e7d1);
+	assert_eq!(Action::PublicPropCount as u32, 0x56fdf547);
+	assert_eq!(Action::RemoveVote as u32, 0x2042f50b);
+	assert_eq!(Action::Second as u32, 0xc7a76601);
+	assert_eq!(Action::StandardVote as u32, 0x35cde7ae);
+	assert_eq!(Action::UnDelegate as u32, 0xcb37b8ea);
+	assert_eq!(Action::Unlock as u32, 0x2f6c493c);
+
+	//TODO also test logs once we have them
 }
 
 #[test]
