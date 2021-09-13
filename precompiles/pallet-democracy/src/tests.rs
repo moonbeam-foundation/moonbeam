@@ -100,8 +100,7 @@ fn prop_count_zero() {
 		let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
 
 		// Construct data to read prop count
-		let mut input_data = Vec::<u8>::from([0u8; 4]);
-		input_data[0..4].copy_from_slice(&selector);
+		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
 		// Expected result is zero. because no props are open yet.
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -113,7 +112,7 @@ fn prop_count_zero() {
 
 		// Assert that no props have been opened.
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+			Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
 			expected_zero_result
 		);
 	});
