@@ -32,6 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
+	signed_extensions::{AdjustPriority, Divide},
 	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -60,7 +61,9 @@ use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
+	transaction_validity::{
+		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
+	},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
 };
@@ -862,6 +865,23 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
+
+/// There are two extnsions returning the priority:
+/// 1. The `CheckWeight` extension.
+/// 2. The `TransactionPayment` extension.
+///
+/// The first one gives a significant bump to `Operational` transactions, but for `Normal`
+/// it's within `[0..MAXIMUM_BLOCK_WEIGHT]` range.
+///
+/// The second one roughly represents the amount of fees being paid (and the tip) with
+/// size-adjustment coefficient. I.e. we are interested to maximize `fee/consumed_weight` or
+/// `fee/size_limit`. The returned value is potentially unbounded though.
+///
+/// The idea for the adjustment is scale the priority coming from `CheckWeight` for
+/// `Normal` transactions down to zero, leaving the priority bump for `Operational` and
+/// `Mandatory` though.
+const CHECK_WEIGHT_PRIORITY_DIVISOR: TransactionPriority = MAXIMUM_BLOCK_WEIGHT;
+
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Runtime>,
@@ -869,7 +889,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
+	AdjustPriority<frame_system::CheckWeight<Runtime>, Divide, CHECK_WEIGHT_PRIORITY_DIVISOR>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
