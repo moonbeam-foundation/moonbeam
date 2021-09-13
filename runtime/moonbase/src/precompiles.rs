@@ -76,12 +76,13 @@ where
 		+ pallet_crowdloan_rewards::Config
 		+ pallet_democracy::Config,
 	R::AccountId: From<H160>, //TODO remove this once it is removed in staking precompiles.
-	BalanceOf<R>: Debug + precompile_utils::EvmData,
+	BalanceOf<R>: Debug + precompile_utils::EvmData + TryFrom<sp_core::U256>,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>
 		+ From<pallet_crowdloan_rewards::Call<R>>
 		+ From<pallet_democracy::Call<R>>,
-	DemocracyWrapper<R>: Precompile, //TODO why is this necessary? And why only for democracy?
+	R::Hash: From<sp_core::H256>,
+	// DemocracyWrapper<R>: Precompile, //TODO why is this necessary? And why only for democracy?
 {
 	fn execute(
 		address: H160,
@@ -110,9 +111,9 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2051) => {
-				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
-			}
+			a if a == hash(2051) => Some(<DemocracyWrapper<R> as Precompile>::execute(
+				input, target_gas, context,
+			)),
 			_ => None,
 		}
 	}
