@@ -964,14 +964,15 @@ runtime_common::impl_runtime_apis_plus_common! {
 			// This also assigns some priority that we don't care about and will overwrite next.
 			let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
 
+			_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
+
 			// If this is a pallet ethereum transaction, then its priority is already set
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
 			// we modify its priority.
 			Ok(match &xt.function {
 				Call::Ethereum(transact(_)) => intermediate_valid,
+				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
-					let dispatch_info = xt.get_dispatch_info();
-
 					let tip = match xt.signature {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
