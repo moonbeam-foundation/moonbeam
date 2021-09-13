@@ -270,7 +270,7 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it("should not be able to call nominatorBondLess to go under min nomination amount - more and then less", async function () {
+  it("should fail calling nominatorBondLess under min nomination amount", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
       ethan,
@@ -302,7 +302,7 @@ describeDevMoonbeam(
         .signAndSend(ethan);
       await context.createBlock();
     });
-    it("should not be able to call nominatorBondLess to go under min nomination amount", async function () {
+    it("should fail calling nominatorBondLess under min nomination amount", async function () {
       const { events } = await createBlockWithExtrinsic(
         context,
         ethan,
