@@ -30,17 +30,19 @@ use precompile_utils::{
 };
 
 use sp_core::{H160, U256};
+use sp_runtime::traits::Convert;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec,
+	vec::Vec,
 };
 
-use xcm::v0::{
-	Junction,
-	MultiLocation,
-	NetworkId,
-};
+use xcm::v0::{Junction, MultiLocation, NetworkId};
+
+#[cfg(test)]
+mod mock;
 
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
@@ -51,9 +53,8 @@ enum Action {
 }
 
 /// A precompile to wrap the functionality from xtokens
-pub struct XtokensWrapper<Runtime>(
-	PhantomData<Runtime>,
-);
+pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
+
 impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config,
@@ -61,7 +62,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,	
+	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -83,17 +84,15 @@ where
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,	
-
 {
 	// The accessors are first. They directly return their result.
 	fn transfer(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-		context: &Context
+		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -102,23 +101,28 @@ where
 
 		let multilocation: Vec<Vec<u8>> = input.read()?;
 
-		let destination: MultiLocation = convert_encoded_multilocation_into_multilocation(multilocation)?;
+		let destination: MultiLocation =
+			convert_encoded_multilocation_into_multilocation(multilocation)?;
 
 		// Bound check
 		input.expect_arguments(2)?;
 		let amount: U256 = input.read()?;
 		let weight: u64 = input.read::<u64>()?;
-		
+
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId = to_account.into();
-		
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = amount
-				.try_into()
-				.map_err(|_| error("Amount is too large for provided balance type"))?;
-			
-		let call = orml_xtokens::Call::<Runtime>::transfer(to_currency_id, to_balance, destination, weight);
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer(
+			to_currency_id,
+			to_balance,
+			destination,
+			weight,
+		);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -137,117 +141,139 @@ where
 	}
 }
 
-fn convert_encoded_multilocation_into_multilocation(encoded_multilocation: Vec<Vec<u8>>) -> Result<MultiLocation, ExitError> {
+fn convert_encoded_multilocation_into_multilocation(
+	encoded_multilocation: Vec<Vec<u8>>,
+) -> Result<MultiLocation, ExitError> {
 	match encoded_multilocation.len() {
 		0 => Ok(MultiLocation::Null),
-		1 =>  {
-			let first_junction = convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+		1 => {
+			let first_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
 			Ok(MultiLocation::X1(first_junction))
-		},
+		}
 
 		2 => {
-			let first_junction = convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
-			let second_junction = convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+			let first_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+			let second_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
 
-			Ok(
-				MultiLocation::X2(
-					first_junction,
-					second_junction,
-				)
-			)
-		},
+			Ok(MultiLocation::X2(first_junction, second_junction))
+		}
 		3 => {
-			let first_junction = convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
-			let second_junction = convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
-			let third_junction = convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
+			let first_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+			let second_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+			let third_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
 
-			Ok(
-				MultiLocation::X3(
-					first_junction,
-					second_junction,
-					third_junction
-				)
-			)
-		},
+			Ok(MultiLocation::X3(
+				first_junction,
+				second_junction,
+				third_junction,
+			))
+		}
 		4 => {
-			let first_junction = convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
-			let second_junction = convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
-			let third_junction = convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
-			let fourth_junction = convert_encoded_junction_to_junction(encoded_multilocation[3].clone())?;
+			let first_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+			let second_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+			let third_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
+			let fourth_junction =
+				convert_encoded_junction_to_junction(encoded_multilocation[3].clone())?;
 
-			Ok(
-				MultiLocation::X4(
-					first_junction,
-					second_junction,
-					third_junction,
-					fourth_junction
-				)
-			)
-		},
-		_=> Err(error("Provided more than 9 arguments for multilocation")),
+			Ok(MultiLocation::X4(
+				first_junction,
+				second_junction,
+				third_junction,
+				fourth_junction,
+			))
+		}
+		_ => Err(error("Provided more than 9 arguments for multilocation")),
 	}
 }
 
-fn convert_encoded_junction_to_junction(mut encoded_junction: Vec<u8>) -> Result<Junction, ExitError> {
-	ensure!(encoded_junction.len()>0, error("Junctions cannot be emptyt"));
+fn convert_encoded_junction_to_junction(
+	mut encoded_junction: Vec<u8>,
+) -> Result<Junction, ExitError> {
+	ensure!(
+		encoded_junction.len() > 0,
+		error("Junctions cannot be emptyt")
+	);
 	let extra_data = encoded_junction.split_off(1);
 
 	match encoded_junction[0] {
 		0 => Ok(Junction::Parent),
 		1 => {
-		 	ensure!(extra_data.len()>=4, error("Parachain Junction needs to specify u32 paraId"));
+			ensure!(
+				extra_data.len() >= 4,
+				error("Parachain Junction needs to specify u32 paraId")
+			);
 			let mut data: [u8; 4] = Default::default();
 			data.copy_from_slice(&extra_data[0..4]);
 			let para_id = u32::from_be_bytes(data);
 			Ok(Junction::Parachain(para_id))
-		},
+		}
 		2 => {
-		   ensure!(extra_data.len()>=32, error("AccountKey32 Junction needs to specify 32 byte id"));
-		   let mut data: [u8; 32] = Default::default();
-		   data.copy_from_slice(&extra_data[0..32]);
-		   Ok(Junction::AccountId32 {
-			   network: NetworkId::Any,
-			   id: data
-		   })
-	   	},
+			ensure!(
+				extra_data.len() >= 32,
+				error("AccountKey32 Junction needs to specify 32 byte id")
+			);
+			let mut data: [u8; 32] = Default::default();
+			data.copy_from_slice(&extra_data[0..32]);
+			Ok(Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: data,
+			})
+		}
 		3 => {
-			ensure!(extra_data.len()>=8, error("AccountIndex64 Junction needs to specify u64 index"));
+			ensure!(
+				extra_data.len() >= 8,
+				error("AccountIndex64 Junction needs to specify u64 index")
+			);
 			let mut data: [u8; 8] = Default::default();
 			data.copy_from_slice(&extra_data[0..8]);
-			
+
 			Ok(Junction::AccountIndex64 {
 				network: NetworkId::Any,
-				index: u64::from_be_bytes(data)
+				index: u64::from_be_bytes(data),
 			})
-		},
+		}
 		4 => {
-			ensure!(extra_data.len()>=20, error("AccountKey20 Junction needs to specify 20 bytes key"));
+			ensure!(
+				extra_data.len() >= 20,
+				error("AccountKey20 Junction needs to specify 20 bytes key")
+			);
 			let mut data: [u8; 20] = Default::default();
 			data.copy_from_slice(&extra_data[0..20]);
-			
+
 			Ok(Junction::AccountKey20 {
 				network: NetworkId::Any,
-				key: data
+				key: data,
 			})
-		},
+		}
 		5 => {
-			ensure!(extra_data.len()>=1, error("PalletInstance Junction needs to specify one byte instance id"));
+			ensure!(
+				extra_data.len() >= 1,
+				error("PalletInstance Junction needs to specify one byte instance id")
+			);
 			Ok(Junction::PalletInstance(extra_data[0]))
-		},
+		}
 		6 => {
-			ensure!(extra_data.len()>=16, error("GeneralIndex Junction needs to specify 16 bytes of index id"));
+			ensure!(
+				extra_data.len() >= 16,
+				error("GeneralIndex Junction needs to specify 16 bytes of index id")
+			);
 			let mut data: [u8; 16] = Default::default();
 			data.copy_from_slice(&extra_data[0..16]);
 			Ok(Junction::GeneralIndex {
-				id: u128::from_be_bytes(data)
+				id: u128::from_be_bytes(data),
 			})
-		},
-		7 => {
-			Ok(Junction::GeneralKey(extra_data))
-		},
-		8 => {
-			Ok(Junction::OnlyChild)
-		},
-		_=> Err(error("Parachain Junction needs to specify u32 paraId"))
+		}
+		7 => Ok(Junction::GeneralKey(extra_data)),
+		8 => Ok(Junction::OnlyChild),
+		_ => Err(error("Parachain Junction needs to specify u32 paraId")),
 	}
 }
