@@ -290,6 +290,12 @@ fn txpool_runtime_api_extrinsic_filter() {
 	});
 }
 
+// Some Priority-related test ideas
+// 1. Eth balance transfer with various gas prices. Priority == gas price
+// 2. Eth contract call with various gas prices. Priority == gas price
+// 3. System remark with no tip -> calculate expected priority from gas weight mapping
+// 4. System remark with tip.
+
 #[test]
 fn debug_runtime_api_trace_transaction() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
