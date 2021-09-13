@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Legacy version of the client-side components for the tracer.
+//!
 //! A Proxy in this context is an environmental trait implementor meant to be used for capturing
 //! EVM trace results sent to a Host function from the Runtime. Works like:
 //! - Runtime Api call `using` environmental.
@@ -165,7 +167,10 @@ impl CallListProxy {
 
 	/// Format the RPC output for multiple transactions. Each call-stack represents a single
 	/// transaction/EVM execution.
-	pub fn into_tx_traces(self) -> Vec<BlockTrace> {
+	pub fn into_tx_traces(&mut self) -> Vec<BlockTrace> {
+		// Remove empty BTreeMaps pushed to `entries`.
+		// I.e. InvalidNonce or other pallet_evm::runner exits
+		self.entries.retain(|x| !x.is_empty());
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry

@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
+import { Event } from "@polkadot/types/interfaces";
 import {
   ALITH_PRIV_KEY,
   DOROTHY,
@@ -10,6 +11,7 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from "../util/governance";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 
 const keyring = new Keyring({ type: "ethereum" });
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
@@ -47,8 +49,16 @@ describeDevMoonbeam("Proxing governance", (context) => {
     let voteCall = context.polkadotApi.tx.democracy.vote(0, {
       Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
     });
-    await context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall).signAndSend(ethan);
-    await context.createBlock();
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      ethan,
+      context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall)
+    );
+
+    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[0])).to.be.true;
+    expect(Object.keys(events[0].toHuman().data[0])[0] === "Ok").to.be.true;
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[1])).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[2])).to.be.true;
 
     // Verify that dorothy tokens are used
     let dorothyAccountData = await context.polkadotApi.query.system.account(DOROTHY);
