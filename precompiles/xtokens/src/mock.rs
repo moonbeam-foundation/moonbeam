@@ -25,8 +25,7 @@ use frame_support::{
 use xcm::v0::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, SendXcm, Xcm};
 
 use frame_support::{
-	construct_runtime,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 };
 
@@ -38,13 +37,11 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use xcm_executor::XcmExecutor;
-use xcm::{
-	v0::{
-		Junction::{PalletInstance, Parachain, Parent},
-		NetworkId
-	},
+use xcm::v0::{
+	Junction::{PalletInstance, Parachain, Parent},
+	NetworkId,
 };
+use xcm_executor::XcmExecutor;
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 
@@ -52,7 +49,6 @@ use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
 };
-
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
@@ -211,7 +207,6 @@ where
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256>,
 	<R as orml_xtokens::Config>::CurrencyId: From<R::AccountId>,
-
 {
 	fn execute(
 		address: H160,
@@ -220,16 +215,16 @@ where
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(XtokensWrapper::<R>::execute(
-				input, target_gas, context,
-			)),
+			a if a == precompile_address() => {
+				Some(XtokensWrapper::<R>::execute(input, target_gas, context))
+			}
 			_ => None,
 		}
 	}
 }
 
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
+pub fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
 }
 
 pub type Precompiles = TestPrecompiles<Test>;
@@ -329,7 +324,6 @@ impl pallet_xcm::Config for Test {
 	type XcmReserveTransferFilter = frame_support::traits::Everything;
 }
 
-
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type Call = Call;
@@ -373,9 +367,7 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 }
 
 pub struct AccountIdToMultiLocation;
-impl sp_runtime::traits::Convert<TestAccount, MultiLocation>
-	for AccountIdToMultiLocation
-{
+impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMultiLocation {
 	fn convert(account: TestAccount) -> MultiLocation {
 		let as_h160: H160 = account.into();
 		MultiLocation::X1(Junction::AccountKey20 {

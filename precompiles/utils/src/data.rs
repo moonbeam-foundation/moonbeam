@@ -37,6 +37,22 @@ impl From<Address> for H160 {
 	}
 }
 
+/// The `bytes` type of Solidity.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Bytes(pub Vec<u8>);
+
+impl From<Vec<u8>> for Bytes {
+	fn from(a: Vec<u8>) -> Bytes {
+		Bytes(a)
+	}
+}
+
+impl From<Bytes> for Vec<u8> {
+	fn from(a: Bytes) -> Vec<u8> {
+		a.0
+	}
+}
+
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]
@@ -119,6 +135,8 @@ impl<'a> EvmDataReader<'a> {
 /// Help build an EVM input/output data.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
+	// The selector cannot be part of the data we use to construct the offset
+	selector: Vec<u8>,
 	pub(crate) data: Vec<u8>,
 	arrays: Vec<Array>,
 }
@@ -134,6 +152,7 @@ impl EvmDataWriter {
 	/// Creates a new empty output builder.
 	pub fn new() -> Self {
 		Self {
+			selector: vec![],
 			data: vec![],
 			arrays: vec![],
 		}
@@ -141,9 +160,13 @@ impl EvmDataWriter {
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
+		let mut data: Vec<u8> = vec![];
+		// We construct offsets without taking into account selector
 		Self::build_arrays(&mut self.data, self.arrays, 0);
 
-		self.data
+		data.extend(self.selector);
+		data.extend(self.data);
+		data
 	}
 
 	/// Build the array into data.
@@ -364,6 +387,70 @@ impl<T: EvmData> EvmData for Vec<T> {
 			offset_position,
 			data: inner_writer.data,
 			inner_arrays: inner_writer.arrays,
+		};
+
+		writer.arrays.push(array);
+	}
+}
+
+// Bytes are read differently
+impl EvmData for Bytes {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let array_start: usize = reader
+			.read::<U256>()
+			.map_err(|_| error("tried to parse array offset out of bounds"))?
+			.try_into()
+			.map_err(|_| error("array offset is too large"))?;
+
+		// We temporarily move the cursor to the offset, we'll set it back afterward.
+		let original_cursor = reader.cursor;
+		reader.cursor = array_start;
+
+		let array_size: usize = reader
+			.read::<U256>()
+			.map_err(|_| error("tried to parse array length out of bounds"))?
+			.try_into()
+			.map_err(|_| error("array length is too large"))?;
+
+		let array = reader
+			.read_raw_bytes(array_size)
+			.map_err(|_| error("error while reading array"))?
+			.to_vec();
+
+		// We set back the cursor to its original location.
+		reader.cursor = original_cursor;
+
+		Ok(array.into())
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let offset_position = writer.data.len();
+		H256::write(writer, H256::repeat_byte(0xff));
+		// 0xff = When debugging it makes spoting offset values easier.
+
+		let mut inner_writer = EvmDataWriter::new();
+
+		let data: Vec<u8> = value.into();
+		let length = data.len();
+
+		// Write length.
+		inner_writer = inner_writer.write(U256::from(length));
+
+		let mut cursor = 0;
+		while cursor < length {
+			let mut buffer = [0u8; 32];
+			if cursor + 32 > length {
+				buffer[0..length - cursor].copy_from_slice(&data[cursor..]);
+			} else {
+				buffer.copy_from_slice(&data[cursor..cursor + 32]);
+			}
+			inner_writer = inner_writer.write_raw_bytes(&buffer);
+			cursor += 32;
+		}
+		let array = Array {
+			offset_position,
+			data: inner_writer.data,
+			inner_arrays: vec![],
 		};
 
 		writer.arrays.push(array);

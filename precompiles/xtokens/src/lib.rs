@@ -26,7 +26,7 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	error, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -43,13 +43,15 @@ use xcm::v0::{Junction, MultiLocation, NetworkId};
 
 #[cfg(test)]
 mod mock;
+#[cfg(test)]
+mod tests;
 
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 enum Action {
-	Transfer = "transfer(address, u256, u64)",
+	Transfer = "transfer(address, u256, bytes, u64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -96,17 +98,17 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
-		input.expect_arguments(1)?;
+		input.expect_arguments(2)?;
 		let to_address: H160 = input.read::<Address>()?.into();
+		let amount: U256 = input.read()?;
 
-		let multilocation: Vec<Vec<u8>> = input.read()?;
+		let multilocation: Vec<Bytes> = input.read()?;
 
 		let destination: MultiLocation =
 			convert_encoded_multilocation_into_multilocation(multilocation)?;
 
 		// Bound check
-		input.expect_arguments(2)?;
-		let amount: U256 = input.read()?;
+		input.expect_arguments(1)?;
 		let weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
@@ -142,31 +144,31 @@ where
 }
 
 fn convert_encoded_multilocation_into_multilocation(
-	encoded_multilocation: Vec<Vec<u8>>,
+	encoded_multilocation: Vec<Bytes>,
 ) -> Result<MultiLocation, ExitError> {
 	match encoded_multilocation.len() {
 		0 => Ok(MultiLocation::Null),
 		1 => {
 			let first_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone().into())?;
 			Ok(MultiLocation::X1(first_junction))
 		}
 
 		2 => {
 			let first_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone().into())?;
 			let second_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone().into())?;
 
 			Ok(MultiLocation::X2(first_junction, second_junction))
 		}
 		3 => {
 			let first_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone().into())?;
 			let second_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone().into())?;
 			let third_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[2].clone().into())?;
 
 			Ok(MultiLocation::X3(
 				first_junction,
@@ -176,13 +178,13 @@ fn convert_encoded_multilocation_into_multilocation(
 		}
 		4 => {
 			let first_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[0].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[0].clone().into())?;
 			let second_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[1].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[1].clone().into())?;
 			let third_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[2].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[2].clone().into())?;
 			let fourth_junction =
-				convert_encoded_junction_to_junction(encoded_multilocation[3].clone())?;
+				convert_encoded_junction_to_junction(encoded_multilocation[3].clone().into())?;
 
 			Ok(MultiLocation::X4(
 				first_junction,

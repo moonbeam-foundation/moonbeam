@@ -32,10 +32,15 @@ pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polk
 pallet-scheduler = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.9" }
 serde = "1.0.100"
 derive_more = "0.99"
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.9" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9" }
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.9" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+xcm-simulator = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+xcm-primitives = { path = "../../primitives/xcm/"}
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 [features]
 default = ["std"]
