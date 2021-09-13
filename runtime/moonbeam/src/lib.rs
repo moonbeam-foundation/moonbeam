@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		GetDispatchInfo, IdentityFee, Weight,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
 };

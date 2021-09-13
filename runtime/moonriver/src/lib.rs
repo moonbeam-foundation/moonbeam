@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		GetDispatchInfo, IdentityFee, Weight,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
 };
@@ -964,7 +964,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			// This also assigns some priority that we don't care about and will overwrite next.
 			let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
 
-			_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
+			let dispatch_info = xt.get_dispatch_info();
 
 			// If this is a pallet ethereum transaction, then its priority is already set
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
