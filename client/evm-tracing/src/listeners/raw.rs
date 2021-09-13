@@ -21,14 +21,12 @@
 use ethereum_types::{H160, H256};
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use moonbeam_rpc_primitives_debug::{
-	api::single::RawStepLog,
-	events::{
-		convert_memory,
-		runtime::{Capture, ExitReason},
-		ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
-	},
+use evm_tracing_events::{
+	convert_memory,
+	runtime::{Capture, ExitReason},
+	ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
 };
+use moonbeam_rpc_primitives_debug::api::single::RawStepLog;
 
 #[derive(Debug)]
 pub struct Listener {
@@ -87,7 +85,7 @@ impl Listener {
 	}
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		moonbeam_rpc_primitives_debug::events::using(self, f)
+		evm_tracing_events::using(self, f)
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {

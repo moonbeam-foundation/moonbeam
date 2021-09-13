@@ -9,5 +9,6 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events" }
 ethereum-types = { version = "0.12.0" }
 serde = { version = "1.0", features = ["derive"] }

@@ -19,15 +19,13 @@
 // 	Listener as ListenerT, RuntimeEvent, H160, U256,
 // };
 use ethereum_types::{H160, U256};
-use moonbeam_rpc_primitives_debug::{
-	api::{
-		single::{Call, CallInner},
-		CallResult, CallType, CreateResult,
-	},
-	events::{
-		runtime::{Capture, ExitError, ExitReason, ExitSucceed},
-		ContextType, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
-	},
+use evm_tracing_events::{
+	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
+	ContextType, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+};
+use moonbeam_rpc_primitives_debug::api::{
+	single::{Call, CallInner},
+	CallResult, CallType, CreateResult,
 };
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
@@ -129,7 +127,7 @@ impl Default for Listener {
 
 impl Listener {
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		moonbeam_rpc_primitives_debug::events::using(self, f)
+		evm_tracing_events::using(self, f)
 	}
 
 	/// Called at the end of each transaction when tracing.
@@ -650,7 +648,7 @@ impl ListenerT for Listener {
 mod tests {
 	use super::*;
 	use ethereum_types::H256;
-	use moonbeam_rpc_primitives_debug::events::{
+	use evm_tracing_events::{
 		evm::CreateScheme,
 		gasometer::Snapshot,
 		runtime::{Memory, Stack},

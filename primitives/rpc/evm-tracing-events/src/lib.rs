@@ -28,6 +28,7 @@
 //! The EVM event types may contain references and not implement Encode/Decode.
 //! This module provide mirror types and conversion into them from the original events.
 
+#![cfg_attr(not(feature = "std"), no_std)]
 extern crate alloc;
 
 pub mod evm;
@@ -38,11 +39,11 @@ pub use self::evm::EvmEvent;
 pub use gasometer::GasometerEvent;
 pub use runtime::RuntimeEvent;
 
-use crate::api::CallType;
 use ::evm::Opcode;
 use alloc::{vec, vec::Vec};
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
+use moonbeam_rpc_primitives_debug::api::CallType;
 
 environmental::environmental!(listener: dyn Listener + 'static);
 
