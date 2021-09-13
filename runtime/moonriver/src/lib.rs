@@ -995,8 +995,14 @@ runtime_common::impl_runtime_apis_plus_common! {
 						);
 
 					// Here we calculate an ethereum-style effective gas price using the
-					// current fee of the transaction
-					let effective_gas_price = fee / effective_gas;
+					// current fee of the transaction. Because the weight -> gas conversion is
+					// lossy, we have to handle the case where a very low weight maps to zero gas.
+					let effective_gas_price = if effective_gas > 0 {
+						fee / effective_gas
+					} else {
+						// If the effective gas was zero, we just act like it was 1.
+						fee
+					};
 
 					// Overwrite the original prioritization with this ethereum one
 					intermediate_valid.priority = effective_gas_price;
