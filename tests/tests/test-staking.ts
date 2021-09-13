@@ -120,12 +120,53 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
     await context.createBlock();
-  });
-  it("should succesfully call candidateBondLess on ETHAN", async function () {
+    // add more stake
     await context.polkadotApi.tx.parachainStaking
-      .candidateBondLess(MIN_GLMR_STAKING)
+      .candidateBondMore(MIN_GLMR_STAKING)
       .signAndSend(ethan);
     await context.createBlock();
+    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
+    expect(
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
+        "2.0000 kUNIT"
+    ).to.equal(true, "bond should have decreased");
+  });
+  it("should succesfully call candidateBondLess on ETHAN", async function () {
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      ethan,
+      context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_STAKING)
+    );
+    expect(events[3].toHuman().method).to.eq("ExtrinsicSuccess");
+    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
+    expect(
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
+        "1.0000 kUNIT"
+    ).to.equal(true, "bond should have decreased");
+  });
+});
+describeDevMoonbeam("Staking - Candidate bond less", (context) => {
+  let ethan;
+  before("should succesfully call joinCandidates on ETHAN", async function () {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    await context.polkadotApi.tx.parachainStaking
+      .joinCandidates(MIN_GLMR_STAKING, 1)
+      .signAndSend(ethan);
+    await context.createBlock();
+    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
+    expect(
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
+        "1.0000 kUNIT"
+    ).to.equal(true, "bond should have decreased");
+  });
+  it("should fail to call candidateBondLess on ETHAN bellow minimum amount", async function () {
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      ethan,
+      context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_NOMINATOR)
+    );
+    expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
@@ -182,7 +223,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it.only("should succesfully call nominatorBondMore on ALITH", async function () {
+  it("should succesfully call nominatorBondMore on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
@@ -193,7 +234,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     ).to.equal(true, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
-  it.only("should succesfully call nominatorBondLess on ALITH", async function () {
+  it("should succesfully call nominatorBondLess on ALITH", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
       ethan,
@@ -229,7 +270,7 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it.only("should not be able to call nominatorBondLess to go under min nomination amount - more and then less", async function () {
+  it("should not be able to call nominatorBondLess to go under min nomination amount - more and then less", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
       ethan,
@@ -261,7 +302,7 @@ describeDevMoonbeam(
         .signAndSend(ethan);
       await context.createBlock();
     });
-    it.only("should not be able to call nominatorBondLess to go under min nomination amount", async function () {
+    it("should not be able to call nominatorBondLess to go under min nomination amount", async function () {
       const { events } = await createBlockWithExtrinsic(
         context,
         ethan,
