@@ -75,7 +75,7 @@ where
 		+ pallet_evm::Config
 		+ pallet_crowdloan_rewards::Config
 		+ pallet_democracy::Config,
-	R::AccountId: From<H160>, //TODO we shouldn't need this. There is a method for it in frontier.
+	R::AccountId: From<H160>, //TODO remove this once it is removed in staking precompiles.
 	BalanceOf<R>: Debug + precompile_utils::EvmData,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>
