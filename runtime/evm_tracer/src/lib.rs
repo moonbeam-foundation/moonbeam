@@ -24,19 +24,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(feature = "evm-tracing"))]
-pub mod tracer {
-	pub struct EvmTracer;
-	impl EvmTracer {
-		pub fn new() -> Self {
-			Self
-		}
-		pub fn trace<R, F: FnOnce() -> R>(self, _f: F) {}
-		pub fn emit_new() {}
-	}
-}
-
-#[cfg(feature = "evm-tracing")]
 pub mod tracer {
 	use codec::Encode;
 	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent};
