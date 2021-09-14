@@ -1100,7 +1100,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
-		metadata: AssetMetaData,
+		metadata: AssetMetadata,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
@@ -1116,16 +1116,17 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			metadata.name,
 			metadata.symbol,
 			metadata.decimals,
-			false,
+			metadata.is_frozen,
 		)
 	}
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
-pub struct AssetMetaData {
+pub struct AssetMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
 	pub decimals: u8,
+	pub is_frozen: bool,
 }
 
 parameter_types! {
@@ -1136,7 +1137,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
-	type AssetMetaData = AssetMetaData;
+	type AssetMetadata = AssetMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type PalletId = AssetManagerId;
