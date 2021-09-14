@@ -373,7 +373,7 @@ fn transfer() {
 }
 
 #[test]
-fn transfer_not_enough_founds() {
+fn transfer_not_enough_funds() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
