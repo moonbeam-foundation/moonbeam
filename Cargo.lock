@@ -6247,7 +6247,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=notlesh-v0.9.9-block-response-length#9228d6ec37dff55ea28e3ad39df4a3a631573625"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=notlesh-v0.9.9-block-response-length#86bade7d1f8e2ad16c5a84a4d2f951e30e7c7846"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
