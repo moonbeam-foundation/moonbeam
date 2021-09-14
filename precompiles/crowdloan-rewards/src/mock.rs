@@ -244,6 +244,8 @@ parameter_types! {
 	pub const TestMinimumReward: u128 = 0;
 	pub const TestInitialized: bool = false;
 	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
+	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+
 }
 
 impl pallet_crowdloan_rewards::Config for Test {
@@ -254,6 +256,10 @@ impl pallet_crowdloan_rewards::Config for Test {
 	type MinimumReward = TestMinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockProvider =
+		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {

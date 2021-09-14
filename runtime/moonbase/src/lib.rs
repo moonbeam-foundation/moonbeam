@@ -700,6 +700,9 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockProvider =
+		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
