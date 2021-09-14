@@ -18,7 +18,6 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -26,22 +25,9 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use parity_scale_codec::Decode;
 use sp_core::H160;
-use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
-
-use frame_support::traits::Currency;
-type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
-	<Runtime as frame_system::Config>::AccountId,
->>::Balance;
-
-type RewardBalanceOf<Runtime> =
-	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
-		<Runtime as frame_system::Config>::AccountId,
-	>>::Balance;
-
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -68,13 +54,11 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonriverPrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config + pallet_crowdloan_rewards::Config,
-	R::AccountId: From<H160>,
-	BalanceOf<R>: Debug + precompile_utils::EvmData,
-	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<parachain_staking::Call<R>> + From<pallet_crowdloan_rewards::Call<R>>,
+	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
+	R: pallet_evm::Config,
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
