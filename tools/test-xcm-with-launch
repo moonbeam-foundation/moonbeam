@@ -1,0 +1,61 @@
+import Keyring from "@polkadot/keyring";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { typesBundle } from "../moonbeam-types-bundle";
+import { blake2AsHex } from "@polkadot/util-crypto";
+import { ALITH, ALITH_PRIVKEY } from "./test-constants";
+
+const assetMetadata = {
+  name: "Relaytoken",
+  symbol: "Relay",
+  decimals: 12,
+};
+const sourceLocation = { XCM: "X1" };
+const sourceId = blake2AsHex(JSON.stringify(sourceLocation));
+
+async function test() {
+  const keyring = new Keyring({ type: "sr25519" });
+  const aliceRelay = keyring.addFromUri("//Alice");
+
+  const alith = await keyring.addFromUri(ALITH_PRIVKEY, null, "ethereum");
+
+  const parachainOne = await ApiPromise.create({
+    initWasm: false,
+    provider: new WsProvider(`ws://localhost:${port}`),
+    typesBundle: typesBundle as any,
+  }); //context.polkadotApiParaone;
+  const relayOne = await ApiPromise.create({
+    initWasm: false,
+    provider: new WsProvider(`ws://localhost:${port}`),
+  }); //context._polkadotApiRelaychains[0];
+
+  console.log(
+    "before",
+    (await parachainOne.query.system.account(ALITH)).data.free.toHuman()
+  );
+
+  // parachains
+  console.log(Object.keys(parachainOne.tx));
+  const res = await parachainOne.tx.assetManager
+    .registerAsset(sourceLocation, assetMetadata, 1)
+    .signAndSend(alith);
+  console.log("res", res);
+  const res2 = await parachainOne.tx.assetManager
+    .setUnitsPerSecond(sourceId, 0)
+    .signAndSend(alith);
+  console.log("res2", res2);
+  //relay
+  const res3 = await relayOne.tx.xcmPallet
+    .reserveTransferAssets(
+      { X1: { Parachain: 1 } },
+      { X1: { network: "Any", key: ALITH } },
+      [{ id: null, amount: 123 }],
+      123
+    )
+    .signAndSend(aliceRelay);
+  console.log("res3", res3);
+  console.log(
+    "after",
+    (await parachainOne.query.system.account(ALITH)).data.free.toHuman()
+  );
+}
+test();
