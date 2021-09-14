@@ -33,7 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetManager, AssetMetaData, AssetType, Balances, BlockWeights,
+	currency::UNIT, AccountId, AssetManager, AssetMetadata, AssetType, Balances, BlockWeights,
 	Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
@@ -938,10 +938,11 @@ fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = moonbase_runtime::AssetMetaData {
+		let asset_metadata = moonbase_runtime::AssetMetadata {
 			name: b"RelayToken".to_vec(),
 			symbol: b"Relay".to_vec(),
 			decimals: 12,
+			is_frozen: false,
 		};
 		assert_ok!(AssetManager::register_asset(
 			moonbase_runtime::Origin::root(),
