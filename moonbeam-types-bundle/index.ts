@@ -243,12 +243,58 @@ const TYPES_200_399: RegistryTypes = {
   },
 };
 
-const TYPES_400_undefined: RegistryTypes = {
+const TYPES_400_599: RegistryTypes = {
   ...TYPES_200_399,
   RewardInfo: {
     total_reward: "Balance",
     claimed_reward: "Balance",
     contributed_relay_addresses: "Vec<RelayChainAccountId>",
+  },
+};
+
+const TYPES_600_undefined: RegistryTypes = {
+  ...TYPES_400_599,
+  AssetType: {
+    _enum: {
+      Xcm: "MultiLocation",
+    },
+  },
+  AssetId: "u128",
+  TAssetBalance: "u128",
+  ENUM_AccountId32: {
+    network: "NetworkId",
+    id: "[u8; 32]",
+  },
+  ENUM_AccountKey20: {
+    network: "NetworkId",
+    key: "[u8; 20]",
+  },
+  ENUM_AccountIndex64: {
+    network: "NetworkId",
+    index: "Compact<u64>",
+  },
+  ENUM_Plurality: {
+    id: "BodyId",
+    part: "BodyPart",
+  },
+  JunctionV1: {
+    _enum: {
+      Parachain: "Compact<u32>",
+      AccountId32: "ENUM_AccountId32",
+      AccountIndex64: "ENUM_AccountIndex64",
+      AccountKey20: "ENUM_AccountKey20",
+      PalletInstance: "u8",
+      GeneralIndex: "Compact<u128>",
+      GeneralKey: "Vec<u8>",
+      OnlyChild: "Null",
+      Plurality: "ENUM_Plurality",
+    },
+  },
+  CurrencyId: {
+    _enum: {
+      SelfReserve: "Null",
+      OtherReserve: "u128",
+    },
   },
 };
 
@@ -296,8 +342,12 @@ export const moonbeamDefinitions = {
       types: TYPES_200_399,
     },
     {
-      minmax: [400, undefined],
-      types: TYPES_400_undefined,
+      minmax: [400, 599],
+      types: TYPES_400_599,
+    },
+    {
+      minmax: [600, undefined],
+      types: TYPES_600_undefined,
     },
   ],
 } as OverrideBundleDefinition;
