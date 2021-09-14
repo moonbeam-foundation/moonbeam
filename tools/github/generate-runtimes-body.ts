@@ -82,9 +82,9 @@ ${runtimes
     (runtime) => `### ${capitalize(runtime.name)}
 
 * spec_version: ${runtime.version}
-* sha256: ${runtime.srtool.runtimes.compact.sha256}
-* size: ${runtime.srtool.runtimes.compact.size}
-* proposal: ${runtime.srtool.runtimes.compact.prop}`
+* sha256: ${runtime.srtool.runtimes.compressed.sha256}
+* size: ${runtime.srtool.runtimes.compressed.size}
+* proposal: ${runtime.srtool.runtimes.compressed.prop}`
   )
   .join(`\n\n`)}
 `

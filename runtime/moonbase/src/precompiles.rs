@@ -18,30 +18,17 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_democracy_precompiles::DemocracyWrapper;
-use pallet_evm::{Precompile, PrecompileSet};
+use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use parity_scale_codec::Decode;
 use sp_core::H160;
-use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
-
-use frame_support::traits::Currency;
-type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
-	<Runtime as frame_system::Config>::AccountId,
->>::Balance;
-
-type RewardBalanceOf<Runtime> =
-	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
-		<Runtime as frame_system::Config>::AccountId,
-	>>::Balance;
 
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
@@ -50,16 +37,16 @@ type RewardBalanceOf<Runtime> =
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbasePrecompiles<R>(PhantomData<R>);
 
-impl<R: frame_system::Config> MoonbasePrecompiles<R>
+impl<R> MoonbasePrecompiles<R>
 where
-	R::AccountId: From<H160>,
+	R: pallet_evm::Config,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049]
 			.into_iter()
-			.map(|x| hash(x).into())
+			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 
@@ -69,20 +56,12 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config
-		+ pallet_evm::Config
-		+ pallet_crowdloan_rewards::Config
-		+ pallet_democracy::Config,
-	R::AccountId: From<H160>, //TODO remove this once it is removed in staking precompiles.
-	BalanceOf<R>: Debug + precompile_utils::EvmData + TryFrom<sp_core::U256>,
-	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<parachain_staking::Call<R>>
-		+ From<pallet_crowdloan_rewards::Call<R>>
-		+ From<pallet_democracy::Call<R>>,
-	R::Hash: From<sp_core::H256>,
-	// DemocracyWrapper<R>: Precompile, //TODO why is this necessary? And why only for democracy?
+	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
+	R: pallet_evm::Config,
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -111,9 +90,9 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2051) => Some(<DemocracyWrapper<R> as Precompile>::execute(
-				input, target_gas, context,
-			)),
+			a if a == hash(2051) => {
+				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
+			}
 			_ => None,
 		}
 	}
