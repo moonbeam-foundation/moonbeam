@@ -48,7 +48,7 @@ interface IERC20 {
    * Selector: 095ea7b3
    * @param spender The address which will spend the funds.
    * @param value The amount of tokens to be spent.
-   * @return true, this cannot fail3
+   * @return true, this cannot fail
    */
   function approve(address spender, uint256 value)
     external returns (bool);
