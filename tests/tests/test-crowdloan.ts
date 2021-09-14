@@ -798,10 +798,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
           [relayAccount.addressRaw, firstAccount.address, 1_500_000n * GLMR],
           [relayAccount2.addressRaw, firstAccount.address, 1_500_000n * GLMR],
         ])
-        /*context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
-          [(relayAccount2.addressRaw, firstAccount.address, 1_500_000n * GLMR)],
-          [relayAccount.addressRaw, firstAccount.address, 1_500_000n * GLMR],
-        ])*/
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
