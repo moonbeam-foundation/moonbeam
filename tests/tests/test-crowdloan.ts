@@ -772,6 +772,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     sudoAccount: KeyringPair,
     relayAccount: KeyringPair,
     relayAccount2: KeyringPair,
+    firstAccount: KeyringPair,
     toAssociateAccount: KeyringPair;
 
   before("Setup genesis account and relay accounts", async () => {
@@ -786,15 +787,21 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     relayAccount2 = await relayKeyRing.addFromUri(seed2, null, "ed25519");
 
-    toAssociateAccount = await keyring.addFromUri(seed, null, "ethereum");
+    firstAccount = await keyring.addFromUri(seed, null, "ethereum");
+
+    toAssociateAccount = await keyring.addFromUri(seed2, null, "ethereum");
   });
   it("should be able to change reward address with relay keys", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
-          [relayChainAddress, GENESIS_ACCOUNT, 1_500_000n * GLMR],
-          [relayAccount.addressRaw, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+          [relayAccount.addressRaw, firstAccount.address, 1_500_000n * GLMR],
+          [relayAccount2.addressRaw, firstAccount.address, 1_500_000n * GLMR],
         ])
+        /*context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [(relayAccount2.addressRaw, firstAccount.address, 1_500_000n * GLMR)],
+          [relayAccount.addressRaw, firstAccount.address, 1_500_000n * GLMR],
+        ])*/
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -820,16 +827,21 @@ describeDevMoonbeam("Crowdloan", (context) => {
       ).toHuman() as any
     ).to.be.null;
 
+    let message = new Uint8Array([...toAssociateAccount.addressRaw, ...firstAccount.addressRaw]);
+
     // Construct the signatures
     let signature1 = {};
-    signature1["Ed25519"] = relayAccount.sign(toAssociateAccount.address.concat(GENESIS_ACCOUNT));
+    signature1["Ed25519"] = relayAccount.sign(message);
     let signature2 = {};
-    signature2["Ed25519"] = relayAccount2.sign(toAssociateAccount.address.concat(GENESIS_ACCOUNT));
+    signature2["Ed25519"] = relayAccount2.sign(message);
 
-    let proofs = [(relayAccount.address, signature1), (relayAccount2.address, signature2)]
+    let proofs = [
+      [relayAccount.addressRaw, signature1],
+      [relayAccount2.addressRaw, signature2],
+    ];
     // Associate the identity
     await context.polkadotApi.tx.crowdloanRewards
-      .change_association_with_relay_keys(toAssociateAccount.address, GENESIS_ACCOUNT, proofs)
+      .changeAssociationWithRelayKeys(toAssociateAccount.address, firstAccount.address, proofs)
       .signAndSend(genesisAccount);
     await context.createBlock();
 
