@@ -34,7 +34,7 @@ jobs:
       - name: Check git ref
         id: check-git-ref
         run: |
-          if [[ -n "${{ github.event.pull_request }}" ]]; then
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
           else if [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
