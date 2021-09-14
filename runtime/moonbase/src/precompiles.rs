@@ -18,7 +18,6 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -26,7 +25,6 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use parity_scale_codec::Decode;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -57,10 +55,9 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config,
-
+	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
+	R: pallet_evm::Config,
+	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 {
