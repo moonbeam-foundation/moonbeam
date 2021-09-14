@@ -215,6 +215,8 @@ runtime-benchmarks = [
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",
