@@ -150,6 +150,7 @@ pub enum EvmEvent {
 	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 	fn from(i: evm::tracing::Event<'a>) -> Self {
 		match i {
