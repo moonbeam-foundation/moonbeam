@@ -51,7 +51,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> xcm_primitives::UnitsPerSecondGetter<T::AssetId> for Pallet<T> {
+	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetId> for Pallet<T> {
 		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
 			AssetIdUnitsPerSecond::<T>::get(asset_id)
 		}

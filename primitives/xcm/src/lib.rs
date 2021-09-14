@@ -109,11 +109,11 @@ where
 
 // We need to know how to charge for incoming assets
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
-// UnitsPerSecondGetter trait, which needs to be implemented by AssetIdInfoGetter
+// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
 	AssetId: From<AssetType> + Clone,
 	AssetType: From<MultiLocation> + Clone,
-	AssetIdInfoGetter: UnitsPerSecondGetter<AssetId>,
+	AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
 	R: TakeRevenue,
 >(
 	Weight,
@@ -123,7 +123,7 @@ pub struct FirstAssetTrader<
 impl<
 		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
-		AssetIdInfoGetter: UnitsPerSecondGetter<AssetId>,
+		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
 		R: TakeRevenue,
 	> WeightTrader for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
 {
@@ -296,7 +296,8 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 }
 
 // Defines the trait to obtain the units per second of a give assetId
-pub trait UnitsPerSecondGetter<AssetId> {
+// This parameter will be used to charge for fees upon assetId deposit
+pub trait UnitsToWeightRatio<AssetId> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
 }
