@@ -160,7 +160,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
         "1.0000 kUNIT"
     ).to.equal(true, "bond should have decreased");
   });
-  it("should fail to call candidateBondLess on ETHAN bellow minimum amount", async function () {
+  it("should fail to call candidateBondLess on ETHAN below minimum amount", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
       ethan,
