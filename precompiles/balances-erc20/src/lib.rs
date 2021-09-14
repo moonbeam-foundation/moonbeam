@@ -23,7 +23,7 @@ use frame_support::{
 	sp_runtime::traits::{CheckedSub, StaticLookup},
 	storage::types::StorageDoubleMap,
 	traits::StorageInstance,
-	transactional, Blake2_128Concat,
+	Blake2_128Concat,
 };
 use pallet_balances::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
@@ -111,7 +111,7 @@ pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Runtime as frame_system::Config>::AccountId,
 	Blake2_128Concat,
 	<Runtime as frame_system::Config>::AccountId,
-	<Runtime as pallet_balances::Config<Instance>>::Balance,
+	BalanceOf<Runtime, Instance>,
 >;
 
 #[precompile_utils::generate_function_selector]
@@ -272,7 +272,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_APPROVAL,
@@ -320,7 +320,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_TRANSFER,
@@ -332,9 +332,6 @@ where
 		})
 	}
 
-	// This function is annotated with transactional.
-	// This is to ensure that if the substrate call fails, the change in allowance is reverted.
-	#[transactional]
 	fn transfer_from(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -354,7 +351,7 @@ where
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
-			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
+			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 			let amount = Self::u256_to_amount(amount)?;
 
@@ -393,7 +390,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_TRANSFER,

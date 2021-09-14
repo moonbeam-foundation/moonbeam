@@ -35,6 +35,7 @@ interface IERC20 {
    * Selector: a9059cbb
    * @param to The address to transfer to.
    * @param value The amount to be transferred.
+   * @return true if the transfer was succesful, revert otherwise.
    */
   function transfer(address to, uint256 value) external returns (bool);
 
@@ -47,6 +48,7 @@ interface IERC20 {
    * Selector: 095ea7b3
    * @param spender The address which will spend the funds.
    * @param value The amount of tokens to be spent.
+   * @return true, this cannot fail3
    */
   function approve(address spender, uint256 value)
     external returns (bool);
@@ -57,6 +59,7 @@ interface IERC20 {
    * @param from address The address which you want to send tokens from
    * @param to address The address which you want to transfer to
    * @param value uint256 the amount of tokens to be transferred
+   * @return true if the transfer was succesful, revert otherwise.
    */
   function transferFrom(address from, address to, uint256 value)
     external returns (bool);
