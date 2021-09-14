@@ -36,7 +36,8 @@ use frame_support::{
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
+		WeightToFeeCoefficients, WeightToFeeCoefficient, WeightToFeePolynomial,
+		DispatchClass, GetDispatchInfo, Weight,
 	},
 	PalletId,
 };
@@ -74,6 +75,8 @@ use sp_version::RuntimeVersion;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
+use smallvec::smallvec;
+
 mod precompiles;
 use precompiles::MoonbasePrecompiles;
 
@@ -97,6 +100,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const WEIGHT_FEE: Balance = MEGAWEI;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -277,10 +281,24 @@ parameter_types! {
 	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			coeff_frac: Perbill::zero(),
+			coeff_integer: currency::WEIGHT_FEE,
+			negative: false,
+		}]
+	}
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
-	type WeightToFee = IdentityFee<Balance>;
+	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 

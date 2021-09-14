@@ -12,6 +12,7 @@ build = "build.rs"
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 log = "0.4"
+smallvec = "1.4.1"
 
 runtime-common = { path = "../common", default-features = false }
 
