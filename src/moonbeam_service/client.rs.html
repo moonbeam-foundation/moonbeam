@@ -394,13 +394,6 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -742,17 +735,10 @@
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_blockchain::Result</span><span class="op">&lt;</span>
 		<span class="ident">KeyIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::FullBackend</span> <span class="kw">as</span> <span class="ident">sc_client_api::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::State</span>, <span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="self">Self</span><span class="ident">::Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">client</span>.<span class="ident">child_storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>)
-			}
-			<span class="self">Self</span><span class="ident">::Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">client</span>.<span class="ident">child_storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>)
-			}
-			<span class="self">Self</span><span class="ident">::Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">client</span>.<span class="ident">child_storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>)
-			}
-		}
+		<span class="macro">match_client!</span>(
+			<span class="self">self</span>,
+			<span class="ident">child_storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>)
+		)
 	}
 
 	<span class="kw">fn</span> <span class="ident">child_storage_hash</span>(

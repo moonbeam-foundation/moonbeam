@@ -104,7 +104,7 @@
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::chain_spec::moonbase</span>::{<span class="ident">testnet_genesis</span>, <span class="ident">ChainSpec</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::chain_spec</span>::{<span class="ident">get_from_seed</span>, <span class="ident">Extensions</span>};
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{<span class="ident">currency::GLMR</span>, <span class="ident">AccountId</span>};
+<span class="kw">use</span> <span class="ident">moonbase_runtime</span>::{<span class="ident">currency::UNIT</span>, <span class="ident">AccountId</span>};
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
@@ -136,12 +136,12 @@
 					(
 						<span class="ident">AccountId::from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).<span class="ident">unwrap</span>(),
 						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 					),
 					(
 						<span class="ident">AccountId::from_str</span>(<span class="string">&quot;C0F0f4ab324C46e55D02D0033343B4Be8A55532d&quot;</span>).<span class="ident">unwrap</span>(),
 						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Faith&quot;</span>),
-						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 					),
 				],
 				<span class="comment">// Nominations</span>
@@ -153,7 +153,7 @@
 					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB&quot;</span>).<span class="ident">unwrap</span>(),
 					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
 				],
-				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 				<span class="ident">para_id</span>,
 				<span class="comment">// Chain ID</span>
 				<span class="number">1280</span>,

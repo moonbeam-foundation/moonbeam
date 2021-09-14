@@ -922,6 +922,13 @@
 <span id="922">922</span>
 <span id="923">923</span>
 <span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1603,12 +1610,19 @@
 
 <span class="doccomment">/// Builds a new development service. This service uses manual seal, and mocks</span>
 <span class="doccomment">/// the parachain inherent.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dev</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dev</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="ident">config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">_author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives::NimbusId</span><span class="op">&gt;</span>,
 	<span class="ident">sealing</span>: <span class="ident">cli_opt::Sealing</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TaskManager</span>, <span class="ident">ServiceError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TaskManager</span>, <span class="ident">ServiceError</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">RuntimeApi</span>:
+		<span class="ident">ConstructRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+	<span class="ident">RuntimeApi::RuntimeApi</span>:
+		<span class="ident">RuntimeApiCollection</span><span class="op">&lt;</span><span class="ident">StateBackend</span> <span class="op">=</span> <span class="ident">sc_client_api::StateBackendFor</span><span class="op">&lt;</span><span class="ident">FullBackend</span>, <span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="ident">Executor</span>: <span class="ident">NativeExecutionDispatch</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+{
 	<span class="kw">use</span> <span class="ident">async_io::Timer</span>;
 	<span class="kw">use</span> <span class="ident">futures::Stream</span>;
 	<span class="kw">use</span> <span class="ident">sc_consensus_manual_seal</span>::{<span class="ident">run_manual_seal</span>, <span class="ident">EngineCommand</span>, <span class="ident">ManualSealParams</span>};
@@ -1631,7 +1645,7 @@
 				<span class="ident">_telemetry_worker_handle</span>,
 				<span class="ident">frontier_backend</span>,
 			),
-	} <span class="op">=</span> <span class="ident">new_partial</span>::<span class="op">&lt;</span><span class="ident">moonbase_runtime::RuntimeApi</span>, <span class="ident">MoonbaseExecutor</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+	} <span class="op">=</span> <span class="ident">new_partial</span>::<span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
 	<span class="kw">let</span> (<span class="ident">network</span>, <span class="ident">system_rpc_tx</span>, <span class="ident">network_starter</span>) <span class="op">=</span>
 		<span class="ident">sc_service::build_network</span>(<span class="ident">sc_service::BuildNetworkParams</span> {

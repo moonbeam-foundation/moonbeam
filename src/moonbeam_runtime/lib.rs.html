@@ -956,6 +956,10 @@
 <span id="956">956</span>
 <span id="957">957</span>
 <span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1714,6 +1718,7 @@
 						<span class="op">|</span> <span class="ident">Call::Democracy</span>(..) <span class="op">|</span> <span class="ident">Call::CouncilCollective</span>(..)
 						<span class="op">|</span> <span class="ident">Call::TechComitteeCollective</span>(..)
 						<span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::Proxy</span>(..)
+						<span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
 				)
 			}
 			<span class="ident">ProxyType::Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
@@ -1723,7 +1728,10 @@
 					<span class="op">|</span> <span class="ident">Call::TechComitteeCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call::Utility</span>(..)
 			),
-			<span class="ident">ProxyType::Staking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..)),
+			<span class="ident">ProxyType::Staking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
+				<span class="ident">c</span>,
+				<span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
+			),
 			<span class="ident">ProxyType::CancelProxy</span> <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span>(..)))
 			}
