@@ -16,6 +16,7 @@ import {
   ALITH,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { parseConfigFileTextToJson } from "typescript";
 const relayChainAddress: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
 const relayChainAddress_2: string =
@@ -763,6 +764,83 @@ describeDevMoonbeam("Crowdloan", (context) => {
         ).toHuman() as any
       ).claimed_reward
     ).to.equal(claimed);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    relayAccount: KeyringPair,
+    relayAccount2: KeyringPair,
+    toAssociateAccount: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    const relayKeyRing = new Keyring({ type: "ed25519" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    // add the account, override to ed25519
+    relayAccount = await relayKeyRing.addFromUri(seed, null, "ed25519");
+    const seed2 = randomAsHex(32);
+
+    relayAccount2 = await relayKeyRing.addFromUri(seed2, null, "ed25519");
+
+    toAssociateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+  it("should be able to change reward address with relay keys", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+          [relayAccount.addressRaw, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toHuman()).to.be.true;
+
+    // toAssociateAccount should not be in accounts payable
+    expect(
+      (
+        await context.polkadotApi.query.crowdloanRewards.accountsPayable(toAssociateAccount.address)
+      ).toHuman() as any
+    ).to.be.null;
+
+    // Construct the signatures
+    let signature1 = {};
+    signature1["Ed25519"] = relayAccount.sign(toAssociateAccount.address.concat(GENESIS_ACCOUNT));
+    let signature2 = {};
+    signature2["Ed25519"] = relayAccount2.sign(toAssociateAccount.address.concat(GENESIS_ACCOUNT));
+
+    let proofs = [(relayAccount.address, signature1), (relayAccount2.address, signature2)]
+    // Associate the identity
+    await context.polkadotApi.tx.crowdloanRewards
+      .change_association_with_relay_keys(toAssociateAccount.address, GENESIS_ACCOUNT, proofs)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // toAssociateAccount should now be in accounts payable
+    let rewardInfo = (
+      await context.polkadotApi.query.crowdloanRewards.accountsPayable(toAssociateAccount.address)
+    ).toJSON() as any;
+
+    expect(formatBalance(rewardInfo.total_reward, { withSi: true, withUnit: "UNIT" }, 18)).to.equal(
+      "3.0000 MUNIT"
+    );
   });
 });
 

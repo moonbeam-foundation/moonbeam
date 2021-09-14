@@ -250,6 +250,7 @@ const TYPES_400_undefined: RegistryTypes = {
     claimed_reward: "Balance",
     contributed_relay_addresses: "Vec<RelayChainAccountId>",
   },
+  VestingBlockNumber:"u32",
 };
 
 export const moonbeamDefinitions = {
