@@ -23,6 +23,8 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, OnFinalize, OnInitialize},
 };
+
+use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
@@ -34,6 +36,7 @@ use sp_runtime::{
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 pub type AccountId = Account;
+pub type AssetId = u128;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -91,6 +94,19 @@ impl From<Account> for H160 {
 		}
 	}
 }
+
+impl From<Account> for AssetId {
+	fn from(x: Account) -> AssetId {
+		match x {
+			Account::Alice => 0u128,
+			Account::Bob => 1u128,
+			Account::Charlie => 2u128,
+			Account::Precompile => 3u128,
+			Account::Bogus => 4u128,
+		}
+	}
+}
+
 
 impl From<H160> for Account {
 	fn from(x: H160) -> Account {
@@ -180,6 +196,32 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 }
 
+// These parameters dont matter much as this will only be called by root with the forced arguments
+// No deposit is substracted with those methods
+parameter_types! {
+	pub const AssetDeposit: Balance = 0;
+	pub const ApprovalDeposit: Balance = 0;
+	pub const AssetsStringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 0;
+	pub const MetadataDepositPerByte: Balance = 0;
+}
+
+impl pallet_assets::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Runtime where
@@ -189,6 +231,8 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -199,11 +243,14 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	R: pallet_balances::Config,
 	R: pallet_evm::Config,
+	R: pallet_assets::Config,
 	R::AccountId: From<H160>,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<pallet_balances::Call<R>>,
+	R::Call: From<pallet_assets::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256>,
+	AssetIdOf<R>: From<R::AccountId>,
+
 {
 	fn execute(
 		address: H160,
@@ -211,12 +258,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<R>::execute(
-				input, target_gas, context,
-			)),
-			_ => None,
-		}
+		Some(Erc20AssetsPrecompile::<R>::execute(
+			input, target_gas, context,
+		))
 	}
 }
 
