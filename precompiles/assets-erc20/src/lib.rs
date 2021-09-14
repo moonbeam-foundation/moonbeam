@@ -1,5 +1,5 @@
 // Copyright 2019-2021 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is 	part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@ use frame_support::{
 	traits::StorageInstance,
 	transactional, Blake2_128Concat,
 };
+use frame_support::pallet_prelude::StorageNMap;
+use frame_support::pallet_prelude::NMapKey;
 use pallet_assets::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
@@ -34,6 +36,8 @@ use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
 	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
 };
+use codec::{Decode, Encode};
+
 use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{
@@ -103,6 +107,11 @@ impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
 pub type BalanceOf<Runtime, Instance = ()> =
 	<Runtime as pallet_assets::Config<Instance>>::Balance;
 
+/// Alias for the Balance type for the provided Runtime and Instance.
+pub type AssetIdOf<Runtime, Instance = ()> =
+<Runtime as pallet_assets::Config<Instance>>::AssetId;
+
+#[derive(Default, Clone, Encode, Decode)]
 pub struct ApprovalFromTo<Runtime: frame_system::Config> {
 	from: <Runtime as frame_system::Config>::AccountId,
 	to: <Runtime as frame_system::Config>::AccountId,
@@ -111,13 +120,14 @@ pub struct ApprovalFromTo<Runtime: frame_system::Config> {
 /// Storage type used to store approvals, since `pallet_assets` doesn't
 /// handle this behavior.
 /// (Owner => Allowed => Amount)
-pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
+pub type ApprovesStorage<Runtime, Instance> = StorageNMap<
 	<Instance as InstanceToPrefix>::ApprovesPrefix,
-	Blake2_128Concat,
-	<Runtime as pallet_assets::Config<Instance>>::AssetId,
-	Blake2_128Concat,
-	ApprovalFromTo<Runtime>,
-	<Runtime as pallet_assets::Config<Instance>>::Balance,
+	(
+		NMapKey<Blake2_128Concat, AssetIdOf<Runtime, Instance>>,
+		NMapKey<Blake2_128Concat, <Runtime as frame_system::Config>::AccountId>, // owner
+		NMapKey<Blake2_128Concat,  <Runtime as frame_system::Config>::AccountId>, // delegate
+	),
+	<Runtime as pallet_assets::Config<Instance>>::Balance
 >;
 
 #[precompile_utils::generate_function_selector]
@@ -146,6 +156,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	AssetIdOf<Runtime, Instance>: From<Runtime::AccountId>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -168,27 +179,25 @@ where
 impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
 where
 	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_assets::Config<Instance> + pallet_evm::Configzy,
+	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	AssetIdOf<Runtime, Instance>: From<Runtime::AccountId>,
+
 {
 	fn total_supply(input: EvmDataReader, target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let data = [0u8; 16];
-		let execution_address = context.address;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
 		// Parse input.
 		input.expect_arguments(0)?;
 
 		// Fetch info.
-		let amount: U256 = pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into();
+		let amount: U256 = pallet_assets::Pallet::<Runtime, Instance>::total_issuance(execution_address.into()).into();
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -210,19 +219,14 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let data = [0u8; 16];
-		let execution_address = context.address;
-
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
-
 		let owner: H160 = input.read::<Address>()?.into();
 
 		// Fetch info.
 		let amount: U256 = {
+			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
-			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &owner).into()
+			pallet_assets::Pallet::<Runtime, Instance>::balance(execution_address.into(), &owner).into()
 		};
 
 		// Build output.
@@ -239,13 +243,6 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let data = [0u8; 16];
-		let execution_address = context.address;
-
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
-
 		// Read input.
 		input.expect_arguments(2)?;
 
@@ -254,15 +251,14 @@ where
 
 		// Fetch info.
 		let amount: U256 = {
+			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
-			let approval =  ApprovalFromTo::<Runtime> {
-				from: owner,
-				to: spender
-			};
+			let asset_id: AssetIdOf<Runtime, Instance> = execution_address.into();
 
-			ApprovesStorage::<Runtime, Instance>::get(asset_id, approval)
+			ApprovesStorage::<Runtime, Instance>::get((asset_id, owner, spender))
 				.unwrap_or_default()
 				.into()
 		};
@@ -285,13 +281,6 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
-		let data = [0u8; 16];
-		let execution_address = context.address;
-
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
-
 		// Parse input.
 		input.expect_arguments(2)?;
 
@@ -300,17 +289,15 @@ where
 
 		// Write into storage.
 		{
+			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 			let amount = Self::u256_to_amount(amount)?;
-			
-			let approval =  ApprovalFromTo::<Runtime> {
-				from: caller,
-				to: spender
-			};
+			let asset_id: AssetIdOf<Runtime, Instance> = execution_address.into();
 
-			ApprovesStorage::<Runtime, Instance>::insert(asset_id, approval, amount);
+			ApprovesStorage::<Runtime, Instance>::insert((asset_id, caller, spender), amount);
 		}
 
 		// Build output.
@@ -337,13 +324,6 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(3, 32)?;
 
-		let data = [0u8; 16];
-		let execution_address = context.address;
-
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
-
 		// Parse input.
 		input.expect_arguments(2)?;
 
@@ -352,6 +332,8 @@ where
 
 		// Build call with origin.
 		{
+			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 			let amount = Self::u256_to_amount(amount)?;
@@ -360,7 +342,7 @@ where
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::transfer(
-					asset_id,
+					execution_address.into(),
 					Runtime::Lookup::unlookup(to),
 					amount,
 				),
@@ -397,13 +379,6 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
-
-		let data = [0u8; 16];
-		let execution_address = context.address;
-
-		data.copy_from_slice(&execution_address.as_fixed_bytes()[4..20]);
-
-		let asset_id = u128::from_be_bytes(data);
 		
 		// Parse input.
 		input.expect_arguments(3)?;
@@ -412,6 +387,9 @@ where
 		let amount: U256 = input.read()?;
 
 		{
+			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+			let asset_id: AssetIdOf<Runtime, Instance> = execution_address.clone().into();
+
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
@@ -420,12 +398,8 @@ where
 
 			// If caller is "from", it can spend as much as it wants.
 			if caller != from {
-				let approval =  ApprovalFromTo::<Runtime> {
-					from,
-					to: caller
-				};
 
-				ApprovesStorage::<Runtime, Instance>::mutate(asset_id, approval, |entry| {
+				ApprovesStorage::<Runtime, Instance>::mutate((&asset_id, &from, &caller), |entry| {
 					// Get current value, exit if None.
 					let value = entry.ok_or(error("spender not allowed"))?;
 
@@ -446,7 +420,7 @@ where
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(from).into(),
 				pallet_assets::Call::<Runtime, Instance>::transfer(
-					asset_id,
+					execution_address.into(),
 					Runtime::Lookup::unlookup(to),
 					amount,
 				),
