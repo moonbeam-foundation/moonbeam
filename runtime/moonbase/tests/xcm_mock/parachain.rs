@@ -225,7 +225,12 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	pub SelfReserve: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
+	pub SelfReserve: MultiLocation =
+		MultiLocation::X3(
+			Parent,
+			Parachain(MsgQueue::parachain_id().into()).into(),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		);
 }
 
 pub struct XcmConfig;
@@ -278,7 +283,10 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
-	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent, Parachain(MsgQueue::parachain_id().into()).into());
+	pub SelfLocation: MultiLocation =
+	MultiLocation::X2(
+		Parent, Parachain(MsgQueue::parachain_id().into()).into()
+	);
 }
 
 // The XCM message wrapper wrapper

@@ -138,13 +138,13 @@ fn send_relay_asset_to_relay() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X2(
+			Box::new(X2(
 				Junction::Parent,
 				Junction::AccountId32 {
 					network: NetworkId::Any,
 					id: RELAYALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -228,14 +228,14 @@ fn send_relay_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -285,14 +285,14 @@ fn send_para_a_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -358,14 +358,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -389,14 +389,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(3),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -441,14 +441,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -472,14 +472,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(1),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});

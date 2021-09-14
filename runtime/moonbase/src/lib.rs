@@ -558,6 +558,44 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 }
 
+parameter_types! {
+	// Add one item in storage and take 258 bytes
+	pub const BasicDeposit: Balance = currency::deposit(1, 258);
+	// Not add any item to the storage but takes 66 bytes
+	pub const FieldDeposit: Balance = currency::deposit(0, 66);
+	// Add one item in storage and take 53 bytes
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 53);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+type IdentityForceOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+type IdentityRegistrarOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = IdentityForceOrigin;
+	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -752,6 +790,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::Democracy(..) | Call::CouncilCollective(..)
 						| Call::TechComitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
+						| Call::AuthorMapping(..)
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -761,7 +800,10 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::TechComitteeCollective(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
+			ProxyType::Staking => matches!(
+				c,
+				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
 			}
@@ -1219,14 +1261,15 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 24,
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 25,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 26,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
 		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
-		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 27,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 28,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 29,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
+		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 28,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
+		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 	}
 }
 
@@ -1257,7 +1300,19 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	MigratePalletVersionToStorageVersion,
 >;
+
+/// Migrate from `PalletVersion` to the new `StorageVersion`
+pub struct MigratePalletVersionToStorageVersion;
+
+impl frame_support::traits::OnRuntimeUpgrade for MigratePalletVersionToStorageVersion {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		frame_support::migrations::migrate_from_pallet_version_to_storage_version::<
+			AllPalletsWithSystem,
+		>(&RocksDbWeight::get())
+	}
+}
 
 // All of our runtimes share most of their Runtime API implementations.
 // We use a macro to implement this common part and add runtime-specific additional implementations.
