@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Precompile to interact with pallet_balances instances using the ERC20 interface standard.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
