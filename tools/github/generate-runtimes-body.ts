@@ -83,8 +83,10 @@ ${runtimes
 
 * spec_version: ${runtime.version}
 * sha256: ${runtime.srtool.runtimes.compressed.sha256}
+* blake2-256: ${runtime.srtool.runtimes.compressed.blake2_256}
 * size: ${runtime.srtool.runtimes.compressed.size}
-* proposal: ${runtime.srtool.runtimes.compressed.prop}`
+* proposal: ${runtime.srtool.runtimes.compressed.prop}
+* parachain authorize upgrade hash: ${runtime.srtool.runtimes.compressed.subwasm.parachain_authorize_upgrade_hash}`
   )
   .join(`\n\n`)}
 `
