@@ -1,6 +1,6 @@
 import tcpPortUsed from "tcp-port-used";
 import { spawn, ChildProcess } from "child_process";
-import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, ETHAPI_CMD } from "./constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "./constants";
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -56,10 +56,10 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   const cmd = BINARY_PATH;
   const args = [
     withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
-    ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
+    `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,

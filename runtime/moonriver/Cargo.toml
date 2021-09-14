@@ -101,7 +101,6 @@ sha3 = "0.8"
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 [features]
-evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
 default = ["std"]
 std = [
 	"runtime-common/std",
