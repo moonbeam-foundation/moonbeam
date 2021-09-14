@@ -18,7 +18,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use pallet_evm::{Precompile, PrecompileSet};
+use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
@@ -36,16 +36,16 @@ use sp_std::marker::PhantomData;
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
-impl<R: frame_system::Config> MoonbeamPrecompiles<R>
+impl<R> MoonbeamPrecompiles<R>
 where
-	R::AccountId: From<H160>,
+	R: pallet_evm::Config,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049]
 			.into_iter()
-			.map(|x| hash(x).into())
+			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 
