@@ -10,6 +10,9 @@ name: Build
 on:
   pull_request:
     types: [opened, edited, unassigned, synchronize]
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       pull_request:
@@ -215,11 +218,6 @@ jobs:
         run: |
           env
           cargo build --release --all
-      - name: Build Tracing Node
-        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-        run: |
-          env
-          cargo build --release -p moonbeam --features evm-tracing
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
@@ -255,7 +253,7 @@ jobs:
         run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
-      - name: Save parachain binary
+      - name: Save moonbeam binary
         run: |
           mkdir -p build
           cp target/release/moonbeam build/moonbeam;
@@ -315,16 +313,99 @@ jobs:
             false
           fi
 
-      - name: Typescript evm-tracing tests (against dev service)
-        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-        env:
-          BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
+  ####### Building and Testing tracing binaries #######
+
+  tracing-build:
+    if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    env:
+      CARGO_SCCACHE_COMMIT: 90e1dc81
+      RUSTFLAGS: "-C opt-level=3"
+      # MOONBEAM_LOG: info
+      # DEBUG: "test*"
+    outputs:
+      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
+
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: SCCache
         run: |
+          # We altered the path to avoid old actions to overwrite it
+          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
+          if [ ! -f $SCCACHE_BIN ]; then
+            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
+          fi
+          ls -la $SCCACHE_BIN
+          ps aux | grep sccache
+          if [[ -z `pgrep sccache` ]]; then
+            chmod +x $SCCACHE_BIN
+            $SCCACHE_BIN --start-server
+          fi
+          $SCCACHE_BIN -s
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+      - id: get-rust-versions
+        run: |
+          echo "::set-output name=rustc::$(rustc --version)"
+      - name: Build Tracing Node
+        run: |
+          env
+          cargo build --release -p moonbeam --features evm-tracing
+      - name: Save moonbeam tracing binary
+        run: |
+          mkdir -p build
+          cp target/release/moonbeam build/moonbeam-tracing;
+      - name: Upload tracing binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbeam-tracing
+          path: build
+
+  typescript-tracing-tests:
+    if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
+    runs-on: self-hosted
+    needs: tracing-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam-tracing
+          path: build
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Typescript integration tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam-tracing
+        run: |
+          chmod uog+x build/moonbeam-tracing
           cd moonbeam-types-bundle
           npm install
           cd ../tests
           npm install
+          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
+      - name: Typescript evm-tracing tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam-tracing
+          ETHAPI_CMD: --ethapi=txpool,debug,trace
+        run: |
+          cd tests
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
@@ -366,7 +447,7 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -403,7 +484,7 @@ jobs:
           context: .
           file: ./docker/moonbase-parachain.Dockerfile
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
@@ -417,7 +498,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -454,7 +535,7 @@ jobs:
           context: .
           file: ./docker/moonbeam.Dockerfile
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
