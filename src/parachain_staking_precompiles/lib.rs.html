@@ -603,9 +603,6 @@
 <span id="603">603</span>
 <span id="604">604</span>
 <span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -640,7 +637,6 @@
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
 	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
@@ -686,7 +682,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">EvmData</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -746,7 +741,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">EvmData</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -825,7 +819,7 @@
 
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -865,7 +859,7 @@
 
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -908,7 +902,7 @@
 
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -931,7 +925,7 @@
 
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -954,7 +948,7 @@
 
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1107,7 +1101,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">collator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">nominator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
@@ -1159,7 +1153,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1181,7 +1175,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
@@ -1204,7 +1198,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
