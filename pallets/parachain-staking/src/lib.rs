@@ -164,17 +164,39 @@ pub mod pallet {
 
 	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Actions allowed by an active collator
-	pub enum CollatorBondAction {
+	pub enum CandidateBondAction {
 		Increase,
 		Decrease,
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Request scheduled to change the collator self-bond
-	pub struct CollatorBondChange<Balance> {
+	/// -> change term to candidate
+	pub struct CandidateBondChange<Balance> {
 		pub amount: Balance,
-		pub change: CollatorBondAction,
+		pub change: CandidateBondAction,
 		pub when: RoundIndex,
+	}
+
+	impl<B> CandidateBondChange<B> {
+		pub fn new(
+			change: CandidateBondAction,
+			amount: B,
+			when: RoundIndex,
+		) -> CandidateBondChange<B> {
+			match change {
+				CandidateBondAction::Increase => CandidateBondChange {
+					amount,
+					change,
+					when,
+				},
+				CandidateBondAction::Decrease => CandidateBondChange {
+					amount,
+					change,
+					when,
+				},
+			}
+		}
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
@@ -195,7 +217,7 @@ pub mod pallet {
 		/// Sum of all delegations + self.bond = (total_counted + uncounted)
 		pub total_backing: Balance,
 		/// Maximum 1 pending request to adjust candidate self bond at any given time
-		pub request: Option<CollatorBondChange<Balance>>,
+		pub request: Option<CandidateBondChange<Balance>>,
 		/// Current status of the collator
 		pub state: CollatorStatus,
 	} // TODO: impl From<Collator2 for CollatorCandidate
@@ -239,23 +261,72 @@ pub mod pallet {
 				Err(Error::<T>::CandidateNotLeaving.into())
 			}
 		}
-		pub fn schedule_bond_more<T: Config>(&mut self, more: B) -> DispatchResult {
-			Ok(())
+		/// Schedule executable increase of collator candidate self bond
+		/// Returns the round at which the collator can execute the pending request
+		pub fn schedule_bond_more<T: Config>(
+			&mut self,
+			more: B,
+		) -> Result<RoundIndex, DispatchError> {
+			// ensure no pending request
+			ensure!(
+				self.request.is_none(),
+				Error::<T>::PendingCollatorRequestAlreadyExists
+			);
+			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
+			self.request = Some(CandidateBondChange::new(
+				CandidateBondAction::Increase,
+				more,
+				when,
+			));
+			Ok(when)
 		}
-		pub fn schedule_bond_less<T: Config>(&mut self, less: B) -> DispatchResult {
-			Ok(())
+		/// Schedule executable decrease of collator candidate self bond
+		/// Returns the round at which the collator can execute the pending request
+		pub fn schedule_bond_less<T: Config>(
+			&mut self,
+			less: B,
+		) -> Result<RoundIndex, DispatchError>
+		where
+			BalanceOf<T>: Into<B>,
+		{
+			// ensure no pending request
+			ensure!(
+				self.request.is_none(),
+				Error::<T>::PendingCollatorRequestAlreadyExists
+			);
+			// ensure bond above min after decrease
+			ensure!(self.bond > less, Error::<T>::CollatorBondBelowMin);
+			ensure!(
+				self.bond - less > T::MinCollatorCandidateStk::get().into(),
+				Error::<T>::CollatorBondBelowMin
+			);
+			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
+			self.request = Some(CandidateBondChange::new(
+				CandidateBondAction::Decrease,
+				less,
+				when,
+			));
+			Ok(when)
 		}
+		// PendingCollatorRequestDoesNotMatchCall,
+		// PendingCollatorRequestDNE,
+		// PendingCollatorRequestAlreadyExists,
+		// PendingCollatorRequestNotDueYet,
+		/// Execute pending increase self bond request
 		pub fn execute_bond_more<T: Config>(&mut self) -> DispatchResult {
-			Ok(())
+			todo!()
 		}
+		/// Execute pending decrease self bond request
 		pub fn execute_bond_less<T: Config>(&mut self) -> DispatchResult {
-			Ok(())
+			todo!()
 		}
+		/// Cancel pending increase self bond request
 		pub fn cancel_bond_more<T: Config>(&mut self) -> DispatchResult {
-			Ok(())
+			todo!()
 		}
+		/// Cancel pending decrease self bond request
 		pub fn cancel_bond_less<T: Config>(&mut self) -> DispatchResult {
-			Ok(())
+			todo!()
 		}
 		fn bond_more(&mut self, more: B) {
 			self.bond += more;
@@ -774,7 +845,10 @@ pub mod pallet {
 			// calculate max amount allowed to be revoked for this nominator to not fall below min
 			// if this subtraction underflows, then \exists inconsistency
 			let max_revocation_amount = net_total - T::MinNominatorStk::get().into();
-			ensure!(amount <= max_revocation_amount, Error::<T>::ValBondBelowMin);
+			ensure!(
+				amount <= max_revocation_amount,
+				Error::<T>::NominatorBondBelowMin
+			);
 			let new_expected_total = self.total - amount;
 			// add revocation to pending requests
 			self.requests.revoke::<T>(collator, amount, when)?;
@@ -1248,8 +1322,8 @@ pub mod pallet {
 		NominationDNE,
 		NominatorExists,
 		CandidateExists,
-		ValBondBelowMin,
-		NomBondBelowMin,
+		CollatorBondBelowMin,
+		NominatorBondBelowMin, // TODO: change to Delegator
 		NominationBelowMin,
 		AlreadyOffline,
 		AlreadyActive,
@@ -1273,6 +1347,10 @@ pub mod pallet {
 		TooLowNominationCountToNominate,
 		TooLowCollatorNominationCountToNominate,
 		TooLowNominationCountToLeaveNominators,
+		PendingCollatorRequestDoesNotMatchCall,
+		PendingCollatorRequestDNE,
+		PendingCollatorRequestAlreadyExists,
+		PendingCollatorRequestNotDueYet,
 		PendingNominatorRequestDoesNotMatchCall,
 		PendingNominatorRequestDNE,
 		PendingNominatorRequestAlreadyExists,
@@ -1783,7 +1861,7 @@ pub mod pallet {
 			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
 			ensure!(
 				bond >= T::MinCollatorCandidateStk::get(),
-				Error::<T>::ValBondBelowMin
+				Error::<T>::CollatorBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
 			let old_count = candidates.0.len() as u32;
@@ -1977,10 +2055,12 @@ pub mod pallet {
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let before = state.bond;
-			let after = state.bond_less(less).ok_or(Error::<T>::ValBondBelowMin)?;
+			let after = state
+				.bond_less(less)
+				.ok_or(Error::<T>::CollatorBondBelowMin)?;
 			ensure!(
 				after >= T::MinCollatorCandidateStk::get(),
-				Error::<T>::ValBondBelowMin
+				Error::<T>::CollatorBondBelowMin
 			);
 			T::Currency::unreserve(&collator, less);
 			if state.is_active() {
@@ -2036,7 +2116,7 @@ pub mod pallet {
 				// first nomination
 				ensure!(
 					amount >= T::MinNominatorStk::get(),
-					Error::<T>::NomBondBelowMin
+					Error::<T>::NominatorBondBelowMin
 				);
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 				Delegator::new(collator.clone(), amount)
@@ -2130,7 +2210,7 @@ pub mod pallet {
 				// schedule revocation iff remaining total is not below min nominator stake
 				ensure!(
 					remaining_future_total >= T::MinNominatorStk::get(),
-					Error::<T>::NomBondBelowMin
+					Error::<T>::NominatorBondBelowMin
 				);
 				<DelegatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
@@ -2275,7 +2355,7 @@ pub mod pallet {
 			);
 			ensure!(
 				state.total >= T::MinNominatorStk::get(),
-				Error::<T>::NomBondBelowMin
+				Error::<T>::NominatorBondBelowMin
 			);
 			let mut collator =
 				<CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
