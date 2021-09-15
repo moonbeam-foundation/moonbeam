@@ -53,7 +53,7 @@ enum Action {
 	FinishedReferendumInfo = "finished_referendum_info(uint256)",
 	Propose = "propose(bytes32,uint256)",
 	Second = "second(uint256,uint256)",
-	StandardVote = "stardard_vote(uint256,bool,uint256,uint256)",
+	StandardVote = "standard_vote(uint256,bool,uint256,uint256)",
 	RemoveVote = "remove_vote(uint256)",
 	Delegate = "delegate(address,uint256,uint256)",
 	UnDelegate = "un_delegate()",

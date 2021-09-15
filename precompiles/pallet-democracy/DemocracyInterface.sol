@@ -129,7 +129,7 @@ interface Democracy {
      * It does not support `Split` votes where you vote on both sides. If such a need
      * arises, we should add an additional function to this interface called `split_vote`.
      */
-    function stardard_vote(
+    function standard_vote(
         uint256 ref_index,
         bool aye,
         uint256 vote_amount,
@@ -186,7 +186,7 @@ interface Democracy {
 // "56fdf547": "public_prop_count()",
 // "2042f50b": "remove_vote(uint256)",
 // "c7a76601": "second(uint256,uint256)",
-// "35cde7ae": "stardard_vote(uint256,bool,uint256,uint256)",
+// "3f3c21cc": "standard_vote(uint256,bool,uint256,uint256)",
 // "cb37b8ea": "un_delegate()",
 // "2f6c493c": "unlock(address)"
 // }

@@ -87,7 +87,7 @@ fn selectors() {
 	assert_eq!(Action::PublicPropCount as u32, 0x56fdf547);
 	assert_eq!(Action::RemoveVote as u32, 0x2042f50b);
 	assert_eq!(Action::Second as u32, 0xc7a76601);
-	assert_eq!(Action::StandardVote as u32, 0x35cde7ae);
+	assert_eq!(Action::StandardVote as u32, 0x3f3c21cc);
 	assert_eq!(Action::UnDelegate as u32, 0xcb37b8ea);
 	assert_eq!(Action::Unlock as u32, 0x2f6c493c);
 
@@ -455,7 +455,7 @@ fn standard_vote_aye_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
+			let selector = &Keccak256::digest(b"standard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
 				.write(0u32) // Referendum index 0
@@ -520,7 +520,7 @@ fn standard_vote_nay_conviction_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
+			let selector = &Keccak256::digest(b"standard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
 				.write(0u32) // Referendum index 0
