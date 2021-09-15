@@ -19,8 +19,6 @@
 mod common;
 use common::*;
 
-use xcm::v0::{Junction, MultiLocation::*};
-
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
@@ -44,6 +42,10 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
+};
+use xcm::v0::{
+	Junction::{self, PalletInstance, Parachain, Parent},
+	MultiLocation::*,
 };
 
 #[test]
@@ -1034,7 +1036,7 @@ fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = moonbase_runtime::AssetMetadata {
+		let asset_metadata = moonbase_runtime::LocalAssetMetadata {
 			name: b"RelayToken".to_vec(),
 			symbol: b"Relay".to_vec(),
 			decimals: 12,
