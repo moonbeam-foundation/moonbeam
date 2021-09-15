@@ -162,14 +162,14 @@ pub mod pallet {
 		pub state: CollatorStatus,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Copy, Encode, Decode, RuntimeDebug)]
 	/// Actions allowed by an active collator
 	pub enum CandidateBondAction {
 		Increase,
 		Decrease,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Copy, Encode, Decode, RuntimeDebug)]
 	/// Request scheduled to change the collator self-bond
 	/// -> change term to candidate
 	pub struct CandidateBondChange<Balance> {
@@ -184,17 +184,10 @@ pub mod pallet {
 			amount: B,
 			when: RoundIndex,
 		) -> CandidateBondChange<B> {
-			match change {
-				CandidateBondAction::Increase => CandidateBondChange {
-					amount,
-					change,
-					when,
-				},
-				CandidateBondAction::Decrease => CandidateBondChange {
-					amount,
-					change,
-					when,
-				},
+			CandidateBondChange {
+				amount,
+				change,
+				when,
 			}
 		}
 	}
@@ -294,7 +287,7 @@ pub mod pallet {
 				self.request.is_none(),
 				Error::<T>::PendingCollatorRequestAlreadyExists
 			);
-			// ensure bond above min after decrease
+			// ensure bond above min after decrease (TODO: change error?)
 			ensure!(self.bond > less, Error::<T>::CollatorBondBelowMin);
 			ensure!(
 				self.bond - less > T::MinCollatorCandidateStk::get().into(),
@@ -308,41 +301,62 @@ pub mod pallet {
 			));
 			Ok(when)
 		}
-		// PendingCollatorRequestDoesNotMatchCall,
-		// PendingCollatorRequestDNE,
-		// PendingCollatorRequestAlreadyExists,
-		// PendingCollatorRequestNotDueYet,
-		/// Execute pending increase self bond request
-		pub fn execute_bond_more<T: Config>(&mut self) -> DispatchResult {
-			todo!()
-		}
-		/// Execute pending decrease self bond request
-		pub fn execute_bond_less<T: Config>(&mut self) -> DispatchResult {
-			todo!()
-		}
+		/// Execute pending request to change the collator self bond
+		pub fn execute_pending_request<T: Config>(
+			&mut self,
+		) -> Result<CandidateBondChange<B>, DispatchError>
+		where
+			BalanceOf<T>: From<B>,
+			T::AccountId: From<A>,
+		{
+			let request = self.request.ok_or(Error::<T>::PendingCollatorRequestDNE)?;
+			ensure!(
+				request.when <= <Round<T>>::get().current,
+				Error::<T>::PendingCollatorRequestNotDueYet
+			);
+			let caller: T::AccountId = self.id.clone().into();
+			match request.change {
+				CandidateBondAction::Increase => {
+					T::Currency::reserve(&caller, request.amount.into())?;
+					let new_total = <Total<T>>::get().saturating_add(request.amount.into());
+					<Total<T>>::put(new_total);
+					self.bond += request.amount;
+					self.total_counted += request.amount;
+					self.total_backing += request.amount;
+				}
+				CandidateBondAction::Decrease => {
+					T::Currency::unreserve(&caller, request.amount.into());
+					let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
+					<Total<T>>::put(new_total_staked);
+					// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
+					// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
+					self.bond -= request.amount;
+					self.total_counted -= request.amount;
+					self.total_backing -= request.amount;
+				}
+			}
+			self.request = None;
+			Ok(request)
+		} // TODO: same for cancel
 		/// Cancel pending increase self bond request
 		pub fn cancel_bond_more<T: Config>(&mut self) -> DispatchResult {
-			todo!()
+			let request = self.request.ok_or(Error::<T>::PendingCollatorRequestDNE)?;
+			ensure!(
+				matches!(request.change, CandidateBondAction::Increase),
+				Error::<T>::PendingCollatorRequestDoesNotMatchCall
+			);
+			self.request = None;
+			Ok(())
 		}
 		/// Cancel pending decrease self bond request
 		pub fn cancel_bond_less<T: Config>(&mut self) -> DispatchResult {
-			todo!()
-		}
-		fn bond_more(&mut self, more: B) {
-			self.bond += more;
-			self.total_counted += more;
-			self.total_backing += more;
-		}
-		// Return None if less >= self.bond => collator must leave instead of bond less
-		fn bond_less(&mut self, less: B) -> Option<B> {
-			if self.bond > less {
-				self.bond -= less;
-				self.total_counted -= less;
-				self.total_backing -= less;
-				Some(self.bond)
-			} else {
-				None
-			}
+			let request = self.request.ok_or(Error::<T>::PendingCollatorRequestDNE)?;
+			ensure!(
+				matches!(request.change, CandidateBondAction::Decrease),
+				Error::<T>::PendingCollatorRequestDoesNotMatchCall
+			);
+			self.request = None;
+			Ok(())
 		}
 		/// Infallible sorted insertion
 		/// caller must verify !self.delegators.contains(nominator.owner) before call
@@ -2022,53 +2036,68 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		// TODO: split each into 3 runtime methods
+		// TODO: bond_more or increase => consistent everywhere
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
-		/// Bond more for collator candidates
-		pub fn candidate_bond_more(
+		/// Schedule request to bond more for collator candidates
+		pub fn schedule_candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
+			Ok(().into())
+		}
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		/// Schedule request to bond less for collator candidates
+		pub fn schedule_candidate_bond_less(
+			origin: OriginFor<T>,
+			more: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			Ok(().into())
+		}
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		/// Bond more for collator candidates
+		pub fn execute_candidate_bond_more(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
-			T::Currency::reserve(&collator, more)?;
 			let before = state.bond;
-			state.bond_more(more);
+			let more = state.execute_bond_more::<T>()?;
 			let after = state.bond;
 			if state.is_active() {
 				Self::update_active(collator.clone(), state.total_counted);
 			}
 			<CandidateState<T>>::insert(&collator, state);
-			let new_total = <Total<T>>::get().saturating_add(more);
-			<Total<T>>::put(new_total);
+			// TODO: change event to show increase as well `more`
 			Self::deposit_event(Event::CollatorBondedMore(collator, before, after));
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_less())]
 		/// Bond less for collator candidates
-		pub fn candidate_bond_less(
-			origin: OriginFor<T>,
-			less: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
+		pub fn execute_candidate_bond_less(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let before = state.bond;
-			let after = state
-				.bond_less(less)
-				.ok_or(Error::<T>::CollatorBondBelowMin)?;
-			ensure!(
-				after >= T::MinCollatorCandidateStk::get(),
-				Error::<T>::CollatorBondBelowMin
-			);
-			T::Currency::unreserve(&collator, less);
+			let less = state.execute_bond_less::<T>()?;
+			let after = state.bond;
 			if state.is_active() {
 				Self::update_active(collator.clone(), state.total_counted);
 			}
 			<CandidateState<T>>::insert(&collator, state);
-			let new_total_staked = <Total<T>>::get().saturating_sub(less);
-			<Total<T>>::put(new_total_staked);
+			// TODO: change event to show increase decrease as well
+			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
+			Ok(().into())
+		}
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		/// Cancel pending bond more request for candidate
+		/// TODO: similar for nominators, not every request needs its own cancel
+		/// TODO: not every request needs its own execute either
+		pub fn cancel_candidate_bond_more(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			let collator = ensure_signed(origin)?;
+			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
+			let less = state.cancel_bond_less::<T>()?;
+			<CandidateState<T>>::insert(&collator, state);
+			// TODO: add relevant event
 			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
 			Ok(().into())
 		}
