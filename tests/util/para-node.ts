@@ -121,7 +121,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             port: ports[2].p2pPort,
             rpcPort: ports[2].rpcPort,
             wsPort: ports[2].wsPort,
-            name: "alice_collator",
+            name: "alice",
             flags: [
               `--no-telemetry`,
               `--no-prometheus`,
@@ -136,7 +136,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             port: ports[3].p2pPort,
             rpcPort: ports[3].rpcPort,
             wsPort: ports[3].wsPort,
-            name: "bob_collator",
+            name: "bob",
             flags: [
               `--no-telemetry`,
               `--no-prometheus`,

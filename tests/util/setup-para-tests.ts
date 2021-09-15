@@ -77,7 +77,7 @@ export function describeParachain(
         );
         // We keep track of the polkadotApis to close them at the end of the test
         context._polkadotApiParachains = apiPromises;
-        await apiPromises[0].isReady;
+        await Promise.all(apiPromises.map((promise) => promise.isReady));
         // Necessary hack to allow polkadotApi to finish its internal metadata loading
         // apiPromise.isReady unfortunately doesn't wait for those properly
         await new Promise((resolve) => {

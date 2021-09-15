@@ -7,6 +7,7 @@ import {
   ALITH_PRIV_KEY,
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_BALANCE,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
 } from "../../util/constants";
 import { describeParachain } from "../../util/setup-para-tests";
 
@@ -17,18 +18,23 @@ const assetMetadata = {
   symbol: "DOT",
   decimals: 12,
 };
-const sourceLocation = { XCM: { X1: "Parent" } };
+const sourceLocation = { XCM: { parents: 1, interior: "Here" } }; //{ XCM: { X1: "Parent" } };
 const sourceId = blake2AsHex(JSON.stringify(sourceLocation));
 
 describeParachain(
   "XCM - receive_relay_asset_from_relay",
-  { chain: "moonriver-local" },
+  { chain: "moonbase-local" },
   (context) => {
     it("should be accessible through web3", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
       const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      const genesisAccount = await keyring.addFromUri(
+        GENESIS_ACCOUNT_PRIVATE_KEY,
+        null,
+        "ethereum"
+      );
 
       const parachainOne = context.polkadotApiParaone;
       const relayOne = context._polkadotApiRelaychains[0];
