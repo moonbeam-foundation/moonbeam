@@ -30,13 +30,10 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
-      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      const keyringEth = new Keyring({ type: "ethereum" });
+      const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      const genesisAccount = await keyring.addFromUri(
-        GENESIS_ACCOUNT_PRIVATE_KEY,
-        null,
-        "ethereum"
-      );
+      const genesisAccount = keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
 
       const parachainOne = context.polkadotApi;
       // const relayOne = context._polkadotApiRelaychains[0];
@@ -51,12 +48,12 @@ describeDevMoonbeam(
       console.log(Object.keys(parachainOne.tx));
       const res = await parachainOne.tx.sudo
         .sudo(parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, 1))
-        .signAndSend(genesisAccount);
+        .signAndSend(alith);
       console.log("res", res);
 
       const res2 = await parachainOne.tx.sudo
         .sudo(parachainOne.tx.assetManager.setUnitsPerSecond(sourceId, 0))
-        .signAndSend(genesisAccount);
+        .signAndSend(alith);
 
       console.log("res2", res2);
 
