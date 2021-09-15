@@ -47,6 +47,7 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
 
 describeDevMoonbeam("Block Gas - fill block with balance transfers", (context) => {
   it("should fill block with balance transfers", async function () {
+    this.timeout(20000);
     const testAccount = "0x1111111111111111111111111111111111111111";
     console.log("EXTRINSIC_GAS_LIMIT: ", EXTRINSIC_GAS_LIMIT);
     let numTransfers = Math.floor(EXTRINSIC_GAS_LIMIT / 21000); // 618.8095238095239
