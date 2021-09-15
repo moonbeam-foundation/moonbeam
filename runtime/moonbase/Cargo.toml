@@ -75,7 +75,8 @@ pallet-treasury = { git = "https://github.com/paritytech/substrate", default-fea
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 
-moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
+moonbeam-evm-tracer = { path = "../evm_tracer", optional = true, default-features = false }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
@@ -104,7 +105,7 @@ substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/parityte
 
 [features]
 default = ["std"]
-evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
+evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events"]
 std = [
 	"runtime-common/std",
 	"parity-scale-codec/std",
