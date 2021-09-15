@@ -543,7 +543,7 @@ fn receive_relay_asset_with_trader() {
 	});
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
+		// non-free execution, not full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
 	});
 }
@@ -598,7 +598,7 @@ fn error_when_not_paying_enough() {
 	});
 
 	ParaA::execute_with(|| {
-		// famount not received as it is not paying enough
+		// amount not received as it is not paying enough
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 }
