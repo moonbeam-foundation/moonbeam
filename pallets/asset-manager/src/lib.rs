@@ -14,6 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! # Asset Manager Pallet
+//!
+//! This pallet allows to register new assets if certain conditions are met
+//! The main goal of this pallet is to allow moonbeam to register XCM assets
+//! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
+//!
+//! This pallet has two storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! AssetIdUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetId should be
+//! charged per unit of second, in the case such an Asset is received as a XCM asset.
+//!
+//! This pallet has two extrinsics: register_asset, which registers an Asset in this pallet and
+//! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
+//! sets the unit per second that should be charged for a particular asset.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
