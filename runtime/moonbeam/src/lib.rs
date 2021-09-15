@@ -685,6 +685,7 @@ parameter_types! {
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
+	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -695,6 +696,10 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockProvider =
+		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
