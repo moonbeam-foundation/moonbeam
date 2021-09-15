@@ -21,8 +21,6 @@ pub mod serialization;
 
 pub mod api;
 
-pub mod events;
-
 use ethereum::Transaction;
 use sp_std::vec::Vec;
 
