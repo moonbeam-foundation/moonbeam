@@ -39,7 +39,8 @@ use sp_std::{convert::TryInto, marker::PhantomData};
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
 /// an intermediate generic type AssetType.
-/// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for AssetIdInfoGetter
+/// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
+/// AssetIdInfoGetter
 pub struct AsAssetType<AssetId, AssetType, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetType, AssetIdInfoGetter)>,
 );
