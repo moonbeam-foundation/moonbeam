@@ -515,16 +515,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			// Set --execution wasm as default
-			let execution_strategies = cli
-			.run
-			.base
-			.base
-			.import_params
-			.execution_strategies.clone();
-			if execution_strategies
-				.execution
-				.is_none()
-			{
+			let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
+			if execution_strategies.execution.is_none() {
 				cli.run
 					.base
 					.base
