@@ -95,9 +95,9 @@ where
 			a if a == hash(2050) => Some(Erc20BalancesPrecompile::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
-				input, target_gas, context,
-			)),
+			a if a == hash(2051) => {
+				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
+			}
 			_ => None,
 		}
 	}
