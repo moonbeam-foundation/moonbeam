@@ -550,6 +550,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetMetadata = AssetMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
+	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;

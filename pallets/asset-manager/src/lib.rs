@@ -27,7 +27,7 @@ pub mod tests;
 pub mod pallet {
 
 	use frame_support::{pallet_prelude::*, PalletId};
-	use frame_system::{ensure_root, pallet_prelude::*};
+	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
 
@@ -78,6 +78,9 @@ pub mod pallet {
 
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
+
+		/// Origin that is allowed to create and modify asset information
+		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -116,7 +119,8 @@ pub mod pallet {
 			metadata: T::AssetMetadata,
 			min_amount: T::Balance,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_none(),
@@ -138,7 +142,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			units_per_second: u128,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
 
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_some(),
