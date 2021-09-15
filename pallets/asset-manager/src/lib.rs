@@ -58,7 +58,7 @@ pub mod pallet {
 		fn create_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
-			metadata: T::AssetMetadata,
+			metadata: T::AssetRegistrarMetadata,
 		) -> DispatchResult;
 	}
 
@@ -83,7 +83,7 @@ pub mod pallet {
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
-		type AssetMetadata: Member + Parameter;
+		type AssetRegistrarMetadata: Member + Parameter;
 
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
@@ -109,7 +109,7 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetadata),
+		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
 	}
 
@@ -131,7 +131,7 @@ pub mod pallet {
 		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
-			metadata: T::AssetMetadata,
+			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;

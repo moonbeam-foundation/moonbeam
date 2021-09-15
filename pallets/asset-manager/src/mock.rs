@@ -129,7 +129,7 @@ impl Config for Test {
 	type Event = Event;
 	type Balance = u64;
 	type AssetId = u32;
-	type AssetMetadata = u32;
+	type AssetRegistrarMetadata = u32;
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type AssetModifierOrigin = EnsureRoot<u64>;

@@ -540,7 +540,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
-	type AssetMetadata = AssetMetadata;
+	type AssetRegistrarMetadata = AssetMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
