@@ -18,7 +18,6 @@ use super::*;
 use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 
-use frame_support::PalletId;
 use frame_support::{construct_runtime, parameter_types, RuntimeDebug};
 use sp_core::H256;
 use sp_runtime::DispatchError;
@@ -125,10 +124,6 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	}
 }
 
-parameter_types! {
-	pub const MockPalletId: PalletId = PalletId(*b"pc/mtest");
-}
-
 impl Config for Test {
 	type Event = Event;
 	type Balance = u64;
@@ -136,7 +131,6 @@ impl Config for Test {
 	type AssetMetadata = u32;
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
-	type PalletId = MockPalletId;
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

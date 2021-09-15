@@ -29,10 +29,13 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::{ensure_root, pallet_prelude::*};
 	use parity_scale_codec::HasCompact;
-	use sp_runtime::traits::AtLeast32BitUnsigned;
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// The AssetManagers's pallet id
+	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
@@ -75,10 +78,6 @@ pub mod pallet {
 
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
-
-		/// The AssetManagers's pallet id
-		#[pallet::constant]
-		type PalletId: Get<PalletId>;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -150,6 +149,13 @@ pub mod pallet {
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// The account ID of AssetManager
+		pub fn account_id() -> T::AccountId {
+			PALLET_ID.into_account()
 		}
 	}
 }

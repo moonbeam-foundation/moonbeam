@@ -520,7 +520,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::force_create(
 			Origin::root(),
 			asset,
-			AssetManagerId::get().into_account(),
+			AssetManager::account_id(),
 			true,
 			min_balance,
 		)?;
@@ -543,10 +543,6 @@ pub struct AssetMetadata {
 	pub decimals: u8,
 }
 
-parameter_types! {
-	pub const AssetManagerId: PalletId = PalletId(*b"asstmngr");
-}
-
 impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -554,7 +550,6 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetMetadata = AssetMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type PalletId = AssetManagerId;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
