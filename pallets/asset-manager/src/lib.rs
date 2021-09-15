@@ -14,6 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! # Asset Manager Pallet
+//!
+//! This pallet allows to register new assets if certain conditions are met
+//! The main goal of this pallet is to allow moonbeam to register XCM assets
+//! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
+//!
+//! This pallet has two storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! AssetIdUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetId should be
+//! charged per unit of second, in the case such an Asset is received as a XCM asset.
+//!
+//! This pallet has two extrinsics: register_asset, which registers an Asset in this pallet and
+//! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
+//! sets the unit per second that should be charged for a particular asset.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
@@ -27,12 +41,15 @@ pub mod tests;
 pub mod pallet {
 
 	use frame_support::{pallet_prelude::*, PalletId};
-	use frame_system::{ensure_root, pallet_prelude::*};
+	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
-	use sp_runtime::traits::AtLeast32BitUnsigned;
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// The AssetManagers's pallet id
+	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
@@ -76,9 +93,8 @@ pub mod pallet {
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
 
-		/// The AssetManagers's pallet id
-		#[pallet::constant]
-		type PalletId: Get<PalletId>;
+		/// Origin that is allowed to create and modify asset information
+		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -117,7 +133,8 @@ pub mod pallet {
 			metadata: T::AssetMetadata,
 			min_amount: T::Balance,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_none(),
@@ -139,7 +156,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			units_per_second: u128,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
 
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_some(),
@@ -150,6 +167,13 @@ pub mod pallet {
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// The account ID of AssetManager
+		pub fn account_id() -> T::AccountId {
+			PALLET_ID.into_account()
 		}
 	}
 }

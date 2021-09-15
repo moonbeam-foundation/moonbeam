@@ -250,6 +250,7 @@ const TYPES_400_599: RegistryTypes = {
     claimed_reward: "Balance",
     contributed_relay_addresses: "Vec<RelayChainAccountId>",
   },
+  VestingBlockNumber: "u32",
 };
 
 const TYPES_600_undefined: RegistryTypes = {
