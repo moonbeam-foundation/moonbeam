@@ -245,7 +245,6 @@ parameter_types! {
 	pub const TestInitialized: bool = false;
 	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
-
 }
 
 impl pallet_crowdloan_rewards::Config for Test {

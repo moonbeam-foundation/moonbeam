@@ -567,7 +567,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 }
 
 #[test]
-fn initialize_crowdloan_address_and_chamge_with_relay_key_sig() {
+fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
