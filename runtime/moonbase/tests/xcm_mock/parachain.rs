@@ -20,13 +20,10 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
-	PalletId,
 };
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
-use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::traits::Zero;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
@@ -39,7 +36,7 @@ use xcm::{
 	v0::{
 		Error as XcmError, ExecuteXcm,
 		Junction::{PalletInstance, Parachain, Parent},
-		MultiAsset, MultiLocation, NetworkId, Outcome, Xcm,
+		MultiLocation, NetworkId, Outcome, Xcm,
 	},
 	VersionedXcm,
 };
@@ -50,10 +47,7 @@ use xcm_builder::{
 	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
-use xcm_executor::{
-	traits::{JustTry, WeightTrader},
-	Config, XcmExecutor,
-};
+use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
@@ -487,7 +481,6 @@ impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
-			_ => None,
 		}
 	}
 }

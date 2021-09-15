@@ -19,10 +19,7 @@
 mod common;
 use common::*;
 
-use xcm::v0::{
-	Junction::{self, PalletInstance, Parachain, Parent},
-	MultiLocation::*,
-};
+use xcm::v0::{Junction, MultiLocation::*};
 
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
@@ -33,8 +30,8 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetManager, AssetMetadata, AssetType, Balances, BlockWeights,
-	Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System,
+	currency::UNIT, AccountId, AssetManager, Balances, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;

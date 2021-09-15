@@ -30,7 +30,6 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
-use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -1080,8 +1079,6 @@ impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
-			// Unreachable for now
-			_ => None,
 		}
 	}
 }
