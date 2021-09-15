@@ -36,10 +36,19 @@ const main = async () => {
   let totalExtrinsics = 0;
   let totalPercentages = 0;
   let blockCount = 0;
+  let initialTimestamp = 0;
+  let lastTimestamp = 0;
+
   await exploreBlockRange(
     api,
     { from: fromBlockNumber, to: toBlockNumber, concurrency: 5 },
     async (blockDetails) => {
+      if (!initialTimestamp || blockDetails.blockTime < initialTimestamp) {
+        initialTimestamp = blockDetails.blockTime;
+      }
+      if (!lastTimestamp || blockDetails.blockTime > lastTimestamp) {
+        lastTimestamp = blockDetails.blockTime;
+      }
       totalExtrinsics += blockDetails.txWithEvents.length;
       totalPercentages += blockDetails.weightPercentage;
       blockCount++;
@@ -53,9 +62,11 @@ const main = async () => {
     }
   );
   console.log(
-    `Total blocks: ${blockCount}, ${
+    `Total blocks: ${blockCount} (${Number((lastTimestamp - initialTimestamp) / 10) / 100} secs), ${
       Number((totalPercentages / blockCount) * 100) / 100
-    }% fullness, ${Number((totalExtrinsics / blockCount) * 100) / 100} extrinsics`
+    }% fullness, ${Number((totalExtrinsics / blockCount) * 100) / 100} extrinsics (${
+      Number((totalExtrinsics / ((lastTimestamp - initialTimestamp) / 1000)) * 100) / 100
+    } tx/s)`
   );
 };
 

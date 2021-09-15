@@ -3,11 +3,20 @@ import type {
   DispatchInfo,
   EventRecord,
   Extrinsic,
+  RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 
-export function mapExtrinsics(extrinsics: Extrinsic[], records: EventRecord[]): TxWithEvent[] {
-  return extrinsics.map((extrinsic, index): TxWithEvent => {
+export interface TxWithEventAndFee extends TxWithEvent {
+  fee: RuntimeDispatchInfo;
+}
+
+export function mapExtrinsics(
+  extrinsics: Extrinsic[],
+  records: EventRecord[],
+  fees: RuntimeDispatchInfo[]
+): TxWithEventAndFee[] {
+  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
     let dispatchError: DispatchError | undefined;
     let dispatchInfo: DispatchInfo | undefined;
 
@@ -26,6 +35,6 @@ export function mapExtrinsics(extrinsics: Extrinsic[], records: EventRecord[]): 
         return event;
       });
 
-    return { dispatchError, dispatchInfo, events, extrinsic };
+    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees[index] };
   });
 }

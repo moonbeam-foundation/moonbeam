@@ -2,13 +2,14 @@ import { ApiPromise } from "@polkadot/api";
 import { Extrinsic, BlockHash, EventRecord } from "@polkadot/types/interfaces";
 import { Block } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
-import { mapExtrinsics } from "./types";
+import { mapExtrinsics, TxWithEventAndFee } from "./types";
 import chalk from "chalk";
+
 export interface BlockDetails {
   block: Block;
   blockTime: number;
   records: EventRecord[];
-  txWithEvents: TxWithEvent[];
+  txWithEvents: TxWithEventAndFee[];
   weightPercentage: number;
 }
 
@@ -20,7 +21,11 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash) => {
     api.query.timestamp.now.at(blockHash),
   ]);
 
-  const txWithEvents = mapExtrinsics(block.extrinsics, records);
+  const fees = await Promise.all(
+    block.extrinsics.map((ext) => api.rpc.payment.queryInfo(ext.toHex(), blockHash))
+  );
+
+  const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
   const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
     return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
   }, 0n);
@@ -138,6 +143,7 @@ export function printBlockDetails(
 
   let txPoolText = null;
   let poolIncText = null;
+  let zoomPool = null;
   if ("pendingTxs" in blockDetails) {
     const txPool = blockDetails.pendingTxs.length.toString().padStart(4, " ");
     txPoolText =
@@ -156,6 +162,18 @@ export function printBlockDetails(
       poolIncText =
         txPoolDiff > 80 ? chalk.red(poolInc) : txPoolDiff > 30 ? chalk.yellow(poolInc) : poolInc;
     }
+    zoomPool = blockDetails.pendingTxs
+      .filter((tx) => {
+        return (
+          tx.method.section == "ethereum" &&
+          tx.method.method == "transact" &&
+          (tx.method.args[0] as any).action.isCall &&
+          (tx.method.args[0] as any).action.asCall.toString().toLowerCase() ==
+            "0x08716e418e68564c96b68192e985762740728018".toLowerCase()
+        );
+      })
+      .length.toString()
+      .padStart(3, " ");
   }
 
   const ext = blockDetails.block.extrinsics.length.toString().padStart(3, " ");
@@ -181,6 +199,40 @@ export function printBlockDetails(
       ? chalk.green(eths)
       : eths;
 
+  const fees = blockDetails.txWithEvents
+    .filter(({ dispatchInfo }) => dispatchInfo.paysFee.isYes && !dispatchInfo.class.isMandatory)
+    .reduce((p, { dispatchInfo, extrinsic, events, fee }) => {
+      if (extrinsic.method.section == "ethereum") {
+        return (
+          p +
+          (BigInt((extrinsic.method.args[0] as any).gasPrice) * dispatchInfo.weight.toBigInt()) /
+            25000n
+        );
+      }
+      return p + fee.partialFee.toBigInt();
+    }, 0n);
+  const feesTokens = Number(fees / 10n ** 15n) / 1000;
+  const feesTokenTxt = feesTokens.toFixed(3).padStart(5, " ");
+  const feesText =
+    feesTokens >= 0.1
+      ? chalk.red(feesTokenTxt)
+      : ethTxs >= 0.01
+      ? chalk.yellow(feesTokenTxt)
+      : ethTxs > 0.001
+      ? chalk.green(feesTokenTxt)
+      : feesTokenTxt;
+
+  const extZoom = blockDetails.block.extrinsics
+    .filter(
+      (tx) =>
+        tx.method.section == "ethereum" &&
+        tx.method.method == "transact" &&
+        (tx.method.args[0] as any).action.isCall &&
+        (tx.method.args[0] as any).action.asCall.toString().toLowerCase() ==
+          "0x08716e418e68564c96b68192e985762740728018".toLowerCase()
+    )
+    .length.toString()
+    .padStart(3, " ");
   const authorId = blockDetails.block.extrinsics
     .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
     .args[0].toString();
@@ -189,8 +241,13 @@ export function printBlockDetails(
   console.log(
     `${options?.prefix ? `${options.prefix} ` : ""}Block ${blockDetails.block.header.number
       .toString()
-      .padEnd(7, " ")} [${weightText}%][Ext:${extText}(Eth:${evmText})]${
-      txPoolText ? `[Pool:${txPoolText}${poolIncText ? `(+${poolIncText})` : ""}]` : ``
+      .padEnd(
+        7,
+        " "
+      )} [${weightText}%, ${feesText}💰][Ext:${extText}(Eth:${evmText})(Z:${extZoom})]${
+      txPoolText
+        ? `[Pool:${txPoolText}${poolIncText ? `(+${poolIncText})` : ""}(Z ${zoomPool})]`
+        : ``
     }${secondText ? `[${secondText}s]` : ""}(hash: ${hash.substring(0, 7)}..${hash.substring(
       hash.length - 4
     )})${options?.suffix ? ` ${options.suffix}` : ""} by ${authorId.substring(
