@@ -9,6 +9,7 @@ members = [
     'bin/utils/moonkey',
     'pallets/maintenance-mode',
     'precompiles/utils/macro',
+    'precompiles/assets-erc20'
 ]
 exclude = [
     'bin/utils/moonkey'
