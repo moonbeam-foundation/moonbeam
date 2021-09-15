@@ -2,7 +2,7 @@
 name = 'moonbeam-service'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.11.3'
+version = '0.12.2'
 authors = ["PureStake"]
 edition = '2018'
 
@@ -36,10 +36,11 @@ moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
-moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
-moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-primitives-ext = { path = "../../primitives/ext" }
+
+moonbeam-rpc-debug = { path = "../../client/rpc/debug", optional = true }
+moonbeam-rpc-trace = { path = "../../client/rpc/trace", optional = true }
 
 moonbeam-core-primitives = { path = "../../core-primitives" }
 
@@ -113,9 +114,7 @@ nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "no
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
-polkadot-test-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
-polkadot-test-runtime = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
@@ -131,7 +130,6 @@ rand = "0.7.3"
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
-polkadot-test-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
@@ -147,6 +145,14 @@ default = [
 	"moonbase-native",
 	"moonriver-native",
 	"moonbeam-native"
+]
+
+evm-tracing = [
+	"moonbeam-rpc-debug",
+	"moonbeam-rpc-trace",
+	"moonbeam-runtime/evm-tracing",
+	"moonriver-runtime/evm-tracing",
+	"moonbase-runtime/evm-tracing"
 ]
 
 rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
@@ -165,8 +171,7 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"moonbeam-native",
-	"moonbeam-runtime/runtime-benchmarks",
-	"polkadot-test-runtime/runtime-benchmarks"
+	"moonbeam-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",

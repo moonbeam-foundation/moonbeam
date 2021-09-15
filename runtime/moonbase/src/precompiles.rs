@@ -18,29 +18,17 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::{Precompile, PrecompileSet};
-use pallet_evm_precompile_balances_erc20::{BalanceOf as Erc20BalanceOf, Erc20BalancesPrecompile};
+use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use parity_scale_codec::Decode;
 use sp_core::H160;
-use sp_std::{convert::TryFrom, fmt::Debug, marker::PhantomData};
-
-use frame_support::traits::Currency;
-
-type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
-	<Runtime as frame_system::Config>::AccountId,
->>::Balance;
-
-type RewardBalanceOf<Runtime> =
-	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
-		<Runtime as frame_system::Config>::AccountId,
-	>>::Balance;
+use sp_std::fmt::Debug;
+use sp_std::marker::PhantomData;
 
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
@@ -49,16 +37,16 @@ type RewardBalanceOf<Runtime> =
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbasePrecompiles<R>(PhantomData<R>);
 
-impl<R: frame_system::Config> MoonbasePrecompiles<R>
+impl<R> MoonbasePrecompiles<R>
 where
-	R::AccountId: From<H160>,
+	R: pallet_evm::Config,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049, 2050]
 			.into_iter()
-			.map(|x| hash(x).into())
+			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 
@@ -68,19 +56,12 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
-	R: parachain_staking::Config,
+	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
 	R: pallet_evm::Config,
-	R: pallet_balances::Config,
-	R: pallet_crowdloan_rewards::Config,
-	R::AccountId: From<H160>,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	R::Call: From<parachain_staking::Call<R>>,
-	R::Call: From<pallet_balances::Call<R>>,
-	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
-	BalanceOf<R>: Debug + precompile_utils::EvmData,
-	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	Erc20BalanceOf<R>: TryFrom<sp_core::U256> + Into<sp_core::U256> + Debug,
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R>: Precompile,
 {
 	fn execute(
 		address: H160,

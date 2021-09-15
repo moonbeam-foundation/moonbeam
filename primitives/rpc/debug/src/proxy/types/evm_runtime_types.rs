@@ -17,7 +17,6 @@
 extern crate alloc;
 
 use super::evm_types::Context;
-use crate::proxy::v2::opcodes_string;
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
@@ -93,6 +92,7 @@ pub enum RuntimeEvent {
 	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 	fn from(i: evm_runtime::tracing::Event<'a>) -> Self {
 		match i {
@@ -104,7 +104,7 @@ impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 				memory,
 			} => Self::Step {
 				context: context.clone().into(),
-				opcode: opcodes_string(opcode),
+				opcode: crate::proxy::v2::opcodes_string(opcode),
 				position: match position {
 					Ok(position) => Ok(*position as u64),
 					Err(e) => Err(e.clone()),
@@ -120,7 +120,9 @@ impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 					Ok(_) => Ok(()),
 					Err(capture) => match capture {
 						evm::Capture::Exit(e) => Err(Capture::Exit(e.clone())),
-						evm::Capture::Trap(t) => Err(Capture::Trap(opcodes_string(*t))),
+						evm::Capture::Trap(t) => {
+							Err(Capture::Trap(crate::proxy::v2::opcodes_string(*t)))
+						}
 					},
 				},
 				return_value: return_value.to_vec(),

@@ -486,7 +486,17 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let spawned_requesters = rpc::spawn_tasks(
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	#[cfg(feature = "evm-tracing")]
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -534,14 +544,19 @@ where
 				command_sink: None,
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
-
-			Ok(rpc::create_full(deps, subscription_task_executor.clone()))
+			#[allow(unused_mut)]
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
+			Ok(io)
 		})
 	};
 
@@ -663,12 +678,19 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub fn new_dev(
+pub fn new_dev<RuntimeApi, Executor>(
 	config: Configuration,
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
-) -> Result<TaskManager, ServiceError> {
+) -> Result<TaskManager, ServiceError>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
 	use async_io::Timer;
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
@@ -691,7 +713,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -815,7 +837,17 @@ pub fn new_dev(
 		);
 	}
 
-	let spawned_requesters = rpc::spawn_tasks(
+	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
+		task_manager: &task_manager,
+		client: client.clone(),
+		substrate_backend: backend.clone(),
+		frontier_backend: frontier_backend.clone(),
+		pending_transactions: pending_transactions.clone(),
+		filter_pool: filter_pool.clone(),
+	});
+
+	#[cfg(feature = "evm-tracing")]
+	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
 		&rpc_config,
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -861,13 +893,19 @@ pub fn new_dev(
 				command_sink: command_sink.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: spawned_requesters.debug.clone(),
-				trace_filter_requester: spawned_requesters.trace.clone(),
-				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
-			Ok(rpc::create_full(deps, subscription_task_executor.clone()))
+			#[allow(unused_mut)]
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			#[cfg(feature = "evm-tracing")]
+			rpc::tracing::extend_with_tracing(
+				client.clone(),
+				tracing_requesters.clone(),
+				rpc_config.ethapi_trace_max_count,
+				&mut io,
+			);
+			Ok(io)
 		})
 	};
 
