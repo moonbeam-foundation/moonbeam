@@ -136,7 +136,7 @@ interface Democracy {
         uint256 conviction
     ) external;
 
-    /** Remove a vote for a referendumx.
+    /** Remove a vote for a referendum.
      *
      * @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.
      * @param ref_index The index of the referendum you are interested in
@@ -149,7 +149,7 @@ interface Democracy {
      * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
      * time appropriate for the conviction's lock period.
      * @param representative The account to whom the vote shall be delegated.
-     * @param conviction The conviction with which yo uare delegating. This conviction is used for
+     * @param conviction The conviction with which you are delegating. This conviction is used for
      * _all_ delegated votes.
      * @param amount The number of tokens whose voting power shall be delegated.
      */

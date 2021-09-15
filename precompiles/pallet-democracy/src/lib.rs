@@ -249,8 +249,7 @@ where
 		))
 	}
 
-	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
-
+	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	fn propose(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,

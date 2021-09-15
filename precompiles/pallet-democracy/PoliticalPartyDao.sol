@@ -17,7 +17,7 @@ pragma solidity >=0.8.0;
  * 1. This DAO is for a _single_ referendum.
  * 2. It uses a simple majority rules mechanism. Definitely not production ready...
  * 3. Early withdrawal penalties are just locked in the contract forever.
- * 4. We just use a simple mapping to store everything. A better idea might be fungble dao tokens
+ * 4. We just use a simple mapping to store everything. A better idea might be fungible dao tokens
  */
 contract PoliticalPartyDao {
     mapping(address => Contribution) public contributions;
