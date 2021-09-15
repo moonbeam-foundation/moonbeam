@@ -18,6 +18,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
+use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -62,6 +63,7 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -91,6 +93,9 @@ where
 				input, target_gas, context,
 			)),
 			a if a == hash(2050) => Some(Erc20BalancesPrecompile::<R>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,
