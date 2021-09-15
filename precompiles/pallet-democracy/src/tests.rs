@@ -31,7 +31,6 @@ use pallet_democracy::{
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
-use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use std::convert::TryInto;
 
@@ -97,10 +96,10 @@ fn selectors() {
 #[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
-		let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
-
 		// Construct data to read prop count
-		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+		let input = EvmDataWriter::new()
+			.write_selector(Action::PublicPropCount)
+			.build();
 
 		// Expected result is zero. because no props are open yet.
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -124,8 +123,6 @@ fn prop_count_non_zero() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
-
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
 			assert_ok!(
 				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
@@ -133,7 +130,9 @@ fn prop_count_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+			let input = EvmDataWriter::new()
+				.write_selector(Action::PublicPropCount)
+				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -159,8 +158,6 @@ fn deposit_of_non_zero() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"deposit_of(uint256)")[0..4];
-
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
 			assert_ok!(
 				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
@@ -169,7 +166,7 @@ fn deposit_of_non_zero() {
 
 			// Construct data to read prop count
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::DepositOf)
 				.write(0u32)
 				.build();
 
@@ -191,11 +188,9 @@ fn deposit_of_non_zero() {
 #[test]
 fn deposit_of_bad_index() {
 	ExtBuilder::default().build().execute_with(|| {
-		let selector = &Keccak256::digest(b"deposit_of(uint256)")[0..4];
-
 		// Construct data to read prop count
 		let input = EvmDataWriter::new()
-			.write_raw_bytes(selector)
+			.write_selector(Action::DepositOf)
 			.write(10u32)
 			.build();
 
@@ -212,10 +207,10 @@ fn deposit_of_bad_index() {
 #[test]
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
-		let selector = &Keccak256::digest(b"lowest_unbaked()")[0..4];
-
 		// Construct data to read lowest unbaked referendum index
-		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+		let input = EvmDataWriter::new()
+			.write_selector(Action::LowestUnbaked)
+			.build();
 
 		// Expected result is zero
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -245,8 +240,6 @@ fn lowest_unbaked_non_zero() {
 		])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"lowest_unbaked()")[0..4];
-
 			// To ensure the referendum passes, we need an Aye vote on it
 			assert_ok!(Call::Democracy(DemocracyCall::vote(
 				0, // referendum 0
@@ -287,7 +280,9 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			// Construct data to read lowest unbaked referendum index
-			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+			let input = EvmDataWriter::new()
+				.write_selector(Action::LowestUnbaked)
+				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -352,20 +347,18 @@ fn propose_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"propose(bytes32,uint256)")[0..4];
-
 			// Construct data to propose empty hash with value 100
-			let mut input_data = Vec::<u8>::from([0u8; 68]);
-			input_data[0..4].copy_from_slice(&selector);
-			// Leave the hash (input_data[4..36]) empty
-			let amount: U256 = 100.into();
-			amount.to_big_endian(&mut input_data[36..68]);
+			let input = EvmDataWriter::new()
+				.write_selector(Action::Propose)
+				.write(sp_core::H256::zero())
+				.write(100u64)
+				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
 				Alice.into(),
 				precompile_address(),
-				input_data,
+				input,
 				U256::zero(), // No value sent in EVM
 				u64::max_value(),
 				0.into(),
@@ -395,8 +388,6 @@ fn second_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"second(uint256,uint256)")[0..4];
-
 			// Before we can second anything, we have to have a proposal there to second.
 			assert_ok!(Call::Democracy(DemocracyCall::propose(
 				Default::default(), // Propose the default hash
@@ -405,18 +396,17 @@ fn second_works() {
 			.dispatch(Origin::signed(Alice)));
 
 			// Construct the call to second via a precompile
-			let mut input_data = Vec::<u8>::from([0u8; 68]);
-			input_data[0..4].copy_from_slice(&selector);
-			let index = U256::zero();
-			index.to_big_endian(&mut input_data[4..36]);
-			let amount: U256 = 100.into();
-			amount.to_big_endian(&mut input_data[36..68]);
+			let input = EvmDataWriter::new()
+				.write_selector(Action::Second)
+				.write(0u64) //prop index
+				.write(100u64) // seconds upper bound
+				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
 				Alice.into(),
 				precompile_address(),
-				input_data,
+				input,
 				U256::zero(), // No value sent in EVM
 				u64::max_value(),
 				0.into(),
@@ -455,9 +445,8 @@ fn standard_vote_aye_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let selector = &Keccak256::digest(b"standard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(true) // Aye
 				.write(100_000u128) // 100_000 tokens
@@ -520,9 +509,8 @@ fn standard_vote_nay_conviction_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let selector = &Keccak256::digest(b"standard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(false) // Nay
 				.write(100_000u128) // 100_000 tokens
@@ -603,9 +591,8 @@ fn remove_vote_works() {
 			));
 
 			// Construct input data to remove the vote
-			let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
 				.build();
 
@@ -663,9 +650,8 @@ fn remove_vote_dne() {
 			roll_to(<Test as DemocracyConfig>::LaunchPeriod::get());
 
 			// Construct input data to remove a non-existant vote
-			let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
 				.build();
 
@@ -687,9 +673,8 @@ fn delegate_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to delegate Alice -> Bob
-			let selector = &Keccak256::digest(b"delegate(address,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::Delegate)
 				.write::<Address>(H160::from(Bob).into()) // Delegate to
 				.write(2u8) // 2X conviction
 				.write(100u128) // 100 tokens
@@ -759,8 +744,9 @@ fn undelegate_works() {
 			));
 
 			// Construct input data to un-delegate Alice
-			let selector = &Keccak256::digest(b"un_delegate()")[0..4];
-			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+			let input = EvmDataWriter::new()
+				.write_selector(Action::UnDelegate)
+				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -801,8 +787,9 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct input data to un-delegate Alice
-		let selector = &Keccak256::digest(b"un_delegate()")[0..4];
-		let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+		let input = EvmDataWriter::new()
+			.write_selector(Action::UnDelegate)
+			.build();
 
 		// Expected result is an error from the pallet
 		if let Some(Err(ExitError::Other(e))) =
@@ -861,9 +848,8 @@ fn unlock_works() {
 			roll_to(21);
 
 			// Construct input data to un-lock tokens for Alice
-			let selector = &Keccak256::digest(b"unlock(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
 				.build();
 
@@ -899,9 +885,8 @@ fn unlock_with_nothing_locked() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to un-lock tokens for Alice
-			let selector = &Keccak256::digest(b"unlock(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+				.write_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
 				.build();
 

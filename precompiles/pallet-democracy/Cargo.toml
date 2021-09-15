@@ -21,9 +21,6 @@ frame-system = { git="https://github.com/purestake/substrate", default-features=
 precompile-utils = { path = "../utils", default-features = false }
 
 [dev-dependencies]
-sha3 = "0.9"
-hex = "0.4"
-hex-literal = "0.3.1"
 sp-runtime = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
 pallet-balances = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
 pallet-timestamp = { git="https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }

@@ -44,7 +44,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
 	PublicPropCount = "public_prop_count()",
 	DepositOf = "deposit_of(uint256)",
