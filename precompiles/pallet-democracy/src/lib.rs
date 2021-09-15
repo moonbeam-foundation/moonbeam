@@ -148,12 +148,10 @@ where
 
 		// Fetch data from pallet
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let deposit = match DemocracyOf::<Runtime>::deposit_of(prop_index) {
-			None => {
-				return Err(error("No such proposal in pallet democracy"));
-			}
-			Some((_, deposit)) => deposit,
-		};
+		let deposit = DemocracyOf::<Runtime>::deposit_of(prop_index)
+			.ok_or_else(|| error("No such proposal in pallet democracy"))?
+			.1;
+
 		log::trace!(
 			target: "democracy-precompile",
 			"Deposit of proposal {:?} is {:?}", prop_index, deposit
