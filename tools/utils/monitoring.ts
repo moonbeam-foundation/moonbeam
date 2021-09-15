@@ -216,9 +216,9 @@ export function printBlockDetails(
   const feesText =
     feesTokens >= 0.1
       ? chalk.red(feesTokenTxt)
-      : ethTxs >= 0.01
+      : feesTokens >= 0.01
       ? chalk.yellow(feesTokenTxt)
-      : ethTxs > 0.001
+      : feesTokens >= 0.001
       ? chalk.green(feesTokenTxt)
       : feesTokenTxt;
 
