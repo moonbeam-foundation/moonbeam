@@ -1,6 +1,7 @@
 import Keyring from "@polkadot/keyring";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
+import { BN, isUndefined } from "@polkadot/util";
 
 import {
   ALITH,
@@ -17,9 +18,10 @@ const MOONRIVER_SUDO_ACCOUNT = "0xb728c13034c3b6c6447f399d25b097216a0081ea";
 const assetMetadata = {
   name: "DOT",
   symbol: "DOT",
-  decimals: 12,
+  decimals: new BN(12),
+  isFrozen: false,
 };
-const sourceLocation = { XCM: { X1: "Parent" } };
+const sourceLocation = { XCM: { interior: { Here: null }, parents: new BN(1) } }; //{ XCM: { X1: "Parent" } };
 const sourceId = blake2AsHex(JSON.stringify(sourceLocation));
 
 describeDevMoonbeam(
@@ -47,7 +49,7 @@ describeDevMoonbeam(
       // parachains
       console.log(Object.keys(parachainOne.tx));
       const res = await parachainOne.tx.sudo
-        .sudo(parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, 1))
+        .sudo(parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1)))
         .signAndSend(alith);
       console.log("res", res);
 
