@@ -1,26 +1,33 @@
 [package]
-name = "precompile-utils"
+name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "Utils to write EVM precompiles."
+description = "A Precompile to expose a Balances pallet through an ERC20-compliant interface."
 
 [dependencies]
 log = "0.4"
-sha3 = { version = "0.9", default-features = false }
-num_enum = { version = "0.5.3", default-features = false }
+slices = "0.2.0"
 
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["max-encoded-len"] }
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 
+pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+precompile-utils = { path = "../utils", default-features = false }
+num_enum = { version = "0.5.3", default-features = false }
 
-precompile-utils-macro = { path = "macro" }
+[dev-dependencies]
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
+serde = { version = "1.0.100" }
+derive_more = { version = "0.99"}
+sha3 = "0.8"
 
 [features]
 default = ["std"]
@@ -32,5 +39,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "pallet-evm/std",
+    "pallet-balances/std",
     "evm/std",
+    "precompile-utils/std",
 ]
