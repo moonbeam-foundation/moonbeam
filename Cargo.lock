@@ -2239,6 +2239,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "evm-tracing-events"
+version = "0.1.0"
+dependencies = [
+ "environmental",
+ "ethereum",
+ "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
+ "moonbeam-rpc-primitives-debug",
+ "parity-scale-codec",
+]
+
+[[package]]
 name = "exit-future"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4993,6 +5007,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
+ "evm-tracing-events",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -5120,6 +5135,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-client-evm-tracing"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "evm-tracing-events",
+ "moonbeam-rpc-primitives-debug",
+ "serde",
+]
+
+[[package]]
 name = "moonbeam-core-primitives"
 version = "0.1.1"
 dependencies = [
@@ -5136,9 +5161,9 @@ dependencies = [
  "evm",
  "evm-gasometer",
  "evm-runtime",
+ "evm-tracing-events",
  "fp-evm",
  "moonbeam-primitives-ext",
- "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "parity-scale-codec",
  "sp-core",
@@ -5152,12 +5177,11 @@ name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "moonbeam-rpc-primitives-debug",
+ "evm-tracing-events",
  "parity-scale-codec",
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
- "tracing",
 ]
 
 [[package]]
@@ -5215,6 +5239,7 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.16",
  "jsonrpc-core 15.1.0",
+ "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
@@ -5235,9 +5260,6 @@ dependencies = [
  "environmental",
  "ethereum",
  "ethereum-types",
- "evm",
- "evm-gasometer",
- "evm-runtime",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5273,6 +5295,7 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.16",
  "jsonrpc-core 15.1.0",
+ "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-trace",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
@@ -5325,6 +5348,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
+ "evm-tracing-events",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -5516,6 +5540,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
+ "evm-tracing-events",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
