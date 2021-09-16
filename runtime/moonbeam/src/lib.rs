@@ -838,33 +838,52 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		// System support stuff.
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+
+		// Monetary stuff.
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+
+		// Consensus support.
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 21,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 22,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
+
+		// Handy utilities.
+		Utility: pallet_utility::{Pallet, Call, Event} = 30,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
+
+		// Sudo.
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+
+		// Ethereum compatibility.
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 62,
+
+		// Governance stuff.
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
+
+		// Council stuff.
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event},
-		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+
+		// Treasury stuff.
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
+
+		// Crowdloan stuff.
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
 	}
 }
 
