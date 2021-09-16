@@ -236,6 +236,9 @@ jobs:
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
         run: cargo test --release --all
+      - name: Unit tests (tracing)
+        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
+        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
