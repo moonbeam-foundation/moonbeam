@@ -17,28 +17,23 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
-};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::{
-	construct_runtime,
-	dispatch::UnfilteredDispatchable,
-	inherent::{InherentData, ProvideInherent},
-	parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	construct_runtime, parameter_types,
+	traits::{Everything, OnFinalize, OnInitialize},
 };
-use frame_system::RawOrigin;
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use frame_system::{EnsureRoot, EnsureSigned};
+use pallet_democracy::VoteThreshold;
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
 };
+
 pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -46,30 +41,12 @@ pub type BlockNumber = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
-// Configure a mock runtime to test the pallet.
-construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
-	}
-);
-
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
 #[derive(
 	Eq,
 	PartialEq,
 	Ord,
 	PartialOrd,
 	Clone,
-	Copy,
 	Encode,
 	Decode,
 	Debug,
@@ -113,20 +90,21 @@ impl From<TestAccount> for H160 {
 	}
 }
 
-parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
-}
-
-impl cumulus_pallet_parachain_system::Config for Test {
-	type SelfParaId = ParachainId;
-	type Event = Event;
-	type OnValidationData = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-}
+// Configure a mock runtime to test the pallet.
+construct_runtime!(
+	pub enum Test where
+		Block = Block,
+		NodeBlock = Block,
+		UncheckedExtrinsic = UncheckedExtrinsic,
+	{
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
+	}
+);
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -155,7 +133,7 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type OnSetCode = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -172,38 +150,11 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// The crowdloan precompile is available at address one in the mock runtime.
+/// The democracy precompile is available at address 1 in the mock runtime.
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
-
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: pallet_crowdloan_rewards::Config + pallet_evm::Config,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
-{
-	fn execute(
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
-		match address {
-			a if a == precompile_address() => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context,
-			)),
-			_ => None,
-		}
-	}
-}
-
-pub type Precompiles = TestPrecompiles<Test>;
+pub type Precompiles = (DemocracyWrapper<Test>,);
 
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
@@ -218,7 +169,7 @@ impl pallet_evm::Config for Test {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
-	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
 
@@ -233,115 +184,137 @@ impl pallet_timestamp::Config for Test {
 }
 
 parameter_types! {
-	pub const TestMaxInitContributors: u32 = 8;
-	pub const TestMinimumReward: u128 = 0;
-	pub const TestInitialized: bool = false;
-	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
-	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const LaunchPeriod: BlockNumber = 10;
+	pub const VotingPeriod: BlockNumber = 10;
+	pub const FastTrackVotingPeriod: BlockNumber = 5;
+	pub const EnactmentPeriod: BlockNumber = 10;
+	pub const CooloffPeriod: BlockNumber = 10;
+	pub const MinimumDeposit: Balance = 10;
+	pub const MaxVotes: u32 = 10;
+	pub const MaxProposals: u32 = 10;
+	pub const PreimageByteDeposit: Balance = 10;
+	pub const InstantAllowed: bool = false;
 }
 
-impl pallet_crowdloan_rewards::Config for Test {
+impl pallet_democracy::Config for Test {
+	type Proposal = Call;
 	type Event = Event;
-	type Initialized = TestInitialized;
-	type InitializationPayment = TestInitializationPayment;
-	type MaxInitContributors = TestMaxInitContributors;
-	type MinimumReward = TestMinimumReward;
-	type RewardCurrency = Balances;
-	type RelayChainAccountId = [u8; 32];
-	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
+	type InstantOrigin = EnsureRoot<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureSigned<AccountId>;
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type Slash = ();
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
+}
+impl pallet_scheduler::Config for Test {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = ();
+	type ScheduleOrigin = EnsureRoot<TestAccount>;
+	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
 }
+
+/// Build test externalities, prepopulated with data for testing democracy precompiles
 pub(crate) struct ExtBuilder {
-	// endowed accounts with balances
+	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	crowdloan_pot: Balance,
+	/// Referenda that already exist (don't need a proposal and launch period delay)
+	referenda: Vec<(H256, VoteThreshold, BlockNumber)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			crowdloan_pot: 0u32.into(),
+			referenda: vec![],
 		}
 	}
 }
 
 impl ExtBuilder {
+	/// Fund some accounts before starting the test
 	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
 	}
-	pub(crate) fn with_crowdloan_pot(mut self, pot: Balance) -> Self {
-		self.crowdloan_pot = pot;
+
+	/// Put some referenda into storage before starting the test
+	pub(crate) fn with_referenda(
+		mut self,
+		referenda: Vec<(H256, VoteThreshold, BlockNumber)>,
+	) -> Self {
+		self.referenda = referenda;
 		self
 	}
+
+	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: self.balances,
-		}
-		.assimilate_storage(&mut t)
-		.expect("Pallet balances storage can be assimilated");
-
-		pallet_crowdloan_rewards::GenesisConfig::<Test> {
-			funded_amount: self.crowdloan_pot,
+			balances: self.balances.clone(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+
+			// Pallet democracy doesn't have a meaningful genesis config, so we use
+			// its helper method to initialize the referenda
+			for (hash, thresh, delay) in self.referenda {
+				Democracy::internal_start_referendum(hash, thresh, delay);
+			}
+		});
 		ext
 	}
 }
 
-//TODO Add pallets here if necessary
 pub(crate) fn roll_to(n: u64) {
+	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
+	// We may be able to simulate this by poking its storage directly, but I don't see any value
+	// added from doing that.
 	while System::block_number() < n {
-		// Relay chain Stuff. I might actually set this to a number different than N
-		let sproof_builder = RelayStateSproofBuilder::default();
-		let (relay_parent_storage_root, relay_chain_state) =
-			sproof_builder.into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let inherent_data = {
-			let mut inherent_data = InherentData::default();
-			let system_inherent_data = ParachainInherentData {
-				validation_data: vfp.clone(),
-				relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			inherent_data
-				.put_data(
-					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
-					&system_inherent_data,
-				)
-				.expect("failed to put VFP inherent");
-			inherent_data
-		};
-
-		ParachainSystem::on_initialize(System::block_number());
-		ParachainSystem::create_inherent(&inherent_data)
-			.expect("got an inherent")
-			.dispatch_bypass_filter(RawOrigin::None.into())
-			.expect("dispatch succeeded");
-		ParachainSystem::on_finalize(System::block_number());
-
+		Scheduler::on_finalize(System::block_number());
+		Democracy::on_finalize(System::block_number());
+		// Timestamp::on_finalize(System::block_number());
+		Evm::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
+
 		System::set_block_number(System::block_number() + 1);
+
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
+		Evm::on_initialize(System::block_number());
+		Timestamp::on_initialize(System::block_number());
+		Democracy::on_initialize(System::block_number());
+		Scheduler::on_initialize(System::block_number());
 	}
 }
 
@@ -361,4 +334,42 @@ pub fn evm_test_context() -> evm::Context {
 		caller: Default::default(),
 		apparent_value: From::from(0),
 	}
+}
+
+#[test]
+fn test_account_id_mapping_works() {
+	// Bidirectional conversions for normal accounts
+	assert_eq!(
+		TestAccount::Alice,
+		TestAccount::into_account_id(TestAccount::Alice.into())
+	);
+	assert_eq!(
+		TestAccount::Bob,
+		TestAccount::into_account_id(TestAccount::Bob.into())
+	);
+	assert_eq!(
+		TestAccount::Charlie,
+		TestAccount::into_account_id(TestAccount::Charlie.into())
+	);
+
+	// Bidirectional conversion between bogus and default H160
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::default())
+	);
+	assert_eq!(H160::default(), TestAccount::Bogus.into());
+
+	// All other H160s map to bogus
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::zero())
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0x12))
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0xFF))
+	);
 }
