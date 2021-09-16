@@ -203,6 +203,7 @@ where
 			client.as_ref(),
 			frontier_backend.as_ref(),
 			transaction_hash,
+			false,
 		) {
 			Ok(Some((hash, index))) => (hash, index as usize),
 			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
