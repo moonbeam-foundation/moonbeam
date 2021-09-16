@@ -201,7 +201,7 @@ fn migration_should_only_be_invoked_once() {
 #[test]
 fn on_runtime_upgrade_charges_minimum_two_db_writes() {
 	ExtBuilder::default().build().execute_with(|| {
-		let mut weight = Migrations::on_runtime_upgrade();
+		let weight = Migrations::on_runtime_upgrade();
 		assert_eq!(weight, RocksDbWeight::get().writes(2));
 	})
 }
