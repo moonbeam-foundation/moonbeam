@@ -32,11 +32,11 @@ fn selector_less_than_four_bytes() {
 
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
-				Account::Precompile.into(),
+				Account::AssetId(1u128).into(),
 				&bogus_selector,
 				None,
 				&evm::Context {
-					address: Account::Precompile.into(),
+					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
@@ -53,11 +53,11 @@ fn no_selector_exists_but_length_is_right() {
 
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
-				Account::Precompile.into(),
+				Account::AssetId(1u128).into(),
 				&bogus_selector,
 				None,
 				&evm::Context {
-					address: Account::Precompile.into(),
+					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
@@ -103,17 +103,17 @@ fn get_total_supply() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"totalSupply()")[0..4];
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new().write_raw_bytes(selector).build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -144,20 +144,20 @@ fn get_balances_known_user() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"balanceOf(address)")[0..4];
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Bob.into()))
+						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -188,20 +188,20 @@ fn get_balances_unknown_user() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"balanceOf(address)")[0..4];
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Charlie.into()))
+						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -232,23 +232,23 @@ fn approve() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"approve(address,uint256)")[0..4];
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Charlie.into()))
+						.write(Address(Account::Bob.into()))
 						.write(U256::from(50))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Bob.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -256,11 +256,11 @@ fn approve() {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
 					cost: 1756u64,
-					logs: LogsBuilder::new(Account::Alice.into())
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
 							Account::Bob,
-							Account::Charlie,
 							EvmDataWriter::new().write(U256::from(50)).build(),
 						)
 						.build(),
@@ -285,22 +285,22 @@ fn check_allowance_existing() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"approve(address,uint256)")[0..4];
 
 			Precompiles::<Runtime>::execute(
-				Account::Alice.into(),
+				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
 					.write_raw_bytes(selector)
-					.write(Address(Account::Charlie.into()))
+					.write(Address(Account::Bob.into()))
 					.write(U256::from(50))
 					.build(),
 				None,
 				&evm::Context {
-					address: Account::Alice.into(),
-					caller: Account::Bob.into(),
+					address: Account::AssetId(0u128).into(),
+					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
 			);
@@ -309,16 +309,16 @@ fn check_allowance_existing() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(allowance_selector)
+						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
-						.write(Address(Account::Charlie.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Bob.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -348,22 +348,22 @@ fn check_allowance_not_existing() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let allowance_selector = &Keccak256::digest(b"allowance(address,address)")[0..4];
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(allowance_selector)
+						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
-						.write(Address(Account::Charlie.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Bob.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -393,23 +393,23 @@ fn transfer() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 			let selector = &Keccak256::digest(b"transfer(address,uint256)")[0..4];
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Charlie.into()))
+						.write(Address(Account::Bob.into()))
 						.write(U256::from(50))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Bob.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -417,11 +417,11 @@ fn transfer() {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
-					logs: LogsBuilder::new(Account::Alice.into())
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
+							Account::Alice,
 							Account::Bob,
-							Account::Charlie,
 							EvmDataWriter::new().write(U256::from(50)).build(),
 						)
 						.build(),
@@ -431,15 +431,15 @@ fn transfer() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Charlie.into()))
+						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Charlie.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -453,14 +453,14 @@ fn transfer() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Bob.into()))
+						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
@@ -474,7 +474,6 @@ fn transfer() {
 			);
 		});
 }
-
 
 #[test]
 fn transfer_not_enough_founds() {
@@ -494,7 +493,7 @@ fn transfer_not_enough_founds() {
 
 			assert_matches!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
 						.write(Address(Account::Charlie.into()))
@@ -502,8 +501,8 @@ fn transfer_not_enough_founds() {
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Bob.into(),
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
 				),
@@ -530,23 +529,23 @@ fn transfer_from() {
 			assert_ok!(Assets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
-				Account::Bob.into(),
+				Account::Alice.into(),
 				100
 			));
 
 			let selector = &Keccak256::digest(b"approve(address,uint256)")[0..4];
 
 			Precompiles::<Runtime>::execute(
-				Account::Alice.into(),
+				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
 					.write_raw_bytes(selector)
-					.write(Address(Account::Charlie.into()))
+					.write(Address(Account::Bob.into()))
 					.write(U256::from(50))
 					.build(),
 				None,
 				&evm::Context {
-					address: Account::Alice.into(),
-					caller: Account::Bob.into(),
+					address: Account::AssetId(0u128).into(),
+					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
 			);
@@ -555,17 +554,17 @@ fn transfer_from() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Precompile.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
-						.write(Address(Account::Bob.into()))
 						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Charlie.into()))
 						.write(U256::from(50))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
-						caller: Account::Charlie.into(), // Bob is the one sending transferFrom!
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
 				),
@@ -573,11 +572,11 @@ fn transfer_from() {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
-					logs: LogsBuilder::new(Account::Alice.into())
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
-							Account::Bob,
 							Account::Alice,
+							Account::Charlie,
 							EvmDataWriter::new().write(U256::from(50)).build(),
 						)
 						.build(),
@@ -588,14 +587,14 @@ fn transfer_from() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -610,15 +609,37 @@ fn transfer_from() {
 
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
-					Account::Alice.into(),
+					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
 						.write_raw_bytes(selector)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&evm::Context {
-						address: Account::Alice.into(),
+						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_raw_bytes(selector)
+						.write(Address(Account::Charlie.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Charlie.into(),
 						apparent_value: From::from(0),
 					},
 				),

@@ -62,7 +62,7 @@ pub enum Account {
 	Bob,
 	Charlie,
 	Bogus,
-	Precompile,
+	AssetId(AssetId),
 }
 
 impl Default for Account {
@@ -77,8 +77,16 @@ impl AddressMapping<Account> for Account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
-			_ => Self::Bogus,
+			_ => {
+				let mut data = [0u8; 16];
+				let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+				if prefix_part == &[255u8; 4] {
+					data.copy_from_slice(id_part);
+
+					return Self::AssetId(u128::from_be_bytes(data));
+				}
+				Self::Bogus
+			}
 		}
 	}
 }
@@ -89,24 +97,26 @@ impl From<Account> for H160 {
 			Account::Alice => H160::repeat_byte(0xAA),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
+			Account::AssetId(asset_id) => {
+				let mut data = [0u8; 20];
+				let id_as_bytes = asset_id.to_be_bytes();
+				data[0..4].copy_from_slice(&[255u8; 4]);
+				data[4..20].copy_from_slice(&id_as_bytes);
+				H160::from_slice(&data)
+			}
 			Account::Bogus => Default::default(),
 		}
 	}
 }
 
-impl From<Account> for AssetId {
-	fn from(x: Account) -> AssetId {
-		match x {
-			Account::Alice => 0u128,
-			Account::Bob => 1u128,
-			Account::Charlie => 2u128,
-			Account::Precompile => 3u128,
-			Account::Bogus => 4u128,
+impl Into<Option<AssetId>> for Account {
+	fn into(self) -> Option<AssetId> {
+		match self {
+			Account::AssetId(asset_id) => Some(asset_id),
+			_ => None,
 		}
 	}
 }
-
 
 impl From<H160> for Account {
 	fn from(x: H160) -> Account {
@@ -232,7 +242,6 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -249,8 +258,7 @@ where
 	R::Call: From<pallet_assets::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256>,
-	AssetIdOf<R>: From<R::AccountId>,
-
+	R::AccountId: Into<Option<AssetIdOf<R>>>,
 {
 	fn execute(
 		address: H160,
