@@ -86,13 +86,13 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       chain: relaychain,
       nodes: [
         {
-          name: "alice",
+          name: "Alice",
           port: ports[0].p2pPort,
           rpcPort: ports[0].rpcPort,
           wsPort: ports[0].wsPort,
         },
         {
-          name: "bob",
+          name: "Bob",
           port: ports[1].p2pPort,
           rpcPort: ports[1].rpcPort,
           wsPort: ports[1].wsPort,
@@ -115,6 +115,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       {
         bin: BINARY_PATH,
         id: 1000,
+        balance: "1000000000000000000000",
         chain: options.chain,
         nodes: [
           {
@@ -123,8 +124,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[2].wsPort,
             name: "alice",
             flags: [
-              `--no-telemetry`,
-              `--no-prometheus`,
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
               "--rpc-cors=all",
@@ -138,8 +137,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[3].wsPort,
             name: "bob",
             flags: [
-              `--no-telemetry`,
-              `--no-prometheus`,
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
               "--rpc-cors=all",
@@ -164,7 +161,10 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
 
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
-
+  console.log("LAUNCH CONFIG", launchConfig);
+  console.log("LAUNCH CONFIG", launchConfig.relaychain.nodes);
+  console.log("LAUNCH CONFIG", launchConfig.parachains[0].nodes);
+  console.log("LAUNCH CONFIG", launchConfig.relaychain.genesis);
   await run(path.join(__dirname, "../"), launchConfig);
 
   return {

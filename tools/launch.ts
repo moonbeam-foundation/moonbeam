@@ -15,6 +15,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -147,7 +149,7 @@ const relayNames = Object.keys(relays);
 // We support 3 parachains for now
 const validatorNames = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 
-function start() {
+async function start() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run launch [args]")
     .version("1.0.0")
@@ -410,8 +412,25 @@ function start() {
   process.on("SIGINT", function () {
     process.exit(2);
   });
+  console.log("LAUNCH CONFIG", launchConfig);
+  console.log("LAUNCH CONFIG", launchConfig.relaychain.nodes);
+  console.log("LAUNCH CONFIG", launchConfig.parachains[0].nodes);
+  console.log(
+    "LAUNCH CONFIG",
+    //@ts-ignore
+    launchConfig.relaychain.genesis.runtime.runtime_genesis_config.parachainsConfiguration
+  );
 
-  run(__dirname, launchConfig);
+  await run(__dirname, launchConfig);
+  console.log("wsport", launchConfig.parachains[0].nodes[0].wsPort);
+  const polkadotApiParaone = await ApiPromise.create({
+    // initWasm: false,
+    provider: new WsProvider(`ws://localhost:${launchConfig.parachains[0].nodes[0].wsPort}`),
+    typesBundle: typesBundle as any,
+  });
+  polkadotApiParaone.derive.chain.subscribeNewHeads((header) => {
+    console.log(`#${header.number}: ${header.author}`, new Date());
+  });
 }
 
 const launchTemplate = {

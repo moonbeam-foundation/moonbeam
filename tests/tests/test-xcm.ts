@@ -1,20 +1,10 @@
 import Keyring from "@polkadot/keyring";
-import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
-import { BN, isUndefined, stringToU8a, u8aToHex } from "@polkadot/util";
+import { BN } from "@polkadot/util";
 
-import {
-  ALITH,
-  ALITH_PRIV_KEY,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_BALANCE,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TREASURY_ACCOUNT,
-} from "../util/constants";
+import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { describeParachain } from "../util/setup-para-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
-import { numberToHex, stringToHex } from "web3-utils";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -24,7 +14,7 @@ const assetMetadata = {
   decimals: new BN(12),
   isFrozen: false,
 };
-const sourceLocation = { XCM: { interior: { Here: null }, parents: new BN(1) } };
+const sourceLocation = { XCM: { X1: "Parent" } };
 
 describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   it("should be able to register an asset and set unit per sec", async function () {
@@ -43,7 +33,6 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     // Look for assetId in events
     let assetId: string;
     eventsRegister.forEach((e) => {
-      console.log(e.toHuman());
       let ev = e.toHuman();
       if (ev.section === "assetManager") {
         assetId = ev.data[0];
@@ -57,7 +46,6 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       alith,
       parachainOne.tx.sudo.sudo(parachainOne.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
     );
-    events.forEach((e) => console.log(e.toHuman()));
     expect(events[0].toHuman().method).to.eq("UnitsPerSecondChanged");
     expect(events[2].toHuman().method).to.eq("ExtrinsicSuccess");
 
