@@ -1700,6 +1700,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-pallet-dmp-queue"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=notlesh-nimbus-v0.9.9-block-response-length#fb4a31550b5bbf734e36057fa7a5a6a5de7b5b33"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "rand 0.8.4",
+ "rand_chacha 0.3.1",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=notlesh-nimbus-v0.9.9-block-response-length#fb4a31550b5bbf734e36057fa7a5a6a5de7b5b33"
@@ -1736,6 +1755,40 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "cumulus-pallet-xcm"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=notlesh-nimbus-v0.9.9-block-response-length#fb4a31550b5bbf734e36057fa7a5a6a5de7b5b33"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-xcmp-queue"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=notlesh-nimbus-v0.9.9-block-response-length#fb4a31550b5bbf734e36057fa7a5a6a5de7b5b33"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "rand 0.8.4",
+ "rand_chacha 0.3.1",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -1786,6 +1839,24 @@ dependencies = [
  "sp-inherents",
  "sp-std",
  "sp-timestamp",
+]
+
+[[package]]
+name = "cumulus-primitives-utility"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=notlesh-nimbus-v0.9.9-block-response-length#fb4a31550b5bbf734e36057fa7a5a6a5de7b5b33"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "xcm",
 ]
 
 [[package]]
@@ -2299,6 +2370,12 @@ name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
+
+[[package]]
+name = "faster-hex"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b02a61fea82de8484f9d7ce99b698b0e190ef8de71035690a961a43d7b18a2ad"
 
 [[package]]
 name = "fastrand"
@@ -4602,14 +4679,12 @@ dependencies = [
  "arrayref",
  "base64 0.12.3",
  "digest 0.9.0",
- "hmac-drbg 0.3.0",
  "libsecp256k1-core",
  "libsecp256k1-gen-ecmult",
  "libsecp256k1-gen-genmult",
  "rand 0.7.3",
  "serde",
  "sha2 0.9.3",
- "typenum",
 ]
 
 [[package]]
@@ -4993,10 +5068,14 @@ version = "0.8.4"
 dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
+ "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "evm",
  "fp-rpc",
@@ -5014,6 +5093,9 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
+ "orml-xtokens",
+ "pallet-asset-manager",
+ "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5021,9 +5103,11 @@ dependencies = [
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
+ "pallet-democracy-precompiles",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
@@ -5042,10 +5126,14 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
+ "pallet-xcm",
  "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
  "runtime-common",
@@ -5063,11 +5151,16 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+ "xcm-simulator",
 ]
 
 [[package]]
 name = "moonbeam"
-version = "0.11.3"
+version = "0.12.3"
 dependencies = [
  "assert_cmd",
  "futures 0.3.17",
@@ -5084,7 +5177,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.11.3"
+version = "0.12.3"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5112,7 +5205,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.11.3"
+version = "0.12.3"
 dependencies = [
  "account",
  "libsecp256k1 0.3.5",
@@ -5397,7 +5490,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.11.3"
+version = "0.12.3"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -5455,8 +5548,6 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-runtime-common",
  "polkadot-service",
- "polkadot-test-runtime",
- "polkadot-test-service",
  "rand 0.7.3",
  "sc-basic-authorship",
  "sc-chain-spec",
@@ -6012,12 +6103,105 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-traits"
+version = "0.4.1-dev"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-v0.9.9-block-response-length#cd634c913e83fbc2340c9faa92ed8429fe6632a8"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "num-traits",
+ "orml-utilities",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
+name = "orml-utilities"
+version = "0.4.1-dev"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-v0.9.9-block-response-length#cd634c913e83fbc2340c9faa92ed8429fe6632a8"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "orml-xcm-support"
+version = "0.4.1-dev"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-v0.9.9-block-response-length#cd634c913e83fbc2340c9faa92ed8429fe6632a8"
+dependencies = [
+ "frame-support",
+ "orml-traits",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
+name = "orml-xtokens"
+version = "0.4.1-dev"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-v0.9.9-block-response-length#cd634c913e83fbc2340c9faa92ed8429fe6632a8"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-xcm-support",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "owning_ref"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ff55baddef9e4ad00f88b6c743a2a8062d4c6ade126c2a528644b8e444d52ce"
 dependencies = [
  "stable_deref_trait",
+]
+
+[[package]]
+name = "pallet-asset-manager"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "pallet-assets"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=crystalin-v0.9.9-block-response-length#2af6e2cc7bad234b92da4f92ad3a3c4fe5782dd8"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -6040,7 +6224,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-mapping"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6308,6 +6492,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-democracy-precompiles"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-democracy",
+ "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-election-provider-multi-phase"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=crystalin-v0.9.9-block-response-length#2af6e2cc7bad234b92da4f92ad3a3c4fe5782dd8"
@@ -6401,6 +6609,30 @@ dependencies = [
  "rlp",
  "serde",
  "sha3 0.8.2",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-balances-erc20"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "serde",
+ "sha3 0.8.2",
+ "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6543,7 +6775,6 @@ name = "pallet-indices"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=crystalin-v0.9.9-block-response-length#2af6e2cc7bad234b92da4f92ad3a3c4fe5782dd8"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6785,7 +7016,6 @@ name = "pallet-staking"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=crystalin-v0.9.9-block-response-length#2af6e2cc7bad234b92da4f92ad3a3c4fe5782dd8"
 dependencies = [
- "frame-benchmarking",
  "frame-election-provider-support",
  "frame-support",
  "frame-system",
@@ -6794,7 +7024,6 @@ dependencies = [
  "pallet-session",
  "parity-scale-codec",
  "paste",
- "rand_chacha 0.2.2",
  "serde",
  "sp-application-crypto",
  "sp-io",
@@ -8306,14 +8535,12 @@ version = "0.9.9-1"
 source = "git+https://github.com/purestake/polkadot?branch=notlesh-v0.9.9-block-response-length#43d9b89910ac0467dc14048213656e31b2019374"
 dependencies = [
  "bitvec 0.20.2",
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples 0.2.1",
  "libsecp256k1 0.6.0",
  "log",
  "pallet-authorship",
- "pallet-babe",
  "pallet-balances",
  "pallet-beefy-mmr",
  "pallet-election-provider-multi-phase",
@@ -8351,7 +8578,6 @@ dependencies = [
  "bitflags",
  "bitvec 0.20.2",
  "derive_more",
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -8507,118 +8733,6 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-core",
-]
-
-[[package]]
-name = "polkadot-test-runtime"
-version = "0.9.9-1"
-source = "git+https://github.com/purestake/polkadot?branch=notlesh-v0.9.9-block-response-length#43d9b89910ac0467dc14048213656e31b2019374"
-dependencies = [
- "beefy-primitives",
- "bitvec 0.20.2",
- "frame-election-provider-support",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "log",
- "pallet-authority-discovery",
- "pallet-authorship",
- "pallet-babe",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-indices",
- "pallet-mmr-primitives",
- "pallet-nicks",
- "pallet-offences",
- "pallet-session",
- "pallet-staking",
- "pallet-staking-reward-curve",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-vesting",
- "pallet-xcm",
- "parity-scale-codec",
- "polkadot-parachain",
- "polkadot-primitives",
- "polkadot-runtime-common",
- "polkadot-runtime-parachains",
- "rustc-hex",
- "serde",
- "serde_derive",
- "smallvec 1.6.1",
- "sp-api",
- "sp-authority-discovery",
- "sp-block-builder",
- "sp-consensus-babe",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-staking",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder",
- "xcm",
- "xcm-builder",
- "xcm-executor",
-]
-
-[[package]]
-name = "polkadot-test-service"
-version = "0.9.9-1"
-source = "git+https://github.com/purestake/polkadot?branch=notlesh-v0.9.9-block-response-length#43d9b89910ac0467dc14048213656e31b2019374"
-dependencies = [
- "frame-benchmarking",
- "frame-system",
- "futures 0.1.31",
- "futures 0.3.17",
- "hex",
- "pallet-balances",
- "pallet-staking",
- "pallet-transaction-payment",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-overseer",
- "polkadot-parachain",
- "polkadot-primitives",
- "polkadot-rpc",
- "polkadot-runtime-common",
- "polkadot-runtime-parachains",
- "polkadot-service",
- "polkadot-test-runtime",
- "rand 0.8.4",
- "sc-authority-discovery",
- "sc-chain-spec",
- "sc-cli",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-babe",
- "sc-executor",
- "sc-finality-grandpa",
- "sc-network",
- "sc-service",
- "sc-tracing",
- "sc-transaction-pool",
- "sp-arithmetic",
- "sp-authority-discovery",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-babe",
- "sp-core",
- "sp-finality-grandpa",
- "sp-inherents",
- "sp-keyring",
- "sp-runtime",
- "sp-state-machine",
- "substrate-test-client",
- "tempfile",
- "tracing",
 ]
 
 [[package]]
@@ -11083,6 +11197,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 
 [[package]]
+name = "slices"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2086e458a369cdca838e9f6ed04b4cc2e3ce636d99abb80c9e2eada107749cf"
+dependencies = [
+ "faster-hex",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "slog"
 version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12950,7 +13076,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
@@ -13756,6 +13882,41 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
+]
+
+[[package]]
+name = "xcm-primitives"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hex",
+ "log",
+ "parity-scale-codec",
+ "serde",
+ "sha3 0.8.2",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+]
+
+[[package]]
+name = "xcm-simulator"
+version = "0.9.9-1"
+source = "git+https://github.com/purestake/polkadot?branch=notlesh-v0.9.9-block-response-length#43d9b89910ac0467dc14048213656e31b2019374"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "paste",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime-parachains",
+ "sp-io",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]

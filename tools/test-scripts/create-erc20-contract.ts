@@ -1,4 +1,4 @@
-import { gerald, web3, ERC20_BYTECODE, init } from "./init-web3";
+import { gerald, web3, ERC20_BYTECODE, init } from "../init-web3";
 init();
 
 const main = async () => {

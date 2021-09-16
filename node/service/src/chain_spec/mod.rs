@@ -31,7 +31,7 @@ pub mod moonbase;
 pub mod moonbeam;
 #[cfg(feature = "moonriver-native")]
 pub mod moonriver;
-#[cfg(feature = "moonbeam-native")]
+#[cfg(feature = "moonbase-native")]
 pub mod test_spec;
 
 #[cfg(not(feature = "moonbase-native"))]
