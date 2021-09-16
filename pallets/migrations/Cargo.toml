@@ -14,7 +14,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystal
 parity-scale-codec = { version = "2.0.0", default-features = false }
 
 [dev-dependencies]
-environmental = { version = "1.1.2" }
+environmental = "1.1.2"
 sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
