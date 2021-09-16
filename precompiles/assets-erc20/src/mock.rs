@@ -243,6 +243,26 @@ construct_runtime!(
 
 pub struct Precompiles<R>(PhantomData<R>);
 
+impl<R> AccountIdToAssetId<R::AccountId, R::AssetId> for Precompiles<R>
+where
+	R: pallet_assets::Config,
+	R::AccountId: Into<H160>,
+	R::AssetId: From<u128>,
+{
+	fn account_to_asset_id(account: R::AccountId) -> Option<R::AssetId> {
+		let h160_account: H160 = account.into();
+		let mut data = [0u8; 16];
+		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+		if prefix_part == &[255u8; 4] {
+			data.copy_from_slice(id_part);
+			let asset_id: R::AssetId = u128::from_be_bytes(data).into();
+			Some(asset_id)
+		} else {
+			None
+		}
+	}
+}
+
 impl<R> PrecompileSet for Precompiles<R>
 where
 	R: pallet_balances::Config,
@@ -253,7 +273,10 @@ where
 	R::Call: From<pallet_assets::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256>,
-	R::AccountId: Into<Option<AssetIdOf<R>>>,
+	R::Precompiles: AccountIdToAssetId<
+		<R as frame_system::Config>::AccountId,
+		<R as pallet_assets::Config>::AssetId,
+	>,
 {
 	fn execute(
 		_address: H160,

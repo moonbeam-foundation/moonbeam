@@ -20,6 +20,7 @@ use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_assets_erc20::{AccountIdToAssetId, Erc20AssetsPrecompile};
 use pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -38,6 +39,30 @@ use sp_std::marker::PhantomData;
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbasePrecompiles<R>(PhantomData<R>);
 
+impl<R> AccountIdToAssetId<R::AccountId, R::AssetId> for MoonbasePrecompiles<R>
+where
+	R: pallet_asset_manager::Config,
+	R::AccountId: Into<H160>,
+	R::AssetId: From<u128>,
+{
+	fn account_to_asset_id(account: R::AccountId) -> Option<R::AssetId> {
+		let h160_account: H160 = account.into();
+		let mut data = [0u8; 16];
+		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+		if prefix_part == &[255u8; 4] {
+			data.copy_from_slice(id_part);
+			let asset_id: R::AssetId = u128::from_be_bytes(data).into();
+			if pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some() {
+				Some(asset_id)
+			} else {
+				None
+			}
+		} else {
+			None
+		}
+	}
+}
+
 impl<R> MoonbasePrecompiles<R>
 where
 	R: pallet_evm::Config,
@@ -55,15 +80,27 @@ where
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
 /// 2048-4095 Moonbeam specific precompiles
+/// Asset precompiles can only fall between
+/// 	0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+/// The precompile for AssetId X, where X is a u128 (i.e.16 bytes), if 0XFFFFFFFF + Bytes(AssetId)
+/// In order to route the address to Erc20AssetsPrecompile<R>, we first check whether the AssetId
+/// exists in pallet-assets
+/// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
+/// but the probability for this to happen is 2^-32 for random addresses
+
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
-	R: pallet_evm::Config,
+	R: pallet_evm::Config + pallet_assets::Config,
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
+	R::Precompiles: AccountIdToAssetId<
+		<R as frame_system::Config>::AccountId,
+		<R as pallet_assets::Config>::AssetId,
+	>,
 {
 	fn execute(
 		address: H160,
@@ -98,7 +135,12 @@ where
 			a if a == hash(2051) => {
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
-			_ => None,
+			_ => {
+				if let Some(asset_id) =
+					R::Precompiles::account_to_asset_id(R::AddressMapping::into_account_id(address))
+				{}
+				None
+			}
 		}
 	}
 }

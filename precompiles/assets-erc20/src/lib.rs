@@ -138,6 +138,11 @@ pub enum Action {
 	TransferFrom = "transferFrom(address,address,uint256)",
 }
 
+pub trait AccountIdToAssetId<Account, AssetId> {
+	// Get assetId from account
+	fn account_to_asset_id(account: Account) -> Option<AssetId>;
+}
+
 /// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
 /// The precompile uses an additional storage to store approvals.
@@ -151,7 +156,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
-	Runtime::AccountId: Into<Option<AssetIdOf<Runtime, Instance>>>,
+	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -179,7 +184,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
-	Runtime::AccountId: Into<Option<AssetIdOf<Runtime, Instance>>>,
+	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 {
 	fn total_supply(
 		input: EvmDataReader,
@@ -194,9 +199,9 @@ where
 		// Parse input.
 		input.expect_arguments(0)?;
 
-		let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-			.into()
-			.ok_or(error("non-assetId address"))?;
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::Precompiles::account_to_asset_id(execution_address)
+				.ok_or(error("non-assetId address"))?;
 
 		// Fetch info.
 		let amount: U256 =
@@ -228,9 +233,9 @@ where
 		let amount: U256 = {
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 
-			let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-				.into()
-				.ok_or(error("non-assetId address"))?;
+			let asset_id: AssetIdOf<Runtime, Instance> =
+				Runtime::Precompiles::account_to_asset_id(execution_address)
+					.ok_or(error("non-assetId address"))?;
 
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &owner).into()
@@ -262,10 +267,9 @@ where
 		// Fetch info.
 		let amount: U256 = {
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-
-			let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-				.into()
-				.ok_or(error("non-assetId address"))?;
+			let asset_id: AssetIdOf<Runtime, Instance> =
+				Runtime::Precompiles::account_to_asset_id(execution_address)
+					.ok_or(error("non-assetId address"))?;
 
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
@@ -302,9 +306,9 @@ where
 		// Write into storage.
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-				.into()
-				.ok_or(error("non-assetId address"))?;
+			let asset_id: AssetIdOf<Runtime, Instance> =
+				Runtime::Precompiles::account_to_asset_id(execution_address)
+					.ok_or(error("non-assetId address"))?;
 
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
@@ -347,10 +351,9 @@ where
 		// Build call with origin.
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-
-			let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-				.into()
-				.ok_or(error("non-assetId address"))?;
+			let asset_id: AssetIdOf<Runtime, Instance> =
+				Runtime::Precompiles::account_to_asset_id(execution_address)
+					.ok_or(error("non-assetId address"))?;
 
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
@@ -406,9 +409,9 @@ where
 
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> = execution_address
-				.into()
-				.ok_or(error("non-assetId address"))?;
+			let asset_id: AssetIdOf<Runtime, Instance> =
+				Runtime::Precompiles::account_to_asset_id(execution_address)
+					.ok_or(error("non-assetId address"))?;
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
