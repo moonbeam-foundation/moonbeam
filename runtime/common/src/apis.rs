@@ -349,22 +349,26 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
-					// authors would be to run the staking election while predicting. However this
-					// election is heavy and will take too long during prediction. So instead we
-					// work around it by always authoring the first slot in a new round. A longer-
-					// term solution will be to calculate the staking election result in the last
-					// block of the ending round.
+					// authors is to compute the selection during prediction.
 					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
-						log::info!(target: "nimbus-staking-workaround", "A new round is starting.\
-						Moonbeam will author during this slot without predicting eligibility first.\
-						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
-						It will be resolved soon.");
-
-						true
-					}
-					else {
+						// get author account id
+						use nimbus_primitives::AccountLookup;
+						let author_account_id = if let Some(account) =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
+							account
+						} else {
+							// return false if author mapping not registered like in can_author impl
+							return false
+						};
+						// predict eligibility post-selection by computing selection results now
+						let (eligible, _) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
+								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								&slot
+							);
+						eligible.contains(&author_account_id)
+					} else {
 						AuthorInherent::can_author(&author, &slot)
-
 					}
 				}
 			}
