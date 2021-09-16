@@ -28,7 +28,7 @@ use sp_runtime_interface::runtime_interface;
 use codec::Decode;
 use sp_std::vec::Vec;
 
-use evm_tracing_events::{Event as EventV2, EvmEvent, GasometerEvent, RuntimeEvent};
+use evm_tracing_events::{Event, EvmEvent, GasometerEvent, RuntimeEvent};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
@@ -47,7 +47,7 @@ pub trait MoonbeamExt {
 	/// evm -> moonbeam_runtime -> host.
 	fn evm_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = EvmEvent::decode(&mut &event[..]) {
-			EventV2::Evm(event).emit();
+			Event::Evm(event).emit();
 		}
 	}
 
@@ -55,7 +55,7 @@ pub trait MoonbeamExt {
 	/// evm_gasometer -> moonbeam_runtime -> host.
 	fn gasometer_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = GasometerEvent::decode(&mut &event[..]) {
-			EventV2::Gasometer(event).emit();
+			Event::Gasometer(event).emit();
 		}
 	}
 
@@ -63,13 +63,13 @@ pub trait MoonbeamExt {
 	/// evm_runtime -> moonbeam_runtime -> host.
 	fn runtime_event(&mut self, event: Vec<u8>) {
 		if let Ok(event) = RuntimeEvent::decode(&mut &event[..]) {
-			EventV2::Runtime(event).emit();
+			Event::Runtime(event).emit();
 		}
 	}
 
 	/// An event to create a new CallList (currently a new transaction when tracing a block).
 	#[version(2)]
 	fn call_list_new(&mut self) {
-		EventV2::CallListNew().emit();
+		Event::CallListNew().emit();
 	}
 }
