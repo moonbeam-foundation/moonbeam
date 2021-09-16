@@ -1,7 +1,7 @@
 import Keyring from "@polkadot/keyring";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
-import { BN, isUndefined } from "@polkadot/util";
+import { BN, isUndefined, stringToU8a, u8aToHex } from "@polkadot/util";
 
 import {
   ALITH,
@@ -9,11 +9,14 @@ import {
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_BALANCE,
   GENESIS_ACCOUNT_PRIVATE_KEY,
+  TREASURY_ACCOUNT,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { describeParachain } from "../util/setup-para-tests";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { numberToHex, stringToHex } from "web3-utils";
 
-const MOONRIVER_SUDO_ACCOUNT = "0xb728c13034c3b6c6447f399d25b097216a0081ea";
+const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 const assetMetadata = {
   name: "DOT",
@@ -21,63 +24,45 @@ const assetMetadata = {
   decimals: new BN(12),
   isFrozen: false,
 };
-const sourceLocation = { XCM: { interior: { Here: null }, parents: new BN(1) } }; //{ XCM: { X1: "Parent" } };
-const sourceId = blake2AsHex(JSON.stringify(sourceLocation));
+const sourceLocation = { XCM: { interior: { Here: null }, parents: new BN(1) } };
 
-describeDevMoonbeam(
-  "XCM - receive_relay_asset_from_relay",
-  //{ chain: "moonriver-local" },
-  (context) => {
-    it("should be accessible through web3", async function () {
-      const keyring = new Keyring({ type: "sr25519" });
-      const aliceRelay = keyring.addFromUri("//Alice");
+describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+  it("should be able to register an asset and set unit per sec", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      const keyringEth = new Keyring({ type: "ethereum" });
-      const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
-      const genesisAccount = keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-
-      const parachainOne = context.polkadotApi;
-      // const relayOne = context._polkadotApiRelaychains[0];
-
-      console.log("before", (await parachainOne.query.system.account(ALITH)).data.free.toHuman());
-      console.log(
-        "before genesis",
-        (await parachainOne.query.system.account(GENESIS_ACCOUNT)).data.free.toHuman()
-      );
-
-      // parachains
-      console.log(Object.keys(parachainOne.tx));
-      const res = await parachainOne.tx.sudo
-        .sudo(parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1)))
-        .signAndSend(alith);
-      console.log("res", res);
-
-      const res2 = await parachainOne.tx.sudo
-        .sudo(parachainOne.tx.assetManager.setUnitsPerSecond(sourceId, 0))
-        .signAndSend(alith);
-
-      console.log("res2", res2);
-
-      const res3 = await parachainOne.query.assetManager.assetIdType(null);
-      const res4 = await parachainOne.query.assetManager.assetIdType(sourceId);
-      console.log(res3.toHuman());
-      console.log(res4.toHuman());
-
-      //relay
-      // const res3 = await relayOne.tx.xcmPallet
-      //   .reserveTransferAssets(
-      //     { X1: { Parachain: 1000 } },
-      //     { X1: { network: "Any", key: ALITH } },
-      //     [{ id: "Here", amount: 1000000000000000 }],
-      //     4000000000
-      //   )
-      //   .signAndSend(aliceRelay); // NO SUDO FOR RELAY
-      // console.log("res3", res3);
-      // console.log("after", (await parachainOne.query.system.account(ALITH)).data.free.toHuman());
-      // expect((await parachainOne.query.system.account(ALITH)).data.free.toHuman()).to.eq(
-      //   "1.2078 MMOVR"
-      // );
+    const parachainOne = context.polkadotApi;
+    // registerAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      parachainOne.tx.sudo.sudo(
+        parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1))
+      )
+    );
+    // Look for assetId in events
+    let assetId: string;
+    eventsRegister.forEach((e) => {
+      console.log(e.toHuman());
+      let ev = e.toHuman();
+      if (ev.section === "assetManager") {
+        assetId = ev.data[0];
+      }
     });
-  }
-);
+    assetId = assetId.replace(/,/g, "");
+
+    // setAssetUnitsPerSecond
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      parachainOne.tx.sudo.sudo(parachainOne.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
+    );
+    events.forEach((e) => console.log(e.toHuman()));
+    expect(events[0].toHuman().method).to.eq("UnitsPerSecondChanged");
+    expect(events[2].toHuman().method).to.eq("ExtrinsicSuccess");
+
+    // check asset in storage
+    const registeredAsset = await parachainOne.query.assets.asset(assetId);
+    expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
+  });
+});

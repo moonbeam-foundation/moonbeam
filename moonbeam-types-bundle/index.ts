@@ -297,6 +297,12 @@ const TYPES_600_undefined: RegistryTypes = {
       OtherReserve: "u128",
     },
   },
+  AssetRegistrarMetadata: {
+    name: "Vec<u8>",
+    symbol: "Vec<u8>",
+    decimals: "u8",
+    is_frozen: "bool",
+  },
 };
 
 export const moonbeamDefinitions = {

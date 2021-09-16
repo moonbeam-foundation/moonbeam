@@ -18,7 +18,7 @@ export interface ParaTestContext {
   polkadotApiParaone: ApiPromise;
 }
 
-interface InternalParaTestContext extends ParaTestContext {
+export interface InternalParaTestContext extends ParaTestContext {
   _polkadotApiParachains: ApiPromise[];
   _polkadotApiRelaychains: ApiPromise[];
   _web3Providers: HttpProvider[];
