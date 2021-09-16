@@ -227,7 +227,7 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
         run: |
           env
-          cargo build --release -p moonbeam --features evm-tracing
+          cargo build --release -p moonbeam -p moonbase-runtime --features moonbase-runtime/evm-tracing
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
@@ -383,7 +383,7 @@ jobs:
       - name: Build Tracing Node
         run: |
           env
-          cargo build --release -p moonbeam --features evm-tracing
+          cargo build --release -p moonbeam -p moonbase-runtime --features moonbase-runtime/evm-tracing
       - name: Save moonbeam tracing binary
         run: |
           mkdir -p build
