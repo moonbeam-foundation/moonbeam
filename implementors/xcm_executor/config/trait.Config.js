@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonbase_runtime/struct.XcmExecutorConfig.html\" title=\"struct moonbase_runtime::XcmExecutorConfig\">XcmExecutorConfig</a>","synthetic":false,"types":["moonbase_runtime::XcmExecutorConfig"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

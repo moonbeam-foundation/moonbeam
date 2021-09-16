@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl <a class=\"trait\" href=\"pallet_asset_manager/pallet/trait.AssetRegistrar.html\" title=\"trait pallet_asset_manager::pallet::AssetRegistrar\">AssetRegistrar</a>&lt;<a class=\"struct\" href=\"moonbase_runtime/struct.Runtime.html\" title=\"struct moonbase_runtime::Runtime\">Runtime</a>&gt; for <a class=\"struct\" href=\"moonbase_runtime/struct.AssetRegistrar.html\" title=\"struct moonbase_runtime::AssetRegistrar\">AssetRegistrar</a>","synthetic":false,"types":["moonbase_runtime::AssetRegistrar"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -47,6 +47,8 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -80,6 +82,8 @@
 <span class="doccomment">/// Some way of identifying an account on the chain. We intentionally make it equivalent</span>
 <span class="doccomment">/// to the public key of our transaction signing scheme.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AccountId</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Signature</span> <span class="kw">as</span> <span class="ident">Verify</span><span class="op">&gt;</span><span class="ident">::Signer</span> <span class="kw">as</span> <span class="ident">IdentifyAccount</span><span class="op">&gt;</span><span class="ident">::AccountId</span>;
+<span class="doccomment">/// AssetId type</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">u128</span>;
 <span class="doccomment">/// Balance of an account.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">u128</span>;
 <span class="doccomment">/// An index to a block.</span>

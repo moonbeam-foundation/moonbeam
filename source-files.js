@@ -20,6 +20,7 @@ sourcesIndex["moonbeam_runtime"] = {"name":"","files":["lib.rs","precompiles.rs"
 sourcesIndex["moonbeam_service"] = {"name":"","dirs":[{"name":"chain_spec","files":["fake_spec.rs","mod.rs","moonbase.rs","moonbeam.rs","moonriver.rs","test_spec.rs"]}],"files":["client.rs","lib.rs","rpc.rs"]};
 sourcesIndex["moonkey"] = {"name":"","files":["main.rs"]};
 sourcesIndex["moonriver_runtime"] = {"name":"","files":["lib.rs","precompiles.rs"]};
+sourcesIndex["pallet_asset_manager"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_author_mapping"] = {"name":"","files":["lib.rs","weights.rs"]};
 sourcesIndex["pallet_democracy_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
@@ -30,4 +31,5 @@ sourcesIndex["parachain_staking_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["precompile_utils"] = {"name":"","files":["data.rs","lib.rs"]};
 sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["runtime_common"] = {"name":"","files":["apis.rs","lib.rs"]};
+sourcesIndex["xcm_primitives"] = {"name":"","files":["lib.rs"]};
 createSourceSidebar();
