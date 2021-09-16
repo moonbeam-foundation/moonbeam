@@ -25,6 +25,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
@@ -36,7 +37,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
-
+pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
@@ -173,6 +174,7 @@ std = [
 	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"parachain-staking-precompiles/std",
+	"pallet-democracy-precompiles/std",
 	"pallet-author-slot-filter/std",
 	"pallet-maintenance-mode/std",
 	"pallet-crowdloan-rewards/std",
@@ -191,7 +193,8 @@ std = [
 	"pallet-assets/std",
 	"pallet-asset-manager/std",
 	"orml-xtokens/std",
-	"xcm-primitives/std"
+	"xcm-primitives/std",
+	"pallet-evm-precompile-balances-erc20/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -215,6 +218,8 @@ runtime-benchmarks = [
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",

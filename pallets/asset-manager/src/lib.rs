@@ -14,6 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! TODO Doc comments for the pallet
+//! # Asset Manager Pallet
+//!
+//! This pallet allows to register new assets if certain conditions are met
+//! The main goal of this pallet is to allow moonbeam to register XCM assets
+//! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
+//!
+//! This pallet has two storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! AssetIdUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetId should be
+//! charged per unit of second, in the case such an Asset is received as a XCM asset.
+//!
+//! This pallet has two extrinsics: register_asset, which registers an Asset in this pallet and
+//! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
+//! sets the unit per second that should be charged for a particular asset.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
@@ -27,12 +42,15 @@ pub mod tests;
 pub mod pallet {
 
 	use frame_support::{pallet_prelude::*, PalletId};
-	use frame_system::{ensure_root, pallet_prelude::*};
+	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
-	use sp_runtime::traits::AtLeast32BitUnsigned;
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// The AssetManagers's pallet id
+	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
@@ -40,7 +58,7 @@ pub mod pallet {
 		fn create_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
-			metadata: T::AssetMetaData,
+			metadata: T::AssetRegistrarMetadata,
 		) -> DispatchResult;
 	}
 
@@ -51,7 +69,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> xcm_primitives::UnitsPerSecondGetter<T::AssetId> for Pallet<T> {
+	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetId> for Pallet<T> {
 		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
 			AssetIdUnitsPerSecond::<T>::get(asset_id)
 		}
@@ -65,7 +83,7 @@ pub mod pallet {
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
-		type AssetMetaData: Member + Parameter;
+		type AssetRegistrarMetadata: Member + Parameter;
 
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
@@ -76,9 +94,8 @@ pub mod pallet {
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
 
-		/// The AssetManagers's pallet id
-		#[pallet::constant]
-		type PalletId: Get<PalletId>;
+		/// Origin that is allowed to create and modify asset information
+		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -92,11 +109,11 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetaData),
+		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
 	}
 
-	// Stores the asset TYPE
+	/// Stores the asset TYPE
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
@@ -114,10 +131,11 @@ pub mod pallet {
 		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
-			metadata: T::AssetMetaData,
+			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_none(),
@@ -132,14 +150,14 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the units per second for a given AssetId
+		/// Change the amount of units we are charging per execution second for a given AssetId
 		#[pallet::weight(0)]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			units_per_second: u128,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::AssetModifierOrigin::ensure_origin(origin)?;
 
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_some(),
@@ -150,6 +168,13 @@ pub mod pallet {
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// The account ID of AssetManager
+		pub fn account_id() -> T::AccountId {
+			PALLET_ID.into_account()
 		}
 	}
 }
