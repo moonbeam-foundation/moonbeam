@@ -13,9 +13,9 @@ repository = 'https://github.com/PureStake/moonbeam/'
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
 ethereum-types = { version = "0.12.0", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../rpc/debug", default-features = false }
-sp-runtime-interface = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-externalities = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
+sp-runtime-interface = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-externalities = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
 tracing = { version = "0.1.25", optional = true }
 
 [features]

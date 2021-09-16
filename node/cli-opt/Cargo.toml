@@ -7,7 +7,7 @@ authors = ["PureStake"]
 edition = '2018'
 
 [dependencies]
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 structopt = "0.3.8"
 tiny-bip39 = { version = "0.6" }
 libsecp256k1 = { version = "0.3.2" }
