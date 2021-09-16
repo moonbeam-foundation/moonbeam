@@ -288,7 +288,7 @@ const TYPES_700_undefined: RegistryTypes = {
     id: "BodyId",
     part: "BodyPart",
   },
-  JunctionV1: {
+  JunctionV0: {
     _enum: {
       Parachain: "Compact<u32>",
       AccountId32: "ENUM_AccountId32",
@@ -314,6 +314,7 @@ const TYPES_700_undefined: RegistryTypes = {
     is_frozen: "bool",
   },
   VestingBlockNumber: "u32",
+  MultiLocation: "MultiLocationV0",
 };
 
 export const moonbeamDefinitions = {
