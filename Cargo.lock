@@ -6167,7 +6167,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/JoshOrndorff/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
 dependencies = [
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "impl-trait-for-tuples 0.2.1",
@@ -6184,7 +6184,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/JoshOrndorff/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
 dependencies = [
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "parity-scale-codec",
@@ -6197,7 +6197,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/JoshOrndorff/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
 dependencies = [
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "orml-traits",
@@ -6211,7 +6211,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/JoshOrndorff/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.10#313c92c163d04f9c41a7306f7677fd65686b3def"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.9)",
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",

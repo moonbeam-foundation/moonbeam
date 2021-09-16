@@ -103,7 +103,7 @@ xcm-executor = { git = "https://github.com/purestake/polkadot", default-features
 pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-orml-xtokens = { git = "https://github.com/JoshOrndorff/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10", optional = true }
