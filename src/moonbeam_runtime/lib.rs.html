@@ -1045,6 +1045,25 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1886,33 +1905,52 @@
 		<span class="ident">NodeBlock</span> <span class="op">=</span> <span class="ident">opaque::Block</span>,
 		<span class="ident">UncheckedExtrinsic</span> <span class="op">=</span> <span class="ident">UncheckedExtrinsic</span>
 	{
-		<span class="ident">System</span>: <span class="ident">frame_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Utility</span>: <span class="ident">pallet_utility</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span>},
-		<span class="ident">Timestamp</span>: <span class="ident">pallet_timestamp</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
-		<span class="ident">Balances</span>: <span class="ident">pallet_balances</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Sudo</span>: <span class="ident">pallet_sudo</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">RandomnessCollectiveFlip</span>: <span class="ident">pallet_randomness_collective_flip</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>},
-		<span class="ident">ParachainSystem</span>: <span class="ident">cumulus_pallet_parachain_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">TransactionPayment</span>: <span class="ident">pallet_transaction_payment</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>},
-		<span class="ident">ParachainInfo</span>: <span class="ident">parachain_info</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
-		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
-		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>},
-		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
-		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="comment">// System support stuff.</span>
+		<span class="ident">System</span>: <span class="ident">frame_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">0</span>,
+		<span class="ident">ParachainSystem</span>: <span class="ident">cumulus_pallet_parachain_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">1</span>,
+		<span class="ident">RandomnessCollectiveFlip</span>: <span class="ident">pallet_randomness_collective_flip</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>} <span class="op">=</span> <span class="number">2</span>,
+		<span class="ident">Timestamp</span>: <span class="ident">pallet_timestamp</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>} <span class="op">=</span> <span class="number">3</span>,
+		<span class="ident">ParachainInfo</span>: <span class="ident">parachain_info</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">4</span>,
+
+		<span class="comment">// Monetary stuff.</span>
+		<span class="ident">Balances</span>: <span class="ident">pallet_balances</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">10</span>,
+		<span class="ident">TransactionPayment</span>: <span class="ident">pallet_transaction_payment</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>} <span class="op">=</span> <span class="number">11</span>,
+
+		<span class="comment">// Consensus support.</span>
+		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">20</span>,
+		<span class="ident">AuthorInherent</span>: <span class="ident">pallet_author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>} <span class="op">=</span> <span class="number">21</span>,
+		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_slot_filter</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">22</span>,
+		<span class="ident">AuthorMapping</span>: <span class="ident">pallet_author_mapping</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">23</span>,
+
+		<span class="comment">// Handy utilities.</span>
+		<span class="ident">Utility</span>: <span class="ident">pallet_utility</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span>} <span class="op">=</span> <span class="number">30</span>,
+		<span class="ident">Proxy</span>: <span class="ident">pallet_proxy</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">31</span>,
+		<span class="ident">MaintenanceMode</span>: <span class="ident">pallet_maintenance_mode</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>} <span class="op">=</span> <span class="number">32</span>,
+		<span class="ident">Identity</span>: <span class="ident">pallet_identity</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">33</span>,
+
+		<span class="comment">// Sudo.</span>
+		<span class="ident">Sudo</span>: <span class="ident">pallet_sudo</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">40</span>,
+
+		<span class="comment">// Ethereum compatibility.</span>
+		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">50</span>,
+		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">51</span>,
+		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>} <span class="op">=</span> <span class="number">52</span>,
+
+		<span class="comment">// Governance stuff.</span>
+		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>} <span class="op">=</span> <span class="number">60</span>,
+		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>} <span class="op">=</span> <span class="number">61</span>,
+
+		<span class="comment">// Council stuff.</span>
 		<span class="ident">CouncilCollective</span>:
-			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">70</span>,
 		<span class="ident">TechComitteeCollective</span>:
-			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Treasury</span>: <span class="ident">pallet_treasury</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
-		<span class="ident">AuthorInherent</span>: <span class="ident">pallet_author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
-		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_slot_filter</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>},
-		<span class="ident">CrowdloanRewards</span>: <span class="ident">pallet_crowdloan_rewards</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">AuthorMapping</span>: <span class="ident">pallet_author_mapping</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Proxy</span>: <span class="ident">pallet_proxy</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">MaintenanceMode</span>: <span class="ident">pallet_maintenance_mode</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>},
-		<span class="ident">Identity</span>: <span class="ident">pallet_identity</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">71</span>,
+
+		<span class="comment">// Treasury stuff.</span>
+		<span class="ident">Treasury</span>: <span class="ident">pallet_treasury</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>} <span class="op">=</span> <span class="number">80</span>,
+
+		<span class="comment">// Crowdloan stuff.</span>
+		<span class="ident">CrowdloanRewards</span>: <span class="ident">pallet_crowdloan_rewards</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">90</span>,
 	}
 }
 
