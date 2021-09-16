@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-// use super::{
-// 	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
-// 	RuntimeEvent, H160, H256,
-// };
 use ethereum_types::{H160, H256};
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
