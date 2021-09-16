@@ -1,10 +1,21 @@
 import {
   OverrideBundleDefinition,
   OverrideBundleType,
+  OverrideModuleType,
   DefinitionRpc,
   DefinitionRpcSub,
   RegistryTypes,
 } from "@polkadot/types/types";
+
+// override types for specific pallets
+export const moduleDefinitions: Record<string, OverrideModuleType> = {
+  assetManager: {
+    Balance: "TAssetBalance",
+  },
+  xTokens: {
+    Balance: "TAssetBalance",
+  },
+};
 
 // Moonbeam specific rpc methods
 export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | DefinitionRpcSub>> = {
@@ -243,18 +254,17 @@ const TYPES_200_399: RegistryTypes = {
   },
 };
 
-const TYPES_400_599: RegistryTypes = {
+const TYPES_400_699: RegistryTypes = {
   ...TYPES_200_399,
   RewardInfo: {
     total_reward: "Balance",
     claimed_reward: "Balance",
     contributed_relay_addresses: "Vec<RelayChainAccountId>",
   },
-  VestingBlockNumber: "u32",
 };
 
-const TYPES_600_undefined: RegistryTypes = {
-  ...TYPES_400_599,
+const TYPES_700_undefined: RegistryTypes = {
+  ...TYPES_400_699,
   AssetType: {
     _enum: {
       Xcm: "MultiLocation",
@@ -303,9 +313,11 @@ const TYPES_600_undefined: RegistryTypes = {
     decimals: "u8",
     is_frozen: "bool",
   },
+  VestingBlockNumber: "u32",
 };
 
 export const moonbeamDefinitions = {
+  alias: moduleDefinitions,
   rpc: rpcDefinitions,
   instances: {
     council: ["councilCollective"],
@@ -349,12 +361,12 @@ export const moonbeamDefinitions = {
       types: TYPES_200_399,
     },
     {
-      minmax: [400, 599],
-      types: TYPES_400_599,
+      minmax: [400, 699],
+      types: TYPES_400_699,
     },
     {
-      minmax: [600, undefined],
-      types: TYPES_600_undefined,
+      minmax: [700, undefined],
+      types: TYPES_700_undefined,
     },
   ],
 } as OverrideBundleDefinition;
