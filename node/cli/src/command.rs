@@ -214,11 +214,24 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let mut cli = Cli::from_args();
+
 	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
 		&& cfg!(not(feature = "evm-tracing"))
 	{
 		return Err("`--ethapi` only available on `evm-tracing` feature.".into());
 	}
+
+	// Set --execution wasm as default
+	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
+	if execution_strategies.execution.is_none() {
+		cli.run
+			.base
+			.base
+			.import_params
+			.execution_strategies
+			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
+	}
+
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;
@@ -514,17 +527,6 @@ pub fn run() -> Result<()> {
 			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
-			// Set --execution wasm as default
-			let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-			if execution_strategies.execution.is_none() {
-				cli.run
-					.base
-					.base
-					.import_params
-					.execution_strategies
-					.execution = Some(sc_cli::ExecutionStrategy::Wasm);
-			}
-
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
