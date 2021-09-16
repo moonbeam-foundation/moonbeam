@@ -21,7 +21,7 @@ use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 
-use frame_support::{assert_noop, assert_ok};
+use frame_support::assert_ok;
 
 use xcm::v0::{
 	Junction::{self, PalletInstance, Parachain, Parent},

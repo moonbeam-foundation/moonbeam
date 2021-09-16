@@ -19,11 +19,6 @@
 mod common;
 use common::*;
 
-use xcm::v0::{
-	Junction::{self, PalletInstance, Parachain, Parent},
-	MultiLocation::*,
-};
-
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
@@ -33,8 +28,8 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetManager, AssetMetadata, AssetType, Balances, BlockWeights,
-	Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System,
+	currency::UNIT, AccountId, AssetManager, Balances, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -48,6 +43,7 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
+use xcm::v0::{Junction, MultiLocation::*};
 
 #[test]
 fn fast_track_available() {
@@ -1037,7 +1033,7 @@ fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = moonbase_runtime::AssetMetadata {
+		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),
 			symbol: b"Relay".to_vec(),
 			decimals: 12,

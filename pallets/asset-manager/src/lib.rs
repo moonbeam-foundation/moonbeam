@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! TODO Doc comments for the pallet
 //! # Asset Manager Pallet
 //!
 //! This pallet allows to register new assets if certain conditions are met
@@ -57,7 +58,7 @@ pub mod pallet {
 		fn create_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
-			metadata: T::AssetMetadata,
+			metadata: T::AssetRegistrarMetadata,
 		) -> DispatchResult;
 	}
 
@@ -82,7 +83,7 @@ pub mod pallet {
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
-		type AssetMetadata: Member + Parameter;
+		type AssetRegistrarMetadata: Member + Parameter;
 
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
@@ -108,11 +109,11 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetMetadata),
+		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
 	}
 
-	// Stores the asset TYPE
+	/// Stores the asset TYPE
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
@@ -130,7 +131,7 @@ pub mod pallet {
 		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
-			metadata: T::AssetMetadata,
+			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
@@ -149,7 +150,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the units per second for a given AssetId
+		/// Change the amount of units we are charging per execution second for a given AssetId
 		#[pallet::weight(0)]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
