@@ -355,6 +355,7 @@
 <span id="355">355</span>
 <span id="356">356</span>
 <span id="357">357</span>
+<span id="358">358</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -561,6 +562,7 @@
 			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
 			<span class="ident">frontier_backend</span>.<span class="ident">as_ref</span>(),
 			<span class="ident">transaction_hash</span>,
+			<span class="bool-val">false</span>,
 		) {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">hash</span>, <span class="ident">index</span>))) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">hash</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>),
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Transaction hash not found&quot;</span>.<span class="ident">to_string</span>())),
