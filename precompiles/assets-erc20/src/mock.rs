@@ -19,10 +19,7 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything};
 
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
@@ -32,8 +29,6 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 pub type AccountId = Account;
 pub type AssetId = u128;
@@ -261,7 +256,7 @@ where
 	R::AccountId: Into<Option<AssetIdOf<R>>>,
 {
 	fn execute(
-		address: H160,
+		_address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
@@ -270,10 +265,6 @@ where
 			input, target_gas, context,
 		))
 	}
-}
-
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
 }
 
 pub(crate) struct ExtBuilder {
@@ -308,23 +299,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-
-		System::set_block_number(System::block_number() + 1);
-
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
-}
-
-pub(crate) fn events() -> Vec<Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
 }

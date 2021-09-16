@@ -25,7 +25,6 @@ use frame_support::traits::fungibles::Inspect;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{CheckedSub, StaticLookup},
-	storage::types::StorageDoubleMap,
 	traits::StorageInstance,
 	transactional, Blake2_128Concat,
 };
