@@ -12,11 +12,10 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 
 describeDevMoonbeam("Sudo - Only sudo account", (context) => {
-  let genesisAccount: KeyringPair; //sudoAccount: KeyringPair;
+  let genesisAccount: KeyringPair;
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    // sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should NOT be able to call sudo with another account than sudo account", async function () {
     const { events } = await createBlockWithExtrinsic(

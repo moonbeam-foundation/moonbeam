@@ -412,25 +412,8 @@ async function start() {
   process.on("SIGINT", function () {
     process.exit(2);
   });
-  console.log("LAUNCH CONFIG", launchConfig);
-  console.log("LAUNCH CONFIG", launchConfig.relaychain.nodes);
-  console.log("LAUNCH CONFIG", launchConfig.parachains[0].nodes);
-  console.log(
-    "LAUNCH CONFIG",
-    //@ts-ignore
-    launchConfig.relaychain.genesis.runtime.runtime_genesis_config.parachainsConfiguration
-  );
 
   await run(__dirname, launchConfig);
-  console.log("wsport", launchConfig.parachains[0].nodes[0].wsPort);
-  const polkadotApiParaone = await ApiPromise.create({
-    // initWasm: false,
-    provider: new WsProvider(`ws://localhost:${launchConfig.parachains[0].nodes[0].wsPort}`),
-    typesBundle: typesBundle as any,
-  });
-  polkadotApiParaone.derive.chain.subscribeNewHeads((header) => {
-    console.log(`#${header.number}: ${header.author}`, new Date());
-  });
 }
 
 const launchTemplate = {
