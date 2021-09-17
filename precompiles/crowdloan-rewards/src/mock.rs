@@ -102,12 +102,6 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
-	}
-}
-
 impl From<TestAccount> for H160 {
 	fn from(value: TestAccount) -> H160 {
 		match value {
@@ -191,7 +185,6 @@ where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	R: pallet_crowdloan_rewards::Config + pallet_evm::Config,
-	R::AccountId: From<H160>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
 {
@@ -244,6 +237,7 @@ parameter_types! {
 	pub const TestMinimumReward: u128 = 0;
 	pub const TestInitialized: bool = false;
 	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
+	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
 }
 
 impl pallet_crowdloan_rewards::Config for Test {
@@ -254,6 +248,10 @@ impl pallet_crowdloan_rewards::Config for Test {
 	type MinimumReward = TestMinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockProvider =
+		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {

@@ -132,7 +132,7 @@ fn is_contributor_returns_true() {
 			// The init relay block gets inserted
 			roll_to(2);
 
-			let init_block = Crowdloan::init_relay_block();
+			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
 				([1u8; 32], Some(Alice), 50u32.into()),
 				([2u8; 32], Some(Bob), 50u32.into()),
@@ -174,7 +174,7 @@ fn claim_works() {
 			// The init relay block gets inserted
 			roll_to(2);
 
-			let init_block = Crowdloan::init_relay_block();
+			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
 				([1u8; 32].into(), Some(Alice), 50u32.into()),
 				([2u8; 32].into(), Some(Bob), 50u32.into()),
@@ -220,7 +220,7 @@ fn reward_info_works() {
 			// The init relay block gets inserted
 			roll_to(2);
 
-			let init_block = Crowdloan::init_relay_block();
+			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
 				([1u8; 32].into(), Some(Alice), 50u32.into()),
 				([2u8; 32].into(), Some(Bob), 50u32.into()),
@@ -267,7 +267,7 @@ fn update_reward_address_works() {
 			// The init relay block gets inserted
 			roll_to(2);
 
-			let init_block = Crowdloan::init_relay_block();
+			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
 				([1u8; 32].into(), Some(Alice), 50u32.into()),
 				([2u8; 32].into(), Some(Bob), 50u32.into()),
