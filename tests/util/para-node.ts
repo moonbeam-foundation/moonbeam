@@ -58,16 +58,8 @@ export interface NodePorts {
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
 // Returns ports for the 3rd parachain node
 export async function startParachainNodes(options: ParachainOptions): Promise<{
-  relayPorts: {
-    p2pPort: number;
-    rpcPort: number;
-    wsPort: number;
-  }[];
-  paraPorts: {
-    p2pPort: number;
-    rpcPort: number;
-    wsPort: number;
-  }[];
+  relayPorts: NodePorts[];
+  paraPorts: NodePorts[];
 }> {
   while (nodeStarted) {
     // Wait 100ms to see if the node is free

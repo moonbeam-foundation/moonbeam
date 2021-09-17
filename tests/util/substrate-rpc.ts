@@ -3,8 +3,6 @@ import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/typ
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
 
-const MAX_NUMBER_TRY = 10;
-
 // DEV LOCAL TESTING
 
 export const createBlockWithExtrinsic = async <
