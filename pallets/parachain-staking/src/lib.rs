@@ -1910,15 +1910,13 @@ pub mod pallet {
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = candidates
+			candidates
 				.into_iter()
 				.rev()
 				.take(top_n)
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>();
-			collators.sort();
-			collators
+				.collect::<Vec<T::AccountId>>()
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
