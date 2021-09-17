@@ -161,10 +161,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
 
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
-  console.log("LAUNCH CONFIG", launchConfig);
-  console.log("LAUNCH CONFIG", launchConfig.relaychain.nodes);
-  console.log("LAUNCH CONFIG", launchConfig.parachains[0].nodes);
-  console.log("LAUNCH CONFIG", launchConfig.relaychain.genesis);
   await run(path.join(__dirname, "../"), launchConfig);
 
   return {
