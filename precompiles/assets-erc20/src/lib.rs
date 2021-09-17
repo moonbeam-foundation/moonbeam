@@ -114,9 +114,10 @@ pub struct ApprovalFromTo<Runtime: frame_system::Config> {
 	to: <Runtime as frame_system::Config>::AccountId,
 }
 
-/// Storage type used to store approvals, since `pallet_assets` doesn't
-/// handle this behavior.
-/// (Owner => Allowed => Amount)
+/// Storage type used to store approvals, since `pallet_assets` has this behavior but the allowane
+/// check is not exposed. If https://github.com/paritytech/substrate/pull/9757 is accepted, we might
+/// use such an approval
+/// (AssetId => Owner => Allowed => Amount)
 pub type ApprovesStorage<Runtime, Instance> = StorageNMap<
 	<Instance as InstanceToPrefix>::ApprovesPrefix,
 	(
@@ -138,16 +139,15 @@ pub enum Action {
 	TransferFrom = "transferFrom(address,address,uint256)",
 }
 
+/// This trait ensure we can convert AccountIds to AssetIds
+/// We will require Runtime::Precompiles to have this trait implemented
 pub trait AccountIdToAssetId<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
-
-	// Check existence of AssetId in our runtime
-	fn asset_id_exists(account: AssetId) -> bool;
 }
 
-/// Precompile exposing a pallet_balance as an ERC20.
-/// Multiple precompiles can support instances of pallet_balance.
+/// Precompile exposing a pallet_assets as an ERC20.
+/// Multiple precompiles can support instances of pallet_assetss.
 /// The precompile uses an additional storage to store approvals.
 pub struct Erc20AssetsPrecompile<Runtime, Instance: 'static = ()>(PhantomData<(Runtime, Instance)>);
 

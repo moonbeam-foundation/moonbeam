@@ -249,6 +249,7 @@ where
 	R::AccountId: Into<H160>,
 	R::AssetId: From<u128>,
 {
+	/// This is how we instruct precompiles to convert Accounts to AssetIds
 	fn account_to_asset_id(account: R::AccountId) -> Option<R::AssetId> {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];

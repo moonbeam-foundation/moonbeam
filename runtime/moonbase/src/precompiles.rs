@@ -41,7 +41,7 @@ pub struct MoonbasePrecompiles<R>(PhantomData<R>);
 
 impl<R> AccountIdToAssetId<R::AccountId, R::AssetId> for MoonbasePrecompiles<R>
 where
-	R: pallet_asset_manager::Config,
+	R: pallet_assets::Config,
 	R::AccountId: Into<H160>,
 	R::AssetId: From<u128>,
 {
@@ -56,10 +56,6 @@ where
 		} else {
 			None
 		}
-	}
-
-	fn asset_id_exists(asset_id: R::AssetId) -> bool {
-		pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some()
 	}
 }
 
@@ -91,16 +87,20 @@ where
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
-	R: pallet_evm::Config + pallet_assets::Config,
+	R: pallet_evm::Config,
+	// We could remove this if https://github.com/paritytech/substrate/pull/9757 is merged
+	// Alternatively we can check whether the total_supply is non-zero, but I like that less
+	R: pallet_asset_manager::Config,
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
 	Erc20AssetsPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
+	// This will work as long as assetId for pallet_asset_manager is the same type as for pallet_asset
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
-		<R as pallet_assets::Config>::AssetId,
+		<R as pallet_asset_manager::Config>::AssetId,
 	>,
 {
 	fn execute(
@@ -114,8 +114,8 @@ where
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
 			a if a == hash(2) => Some(Sha256::execute(input, target_gas, context)),
 			a if a == hash(3) => Some(Ripemd160::execute(input, target_gas, context)),
-			a if a == hash(4) => Some(Identity::execute(input, target_gas, context)),
 			a if a == hash(5) => Some(Modexp::execute(input, target_gas, context)),
+			a if a == hash(4) => Some(Identity::execute(input, target_gas, context)),
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
@@ -137,19 +137,18 @@ where
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
 			_ => {
+				// If address starts with 0XFFFFFFFF
 				if let Some(asset_id) =
 					R::Precompiles::account_to_asset_id(R::AddressMapping::into_account_id(address))
 				{
-					if R::Precompiles::asset_id_exists(asset_id) {
-						Some(Erc20AssetsPrecompile::<R>::execute(
+					// If the assetId exists in pallet_asset_manager
+					if pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some() {
+						return Some(Erc20AssetsPrecompile::<R>::execute(
 							input, target_gas, context,
-						))
-					} else {
-						None
+						));
 					}
-				} else {
-					None
 				}
+				None
 			}
 		}
 	}
