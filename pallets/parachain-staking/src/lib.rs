@@ -232,13 +232,12 @@ pub mod pallet {
 		}
 		/// Sort top nominators from greatest to least
 		pub fn sort_top_nominators(&mut self) {
-			self.top_nominators
-				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+			self.top_nominators.sort_by(|a, b| b.amount.cmp(&a.amount));
 		}
 		/// Sort bottom nominators from least to greatest
 		pub fn sort_bottom_nominators(&mut self) {
 			self.bottom_nominators
-				.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
+				.sort_by(|a, b| a.amount.cmp(&b.amount));
 		}
 		/// Bond a new account as a nominator, and make a first nomination. If successful,
 		/// the return value indicates whether the nomination is top for the candidate.
