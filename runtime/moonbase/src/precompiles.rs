@@ -52,14 +52,14 @@ where
 		if prefix_part == &[255u8; 4] {
 			data.copy_from_slice(id_part);
 			let asset_id: R::AssetId = u128::from_be_bytes(data).into();
-			if pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some() {
-				Some(asset_id)
-			} else {
-				None
-			}
+			Some(asset_id)
 		} else {
 			None
 		}
+	}
+
+	fn asset_id_exists(asset_id: R::AssetId) -> bool {
+		pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some()
 	}
 }
 
@@ -96,6 +96,7 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
+	Erc20AssetsPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
@@ -138,8 +139,17 @@ where
 			_ => {
 				if let Some(asset_id) =
 					R::Precompiles::account_to_asset_id(R::AddressMapping::into_account_id(address))
-				{}
-				None
+				{
+					if R::Precompiles::asset_id_exists(asset_id) {
+						Some(Erc20AssetsPrecompile::<R>::execute(
+							input, target_gas, context,
+						))
+					} else {
+						None
+					}
+				} else {
+					None
+				}
 			}
 		}
 	}

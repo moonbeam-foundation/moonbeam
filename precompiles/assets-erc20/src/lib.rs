@@ -141,6 +141,9 @@ pub enum Action {
 pub trait AccountIdToAssetId<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
+
+	// Check existence of AssetId in our runtime
+	fn asset_id_exists(account: AssetId) -> bool;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
