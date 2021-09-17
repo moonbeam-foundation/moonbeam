@@ -302,9 +302,8 @@ pub mod pallet {
 			Ok(when)
 		}
 		/// Execute pending request to change the collator self bond
-		pub fn execute_pending_request<T: Config>(
-			&mut self,
-		) -> Result<CandidateBondChange<B>, DispatchError>
+		/// Returns the event to be emitted
+		pub fn execute_pending_request<T: Config>(&mut self) -> Result<Event<T>, DispatchError>
 		where
 			BalanceOf<T>: From<B>,
 			T::AccountId: From<A>,
@@ -315,14 +314,16 @@ pub mod pallet {
 				Error::<T>::PendingCollatorRequestNotDueYet
 			);
 			let caller: T::AccountId = self.id.clone().into();
-			match request.change {
+			let event = match request.change {
 				CandidateBondAction::Increase => {
 					T::Currency::reserve(&caller, request.amount.into())?;
 					let new_total = <Total<T>>::get().saturating_add(request.amount.into());
 					<Total<T>>::put(new_total);
+					let before = self.bond;
 					self.bond += request.amount;
 					self.total_counted += request.amount;
 					self.total_backing += request.amount;
+					Event::CollatorBondedMore(self.id.clone(), before, self.bond)
 				}
 				CandidateBondAction::Decrease => {
 					T::Currency::unreserve(&caller, request.amount.into());
@@ -330,11 +331,13 @@ pub mod pallet {
 					<Total<T>>::put(new_total_staked);
 					// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 					// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
+					let before = self.bond;
 					self.bond -= request.amount;
 					self.total_counted -= request.amount;
 					self.total_backing -= request.amount;
+					Event::CollatorBondedMore(self.id.clone(), before, self.bond)
 				}
-			}
+			};
 			self.request = None;
 			Ok(request)
 		} // TODO: same for cancel
