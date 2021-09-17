@@ -357,9 +357,11 @@ macro_rules! impl_runtime_apis_plus_common {
 							return false
 						};
 						// predict eligibility post-selection by computing selection results now
+						let mut top_candidates = parachain_staking::Pallet::<Self>::compute_top_candidates();
+						top_candidates.sort();
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
-								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								top_candidates,
 								&slot
 							);
 						eligible.contains(&author_account_id)
