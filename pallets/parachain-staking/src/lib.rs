@@ -1909,13 +1909,15 @@ pub mod pallet {
 			candidates.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			candidates
+			let mut collators = candidates
 				.into_iter()
 				.rev()
 				.take(top_n)
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>()
+				.collect::<Vec<T::AccountId>>();
+			collators.sort();
+			collators
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
@@ -1923,7 +1925,7 @@ pub mod pallet {
 			let (mut collator_count, mut nomination_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = Self::compute_top_candidates();
+			let collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CollatorState2<T>>::get(&account)
@@ -1936,7 +1938,6 @@ pub mod pallet {
 				<AtStake<T>>::insert(next, account, exposure);
 				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
 			}
-			collators.sort();
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);
 			(collator_count, nomination_count, total)
