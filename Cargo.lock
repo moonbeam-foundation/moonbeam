@@ -2261,7 +2261,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.30.1"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.30.1#6cabb39f4898e3a018dc4ed579d0e312a84dfce4"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2279,7 +2279,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.30.1#6cabb39f4898e3a018dc4ed579d0e312a84dfce4"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2290,7 +2290,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.30.1#6cabb39f4898e3a018dc4ed579d0e312a84dfce4"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2301,7 +2301,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.30.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-optimize-disabled-tracing#5b5fd12d8a3ccf5617c2f7e02dedc68af569e67f"
+source = "git+https://github.com/purestake/evm?branch=runtime-substitutes-0.30.1#6cabb39f4898e3a018dc4ed579d0e312a84dfce4"
 dependencies = [
  "environmental",
  "evm-core",
