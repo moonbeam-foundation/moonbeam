@@ -98,6 +98,9 @@ where
 	Erc20AssetsPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
 	// This will work as long as assetId for pallet_asset_manager is the same type as for pallet_asset
+	// Else we need to enfore one is convertible from the other.
+	// Again, since Assets storage is not public we need to go through the assert manager
+	// https://github.com/paritytech/substrate/pull/9757
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
 		<R as pallet_asset_manager::Config>::AssetId,

@@ -48,7 +48,6 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
-use xcm::v0::{Junction, MultiLocation::*};
 
 #[test]
 fn fast_track_available() {
