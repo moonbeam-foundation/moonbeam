@@ -232,12 +232,13 @@ pub mod pallet {
 		}
 		/// Sort top nominators from greatest to least
 		pub fn sort_top_nominators(&mut self) {
-			self.top_nominators.sort_by(|a, b| b.amount.cmp(&a.amount));
+			self.top_nominators
+				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
 		}
 		/// Sort bottom nominators from least to greatest
 		pub fn sort_bottom_nominators(&mut self) {
 			self.bottom_nominators
-				.sort_by(|a, b| a.amount.cmp(&b.amount));
+				.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
 		}
 		/// Bond a new account as a nominator, and make a first nomination. If successful,
 		/// the return value indicates whether the nomination is top for the candidate.
@@ -1906,7 +1907,7 @@ pub mod pallet {
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
-			candidates.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
 			let mut collators = candidates
