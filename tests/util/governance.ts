@@ -1,5 +1,7 @@
 import { Keyring } from "@polkadot/api";
-import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import {
   ALITH_PRIV_KEY,
   BALTATHAR_PRIV_KEY,
@@ -10,6 +12,21 @@ import { DevTestContext } from "./setup-dev-tests";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
 
 const keyring = new Keyring({ type: "ethereum" });
+
+export const notePreimage = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  context: DevTestContext,
+  proposal: Call,
+  account: KeyringPair
+): Promise<string> => {
+  const encodedProposal = proposal.method.toHex() || "";
+  await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
+  await context.createBlock();
+  // return encodedHash
+  return blake2AsHex(encodedProposal);
+};
 
 export const execFromTwoThirdsOfCouncil = async <
   Call extends SubmittableExtrinsic<ApiType>,

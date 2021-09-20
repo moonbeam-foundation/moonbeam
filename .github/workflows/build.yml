@@ -445,6 +445,8 @@ jobs:
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
+          rm -fr dist
+          node_modules/.bin/tsc
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
