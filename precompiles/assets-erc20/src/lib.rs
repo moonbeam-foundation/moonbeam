@@ -69,7 +69,7 @@ pub struct ApprovalFromTo<Runtime: frame_system::Config> {
 pub enum Action {
 	TotalSupply = "totalSupply()",
 	BalanceOf = "balanceOf(address)",
-	//	Allowance = "allowance(address,address)",
+	Allowance = "allowance(address,address)",
 	Transfer = "transfer(address,uint256)",
 	Approve = "approve(address,uint256)",
 	TransferFrom = "transferFrom(address,address,uint256)",
@@ -108,7 +108,7 @@ where
 		match &input.read_selector()? {
 			Action::TotalSupply => Self::total_supply(input, target_gas, context),
 			Action::BalanceOf => Self::balance_of(input, target_gas, context),
-			//			Action::Allowance => Self::allowance(input, target_gas, context),
+			Action::Allowance => Self::allowance(input, target_gas, context),
 			Action::Approve => Self::approve(input, target_gas, context),
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
@@ -192,12 +192,13 @@ where
 	}
 
 	// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
-	/*fn allowance(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-		context: &Context,
+	fn allowance(
+		mut _input: EvmDataReader,
+		_target_gas: Option<u64>,
+		_context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
+		Err(error("unimplemented"))
+		/*	let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
@@ -216,9 +217,8 @@ where
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
-			ApprovesStorage::<Runtime, Instance>::get((asset_id, owner, spender))
-				.unwrap_or_default()
-				.into()
+			// Fetch info.
+			pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, owner, spender).into()
 		};
 
 		// Build output.
@@ -227,8 +227,8 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
-		})
-	}*/
+		})*/
+	}
 
 	fn approve(
 		mut input: EvmDataReader,

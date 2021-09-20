@@ -267,49 +267,34 @@ fn approve() {
 		});
 }
 
+// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
 #[ignore]
 #[test]
 fn check_allowance_existing() {
-	/*	ExtBuilder::default()
-	.with_balances(vec![(Account::Alice, 1000)])
-	.build()
-	.execute_with(|| {
-		assert_ok!(Assets::force_create(
-			Origin::root(),
-			0u128,
-			Account::Alice.into(),
-			true,
-			1
-		));
-		assert_ok!(Assets::mint(
-			Origin::signed(Account::Alice),
-			0u128,
-			Account::Alice.into(),
-			1000
-		));
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
 
-		Precompiles::<Runtime>::execute(
-			Account::AssetId(0u128).into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::Approve)
-				.write(Address(Account::Bob.into()))
-				.write(U256::from(500))
-				.build(),
-			None,
-			&evm::Context {
-				address: Account::AssetId(0u128).into(),
-				caller: Account::Alice.into(),
-				apparent_value: From::from(0),
-			},
-		);
-
-		assert_eq!(
 			Precompiles::<Runtime>::execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
-					.write_selector(Action::Allowance)
-					.write(Address(Account::Alice.into()))
+					.write_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
+					.write(U256::from(500))
 					.build(),
 				None,
 				&evm::Context {
@@ -317,60 +302,77 @@ fn check_allowance_existing() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
-			),
-			Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(U256::from(500u64)).build(),
-				cost: 0u64,
-				logs: Default::default(),
-			}))
-		);
-	});*/
+			);
+
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(500u64)).build(),
+					cost: 0u64,
+					logs: Default::default(),
+				}))
+			);
+		});
 }
 
+// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
 #[ignore]
 #[test]
 fn check_allowance_not_existing() {
-	/*	ExtBuilder::default()
-	.with_balances(vec![(Account::Alice, 1000)])
-	.build()
-	.execute_with(|| {
-		assert_ok!(Assets::force_create(
-			Origin::root(),
-			0u128,
-			Account::Alice.into(),
-			true,
-			1
-		));
-		assert_ok!(Assets::mint(
-			Origin::signed(Account::Alice),
-			0u128,
-			Account::Alice.into(),
-			1000
-		));
-		assert_eq!(
-			Precompiles::<Runtime>::execute(
-				Account::AssetId(0u128).into(),
-				&EvmDataWriter::new()
-					.write_selector(Action::Allowance)
-					.write(Address(Account::Alice.into()))
-					.write(Address(Account::Bob.into()))
-					.build(),
-				None,
-				&evm::Context {
-					address: Account::AssetId(0u128).into(),
-					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
-				},
-			),
-			Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(U256::from(0u64)).build(),
-				cost: 0u64,
-				logs: Default::default(),
-			}))
-		);
-	});*/
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u64)).build(),
+					cost: 0u64,
+					logs: Default::default(),
+				}))
+			);
+		});
 }
 
 #[test]
