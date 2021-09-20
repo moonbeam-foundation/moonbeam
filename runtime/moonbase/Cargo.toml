@@ -17,10 +17,15 @@ runtime-common = { path = "../common", default-features = false }
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
+
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
@@ -33,7 +38,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
-
+pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
@@ -52,6 +57,8 @@ frame-support = { git = "https://github.com/purestake/substrate", default-featur
 frame-executive = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+pallet-assets = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+
 pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 pallet-sudo = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
@@ -86,6 +93,19 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", defaul
 parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
 
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+# xcmp 
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "girazoki-v0.9.9-block-response-length" }
+
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length", optional = true }
 frame-system-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length", optional = true }
@@ -99,6 +119,8 @@ evm = { version = "0.30.1", default-features = false, features = ["with-codec"] 
 rlp = "0.5"
 hex = "0.4"
 sha3 = "0.8"
+polkadot-runtime-parachains = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
@@ -153,6 +175,7 @@ std = [
 	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"parachain-staking-precompiles/std",
+	"pallet-democracy-precompiles/std",
 	"pallet-author-slot-filter/std",
 	"pallet-migrations/std",
 	"pallet-maintenance-mode/std",
@@ -163,6 +186,17 @@ std = [
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 	"evm/std",
+	"xcm/std",
+	"xcm-builder/std",
+	"xcm-executor/std",
+	"cumulus-pallet-xcmp-queue/std",
+	"cumulus-pallet-xcm/std",
+	"cumulus-pallet-dmp-queue/std",
+	"pallet-assets/std",
+	"pallet-asset-manager/std",
+	"orml-xtokens/std",
+	"xcm-primitives/std",
+	"pallet-evm-precompile-balances-erc20/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -186,6 +220,8 @@ runtime-benchmarks = [
 	"pallet-society/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",

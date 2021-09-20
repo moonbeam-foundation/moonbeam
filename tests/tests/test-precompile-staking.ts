@@ -195,7 +195,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+    expect(nominatorsAfter.toHuman()["status"]).equal("Active");
 
     expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
   });

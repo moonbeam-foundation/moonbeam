@@ -338,17 +338,10 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 	) -> sp_blockchain::Result<
 		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
-		match self {
-			Self::Moonbeam(client) => {
-				client.child_storage_keys_iter(id, child_info, prefix, start_key)
-			}
-			Self::Moonriver(client) => {
-				client.child_storage_keys_iter(id, child_info, prefix, start_key)
-			}
-			Self::Moonbase(client) => {
-				client.child_storage_keys_iter(id, child_info, prefix, start_key)
-			}
-		}
+		match_client!(
+			self,
+			child_storage_keys_iter(id, child_info, prefix, start_key)
+		)
 	}
 
 	fn child_storage_hash(
