@@ -35,13 +35,12 @@ export const GLMR = 1_000_000_000_000_000_000n;
 export const DEFAULT_GENESIS_BALANCE = 2n ** 80n;
 export const DEFAULT_GENESIS_STAKING = 1_000n * GLMR;
 export const DEFAULT_GENESIS_MAPPING = 100n * GLMR;
+export const PROPOSAL_AMOUNT = 1000n * GLMR;
+export const VOTE_AMOUNT = 10n * GLMR;
 export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_NOMINATOR = 5n * GLMR;
 export const MIN_GLMR_NOMINATOR_PLUS_ONE = 6n * GLMR;
 export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
-export const PROPOSAL_AMOUNT = 1000n * GLMR;
-export const VOTE_AMOUNT = 10n * GLMR;
-
 // This is Alice
 export const COLLATOR_ACCOUNT = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";
 export const COLLATOR_ACCOUNT_BALANCE =

@@ -33,8 +33,13 @@ jobs:
     steps:
       - name: Check git ref
         id: check-git-ref
+        # if PR
+        # else if manual PR
+        # else (push)
         run: |
-          if [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
+          elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
           else 
             echo ::set-output name=git_ref::$GITHUB_REF
@@ -440,6 +445,8 @@ jobs:
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
+          rm -fr dist
+          node_modules/.bin/tsc
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
