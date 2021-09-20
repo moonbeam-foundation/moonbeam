@@ -306,7 +306,8 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
         env:
           BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
+          # `debug` or `trace` require `--wasm-runtime-overrides`. For CI we can provide any directory.
+          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides ../build
         run: |
           cd moonbeam-types-bundle
           npm install
@@ -427,7 +428,8 @@ jobs:
       - name: Typescript evm-tracing tests (against dev service)
         env:
           BINARY_PATH: ../build/moonbeam-tracing
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
+          # `debug` or `trace` require `--wasm-runtime-overrides`. For CI we can provide any directory.
+          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides ../build
         run: |
           cd tests
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
