@@ -19,21 +19,13 @@
 
 use codec::{Decode, Encode};
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
-use frame_support::pallet_prelude::NMapKey;
-use frame_support::pallet_prelude::StorageNMap;
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::{CheckedSub, StaticLookup},
-	traits::StorageInstance,
-	transactional, Blake2_128Concat,
+	sp_runtime::traits::StaticLookup
 };
-use frame_system::RawOrigin;
-use pallet_assets::pallet::{
-	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
-	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
-};
+
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
 	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
@@ -292,6 +284,7 @@ where
 				}
 				Err(e) => Err(e),
 			}?;
+			gasometer.record_cost(used_gas)?;
 
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
@@ -378,9 +371,6 @@ where
 		})
 	}
 
-	// This function is annotated with transactional.
-	// This is to ensure that if the substrate call fails, the change in allowance is reverted.
-	#[transactional]
 	fn transfer_from(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,

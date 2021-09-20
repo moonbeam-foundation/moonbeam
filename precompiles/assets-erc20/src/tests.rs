@@ -640,6 +640,117 @@ fn transfer_from() {
 }
 
 #[test]
+fn transfer_from_non_incremental_approval() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			// We first approve 500
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(500))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 56999756u64,
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::from(500)).build(),
+						)
+						.build(),
+				}))
+			);
+
+			// We then approve 300. Non-incremental, so this is
+			// the approved new value
+			// Additionally, the gas used in this approval is higher because we
+			// need to clear the previous one
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(300))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 115329756u64,
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::from(300)).build(),
+						)
+						.build(),
+				}))
+			);
+
+			// This should fail, as now the new approved quantity is 300
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::TransferFrom)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(500))
+						.build(),
+					None,
+					&evm::Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Err(error(
+					"Dispatched call failed with error: DispatchErrorWithPostInfo { \
+					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
+					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }"
+				))),
+			);
+		});
+}
+
+#[test]
 fn transfer_from_above_allowance() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000)])
