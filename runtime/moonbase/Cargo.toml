@@ -195,7 +195,8 @@ std = [
 	"pallet-asset-manager/std",
 	"orml-xtokens/std",
 	"xcm-primitives/std",
-	"pallet-evm-precompile-balances-erc20/std"
+	"pallet-evm-precompile-balances-erc20/std",
+	"pallet-evm-precompile-assets-erc20/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
