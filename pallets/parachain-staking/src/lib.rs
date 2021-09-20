@@ -1715,15 +1715,16 @@ pub mod pallet {
 				return;
 			}
 			let total_staked = <Staked<T>>::get(round_to_payout);
-			let mut issuance = Self::compute_issuance(total_staked);
+			let total_issuance = Self::compute_issuance(total_staked);
+			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
 			let bond_config = <ParachainBondInfo<T>>::get();
-			let parachain_bond_reserve = bond_config.percent * issuance;
+			let parachain_bond_reserve = bond_config.percent * total_issuance;
 			if let Ok(imb) =
 				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
 			{
 				// update round issuance iff transfer succeeds
-				issuance -= imb.peek();
+				left_issuance -= imb.peek();
 				Self::deposit_event(Event::ReservedForParachainBond(
 					bond_config.account,
 					imb.peek(),
@@ -1745,9 +1746,10 @@ pub mod pallet {
 				}
 			};
 			let collator_fee = <CollatorCommission<T>>::get();
+			let collator_issuance = collator_fee * total_issuance;
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
-				let mut amt_due = pct_due * issuance;
+				let mut amt_due = pct_due * left_issuance;
 				// Take the snapshot of block author and nominations
 				let state = <AtStake<T>>::take(round_to_payout, &val);
 				if state.nominators.is_empty() {
@@ -1756,7 +1758,7 @@ pub mod pallet {
 				} else {
 					// pay collator first; commission + due_portion
 					let val_pct = Perbill::from_rational(state.bond, state.total);
-					let commission = collator_fee * amt_due;
+					let commission = pct_due * collator_issuance;
 					amt_due -= commission;
 					let val_due = (val_pct * amt_due) + commission;
 					mint(val_due, val.clone());
@@ -1910,13 +1912,15 @@ pub mod pallet {
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			candidates
+			let mut collators = candidates
 				.into_iter()
 				.rev()
 				.take(top_n)
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>()
+				.collect::<Vec<T::AccountId>>();
+			collators.sort();
+			collators
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
@@ -1924,7 +1928,7 @@ pub mod pallet {
 			let (mut collator_count, mut nomination_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = Self::compute_top_candidates();
+			let collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CollatorState2<T>>::get(&account)
@@ -1937,7 +1941,6 @@ pub mod pallet {
 				<AtStake<T>>::insert(next, account, exposure);
 				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
 			}
-			collators.sort();
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);
 			(collator_count, nomination_count, total)
