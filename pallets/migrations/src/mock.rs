@@ -294,10 +294,9 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 }
 
 pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
-	let mut weight: Weight = 0u64.into();
-	Migrations::pre_upgrade();
-	weight = Migrations::on_runtime_upgrade();
-	Migrations::post_upgrade();
+	Migrations::pre_upgrade().expect("pre-upgrade hook succeeds");
+	let weight = Migrations::on_runtime_upgrade();
+	Migrations::post_upgrade().expect("post-upgrade hook succeeds");
 
 	weight
 }
