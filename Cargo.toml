@@ -6,6 +6,7 @@ members = [
     'node',
     'node/cli',
     'node/service',
+    'pallets/migrations',
     'bin/utils/moonkey',
     'pallets/maintenance-mode',
     'precompiles/utils/macro',
