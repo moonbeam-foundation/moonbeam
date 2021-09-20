@@ -46,6 +46,8 @@ where
 	R::AccountId: Into<H160>,
 	R::AssetId: From<u128>,
 {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_asset_id(account: R::AccountId) -> Option<R::AssetId> {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
@@ -82,6 +84,9 @@ where
 /// The precompile for AssetId X, where X is a u128 (i.e.16 bytes), if 0XFFFFFFFF + Bytes(AssetId)
 /// In order to route the address to Erc20AssetsPrecompile<R>, we first check whether the AssetId
 /// exists in pallet-assets
+/// We cannot do this right now, so instead we check whether the total supply is zero. If so, we
+/// do not route to the precompiles
+
 /// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
 /// but the probability for this to happen is 2^-32 for random addresses
 
