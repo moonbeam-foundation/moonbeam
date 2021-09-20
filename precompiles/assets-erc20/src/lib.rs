@@ -238,7 +238,6 @@ where
 		let spender: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
-		// Write into storage.
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 			let asset_id: AssetIdOf<Runtime, Instance> =
@@ -251,9 +250,10 @@ where
 			let amount = Self::u256_to_amount(amount)?;
 
 			// Dispatch call (if enough gas).
-			// We first cancel any exusting approvals
+			// We first cancel any existing approvals
 			// Since we cannot check storage, we need to execute this call without knowing whether
 			// another approval exists already.
+			// But we know that if no approval exists we should get "Unknown"
 			// Allowance() should be checked instead of doing this Result matching
 			let used_gas = match RuntimeHelper::<Runtime>::try_dispatch(
 				<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin::root(),
@@ -268,7 +268,7 @@ where
 				Err(ExitError::Other(e)) => {
 					// This would mean there is not an existing approval
 					// We convert this case to 0 gas used
-					// We could also convert it to one DB read, as this would be
+					// We could also convert it to one DB read
 					if e.contains("Unknown") {
 						Ok(0)
 					} else {
