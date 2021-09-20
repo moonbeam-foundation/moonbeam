@@ -1060,10 +1060,14 @@ fn asset_erc20_precompiles_supply_and_balance() {
 		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * UNIT)])])
 		.build()
 		.execute_with(|| {
+			// Assert the asset has been created with the correct supply
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
+			// Convert the assetId to its corresponding precompile address
 			let asset_precompile_address = asset_id_to_address(0u128);
 
+			// The expected result for both total supply and balance of is the same, as only Alice
+			// holds balance
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(1000 * UNIT)).build(),
@@ -1088,6 +1092,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				expected_result
 			);
 
+			// Access balanceOf through precompile
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
@@ -1117,10 +1122,9 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
-
 			let asset_precompile_address = asset_id_to_address(0u128);
 
+			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
@@ -1135,6 +1139,7 @@ fn asset_erc20_precompiles_transfer() {
 					.build(),
 			}));
 
+			// Transfer tokens from Aice to Bob, 400 unit.
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
@@ -1153,6 +1158,7 @@ fn asset_erc20_precompiles_transfer() {
 				expected_result
 			);
 
+			// Expected result for balanceOf BOB
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
@@ -1160,6 +1166,7 @@ fn asset_erc20_precompiles_transfer() {
 				logs: Default::default(),
 			}));
 
+			// Make sure BOB has 400 unit
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
@@ -1189,10 +1196,9 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
-
 			let asset_precompile_address = asset_id_to_address(0u128);
 
+			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
@@ -1207,6 +1213,7 @@ fn asset_erc20_precompiles_approve() {
 					.build(),
 			}));
 
+			// Aprove Bob for spending 400 unit from Alice
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
@@ -1225,6 +1232,7 @@ fn asset_erc20_precompiles_approve() {
 				expected_result
 			);
 
+			// Expected result for transfer_from
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
@@ -1239,6 +1247,7 @@ fn asset_erc20_precompiles_approve() {
 					.build(),
 			}));
 
+			// Transfer tokens from Alice to Charlie by using BOB as origin
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
@@ -1258,6 +1267,7 @@ fn asset_erc20_precompiles_approve() {
 				expected_result
 			);
 
+			// Expected result for balance of CHARLIE
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
@@ -1265,6 +1275,7 @@ fn asset_erc20_precompiles_approve() {
 				logs: Default::default(),
 			}));
 
+			// Make sure CHARLIE has 400 unit
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
