@@ -74,16 +74,26 @@ pub fn evm_test_context() -> evm::Context {
 	}
 }
 
+pub fn asset_id_to_address(asset_id: AssetId) -> H160 {
+	// We convert the AssetId in the asset evm address
+	let mut address = [0u8; 20];
+	let mut asset_prefix = [255u8; 4];
+	let mut asset_id_as_address = asset_id.to_be_bytes();
+
+	address[0..4].copy_from_slice(&mut asset_prefix);
+	address[4..20].copy_from_slice(&mut asset_id_as_address);
+	H160::from_slice(&mut address)
+}
+
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	// [collator, amount]
-	collators: Vec<(AccountId, Balance)>,
 	// [asset, Vec<Account, Balance>]
 	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
-
+	// [collator, amount]
+	collators: Vec<(AccountId, Balance)>,
+	// [nominator, collator, nomination_amount]
 	nominations: Vec<(AccountId, AccountId, Balance)>,
-
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -228,6 +238,7 @@ impl ExtBuilder {
 
 		let assets = self.assets.clone();
 		ext.execute_with(|| {
+			// If any assets specified, we create them here
 			for (asset_id, balances) in assets.clone() {
 				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
 				for (account, balance) in balances {

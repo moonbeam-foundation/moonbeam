@@ -88,17 +88,16 @@ where
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
-	R: pallet_evm::Config + pallet_assets::Config,
+	R: pallet_evm::Config,
+	// Needed for AccountIdToAssetId
+	R: pallet_assets::Config,
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
 	Erc20AssetsPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
-	// This will work as long as assetId for pallet_asset_manager is the same type as for pallet_asset
-	// Else we need to enfore one is convertible from the other.
-	// Again, since Assets storage is not public we need to go through the assert manager
-	// https://github.com/paritytech/substrate/pull/9757
+	// Ensure we can convert from accountId to assetId
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
 		<R as pallet_assets::Config>::AssetId,

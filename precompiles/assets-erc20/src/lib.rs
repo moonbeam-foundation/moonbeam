@@ -17,7 +17,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use codec::{Decode, Encode};
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
@@ -57,12 +56,6 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 
 /// Alias for the Asset Id type for the provided Runtime and Instance.
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
-
-#[derive(Default, Clone, Encode, Decode)]
-pub struct ApprovalFromTo<Runtime: frame_system::Config> {
-	from: <Runtime as frame_system::Config>::AccountId,
-	to: <Runtime as frame_system::Config>::AccountId,
-}
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]

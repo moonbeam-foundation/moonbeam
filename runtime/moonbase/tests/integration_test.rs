@@ -1035,26 +1035,23 @@ fn update_reward_address_via_precompile() {
 
 #[test]
 fn asset_can_be_registered() {
-	ExtBuilder::default()
-		.with_assets(vec![(0u128, vec![(AccountId::from(BOB), 1_000 * UNIT)])])
-		.build()
-		.execute_with(|| {
-			let source_location = moonbase_runtime::AssetType::Xcm(X1(Parent));
-			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-			let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			};
-			assert_ok!(AssetManager::register_asset(
-				moonbase_runtime::Origin::root(),
-				source_location,
-				asset_metadata,
-				1u128,
-			));
-			assert!(AssetManager::asset_id_type(source_id).is_some());
-		});
+	ExtBuilder::default().build().execute_with(|| {
+		let source_location = moonbase_runtime::AssetType::Xcm(X1(Parent));
+		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
+			name: b"RelayToken".to_vec(),
+			symbol: b"Relay".to_vec(),
+			decimals: 12,
+			is_frozen: false,
+		};
+		assert_ok!(AssetManager::register_asset(
+			moonbase_runtime::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert!(AssetManager::asset_id_type(source_id).is_some());
+	});
 }
 
 #[test]
@@ -1065,14 +1062,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 		.execute_with(|| {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
-			let mut address = [0u8; 20];
-			let mut asset_prefix = [255u8; 4];
-			let mut asset_id_as_address = 0u128.to_be_bytes();
-
-			address[0..4].copy_from_slice(&mut asset_prefix);
-			address[4..20].copy_from_slice(&mut asset_id_as_address);
-
-			let asset_precompile_address = H160::from_slice(&address);
+			let asset_precompile_address = asset_id_to_address(0u128);
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
@@ -1129,14 +1119,7 @@ fn asset_erc20_precompiles_transfer() {
 		.execute_with(|| {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
-			let mut address = [0u8; 20];
-			let mut asset_prefix = [255u8; 4];
-			let mut asset_id_as_address = 0u128.to_be_bytes();
-
-			address[0..4].copy_from_slice(&mut asset_prefix);
-			address[4..20].copy_from_slice(&mut asset_id_as_address);
-
-			let asset_precompile_address = H160::from_slice(&address);
+			let asset_precompile_address = asset_id_to_address(0u128);
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
@@ -1208,14 +1191,7 @@ fn asset_erc20_precompiles_approve() {
 		.execute_with(|| {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
-			let mut address = [0u8; 20];
-			let mut asset_prefix = [255u8; 4];
-			let mut asset_id_as_address = 0u128.to_be_bytes();
-
-			address[0..4].copy_from_slice(&mut asset_prefix);
-			address[4..20].copy_from_slice(&mut asset_id_as_address);
-
-			let asset_precompile_address = H160::from_slice(&address);
+			let asset_precompile_address = asset_id_to_address(0u128);
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
