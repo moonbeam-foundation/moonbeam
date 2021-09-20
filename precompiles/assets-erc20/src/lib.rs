@@ -23,7 +23,7 @@ use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::StaticLookup
+	sp_runtime::traits::StaticLookup,
 };
 
 use pallet_evm::{AddressMapping, Precompile};
