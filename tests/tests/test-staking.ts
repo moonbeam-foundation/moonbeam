@@ -28,11 +28,11 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 
   it("should have collator state as defined in the specs", async function () {
-    const candidates = await context.polkadotApi.query.parachainStaking.collatorState2(
+    const collator = await context.polkadotApi.query.parachainStaking.collatorState2(
       COLLATOR_ACCOUNT
     );
-    expect(candidates.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
-    expect(Object.keys(candidates.toHuman()["state"])[0]).equal("Active");
+    expect(collator.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
+    expect(collator.toHuman()["state"]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
@@ -194,7 +194,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         }
       ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
-    expect(Object.keys(nominatorsAfter.toHuman()["status"])[0]).equal("Active");
+    expect(nominatorsAfter.toHuman()["status"]).equal("Active");
     expect(nominatorsAfter.toHuman()["nominations"][0].owner).equal(ALITH);
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("5.0000 UNIT");
   });
