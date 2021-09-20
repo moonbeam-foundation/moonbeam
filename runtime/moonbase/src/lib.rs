@@ -1217,6 +1217,8 @@ impl Contains<Call> for NormalFilter {
 			Call::Assets(method) => match method {
 				pallet_assets::Call::transfer(..) => true,
 				pallet_assets::Call::transfer_keep_alive(..) => true,
+				pallet_assets::Call::approve_transfer(..) => true,
+				pallet_assets::Call::transfer_approved(..) => true,
 				_ => false,
 			},
 			_ => true,

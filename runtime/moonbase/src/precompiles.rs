@@ -29,6 +29,7 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
+use sp_runtime::traits::Zero;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 
@@ -87,10 +88,7 @@ where
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
-	R: pallet_evm::Config,
-	// We could remove this if https://github.com/paritytech/substrate/pull/9757 is merged
-	// Alternatively we can check whether the total_supply is non-zero, but I like that less
-	R: pallet_asset_manager::Config,
+	R: pallet_evm::Config + pallet_assets::Config,
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
@@ -103,7 +101,7 @@ where
 	// https://github.com/paritytech/substrate/pull/9757
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
-		<R as pallet_asset_manager::Config>::AssetId,
+		<R as pallet_assets::Config>::AssetId,
 	>,
 {
 	fn execute(
@@ -144,8 +142,14 @@ where
 				if let Some(asset_id) =
 					R::Precompiles::account_to_asset_id(R::AddressMapping::into_account_id(address))
 				{
-					// If the assetId exists in pallet_asset_manager
-					if pallet_asset_manager::Pallet::<R>::asset_id_type(asset_id).is_some() {
+					// If the assetId has non-zero supply
+					// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
+					// The assumption I am making here is that a 0 supply asset is not interesting from
+					// the perspective of the precompiles. Once pallet-assets has more publicly accesible
+					// storage we can use another function for this, like check_asset_existence.
+					// The other options is to check the asset existence in pallet-asset-manager, but
+					// this makes the precompiles dependent on such a pallet, which is not ideal
+					if !pallet_assets::Pallet::<R>::total_supply(asset_id).is_zero() {
 						return Some(Erc20AssetsPrecompile::<R>::execute(
 							input, target_gas, context,
 						));

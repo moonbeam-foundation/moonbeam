@@ -23,9 +23,9 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNIT, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::UNIT, AccountId, AssetId, Assets, AuthorInherent, Balance, Balances, Call,
+	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
+	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
@@ -79,8 +79,11 @@ pub struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
+	// [asset, Vec<Account, Balance>]
+	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
+
 	nominations: Vec<(AccountId, AccountId, Balance)>,
+
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -98,6 +101,7 @@ impl Default for ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
+			assets: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -144,6 +148,11 @@ impl ExtBuilder {
 
 	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominations = nominations;
+		self
+	}
+
+	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
+		self.assets = assets;
 		self
 	}
 
@@ -215,9 +224,18 @@ impl ExtBuilder {
 			&mut t,
 		)
 		.unwrap();
-
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+
+		let assets = self.assets.clone();
+		ext.execute_with(|| {
+			for (asset_id, balances) in assets.clone() {
+				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+				for (account, balance) in balances {
+					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+				}
+			}
+			System::set_block_number(1);
+		});
 		ext
 	}
 }
