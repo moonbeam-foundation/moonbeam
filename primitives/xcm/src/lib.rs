@@ -22,9 +22,10 @@ use frame_support::{
 	traits::{Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use xcm::v0::{
-	Error as XcmError,
-	Junction::{AccountKey20, Parachain, Parent},
+use xcm::v1::{
+	AssetId, Error as XcmError, Fungibility,
+	Junction::{AccountKey20, Parachain},
+	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
@@ -76,10 +77,13 @@ where
 	AccountId: Into<[u8; 20]>,
 {
 	fn convert(account: AccountId) -> MultiLocation {
-		MultiLocation::X1(AccountKey20 {
-			network: NetworkId::Any,
-			key: account.into(),
-		})
+		MultiLocation {
+			parents: 0,
+			interior: X1(AccountKey20 {
+				network: NetworkId::Any,
+				key: account.into(),
+			}),
+		}
 	}
 }
 
@@ -189,7 +193,7 @@ impl<
 		}
 	}
 
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		let result = if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
@@ -237,7 +241,7 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 
 		Err(XcmError::TooExpensive)
 	}
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		let native = self.native_trader.refund_weight(weight);
 		match native {
 			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return native,
