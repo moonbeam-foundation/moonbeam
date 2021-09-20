@@ -278,6 +278,7 @@ where
 		<R as frame_system::Config>::AccountId,
 		<R as pallet_assets::Config>::AssetId,
 	>,
+	<<R as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
 		_address: H160,
