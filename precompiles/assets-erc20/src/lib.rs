@@ -49,8 +49,8 @@ use sp_std::{
 
 #[cfg(test)]
 mod mock;
-//#[cfg(test)]
-//mod tests;
+#[cfg(test)]
+mod tests;
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_TRANSFER: &[u8; 32] =
@@ -408,18 +408,33 @@ where
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 			let amount = Self::u256_to_amount(amount)?;
 
-			// Dispatch call (if enough gas).
-			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-				Some(caller).into(),
-				pallet_assets::Call::<Runtime, Instance>::transfer_approved(
-					asset_id,
-					Runtime::Lookup::unlookup(from),
-					Runtime::Lookup::unlookup(to),
-					amount,
-				),
-				gasometer.remaining_gas()?,
-			)?;
-			gasometer.record_cost(used_gas)?;
+			// If caller is "from", it can spend as much as it wants.
+			if caller != from {
+				// Dispatch call (if enough gas).
+				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+					Some(caller).into(),
+					pallet_assets::Call::<Runtime, Instance>::transfer_approved(
+						asset_id,
+						Runtime::Lookup::unlookup(from),
+						Runtime::Lookup::unlookup(to),
+						amount,
+					),
+					gasometer.remaining_gas()?,
+				)?;
+				gasometer.record_cost(used_gas)?;
+			} else {
+				// Dispatch call (if enough gas).
+				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+					Some(from).into(),
+					pallet_assets::Call::<Runtime, Instance>::transfer(
+						asset_id,
+						Runtime::Lookup::unlookup(to),
+						amount,
+					),
+					gasometer.remaining_gas()?,
+				)?;
+				gasometer.record_cost(used_gas)?;
+			}
 		}
 
 		// Build output.
