@@ -293,6 +293,7 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
+#[cfg(feature = "try-runtime")]
 pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
 	Migrations::pre_upgrade().expect("pre-upgrade hook succeeds");
 	let weight = Migrations::on_runtime_upgrade();

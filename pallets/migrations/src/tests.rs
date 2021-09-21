@@ -266,7 +266,7 @@ fn overweight_migrations_tolerated() {
 	);
 }
 
-#[test]
+#[cfg(all(test, feature = "try-runtime"))]
 fn try_runtime_functions_work() {
 	let pre_fn_called = Arc::new(Mutex::new(false));
 	let post_fn_called = Arc::new(Mutex::new(false));
