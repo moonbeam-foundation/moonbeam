@@ -22,6 +22,7 @@ use frame_support::{
 	weights::Weight,
 	Twox64Concat,
 };
+
 use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
@@ -74,6 +75,8 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
 		let pallet_prefix: &[u8] = b"AuthorMapping";
 		let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
@@ -115,6 +118,8 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
 		// Check number of entries matches what was set aside in pre_upgrade
 		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
 			.expect("We stored a mapping count; it should be there; qed");
