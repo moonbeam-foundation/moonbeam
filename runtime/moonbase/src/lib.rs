@@ -846,7 +846,7 @@ impl pallet_proxy::Config for Runtime {
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
-	type MigrationsList = runtime_common::migrations::CommonMigrations;
+	type MigrationsList = runtime_common::migrations::CommonMigrations<Runtime>;
 }
 
 parameter_types! {

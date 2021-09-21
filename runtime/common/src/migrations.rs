@@ -29,7 +29,7 @@ use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConf
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
-impl<T: AuthorMappingConfig + MigrationsConfig> Migration for AuthorMappingTwoXToBlake<T> {
+impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Author_Mapping_TwoXToBlake"
 	}
@@ -51,17 +51,21 @@ impl<T: AuthorMappingConfig + MigrationsConfig> Migration for AuthorMappingTwoXT
 	}
 }
 
-pub struct CommonMigrations;
-impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
+pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Get<Vec<Box<dyn Migration>>> for CommonMigrations<Runtime>
+where
+	Runtime: pallet_author_mapping::Config,
+{
 	fn get() -> Vec<Box<dyn Migration>> {
+		let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
+			0: Default::default(),
+		};
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
+
 		vec![
-			/*
-			Box::new(MM_001_AuthorMappingAddDeposit),
-			Box::new(MM_002_StakingFixTotalBalance),
-			Box::new(MM_003_StakingUnboundedCollatorNominations),
-			*/
+			Box::new(migration_author_mapping_twox_to_blake),
 		]
 	}
 }
