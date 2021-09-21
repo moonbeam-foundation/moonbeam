@@ -13,6 +13,7 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 
@@ -39,6 +40,7 @@ std = [
     "sp-std/std",
     "sp-core/std",
     "sp-io/std",
+    "sp-runtime/std",
     "frame-support/std",
     "frame-system/std",
     "pallet-evm/std",

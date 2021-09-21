@@ -24,8 +24,9 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
+use sp_runtime::traits::Zero;
 
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
 	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
 	RuntimeHelper,
@@ -72,9 +73,60 @@ pub trait AccountIdToAssetId<Account, AssetId> {
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
 }
 
-/// Precompile exposing a pallet_assets as an ERC20.
-/// Multiple precompiles can support instances of pallet_assetss.
-/// The precompile uses an additional storage to store approvals.
+/// The following distribution has been decided for the precompiles
+/// 0-1023: Ethereum Mainnet Precompiles
+/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
+/// 2048-4095 Moonbeam specific precompiles
+/// Asset precompiles can only fall between
+/// 	0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+/// The precompile for AssetId X, where X is a u128 (i.e.16 bytes), if 0XFFFFFFFF + Bytes(AssetId)
+/// In order to route the address to Erc20AssetsPrecompile<R>, we first check whether the AssetId
+/// exists in pallet-assets
+/// We cannot do this right now, so instead we check whether the total supply is zero. If so, we
+/// do not route to the precompiles
+
+/// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
+/// but the probability for this to happen is 2^-32 for random addresses
+pub struct Erc20AssetsPrecompileSet<Runtime, Instance: 'static = ()>(
+	PhantomData<(Runtime, Instance)>,
+);
+
+impl<Runtime, Instance> PrecompileSet for Erc20AssetsPrecompileSet<Runtime, Instance>
+where
+	Instance: 'static,
+	Erc20AssetsPrecompile<Runtime, Instance>: Precompile,
+	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
+	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+{
+	fn execute(
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> Option<Result<PrecompileOutput, ExitError>> {
+		// If address starts with 0XFFFFFFFF
+		if let Some(asset_id) =
+			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
+		{
+			// If the assetId has non-zero supply
+			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
+			// The assumption I am making here is that a 0 supply asset is not interesting from
+			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
+			// storage we can use another function for this, like check_asset_existence.
+			// The other options is to check the asset existence in pallet-asset-manager, but
+			// this makes the precompiles dependent on such a pallet, which is not ideal
+			if !pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero() {
+				return Some(
+					<Erc20AssetsPrecompile<Runtime, Instance> as Precompile>::execute(
+						input, target_gas, context,
+					),
+				);
+			}
+		}
+		None
+	}
+}
+
 pub struct Erc20AssetsPrecompile<Runtime, Instance: 'static = ()>(PhantomData<(Runtime, Instance)>);
 
 impl<Runtime, Instance> Precompile for Erc20AssetsPrecompile<Runtime, Instance>
@@ -85,7 +137,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
@@ -114,7 +166,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn total_supply(
@@ -131,8 +183,7 @@ where
 		input.expect_arguments(0)?;
 
 		let asset_id: AssetIdOf<Runtime, Instance> =
-			Runtime::Precompiles::account_to_asset_id(execution_address)
-				.ok_or(error("non-assetId address"))?;
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
 
 		// Fetch info.
 		let amount: U256 =
@@ -165,7 +216,7 @@ where
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 
 			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::Precompiles::account_to_asset_id(execution_address)
+				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
@@ -238,7 +289,7 @@ where
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::Precompiles::account_to_asset_id(execution_address)
+				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
 			let caller: Runtime::AccountId =
@@ -322,7 +373,7 @@ where
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::Precompiles::account_to_asset_id(execution_address)
+				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -376,7 +427,7 @@ where
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::Precompiles::account_to_asset_id(execution_address)
+				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);

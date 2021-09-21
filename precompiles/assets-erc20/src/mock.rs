@@ -86,6 +86,17 @@ impl AddressMapping<Account> for Account {
 	}
 }
 
+impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+		match account {
+			Account::AssetId(asset_id) => Some(asset_id),
+			_ => None,
+		}
+	}
+}
+
 impl From<Account> for H160 {
 	fn from(x: Account) -> H160 {
 		match x {
@@ -100,15 +111,6 @@ impl From<Account> for H160 {
 				H160::from_slice(&data)
 			}
 			Account::Bogus => Default::default(),
-		}
-	}
-}
-
-impl Into<Option<AssetId>> for Account {
-	fn into(self) -> Option<AssetId> {
-		match self {
-			Account::AssetId(asset_id) => Some(asset_id),
-			_ => None,
 		}
 	}
 }
@@ -237,27 +239,6 @@ construct_runtime!(
 
 pub struct Precompiles<R>(PhantomData<R>);
 
-impl<R> AccountIdToAssetId<R::AccountId, R::AssetId> for Precompiles<R>
-where
-	R: pallet_assets::Config,
-	R::AccountId: Into<H160>,
-	R::AssetId: From<u128>,
-{
-	/// This is how we instruct precompiles to convert Accounts to AssetIds
-	fn account_to_asset_id(account: R::AccountId) -> Option<R::AssetId> {
-		let h160_account: H160 = account.into();
-		let mut data = [0u8; 16];
-		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == &[255u8; 4] {
-			data.copy_from_slice(id_part);
-			let asset_id: R::AssetId = u128::from_be_bytes(data).into();
-			Some(asset_id)
-		} else {
-			None
-		}
-	}
-}
-
 impl<R> PrecompileSet for Precompiles<R>
 where
 	R: pallet_balances::Config,
@@ -267,21 +248,16 @@ where
 	R::Call: From<pallet_assets::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
-	R::Precompiles: AccountIdToAssetId<
-		<R as frame_system::Config>::AccountId,
-		<R as pallet_assets::Config>::AssetId,
-	>,
 	<<R as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	R: AccountIdToAssetId<R::AccountId, AssetIdOf<R>>,
 {
 	fn execute(
-		_address: H160,
+		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
-		Some(Erc20AssetsPrecompile::<R>::execute(
-			input, target_gas, context,
-		))
+		Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
 	}
 }
 

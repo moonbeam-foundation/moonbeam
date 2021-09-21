@@ -30,6 +30,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
+use pallet_evm_precompile_assets_erc20::AccountIdToAssetId;
+
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -376,6 +378,23 @@ impl FeeCalculator for FixedGasPrice {
 ///            min is MinimumMultiplier
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+
+impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+		let h160_account: H160 = account.into();
+		let mut data = [0u8; 16];
+		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+		if prefix_part == &[255u8; 4] {
+			data.copy_from_slice(id_part);
+			let asset_id: AssetId = u128::from_be_bytes(data).into();
+			Some(asset_id)
+		} else {
+			None
+		}
+	}
+}
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;

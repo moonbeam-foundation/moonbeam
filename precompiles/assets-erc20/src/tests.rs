@@ -27,12 +27,25 @@ use sha3::{Digest, Keccak256};
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Assets::force_create(
+			Origin::root(),
+			0u128,
+			Account::Alice.into(),
+			true,
+			1
+		));
+		assert_ok!(Assets::mint(
+			Origin::signed(Account::Alice),
+			0u128,
+			Account::Alice.into(),
+			1000
+		));
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
-				Account::AssetId(1u128).into(),
+				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&evm::Context {
@@ -49,11 +62,24 @@ fn selector_less_than_four_bytes() {
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Assets::force_create(
+			Origin::root(),
+			0u128,
+			Account::Alice.into(),
+			true,
+			1
+		));
+		assert_ok!(Assets::mint(
+			Origin::signed(Account::Alice),
+			0u128,
+			Account::Alice.into(),
+			1000
+		));
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
-				Account::AssetId(1u128).into(),
+				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&evm::Context {
@@ -482,6 +508,12 @@ fn transfer_not_enough_founds() {
 				0u128,
 				Account::Alice.into(),
 				true,
+				1
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
 				1
 			));
 
