@@ -100,8 +100,10 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
+	pub const CandidateBondDelay: u32 = 2;
 	pub const LeaveNominatorsDelay: u32 = 2;
 	pub const RevokeNominationDelay: u32 = 2;
+	pub const NominatorBondDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
@@ -119,8 +121,10 @@ impl Config for Test {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type CandidateBondDelay = CandidateBondDelay;
 	type LeaveNominatorsDelay = LeaveNominatorsDelay;
 	type RevokeNominationDelay = RevokeNominationDelay;
+	type NominatorBondDelay = NominatorBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
@@ -140,7 +144,7 @@ pub(crate) struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -149,7 +153,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominations: vec![],
+			delegations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -185,11 +189,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominations(
+	pub(crate) fn with_delegations(
 		mut self,
-		nominations: Vec<(AccountId, AccountId, Balance)>,
+		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominations = nominations;
+		self.delegations = delegations;
 		self
 	}
 
@@ -211,7 +215,7 @@ impl ExtBuilder {
 		.expect("Pallet balances storage can be assimilated");
 		stake::GenesisConfig::<Test> {
 			candidates: self.collators,
-			nominations: self.nominations,
+			delegations: self.delegations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
@@ -274,7 +278,7 @@ fn geneses() {
 			(9, 4),
 		])
 		.with_candidates(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_delegations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			assert!(System::events().is_empty());
@@ -316,7 +320,7 @@ fn geneses() {
 			(10, 100),
 		])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
