@@ -135,8 +135,7 @@ pub mod pallet {
 				// migrations were performed (as opposed to skipped)
 				Self::set_temp_storage(true, migration_name);
 
-				let result = migration.pre_upgrade();
-				match result {
+				match migration.pre_upgrade() {
 					Ok(()) => {
 						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
 					}
