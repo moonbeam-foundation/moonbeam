@@ -86,6 +86,7 @@ impl AddressMapping<Account> for Account {
 	}
 }
 
+// Implement the trait, where we convert AccountId to AssetID
 impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId

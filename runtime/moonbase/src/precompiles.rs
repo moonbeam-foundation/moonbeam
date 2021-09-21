@@ -64,6 +64,8 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
+	// We require PrecompileSet here because indeed we are dealing with a set of precompiles
+	// This precompile set does additional checks, e.g., total supply not being 0
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 {

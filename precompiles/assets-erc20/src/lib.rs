@@ -67,7 +67,7 @@ pub enum Action {
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
-/// We will require Runtime::Precompiles to have this trait implemented
+/// We will require Runtime to have this trait implemented
 pub trait AccountIdToAssetId<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
@@ -104,7 +104,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
-		// If address starts with 0XFFFFFFFF
 		if let Some(asset_id) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
@@ -252,7 +251,7 @@ where
 		let amount: U256 = {
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
 			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::Precompiles::account_to_asset_id(execution_address)
+				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
@@ -434,7 +433,7 @@ where
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 
-			// If caller is "from", it can spend as much as it wants.
+			// If caller is "from", it can spend as much as it wants from its own balance.
 			let used_gas = if caller != from {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
