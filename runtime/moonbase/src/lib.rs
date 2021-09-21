@@ -69,7 +69,6 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
 };
-use pallet_migrations::{Config, Pallet};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -100,6 +99,7 @@ use xcm::v0::{
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
+mod migrations;
 mod precompiles;
 use precompiles::MoonbasePrecompiles;
 
@@ -846,6 +846,7 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
+	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
 	type MigrationsList = runtime_common::migrations::CommonMigrations;
 }
 

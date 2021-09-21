@@ -37,7 +37,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod migrations;
+pub mod migrations;
 
 #[pallet]
 pub mod pallet {

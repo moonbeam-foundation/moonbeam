@@ -23,6 +23,8 @@ use frame_support::{
 	Twox64Concat,
 };
 use sp_std::convert::TryInto;
+//TODO sometimes this is unused, sometimes its necessary
+use sp_std::vec::Vec;
 
 /// Migrates the AuthorMapping's storage map fro mthe insecure Twox64 hasher to the secure
 /// BlakeTwo hasher.

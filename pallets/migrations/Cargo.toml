@@ -13,11 +13,6 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-v
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false }
 
-# One weakness is that every pallet has to depend on the migrations trait.
-# We should really only have to impl frame support traits.
-# But what about the unique identifier...
-syntax error as a reminer of where to pick back up
-
 [dev-dependencies]
 environmental = "1.1.2"
 sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
