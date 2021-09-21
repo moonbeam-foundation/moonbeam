@@ -9,6 +9,7 @@ description = "A Precompile to expose a Assets pallet through an ERC20-compliant
 log = "0.4"
 slices = "0.2.0"
 
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["max-encoded-len"] }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
@@ -24,7 +25,7 @@ precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["max-encoded-len"] }
+codec = { package = "parity-scale-codec", version = "2.0.0", features = ["max-encoded-len"] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch="crystalin-v0.9.9-block-response-length" }
 serde = { version = "1.0.100" }

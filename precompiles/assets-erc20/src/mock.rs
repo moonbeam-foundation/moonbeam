@@ -113,12 +113,6 @@ impl Into<Option<AssetId>> for Account {
 	}
 }
 
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
 impl From<Account> for H256 {
 	fn from(x: Account) -> H256 {
 		let x: H160 = x.into();
@@ -269,11 +263,10 @@ where
 	R: pallet_balances::Config,
 	R: pallet_evm::Config,
 	R: pallet_assets::Config,
-	R::AccountId: From<H160>,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	R::Call: From<pallet_assets::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	BalanceOf<R>: TryFrom<U256> + Into<U256>,
+	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
 	R::Precompiles: AccountIdToAssetId<
 		<R as frame_system::Config>::AccountId,
 		<R as pallet_assets::Config>::AssetId,

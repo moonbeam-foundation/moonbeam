@@ -27,16 +27,13 @@ use frame_support::{
 
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
+	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
+	RuntimeHelper,
 };
 
 use slices::u8_slice;
 use sp_core::{H160, U256};
-use sp_std::{
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-	vec,
-};
+use sp_std::{convert::TryFrom, marker::PhantomData, vec};
 
 #[cfg(test)]
 mod mock;
@@ -87,7 +84,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
@@ -116,7 +113,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime::Precompiles: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
@@ -236,7 +233,7 @@ where
 		input.expect_arguments(2)?;
 
 		let spender: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
 
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
@@ -247,7 +244,6 @@ where
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
-			let amount = Self::u256_to_amount(amount)?;
 
 			// Dispatch call (if enough gas).
 			// We first cancel any existing approvals
@@ -266,11 +262,9 @@ where
 			) {
 				Ok(gas_used) => Ok(gas_used),
 				Err(ExitError::Other(e)) => {
-					// This would mean there is not an existing approval
-					// We convert this case to 0 gas used
-					// We could also convert it to one DB read
+					// One DB read for checking the approval did not exist
 					if e.contains("Unknown") {
-						Ok(0)
+						Ok(RuntimeHelper::<Runtime>::db_read_gas_cost())
 					} else {
 						Err(ExitError::Other(e))
 					}
@@ -322,7 +316,7 @@ where
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
 
 		// Build call with origin.
 		{
@@ -333,7 +327,6 @@ where
 
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
 
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
@@ -378,7 +371,7 @@ where
 		input.expect_arguments(3)?;
 		let from: H160 = input.read::<Address>()?.into();
 		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
 
 		{
 			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
@@ -389,12 +382,11 @@ where
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
 
 			// If caller is "from", it can spend as much as it wants.
-			if caller != from {
+			let used_gas = if caller != from {
 				// Dispatch call (if enough gas).
-				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
 					pallet_assets::Call::<Runtime, Instance>::transfer_approved(
 						asset_id,
@@ -403,11 +395,10 @@ where
 						amount,
 					),
 					gasometer.remaining_gas()?,
-				)?;
-				gasometer.record_cost(used_gas)?;
+				)
 			} else {
 				// Dispatch call (if enough gas).
-				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(from).into(),
 					pallet_assets::Call::<Runtime, Instance>::transfer(
 						asset_id,
@@ -415,9 +406,9 @@ where
 						amount,
 					),
 					gasometer.remaining_gas()?,
-				)?;
-				gasometer.record_cost(used_gas)?;
-			}
+				)
+			}?;
+			gasometer.record_cost(used_gas)?;
 		}
 
 		// Build output.
@@ -434,11 +425,5 @@ where
 				)
 				.build(),
 		})
-	}
-
-	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {
-		value
-			.try_into()
-			.map_err(|_| error("amount is too large for provided balance type"))
 	}
 }
