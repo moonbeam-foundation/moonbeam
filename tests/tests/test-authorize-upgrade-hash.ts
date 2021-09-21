@@ -13,7 +13,7 @@ describe("Compute AuthorizeUpgrade hash", () => {
     let authorizeUpgradeHash1 = blake2AsHex("0x0103" + MOONBASE_RUNTIME_701_BLAKE2_256);
     expect(authorizeUpgradeHash1).to.equal(MOONBASE_RUNTIME_701_AUTHORIZE_UPGRADE_SRTOOL);
   });
-  it("Real fasf should be computed with prefix 0x0603", function () {
+  it("Real hash should be computed with prefix 0x0603", function () {
     let authorizeUpgradeHash6 = blake2AsHex("0x0603" + MOONBASE_RUNTIME_701_BLAKE2_256);
     expect(authorizeUpgradeHash6).to.equal(MOONBASE_RUNTIME_701_AUTHORIZE_UPGRADE_REAL);
   });
