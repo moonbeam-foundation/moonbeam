@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use bip39::{Language, Mnemonic, MnemonicType, Seed};
-use primitive_types::{H160, H256};
 use libsecp256k1::{PublicKey, SecretKey};
+use primitive_types::{H160, H256};
 use sp_runtime::traits::IdentifyAccount;
 use structopt::StructOpt;
 use tiny_hderive::bip32::ExtendedPrivKey;
