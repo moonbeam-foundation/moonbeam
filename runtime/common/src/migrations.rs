@@ -16,13 +16,10 @@
 
 //! # Migrations
 
-use frame_support::{traits::OnRuntimeUpgrade, weights::Weight, pallet_prelude::Get};
-use pallet_migrations::{Config as MigrationsConfig, Migration};
-use sp_std::{
-	prelude::*,
-	marker::PhantomData,
-};
+use frame_support::{pallet_prelude::Get, traits::OnRuntimeUpgrade, weights::Weight};
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
+use pallet_migrations::{Config as MigrationsConfig, Migration};
+use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -64,8 +61,6 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		vec![
-			Box::new(migration_author_mapping_twox_to_blake),
-		]
+		vec![Box::new(migration_author_mapping_twox_to_blake)]
 	}
 }
