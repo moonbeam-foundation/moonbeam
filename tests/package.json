@@ -39,7 +39,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-staking.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-balance-transfer-txwrapper-substrate.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
@@ -51,6 +51,9 @@
     "@polkadot/types": "^5.9.1",
     "@polkadot/util": "^7.4.1",
     "@polkadot/util-crypto": "^7.4.1",
+    "@substrate/txwrapper-core": "^1.2.14",
+    "@substrate/txwrapper-registry": "^1.2.15",
+    "@substrate/txwrapper-substrate": "^1.2.14",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",
