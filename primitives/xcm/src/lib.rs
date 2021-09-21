@@ -157,7 +157,9 @@ impl<
 						fun: Fungibility::Fungible(amount),
 						id: xcmAssetId::Concrete(id.clone()),
 					};
-					let unused = payment.checked_sub(required).map_err(|_| XcmError::TooExpensive)?;
+					let unused = payment
+						.checked_sub(required)
+						.map_err(|_| XcmError::TooExpensive)?;
 					self.0 = self.0.saturating_add(weight);
 
 					// In case the asset matches the one the trader already stored before, add
@@ -250,10 +252,10 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 				fun: Fungibility::Fungible(amount),
 				id: xcmAssetId::Concrete(_id),
 			}) => {
-				if !amount.is_zero() { 
-					return native
+				if !amount.is_zero() {
+					return native;
 				}
-			},
+			}
 			_ => {}
 		}
 
@@ -263,10 +265,10 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 				fun: Fungibility::Fungible(amount),
 				id: xcmAssetId::Concrete(_id),
 			}) => {
-				if !amount.is_zero() { 
-					return native
+				if !amount.is_zero() {
+					return native;
 				}
-			},
+			}
 			_ => {}
 		}
 
@@ -282,7 +284,6 @@ pub trait Reserve {
 // Takes the chain part of a MultiAsset
 impl Reserve for MultiAsset {
 	fn reserve(&self) -> Option<MultiLocation> {
-
 		if let xcmAssetId::Concrete(location) = self.id.clone() {
 			let first_interior = location.first_interior()?;
 			let parents = location.parent_count();
