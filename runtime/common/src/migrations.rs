@@ -16,48 +16,40 @@
 
 //! # Migrations
 
-use frame_support::pallet_prelude::Get;
-use pallet_migrations::Migration;
-use sp_std::prelude::*;
+use frame_support::{traits::OnRuntimeUpgrade, weights::Weight, pallet_prelude::Get};
+use pallet_migrations::{Config as MigrationsConfig, Migration};
+use sp_std::{
+	prelude::*,
+	marker::PhantomData,
+};
+use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
-/*
- * These are left as examples.
-#[allow(non_camel_case_types)]
-pub struct MM_001_AuthorMappingAddDeposit;
-impl Migration for MM_001_AuthorMappingAddDeposit {
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig + MigrationsConfig> Migration for AuthorMappingTwoXToBlake<T> {
 	fn friendly_name(&self) -> &str {
-		"AuthorMappingAddDeposit"
+		"MM_Author_Mapping_TwoXToBlake"
 	}
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
-	}
-}
 
-#[allow(non_camel_case_types)]
-pub struct MM_002_StakingFixTotalBalance;
-impl Migration for MM_002_StakingFixTotalBalance {
-	fn friendly_name(&self) -> &str {
-		"StakingFixTotalBalance"
-	}
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
+		TwoXToBlake::<T>::on_runtime_upgrade()
 	}
-}
 
-#[allow(non_camel_case_types)]
-pub struct MM_003_StakingUnboundedCollatorNominations;
-impl Migration for MM_003_StakingUnboundedCollatorNominations {
-	fn friendly_name(&self) -> &str {
-		"StakingUnboundedCollatorNominations"
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		TwoXToBlake::<T>::pre_upgrade()
 	}
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		TwoXToBlake::<T>::post_upgrade()
 	}
 }
-*/
 
 pub struct CommonMigrations;
 impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {

@@ -1,3 +1,5 @@
+paths = ["../substrate"]
+
 [alias]
 moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
 moonbase-rococo = " build --release -p moonbeam --no-default-features --features moonbase-native,rococo-native"

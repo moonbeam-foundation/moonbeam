@@ -99,7 +99,6 @@ use xcm::v0::{
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
-mod migrations;
 mod precompiles;
 use precompiles::MoonbasePrecompiles;
 

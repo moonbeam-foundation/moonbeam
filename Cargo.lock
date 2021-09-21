@@ -9637,6 +9637,7 @@ version = "0.8.0-dev"
 dependencies = [
  "frame-support",
  "log",
+ "pallet-author-mapping",
  "pallet-migrations",
  "sp-runtime",
  "sp-std",
