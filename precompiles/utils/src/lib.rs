@@ -195,7 +195,12 @@ where
 			used_weight.unwrap_or(dispatch_info.weight),
 		))
 	}
+}
 
+impl<Runtime> RuntimeHelper<Runtime>
+where
+	Runtime: pallet_evm::Config,
+{
 	/// Cost of a Substrate DB write in gas.
 	pub fn db_write_gas_cost() -> u64 {
 		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
