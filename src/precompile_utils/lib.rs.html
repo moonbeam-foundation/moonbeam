@@ -293,6 +293,11 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -491,7 +496,12 @@
 			<span class="ident">used_weight</span>.<span class="ident">unwrap_or</span>(<span class="ident">dispatch_info</span>.<span class="ident">weight</span>),
 		))
 	}
+}
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
+{
 	<span class="doccomment">/// Cost of a Substrate DB write in gas.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">db_write_gas_cost</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
 		<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
