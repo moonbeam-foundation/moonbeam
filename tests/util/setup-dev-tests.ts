@@ -39,6 +39,7 @@ export interface DevTestContext {
   web3: EnhancedWeb3;
   ethers: ethers.providers.JsonRpcProvider;
   polkadotApi: ApiPromise;
+  rpcPort: number;
 }
 
 interface InternalDevTestContext extends DevTestContext {
@@ -74,6 +75,7 @@ export function describeDevMoonbeam(
             rpcPort: 19932,
           };
       moonbeamProcess = init.runningNode;
+      context.rpcPort = init.rpcPort;
 
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;

@@ -3,6 +3,7 @@ import Web3 from "web3";
 import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
+import fetch from "node-fetch";
 import { DevTestContext } from "./setup-dev-tests";
 import { customWeb3Request } from "./providers";
 const debug = require("debug")("test:transaction");
@@ -134,6 +135,34 @@ export async function createContractExecution(
   return tx;
 }
 
+/**
+ * Send a JSONRPC request to the node at http://localhost:9933.
+ *
+ * @param method - The JSONRPC request method.
+ * @param params - The JSONRPC request params.
+ */
+export function rpcToLocalNode(rpcPort: number, method: string, params: any[] = []): Promise<any> {
+  return fetch("http://localhost:" + rpcPort, {
+    body: JSON.stringify({
+      id: 1,
+      jsonrpc: "2.0",
+      method,
+      params,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then(({ error, result }) => {
+      if (error) {
+        throw new Error(`${error.code} ${error.message}: ${JSON.stringify(error.data)}`);
+      }
+
+      return result;
+    });
+}
 // The parameters passed to the function are assumed to have all been converted to hexadecimal
 export async function sendPrecompileTx(
   context: DevTestContext,
