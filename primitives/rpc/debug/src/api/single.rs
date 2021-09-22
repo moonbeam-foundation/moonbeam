@@ -102,7 +102,7 @@ pub struct RawStepLog {
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
+#[cfg_attr(feature = "std", serde(rename_all = "lowercase", tag = "type"))]
 pub enum CallInner {
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Call {
