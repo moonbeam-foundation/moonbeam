@@ -307,7 +307,7 @@ jobs:
         env:
           BINARY_PATH: ../build/moonbeam
           # `debug` or `trace` require `--wasm-runtime-overrides`. For CI we can provide any directory.
-          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides ../build
+          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides=/
         run: |
           cd moonbeam-types-bundle
           npm install
@@ -429,7 +429,7 @@ jobs:
         env:
           BINARY_PATH: ../build/moonbeam-tracing
           # `debug` or `trace` require `--wasm-runtime-overrides`. For CI we can provide any directory.
-          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides ../build
+          ETHAPI_CMD: --ethapi=txpool,debug,trace --wasm-runtime-overrides=/
         run: |
           cd tests
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
