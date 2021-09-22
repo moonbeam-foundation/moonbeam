@@ -1,0 +1,45 @@
+[package]
+name = "contract-gobbler-precompile"
+version = "0.6.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "A Precompile that gobbles up any contract that calls it. 👹"
+
+[dependencies]
+log = "0.4"
+rustc-hex = { version = "2.0.1", default-features = false }
+
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+precompile-utils = { path = "../utils", default-features = false }
+num_enum = { version = "0.5.3", default-features = false }
+
+[dev-dependencies]
+sha3 = "0.9"
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+serde = "1.0.100"
+derive_more = "0.99"
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+
+[features]
+default = ["std"]
+std = [
+    "frame-support/std",
+    "evm/std",
+    "sp-std/std",
+    "sp-core/std",
+    "frame-system/std",
+    "precompile-utils/std",
+    "pallet-evm/std",
+]
