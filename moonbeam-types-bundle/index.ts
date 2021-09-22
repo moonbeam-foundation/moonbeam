@@ -359,7 +359,7 @@ export const moonbeamDefinitions = {
       types: TYPES_155_199,
     },
     {
-      minmax: [199, 400],
+      minmax: [200, 399],
       types: TYPES_200_399,
     },
     {
