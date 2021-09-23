@@ -29,22 +29,20 @@ use sp_runtime::{
 	traits::{Hash, IdentityLookup},
 };
 use sp_std::{convert::TryFrom, prelude::*};
+use xcm::{latest::prelude::*, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
-use xcm::{
-	v0::{
-		Error as XcmError, ExecuteXcm,
-		Junction::{PalletInstance, Parachain, Parent},
-		MultiLocation, NetworkId, Outcome, Xcm,
-	},
-	VersionedXcm,
+use xcm::v1::{
+	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
+	Junction::{PalletInstance, Parachain},
+	Junctions, MultiLocation, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfConcreteFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser,
-	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
@@ -212,19 +210,22 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 parameter_types! {
-	pub ParaTokensPerSecond: (MultiLocation, u128) = (SelfReserve::get(), 1);
+	// This value is high enough to charge for meaningful weights but low enough not to 
+	// charge on low destination weights. This serves us to test just the FirstAssetTrader.
+	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000);
 }
 
 parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	pub SelfReserve: MultiLocation =
-		MultiLocation::X3(
-			Parent,
-			Parachain(MsgQueue::parachain_id().into()).into(),
+		pub SelfReserve: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(MsgQueue::parachain_id().into()),
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-		);
+		)
+	};
 }
 
 pub struct XcmConfig;
@@ -239,10 +240,11 @@ impl Config for XcmConfig {
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 	type Trader = xcm_primitives::MultiWeightTraders<
-		FixedRateOfConcreteFungible<ParaTokensPerSecond, ()>,
+		FixedRateOfFungible<ParaTokensPerSecond, ()>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;
 	type ResponseHandler = ();
+	type SubscriptionService = PolkadotXcm;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -277,10 +279,12 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
-	pub SelfLocation: MultiLocation =
-	MultiLocation::X2(
-		Parent, Parachain(MsgQueue::parachain_id().into()).into()
-	);
+	pub SelfLocation: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X1(
+			Parachain(MsgQueue::parachain_id().into())
+		)
+	};
 }
 
 // The XCM message wrapper wrapper
@@ -295,6 +299,7 @@ impl orml_xtokens::Config for Runtime {
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type LocationInverter = LocationInverter<Ancestry>;
 }
 
 #[frame_support::pallet]
@@ -361,15 +366,10 @@ pub mod mock_msg_queue {
 			max_weight: Weight,
 		) -> Result<Weight, XcmError> {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
-
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
-					let location = (Parent, Parachain(sender.into()));
-					match T::XcmExecutor::execute_xcm(
-						location.clone().into(),
-						xcm.clone(),
-						max_weight,
-					) {
+					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
+					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
 						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
 						// As far as the caller is concerned, this was dispatched without error, so
@@ -467,7 +467,7 @@ pub enum AssetType {
 }
 impl Default for AssetType {
 	fn default() -> Self {
-		Self::Xcm(MultiLocation::Null)
+		Self::Xcm(MultiLocation::here())
 	}
 }
 

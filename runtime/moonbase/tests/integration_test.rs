@@ -43,7 +43,11 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
-use xcm::v0::{Junction, MultiLocation::*};
+use xcm::v1::{
+	Junction::{PalletInstance, Parachain},
+	Junctions, MultiLocation
+};
+use xcm::{latest::prelude::*, VersionedXcm};
 
 #[test]
 fn fast_track_available() {
@@ -1031,7 +1035,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
+		let source_location = moonbase_runtime::AssetType::Xcm(MultiLocation::parent());
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
 		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),

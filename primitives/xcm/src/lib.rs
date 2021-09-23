@@ -285,11 +285,11 @@ pub trait Reserve {
 impl Reserve for MultiAsset {
 	fn reserve(&self) -> Option<MultiLocation> {
 		if let xcmAssetId::Concrete(location) = self.id.clone() {
-			let first_interior = location.first_interior()?;
+			let first_interior = location.first_interior();
 			let parents = location.parent_count();
 			match (parents, first_interior.clone()) {
-				(0, Parachain(id)) => Some(MultiLocation::new(0, X1(Parachain(id)))),
-				(1, Parachain(id)) => Some(MultiLocation::new(1, X1(Parachain(id)))),
+				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
+				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
 				(1, _) => Some(MultiLocation::parent()),
 				_ => None,
 			}
