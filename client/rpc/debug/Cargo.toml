@@ -24,6 +24,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystal
 sp-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
