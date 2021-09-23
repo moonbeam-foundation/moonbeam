@@ -67,7 +67,7 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
-  if(ETHAPI_CMD != "") {
+  if (ETHAPI_CMD != "") {
     args.push("--wasm-runtime-overrides=/");
   }
   debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
