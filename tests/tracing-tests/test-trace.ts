@@ -29,8 +29,8 @@ async function createContracts(context) {
     caller: caller,
     calleeAddr: callee.options.address,
     callerAddr: caller.options.address,
-    nonce: nonce
-  }
+    nonce: nonce,
+  };
 }
 
 async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
@@ -41,7 +41,7 @@ async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
       gas: "0x100000",
       value: "0x00",
       data: caller.methods.someAction(calleeAddr, 6).encodeABI(), // calls callee
-      nonce: nonce
+      nonce: nonce,
     },
     GENESIS_ACCOUNT_PRIVATE_KEY
   );
@@ -51,7 +51,11 @@ async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
 async function nestedSingle(context) {
   const contracts = await createContracts(context);
   return await nestedCall(
-    context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, contracts.nonce
+    context,
+    contracts.caller,
+    contracts.callerAddr,
+    contracts.calleeAddr,
+    contracts.nonce
   );
 }
 
@@ -333,13 +337,25 @@ describeDevMoonbeam("Trace", (context) => {
     const contracts = await createContracts(context);
     let nonce = contracts.nonce;
     await nestedCall(
-      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+      context,
+      contracts.caller,
+      contracts.callerAddr,
+      contracts.calleeAddr,
+      nonce++
     );
     await nestedCall(
-      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+      context,
+      contracts.caller,
+      contracts.callerAddr,
+      contracts.calleeAddr,
+      nonce++
     );
     await nestedCall(
-      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+      context,
+      contracts.caller,
+      contracts.callerAddr,
+      contracts.calleeAddr,
+      nonce++
     );
     await context.createBlock();
     const block = await context.web3.eth.getBlock("latest");
@@ -351,7 +367,7 @@ describeDevMoonbeam("Trace", (context) => {
       { tracer: "callTracer" },
     ]);
     expect(block.transactions.length).to.be.equal(traceTx.result.length);
-    traceTx.result.forEach(trace => {
+    traceTx.result.forEach((trace) => {
       expect(trace.calls.length).to.be.equal(1);
       expect(Object.keys(trace)).to.deep.equal([
         "calls",
@@ -371,7 +387,7 @@ describeDevMoonbeam("Trace", (context) => {
       { tracer: "callTracer" },
     ]);
     expect(block.transactions.length).to.be.equal(traceTx.result.length);
-    traceTx.result.forEach(trace => {
+    traceTx.result.forEach((trace) => {
       expect(trace.calls.length).to.be.equal(1);
       expect(Object.keys(trace)).to.deep.equal([
         "calls",
