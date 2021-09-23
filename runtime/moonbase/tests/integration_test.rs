@@ -45,7 +45,7 @@ use sp_runtime::{
 };
 use xcm::v1::{
 	Junction::{PalletInstance, Parachain},
-	Junctions, MultiLocation
+	Junctions, MultiLocation,
 };
 use xcm::{latest::prelude::*, VersionedXcm};
 

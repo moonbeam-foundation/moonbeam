@@ -23,7 +23,7 @@ use xcm_mock::relay_chain;
 use xcm_mock::*;
 
 use xcm::v1::{
-	Junction::{self, AccountId32, AccountKey20, Parachain, PalletInstance},
+	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
 	MultiLocation, NetworkId,
 };
@@ -223,10 +223,13 @@ fn send_relay_asset_to_para_b() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(2), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 
 	ParaA::execute_with(|| {
@@ -250,7 +253,6 @@ fn send_relay_asset_to_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 }
-
 
 #[test]
 fn send_para_a_asset_to_para_b() {
@@ -282,10 +284,13 @@ fn send_para_a_asset_to_para_b() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(2), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 
 	ParaA::execute_with(|| {
@@ -311,7 +316,6 @@ fn send_para_a_asset_to_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 }
-
 
 #[test]
 fn send_para_a_asset_from_para_b_to_para_c() {
@@ -357,10 +361,13 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(2), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 	ParaA::execute_with(|| {
 		// free execution, full amount received
@@ -388,10 +395,13 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(3), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(3),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 
 	ParaB::execute_with(|| {
@@ -410,7 +420,6 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 }
-
 
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
@@ -442,10 +451,13 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(2), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 	ParaA::execute_with(|| {
 		// free execution, full amount received
@@ -473,10 +485,13 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X2(Parachain(1), AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE.into(),
-		}),
+		interior: X2(
+			Parachain(1),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
 	};
 	ParaB::execute_with(|| {
 		// free execution, full amount received
@@ -554,8 +569,6 @@ fn receive_relay_asset_with_trader() {
 	});
 }
 
-
-
 #[test]
 fn error_when_not_paying_enough() {
 	MockNet::reset();
@@ -610,4 +623,3 @@ fn error_when_not_paying_enough() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 }
-

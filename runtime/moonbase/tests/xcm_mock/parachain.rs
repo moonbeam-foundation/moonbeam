@@ -210,7 +210,7 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 parameter_types! {
-	// This value is high enough to charge for meaningful weights but low enough not to 
+	// This value is high enough to charge for meaningful weights but low enough not to
 	// charge on low destination weights. This serves us to test just the FirstAssetTrader.
 	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000);
 }
