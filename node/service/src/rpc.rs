@@ -16,7 +16,6 @@
 
 //! A collection of node-specific RPC extensions and related background tasks.
 
-#[cfg(feature = "evm-tracing")]
 pub mod tracing;
 
 use std::{sync::Arc, time::Duration};

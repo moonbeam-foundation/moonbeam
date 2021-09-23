@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Types for the tracing of a all Ethereum transactions of a block.
+//! Types for tracing all Ethereum transactions of a block.
 
 #[cfg(feature = "std")]
 use crate::serialization::*;

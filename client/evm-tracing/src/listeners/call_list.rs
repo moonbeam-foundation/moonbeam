@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use super::{
-	Capture, ContextType, Event, EvmEvent, ExitError, ExitReason, ExitSucceed, GasometerEvent,
-	Listener as ListenerT, RuntimeEvent, H160, U256,
+use ethereum_types::{H160, U256};
+use evm_tracing_events::{
+	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
+	ContextType, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
 };
-use crate::{
+use moonbeam_rpc_primitives_debug::api::{
 	single::{Call, CallInner},
 	CallResult, CallType, CreateResult,
 };
-use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
+use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
 /// Enum of the different "modes" of tracer for multiple runtime versions and
 /// the kind of EVM events that are emitted.
@@ -123,7 +123,7 @@ impl Default for Listener {
 
 impl Listener {
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		super::listener::using(self, f)
+		evm_tracing_events::using(self, f)
 	}
 
 	/// Called at the end of each transaction when tracing.
@@ -643,12 +643,13 @@ impl ListenerT for Listener {
 #[allow(unused)]
 mod tests {
 	use super::*;
-	use crate::proxy::types::{
-		evm_gasometer_types::Snapshot,
-		evm_runtime_types::{Memory, Stack},
-		evm_types::{Context as EvmContext, CreateScheme},
-	};
 	use ethereum_types::H256;
+	use evm_tracing_events::{
+		evm::CreateScheme,
+		gasometer::Snapshot,
+		runtime::{Memory, Stack},
+		Context as EvmContext,
+	};
 
 	enum TestEvmEvent {
 		Call,

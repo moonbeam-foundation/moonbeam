@@ -22,7 +22,7 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use cli_opt::RpcConfig;
+use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
@@ -495,18 +495,26 @@ where
 		filter_pool: filter_pool.clone(),
 	});
 
-	#[cfg(feature = "evm-tracing")]
-	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	let ethapi_cmd = rpc_config.ethapi.clone();
+	let tracing_requesters =
+		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+			rpc::tracing::spawn_tracing_tasks(
+				&rpc_config,
+				rpc::SpawnTasksParams {
+					task_manager: &task_manager,
+					client: client.clone(),
+					substrate_backend: backend.clone(),
+					frontier_backend: frontier_backend.clone(),
+					pending_transactions: pending_transactions.clone(),
+					filter_pool: filter_pool.clone(),
+				},
+			)
+		} else {
+			rpc::tracing::RpcRequesters {
+				debug: None,
+				trace: None,
+			}
+		};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -516,7 +524,7 @@ where
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
-		let ethapi_cmd = rpc_config.ethapi.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
@@ -549,13 +557,14 @@ where
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			#[cfg(feature = "evm-tracing")]
-			rpc::tracing::extend_with_tracing(
-				client.clone(),
-				tracing_requesters.clone(),
-				rpc_config.ethapi_trace_max_count,
-				&mut io,
-			);
+			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
 			Ok(io)
 		})
 	};
@@ -845,19 +854,26 @@ where
 		pending_transactions: pending_transactions.clone(),
 		filter_pool: filter_pool.clone(),
 	});
-
-	#[cfg(feature = "evm-tracing")]
-	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	let ethapi_cmd = rpc_config.ethapi.clone();
+	let tracing_requesters =
+		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+			rpc::tracing::spawn_tracing_tasks(
+				&rpc_config,
+				rpc::SpawnTasksParams {
+					task_manager: &task_manager,
+					client: client.clone(),
+					substrate_backend: backend.clone(),
+					frontier_backend: frontier_backend.clone(),
+					pending_transactions: pending_transactions.clone(),
+					filter_pool: filter_pool.clone(),
+				},
+			)
+		} else {
+			rpc::tracing::RpcRequesters {
+				debug: None,
+				trace: None,
+			}
+		};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -865,7 +881,7 @@ where
 		let backend = backend.clone();
 		let network = network.clone();
 		let pending = pending_transactions;
-		let ethapi_cmd = rpc_config.ethapi.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
@@ -898,13 +914,14 @@ where
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			#[cfg(feature = "evm-tracing")]
-			rpc::tracing::extend_with_tracing(
-				client.clone(),
-				tracing_requesters.clone(),
-				rpc_config.ethapi_trace_max_count,
-				&mut io,
-			);
+			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
 			Ok(io)
 		})
 	};
