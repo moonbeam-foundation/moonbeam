@@ -6,7 +6,7 @@ import { createContract } from "../util/transactions";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 
-async function nested(context) {
+async function createContracts(context) {
   let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
   const { contract: callee, rawTx: rawTx1 } = await createContract(
     context.web3,
@@ -25,10 +25,15 @@ async function nested(context) {
     transactions: [rawTx1, rawTx2],
   });
 
-  const calleeAddr = callee.options.address;
-  const callerAddr = caller.options.address;
+  return {
+    caller: caller,
+    calleeAddr: callee.options.address,
+    callerAddr: caller.options.address,
+    nonce: nonce
+  }
+}
 
-  // Nested call
+async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
   let callTx = await context.web3.eth.accounts.signTransaction(
     {
       from: GENESIS_ACCOUNT,
@@ -36,10 +41,18 @@ async function nested(context) {
       gas: "0x100000",
       value: "0x00",
       data: caller.methods.someAction(calleeAddr, 6).encodeABI(), // calls callee
+      nonce: nonce
     },
     GENESIS_ACCOUNT_PRIVATE_KEY
   );
   return await customWeb3Request(context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]);
+}
+
+async function nestedSingle(context) {
+  const contracts = await createContracts(context);
+  return await nestedCall(
+    context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, contracts.nonce
+  );
 }
 
 describeDevMoonbeam(
@@ -136,7 +149,7 @@ describeDevMoonbeam(
     });
 
     it("should trace nested contract calls", async function () {
-      const send = await nested(context);
+      const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
       let logs = [];
@@ -154,7 +167,7 @@ describeDevMoonbeam(
     });
 
     it("should use optional disable parameters", async function () {
-      const send = await nested(context);
+      const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
         send.result,
@@ -174,7 +187,7 @@ describeDevMoonbeam(
     });
 
     it("should format as request (Blockscout)", async function () {
-      const send = await nested(context);
+      const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
         send.result,
@@ -253,7 +266,7 @@ describeDevMoonbeam("Trace", (context) => {
 
 describeDevMoonbeam("Trace", (context) => {
   it("should format as request (callTrace Call)", async function () {
-    const send = await nested(context);
+    const send = await nestedSingle(context);
     await context.createBlock();
     let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
       send.result,
@@ -314,5 +327,63 @@ describeDevMoonbeam("Trace", (context) => {
     ]);
     // Type
     expect(res.type).to.be.equal("CREATE");
+  });
+
+  it("should trace block by number and hash (callTrace)", async function () {
+    const contracts = await createContracts(context);
+    let nonce = contracts.nonce;
+    await nestedCall(
+      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+    );
+    await nestedCall(
+      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+    );
+    await nestedCall(
+      context, contracts.caller, contracts.callerAddr, contracts.calleeAddr, nonce++
+    );
+    await context.createBlock();
+    const block = await context.web3.eth.getBlock("latest");
+    const block_number = context.web3.utils.toHex(await context.web3.eth.getBlockNumber());
+    const block_hash = block.hash;
+    // Trace block by number.
+    let traceTx = await customWeb3Request(context.web3, "debug_traceBlockByNumber", [
+      block_number,
+      { tracer: "callTracer" },
+    ]);
+    expect(block.transactions.length).to.be.equal(traceTx.result.length);
+    traceTx.result.forEach(trace => {
+      expect(trace.calls.length).to.be.equal(1);
+      expect(Object.keys(trace)).to.deep.equal([
+        "calls",
+        "from",
+        "gas",
+        "gasUsed",
+        "input",
+        "output",
+        "to",
+        "type",
+        "value",
+      ]);
+    });
+    // Trace block by hash (actually the rpc method is an alias of debug_traceBlockByNumber).
+    traceTx = await customWeb3Request(context.web3, "debug_traceBlockByHash", [
+      block_hash,
+      { tracer: "callTracer" },
+    ]);
+    expect(block.transactions.length).to.be.equal(traceTx.result.length);
+    traceTx.result.forEach(trace => {
+      expect(trace.calls.length).to.be.equal(1);
+      expect(Object.keys(trace)).to.deep.equal([
+        "calls",
+        "from",
+        "gas",
+        "gasUsed",
+        "input",
+        "output",
+        "to",
+        "type",
+        "value",
+      ]);
+    });
   });
 });

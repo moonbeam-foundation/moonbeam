@@ -33,10 +33,14 @@ pub struct Formatter;
 
 impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
-	type Response = TransactionTrace;
+	type Response = Vec<TransactionTrace>;
 
-	fn format(listener: Listener) -> Option<TransactionTrace> {
-		if let Some(entry) = listener.entries.last() {
+	fn format(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
+		// Remove empty BTreeMaps pushed to `entries`.
+		// I.e. InvalidNonce or other pallet_evm::runner exits
+		listener.entries.retain(|x| !x.is_empty());
+		let mut traces = Vec::new();
+		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
 				.filter_map(|(_, it)| {
@@ -46,7 +50,6 @@ impl super::ResponseFormatter for Formatter {
 					let gas = it.gas;
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
-
 					Some(Call::CallTracer(CallTracerCall {
 						from: from,
 						gas: gas,
@@ -107,7 +110,6 @@ impl super::ResponseFormatter for Formatter {
 				})
 				.map(|x| x)
 				.collect();
-
 			// Geth's `callTracer` expects a tree of nested calls and we have a stack.
 			//
 			// We iterate over the sorted stack, and push each children to it's
@@ -125,7 +127,6 @@ impl super::ResponseFormatter for Formatter {
 			// 		[0] -> pop() and added to []
 			// 		[1] -> pop() and added to []
 			// 		[] -> list length == 1, out
-
 			if result.len() > 1 {
 				// Sort the stack. Assume there is no `Ordering::Equal`, as we are
 				// sorting by index.
@@ -211,11 +212,13 @@ impl super::ResponseFormatter for Formatter {
 				*trace_address = None;
 			}
 			if result.len() == 1 {
-				return Some(TransactionTrace::CallListNested(result.pop().unwrap()));
+				traces.push(TransactionTrace::CallListNested(result.pop().unwrap()));
 			}
+		}
+		if traces.is_empty() {
 			return None;
 		}
-		None
+		return Some(traces);
 	}
 }
 

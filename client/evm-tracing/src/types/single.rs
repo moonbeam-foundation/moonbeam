@@ -41,8 +41,10 @@ pub enum TraceType {
 		disable_memory: bool,
 		disable_stack: bool,
 	},
-	/// List of calls and subcalls (output Blockscout expects).
+	/// List of calls and subcalls formatted with an input tracer (i.e. callTracer or Blockscout).
 	CallList,
+	/// A single block trace. Use in `debug_traceTransactionByNumber` / `traceTransactionByHash`.
+	Block,
 }
 
 /// Single transaction trace.

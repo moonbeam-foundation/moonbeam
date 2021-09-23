@@ -39,4 +39,5 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
+moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }

@@ -56,9 +56,8 @@ use moonbeam_client_evm_tracing::{
 	formatters::ResponseFormatter,
 	types::block::{self, TransactionTrace},
 };
-pub use moonbeam_rpc_core_trace::{
-	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer,
-};
+pub use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TraceServer};
+use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
@@ -108,6 +107,7 @@ where
 			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
 				Err(internal_err("'pending' is not supported"))
 			}
+			Some(RequestBlockId::Hash(_)) => Err(internal_err("Block hash not supported")),
 		}
 	}
 
