@@ -223,11 +223,6 @@ jobs:
         run: |
           env
           cargo build --release --all
-      - name: Build Tracing Node
-        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-        run: |
-          env
-          cargo build moonbase-tracing
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
@@ -236,9 +231,6 @@ jobs:
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
         run: cargo test --release --all
-      - name: Unit tests (tracing)
-        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
@@ -387,6 +379,8 @@ jobs:
         run: |
           env
           cargo build moonbase-tracing
+      - name: Unit tests (tracing)
+        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
       - name: Save moonbeam tracing binary
         run: |
           mkdir -p build
