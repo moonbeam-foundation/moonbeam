@@ -127,8 +127,7 @@ pub enum CallInner {
 	SelfDestruct {
 		#[cfg_attr(feature = "std", serde(skip))]
 		balance: U256,
-		#[cfg_attr(feature = "std", serde(skip))]
-		refund_address: H160,
+		to: H160,
 	},
 }
 
