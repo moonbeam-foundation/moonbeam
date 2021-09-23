@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["CreateScheme",""],["EvmEvent",""]],"struct":[["Context",""],["Transfer",""]]});

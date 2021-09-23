@@ -101,7 +101,7 @@
 <span class="kw">use</span> <span class="ident">ethereum_types::H160</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">compat::Compat</span>, <span class="ident">future::BoxFuture</span>};
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::block::TransactionTrace</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::api::block::TransactionTrace</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::Error</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rpc_impl_Trace::gen_server::Trace</span> <span class="kw">as</span> <span class="ident">TraceServer</span>;

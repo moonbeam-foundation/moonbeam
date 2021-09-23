@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["H160","Fixed-size uninterpreted hash type with 20 bytes (160 bits) size."],["H256","Fixed-size uninterpreted hash type with 32 bytes (256 bits) size."],["Response",""],["U256","Little-endian large integer type"]]});

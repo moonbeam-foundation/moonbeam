@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["types",""]],"struct":[["TraceParams",""]],"trait":[["Debug",""],["DebugServer",""]]});
+initSidebarItems({"struct":[["TraceParams",""]],"trait":[["Debug",""],["DebugServer",""]]});
