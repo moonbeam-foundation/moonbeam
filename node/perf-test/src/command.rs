@@ -17,9 +17,26 @@
 
 use crate::PerfCmd;
 
+use sp_runtime::traits::{Block as BlockT, Header as HeaderT, NumberFor};
+use sc_service::{Configuration, NativeExecutionDispatch};
 use sc_cli::{
 	CliConfiguration, Result, SharedParams,
 };
+use sp_core::{
+	H160, H256, U256,
+	Encode,
+	offchain:: {
+		testing::{TestOffchainExt, TestTransactionPoolExt},
+		OffchainDbExt, OffchainWorkerExt, TransactionPoolExt,
+	}
+};
+use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
+use sc_client_db::BenchmarkingState;
+use sc_executor::NativeExecutor;
+use sp_externalities::Extensions;
+use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
+use std::{fmt::Debug, sync::Arc, time};
+use sp_state_machine::StateMachine;
 
 impl CliConfiguration for PerfCmd {
 	fn shared_params(&self) -> &SharedParams {
@@ -38,21 +55,118 @@ impl CliConfiguration for PerfCmd {
 }
 
 impl PerfCmd {
-	pub fn run(&self) -> Result<()> {
+	pub fn run<BB, ExecDispatch>(&self, config: Configuration) -> Result<()>
+	where
+		// TODO: review / simplify (this was copied from BenchmarkingCli)
+		BB: BlockT + Debug,
+		<<<BB as BlockT>::Header as HeaderT>::Number as std::str::FromStr>::Err: std::fmt::Debug,
+		<BB as BlockT>::Hash: std::str::FromStr,
+		ExecDispatch: NativeExecutionDispatch + 'static,
+	{
 		log::warn!("PerfCmd::run()");
+
+		let spec = config.chain_spec;
+		let wasm_method = self.wasm_method.into();
+		let strategy = self.execution.unwrap_or(ExecutionStrategy::Native);
+
+		let genesis_storage = spec.build_storage()?;
+		let mut changes = Default::default();
+		let cache_size = Some(self.database_cache_size as usize);
+
+		// TODO: is BenchmarkingState what we want? we do want to measure actual I/O
+		//       but maybe only selectively...
+		let state_with_tracking = BenchmarkingState::<BB>::new(
+			genesis_storage.clone(),
+			cache_size,
+			true, // record_proof
+			true,
+		)?;
+		let state_without_tracking =
+			BenchmarkingState::<BB>::new(genesis_storage, cache_size, true, false)?;
+		let executor = NativeExecutor::<ExecDispatch>::new(
+			wasm_method,
+			self.heap_pages,
+			2, // The runtime instances cache size.
+		);
+
+		let extensions = || -> Extensions {
+			let mut extensions = Extensions::default();
+			extensions.register(KeystoreExt(Arc::new(KeyStore::new()) as SyncCryptoStorePtr));
+			let (offchain, _) = TestOffchainExt::new();
+			let (pool, _) = TestTransactionPoolExt::new();
+			extensions.register(OffchainWorkerExt::new(offchain.clone()));
+			extensions.register(OffchainDbExt::new(offchain));
+			extensions.register(TransactionPoolExt::new(pool));
+			return extensions
+		};
+
+		// for reference, EVM's call signature:
+		/*
+		fn call(
+			from: H160,
+			to: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			gas_price: Option<U256>,
+			nonce: Option<U256>,
+			estimate: bool,
+		) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError>;
+		*/
+
+		// construct ethereum call params
+		let from: H160 = Default::default();
+		let to: H160 = Default::default();
+		let data: Vec<u8> = Default::default();
+		let value: U256 = Default::default();
+		let gas_limit: U256 = Default::default();
+		let gas_price: Option<U256> = Some(Default::default());
+		let nonce: Option<U256> = Some(Default::default());
+		let estimate: bool = false;
+
+		let state = &state_without_tracking;
+		let result = StateMachine::<_, _, NumberFor<BB>, _>::new(
+			state, // todo remove tracking // TODO: what is this (from benchmarking)?
+			None,
+			&mut changes,
+			&executor,
+			"EthereumRuntimeRPCApi_call",
+			&(
+				from,
+				to,
+				data,
+				value,
+				gas_limit,
+				gas_price,
+				nonce,
+				estimate
+			)
+				.encode(),
+			/*
+			&(
+				&pallet.clone(),
+				&extrinsic.clone(),
+				&selected_components.clone(),
+				false, // dont run verification code for final values
+				self.repeat,
+			)
+				.encode(),
+				*/
+			extensions(),
+			&sp_state_machine::backend::BackendRuntimeCode::new(state)
+				.runtime_code()?,
+			sp_core::testing::TaskExecutor::new(),
+		)
+		.execute(strategy.into())
+		.map_err(|e| format!("Error executing perf test: {:?}", e))?;
+
+		// TODO: results of a call are scale-encoded fp-evm::ExecutionInfo
+
+		log::info!("results: {:?}", result);
+
 		Ok(())
 	}
 }
-
-/*
-impl std::ops::Deref for PerfCmd {
-	type Target = cumulus_client_cli::RunCmd;
-
-	fn deref(&self) -> &Self::Target {
-		&self.base
-	}
-}
-*/
 
 /*
 // This takes multiple benchmark batches and combines all the results where the pallet, instance,

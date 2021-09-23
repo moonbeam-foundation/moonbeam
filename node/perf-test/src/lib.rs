@@ -18,6 +18,7 @@
 mod command;
 
 use structopt::StructOpt;
+use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 
 #[derive(Debug, StructOpt)]
 pub struct PerfCmd {
@@ -25,6 +26,34 @@ pub struct PerfCmd {
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
 	pub shared_params: sc_cli::SharedParams,
+
+	/// The execution strategy that should be used for perf tests
+	#[structopt(
+		long = "execution",
+		value_name = "STRATEGY",
+		possible_values = &ExecutionStrategy::variants(),
+		case_insensitive = true,
+	)]
+	pub execution: Option<ExecutionStrategy>,
+
+	/// Method for executing Wasm runtime code.
+	#[structopt(
+		long = "wasm-execution",
+		value_name = "METHOD",
+		possible_values = &WasmExecutionMethod::variants(),
+		case_insensitive = true,
+		default_value = "compiled"
+	)]
+	pub wasm_method: WasmExecutionMethod,
+
+	/// Limit the memory the database cache can use.
+	#[structopt(long = "db-cache", value_name = "MiB", default_value = "128")]
+	pub database_cache_size: u32,
+
+	/// Set the heap pages while running benchmarks. If not set, the default value from the client
+	/// is used.
+	#[structopt(long)]
+	pub heap_pages: Option<u64>,
 }
 
 /*

@@ -431,7 +431,10 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::PerfTest(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			return runner.sync_run(|config| {
-				cmd.run()
+				#[cfg(feature = "moonbase-native")]
+				return cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config);
+				#[cfg(not(feature = "moonbase-native"))]
+				panic!("perf-test only available for moonbase");
 			});
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
