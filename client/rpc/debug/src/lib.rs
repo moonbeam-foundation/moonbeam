@@ -29,8 +29,8 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
-use moonbeam_rpc_primitives_debug::{api::single, DebugRuntimeApi};
+use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
+use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -170,16 +170,23 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		// Set trace type
-		let trace_type = match params {
+		// Set trace input and type
+		let (tracer_input, trace_type) = match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
 				..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
+				let tracer = if hash == blockscout_hash {
+					Some(TracerInput::Blockscout)
+				} else if tracer == "callTracer" {
+					Some(TracerInput::CallTracer)
+				} else {
+					None
+				};
+				if let Some(tracer) = tracer {
+					(tracer, single::TraceType::CallList)
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -187,16 +194,22 @@ where
 					)));
 				}
 			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
+			Some(params) => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(false),
+					disable_memory: params.disable_memory.unwrap_or(false),
+					disable_stack: params.disable_stack.unwrap_or(false),
+				},
+			),
+			_ => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: false,
+					disable_memory: false,
+					disable_stack: false,
+				},
+			),
 		};
 
 		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
@@ -268,9 +281,22 @@ where
 						let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 						proxy.using(f)?;
 						proxy.finish_transaction();
-						moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
-							.ok_or("Trace result is empty.")
-							.map_err(|e| internal_err(format!("{:?}", e)))
+						let response = match tracer_input {
+							TracerInput::Blockscout => {
+								moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
+									.ok_or("Trace result is empty.")
+									.map_err(|e| internal_err(format!("{:?}", e)))
+							}
+							TracerInput::CallTracer => {
+								moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+									.ok_or("Trace result is empty.")
+									.map_err(|e| internal_err(format!("{:?}", e)))
+							}
+							_ => Err(internal_err(format!(
+								"Bug: failed to resolve the tracer format."
+							))),
+						}?;
+						Ok(response)
 					}
 				};
 			}

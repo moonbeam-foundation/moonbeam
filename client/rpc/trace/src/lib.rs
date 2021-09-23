@@ -52,14 +52,14 @@ use ethereum_types::H256;
 use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
 
-use moonbeam_client_evm_tracing::formatters::ResponseFormatter;
+use moonbeam_client_evm_tracing::{
+	formatters::ResponseFormatter,
+	types::block::{self, TransactionTrace},
+};
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer,
 };
-use moonbeam_rpc_primitives_debug::{
-	api::block::{self, TransactionTrace},
-	DebugRuntimeApi,
-};
+use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {

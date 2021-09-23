@@ -17,7 +17,7 @@ use ethereum_types::H256;
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
-use moonbeam_rpc_primitives_debug::api;
+use moonbeam_client_evm_tracing::types::single;
 use serde::Deserialize;
 
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
@@ -40,5 +40,5 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<api::single::TransactionTrace>>>;
+	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
 }

@@ -2328,7 +2328,6 @@ dependencies = [
  "evm",
  "evm-gasometer",
  "evm-runtime",
- "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
 ]
 
@@ -5238,8 +5237,12 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm-tracing-events",
+ "hex",
  "moonbeam-rpc-primitives-debug",
+ "parity-scale-codec",
  "serde",
+ "serde_json",
+ "sp-std",
 ]
 
 [[package]]
@@ -5291,7 +5294,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
- "moonbeam-rpc-primitives-debug",
+ "moonbeam-client-evm-tracing",
  "serde",
  "serde_json",
  "sp-core",
@@ -5306,7 +5309,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
- "moonbeam-rpc-primitives-debug",
+ "moonbeam-client-evm-tracing",
  "serde",
  "serde_json",
 ]
