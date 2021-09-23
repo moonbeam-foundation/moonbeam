@@ -107,14 +107,11 @@ impl super::ResponseFormatter for Formatter {
 							transaction_position: eth_tx_index as u32,
 						}
 					}
-					CallInner::SelfDestruct {
-						balance,
-						refund_address,
-					} => TransactionTrace {
+					CallInner::SelfDestruct { balance, to } => TransactionTrace {
 						action: TransactionTraceAction::Suicide {
 							address: trace.from,
 							balance,
-							refund_address,
+							refund_address: to,
 						},
 						// Can't be known here, must be inserted upstream.
 						block_hash: H256::default(),

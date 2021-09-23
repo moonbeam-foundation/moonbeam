@@ -482,7 +482,7 @@ impl Listener {
 						gas: 0.into(),
 						gas_used: 0.into(),
 						inner: CallInner::SelfDestruct {
-							refund_address: target,
+							to: target,
 							balance,
 						},
 					},
