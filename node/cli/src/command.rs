@@ -16,7 +16,7 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand, PerfCmd};
+use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
@@ -31,6 +31,7 @@ use sc_cli::{
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use service::{chain_spec, frontier_database_dir, IdentifyVariant};
+use perf_test::PerfCmd;
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
@@ -429,77 +430,9 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::PerfTest(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			log::warn!("we have a runner");
-			/*
-			let chain_spec = &runner.config().chain_spec;
-			match chain_spec {
-				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => {
-					return runner.sync_run(|config| {
-						cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
-							config,
-						)
-					})
-				}
-				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => {
-					return runner.sync_run(|config| {
-						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
-							config,
-						)
-					})
-				}
-				#[cfg(feature = "moonbase-native")]
-				_ => {
-					return runner.sync_run(|config| {
-						cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
-							config,
-						)
-					})
-				}
-				#[cfg(not(feature = "moonbase-native"))]
-				_ => panic!("invalid chain spec"),
-			}
-			*/
-
-
-
-			// let runner = cli.create_runner(&(*cli.run).normalize())?;
-			let result = runner.run_node_until_exit(|config| async move {
-				// Ideas for benchmarks:
-				// 1. run Fibonacci contract
-				// 2. storage I/O: how? could use smart contract but must know that it flushes to
-				//    disk. 
-				// 3. deploy contract -- too granular?
-				// 4. are there any substrate benchmarks that would be useful here?
-
-				// TODO: we shouldn't need any RPC for perf tests
-				let rpc_config = RpcConfig {
-					ethapi: cli.run.ethapi,
-					ethapi_max_permits: cli.run.ethapi_max_permits,
-					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
-					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
-					max_past_logs: cli.run.max_past_logs,
-				};
-
-				let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
-					"Alice",
-				));
-
-				return match &config.chain_spec {
-					#[cfg(feature = "moonbase-native")]
-					_ => service::new_dev::<
-						service::moonbase_runtime::RuntimeApi,
-						service::MoonbaseExecutor,
-					>(config, author_id, cli.run.sealing, rpc_config)
-					.map_err(Into::into),
-					#[cfg(not(feature = "moonbase-native"))]
-					_ => panic!("perf tests only work with moonbase"),
-				};
+			return runner.sync_run(|config| {
+				cmd.run()
 			});
-
-			log::warn!("Done launching service");
-			result
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
@@ -856,29 +789,5 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 	fn announce_block(&self) -> Result<bool> {
 		self.base.base.announce_block()
-	}
-}
-
-impl CliConfiguration for PerfCmd {
-	fn shared_params(&self) -> &SharedParams {
-		self.base.base.shared_params()
-	}
-}
-
-impl DefaultConfigurationValues for PerfCmd {
-	fn p2p_listen_port() -> u16 {
-		30334
-	}
-
-	fn rpc_ws_listen_port() -> u16 {
-		9945
-	}
-
-	fn rpc_http_listen_port() -> u16 {
-		9934
-	}
-
-	fn prometheus_listen_port() -> u16 {
-		9616
 	}
 }
