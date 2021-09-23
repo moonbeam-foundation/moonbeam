@@ -35,56 +35,50 @@ use sc_client_db::BenchmarkingState;
 use sc_executor::NativeExecutor;
 use sp_externalities::Extensions;
 use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
-use std::{fmt::Debug, sync::Arc, time};
+use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
 
-impl CliConfiguration for PerfCmd {
-	fn shared_params(&self) -> &SharedParams {
-		&self.shared_params
-	}
-
-	// copied from BenchmarkCmd, might be useful
-	/*
-	fn chain_id(&self, _is_dev: bool) -> Result<String> {
-		Ok(match self.shared_params.chain {
-			Some(ref chain) => chain.clone(),
-			None => "dev".into(),
-		})
-	}
-	*/
+struct PerfTestRunner<B: BlockT, ExecDispatch: NativeExecutionDispatch + 'static> {
+	state: BenchmarkingState<B>,
+	strategy: ExecutionStrategy,
+	wasm_method: WasmExecutionMethod,
+	heap_pages: Option<u64>,
+	_marker: PhantomData<ExecDispatch>,
 }
 
-impl PerfCmd {
-	pub fn run<BB, ExecDispatch>(&self, config: Configuration) -> Result<()>
-	where
-		// TODO: review / simplify (this was copied from BenchmarkingCli)
-		BB: BlockT + Debug,
-		<<<BB as BlockT>::Header as HeaderT>::Number as std::str::FromStr>::Err: std::fmt::Debug,
-		<BB as BlockT>::Hash: std::str::FromStr,
-		ExecDispatch: NativeExecutionDispatch + 'static,
-	{
-		log::warn!("PerfCmd::run()");
-
-		let spec = config.chain_spec;
-		let wasm_method = self.wasm_method.into();
-		let strategy = self.execution.unwrap_or(ExecutionStrategy::Native);
-
+// TODO: am I abusing the name "runner"?
+impl<B: BlockT, ExecDispatch: NativeExecutionDispatch + 'static> PerfTestRunner<B, ExecDispatch> {
+	fn from_cmd(config: &Configuration, cmd: &PerfCmd) -> Result<Self> {
+		let spec = &config.chain_spec;
 		let genesis_storage = spec.build_storage()?;
-		let mut changes = Default::default();
-		let cache_size = Some(self.database_cache_size as usize);
+		let cache_size = Some(cmd.database_cache_size as usize);
+		let state = BenchmarkingState::<B>::new(genesis_storage, cache_size, true, false)?;
 
-		// TODO: is BenchmarkingState what we want? we do want to measure actual I/O
-		//       but maybe only selectively...
-		let state_with_tracking = BenchmarkingState::<BB>::new(
-			genesis_storage.clone(),
-			cache_size,
-			true, // record_proof
-			true,
-		)?;
-		let state_without_tracking =
-			BenchmarkingState::<BB>::new(genesis_storage, cache_size, true, false)?;
+		Ok(PerfTestRunner {
+			state,
+			strategy: cmd.execution.unwrap_or(ExecutionStrategy::Wasm),
+			wasm_method: cmd.wasm_method,
+			heap_pages: cmd.heap_pages,
+			_marker: Default::default(),
+		})
+	}
+
+	fn evm_call(
+		&mut self,
+		from: H160,
+		to: H160,
+		data: Vec<u8>,
+		value: U256,
+		gas_limit: U256,
+		gas_price: Option<U256>,
+		nonce: Option<U256>,
+		estimate: bool,
+	) -> Result<Vec<u8>> { // TODO: convert to ExecutionInfo
+
+		// TODO: which of these should we hang on to?
+
 		let executor = NativeExecutor::<ExecDispatch>::new(
-			wasm_method,
+			self.wasm_method.into(),
 			self.heap_pages,
 			2, // The runtime instances cache size.
 		);
@@ -114,19 +108,9 @@ impl PerfCmd {
 		) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError>;
 		*/
 
-		// construct ethereum call params
-		let from: H160 = Default::default();
-		let to: H160 = Default::default();
-		let data: Vec<u8> = Default::default();
-		let value: U256 = Default::default();
-		let gas_limit: U256 = Default::default();
-		let gas_price: Option<U256> = Some(Default::default());
-		let nonce: Option<U256> = Some(Default::default());
-		let estimate: bool = false;
-
-		let state = &state_without_tracking;
-		let result = StateMachine::<_, _, NumberFor<BB>, _>::new(
-			state, // todo remove tracking // TODO: what is this (from benchmarking)?
+		let mut changes = Default::default();
+		let result = StateMachine::<_, _, NumberFor<B>, _>::new(
+			&self.state, // todo remove tracking // TODO: what is this (from benchmarking)?
 			None,
 			&mut changes,
 			&executor,
@@ -134,7 +118,7 @@ impl PerfCmd {
 			&(
 				from,
 				to,
-				data,
+				data.clone(),
 				value,
 				gas_limit,
 				gas_price,
@@ -142,27 +126,58 @@ impl PerfCmd {
 				estimate
 			)
 				.encode(),
-			/*
-			&(
-				&pallet.clone(),
-				&extrinsic.clone(),
-				&selected_components.clone(),
-				false, // dont run verification code for final values
-				self.repeat,
-			)
-				.encode(),
-				*/
 			extensions(),
-			&sp_state_machine::backend::BackendRuntimeCode::new(state)
+			&sp_state_machine::backend::BackendRuntimeCode::new(&self.state)
 				.runtime_code()?,
 			sp_core::testing::TaskExecutor::new(),
 		)
-		.execute(strategy.into())
+		.execute(self.strategy.into())
 		.map_err(|e| format!("Error executing perf test: {:?}", e))?;
 
-		// TODO: results of a call are scale-encoded fp-evm::ExecutionInfo
-
 		log::info!("results: {:?}", result);
+
+		Ok(result)
+	}
+}
+
+impl CliConfiguration for PerfCmd {
+	fn shared_params(&self) -> &SharedParams {
+		&self.shared_params
+	}
+
+	// copied from BenchmarkCmd, might be useful
+	/*
+	fn chain_id(&self, _is_dev: bool) -> Result<String> {
+		Ok(match self.shared_params.chain {
+			Some(ref chain) => chain.clone(),
+			None => "dev".into(),
+		})
+	}
+	*/
+}
+
+impl PerfCmd {
+	pub fn run<B, ExecDispatch>(&self, config: Configuration) -> Result<()>
+	where
+		// TODO: review / simplify (this was copied from BenchmarkingCli)
+		B: BlockT + Debug,
+		<<<B as BlockT>::Header as HeaderT>::Number as std::str::FromStr>::Err: std::fmt::Debug,
+		<B as BlockT>::Hash: std::str::FromStr,
+		ExecDispatch: NativeExecutionDispatch + 'static,
+	{
+		log::warn!("PerfCmd::run()");
+
+		let mut runner = PerfTestRunner::<B, ExecDispatch>::from_cmd(&config, &self)?;
+		runner.evm_call(
+			Default::default(),
+			Default::default(),
+			Default::default(),
+			Default::default(),
+			Default::default(),
+			Some(Default::default()),
+			Some(Default::default()),
+			false,
+		)?;
 
 		Ok(())
 	}
