@@ -96,14 +96,13 @@ impl super::ResponseFormatter for Formatter {
 								value: value,
 								call_type: "CREATE".as_bytes().to_vec(),
 							},
-							BlockscoutCallInner::SelfDestruct {
-								balance,
-								refund_address,
-							} => CallTracerInner::SelfDestruct {
-								value: balance,
-								to: refund_address,
-								call_type: "SELFDESTRUCT".as_bytes().to_vec(),
-							},
+							BlockscoutCallInner::SelfDestruct { balance, to } => {
+								CallTracerInner::SelfDestruct {
+									value: balance,
+									to,
+									call_type: "SELFDESTRUCT".as_bytes().to_vec(),
+								}
+							}
 						},
 						calls: Vec::new(),
 					}))
@@ -244,9 +243,8 @@ pub struct CallTracerCall {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 pub enum CallTracerInner {
-	#[serde(rename_all = "camelCase")]
 	Call {
 		#[serde(rename = "type", serialize_with = "opcode_serialize")]
 		call_type: Vec<u8>,
@@ -260,8 +258,6 @@ pub enum CallTracerInner {
 		#[serde(skip_serializing_if = "Option::is_none")]
 		value: Option<U256>,
 	},
-
-	#[serde(rename_all = "camelCase")]
 	Create {
 		#[serde(rename = "type", serialize_with = "opcode_serialize")]
 		call_type: Vec<u8>,
@@ -281,11 +277,9 @@ pub enum CallTracerInner {
 		error: Option<Vec<u8>>,
 		value: U256,
 	},
-	// Revert,
 	SelfDestruct {
 		#[serde(rename = "type", serialize_with = "opcode_serialize")]
 		call_type: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(skip))]
 		to: H160,
 		value: U256,
 	},

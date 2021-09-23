@@ -44,10 +44,10 @@ impl super::ResponseFormatter for Formatter {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = "camelCase", tag = "type")]
+#[serde(rename_all = "lowercase", tag = "type")]
 pub enum BlockscoutCallInner {
-	#[serde(rename_all = "camelCase")]
 	Call {
+		#[serde(rename(serialize = "callType"))]
 		/// Type of call.
 		call_type: CallType,
 		to: H160,
@@ -57,20 +57,16 @@ pub enum BlockscoutCallInner {
 		#[serde(flatten)]
 		res: CallResult,
 	},
-
-	#[serde(rename_all = "camelCase")]
 	Create {
 		#[serde(serialize_with = "bytes_0x_serialize")]
 		init: Vec<u8>,
 		#[serde(flatten)]
 		res: CreateResult,
 	},
-	// Revert,
 	SelfDestruct {
 		#[serde(skip)]
 		balance: U256,
-		#[serde(skip)]
-		refund_address: H160,
+		to: H160,
 	},
 }
 
