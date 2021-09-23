@@ -42,7 +42,7 @@ fn load_spec(
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
-		panic!("Not specific which chain to run.");
+		return Err("Not specific which chain to run.".into());
 	}
 	Ok(match id {
 		// Moonbase networks
