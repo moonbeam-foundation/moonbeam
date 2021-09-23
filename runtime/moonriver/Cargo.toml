@@ -74,7 +74,8 @@ pallet-identity = { git = "https://github.com/purestake/substrate", default-feat
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 
-moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
+moonbeam-evm-tracer = { path = "../evm_tracer", optional = true, default-features = false }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
@@ -102,7 +103,7 @@ sha3 = "0.9"
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 
 [features]
-evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
+evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events"]
 default = ["std"]
 std = [
 	"runtime-common/std",
@@ -130,6 +131,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
+	"evm-tracing-events/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"fp-rpc/std",

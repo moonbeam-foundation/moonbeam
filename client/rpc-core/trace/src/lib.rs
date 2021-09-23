@@ -17,7 +17,7 @@
 use ethereum_types::H160;
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
-pub use moonbeam_rpc_primitives_debug::block::TransactionTrace;
+use moonbeam_rpc_primitives_debug::api::block::TransactionTrace;
 use serde::{de::Error, Deserialize, Deserializer};
 
 pub use rpc_impl_Trace::gen_server::Trace as TraceServer;

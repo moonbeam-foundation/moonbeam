@@ -18,13 +18,12 @@ sp-core = { default-features = false, git = "https://github.com/purestake/substr
 sp-std = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
 sp-io = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
 sp-runtime = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
-moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false }
 moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
 ethereum-types = { version = "0.12.0", default-features = false }
 
 [features]
 default = ["std"]
-evm-tracing = ["evm/tracing", "evm-runtime/tracing", "evm-gasometer/tracing"]
 std = [
 	"codec/std",
 	"evm/std",
@@ -37,6 +36,6 @@ std = [
 	"sp-runtime/std",
 	"ethereum-types/std",
 	"fp-evm/std",
-	"moonbeam-rpc-primitives-debug/std",
+	"evm-tracing-events/std",
 	"moonbeam-primitives-ext/std",
 ]

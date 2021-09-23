@@ -24,6 +24,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }

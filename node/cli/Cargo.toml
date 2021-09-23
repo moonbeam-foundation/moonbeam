@@ -39,7 +39,7 @@ default = ["wasmtime", "westend-native", "moonbase-native", "moonriver-native", 
 
 westend-native = [ "polkadot-service/westend-native" ]
 
-moonbase-native = ["service/moonbase-native"]
+moonbase-native = ["service/moonbase-native", "westend-native"]
 moonriver-native = ["service/moonriver-native"]
 moonbeam-native = ["service/moonbeam-native"]
 

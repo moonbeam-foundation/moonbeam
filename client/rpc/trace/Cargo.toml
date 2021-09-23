@@ -39,3 +39,4 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }

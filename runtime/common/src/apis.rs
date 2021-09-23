@@ -89,70 +89,74 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::tracer::EvmTracer;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
-
-					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
-					// transactions that preceded the requested transaction.
-					for ext in extrinsics.into_iter() {
-						let _ = match &ext.function {
-							Call::Ethereum(transact(t)) => {
-								if t == transaction {
-									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
-									return Ok(());
-								} else {
-									Executive::apply_extrinsic(ext)
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+						// transactions that preceded the requested transaction.
+						for ext in extrinsics.into_iter() {
+							let _ = match &ext.function {
+								Call::Ethereum(transact(t)) => {
+									if t == transaction {
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										return Ok(());
+									} else {
+										Executive::apply_extrinsic(ext)
+									}
 								}
-							}
-							_ => Executive::apply_extrinsic(ext),
-						};
-					}
+								_ => Executive::apply_extrinsic(ext),
+							};
+						}
 
+						Err(sp_runtime::DispatchError::Other(
+							"Failed to find Ethereum transaction among the extrinsics.",
+						))
+					}
+					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
-						"Failed to find Ethereum transaction among the extrinsics.",
+						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::tracer::EvmTracer;
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
 
-					let mut config = <Runtime as pallet_evm::Config>::config().clone();
-					config.estimate = true;
+						let mut config = <Runtime as pallet_evm::Config>::config().clone();
+						config.estimate = true;
 
-					// Apply all extrinsics. Ethereum extrinsics are traced.
-					for ext in extrinsics.into_iter() {
-						match &ext.function {
-							Call::Ethereum(transact(_transaction)) => {
-								// Each extrinsic is a new call stack.
-								EvmTracer::emit_new();
-								EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
-							}
-							_ => {
-								let _ = Executive::apply_extrinsic(ext);
-							}
-						};
+						// Apply all extrinsics. Ethereum extrinsics are traced.
+						for ext in extrinsics.into_iter() {
+							match &ext.function {
+								Call::Ethereum(transact(_transaction)) => {
+									// Each extrinsic is a new call stack.
+									EvmTracer::emit_new();
+									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+								}
+								_ => {
+									let _ = Executive::apply_extrinsic(ext);
+								}
+							};
+						}
+
+						Ok(())
 					}
-
-					Ok(())
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
 				}
 			}
 
