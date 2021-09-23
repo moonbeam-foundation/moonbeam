@@ -45,14 +45,14 @@ pub fn keccak256(input: TokenStream) -> TokenStream {
 	let hash = Keccak256::digest(lit_str.value().as_ref());
 
 	let bytes = Bytes(hash.to_vec());
-		let eval_str = format!("{:?}", bytes);
-		let eval_ts: proc_macro2::TokenStream = eval_str.parse().unwrap_or_else(|_| {
-			panic!(
-				"Failed to parse the string \"{}\" to TokenStream.",
-				eval_str
-			);
-		});
-		quote!(#eval_ts).into()
+	let eval_str = format!("{:?}", bytes);
+	let eval_ts: proc_macro2::TokenStream = eval_str.parse().unwrap_or_else(|_| {
+		panic!(
+			"Failed to parse the string \"{}\" to TokenStream.",
+			eval_str
+		);
+	});
+	quote!(#eval_ts).into()
 }
 
 /// This macro allows to associate to each variant of an enumeration a discriminant (of type u32
