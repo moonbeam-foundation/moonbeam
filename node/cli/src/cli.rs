@@ -57,6 +57,9 @@ pub enum Subcommand {
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
 
+	/// Run hardware performance tests.
+	PerfTest(PerfCmd),
+
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
@@ -183,6 +186,20 @@ pub struct RunCmd {
 }
 
 impl std::ops::Deref for RunCmd {
+	type Target = cumulus_client_cli::RunCmd;
+
+	fn deref(&self) -> &Self::Target {
+		&self.base
+	}
+}
+
+#[derive(Debug, StructOpt)]
+pub struct PerfCmd {
+	#[structopt(flatten)]
+	pub base: cumulus_client_cli::RunCmd,
+}
+
+impl std::ops::Deref for PerfCmd {
 	type Target = cumulus_client_cli::RunCmd;
 
 	fn deref(&self) -> &Self::Target {

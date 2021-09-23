@@ -16,7 +16,7 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
+use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand, PerfCmd};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
@@ -41,7 +41,7 @@ fn load_spec(
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
-		return Err("Not specific which chain to run.".into());
+		panic!("Not specific which chain to run.");
 	}
 	Ok(match id {
 		// Moonbase networks
@@ -137,6 +137,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+		if let Some(subcommand) = &self.subcommand {
+			if let Subcommand::PerfTest(_) = subcommand {
+				return Ok(Box::new(chain_spec::moonbase::development_chain_spec(None, None)));
+			}
+		}
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
@@ -421,6 +426,80 @@ pub fn run() -> Result<()> {
 			}
 
 			Ok(())
+		}
+		Some(Subcommand::PerfTest(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			log::warn!("we have a runner");
+			/*
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => {
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
+							config,
+						)
+					})
+				}
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => {
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							config,
+						)
+					})
+				}
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+							config,
+						)
+					})
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			}
+			*/
+
+
+
+			// let runner = cli.create_runner(&(*cli.run).normalize())?;
+			let result = runner.run_node_until_exit(|config| async move {
+				// Ideas for benchmarks:
+				// 1. run Fibonacci contract
+				// 2. storage I/O: how? could use smart contract but must know that it flushes to
+				//    disk. 
+				// 3. deploy contract -- too granular?
+				// 4. are there any substrate benchmarks that would be useful here?
+
+				// TODO: we shouldn't need any RPC for perf tests
+				let rpc_config = RpcConfig {
+					ethapi: cli.run.ethapi,
+					ethapi_max_permits: cli.run.ethapi_max_permits,
+					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+					max_past_logs: cli.run.max_past_logs,
+				};
+
+				let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+					"Alice",
+				));
+
+				return match &config.chain_spec {
+					#[cfg(feature = "moonbase-native")]
+					_ => service::new_dev::<
+						service::moonbase_runtime::RuntimeApi,
+						service::MoonbaseExecutor,
+					>(config, author_id, cli.run.sealing, rpc_config)
+					.map_err(Into::into),
+					#[cfg(not(feature = "moonbase-native"))]
+					_ => panic!("perf tests only work with moonbase"),
+				};
+			});
+
+			log::warn!("Done launching service");
+			result
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
@@ -777,5 +856,29 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 	fn announce_block(&self) -> Result<bool> {
 		self.base.base.announce_block()
+	}
+}
+
+impl CliConfiguration for PerfCmd {
+	fn shared_params(&self) -> &SharedParams {
+		self.base.base.shared_params()
+	}
+}
+
+impl DefaultConfigurationValues for PerfCmd {
+	fn p2p_listen_port() -> u16 {
+		30334
+	}
+
+	fn rpc_ws_listen_port() -> u16 {
+		9945
+	}
+
+	fn rpc_http_listen_port() -> u16 {
+		9934
+	}
+
+	fn prometheus_listen_port() -> u16 {
+		9616
 	}
 }
