@@ -138,10 +138,8 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		if let Some(subcommand) = &self.subcommand {
-			if let Subcommand::PerfTest(_) = subcommand {
+		if let Some(Subcommand::PerfTest(_)) = &self.subcommand {
 				return Ok(Box::new(chain_spec::moonbase::development_chain_spec(None, None)));
-			}
 		}
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
