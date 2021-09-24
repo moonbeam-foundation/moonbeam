@@ -12,6 +12,8 @@ build = "build.rs"
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
+rlp = { version = "0.5", default-features = false, optional = true }
+sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
@@ -100,7 +102,7 @@ substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/parityte
 
 [features]
 default = ["std"]
-evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events"]
+evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events", "sha3", "rlp"]
 std = [
 	"runtime-common/std",
 	"parity-scale-codec/std",
