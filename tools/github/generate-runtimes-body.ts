@@ -7,6 +7,7 @@ import { getCommitAndLabels, getCompareLink } from "./github-utils";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
+// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 3.
 const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0603";
 
 function capitalize(s) {
