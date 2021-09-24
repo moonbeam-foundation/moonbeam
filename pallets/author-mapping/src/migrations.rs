@@ -32,6 +32,7 @@ use sp_std::vec::Vec;
 pub struct TwoXToBlake<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "TwoXToBlake", "actually running it");
 		let pallet_prefix: &[u8] = b"AuthorMapping";
 		let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
@@ -66,6 +67,8 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		for (author_id, account_id) in stored_data {
 			MappingWithDeposit::<T>::insert(author_id, account_id);
 		}
+
+		log::info!(target: "TwoXToBlake", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a red to get it into
 		// memory, a write to clear the old stored value, and a write to re-store it.

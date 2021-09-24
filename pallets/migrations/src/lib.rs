@@ -129,7 +129,7 @@ pub mod pallet {
 				if migration_done {
 					continue;
 				}
-				log::trace!("invoking pre_upgrade() on migration {}", migration_name);
+				log::debug!( target: "pallet-migrations", "invoking pre_upgrade() on migration {}", migration_name);
 
 				// dump the migration name to temp storage so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
@@ -172,7 +172,7 @@ pub mod pallet {
 					None => continue,
 				}
 
-				log::trace!("invoking post_upgrade() on migration {}", migration_name);
+				log::debug!( target: "pallet-migrations", "invoking post_upgrade() on migration {}", migration_name);
 
 				let result = migration.post_upgrade();
 				match result {
@@ -230,7 +230,7 @@ pub mod pallet {
 		for migration in &T::MigrationsList::get() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
-			log::trace!("evaluating migration {}", migration_name);
+			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);
 
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
@@ -251,7 +251,7 @@ pub mod pallet {
 					0u64.into()
 				};
 
-				log::trace!(
+				log::info!( target: "pallet-migrations", 
 					"performing migration {}, available weight: {}",
 					migration_name,
 					available_for_step
