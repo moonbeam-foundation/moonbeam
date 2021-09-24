@@ -113,7 +113,6 @@ macro_rules! impl_runtime_apis_plus_common {
 								_ => Executive::apply_extrinsic(ext),
 							};
 						}
-		
 						Err(sp_runtime::DispatchError::Other(
 							"Failed to find Ethereum transaction among the extrinsics.",
 						))
@@ -123,9 +122,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
-		
 				fn trace_block(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+					known_transactions: Vec<H256>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
@@ -133,24 +132,30 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
-		
+						use sha3::{Digest, Keccak256};
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
-		
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
 							match &ext.function {
-								Call::Ethereum(transact(_transaction)) => {
-									// Each extrinsic is a new call stack.
-									EvmTracer::emit_new();
-									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+								Call::Ethereum(transact(transaction)) => {
+									let eth_extrinsic_hash =
+										H256::from_slice(
+											Keccak256::digest(&rlp::encode(transaction)).as_slice()
+										);
+									if known_transactions.contains(&eth_extrinsic_hash) {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+									} else {
+										let _ = Executive::apply_extrinsic(ext);
+									}
 								}
 								_ => {
 									let _ = Executive::apply_extrinsic(ext);
 								}
 							};
 						}
-		
 						Ok(())
 					}
 					#[cfg(not(feature = "evm-tracing"))]
