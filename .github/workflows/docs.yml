@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - elois-deploy-docs
 
 jobs:
   deploy-docs:
@@ -30,6 +31,7 @@ jobs:
       - name: Build rustdocs
         uses: actions-rs/cargo@v1
         with:
+          env: CARGO_INCREMENTAL=0
           command: doc
           args: --all --no-deps
 
