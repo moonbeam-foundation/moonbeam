@@ -19,7 +19,7 @@ export interface ParaTestContext {
 }
 
 export interface InternalParaTestContext extends ParaTestContext {
-  _polkadotApiParachains: ApiPromise[];
+  _polkadotApiParachains: ApiPromise[][];
   _polkadotApiRelaychains: ApiPromise[];
   _web3Providers: HttpProvider[];
 }
@@ -44,11 +44,13 @@ export function describeParachain(
         ? await startParachainNodes(options)
         : {
             paraPorts: [
-              {
-                p2pPort: 19931,
-                wsPort: 19933,
-                rpcPort: 19932,
-              },
+              [
+                {
+                  p2pPort: 19931,
+                  wsPort: 19933,
+                  rpcPort: 19932,
+                },
+              ],
             ],
             relayPorts: [],
           };
@@ -63,28 +65,36 @@ export function describeParachain(
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
         const provider =
           protocol == "ws"
-            ? await provideWeb3Api(init.paraPorts[0].wsPort, "ws")
-            : await provideWeb3Api(init.paraPorts[0].rpcPort, "http");
+            ? await provideWeb3Api(init.paraPorts[0][0].wsPort, "ws")
+            : await provideWeb3Api(init.paraPorts[0][0].rpcPort, "http");
         context._web3Providers.push((provider as any)._provider);
         return provider;
       };
-      context.createEthers = async () => provideEthersApi(init.paraPorts[0].rpcPort);
+      context.createEthers = async () => provideEthersApi(init.paraPorts[0][0].rpcPort);
       context.createPolkadotApiParachains = async () => {
         const apiPromises = await Promise.all(
-          init.paraPorts.map(async (ports: NodePorts) => {
-            return await providePolkadotApi(ports.wsPort);
+          init.paraPorts.map(async (parachain: NodePorts[]) => {
+            return Promise.all(
+              parachain.map(async (ports: NodePorts) => {
+                return await providePolkadotApi(ports.wsPort);
+              })
+            );
           })
         );
         // We keep track of the polkadotApis to close them at the end of the test
         context._polkadotApiParachains = apiPromises;
-        await Promise.all(apiPromises.map((promise) => promise.isReady));
+        await Promise.all(
+          apiPromises.map(
+            async (promises) => await Promise.all(promises.map((promise) => promise.isReady))
+          )
+        );
         // Necessary hack to allow polkadotApi to finish its internal metadata loading
         // apiPromise.isReady unfortunately doesn't wait for those properly
         await new Promise((resolve) => {
           setTimeout(resolve, 100);
         });
 
-        return apiPromises[0];
+        return apiPromises[0][0];
       };
       context.createPolkadotApiRelaychains = async () => {
         const apiPromises = await Promise.all(
@@ -118,7 +128,11 @@ export function describeParachain(
 
     after(async function () {
       await Promise.all(context._web3Providers.map((p) => p.disconnect()));
-      await Promise.all(context._polkadotApiParachains.map((p) => p.disconnect()));
+      await Promise.all(
+        context._polkadotApiParachains.map(
+          async (ps) => await Promise.all(ps.map((p) => p.disconnect()))
+        )
+      );
       await Promise.all(context._polkadotApiRelaychains.map((p) => p.disconnect()));
 
       if (!DEBUG_MODE) {

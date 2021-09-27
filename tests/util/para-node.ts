@@ -4,9 +4,10 @@ import { killAll, run } from "polkadot-launch";
 import { BINARY_PATH, RELAY_BINARY_PATH, DISPLAY_LOG, SPAWNING_TIME } from "./constants";
 const debug = require("debug")("test:para-node");
 
-export async function findAvailablePorts() {
+export async function findAvailablePorts(extraParachain: boolean = false) {
+  const numberOfNodes = extraParachain ? 3 * 5 : 3 * 4;
   const availablePorts = await Promise.all(
-    new Array(3 * 4).fill(0).map(async (_, index) => {
+    new Array(numberOfNodes).fill(0).map(async (_, index) => {
       let selectedPort = 0;
       let port = 1024 + index * 2000 + (process.pid % 2000);
       let endingPort = 65535;
@@ -46,6 +47,7 @@ export type ParachainOptions = {
     | "moonriver"
     | "moonbeam";
   relaychain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
+  numberOfParachains?: number;
 };
 
 export interface NodePorts {
@@ -59,7 +61,7 @@ export interface NodePorts {
 // Returns ports for the 3rd parachain node
 export async function startParachainNodes(options: ParachainOptions): Promise<{
   relayPorts: NodePorts[];
-  paraPorts: NodePorts[];
+  paraPorts: NodePorts[][];
 }> {
   while (nodeStarted) {
     // Wait 100ms to see if the node is free
@@ -68,9 +70,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     });
   }
   const relaychain = options.relaychain || "rococo-local";
+  // For now we only support one or two parachains
+  const numberOfParachains =
+    (options.numberOfParachains < 3 &&
+      options.numberOfParachains > 0 &&
+      options.numberOfParachains) ||
+    1;
+  const parachainArray = new Array(numberOfParachains).fill(0);
   nodeStarted = true;
   // Each node will have 3 ports. There are 4 nodes total (2 relay, 2 collators) - so 12 ports
-  const ports = await findAvailablePorts();
+  // Plus 2 nodes if we need a second parachain
+  const ports = await findAvailablePorts(numberOfParachains === 2);
 
   const launchConfig = {
     relaychain: {
@@ -103,17 +113,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
         },
       },
     },
-    parachains: [
-      {
+    parachains: parachainArray.map((_, i) => {
+      return {
         bin: BINARY_PATH,
-        id: 1000,
+        id: 1000 * (i + 1),
         balance: "1000000000000000000000",
         chain: options.chain,
         nodes: [
           {
-            port: ports[2].p2pPort,
-            rpcPort: ports[2].rpcPort,
-            wsPort: ports[2].wsPort,
+            port: ports[i + 2].p2pPort,
+            rpcPort: ports[i + 2].rpcPort,
+            wsPort: ports[i + 2].wsPort,
             name: "alice",
             flags: [
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
@@ -124,9 +134,9 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             ],
           },
           {
-            port: ports[3].p2pPort,
-            rpcPort: ports[3].rpcPort,
-            wsPort: ports[3].wsPort,
+            port: ports[i + 3].p2pPort,
+            rpcPort: ports[i + 3].rpcPort,
+            wsPort: ports[i + 3].wsPort,
             name: "bob",
             flags: [
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
@@ -137,8 +147,8 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             ],
           },
         ],
-      },
-    ],
+      };
+    }),
     simpleParachains: [],
     hrmpChannels: [],
     finalization: true,
@@ -168,25 +178,29 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
         wsPort: ports[1].wsPort,
       },
     ],
-    paraPorts: [
-      {
-        p2pPort: ports[2].p2pPort,
-        rpcPort: ports[2].rpcPort,
-        wsPort: ports[2].wsPort,
-      },
-      {
-        p2pPort: ports[3].p2pPort,
-        rpcPort: ports[3].rpcPort,
-        wsPort: ports[3].wsPort,
-      },
-    ],
+    paraPorts: parachainArray.map((_, i) => {
+      return [
+        {
+          p2pPort: ports[i + 2].p2pPort,
+          rpcPort: ports[i + 2].rpcPort,
+          wsPort: ports[i + 2].wsPort,
+        },
+        {
+          p2pPort: ports[i + 3].p2pPort,
+          rpcPort: ports[i + 3].rpcPort,
+          wsPort: ports[i + 3].wsPort,
+        },
+      ];
+    }),
   };
 }
 
 export async function stopParachainNodes() {
   killAll();
   await new Promise((resolve) => {
-    // TODO: improve
-    setTimeout(resolve, 2000);
+    // TODO: improve, make killAll async https://github.com/paritytech/polkadot-launch/issues/139
+    console.log("Waiting 10 seconds for processes to shut down...");
+    setTimeout(resolve, 10000);
+    console.log("... done");
   });
 }
