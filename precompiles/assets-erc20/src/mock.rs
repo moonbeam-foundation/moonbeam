@@ -98,8 +98,7 @@ impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
 	}
 
 	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
-			Account::AssetId(asset_id)
-		}
+		Account::AssetId(asset_id)
 	}
 }
 
