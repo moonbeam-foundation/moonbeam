@@ -42,8 +42,8 @@ use xcm::v0::{Junction, MultiLocation, NetworkId};
 
 #[cfg(test)]
 mod mock;
-#[cfg(test)]
-mod tests;
+//#[cfg(test)]
+//mod tests;
 
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
@@ -203,7 +203,7 @@ fn convert_encoded_junction_to_junction(
 		encoded_junction.len() > 0,
 		error("Junctions cannot be emptyt")
 	);
-	let extra_data = encoded_junction.split_off(1);
+	let mut extra_data = encoded_junction.split_off(1);
 
 	match encoded_junction[0] {
 		0 => Ok(Junction::Parent),
@@ -222,36 +222,43 @@ fn convert_encoded_junction_to_junction(
 				extra_data.len() >= 32,
 				error("AccountKey32 Junction needs to specify 32 byte id")
 			);
+			let network_part = extra_data.split_off(32);
+
 			let mut data: [u8; 32] = Default::default();
 			data.copy_from_slice(&extra_data[0..32]);
 			Ok(Junction::AccountId32 {
-				network: NetworkId::Any,
+				network: convert_encoded_network_id(network_part)?,
 				id: data,
 			})
 		}
 		3 => {
+			// We are going to read the first 8 bytes first, then the rest
+			let network_part = extra_data.split_off(8);
 			ensure!(
-				extra_data.len() >= 8,
+				extra_data.len() > 8,
 				error("AccountIndex64 Junction needs to specify u64 index")
 			);
 			let mut data: [u8; 8] = Default::default();
 			data.copy_from_slice(&extra_data[0..8]);
 
+			// Now we read the network
 			Ok(Junction::AccountIndex64 {
-				network: NetworkId::Any,
+				network: convert_encoded_network_id(network_part)?,
 				index: u64::from_be_bytes(data),
 			})
 		}
 		4 => {
 			ensure!(
-				extra_data.len() >= 20,
+				extra_data.len() > 20,
 				error("AccountKey20 Junction needs to specify 20 bytes key")
 			);
+			let network_part = extra_data.split_off(20);
+			
 			let mut data: [u8; 20] = Default::default();
 			data.copy_from_slice(&extra_data[0..20]);
 
 			Ok(Junction::AccountKey20 {
-				network: NetworkId::Any,
+				network: convert_encoded_network_id(network_part)?,
 				key: data,
 			})
 		}
@@ -275,6 +282,26 @@ fn convert_encoded_junction_to_junction(
 		}
 		7 => Ok(Junction::GeneralKey(extra_data)),
 		8 => Ok(Junction::OnlyChild),
-		_ => Err(error("Parachain Junction needs to specify u32 paraId")),
+		_ => Err(error("No selector for this")),
+	}
+}
+
+fn convert_encoded_network_id(
+	mut encoded_network_id: Vec<u8>,
+) -> Result<NetworkId, ExitError> {
+	ensure!(
+		encoded_network_id.len() > 0,
+		error("Junctions cannot be empty")
+	);
+	let extra_data = encoded_network_id.split_off(1);
+
+	match encoded_network_id[0] {
+		0 => Ok(NetworkId::Any),
+		1 => {
+			Ok(NetworkId::Named(extra_data))
+		}
+		2 => Ok(NetworkId::Polkadot),
+		3 => Ok(NetworkId::Kusama),
+		_ => Err(error("Non-valid Network Id"))
 	}
 }
