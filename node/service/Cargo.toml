@@ -155,6 +155,8 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonriver-native = [ "moonriver-runtime" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 
+moonbase-native-tracing = [ "moonbase-native", "moonbase-runtime/evm-tracing" ]
+
 test-spec = []
 
 runtime-benchmarks = [
