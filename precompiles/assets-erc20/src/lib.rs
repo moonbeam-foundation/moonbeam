@@ -71,6 +71,9 @@ pub enum Action {
 pub trait AccountIdToAssetId<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
+
+	// Get AccountId from AssetId
+	fn asset_id_to_account(asset_id: AssetId) -> Account;
 }
 
 /// The following distribution has been decided for the precompiles

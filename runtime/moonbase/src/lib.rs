@@ -396,6 +396,14 @@ impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
 			None
 		}
 	}
+
+	// The opposite conversion
+	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+		let mut data = [0u8; 20];
+		data[0..4].copy_from_slice(&mut [255u8; 4]);
+		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
+		H160::from_slice(&data)
+	}
 }
 
 impl pallet_evm::Config for Runtime {
@@ -1137,6 +1145,14 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			min_balance,
 		)?;
 
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);
+
+		// Lastly, the metadata
 		Assets::force_set_metadata(
 			Origin::root(),
 			asset,
