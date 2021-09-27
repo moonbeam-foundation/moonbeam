@@ -30,8 +30,9 @@ jobs:
 
       - name: Build rustdocs
         uses: actions-rs/cargo@v1
+        env:
+					CARGO_INCREMENTAL: 0
         with:
-          env: CARGO_INCREMENTAL=0
           command: doc
           args: --all --no-deps
 
