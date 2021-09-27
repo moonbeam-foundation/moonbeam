@@ -20,7 +20,23 @@ pub enum Action {
 }
 
 #[test]
-fn tests() {
+fn test_keccak256() {
+	assert_eq!(
+		&precompile_utils_macro::keccak256!(""),
+		Keccak256::digest(b"").as_ref(),
+	);
+	assert_eq!(
+		&precompile_utils_macro::keccak256!("toto()"),
+		Keccak256::digest(b"toto()").as_ref(),
+	);
+	assert_ne!(
+		&precompile_utils_macro::keccak256!("toto()"),
+		Keccak256::digest(b"tata()").as_ref(),
+	);
+}
+
+#[test]
+fn test_generate_function_selector() {
 	assert_eq!(
 		&(Action::Toto as u32).to_be_bytes()[..],
 		&Keccak256::digest(b"toto()")[0..4],

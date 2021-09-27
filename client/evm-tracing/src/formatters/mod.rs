@@ -18,14 +18,16 @@ pub mod blockscout;
 pub mod raw;
 pub mod trace_filter;
 
-use crate::proxy::v2::Listener;
-#[cfg(feature = "std")]
+pub use blockscout::Formatter as Blockscout;
+pub use raw::Formatter as Raw;
+pub use trace_filter::Formatter as TraceFilter;
+
+use evm_tracing_events::Listener;
 use serde::Serialize;
 
-#[cfg(feature = "std")]
-pub trait TraceResponseBuilder {
+pub trait ResponseFormatter {
 	type Listener: Listener;
 	type Response: Serialize;
 
-	fn build(listener: Self::Listener) -> Option<Self::Response>;
+	fn format(listener: Self::Listener) -> Option<Self::Response>;
 }

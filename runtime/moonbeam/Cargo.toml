@@ -12,6 +12,8 @@ build = "build.rs"
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 log = "0.4"
+rlp = { version = "0.5", default-features = false, optional = true }
+sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
@@ -23,6 +25,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length", default-features = false }
+pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 evm = { version="0.30.1", default-features=false, features=["with-codec"] }
@@ -74,7 +77,8 @@ pallet-identity = { git = "https://github.com/purestake/substrate", default-feat
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 
-moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
+moonbeam-evm-tracer = { path = "../evm_tracer", optional = true, default-features = false }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
@@ -100,7 +104,7 @@ sha3 = "0.8"
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 [features]
-evm-tracing = ["moonbeam-evm-tracer/evm-tracing", "moonbeam-rpc-primitives-debug/evm-tracing"]
+evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events", "sha3", "rlp"]
 default = ["std"]
 std = [
 	"runtime-common/std",
@@ -129,6 +133,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
+	"evm-tracing-events/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"fp-rpc/std",
@@ -149,6 +154,7 @@ std = [
 	"parachain-staking/std",
 	"parachain-staking-precompiles/std",
 	"pallet-author-slot-filter/std",
+	"pallet-migrations/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",

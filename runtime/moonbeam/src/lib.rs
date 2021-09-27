@@ -53,6 +53,7 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
 };
+use pallet_migrations::{Config, Pallet};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -267,6 +268,7 @@ where
 	R: pallet_balances::Config + pallet_treasury::Config,
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
+	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
@@ -275,6 +277,15 @@ where
 			// total_supply accordingly
 			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+		// total_supply accordingly
+		let (_, to_treasury) = amount.ration(80, 20);
+		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 	}
 }
 
@@ -809,6 +820,11 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+impl pallet_migrations::Config for Runtime {
+	type Event = Event;
+	type MigrationsList = runtime_common::migrations::CommonMigrations;
+}
+
 /// Call filter expected to be used during Phase 3 of the Moonbeam rollout
 /// At least it was used in Moonriver phase3
 pub struct PhaseThreeFilter;
@@ -860,6 +876,7 @@ construct_runtime! {
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
 
 		// Sudo.
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,

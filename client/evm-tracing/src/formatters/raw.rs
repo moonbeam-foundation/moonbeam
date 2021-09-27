@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::proxy::v2::call_list::Listener;
-use crate::single::TransactionTrace;
+use crate::listeners::raw::Listener;
+use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
 
-pub struct Response;
+pub struct Formatter;
 
-#[cfg(feature = "std")]
-impl super::TraceResponseBuilder for Response {
+impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = TransactionTrace;
 
-	fn build(listener: Listener) -> Option<TransactionTrace> {
-		if let Some(entry) = listener.entries.last() {
-			return Some(TransactionTrace::CallList(
-				entry.into_iter().map(|(_, value)| value.clone()).collect(),
-			));
-		}
-		None
+	fn format(listener: Listener) -> Option<TransactionTrace> {
+		Some(TransactionTrace::Raw {
+			step_logs: listener.step_logs,
+			gas: listener.final_gas.into(),
+			return_value: listener.return_value,
+		})
 	}
 }
