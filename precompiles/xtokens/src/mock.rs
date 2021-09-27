@@ -205,7 +205,7 @@ where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	R::Call: From<orml_xtokens::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	BalanceOf<R>: TryFrom<U256> + Into<U256>,
+	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
 	<R as orml_xtokens::Config>::CurrencyId: From<R::AccountId>,
 {
 	fn execute(
