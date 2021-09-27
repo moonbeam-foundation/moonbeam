@@ -294,17 +294,6 @@ jobs:
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
-      - name: Typescript evm-tracing tests (against dev service)
-        if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-        env:
-          BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
-        run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
