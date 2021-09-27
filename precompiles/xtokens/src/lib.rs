@@ -22,11 +22,10 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
-	traits::Currency,
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	error, Address, Bytes, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -60,11 +59,11 @@ pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -83,11 +82,11 @@ where
 impl<Runtime> XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
 {
 	// The accessors are first. They directly return their result.
 	fn transfer(
