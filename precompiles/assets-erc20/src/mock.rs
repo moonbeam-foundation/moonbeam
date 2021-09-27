@@ -96,6 +96,11 @@ impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
 			_ => None,
 		}
 	}
+
+	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+			Account::AssetId(asset_id)
+		}
+	}
 }
 
 impl From<Account> for H160 {
