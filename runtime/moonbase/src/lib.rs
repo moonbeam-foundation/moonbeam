@@ -1136,8 +1136,10 @@ impl From<AssetType> for AssetId {
 // We instruct how to register the Assets
 // In this case, we tell it to Create an Asset in pallet-assets
 pub struct AssetRegistrar;
-use frame_support::pallet_prelude::DispatchResult;
+use frame_support::{pallet_prelude::DispatchResult, transactional};
+
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
+	#[transactional]
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
