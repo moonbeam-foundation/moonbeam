@@ -1154,11 +1154,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		)?;
 
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
+		// TODO uncomment when we feel comfortable
+        /* let precompile_address = Runtime::asset_id_to_account(asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);
+		);*/
 
 		// Lastly, the metadata
 		Assets::force_set_metadata(
