@@ -42,15 +42,15 @@ use xcm::v0::{Junction, MultiLocation, NetworkId};
 
 #[cfg(test)]
 mod mock;
-//#[cfg(test)]
-//mod tests;
+#[cfg(test)]
+mod tests;
 
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 enum Action {
-	Transfer = "transfer(address, u256, bytes, u64)",
+	Transfer = "transfer(address, u256, bytes[], u64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -142,7 +142,7 @@ where
 	}
 }
 
-fn convert_encoded_multilocation_into_multilocation(
+pub(crate) fn convert_encoded_multilocation_into_multilocation(
 	encoded_multilocation: Vec<Bytes>,
 ) -> Result<MultiLocation, ExitError> {
 	match encoded_multilocation.len() {
@@ -196,7 +196,7 @@ fn convert_encoded_multilocation_into_multilocation(
 	}
 }
 
-fn convert_encoded_junction_to_junction(
+pub(crate) fn convert_encoded_junction_to_junction(
 	mut encoded_junction: Vec<u8>,
 ) -> Result<Junction, ExitError> {
 	ensure!(
@@ -233,11 +233,11 @@ fn convert_encoded_junction_to_junction(
 		}
 		3 => {
 			// We are going to read the first 8 bytes first, then the rest
-			let network_part = extra_data.split_off(8);
 			ensure!(
 				extra_data.len() > 8,
 				error("AccountIndex64 Junction needs to specify u64 index")
 			);
+			let network_part = extra_data.split_off(8);
 			let mut data: [u8; 8] = Default::default();
 			data.copy_from_slice(&extra_data[0..8]);
 

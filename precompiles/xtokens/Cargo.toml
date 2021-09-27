@@ -24,6 +24,7 @@ num_enum = { version = "0.5.3", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 
 [dev-dependencies]
+sha3 = "0.9"
 serde = "1.0.100"
 sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
 derive_more = "0.99"
