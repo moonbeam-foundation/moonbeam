@@ -461,6 +461,14 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -590,6 +598,7 @@
 
 				<span class="kw">fn</span> <span class="ident">trace_block</span>(
 					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
+					<span class="ident">known_transactions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 					(),
 					<span class="ident">sp_runtime::DispatchError</span>,
@@ -597,6 +606,7 @@
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
 					{
 						<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
+						<span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 
 						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
 						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -604,10 +614,16 @@
 						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
 							<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">_transaction</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-									<span class="comment">// Each extrinsic is a new call stack.</span>
-									<span class="ident">EvmTracer::emit_new</span>();
-									<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
+								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">transaction</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+									<span class="kw">let</span> <span class="ident">eth_extrinsic_hash</span> <span class="op">=</span>
+										<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">rlp::encode</span>(<span class="ident">transaction</span>)).<span class="ident">as_slice</span>());
+									<span class="kw">if</span> <span class="ident">known_transactions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">eth_extrinsic_hash</span>) {
+										<span class="comment">// Each known extrinsic is a new call stack.</span>
+										<span class="ident">EvmTracer::emit_new</span>();
+										<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
+									} <span class="kw">else</span> {
+										<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);
+									}
 								}
 								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
 									<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);

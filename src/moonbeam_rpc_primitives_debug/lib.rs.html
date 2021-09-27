@@ -44,6 +44,8 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -69,6 +71,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">api</span>;
 
 <span class="kw">use</span> <span class="ident">ethereum::TransactionV0</span> <span class="kw">as</span> <span class="ident">Transaction</span>;
+<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
 
 <span class="macro">sp_api::decl_runtime_apis!</span> {
@@ -80,6 +83,7 @@
 
 		<span class="kw">fn</span> <span class="ident">trace_block</span>(
 			<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block::Extrinsic</span><span class="op">&gt;</span>,
+			<span class="ident">known_transactions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span>;
 	}
 }

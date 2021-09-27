@@ -132,9 +132,6 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -245,14 +242,11 @@
 							<span class="ident">transaction_position</span>: <span class="ident">eth_tx_index</span> <span class="kw">as</span> <span class="ident">u32</span>,
 						}
 					}
-					<span class="ident">CallInner::SelfDestruct</span> {
-						<span class="ident">balance</span>,
-						<span class="ident">refund_address</span>,
-					} <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionTrace</span> {
+					<span class="ident">CallInner::SelfDestruct</span> { <span class="ident">balance</span>, <span class="ident">to</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionTrace</span> {
 						<span class="ident">action</span>: <span class="ident">TransactionTraceAction::Suicide</span> {
 							<span class="ident">address</span>: <span class="ident">trace</span>.<span class="ident">from</span>,
 							<span class="ident">balance</span>,
-							<span class="ident">refund_address</span>,
+							<span class="ident">refund_address</span>: <span class="ident">to</span>,
 						},
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
 						<span class="ident">block_hash</span>: <span class="ident">H256::default</span>(),

@@ -1060,6 +1060,16 @@
 <span id="1060">1060</span>
 <span id="1061">1061</span>
 <span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1316,6 +1326,7 @@
 	<span class="ident">R</span>: <span class="ident">pallet_balances::Config</span> <span class="op">+</span> <span class="ident">pallet_treasury::Config</span>,
 	<span class="ident">pallet_treasury::Pallet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
+	<span class="comment">// this seems to be called for substrate-based transactions</span>
 	<span class="kw">fn</span> <span class="ident">on_unbalanceds</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">fees_then_tips</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fees</span>) <span class="op">=</span> <span class="ident">fees_then_tips</span>.<span class="ident">next</span>() {
 			<span class="comment">// for fees, 80% are burned, 20% to the treasury</span>
@@ -1324,6 +1335,15 @@
 			<span class="comment">// total_supply accordingly</span>
 			<span class="op">&lt;</span><span class="ident">pallet_treasury::Pallet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::on_unbalanced</span>(<span class="ident">to_treasury</span>);
 		}
+	}
+
+	<span class="comment">// this is called from pallet_evm for Ethereum-based transactions</span>
+	<span class="comment">// (technically, it calls on_unbalanced, which calls this when non-zero)</span>
+	<span class="kw">fn</span> <span class="ident">on_nonzero_unbalanced</span>(<span class="ident">amount</span>: <span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) {
+		<span class="comment">// Balances pallet automatically burns dropped Negative Imbalances by decreasing</span>
+		<span class="comment">// total_supply accordingly</span>
+		<span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">to_treasury</span>) <span class="op">=</span> <span class="ident">amount</span>.<span class="ident">ration</span>(<span class="number">80</span>, <span class="number">20</span>);
+		<span class="op">&lt;</span><span class="ident">pallet_treasury::Pallet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::on_unbalanced</span>(<span class="ident">to_treasury</span>);
 	}
 }
 

@@ -288,6 +288,9 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -377,10 +380,11 @@
 
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gasometer_event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">GasometerEvent</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">GasometerEvent::RecordTransaction</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">GasometerEvent::RecordTransaction</span> { <span class="ident">cost</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="comment">// First event of a transaction.</span>
 				<span class="comment">// Next step will be the first context.</span>
 				<span class="self">self</span>.<span class="ident">new_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">cost</span>;
 			}
 			<span class="ident">GasometerEvent::RecordCost</span> { <span class="ident">cost</span>, <span class="ident">snapshot</span> } <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
@@ -388,8 +392,9 @@
 					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
 						<span class="ident">step</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">gas</span>();
 						<span class="ident">step</span>.<span class="ident">gas_cost</span> <span class="op">=</span> <span class="ident">cost</span>;
-						<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">step</span>.<span class="ident">gas</span>;
 					}
+
+					<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">used_gas</span>;
 				}
 			}
 			<span class="ident">GasometerEvent::RecordDynamicCost</span> {
@@ -400,8 +405,9 @@
 					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
 						<span class="ident">step</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">gas</span>();
 						<span class="ident">step</span>.<span class="ident">gas_cost</span> <span class="op">=</span> <span class="ident">gas_cost</span>;
-						<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">step</span>.<span class="ident">gas</span>;
 					}
+
+					<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">used_gas</span>;
 				}
 			}
 			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
@@ -573,8 +579,8 @@
 <span class="kw">impl</span> <span class="ident">ListenerT</span> <span class="kw">for</span> <span class="ident">Listener</span> {
 	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">Event::Gasometer</span>(<span class="ident">gasometer_event</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gasometer_event</span>(<span class="ident">gasometer_event</span>),
-			<span class="ident">Event::Runtime</span>(<span class="ident">runtime_event</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">runtime_event</span>(<span class="ident">runtime_event</span>),
+			<span class="ident">Event::Gasometer</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gasometer_event</span>(<span class="ident">e</span>),
+			<span class="ident">Event::Runtime</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">runtime_event</span>(<span class="ident">e</span>),
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
 		};
 	}

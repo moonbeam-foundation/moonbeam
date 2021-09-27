@@ -408,8 +408,6 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -446,9 +444,9 @@
 };
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">LogsBuilder</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">error</span>, <span class="ident">keccak256</span>, <span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">LogsBuilder</span>,
+	<span class="ident">RuntimeHelper</span>,
 };
-<span class="kw">use</span> <span class="ident">slices::u8_slice</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
@@ -462,12 +460,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="doccomment">/// Solidity selector of the Transfer log, which is the Keccak of the Log signature.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_TRANSFER</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span>
-	<span class="macro">u8_slice!</span>(<span class="string">&quot;0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&quot;</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_TRANSFER</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Transfer(address,address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Solidity selector of the Approval log, which is the Keccak of the Log signature.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_APPROVAL</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span>
-	<span class="macro">u8_slice!</span>(<span class="string">&quot;0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&quot;</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_APPROVAL</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Approval(address,address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Associates pallet Instance to a prefix used for the Approves storage.</span>
 <span class="doccomment">/// This trait is implemented for () and the 16 substrate Instance.</span>

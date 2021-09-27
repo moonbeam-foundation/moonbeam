@@ -106,6 +106,41 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -122,12 +157,47 @@
 
 <span class="attribute">#![<span class="ident">crate_type</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proc_macro</span>;
+
 <span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
 <span class="kw">use</span> <span class="ident">proc_macro2::Literal</span>;
 <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">quote</span>, <span class="ident">quote_spanned</span>};
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
-<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">spanned::Spanned</span>, <span class="ident">Expr</span>, <span class="ident">ExprLit</span>, <span class="ident">Ident</span>, <span class="ident">ItemEnum</span>, <span class="ident">Lit</span>};
+<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">spanned::Spanned</span>, <span class="ident">Expr</span>, <span class="ident">ExprLit</span>, <span class="ident">Ident</span>, <span class="ident">ItemEnum</span>, <span class="ident">Lit</span>, <span class="ident">LitStr</span>};
+
+<span class="kw">struct</span> <span class="ident">Bytes</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">::std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
+	<span class="attribute">#[<span class="ident">inline</span>]</span>
+	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::std::fmt::Result</span> {
+		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>;
+		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">if</span> <span class="op">!</span><span class="ident">data</span>.<span class="ident">is_empty</span>() {
+			<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#04x}u8&quot;</span>, <span class="ident">data</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
+			<span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
+				<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {:#04x}&quot;</span>, <span class="ident">unit</span>)<span class="question-mark">?</span>;
+			}
+		}
+		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;]&quot;</span>)
+	}
+}
+
+<span class="attribute">#[<span class="ident">proc_macro</span>]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keccak256</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+	<span class="kw">let</span> <span class="ident">lit_str</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">input</span> <span class="kw">as</span> <span class="ident">LitStr</span>);
+
+	<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">Keccak256::digest</span>(<span class="ident">lit_str</span>.<span class="ident">value</span>().<span class="ident">as_ref</span>());
+
+	<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">Bytes</span>(<span class="ident">hash</span>.<span class="ident">to_vec</span>());
+	<span class="kw">let</span> <span class="ident">eval_str</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">bytes</span>);
+	<span class="kw">let</span> <span class="ident">eval_ts</span>: <span class="ident">proc_macro2::TokenStream</span> <span class="op">=</span> <span class="ident">eval_str</span>.<span class="ident">parse</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+		<span class="macro">panic!</span>(
+			<span class="string">&quot;Failed to parse the string \&quot;{}\&quot; to TokenStream.&quot;</span>,
+			<span class="ident">eval_str</span>
+		);
+	});
+	<span class="macro">quote!</span>(#<span class="ident">eval_ts</span>).<span class="ident">into</span>()
+}
 
 <span class="doccomment">/// This macro allows to associate to each variant of an enumeration a discriminant (of type u32</span>
 <span class="doccomment">/// whose value corresponds to the first 4 bytes of the Hash Keccak256 of the character string</span>

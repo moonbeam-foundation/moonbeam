@@ -152,7 +152,6 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-<span id="155">155</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -283,8 +282,7 @@
 	<span class="ident">SelfDestruct</span> {
 		<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">skip</span>))]</span>
 		<span class="ident">balance</span>: <span class="ident">U256</span>,
-		<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">skip</span>))]</span>
-		<span class="ident">refund_address</span>: <span class="ident">H160</span>,
+		<span class="ident">to</span>: <span class="ident">H160</span>,
 	},
 }
 
