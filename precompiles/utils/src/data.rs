@@ -192,10 +192,18 @@ impl EvmDataWriter {
 	}
 
 	/// Write arbitrary bytes.
-	/// Doesn't handle any alignement checks, prefer using `write` instead of possible.
+	/// Doesn't handle any alignement checks, prefer using `write` instead if possible.
 	pub fn write_raw_bytes(mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
 		self
+	}
+
+	/// Write a selector.
+	/// The provided type must impl `Into<u32>`.
+	/// Doesn't handle any alignement checks, should be used only when adding the initial
+	/// selector of a Solidity call data.
+	pub fn write_selector<T: Into<u32>>(self, value: T) -> Self {
+		self.write_raw_bytes(&value.into().to_be_bytes())
 	}
 
 	/// Write data of requested type.

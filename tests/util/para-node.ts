@@ -48,12 +48,18 @@ export type ParachainOptions = {
   relaychain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
 };
 
-// This will start a parachain node, only 1 at a time (check every 100ms).
-// This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startParachainNodes(options: ParachainOptions): Promise<{
+export interface NodePorts {
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
+}
+
+// This will start a parachain node, only 1 at a time (check every 100ms).
+// This will prevent race condition on the findAvailablePorts which uses the PID of the process
+// Returns ports for the 3rd parachain node
+export async function startParachainNodes(options: ParachainOptions): Promise<{
+  relayPorts: NodePorts[];
+  paraPorts: NodePorts[];
 }> {
   while (nodeStarted) {
     // Wait 100ms to see if the node is free
@@ -63,7 +69,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   }
   const relaychain = options.relaychain || "rococo-local";
   nodeStarted = true;
-  // Each node will have 3 ports. There are 4 nodes total (so 12 ports)
+  // Each node will have 3 ports. There are 4 nodes total (2 relay, 2 collators) - so 12 ports
   const ports = await findAvailablePorts();
 
   const launchConfig = {
@@ -72,13 +78,13 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       chain: relaychain,
       nodes: [
         {
-          name: "alice",
+          name: "Alice",
           port: ports[0].p2pPort,
           rpcPort: ports[0].rpcPort,
           wsPort: ports[0].wsPort,
         },
         {
-          name: "bob",
+          name: "Bob",
           port: ports[1].p2pPort,
           rpcPort: ports[1].rpcPort,
           wsPort: ports[1].wsPort,
@@ -101,6 +107,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       {
         bin: BINARY_PATH,
         id: 1000,
+        balance: "1000000000000000000000",
         chain: options.chain,
         nodes: [
           {
@@ -109,8 +116,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[2].wsPort,
             name: "alice",
             flags: [
-              `--no-telemetry`,
-              `--no-prometheus`,
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
               "--rpc-cors=all",
@@ -124,8 +129,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[3].wsPort,
             name: "bob",
             flags: [
-              `--no-telemetry`,
-              `--no-prometheus`,
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
               "--rpc-cors=all",
@@ -150,13 +153,33 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
 
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
-
   await run(path.join(__dirname, "../"), launchConfig);
 
   return {
-    p2pPort: ports[2].p2pPort,
-    rpcPort: ports[2].rpcPort,
-    wsPort: ports[2].wsPort,
+    relayPorts: [
+      {
+        p2pPort: ports[0].p2pPort,
+        rpcPort: ports[0].rpcPort,
+        wsPort: ports[0].wsPort,
+      },
+      {
+        p2pPort: ports[1].p2pPort,
+        rpcPort: ports[1].rpcPort,
+        wsPort: ports[1].wsPort,
+      },
+    ],
+    paraPorts: [
+      {
+        p2pPort: ports[2].p2pPort,
+        rpcPort: ports[2].rpcPort,
+        wsPort: ports[2].wsPort,
+      },
+      {
+        p2pPort: ports[3].p2pPort,
+        rpcPort: ports[3].rpcPort,
+        wsPort: ports[3].wsPort,
+      },
+    ],
   };
 }
 

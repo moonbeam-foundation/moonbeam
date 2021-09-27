@@ -14,18 +14,19 @@ jsonrpc-core = "15.0.0"
 
 ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
 ethereum-types = "0.12.0"
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
+moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "polkadot-v0.9.9" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }

@@ -89,70 +89,82 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
-
-					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
-					// transactions that preceded the requested transaction.
-					for ext in extrinsics.into_iter() {
-						let _ = match &ext.function {
-							Call::Ethereum(transact(t)) => {
-								if t == transaction {
-									EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
-									return Ok(());
-								} else {
-									Executive::apply_extrinsic(ext)
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+						// transactions that preceded the requested transaction.
+						for ext in extrinsics.into_iter() {
+							let _ = match &ext.function {
+								Call::Ethereum(transact(t)) => {
+									if t == transaction {
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										return Ok(());
+									} else {
+										Executive::apply_extrinsic(ext)
+									}
 								}
-							}
-							_ => Executive::apply_extrinsic(ext),
-						};
-					}
+								_ => Executive::apply_extrinsic(ext),
+							};
+						}
 
+						Err(sp_runtime::DispatchError::Other(
+							"Failed to find Ethereum transaction among the extrinsics.",
+						))
+					}
+					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
-						"Failed to find Ethereum transaction among the extrinsics.",
+						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+					known_transactions: Vec<H256>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::EvmTracer;
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use sha3::{Digest, Keccak256};
 
-					let mut config = <Runtime as pallet_evm::Config>::config().clone();
-					config.estimate = true;
+						let mut config = <Runtime as pallet_evm::Config>::config().clone();
+						config.estimate = true;
 
-					// Apply all extrinsics. Ethereum extrinsics are traced.
-					for ext in extrinsics.into_iter() {
-						match &ext.function {
-							Call::Ethereum(transact(_transaction)) => {
-								// Each extrinsic is a new call stack.
-								EvmTracer::emit_new();
-								EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
-							}
-							_ => {
-								let _ = Executive::apply_extrinsic(ext);
-							}
-						};
+						// Apply all extrinsics. Ethereum extrinsics are traced.
+						for ext in extrinsics.into_iter() {
+							match &ext.function {
+								Call::Ethereum(transact(transaction)) => {
+									let eth_extrinsic_hash =
+										H256::from_slice(Keccak256::digest(&rlp::encode(transaction)).as_slice());
+									if known_transactions.contains(&eth_extrinsic_hash) {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+									} else {
+										let _ = Executive::apply_extrinsic(ext);
+									}
+								}
+								_ => {
+									let _ = Executive::apply_extrinsic(ext);
+								}
+							};
+						}
+
+						Ok(())
 					}
-
-					Ok(())
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
 				}
 			}
 
@@ -345,22 +357,26 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
-					// authors would be to run the staking election while predicting. However this
-					// election is heavy and will take too long during prediction. So instead we
-					// work around it by always authoring the first slot in a new round. A longer-
-					// term solution will be to calculate the staking election result in the last
-					// block of the ending round.
+					// authors is to compute the selection during prediction.
 					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
-						log::info!(target: "nimbus-staking-workaround", "A new round is starting.\
-						Moonbeam will author during this slot without predicting eligibility first.\
-						You may see a `CannotBeAuthor` error soon. This is expected and harmless.\
-						It will be resolved soon.");
-
-						true
-					}
-					else {
+						// get author account id
+						use nimbus_primitives::AccountLookup;
+						let author_account_id = if let Some(account) =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
+							account
+						} else {
+							// return false if author mapping not registered like in can_author impl
+							return false
+						};
+						// predict eligibility post-selection by computing selection results now
+						let (eligible, _) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
+								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								&slot
+							);
+						eligible.contains(&author_account_id)
+					} else {
 						AuthorInherent::can_author(&author, &slot)
-
 					}
 				}
 			}

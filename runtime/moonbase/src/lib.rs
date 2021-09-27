@@ -30,18 +30,18 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
-use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	construct_runtime, parameter_types,
+	signed_extensions::{AdjustPriority, Divide},
 	traits::{
 		Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		IdentityFee, Weight,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
 };
@@ -66,9 +66,10 @@ use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
 };
+use pallet_migrations::{Config, Pallet};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -77,8 +78,11 @@ use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
+	transaction_validity::{
+		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
+	},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	SaturatedConversion,
 };
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -159,7 +163,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0600,
+	spec_version: 0700,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -558,6 +562,44 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 }
 
+parameter_types! {
+	// Add one item in storage and take 258 bytes
+	pub const BasicDeposit: Balance = currency::deposit(1, 258);
+	// Not add any item to the storage but takes 66 bytes
+	pub const FieldDeposit: Balance = currency::deposit(0, 66);
+	// Add one item in storage and take 53 bytes
+	pub const SubAccountDeposit: Balance = currency::deposit(1, 53);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+type IdentityForceOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+type IdentityRegistrarOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = IdentityForceOrigin;
+	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -595,7 +637,7 @@ parameter_types! {
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = parachain_info::Pallet<Runtime>;
+	type SelfParaId = ParachainInfo;
 	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -678,6 +720,7 @@ parameter_types! {
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
+	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -688,6 +731,10 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockProvider =
+		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -752,6 +799,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::Democracy(..) | Call::CouncilCollective(..)
 						| Call::TechComitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
+						| Call::AuthorMapping(..)
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -761,7 +809,10 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::TechComitteeCollective(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
+			ProxyType::Staking => matches!(
+				c,
+				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
 			}
@@ -791,6 +842,11 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type Event = Event;
+	type MigrationsList = runtime_common::migrations::CommonMigrations;
 }
 
 parameter_types! {
@@ -856,7 +912,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We track our teleports in/out to keep total issuance correct.
+	// We dont allow teleport
 	(),
 >;
 
@@ -1029,8 +1085,6 @@ impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
-			// Unreachable for now
-			_ => None,
 		}
 	}
 }
@@ -1058,12 +1112,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
-		metadata: AssetMetaData,
+		metadata: AssetRegistrarMetadata,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
-			AssetManagerId::get().into_account(),
+			AssetManager::account_id(),
 			true,
 			min_balance,
 		)?;
@@ -1074,30 +1128,27 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			metadata.name,
 			metadata.symbol,
 			metadata.decimals,
-			false,
+			metadata.is_frozen,
 		)
 	}
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
-pub struct AssetMetaData {
+pub struct AssetRegistrarMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
 	pub decimals: u8,
-}
-
-parameter_types! {
-	pub const AssetManagerId: PalletId = PalletId(*b"asstmngr");
+	pub is_frozen: bool,
 }
 
 impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
-	type AssetMetaData = AssetMetaData;
+	type AssetRegistrarMetadata = AssetRegistrarMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type PalletId = AssetManagerId;
+	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
@@ -1219,14 +1270,16 @@ construct_runtime! {
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 24,
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 25,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 26,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
 		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
-		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 27,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 28,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 29,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 30,
+		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 28,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
+		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
 	}
 }
 
@@ -1236,6 +1289,23 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
+
+/// There are two extensions returning the priority:
+/// 1. The `CheckWeight` extension.
+/// 2. The `TransactionPayment` extension.
+///
+/// The first one gives a significant bump to `Operational` transactions, but for `Normal`
+/// it's within `[0..MAXIMUM_BLOCK_WEIGHT]` range.
+///
+/// The second one roughly represents the amount of fees being paid (and the tip) with
+/// size-adjustment coefficient. I.e. we are interested to maximize `fee/consumed_weight` or
+/// `fee/size_limit`. The returned value is potentially unbounded though.
+///
+/// The idea for the adjustment is scale the priority coming from `CheckWeight` for
+/// `Normal` transactions down to zero, leaving the priority bump for `Operational` and
+/// `Mandatory` though.
+const CHECK_WEIGHT_PRIORITY_DIVISOR: TransactionPriority = MAXIMUM_BLOCK_WEIGHT;
+
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Runtime>,
@@ -1243,7 +1313,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
+	AdjustPriority<frame_system::CheckWeight<Runtime>, Divide, CHECK_WEIGHT_PRIORITY_DIVISOR>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
@@ -1257,7 +1327,19 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	MigratePalletVersionToStorageVersion,
 >;
+
+/// Migrate from `PalletVersion` to the new `StorageVersion`
+pub struct MigratePalletVersionToStorageVersion;
+
+impl frame_support::traits::OnRuntimeUpgrade for MigratePalletVersionToStorageVersion {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		frame_support::migrations::migrate_from_pallet_version_to_storage_version::<
+			AllPalletsWithSystem,
+		>(&RocksDbWeight::get())
+	}
+}
 
 // All of our runtimes share most of their Runtime API implementations.
 // We use a macro to implement this common part and add runtime-specific additional implementations.
@@ -1273,18 +1355,77 @@ runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
-			tx: <Block as BlockT>::Extrinsic,
+			xt: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			let allowed = <Runtime as frame_system::Config>
-				::BaseCallFilter::contains(&tx.function);
-
-			if allowed {
-				Executive::validate_transaction(source, tx, block_hash)
-			} else {
-				InvalidTransaction::Call.into()
+			// If this call is not allowed, we return early.
+			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&xt.function) {
+				return InvalidTransaction::Call.into();
 			}
+
+			// This runtime uses Substrate's pallet transaction payment. This
+			// makes the chain feel like a standard Substrate chain when submitting
+			// frame transactions and using Substrate ecosystem tools. It has the downside that
+			// transaction are not prioritized by gas_price. The following code reprioritizes
+			// transactions to overcome this.
+			//
+			// A more elegant, ethereum-first solution is
+			// a pallet that replaces pallet transaction payment, and allows users
+			// to directly specify a gas price rather than computing an effective one.
+			// #HopefullySomeday
+
+			// First we pass the transactions to the standard FRAME executive. This calculates all the
+			// necessary tags, longevity and other properties that we will leave unchanged.
+			// This also assigns some priority that we don't care about and will overwrite next.
+			let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
+
+			let dispatch_info = xt.get_dispatch_info();
+
+			// If this is a pallet ethereum transaction, then its priority is already set
+			// according to gas price from pallet ethereum. If it is any other kind of transaction,
+			// we modify its priority.
+			Ok(match &xt.function {
+				Call::Ethereum(transact(_)) => intermediate_valid,
+				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
+				_ => {
+					let tip = match xt.signature {
+						None => 0,
+						Some((_, _, ref signed_extra)) => {
+							// Yuck, this depends on the index of charge transaction in Signed Extra
+							let charge_transaction = &signed_extra.6;
+							charge_transaction.tip()
+						}
+					};
+
+					// Calculate the fee that will be taken by pallet transaction payment
+					let fee: u64 = TransactionPayment::compute_fee(
+						xt.encode().len() as u32,
+						&dispatch_info,
+						tip,
+					).saturated_into();
+
+					// Calculate how much gas this effectively uses according to the existing mapping
+					let effective_gas =
+						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+							dispatch_info.weight
+						);
+
+					// Here we calculate an ethereum-style effective gas price using the
+					// current fee of the transaction. Because the weight -> gas conversion is
+					// lossy, we have to handle the case where a very low weight maps to zero gas.
+					let effective_gas_price = if effective_gas > 0 {
+						fee / effective_gas
+					} else {
+						// If the effective gas was zero, we just act like it was 1.
+						fee
+					};
+
+					// Overwrite the original prioritization with this ethereum one
+					intermediate_valid.priority = effective_gas_price;
+					intermediate_valid
+				}
+			})
 		}
 	}
 }

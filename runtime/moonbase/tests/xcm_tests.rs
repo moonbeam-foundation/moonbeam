@@ -21,7 +21,7 @@ use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 
-use frame_support::{assert_noop, assert_ok};
+use frame_support::assert_ok;
 
 use xcm::v0::{
 	Junction::{self, PalletInstance, Parachain, Parent},
@@ -38,7 +38,7 @@ fn receive_relay_asset_from_relay() {
 
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
@@ -86,7 +86,7 @@ fn send_relay_asset_to_relay() {
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
@@ -138,13 +138,13 @@ fn send_relay_asset_to_relay() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X2(
+			Box::new(X2(
 				Junction::Parent,
 				Junction::AccountId32 {
 					network: NetworkId::Any,
 					id: RELAYALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -167,7 +167,7 @@ fn send_relay_asset_to_para_b() {
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
@@ -228,14 +228,14 @@ fn send_relay_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -259,7 +259,7 @@ fn send_para_a_asset_to_para_b() {
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"ParaAToken".to_vec(),
 		symbol: b"ParaA".to_vec(),
 		decimals: 18,
@@ -285,14 +285,14 @@ fn send_para_a_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -318,7 +318,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"ParaAToken".to_vec(),
 		symbol: b"ParaA".to_vec(),
 		decimals: 18,
@@ -358,14 +358,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -389,14 +389,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(3),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			800000
 		));
 	});
@@ -415,7 +415,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"ParaAToken".to_vec(),
 		symbol: b"ParaA".to_vec(),
 		decimals: 18,
@@ -441,14 +441,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(2),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -472,14 +472,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			X3(
+			Box::new(X3(
 				Junction::Parent,
 				Junction::Parachain(1),
 				Junction::AccountKey20 {
 					network: NetworkId::Any,
 					key: PARAALICE.into()
 				}
-			),
+			)),
 			4000
 		));
 	});
@@ -500,7 +500,7 @@ fn receive_relay_asset_with_trader() {
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
@@ -543,7 +543,7 @@ fn receive_relay_asset_with_trader() {
 	});
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
+		// non-free execution, not full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
 	});
 }
@@ -555,7 +555,7 @@ fn error_when_not_paying_enough() {
 	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
 	let source_id: parachain::AssetId = source_location.clone().into();
 
-	let asset_metadata = parachain::AssetMetaData {
+	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
@@ -598,7 +598,7 @@ fn error_when_not_paying_enough() {
 	});
 
 	ParaA::execute_with(|| {
-		// famount not received as it is not paying enough
+		// amount not received as it is not paying enough
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 }

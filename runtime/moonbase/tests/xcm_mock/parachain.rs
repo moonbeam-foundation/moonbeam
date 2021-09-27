@@ -20,13 +20,10 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
-	PalletId,
 };
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
-use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::traits::Zero;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
@@ -39,7 +36,7 @@ use xcm::{
 	v0::{
 		Error as XcmError, ExecuteXcm,
 		Junction::{PalletInstance, Parachain, Parent},
-		MultiAsset, MultiLocation, NetworkId, Outcome, Xcm,
+		MultiLocation, NetworkId, Outcome, Xcm,
 	},
 	VersionedXcm,
 };
@@ -50,10 +47,7 @@ use xcm_builder::{
 	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
-use xcm_executor::{
-	traits::{JustTry, WeightTrader},
-	Config, XcmExecutor,
-};
+use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
@@ -225,7 +219,12 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	pub SelfReserve: MultiLocation = MultiLocation::X3(Parent, Parachain(MsgQueue::parachain_id().into()).into(), PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
+	pub SelfReserve: MultiLocation =
+		MultiLocation::X3(
+			Parent,
+			Parachain(MsgQueue::parachain_id().into()).into(),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		);
 }
 
 pub struct XcmConfig;
@@ -278,7 +277,10 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
-	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent, Parachain(MsgQueue::parachain_id().into()).into());
+	pub SelfLocation: MultiLocation =
+	MultiLocation::X2(
+		Parent, Parachain(MsgQueue::parachain_id().into()).into()
+	);
 }
 
 // The XCM message wrapper wrapper
@@ -479,7 +481,6 @@ impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
-			_ => None,
 		}
 	}
 }
@@ -507,12 +508,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
-		metadata: AssetMetaData,
+		metadata: AssetMetadata,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
-			AssetManagerId::get().into_account(),
+			AssetManager::account_id(),
 			true,
 			min_balance,
 		)?;
@@ -529,24 +530,20 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
-pub struct AssetMetaData {
+pub struct AssetMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
 	pub decimals: u8,
-}
-
-parameter_types! {
-	pub const AssetManagerId: PalletId = PalletId(*b"asstmngr");
 }
 
 impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
-	type AssetMetaData = AssetMetaData;
+	type AssetRegistrarMetadata = AssetMetadata;
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type PalletId = AssetManagerId;
+	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;

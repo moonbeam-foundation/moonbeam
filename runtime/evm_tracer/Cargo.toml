@@ -9,16 +9,16 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "polkadot-v0.9.9" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec", "tracing"] }
 evm-runtime = { version = "0.30.0", default-features = false, features = ["tracing"] }
 evm-gasometer = { version = "0.30.0", default-features = false, features = ["tracing"] }
-sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.9" }
-sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.9" }
-sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.9" }
-sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.9" }
-moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
+sp-core = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length" }
+sp-std = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length" }
+sp-io = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length" }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false }
 moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
 ethereum-types = { version = "0.12.0", default-features = false }
 
@@ -36,6 +36,6 @@ std = [
 	"sp-runtime/std",
 	"ethereum-types/std",
 	"fp-evm/std",
-	"moonbeam-rpc-primitives-debug/std",
+	"evm-tracing-events/std",
 	"moonbeam-primitives-ext/std",
 ]

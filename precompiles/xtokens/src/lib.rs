@@ -59,12 +59,12 @@ pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
-	Runtime: orml_xtokens::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + Debug,
+	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
+	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -122,7 +122,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer(
 			to_currency_id,
 			to_balance,
-			destination,
+			Box::new(destination),
 			weight,
 		);
 

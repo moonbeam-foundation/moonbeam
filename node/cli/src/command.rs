@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cli_opt::RpcConfig;
+use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -211,9 +211,39 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 		.ok_or_else(|| "Could not find wasm file in genesis state!".into())
 }
 
+fn validate_trace_environment(cli: &Cli) -> Result<()> {
+	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
+		&& cli
+			.run
+			.base
+			.base
+			.import_params
+			.wasm_runtime_overrides
+			.is_none()
+	{
+		return Err(
+			"`debug` or `trace` namespaces requires `--wasm-runtime-overrides /path/to/overrides`."
+				.into(),
+		);
+	}
+	Ok(())
+}
+
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let cli = Cli::from_args();
+	let mut cli = Cli::from_args();
+	let _ = validate_trace_environment(&cli)?;
+	// Set --execution wasm as default
+	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
+	if execution_strategies.execution.is_none() {
+		cli.run
+			.base
+			.base
+			.import_params
+			.execution_strategies
+			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
+	}
+
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;
@@ -412,7 +442,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonriver_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
 								config,
 							)
 						})
@@ -420,7 +450,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonbeam_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
 								config,
 							)
 						})
@@ -542,8 +572,28 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
-						.map_err(Into::into);
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => service::new_dev::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => service::new_dev::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => service::new_dev::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
 				}
 
 				let polkadot_cli = RelayChainCli::new(
