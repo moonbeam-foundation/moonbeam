@@ -32,7 +32,6 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use sp_runtime::traits::Hash as THash;
 
-use frame_support::{
 	construct_runtime, parameter_types,
 	signed_extensions::{AdjustPriority, Divide},
 	traits::{
@@ -377,6 +376,33 @@ impl FeeCalculator for FixedGasPrice {
 ///            min is MinimumMultiplier
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+
+// Instruct how to go from an H160 to an AssetID
+// We just take the lowest 128 bits
+impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+		let h160_account: H160 = account.into();
+		let mut data = [0u8; 16];
+		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+		if prefix_part == &[255u8; 4] {
+			data.copy_from_slice(id_part);
+			let asset_id: AssetId = u128::from_be_bytes(data).into();
+			Some(asset_id)
+		} else {
+			None
+		}
+	}
+
+	// The opposite conversion
+	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+		let mut data = [0u8; 20];
+		data[0..4].copy_from_slice(&mut [255u8; 4]);
+		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
+		H160::from_slice(&data)
+	}
+}
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -1107,8 +1133,10 @@ impl From<AssetType> for AssetId {
 // We instruct how to register the Assets
 // In this case, we tell it to Create an Asset in pallet-assets
 pub struct AssetRegistrar;
-use frame_support::pallet_prelude::DispatchResult;
+use frame_support::{pallet_prelude::DispatchResult, transactional};
+
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
+	#[transactional]
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
@@ -1122,6 +1150,15 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			min_balance,
 		)?;
 
+		// The asset has been created. Let's put the revert code in the precompile address
+		// TODO uncomment when we feel comfortable
+		/* let precompile_address = Runtime::asset_id_to_account(asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/
+
+		// Lastly, the metadata
 		Assets::force_set_metadata(
 			Origin::root(),
 			asset,
@@ -1223,6 +1260,8 @@ impl Contains<Call> for NormalFilter {
 			Call::Assets(method) => match method {
 				pallet_assets::Call::transfer(..) => true,
 				pallet_assets::Call::transfer_keep_alive(..) => true,
+				pallet_assets::Call::approve_transfer(..) => true,
+				pallet_assets::Call::transfer_approved(..) => true,
 				_ => false,
 			},
 			_ => true,

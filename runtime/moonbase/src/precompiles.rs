@@ -20,6 +20,7 @@ use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -32,6 +33,10 @@ use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 use xtokens_precompiles::XtokensWrapper;
 
+// The asset precompile address prefix. Addresses that match against this prefix will be routed
+// to Erc20AssetsPrecompileSet
+
+const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -52,10 +57,6 @@ where
 	}
 }
 
-/// The following distribution has been decided for the precompiles
-/// 0-1023: Ethereum Mainnet Precompiles
-/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
-/// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
@@ -64,6 +65,9 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
+	// We require PrecompileSet here because indeed we are dealing with a set of precompiles
+	// This precompile set does additional checks, e.g., total supply not being 0
+	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 {
@@ -78,8 +82,8 @@ where
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
 			a if a == hash(2) => Some(Sha256::execute(input, target_gas, context)),
 			a if a == hash(3) => Some(Ripemd160::execute(input, target_gas, context)),
-			a if a == hash(4) => Some(Identity::execute(input, target_gas, context)),
 			a if a == hash(5) => Some(Modexp::execute(input, target_gas, context)),
+			a if a == hash(4) => Some(Identity::execute(input, target_gas, context)),
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
@@ -101,6 +105,10 @@ where
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
+			}
 			_ => None,
 		}
 	}
