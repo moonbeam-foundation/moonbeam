@@ -36,7 +36,7 @@ use sp_std::{
 	vec::Vec,
 };
 
-use xcm::v0::{Junction, MultiLocation, NetworkId};
+use xcm::v0::{Junction, MultiLocation, NetworkId, MultiAsset};
 
 #[cfg(test)]
 mod mock;
@@ -49,6 +49,7 @@ pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
 	Transfer = "transfer(address, u256, bytes[], u64)",
+	TransferMultiAsset = "transfer_multiasset(bytes[], u256, bytes[], u64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -73,6 +74,8 @@ where
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
 			Action::Transfer => Self::transfer(input, target_gas, context),
+			Action::TransferMultiAsset => Self::transfer_multiasset(input, target_gas, context),
+
 		}
 	}
 }
@@ -119,6 +122,63 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer(
 			to_currency_id,
 			to_balance,
+			Box::new(destination),
+			weight,
+		);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	// The accessors are first. They directly return their result.
+	fn transfer_multiasset(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read the asset multilocation
+		let asset: Vec<Bytes> = input.read()?;
+		let asset_multilocation: MultiLocation =
+			convert_encoded_multilocation_into_multilocation(asset)?;
+
+		// Bound check
+		input.expect_arguments(1)?;
+		let amount: U256 = input.read()?;
+
+		// read destination
+		let multilocation: Vec<Bytes> = input.read()?;
+
+		let destination: MultiLocation =
+			convert_encoded_multilocation_into_multilocation(multilocation)?;
+
+		// Bound check
+		input.expect_arguments(1)?;
+		let weight: u64 = input.read::<u64>()?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let to_balance = amount
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset(
+			Box::new(MultiAsset::ConcreteFungible {
+				id: asset_multilocation,
+				amount: to_balance
+			}),
 			Box::new(destination),
 			weight,
 		);

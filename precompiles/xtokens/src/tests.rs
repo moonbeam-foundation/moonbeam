@@ -35,6 +35,12 @@ fn test_selector_enum() {
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
 		Action::Transfer,
 	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"transfer_multiasset(bytes[], u256, bytes[], u64)")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::TransferMultiAsset,
+	);
 }
 
 #[test]
@@ -255,6 +261,37 @@ fn transfer_non_reserve_to_non_reserve_works() {
 			&EvmDataWriter::new()
 				.write_selector(Action::Transfer)
 				.write(Address(AssetId(1u128).into()))
+				.write(U256::from(500))
+				.write(vec![parent_junction, account_id_32.into()])
+				.write(U256::from(4000000))
+				.build(),
+			None,
+			&evm::Context {
+				address: Precompile.into(),
+				caller: Alice.into(),
+				apparent_value: From::from(0),
+			},
+			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
+		);
+	});
+}
+
+
+#[test]
+fn transfer_multi_asset_to_reserve_works() {
+	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
+	.build().execute_with(|| {
+
+		let parent_junction: Bytes = vec![0u8].into();
+		let mut account_id_32 = vec![2u8];
+		account_id_32.extend_from_slice(&[1u8;32]);
+		account_id_32.extend_from_slice(&[0u8]);
+
+		assert_eq!(Precompiles::execute(
+			Precompile.into(),
+			&EvmDataWriter::new()
+				.write_selector(Action::TransferMultiAsset)
+				.write(vec![parent_junction.clone()])
 				.write(U256::from(500))
 				.write(vec![parent_junction, account_id_32.into()])
 				.write(U256::from(4000000))
