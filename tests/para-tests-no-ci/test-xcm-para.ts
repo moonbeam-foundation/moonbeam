@@ -272,10 +272,6 @@ describeParachain(
       // They should have the same id
       expect(assetId).to.eq(assetIdB);
 
-      // check asset in storage
-      // const registeredAsset = await parachainOne.query.assets.asset(assetId);
-      // expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
-
       // RELAYCHAIN
       // send 1000 units to Baltathar in para A
       const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
@@ -293,11 +289,6 @@ describeParachain(
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
 
-      // about 1k should have been substracted from AliceRelay
-      // expect(
-      //   ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-      // ).to.eq("8.9999 kUnit");
-      // // Alith asset balance should have been increased to 1000*e12
       expect(
         (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
           "1,000,000,000,000,000"
@@ -306,7 +297,6 @@ describeParachain(
     it.only("should be able to receive an asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
-      console.log(" hexToU8a(BALTATHAR)", hexToU8a(BALTATHAR));
       const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
         parachainOne,
         baltathar,
@@ -317,27 +307,15 @@ describeParachain(
             X3: [
               "Parent",
               { Parachain: new BN(2000) },
-              { AccountKey20: { network: "Any", id: hexToU8a(BALTATHAR) } },
+              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
             ],
           },
           new BN(4000000000)
         )
       );
-      eventsTransfer.forEach((e) => {
-        let ev = e.toHuman();
-        console.log("tsf ", ev);
-      });
       await waitOneBlock(parachainTwo, 3);
-      // about 1k should have been substracted from AliceRelay
-      console.log(
-        "baltathar para a bal",
-        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman()
-      );
-      console.log(
-        "baltathar para b bal",
-        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman()
-      );
 
+      // about 1k should have been substracted from AliceRelay
       expect(
         ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
       ).to.eq("8.9999 kUnit");
@@ -348,7 +326,7 @@ describeParachain(
       ).to.eq(true);
       expect(
         (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "100,000,000,000,000"
+          "99,968,000,000,000"
       ).to.eq(true);
     });
   }
