@@ -18,7 +18,7 @@ use crate::mock::{
 	evm_test_context, precompile_address, ExtBuilder, events,
 	Precompiles, TestAccount::*
 };
-use crate::{convert_encoded_multilocation_into_multilocation, convert_encoded_junction_to_junction};
+use crate::{convert_encoded_multilocation_into_multilocation, convert_encoded_junction_to_junction, convert_to_encoded_multilocation};
 use crate::{Action, PrecompileOutput};
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
@@ -292,6 +292,38 @@ fn transfer_multi_asset_to_reserve_works() {
 			&EvmDataWriter::new()
 				.write_selector(Action::TransferMultiAsset)
 				.write(vec![parent_junction.clone()])
+				.write(U256::from(500))
+				.write(vec![parent_junction, account_id_32.into()])
+				.write(U256::from(4000000))
+				.build(),
+			None,
+			&evm::Context {
+				address: Precompile.into(),
+				caller: Alice.into(),
+				apparent_value: From::from(0),
+			},
+			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
+		);
+	});
+}
+
+#[test]
+fn transfer_multi_asset_self_reserve_works() {
+	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
+	.build().execute_with(|| {
+
+		let parent_junction: Bytes = vec![0u8].into();
+		let mut account_id_32 = vec![2u8];
+		account_id_32.extend_from_slice(&[1u8;32]);
+		account_id_32.extend_from_slice(&[0u8]);
+
+		let self_reserve = crate::mock::SelfReserve::get();
+
+		assert_eq!(Precompiles::execute(
+			Precompile.into(),
+			&EvmDataWriter::new()
+				.write_selector(Action::TransferMultiAsset)
+				.write(convert_to_encoded_multilocation(self_reserve))
 				.write(U256::from(500))
 				.write(vec![parent_junction, account_id_32.into()])
 				.write(U256::from(4000000))

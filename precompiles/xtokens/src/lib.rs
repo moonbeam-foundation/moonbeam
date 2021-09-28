@@ -89,7 +89,6 @@ where
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime::AccountId: Into<Option<<Runtime as orml_xtokens::Config>::CurrencyId>>,
 {
-	// The accessors are first. They directly return their result.
 	fn transfer(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -142,7 +141,6 @@ where
 		})
 	}
 
-	// The accessors are first. They directly return their result.
 	fn transfer_multiasset(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -261,90 +259,62 @@ pub(crate) fn convert_encoded_junction_to_junction(
 		encoded_junction.len() > 0,
 		error("Junctions cannot be emptyt")
 	);
-	let mut extra_data = encoded_junction.split_off(1);
+	let mut encoded_junction = EvmDataReader::new(&encoded_junction);
 
-	match encoded_junction[0] {
+	let enum_selector = encoded_junction.read_raw_bytes(1)?;
+
+	match enum_selector[0] {
 		0 => Ok(Junction::Parent),
 		1 => {
-			ensure!(
-				extra_data.len() >= 4,
-				error("Parachain Junction needs to specify u32 paraId")
-			);
 			let mut data: [u8; 4] = Default::default();
-			data.copy_from_slice(&extra_data[0..4]);
+			data.copy_from_slice(&encoded_junction.read_raw_bytes(4)?);
 			let para_id = u32::from_be_bytes(data);
 			Ok(Junction::Parachain(para_id))
 		}
-		2 => {
-			ensure!(
-				extra_data.len() >= 32,
-				error("AccountKey32 Junction needs to specify 32 byte id")
-			);
-			let network_part = extra_data.split_off(32);
+		2 => {			
+			let mut account: [u8; 32] = Default::default();
+			account.copy_from_slice(&encoded_junction.read_raw_bytes(32)?);
 
-			let mut data: [u8; 32] = Default::default();
-			data.copy_from_slice(&extra_data[0..32]);
 			Ok(Junction::AccountId32 {
-				network: convert_encoded_network_id(network_part)?,
-				id: data,
+				network: convert_encoded_network_id(encoded_junction.read_till_end()?.to_vec())?,
+				id: account,
 			})
 		}
 		3 => {
-			// We are going to read the first 8 bytes first, then the rest
-			ensure!(
-				extra_data.len() > 8,
-				error("AccountIndex64 Junction needs to specify u64 index")
-			);
-			let network_part = extra_data.split_off(8);
-			let mut data: [u8; 8] = Default::default();
-			data.copy_from_slice(&extra_data[0..8]);
-
+			let mut index: [u8; 8] = Default::default();
+			index.copy_from_slice(&encoded_junction.read_raw_bytes(8)?);
 			// Now we read the network
 			Ok(Junction::AccountIndex64 {
-				network: convert_encoded_network_id(network_part)?,
-				index: u64::from_be_bytes(data),
+				network: convert_encoded_network_id(encoded_junction.read_till_end()?.to_vec())?,
+				index: u64::from_be_bytes(index),
 			})
 		}
 		4 => {
-			ensure!(
-				extra_data.len() > 20,
-				error("AccountKey20 Junction needs to specify 20 bytes key")
-			);
-			let network_part = extra_data.split_off(20);
-			
-			let mut data: [u8; 20] = Default::default();
-			data.copy_from_slice(&extra_data[0..20]);
+			let mut account: [u8; 20] = Default::default();
+			account.copy_from_slice(&encoded_junction.read_raw_bytes(20)?);
 
 			Ok(Junction::AccountKey20 {
-				network: convert_encoded_network_id(network_part)?,
-				key: data,
+				network: convert_encoded_network_id(encoded_junction.read_till_end()?.to_vec())?,
+				key: account,
 			})
 		}
 		5 => {
-			ensure!(
-				extra_data.len() >= 1,
-				error("PalletInstance Junction needs to specify one byte instance id")
-			);
-			Ok(Junction::PalletInstance(extra_data[0]))
+			Ok(Junction::PalletInstance(encoded_junction.read_raw_bytes(1)?[0]))
 		}
 		6 => {
-			ensure!(
-				extra_data.len() >= 16,
-				error("GeneralIndex Junction needs to specify 16 bytes of index id")
-			);
-			let mut data: [u8; 16] = Default::default();
-			data.copy_from_slice(&extra_data[0..16]);
+			let mut general_index: [u8; 16] = Default::default();
+			general_index.copy_from_slice(&encoded_junction.read_raw_bytes(16)?);
 			Ok(Junction::GeneralIndex {
-				id: u128::from_be_bytes(data),
+				id: u128::from_be_bytes(general_index),
 			})
 		}
-		7 => Ok(Junction::GeneralKey(extra_data)),
+		7 => Ok(Junction::GeneralKey(encoded_junction.read_till_end()?.to_vec())),
 		8 => Ok(Junction::OnlyChild),
 		_ => Err(error("No selector for this")),
 	}
 }
 
-fn convert_encoded_network_id(
+pub(crate) fn convert_encoded_network_id(
 	mut encoded_network_id: Vec<u8>,
 ) -> Result<NetworkId, ExitError> {
 	ensure!(
@@ -362,4 +332,96 @@ fn convert_encoded_network_id(
 		3 => Ok(NetworkId::Kusama),
 		_ => Err(error("Non-valid Network Id"))
 	}
+}
+
+pub(crate) fn convert_to_encoded_network_id(
+	network_id: NetworkId,
+) -> Vec<u8> {
+
+	let mut encoded: Vec<u8> = Vec::new();
+	match network_id {
+		NetworkId::Any => {
+			encoded.push(0u8);
+			encoded
+		},
+		NetworkId::Named(mut name) => {
+			encoded.push(1u8);
+			encoded.append(&mut name);
+			encoded
+		},
+		NetworkId::Polkadot => {
+			encoded.push(2u8);
+			encoded
+		},
+		NetworkId::Kusama => {
+			encoded.push(3u8);
+			encoded
+		},
+	}
+}
+
+pub(crate) fn convert_to_encoded_junction(
+	junction: Junction,
+) -> Vec<u8> {
+
+	let mut encoded: Vec<u8> = Vec::new();
+	match junction {
+		Junction::Parent => {
+			encoded.push(0u8);
+			encoded
+		},
+		Junction::Parachain(para_id) => {
+			encoded.push(1u8);
+			encoded.append(&mut para_id.to_be_bytes().to_vec());
+			encoded
+		},
+		Junction::AccountId32{network, id} => {
+			encoded.push(2u8);
+			encoded.append(&mut id.to_vec());
+			encoded.append(&mut convert_to_encoded_network_id(network));
+			encoded
+		},
+		Junction::AccountIndex64 {network, index} => {
+			encoded.push(3u8);
+			encoded.append(&mut index.to_be_bytes().to_vec());
+			encoded.append(&mut convert_to_encoded_network_id(network));
+			encoded
+		},
+		Junction::AccountKey20{network, key} => {
+			encoded.push(4u8);
+			encoded.append(&mut key.to_vec());
+			encoded.append(&mut convert_to_encoded_network_id(network));
+			encoded
+		},
+		Junction::PalletInstance(intance) => {
+			encoded.push(5u8);
+			encoded.append(&mut intance.to_be_bytes().to_vec());
+			encoded
+		},
+		Junction::GeneralIndex{id} => {
+			encoded.push(6u8);
+			encoded.append(&mut id.to_be_bytes().to_vec());
+			encoded
+		},
+		Junction::GeneralKey(mut key) => {
+			encoded.push(7u8);
+			encoded.append(&mut key);
+			encoded
+		},
+		Junction::OnlyChild => {
+			encoded.push(8u8);
+			encoded
+		},
+		_ => todo!()
+	}
+}
+
+pub(crate) fn convert_to_encoded_multilocation(
+	multilocation: MultiLocation,
+) -> Vec<Vec<u8>> {
+
+	let encoded: Vec<Vec<u8>> = multilocation.iter().map(|junction| {
+		convert_to_encoded_junction(junction.clone())
+	}).collect();
+	encoded
 }
