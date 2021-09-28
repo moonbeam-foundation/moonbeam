@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::encoding::Encoder;
 use crate::mock::{
-	evm_test_context, precompile_address, ExtBuilder, events,
-	Precompiles, TestAccount::*
+	events, evm_test_context, precompile_address, ExtBuilder, Precompiles, TestAccount::*,
 };
-use crate::{convert_encoded_multilocation_into_multilocation, convert_encoded_junction_to_junction, convert_to_encoded_multilocation};
 use crate::{Action, PrecompileOutput};
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, EvmDataWriter, Bytes};
+use precompile_utils::{error, Address, Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
-use xcm::v0::{Junction, MultiLocation, NetworkId};
 use sp_std::convert::TryInto;
+use xcm::v0::{Junction, MultiLocation, NetworkId};
 #[test]
 fn test_selector_enum() {
 	let mut buffer = [0u8; 4];
@@ -36,7 +35,9 @@ fn test_selector_enum() {
 		Action::Transfer,
 	);
 
-	buffer.copy_from_slice(&Keccak256::digest(b"transfer_multiasset(bytes[], u256, bytes[], u64)")[0..4]);
+	buffer.copy_from_slice(
+		&Keccak256::digest(b"transfer_multiasset(bytes[], u256, bytes[], u64)")[0..4],
+	);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
 		Action::TransferMultiAsset,
@@ -64,7 +65,6 @@ fn selector_less_than_four_bytes() {
 	});
 }
 
-
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
@@ -89,32 +89,35 @@ fn no_selector_exists_but_length_is_right() {
 fn multilocation_decoder_works() {
 	ExtBuilder::default().build().execute_with(|| {
 
+
 		let mut x1_multi_location = Vec::<Bytes>::new();
 		x1_multi_location.push(vec![0u8].into());
 
 		assert_eq!(
-			convert_encoded_multilocation_into_multilocation(
-				x1_multi_location.clone()
-			),
+			MultiLocation::from_encoded(MultiLocation::X1(Junction::Parent).to_encoded()),
 			Ok(MultiLocation::X1(Junction::Parent))
 		);
 
 		x1_multi_location.push(vec![0u8].into());
 
 		assert_eq!(
-			convert_encoded_multilocation_into_multilocation(
-				x1_multi_location.clone()
-			),
+			MultiLocation::from_encoded(MultiLocation::X2(Junction::Parent, Junction::Parent).to_encoded()),
 			Ok(MultiLocation::X2(Junction::Parent, Junction::Parent))
 		);
 
 		x1_multi_location.push(vec![0u8].into());
 
 		assert_eq!(
-			convert_encoded_multilocation_into_multilocation(
-				x1_multi_location.clone()
-			),
-			Ok(MultiLocation::X3(Junction::Parent, Junction::Parent, Junction::Parent)),
+			MultiLocation::from_encoded(MultiLocation::X3(
+				Junction::Parent,
+				Junction::Parent,
+				Junction::Parent
+			).to_encoded()),
+			Ok(MultiLocation::X3(
+				Junction::Parent,
+				Junction::Parent,
+				Junction::Parent
+			)),
 		);
 	});
 }
@@ -122,219 +125,242 @@ fn multilocation_decoder_works() {
 #[test]
 fn junction_decoder_works() {
 	ExtBuilder::default().build().execute_with(|| {
-
-		let parent_junction = vec![0u8];
 		assert_eq!(
-			(
-				convert_encoded_junction_to_junction(parent_junction)
-			),
+			Junction::from_encoded(Junction::Parent.to_encoded()),
 			Ok(Junction::Parent)
 		);
 
-		let parachain_junction = vec![1u8, 0u8, 0u8, 0u8, 0u8];
 		assert_eq!(
-			(
-				convert_encoded_junction_to_junction(parachain_junction)
-			),
+			Junction::from_encoded(Junction::Parachain(0).to_encoded()),
 			Ok(Junction::Parachain(0))
 		);
 
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
-
 		assert_eq!(
-			(
-				convert_encoded_junction_to_junction(account_id_32)
-			),
+			Junction::from_encoded(Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			}.to_encoded()),
 			Ok(Junction::AccountId32 {
 				network: NetworkId::Any,
-				id: [1u8;32],
-			 })
+				id: [1u8; 32],
+			})
 		);
 
-		let mut account_index_64 = vec![3u8];
-		account_index_64.extend_from_slice(&[1u8;8]);
-		account_index_64.extend_from_slice(&[0u8]);
-
 		assert_eq!(
-			(
-				convert_encoded_junction_to_junction(account_index_64)
-			),
+			Junction::from_encoded(Junction::AccountIndex64 {
+				network: NetworkId::Any,
+				index: u64::from_be_bytes([1u8; 8]),
+			}.to_encoded()),
 			Ok(Junction::AccountIndex64 {
 				network: NetworkId::Any,
-				index: u64::from_be_bytes([1u8;8]),
-			 })
+				index: u64::from_be_bytes([1u8; 8]),
+			})
 		);
 
-		let mut account_key_20 = vec![4u8];
-		account_key_20.extend_from_slice(H160::from(Alice).as_bytes());
-		account_key_20.extend_from_slice(&[0u8]);
-
 		assert_eq!(
-			(
-				convert_encoded_junction_to_junction(account_key_20)
-			),
+			Junction::from_encoded(Junction::AccountKey20 {
+				network: NetworkId::Any,
+				key: H160::from(Alice).as_bytes().try_into().unwrap(),
+			}.to_encoded()),
 			Ok(Junction::AccountKey20 {
 				network: NetworkId::Any,
 				key: H160::from(Alice).as_bytes().try_into().unwrap(),
-			 })
+			})
 		);
 	});
 }
 
 #[test]
 fn transfer_self_reserve_works() {
-	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
-	.build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
 
-		let parent_junction: Bytes = vec![0u8].into();
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
-
-		assert_eq!(Precompiles::execute(
-			Precompile.into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::Transfer)
-				.write(Address(SelfReserve.into()))
-				.write(U256::from(500))
-				.write(vec![parent_junction, account_id_32.into()])
-				.write(U256::from(4000000))
-				.build(),
-			None,
-			&evm::Context {
-				address: Precompile.into(),
-				caller: Alice.into(),
-				apparent_value: From::from(0),
-			},
-			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
-		);
-	});
+			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			});
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Transfer)
+						.write(Address(SelfReserve.into()))
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
 }
-
 
 #[test]
 fn transfer_to_reserve_works() {
-	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
-	.build().execute_with(|| {
-
-		let parent_junction: Bytes = vec![0u8].into();
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
-
-		// We are transferring asset 0, which we have instructed to be the relay asset
-		assert_eq!(Precompiles::execute(
-			Precompile.into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::Transfer)
-				.write(Address(AssetId(0u128).into()))
-				.write(U256::from(500))
-				.write(vec![parent_junction, account_id_32.into()])
-				.write(U256::from(4000000))
-				.build(),
-			None,
-			&evm::Context {
-				address: Precompile.into(),
-				caller: Alice.into(),
-				apparent_value: From::from(0),
-			},
-			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
-		);
-	});
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			});
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Transfer)
+						.write(Address(AssetId(0u128).into()))
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
 }
 
 #[test]
 fn transfer_non_reserve_to_non_reserve_works() {
-	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
-	.build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			});
 
-		let parent_junction: Bytes = vec![0u8].into();
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
-
-		// We are transferring asset 1, which corresponds to another parachain Id asset
-		assert_eq!(Precompiles::execute(
-			Precompile.into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::Transfer)
-				.write(Address(AssetId(1u128).into()))
-				.write(U256::from(500))
-				.write(vec![parent_junction, account_id_32.into()])
-				.write(U256::from(4000000))
-				.build(),
-			None,
-			&evm::Context {
-				address: Precompile.into(),
-				caller: Alice.into(),
-				apparent_value: From::from(0),
-			},
-			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
-		);
-	});
+			// We are transferring asset 1, which corresponds to another parachain Id asset
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::Transfer)
+						.write(Address(AssetId(1u128).into()))
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
 }
-
 
 #[test]
 fn transfer_multi_asset_to_reserve_works() {
-	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
-	.build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			});			
 
-		let parent_junction: Bytes = vec![0u8].into();
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
+			let asset = MultiLocation::X1(Junction::Parent);
 
-		assert_eq!(Precompiles::execute(
-			Precompile.into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::TransferMultiAsset)
-				.write(vec![parent_junction.clone()])
-				.write(U256::from(500))
-				.write(vec![parent_junction, account_id_32.into()])
-				.write(U256::from(4000000))
-				.build(),
-			None,
-			&evm::Context {
-				address: Precompile.into(),
-				caller: Alice.into(),
-				apparent_value: From::from(0),
-			},
-			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
-		);
-	});
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::TransferMultiAsset)
+						.write(asset.to_encoded())
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
 }
 
 #[test]
 fn transfer_multi_asset_self_reserve_works() {
-	ExtBuilder::default().with_balances(vec![(Alice, 1000)])
-	.build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: [1u8; 32],
+			});
 
-		let parent_junction: Bytes = vec![0u8].into();
-		let mut account_id_32 = vec![2u8];
-		account_id_32.extend_from_slice(&[1u8;32]);
-		account_id_32.extend_from_slice(&[0u8]);
+			let self_reserve = crate::mock::SelfReserve::get();
 
-		let self_reserve = crate::mock::SelfReserve::get();
-
-		assert_eq!(Precompiles::execute(
-			Precompile.into(),
-			&EvmDataWriter::new()
-				.write_selector(Action::TransferMultiAsset)
-				.write(convert_to_encoded_multilocation(self_reserve))
-				.write(U256::from(500))
-				.write(vec![parent_junction, account_id_32.into()])
-				.write(U256::from(4000000))
-				.build(),
-			None,
-			&evm::Context {
-				address: Precompile.into(),
-				caller: Alice.into(),
-				apparent_value: From::from(0),
-			},
-			), Some(Ok(PrecompileOutput { exit_status: ExitSucceed::Returned, cost: 3000, output: vec![], logs: vec![] }))
-		);
-	});
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::TransferMultiAsset)
+						.write(self_reserve.to_encoded())
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
 }

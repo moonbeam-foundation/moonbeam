@@ -39,7 +39,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::v0::{
-	Junction::{PalletInstance, Parachain, Parent, GeneralIndex},
+	Junction::{GeneralIndex, PalletInstance, Parachain, Parent},
 	NetworkId,
 };
 use xcm_executor::XcmExecutor;
@@ -379,7 +379,7 @@ impl Into<Option<CurrencyId>> for TestAccount {
 		match self {
 			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
 			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
-			_ => None
+			_ => None,
 		}
 	}
 }
@@ -397,9 +397,12 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 			CurrencyId::OtherReserve(asset) => {
 				if asset == 0 {
 					Some(MultiLocation::X1(Parent))
-				}
-				else {
-				Some(MultiLocation::X3(Parent, Parachain(2), GeneralIndex{ id: asset}))
+				} else {
+					Some(MultiLocation::X3(
+						Parent,
+						Parachain(2),
+						GeneralIndex { id: asset },
+					))
 				}
 			}
 		}
