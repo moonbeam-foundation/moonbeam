@@ -12,6 +12,8 @@ build = "build.rs"
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 log = "0.4"
+rlp = { version = "0.5", default-features = false, optional = true }
+sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
@@ -103,7 +105,7 @@ sha3 = "0.9"
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 
 [features]
-evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events"]
+evm-tracing = ["moonbeam-evm-tracer", "evm-tracing-events", "sha3", "rlp"]
 default = ["std"]
 std = [
 	"runtime-common/std",
