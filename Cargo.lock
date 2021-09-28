@@ -7561,6 +7561,7 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 name = "perf-test"
 version = "0.1.0"
 dependencies = [
+ "fp-evm",
  "fp-rpc",
  "log",
  "moonbeam-cli-opt",

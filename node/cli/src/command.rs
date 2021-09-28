@@ -430,8 +430,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			return runner.sync_run(|config| {
 				#[cfg(feature = "moonbase-native")]
-				// return cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config);
-				return cmd.run2::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(config);
+				return cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(config);
 				#[cfg(not(feature = "moonbase-native"))]
 				panic!("perf-test only available for moonbase");
 			});
