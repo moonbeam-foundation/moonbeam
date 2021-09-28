@@ -234,7 +234,7 @@ where
 	R::Call: From<orml_xtokens::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
-	R::AccountId: Into<Option<<R as orml_xtokens::Config>::CurrencyId>>,
+	R: AccountIdToCurrencyId<R::AccountId, CurrencyIdOf<R>>,
 {
 	fn execute(
 		address: H160,
@@ -375,6 +375,19 @@ impl Into<Option<CurrencyId>> for TestAccount {
 		match self {
 			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
 			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
+			_ => None,
+		}
+	}
+}
+
+// Implement the trait, where we convert AccountId to AssetID
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Test {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
+		match account {
+			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
+			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
 			_ => None,
 		}
 	}

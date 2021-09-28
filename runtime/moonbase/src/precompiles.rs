@@ -103,7 +103,7 @@ where
 			)),
 			a if a == hash(2051) => {
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
-			}
+			},
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {

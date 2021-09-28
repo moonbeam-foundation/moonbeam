@@ -5172,6 +5172,7 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
+ "xtokens-precompiles",
 ]
 
 [[package]]
@@ -13994,6 +13995,7 @@ dependencies = [
  "rlp",
  "rustc-hex",
  "serde",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
  "sp-runtime",

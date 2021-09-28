@@ -34,8 +34,8 @@ use sp_std::{
 };
 mod encoding;
 use encoding::Encoder;
+use sp_std::boxed::Box;
 use xcm::v0::{MultiAsset, MultiLocation};
-
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -43,11 +43,20 @@ mod tests;
 
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
+pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
+
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
 	Transfer = "transfer(address, u256, bytes[], u64)",
 	TransferMultiAsset = "transfer_multiasset(bytes[], u256, bytes[], u64)",
+}
+
+/// This trait ensure we can convert AccountIds to AssetIds
+/// We will require Runtime to have this trait implemented
+pub trait AccountIdToCurrencyId<Account, CurrencyId> {
+	// Get assetId from account
+	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -60,7 +69,7 @@ where
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime::AccountId: Into<Option<<Runtime as orml_xtokens::Config>::CurrencyId>>,
+	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -84,7 +93,7 @@ where
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime::AccountId: Into<Option<<Runtime as orml_xtokens::Config>::CurrencyId>>,
+	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn transfer(
 		mut input: EvmDataReader,
@@ -107,9 +116,9 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
-		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId = to_account
-			.into()
-			.ok_or(error("cannot convert into currency id"))?;
+		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(error("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = amount

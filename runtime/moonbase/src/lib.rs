@@ -30,8 +30,12 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
+use pallet_evm_precompile_assets_erc20::AccountIdToAssetId;
+use xtokens_precompiles::AccountIdToCurrencyId;
+
 use sp_runtime::traits::Hash as THash;
 
+use frame_support::{
 	construct_runtime, parameter_types,
 	signed_extensions::{AdjustPriority, Divide},
 	traits::{
@@ -1193,6 +1197,17 @@ impl pallet_asset_manager::Config for Runtime {
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
+}
+
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
+		match account {
+			// pallet-balances precompile, self reserve
+			a if a == H160::from_low_u64_be(2050) => Some(CurrencyId::SelfReserve),
+			_ => Runtime::account_to_asset_id(account)
+				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
+		}
+	}
 }
 
 // How to convert from CurrencyId to MultiLocation

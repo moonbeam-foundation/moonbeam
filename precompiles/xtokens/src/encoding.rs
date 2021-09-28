@@ -2,6 +2,7 @@ use evm::ExitError;
 use precompile_utils::{error, Bytes, EvmDataReader};
 
 use frame_support::ensure;
+use sp_std::vec::Vec;
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 pub trait Encoder {
 	type EncodingType;
