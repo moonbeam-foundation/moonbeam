@@ -19,10 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
-use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	ensure,
-};
+use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
 	error, Address, Bytes, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper,
@@ -37,7 +34,7 @@ use sp_std::{
 };
 mod encoding;
 use encoding::Encoder;
-use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId};
+use xcm::v0::{MultiAsset, MultiLocation};
 
 #[cfg(test)]
 mod mock;

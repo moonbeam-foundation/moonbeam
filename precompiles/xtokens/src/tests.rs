@@ -16,8 +16,11 @@
 
 use crate::encoding::Encoder;
 use crate::mock::{
-	events, evm_test_context, precompile_address, ExtBuilder, Precompiles, TestAccount::*,
+	events, evm_test_context, precompile_address, CurrencyId, ExtBuilder, Precompiles,
+	TestAccount::*,
 };
+use orml_xtokens::Event as XtokensEvent;
+
 use crate::{Action, PrecompileOutput};
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
@@ -25,7 +28,7 @@ use precompile_utils::{error, Address, Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use sp_std::convert::TryInto;
-use xcm::v0::{Junction, MultiLocation, NetworkId};
+use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId};
 #[test]
 fn test_selector_enum() {
 	let mut buffer = [0u8; 4];
@@ -88,8 +91,6 @@ fn no_selector_exists_but_length_is_right() {
 #[test]
 fn multilocation_decoder_works() {
 	ExtBuilder::default().build().execute_with(|| {
-
-
 		let mut x1_multi_location = Vec::<Bytes>::new();
 		x1_multi_location.push(vec![0u8].into());
 
@@ -101,18 +102,19 @@ fn multilocation_decoder_works() {
 		x1_multi_location.push(vec![0u8].into());
 
 		assert_eq!(
-			MultiLocation::from_encoded(MultiLocation::X2(Junction::Parent, Junction::Parent).to_encoded()),
+			MultiLocation::from_encoded(
+				MultiLocation::X2(Junction::Parent, Junction::Parent).to_encoded()
+			),
 			Ok(MultiLocation::X2(Junction::Parent, Junction::Parent))
 		);
 
 		x1_multi_location.push(vec![0u8].into());
 
 		assert_eq!(
-			MultiLocation::from_encoded(MultiLocation::X3(
-				Junction::Parent,
-				Junction::Parent,
-				Junction::Parent
-			).to_encoded()),
+			MultiLocation::from_encoded(
+				MultiLocation::X3(Junction::Parent, Junction::Parent, Junction::Parent)
+					.to_encoded()
+			),
 			Ok(MultiLocation::X3(
 				Junction::Parent,
 				Junction::Parent,
@@ -136,10 +138,13 @@ fn junction_decoder_works() {
 		);
 
 		assert_eq!(
-			Junction::from_encoded(Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			}.to_encoded()),
+			Junction::from_encoded(
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}
+				.to_encoded()
+			),
 			Ok(Junction::AccountId32 {
 				network: NetworkId::Any,
 				id: [1u8; 32],
@@ -147,10 +152,13 @@ fn junction_decoder_works() {
 		);
 
 		assert_eq!(
-			Junction::from_encoded(Junction::AccountIndex64 {
-				network: NetworkId::Any,
-				index: u64::from_be_bytes([1u8; 8]),
-			}.to_encoded()),
+			Junction::from_encoded(
+				Junction::AccountIndex64 {
+					network: NetworkId::Any,
+					index: u64::from_be_bytes([1u8; 8]),
+				}
+				.to_encoded()
+			),
 			Ok(Junction::AccountIndex64 {
 				network: NetworkId::Any,
 				index: u64::from_be_bytes([1u8; 8]),
@@ -158,10 +166,13 @@ fn junction_decoder_works() {
 		);
 
 		assert_eq!(
-			Junction::from_encoded(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: H160::from(Alice).as_bytes().try_into().unwrap(),
-			}.to_encoded()),
+			Junction::from_encoded(
+				Junction::AccountKey20 {
+					network: NetworkId::Any,
+					key: H160::from(Alice).as_bytes().try_into().unwrap(),
+				}
+				.to_encoded()
+			),
 			Ok(Junction::AccountKey20 {
 				network: NetworkId::Any,
 				key: H160::from(Alice).as_bytes().try_into().unwrap(),
@@ -176,11 +187,13 @@ fn transfer_self_reserve_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-
-			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			});
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
@@ -205,6 +218,10 @@ fn transfer_self_reserve_works() {
 					logs: vec![]
 				}))
 			);
+			let expected: crate::mock::Event =
+				XtokensEvent::Transferred(Alice, CurrencyId::SelfReserve, 500, destination).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -214,10 +231,13 @@ fn transfer_to_reserve_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			});
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			assert_eq!(
 				Precompiles::execute(
@@ -243,6 +263,11 @@ fn transfer_to_reserve_works() {
 					logs: vec![]
 				}))
 			);
+			let expected: crate::mock::Event =
+				XtokensEvent::Transferred(Alice, CurrencyId::OtherReserve(0u128), 500, destination)
+					.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -252,10 +277,13 @@ fn transfer_non_reserve_to_non_reserve_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			});
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
 
 			// We are transferring asset 1, which corresponds to another parachain Id asset
 			assert_eq!(
@@ -282,6 +310,11 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					logs: vec![]
 				}))
 			);
+			let expected: crate::mock::Event =
+				XtokensEvent::Transferred(Alice, CurrencyId::OtherReserve(1u128), 500, destination)
+					.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -291,10 +324,13 @@ fn transfer_multi_asset_to_reserve_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			});			
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
 
 			let asset = MultiLocation::X1(Junction::Parent);
 
@@ -322,6 +358,17 @@ fn transfer_multi_asset_to_reserve_works() {
 					logs: vec![]
 				}))
 			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset(
+				Alice,
+				MultiAsset::ConcreteFungible {
+					id: asset,
+					amount: 500,
+				},
+				MultiLocation::X1(Junction::Parent),
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -331,10 +378,13 @@ fn transfer_multi_asset_self_reserve_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let destination = MultiLocation::X2(Junction::Parent, Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			});
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
 
 			let self_reserve = crate::mock::SelfReserve::get();
 
@@ -362,5 +412,74 @@ fn transfer_multi_asset_self_reserve_works() {
 					logs: vec![]
 				}))
 			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset(
+				Alice,
+				MultiAsset::ConcreteFungible {
+					id: self_reserve,
+					amount: 500,
+				},
+				MultiLocation::X1(Junction::Parent),
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_multi_asset_non_reserve_to_non_reserve() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::X2(
+				Junction::Parent,
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				},
+			);
+
+			let asset_location = MultiLocation::X3(
+				Junction::Parent,
+				Junction::Parachain(2),
+				Junction::GeneralIndex { id: 5u128 },
+			);
+
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
+					&EvmDataWriter::new()
+						.write_selector(Action::TransferMultiAsset)
+						.write(asset_location.to_encoded())
+						.write(U256::from(500))
+						.write(destination.to_encoded())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset(
+				Alice,
+				MultiAsset::ConcreteFungible {
+					id: asset_location,
+					amount: 500,
+				},
+				MultiLocation::X1(Junction::Parent),
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
 		});
 }

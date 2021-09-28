@@ -24,11 +24,7 @@ use frame_support::{
 
 use xcm::v0::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, SendXcm, Xcm};
 
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{OnFinalize, OnInitialize},
-};
-use frame_system::EnsureRoot;
+use frame_support::{construct_runtime, parameter_types};
 
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
@@ -39,7 +35,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::v0::{
-	Junction::{GeneralIndex, PalletInstance, Parachain, Parent},
+	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain, Parent},
 	NetworkId,
 };
 use xcm_executor::XcmExecutor;
@@ -413,7 +409,7 @@ pub struct AccountIdToMultiLocation;
 impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMultiLocation {
 	fn convert(account: TestAccount) -> MultiLocation {
 		let as_h160: H160 = account.into();
-		MultiLocation::X1(Junction::AccountKey20 {
+		MultiLocation::X1(AccountKey20 {
 			network: NetworkId::Any,
 			key: as_h160.as_fixed_bytes().clone(),
 		})
@@ -472,17 +468,6 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-
-//TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
 	}
 }
 
