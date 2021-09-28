@@ -12,8 +12,10 @@ structopt = "0.3.8"
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-client-db = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-executor = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-externalities = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-keystore = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }

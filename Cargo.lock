@@ -7562,10 +7562,15 @@ name = "perf-test"
 version = "0.1.0"
 dependencies = [
  "log",
+ "moonbeam-cli-opt",
+ "moonbeam-service",
+ "nimbus-primitives",
  "sc-cli",
+ "sc-client-api",
  "sc-client-db",
  "sc-executor",
  "sc-service",
+ "sp-api",
  "sp-core",
  "sp-externalities",
  "sp-keystore",

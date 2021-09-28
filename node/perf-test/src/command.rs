@@ -18,7 +18,7 @@
 use crate::PerfCmd;
 
 use sp_runtime::traits::{Block as BlockT, Header as HeaderT, NumberFor};
-use sc_service::{Configuration, NativeExecutionDispatch};
+use sc_service::{Configuration, NativeExecutionDispatch, TFullClient, TFullBackend};
 use sc_cli::{
 	CliConfiguration, Result, SharedParams,
 };
@@ -35,10 +35,14 @@ use sc_client_db::BenchmarkingState;
 use sc_executor::NativeExecutor;
 use sp_externalities::Extensions;
 use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
+use sp_api::ConstructRuntimeApi;
 use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
 use cli_opt::RpcConfig;
-use service::chain_spec;
+
+use service::{chain_spec, RuntimeApiCollection, Block};
+type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+type FullBackend = TFullBackend<Block>;
 
 struct PerfTestRunner<B: BlockT, ExecDispatch: NativeExecutionDispatch + 'static> {
 	state: BenchmarkingState<B>,
@@ -185,7 +189,14 @@ impl PerfCmd {
 	}
 
 	// taking a different approach and starting a full dev service
-	pub fn run2(&self, config: Configuration, ) -> Result<()> {
+	pub fn run2<RuntimeApi, Executor>(&self, config: Configuration, ) -> Result<()>
+	where
+		RuntimeApi:
+			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+		RuntimeApi::RuntimeApi:
+			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		Executor: NativeExecutionDispatch + 'static,
+	{
 		log::warn!("PerfCmd::run2()");
 
 		let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
@@ -207,15 +218,28 @@ impl PerfCmd {
 		//       CLI options
 		let sealing = cli_opt::Sealing::Manual;
 
-		let service = service::new_dev::<
-			service::moonbase_runtime::RuntimeApi,
-			service::MoonbaseExecutor
-		>(config, author_id, sealing, rpc_config)?;
-
+		let sc_service::PartialComponents {
+			client,
+			backend,
+			mut task_manager,
+			import_queue,
+			keystore_container,
+			select_chain: maybe_select_chain,
+			transaction_pool,
+			other:
+				(
+					block_import,
+					pending_transactions,
+					filter_pool,
+					telemetry,
+					_telemetry_worker_handle,
+					frontier_backend,
+				),
+		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		log::warn!("we have a service!");
 
-		service.spawn_essential_handle().spawn_blocking(
+		task_manager.spawn_essential_handle().spawn_blocking(
 			"perf-test",
 			async {
 				log::warn!("perf-test task");
