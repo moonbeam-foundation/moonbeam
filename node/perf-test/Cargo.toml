@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 log = "0.4.8"
 structopt = "0.3.8"
+hex = "0.4.3"
 
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }

@@ -7563,6 +7563,7 @@ version = "0.1.0"
 dependencies = [
  "fp-evm",
  "fp-rpc",
+ "hex",
  "log",
  "moonbeam-cli-opt",
  "moonbeam-service",

@@ -142,6 +142,32 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
 	}
+
+	fn evm_create(
+		&mut self,
+		from: H160,
+		data: Vec<u8>,
+		value: U256,
+		gas_limit: U256,
+		gas_price: Option<U256>,
+		nonce: Option<U256>,
+		estimate: bool,
+	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
+		let hash = self.client.info().best_hash;
+
+		let result = self.client.runtime_api().create(
+			&BlockId::Hash(hash),
+			from,
+			data,
+			value,
+			gas_limit,
+			gas_price,
+			nonce,
+			false,
+		);
+
+		result.expect("why is this a Result<Result<...>>???") // TODO
+	}
 }
 
 impl CliConfiguration for PerfCmd {
@@ -173,19 +199,73 @@ impl PerfCmd {
 	{
 		log::warn!("PerfCmd::run()");
 
-		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
-		let info = runner.evm_call(
-			Default::default(),
-			Default::default(),
-			Default::default(),
-			Default::default(),
-			Default::default(),
-			Some(Default::default()),
-			Some(Default::default()),
-			false,
-		).expect("EVM call failed");
+		let alice_hex = "f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+		let alice_bytes = hex::decode(alice_hex)
+			.expect("alice_hex is valid hex; qed");
+		let alice = H160::from_slice(&alice_bytes[..]);
 
-		log::warn!("EVM call returned {:?}", info);
+		log::warn!("alice: {:?}", alice);
+
+		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
+
+		let mut alice_nonce: U256 = 0.into();
+
+
+		// Fibonacci contract:
+		/*
+		pragma solidity>= 0.8.0;
+		contract Fibonacci {
+			function fib2(uint n) public returns(uint b) {
+				if (n == 0) {
+					return 0;
+				}
+				uint a = 1;
+				b = 1;
+				for (uint i = 2; i < n; i++) {
+					uint c = a + b;
+					a = b;
+					b = c;
+				}
+				return b;
+			}
+		}
+		*/
+
+		// start by deploying a contract...
+		let fibonacci_hex =
+			"608060405234801561001057600080fd5b5061024b806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80633a9bbfcd14610030575b600080fd5b61004a600480360381019061004591906100d3565b610060565b604051610057919061010b565b60405180910390f35b60008082141561007357600090506100b9565b600060019050600191506000600290505b838110156100b6576000838361009a9190610126565b90508392508093505080806100ae90610186565b915050610084565b50505b919050565b6000813590506100cd816101fe565b92915050565b6000602082840312156100e557600080fd5b60006100f3848285016100be565b91505092915050565b6101058161017c565b82525050565b600060208201905061012060008301846100fc565b92915050565b60006101318261017c565b915061013c8361017c565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03821115610171576101706101cf565b5b828201905092915050565b6000819050919050565b60006101918261017c565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156101c4576101c36101cf565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b6102078161017c565b811461021257600080fd5b5056fea264697066735822122046f6b28b441f2f3caa263c58109a043ec2c03d4823bf1d25b1937cc1c684efab64736f6c63430008040033";
+		let fibonacci_bytecode = hex::decode(fibonacci_hex)
+			.expect("fibonacci_hex is valid hex; qed");
+
+		let create_results = runner.evm_create(
+			alice,
+			fibonacci_bytecode,
+			0.into(),
+			1_000_000.into(),
+			Some(1_000_000_000.into()),
+			Some(alice_nonce),
+			false,
+		).expect("EVM create failed while trying to deploy Fibonacci contract");
+		let fibonacci_address: H160 = create_results.value;
+		log::debug!("fibonacci_address: {:?}", fibonacci_address);
+
+		alice_nonce = alice_nonce.saturating_add(1.into());
+		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
+		let calldata = hex::decode(calldata_hex)
+			.expect("calldata is valid hex; qed");
+
+		let call_results = runner.evm_call(
+			alice,
+			fibonacci_address,
+			calldata,
+			0.into(),
+			1_000_000.into(),
+			Some(1_000_000_000.into()),
+			Some(alice_nonce),
+			false
+		).expect("EVM call failed while trying to invoke Fibonacci contract");
+
+		log::warn!("EVM call returned {:?}", call_results);
 
 		Ok(())
 	}
