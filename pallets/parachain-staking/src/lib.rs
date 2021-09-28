@@ -658,7 +658,7 @@ pub mod pallet {
 	}
 
 	impl<
-			AccountId: Ord + Clone + Default + sp_std::fmt::Debug,
+			AccountId: Ord + Clone + Default,
 			Balance: Copy
 				+ sp_std::ops::AddAssign
 				+ sp_std::ops::Add<Output = Balance>
@@ -666,8 +666,7 @@ pub mod pallet {
 				+ sp_std::ops::Sub<Output = Balance>
 				+ Ord
 				+ Zero
-				+ Default
-				+ sp_std::fmt::Debug, // TODO: remove Debug bounds and any println statements
+				+ Default,
 		> Delegator<AccountId, Balance>
 	{
 		pub fn new(id: AccountId, collator: AccountId, amount: Balance) -> Self {
@@ -863,7 +862,6 @@ pub mod pallet {
 					let leaving = if self.delegations.0.len() == 1usize {
 						true
 					} else {
-						println!("test");
 						ensure!(
 							self.total - T::MinNominatorStk::get().into() >= amount,
 							Error::<T>::NominatorBondBelowMin

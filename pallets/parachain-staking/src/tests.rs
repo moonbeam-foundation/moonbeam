@@ -2894,6 +2894,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
 			// fast forward to block in which nominator 6 exit executes
 			roll_to(25);
+			assert_ok!(Stake::execute_leave_nominators(Origin::signed(6), 6));
+			roll_to(30);
 			let mut new2 = vec![
 				Event::NominatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
@@ -2912,36 +2914,19 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
 				Event::Rewarded(6, 6),
-				Event::NominatorLeftCollator(6, 1, 10, 40),
-				Event::NominatorLeft(6, 10),
+				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
-				Event::CollatorChosen(6, 1, 40),
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 3, 20),
 				Event::CollatorChosen(6, 5, 10),
-				Event::NewRound(25, 6, 5, 130),
-			];
-			expected.append(&mut new2);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 48);
-			assert_ok!(Stake::set_parachain_bond_reserve_percent(
-				Origin::root(),
-				Percent::from_percent(50)
-			));
-			// 6 won't be paid for this round because they left already
-			set_author(6, 1, 100);
-			roll_to(30);
-			// keep paying 6
-			let mut new3 = vec![
-				Event::ParachainBondReservePercentSet(
-					Percent::from_percent(30),
-					Percent::from_percent(50),
-				),
-				Event::ReservedForParachainBond(11, 29),
-				Event::Rewarded(1, 15),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
-				Event::Rewarded(6, 5),
+				Event::NewRound(25, 6, 5, 140),
+				Event::NominatorLeftCollator(6, 1, 10, 40),
+				Event::NominatorLeft(6, 10),
+				Event::ReservedForParachainBond(11, 17),
+				Event::Rewarded(1, 21),
+				Event::Rewarded(7, 7),
+				Event::Rewarded(10, 7),
+				Event::Rewarded(6, 7),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 4, 20),
@@ -2949,17 +2934,27 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
 			];
-			expected.append(&mut new3);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 77);
-			set_author(7, 1, 100);
+			expected.append(&mut new2);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 65);
+			assert_ok!(Stake::set_parachain_bond_reserve_percent(
+				Origin::root(),
+				Percent::from_percent(50)
+			));
+			// 6 won't be paid for this round because they left already
+			set_author(6, 1, 100);
 			roll_to(35);
-			// no more paying 6
-			let mut new4 = vec![
+			// keep paying 6
+			let mut new3 = vec![
+				Event::ParachainBondReservePercentSet(
+					Percent::from_percent(30),
+					Percent::from_percent(50),
+				),
 				Event::ReservedForParachainBond(11, 30),
-				Event::Rewarded(1, 18),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
+				Event::Rewarded(1, 16),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
+				Event::Rewarded(6, 5),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 1, 40),
 				Event::CollatorChosen(8, 4, 20),
@@ -2967,33 +2962,33 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
 			];
-			expected.append(&mut new4);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 107);
-			set_author(8, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
+			expected.append(&mut new3);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 95);
+			set_author(7, 1, 100);
 			roll_to(40);
-			// new nomination is not rewarded yet
-			let mut new5 = vec![
-				Event::Nomination(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
+			// no more paying 6
+			let mut new4 = vec![
 				Event::ReservedForParachainBond(11, 32),
 				Event::Rewarded(1, 19),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::CollatorChosen(9, 1, 50),
 				Event::CollatorChosen(9, 2, 40),
+				Event::CollatorChosen(9, 1, 40),
 				Event::CollatorChosen(9, 4, 20),
 				Event::CollatorChosen(9, 3, 20),
 				Event::CollatorChosen(9, 5, 10),
-				Event::NewRound(40, 9, 5, 140),
+				Event::NewRound(40, 9, 5, 130),
 			];
-			expected.append(&mut new5);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 139);
-			set_author(9, 1, 100);
+			expected.append(&mut new4);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 127);
+			set_author(8, 1, 100);
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
-			// new nomination is still not rewarded yet
-			let mut new6 = vec![
+			// new nomination is not rewarded yet
+			let mut new5 = vec![
+				Event::Nomination(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::ReservedForParachainBond(11, 33),
 				Event::Rewarded(1, 20),
 				Event::Rewarded(7, 7),
@@ -3005,17 +3000,18 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(10, 5, 10),
 				Event::NewRound(45, 10, 5, 140),
 			];
-			expected.append(&mut new6);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 172);
+			expected.append(&mut new5);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 160);
+			set_author(9, 1, 100);
+			set_author(10, 1, 100);
 			roll_to(50);
-			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
-			let mut new7 = vec![
+			// new nomination is still not rewarded yet
+			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 35),
-				Event::Rewarded(1, 18),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(8, 6),
-				Event::Rewarded(10, 6),
+				Event::Rewarded(1, 21),
+				Event::Rewarded(7, 7),
+				Event::Rewarded(10, 7),
 				Event::CollatorChosen(11, 1, 50),
 				Event::CollatorChosen(11, 2, 40),
 				Event::CollatorChosen(11, 4, 20),
@@ -3023,9 +3019,27 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(11, 5, 10),
 				Event::NewRound(50, 11, 5, 140),
 			];
+			expected.append(&mut new6);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 195);
+			roll_to(55);
+			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
+			let mut new7 = vec![
+				Event::ReservedForParachainBond(11, 37),
+				Event::Rewarded(1, 19),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(8, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(12, 1, 50),
+				Event::CollatorChosen(12, 2, 40),
+				Event::CollatorChosen(12, 4, 20),
+				Event::CollatorChosen(12, 3, 20),
+				Event::CollatorChosen(12, 5, 10),
+				Event::NewRound(55, 12, 5, 140),
+			];
 			expected.append(&mut new7);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 207);
+			asserts_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 232);
 		});
 }
 
@@ -3792,8 +3806,10 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 8));
-			expected_events.push(Event::NominationIncreased(3, 1, 8, true));
+			expected_events.push(Event::NominationIncreaseScheduled(3, 1, 8, 3));
 			assert_eq!(events(), expected_events);
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
 			assert_eq!(collator_state.total_counted, 90);
@@ -3930,7 +3946,7 @@ fn nomination_events_convey_correct_position() {
 			let expected_event = Event::NominationDecreased(6, 1, 2, true);
 			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
-			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
+			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)ƒ
 			assert_eq!(collator1_state.total_counted, 73);
 			// 12 + 12 = 24
 			assert_eq!(
