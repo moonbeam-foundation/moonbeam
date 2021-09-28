@@ -1585,23 +1585,6 @@ fn leave_nominators_event_emits_correctly() {
 }
 
 #[test]
-fn cannot_leave_nominators_if_leaving_through_revoking_last_nomination() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
-		.with_candidates(vec![(1, 30), (3, 20)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 3));
-			assert_noop!(
-				Stake::leave_nominators(Origin::signed(2), 2),
-				Error::<Test>::NominatorAlreadyLeaving
-			);
-		});
-}
-
-#[test]
 fn cannot_leave_nominators_if_already_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
@@ -1772,30 +1755,9 @@ fn execute_leave_nominators_removes_delegations_from_collator_state() {
 		});
 }
 
-// CANCEL_LEAVE_NOMINATORS
+// TODO: CANCEL_LEAVE_NOMINATORS
 
-// REVOKE_NOMINATION
-
-#[test]
-fn revoke_delegation_event_emits_exit_scheduled_if_no_delegations_left() {
-	// last nomination is revocation
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
-			);
-			roll_to(10);
-			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
-			assert!(events().contains(&Event::NominatorLeft(2, 10)));
-		});
-}
+// REVOKE DELEGATION
 
 #[test]
 fn revoke_delegation_event_emits_correctly() {
@@ -1812,128 +1774,8 @@ fn revoke_delegation_event_emits_correctly() {
 				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
 			);
 			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
-		});
-}
-
-#[test]
-fn revoke_delegation_unreserves_balance() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 0);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			roll_to(10);
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
-		});
-}
-
-#[test]
-fn revoke_delegation_adds_revocation_to_nominator_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
-		.with_candidates(vec![(1, 30), (3, 20)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			assert!(Stake::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert!(Stake::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_some());
-		});
-}
-
-#[test]
-fn revoke_delegation_removes_revocation_from_nominator_state_upon_execution() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
-		.with_candidates(vec![(1, 30), (3, 20)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			roll_to(10);
-			assert!(Stake::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
-		});
-}
-
-#[test]
-fn revoke_delegation_decreases_total_staked() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_eq!(Stake::total(), 40);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			roll_to(10);
-			assert_eq!(Stake::total(), 30);
-		});
-}
-
-#[test]
-fn revoke_delegation_for_last_nomination_removes_nominator_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert!(Stake::delegator_state(2).is_some());
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			roll_to(10);
-			assert!(Stake::delegator_state(2).is_none());
-		});
-}
-
-#[test]
-fn revoke_delegation_removes_nomination_from_candidate_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_eq!(
-				Stake::candidate_state(1)
-					.expect("exists")
-					.delegators
-					.0
-					.len(),
-				1usize
-			);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			roll_to(10);
-			assert!(Stake::candidate_state(1)
-				.expect("exists")
-				.delegators
-				.0
-				.is_empty());
 		});
 }
 
@@ -1946,7 +1788,7 @@ fn can_revoke_delegation_if_revoking_another_nomination() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			// should be an exit, why it is not???? because the previous revocation was pending
+			// this is an exit implicitly because last delegation revoked
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 3));
 		});
 }
@@ -1993,123 +1835,20 @@ fn cannot_revoke_delegation_that_dne() {
 }
 
 #[test]
-fn cannot_revoke_delegation_leaving_nominator_below_min_nominator_stake() {
+// See `cannot_execute_revoke_delegation_below_min_nominator_stake` for where the "must be above
+// MinNominatorStk" rule is now enforced.
+fn can_schedule_revoke_delegation_below_min_nominator_stake() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
 		.with_candidates(vec![(1, 20), (3, 20)])
 		.with_delegations(vec![(2, 1, 5), (2, 3, 3)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				Stake::revoke_delegation(Origin::signed(2), 1),
-				Error::<Test>::NominatorBondBelowMin
-			);
-		});
-}
-
-#[test]
-fn revoke_delegation_after_leave_candidates_executes_during_leave_candidates() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
-			);
-			roll_to(10);
-			assert!(!Stake::is_nominator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
 		});
 }
 
-#[test]
-fn revoke_delegation_before_leave_candidates_executes_during_leave_candidates() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
-			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
-			roll_to(10);
-			assert!(!Stake::is_nominator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
-		});
-}
-
-#[test]
-fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
-		.with_candidates(vec![(1, 30), (3, 30)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
-			);
-			assert_noop!(
-				Stake::delegator_bond_more(Origin::signed(2), 1, 10),
-				Error::<Test>::PendingNominationRequestAlreadyExists
-			);
-			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 3, 10));
-			roll_to(10);
-			assert!(Stake::is_nominator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 20);
-			assert_eq!(Balances::free_balance(&2), 10);
-		});
-}
-
-#[test]
-fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
-		.with_candidates(vec![(1, 30), (3, 30)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(1);
-			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
-			);
-			assert_noop!(
-				Stake::delegator_bond_less(Origin::signed(2), 1, 2),
-				Error::<Test>::PendingNominationRequestAlreadyExists
-			);
-			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 3, 2));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationDecreased(2, 3, 2, true))
-			);
-			assert!(Stake::is_nominator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 8);
-			assert_eq!(Balances::free_balance(&2), 22);
-		});
-}
-
-// NOMINATOR BOND MORE
+// DELEGATOR BOND MORE
 
 #[test]
 fn delegator_bond_more_event_emits_correctly() {
@@ -2214,7 +1953,7 @@ fn cannot_delegator_bond_more_if_insufficient_balance() {
 		});
 }
 
-// NOMINATOR BOND LESS
+// DELEGATOR BOND LESS
 
 #[test]
 fn delegator_bond_less_event_emits_correctly() {
@@ -2349,12 +2088,313 @@ fn cannot_delegator_bond_less_below_min_nomination() {
 		});
 }
 
-// EXECUTE PENDING NOMINATION REQUEST
+// EXECUTE PENDING DELEGATION REQUEST
 
-// 1. EXECUTE BOND MORE
+// 1. REVOKE DELEGATION
 
 #[test]
-fn delegator_bond_more_reserves_balance() {
+fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
+	// last nomination is revocation
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+			assert!(events().contains(&Event::NominatorLeft(2, 10)));
+		});
+}
+
+#[test]
+fn cannot_execute_revoke_delegation_below_min_nominator_stake() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
+		.with_candidates(vec![(1, 20), (3, 20)])
+		.with_delegations(vec![(2, 1, 5), (2, 3, 3)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_noop!(
+				Stake::execute_delegation_request(Origin::signed(2), 2, 1),
+				Error::<Test>::NominatorBondBelowMin
+			);
+			// but delegator can cancel the request and request to leave instead:
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			assert_ok!(Stake::leave_nominators(Origin::signed(2), 2));
+			roll_to(20);
+			assert_ok!(Stake::execute_leave_nominators(Origin::signed(2), 2));
+		});
+}
+
+#[test]
+fn revoke_delegation_executes_exit_if_last_delegation() {
+	// last nomination is revocation
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			// TODO: do this more and add helper functions that do it
+			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+			assert!(events().contains(&Event::NominatorLeft(2, 10)));
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_emits_correct_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_unreserves_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_eq!(Balances::reserved_balance(&2), 10);
+			assert_eq!(Balances::free_balance(&2), 0);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_adds_revocation_to_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert!(Stake::delegator_state(2)
+				.expect("exists")
+				.requests
+				.requests
+				.get(&1)
+				.is_none());
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			assert!(Stake::delegator_state(2)
+				.expect("exists")
+				.requests
+				.requests
+				.get(&1)
+				.is_some());
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_removes_revocation_from_nominator_state_upon_execution() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert!(Stake::delegator_state(2)
+				.expect("exists")
+				.requests
+				.requests
+				.get(&1)
+				.is_none());
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_decreases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_eq!(Stake::total(), 40);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert_eq!(Stake::total(), 30);
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_for_last_nomination_removes_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert!(Stake::delegator_state(2).is_some());
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			// this will be confusing for people
+			// if status is leaving, then execute_delegation_request works if last delegation
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert!(Stake::delegator_state(2).is_none());
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_removes_nomination_from_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_eq!(
+				Stake::candidate_state(1)
+					.expect("exists")
+					.delegators
+					.0
+					.len(),
+				1usize
+			);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert!(Stake::candidate_state(1)
+				.expect("exists")
+				.delegators
+				.0
+				.is_empty());
+		});
+}
+
+#[test]
+fn cannot_execute_revoke_delegation_for_leaving_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			// cannot execute delegation request for leaving candidate
+			assert_noop!(
+				Stake::execute_delegation_request(Origin::signed(2), 2, 1),
+				Error::<Test>::CannotActBecauseLeaving
+			);
+		});
+}
+
+#[test]
+fn can_execute_leave_candidates_if_revoking_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			roll_to(10);
+			// revocation executes during execute leave candidates (callable by anyone)
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert!(!Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			assert_noop!(
+				Stake::delegator_bond_more(Origin::signed(2), 1, 10),
+				Error::<Test>::PendingNominationRequestAlreadyExists
+			);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 3, 10));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 20);
+			assert_eq!(Balances::free_balance(&2), 10);
+		});
+}
+
+#[test]
+fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			assert_noop!(
+				Stake::delegator_bond_less(Origin::signed(2), 1, 2),
+				Error::<Test>::PendingNominationRequestAlreadyExists
+			);
+			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 3, 2));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationDecreased(2, 3, 2, true))
+			);
+			assert!(Stake::is_nominator(&2));
+			assert_eq!(Balances::reserved_balance(&2), 8);
+			assert_eq!(Balances::free_balance(&2), 22);
+		});
+}
+
+// 2. EXECUTE BOND MORE
+
+#[test]
+fn execute_delegator_bond_more_reserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2372,7 +2412,7 @@ fn delegator_bond_more_reserves_balance() {
 }
 
 #[test]
-fn delegator_bond_more_increases_total_staked() {
+fn execute_delegator_bond_more_increases_total_staked() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2388,7 +2428,7 @@ fn delegator_bond_more_increases_total_staked() {
 }
 
 #[test]
-fn delegator_bond_more_updates_nominator_state() {
+fn execute_delegator_bond_more_updates_nominator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2404,7 +2444,7 @@ fn delegator_bond_more_updates_nominator_state() {
 }
 
 #[test]
-fn delegator_bond_more_updates_candidate_state_top_delegations() {
+fn execute_delegator_bond_more_updates_candidate_state_top_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2432,7 +2472,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 }
 
 #[test]
-fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
+fn execute_delegator_bond_more_updates_candidate_state_bottom_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
 		.with_candidates(vec![(1, 30)])
@@ -2474,7 +2514,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 }
 
 #[test]
-fn delegator_bond_more_increases_total() {
+fn execute_delegator_bond_more_increases_total() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2489,10 +2529,10 @@ fn delegator_bond_more_increases_total() {
 		});
 }
 
-// 2, EXECUTE BOND LESS
+// 3, EXECUTE BOND LESS
 
 #[test]
-fn delegator_bond_less_unreserves_balance() {
+fn execute_delegator_bond_less_unreserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2510,7 +2550,7 @@ fn delegator_bond_less_unreserves_balance() {
 }
 
 #[test]
-fn delegator_bond_less_decreases_total_staked() {
+fn execute_delegator_bond_less_decreases_total_staked() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2526,7 +2566,7 @@ fn delegator_bond_less_decreases_total_staked() {
 }
 
 #[test]
-fn delegator_bond_less_updates_nominator_state() {
+fn execute_delegator_bond_less_updates_nominator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2542,7 +2582,7 @@ fn delegator_bond_less_updates_nominator_state() {
 }
 
 #[test]
-fn delegator_bond_less_updates_candidate_state() {
+fn execute_delegator_bond_less_updates_candidate_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2570,7 +2610,7 @@ fn delegator_bond_less_updates_candidate_state() {
 }
 
 #[test]
-fn delegator_bond_less_decreases_total() {
+fn execute_delegator_bond_less_decreases_total() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2586,7 +2626,7 @@ fn delegator_bond_less_decreases_total() {
 }
 
 #[test]
-fn delegator_bond_less_updates_just_bottom_delegations() {
+fn execute_delegator_bond_less_updates_just_bottom_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
 		.with_candidates(vec![(1, 20)])
@@ -2650,7 +2690,7 @@ fn delegator_bond_less_updates_just_bottom_delegations() {
 }
 
 #[test]
-fn delegator_bond_less_does_not_delete_bottom_delegations() {
+fn execute_delegator_bond_less_does_not_delete_bottom_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 11), (4, 12), (5, 14), (6, 15)])
 		.with_candidates(vec![(1, 20)])
@@ -3130,6 +3170,7 @@ fn collator_selection_chooses_top_candidates() {
 				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(21);
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6));
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_eq!(
 				last_event(),
@@ -3151,7 +3192,6 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(3, 4, 70),
 				Event::CollatorChosen(3, 5, 60),
 				Event::NewRound(10, 3, 5, 400),
-				Event::CollatorLeft(6, 50, 400),
 				Event::CollatorChosen(4, 1, 100),
 				Event::CollatorChosen(4, 2, 90),
 				Event::CollatorChosen(4, 3, 80),
@@ -3164,6 +3204,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(5, 4, 70),
 				Event::CollatorChosen(5, 5, 60),
 				Event::NewRound(20, 5, 5, 400),
+				Event::CollatorLeft(6, 50, 400),
 				Event::JoinedCollatorCandidates(6, 69, 469),
 				Event::CollatorChosen(6, 1, 100),
 				Event::CollatorChosen(6, 2, 90),
@@ -3172,7 +3213,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(6, 6, 69),
 				Event::NewRound(25, 6, 5, 409),
 			];
-			assert_eq!(events(), expected);
+			asserts_eq!(events(), expected);
 		});
 }
 
@@ -3403,6 +3444,7 @@ fn multiple_delegations() {
 			assert_eq!(Balances::free_balance(&6), 60);
 			assert_eq!(Balances::free_balance(&7), 10);
 			roll_to(40);
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
 			assert_eq!(Stake::delegator_state(7).unwrap().total, 10);
 			assert_eq!(Stake::delegator_state(6).unwrap().total, 30);
 			assert_eq!(
@@ -3824,14 +3866,9 @@ fn nomination_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
 			// Top delegations are full, new highest nomination is made
 			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15, 10, 10));
-			let mut expected_events = Vec::new();
-			expected_events.push(Event::Nomination(
-				7,
-				15,
-				1,
-				DelegatorAdded::AddedToTop { new_total: 74 },
-			));
-			assert_eq!(events(), expected_events);
+			let expected_event =
+				Event::Nomination(7, 15, 1, DelegatorAdded::AddedToTop { new_total: 74 });
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
@@ -3842,8 +3879,8 @@ fn nomination_events_convey_correct_position() {
 			);
 			// New nomination is added to the bottom
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
-			expected_events.push(Event::Nomination(8, 10, 1, DelegatorAdded::AddedToBottom));
-			assert_eq!(events(), expected_events);
+			let expected_event = Event::Nomination(8, 10, 1, DelegatorAdded::AddedToBottom);
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
@@ -3854,8 +3891,12 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 8 increases nomination to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(8), 1, 3));
-			expected_events.push(Event::NominationIncreased(8, 1, 3, true));
-			assert_eq!(events(), expected_events);
+			let expected_event = Event::NominationIncreaseScheduled(8, 1, 3, 3);
+			assert!(events().contains(&expected_event));
+			roll_to(10);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(8), 8, 1));
+			let expected_event = Event::NominationIncreased(8, 1, 3, true);
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 75);
@@ -3866,8 +3907,12 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 3 increases nomination but stays in bottom
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 1));
-			expected_events.push(Event::NominationIncreased(3, 1, 1, false));
-			assert_eq!(events(), expected_events);
+			let expected_event = Event::NominationIncreaseScheduled(3, 1, 1, 5);
+			assert!(events().contains(&expected_event));
+			roll_to(20);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
+			let expected_event = Event::NominationIncreased(3, 1, 1, false);
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 75);
@@ -3878,8 +3923,12 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination but stays in top
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 2));
-			expected_events.push(Event::NominationDecreased(6, 1, 2, true));
-			assert_eq!(events(), expected_events);
+			let expected_event = Event::NominationDecreaseScheduled(6, 1, 2, 7);
+			assert!(events().contains(&expected_event));
+			roll_to(30);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
+			let expected_event = Event::NominationDecreased(6, 1, 2, true);
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 73);
@@ -3890,8 +3939,12 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination and is bumped to bottom
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 1));
-			expected_events.push(Event::NominationDecreased(6, 1, 1, false));
-			assert_eq!(events(), expected_events);
+			let expected_event = Event::NominationDecreaseScheduled(6, 1, 1, 9);
+			assert!(events().contains(&expected_event));
+			roll_to(40);
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
+			let expected_event = Event::NominationDecreased(6, 1, 1, false);
+			assert!(events().contains(&expected_event));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 73);
