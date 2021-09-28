@@ -37,6 +37,8 @@ use sp_externalities::Extensions;
 use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
 use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
+use cli_opt::RpcConfig;
+use service::chain_spec;
 
 struct PerfTestRunner<B: BlockT, ExecDispatch: NativeExecutionDispatch + 'static> {
 	state: BenchmarkingState<B>,
@@ -178,6 +180,50 @@ impl PerfCmd {
 			Some(Default::default()),
 			false,
 		)?;
+
+		Ok(())
+	}
+
+	// taking a different approach and starting a full dev service
+	pub fn run2(&self, config: Configuration, ) -> Result<()> {
+		log::warn!("PerfCmd::run2()");
+
+		let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+			"Alice",
+		));
+
+		// TODO: can we explicitly disable everything RPC-related? or anything network related, for
+		//       that matter?
+		//       Note: new_dev() calls `network_starter.start_network()` at the very end
+		let rpc_config = RpcConfig {
+			ethapi: Default::default(),
+			ethapi_max_permits: 0,
+			ethapi_trace_max_count: 0,
+			ethapi_trace_cache_duration: 0,
+			max_past_logs: 0,
+		};
+
+		// TODO: allow CLI to configure or at least make sure this doesn't conflict with available
+		//       CLI options
+		let sealing = cli_opt::Sealing::Manual;
+
+		let service = service::new_dev::<
+			service::moonbase_runtime::RuntimeApi,
+			service::MoonbaseExecutor
+		>(config, author_id, sealing, rpc_config)?;
+
+
+		log::warn!("we have a service!");
+
+		service.spawn_essential_handle().spawn_blocking(
+			"perf-test",
+			async {
+				log::warn!("perf-test task");
+			}
+		);
+
+		// TODO: block until all tests have completed
+		std::thread::sleep(time::Duration::from_millis(2000));
 
 		Ok(())
 	}

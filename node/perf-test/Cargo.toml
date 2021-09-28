@@ -18,3 +18,7 @@ sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-
 sp-externalities = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-keystore = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+
+service = { package = "moonbeam-service", path = "../service", default-features = false }
+cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
