@@ -41,6 +41,10 @@ use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
 use cli_opt::RpcConfig;
 use fp_rpc::EthereumRuntimeRPCApi;
+use nimbus_primitives::NimbusId;
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, ParachainInherentData,
+};
 
 use service::{chain_spec, RuntimeApiCollection, Block};
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
@@ -70,6 +74,10 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		Executor: NativeExecutionDispatch + 'static,
 {
 	fn from_cmd(config: &Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+
+		use async_io::Timer;
+		use futures::Stream;
+		use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 
 		// TODO: can we explicitly disable everything RPC-related? or anything network related, for
 		//       that matter?
@@ -104,8 +112,69 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 					frontier_backend,
 				),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
-		log::warn!("we have a service!");
+		// TODO: no need for prometheus here...
+		let prometheus_registry = config.prometheus_registry().cloned();
+		let mut command_sink = None;
+
+		let env = sc_basic_authorship::ProposerFactory::new(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool.clone(),
+			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|x| x.handle()),
+		);
+
+		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
+		{
+			let (sink, stream) = futures::channel::mpsc::channel(1000);
+			// Keep a reference to the other end of the channel. It goes to the RPC.
+			command_sink = Some(sink);
+			Box::new(stream)
+		};
+
+		let select_chain = maybe_select_chain.expect(
+			"`new_partial` builds a `LongestChainRule` when building dev service.\
+				We specified the dev service when calling `new_partial`.\
+				Therefore, a `LongestChainRule` is present. qed.",
+		);
+
+		let client_set_aside_for_cidp = client.clone();
+
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"authorship_task",
+			run_manual_seal(ManualSealParams {
+				block_import,
+				env,
+				client: client.clone(),
+				pool: transaction_pool.clone(),
+				commands_stream,
+				select_chain,
+				consensus_data_provider: None,
+				create_inherent_data_providers: move |block: H256, ()| {
+					let current_para_block = client_set_aside_for_cidp
+						.number(block)
+						.expect("Header lookup should succeed")
+						.expect("Header passed in as parent should be present in backend.");
+					let author_id = author_id.clone();
+
+					async move {
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+						let mocked_parachain = MockValidationDataInherentDataProvider {
+							current_para_block,
+							relay_offset: 1000,
+							relay_blocks_per_para_block: 2,
+						};
+
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+						Ok((time, mocked_parachain, author))
+					}
+				},
+			}),
+		);
 
 		Ok(PerfTestRunner {
 			task_manager,
