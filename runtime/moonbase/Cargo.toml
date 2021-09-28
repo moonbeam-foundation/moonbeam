@@ -41,6 +41,7 @@ pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", 
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
+xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
@@ -200,7 +201,8 @@ std = [
 	"pallet-asset-manager/std",
 	"orml-xtokens/std",
 	"xcm-primitives/std",
-	"pallet-evm-precompile-balances-erc20/std"
+	"pallet-evm-precompile-balances-erc20/std",
+	"xtokens-precompiles/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

@@ -30,6 +30,7 @@ use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xtokens_precompiles::XtokensWrapper;
 
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
@@ -64,6 +65,7 @@ where
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
+	XtokensWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -98,6 +100,7 @@ where
 			a if a == hash(2051) => {
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			_ => None,
 		}
 	}
