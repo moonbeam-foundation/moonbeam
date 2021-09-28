@@ -1245,12 +1245,12 @@ construct_runtime! {
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
-		Utility: pallet_utility::{Pallet, Call, Event} = 1,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
+		Utility: pallet_utility::{Pallet, Call, Event} = 2,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 4,
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 5,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
