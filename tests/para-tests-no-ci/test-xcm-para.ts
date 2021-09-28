@@ -1,6 +1,6 @@
 import Keyring from "@polkadot/keyring";
 import { expect } from "chai";
-import { BN } from "@polkadot/util";
+import { BN, hexToU8a } from "@polkadot/util";
 
 import { ALITH, ALITH_PRIV_KEY, BALTATHAR, BALTATHAR_PRIV_KEY } from "../util/constants";
 import { describeParachain } from "../util/setup-para-tests";
@@ -16,6 +16,12 @@ const relayAssetMetadata = {
   name: "DOT",
   symbol: "DOT",
   decimals: new BN(12),
+  isFrozen: false,
+};
+const paraAssetMetadata = {
+  name: "GLMR",
+  symbol: "GLMR",
+  decimals: new BN(18),
   isFrozen: false,
 };
 const sourceLocation = { XCM: { X1: "Parent" } };
@@ -225,7 +231,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
 
 describeParachain(
   "XCM - send_relay_asset_to_para_b - aka parachainTwo",
-  { chain: "moonbase-local" },
+  { chain: "moonbase-local", numberOfParachains: 2 },
   (context) => {
     let keyring: Keyring,
       aliceRelay: KeyringPair,
@@ -258,9 +264,13 @@ describeParachain(
       // PARACHAIN A
       // registerAsset
       ({ assetId } = await registerAssetToParachain(parachainOne, alith));
+
       // PARACHAIN B
       // registerAsset
-      await registerAssetToParachain(parachainTwo, alith);
+      const { assetId: assetIdB } = await registerAssetToParachain(parachainTwo, alith);
+
+      // They should have the same id
+      expect(assetId).to.eq(assetIdB);
 
       // check asset in storage
       // const registeredAsset = await parachainOne.query.assets.asset(assetId);
@@ -296,6 +306,7 @@ describeParachain(
     it.only("should be able to receive an asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
+      console.log(" hexToU8a(BALTATHAR)", hexToU8a(BALTATHAR));
       const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
         parachainOne,
         baltathar,
@@ -303,7 +314,11 @@ describeParachain(
           { OtherReserve: assetId },
           new BN(HUNDRED_UNITS),
           {
-            X2: ["Parent", { AccountId32: { network: "Any", id: aliceRelay.addressRaw } }],
+            X3: [
+              "Parent",
+              { Parachain: new BN(2000) },
+              { AccountKey20: { network: "Any", id: hexToU8a(BALTATHAR) } },
+            ],
           },
           new BN(4000000000)
         )
@@ -312,15 +327,15 @@ describeParachain(
         let ev = e.toHuman();
         console.log("tsf ", ev);
       });
-      await waitOneBlock(relayOne, 2);
+      await waitOneBlock(parachainTwo, 3);
       // about 1k should have been substracted from AliceRelay
       console.log(
-        "alice relay bal",
-        ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
+        "baltathar para a bal",
+        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman()
       );
       console.log(
-        "baltathar bal",
-        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman()
+        "baltathar para b bal",
+        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman()
       );
 
       expect(
@@ -329,7 +344,11 @@ describeParachain(
       // Alith asset balance should have been increased to 1000*e12
       expect(
         (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "1,000,000,000,000,000"
+          "900,000,000,000,000"
+      ).to.eq(true);
+      expect(
+        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
+          "100,000,000,000,000"
       ).to.eq(true);
     });
   }

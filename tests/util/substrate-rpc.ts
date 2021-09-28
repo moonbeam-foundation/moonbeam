@@ -75,9 +75,13 @@ export async function logEvents(api: ApiPromise, name: string) {
         (e.toHuman() as any).event.method
       );
       if (
+        (e.toHuman() as any).event.method === "DownwardMessagesReceived" ||
+        (e.toHuman() as any).event.method === "NewAccount" ||
+        (e.toHuman() as any).event.method === "Issued" ||
+        (e.toHuman() as any).event.method === "ExecutedDownward" ||
+        (e.toHuman() as any).event.method === "DownwardMessagesProcessed" ||
         (e.toHuman() as any).event.method === "UpwardMessagesReceived" ||
         (e.toHuman() as any).event.method === "ExecutedUpward" ||
-        (e.toHuman() as any).event.method === "Endowed" ||
         (e.toHuman() as any).event.method === "Deposit"
       ) {
         console.log(JSON.stringify(e.toHuman()));
