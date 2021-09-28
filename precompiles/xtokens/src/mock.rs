@@ -28,6 +28,7 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 };
+use frame_system::EnsureRoot;
 
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
@@ -38,7 +39,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::v0::{
-	Junction::{PalletInstance, Parachain, Parent},
+	Junction::{PalletInstance, Parachain, Parent, GeneralIndex},
 	NetworkId,
 };
 use xcm_executor::XcmExecutor;
@@ -95,8 +96,10 @@ pub enum TestAccount {
 	Alice,
 	Bob,
 	Charlie,
-	AssetId,
+	AssetId(u128),
+	SelfReserve,
 	Bogus,
+	Precompile,
 }
 
 impl Default for TestAccount {
@@ -111,8 +114,18 @@ impl AddressMapping<TestAccount> for TestAccount {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::repeat_byte(0xDD) => Self::AssetId,
-			_ => Self::Bogus,
+			a if a == H160::repeat_byte(0xDD) => Self::SelfReserve,
+			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
+			_ => {
+				let mut data = [0u8; 16];
+				let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+				if prefix_part == &[255u8; 4] {
+					data.copy_from_slice(id_part);
+
+					return Self::AssetId(u128::from_be_bytes(data));
+				}
+				Self::Bogus
+			}
 		}
 	}
 }
@@ -129,7 +142,15 @@ impl From<TestAccount> for H160 {
 			TestAccount::Alice => H160::repeat_byte(0xAA),
 			TestAccount::Bob => H160::repeat_byte(0xBB),
 			TestAccount::Charlie => H160::repeat_byte(0xCC),
-			TestAccount::AssetId => H160::repeat_byte(0xDD),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
+			TestAccount::SelfReserve => H160::repeat_byte(0xDD),
+			TestAccount::AssetId(asset_id) => {
+				let mut data = [0u8; 20];
+				let id_as_bytes = asset_id.to_be_bytes();
+				data[0..4].copy_from_slice(&[255u8; 4]);
+				data[4..20].copy_from_slice(&id_as_bytes);
+				H160::from_slice(&data)
+			}
 			TestAccount::Bogus => Default::default(),
 		}
 	}
@@ -195,6 +216,17 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 }
+
+// These parameters dont matter much as this will only be called by root with the forced arguments
+// No deposit is substracted with those methods
+parameter_types! {
+	pub const AssetDeposit: Balance = 0;
+	pub const ApprovalDeposit: Balance = 0;
+	pub const AssetsStringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 0;
+	pub const MetadataDepositPerByte: Balance = 0;
+}
+
 pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
@@ -206,7 +238,7 @@ where
 	R::Call: From<orml_xtokens::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
-	<R as orml_xtokens::Config>::CurrencyId: From<R::AccountId>,
+	R::AccountId: Into<Option<<R as orml_xtokens::Config>::CurrencyId>>,
 {
 	fn execute(
 		address: H160,
@@ -307,8 +339,6 @@ impl InvertLocation for InvertNothing {
 	}
 }
 
-pub type LocalOriginToLocation = xcm_builder::SignedAccountKey20AsNative<RelayNetwork, Origin>;
-
 impl pallet_xcm::Config for Test {
 	// The config types here are entirely configurable, since the only one that is sorely needed
 	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
@@ -344,9 +374,13 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl From<TestAccount> for CurrencyId {
-	fn from(address: TestAccount) -> Self {
-		CurrencyId::SelfReserve
+impl Into<Option<CurrencyId>> for TestAccount {
+	fn into(self) -> Option<CurrencyId> {
+		match self {
+			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
+			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
+			_ => None
+		}
 	}
 }
 
@@ -359,8 +393,14 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
+			// To distinguish between relay and others, specially for reserve asset
 			CurrencyId::OtherReserve(asset) => {
-				Some(MultiLocation::X3(Parent, Parachain(2), PalletInstance(1)))
+				if asset == 0 {
+					Some(MultiLocation::X1(Parent))
+				}
+				else {
+				Some(MultiLocation::X3(Parent, Parachain(2), GeneralIndex{ id: asset}))
+				}
 			}
 		}
 	}
@@ -380,7 +420,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 0;
+	pub const BaseXcmWeight: Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent,  Parachain(ParachainId::get().into()).into());

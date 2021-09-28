@@ -29,12 +29,10 @@ use precompile_utils::{
 };
 
 use sp_core::{H160, U256};
-use sp_runtime::traits::Convert;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
-	vec,
 	vec::Vec,
 };
 
@@ -48,7 +46,7 @@ mod tests;
 pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
 	Transfer = "transfer(address, u256, bytes[], u64)",
 }
@@ -63,7 +61,7 @@ where
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
+	Runtime::AccountId: Into<Option<<Runtime as orml_xtokens::Config>::CurrencyId>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -86,7 +84,7 @@ where
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	<Runtime as orml_xtokens::Config>::CurrencyId: From<Runtime::AccountId>,
+	Runtime::AccountId: Into<Option<<Runtime as orml_xtokens::Config>::CurrencyId>>,
 {
 	// The accessors are first. They directly return their result.
 	fn transfer(
@@ -111,7 +109,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
-		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId = to_account.into();
+		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId = to_account.into().ok_or(error("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = amount
@@ -134,8 +132,8 @@ where
 		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			cost: Default::default(),
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
 			output: Default::default(),
 			logs: Default::default(),
 		})
