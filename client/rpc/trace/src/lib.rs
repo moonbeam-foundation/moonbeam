@@ -823,6 +823,10 @@ where
 		};
 
 		let eth_block_hash = eth_block.header.hash();
+		let eth_tx_hashes = eth_transactions
+			.iter()
+			.map(|t| t.transaction_hash)
+			.collect();
 
 		// Get extrinsics (containing Ethereum ones)
 		let extrinsics = backend
@@ -847,7 +851,7 @@ where
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
-				.trace_block(&substrate_parent_id, extrinsics)
+				.trace_block(&substrate_parent_id, extrinsics, eth_tx_hashes)
 				.map_err(|e| {
 					internal_err(format!(
 						"Blockchain error when replaying block {} : {:?}",
