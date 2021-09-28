@@ -32,13 +32,15 @@ use sp_core::{
 };
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use sc_client_db::BenchmarkingState;
+use sc_client_api::HeaderBackend;
 use sc_executor::NativeExecutor;
 use sp_externalities::Extensions;
 use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
-use sp_api::ConstructRuntimeApi;
+use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
 use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
 use cli_opt::RpcConfig;
+use fp_rpc::EthereumRuntimeRPCApi;
 
 use service::{chain_spec, RuntimeApiCollection, Block};
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
@@ -241,8 +243,24 @@ impl PerfCmd {
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"perf-test",
-			async {
+			async move {
 				log::warn!("perf-test task");
+
+				let hash = client.info().best_hash;
+
+				let info = client.runtime_api().call(
+					&BlockId::Hash(hash),
+					Default::default(),
+					Default::default(),
+					Default::default(),
+					Default::default(),
+					Default::default(),
+					Some(Default::default()),
+					Some(Default::default()),
+					false,
+				).map_err(|err| panic!("runtime error: {:?}", err));
+
+				log::warn!("call results: {:?}", info);
 			}
 		);
 
