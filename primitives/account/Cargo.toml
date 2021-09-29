@@ -15,16 +15,16 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
 log = "0.4"
 hex = { version = "0.4", default-features = false }
-sha3 = { version = "0.8", default-features = false }
+sha3 = { version = "0.9", default-features = false }
 
 blake2-rfc = { version = "0.2.18", default-features = false, optional = true }
-sp-runtime-interface = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+sp-runtime-interface = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-libsecp256k1 = { version = "0.3.2", default-features = false, features = ["hmac"] }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+libsecp256k1 = { version = "0.6", default-features = false, features = ["hmac"] }
 
 [dev-dependencies]
 hex = "0.4.3"

@@ -12,6 +12,10 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     expect(txResults[0].result).to.not.be.null;
+
+    // Todo: Understand why this block is necessary :/
+    // without it, it would have a receipt without block number/hash
+    await context.createBlock();
     const receipt = await context.web3.eth.getTransaction(txResults[0].result);
     expect(receipt.blockHash).to.be.not.null;
   });
