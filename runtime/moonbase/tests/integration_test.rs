@@ -37,8 +37,9 @@ use moonbase_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
-	Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+	AccountIdToAssetId, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
 use parity_scale_codec::Encode;
@@ -1064,7 +1065,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
 			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1122,7 +1123,7 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1196,7 +1197,7 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {

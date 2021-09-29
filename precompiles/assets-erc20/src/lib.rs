@@ -32,7 +32,6 @@ use precompile_utils::{
 	LogsBuilder, RuntimeHelper,
 };
 
-use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData, vec};
 
