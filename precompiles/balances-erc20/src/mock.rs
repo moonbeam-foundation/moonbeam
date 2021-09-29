@@ -193,26 +193,6 @@ construct_runtime!(
 	}
 );
 
-/// ERC20 metadata for the native token.
-pub struct NativeErc20Metadata;
-
-impl Erc20Metadata for NativeErc20Metadata {
-	/// Returns the name of the token.
-	fn name() -> &'static str {
-		"Mock tokens"
-	}
-
-	/// Returns the symbol of the token.
-	fn symbol() -> &'static str {
-		"MOCK"
-	}
-
-	/// Returns the decimals places of the token.
-	fn decimals() -> u8 {
-		18
-	}
-}
-
 pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
@@ -232,10 +212,9 @@ where
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
-				R,
-				NativeErc20Metadata,
-			>::execute(input, target_gas, context)),
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<R>::execute(
+				input, target_gas, context,
+			)),
 			_ => None,
 		}
 	}

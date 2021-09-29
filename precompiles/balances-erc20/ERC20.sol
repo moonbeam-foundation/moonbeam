@@ -7,24 +7,6 @@ pragma solidity ^0.4.24;
  */
 interface IERC20 {
   /**
-   * @dev Returns the name of the token.
-   * Selector: 06fdde03
-   */
-  function name() external view returns (string memory);
-
-  /**
-   * @dev Returns the symbol of the token.
-   * Selector: 95d89b41
-   */
-  function symbol() external view returns (string memory);
-
-  /**
-   * @dev Returns the decimals places of the token.
-   * Selector: 313ce567
-   */
-  function decimals() external view returns (uint8);
-
-  /**
    * @dev Total number of tokens in existence
    * Selector: 18160ddd
    */
