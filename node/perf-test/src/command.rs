@@ -45,6 +45,10 @@ use nimbus_primitives::NimbusId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
+use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+
+use async_io::Timer;
+use futures::{Stream, Sink, SinkExt, channel::mpsc::Sender};
 
 use service::{chain_spec, RuntimeApiCollection, Block};
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
@@ -60,6 +64,8 @@ struct PerfTestRunner<RuntimeApi, Executor>
 {
 	task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
+	manual_seal_command_sink: futures::channel::mpsc::Sender<EngineCommand<H256>>,
+
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
 }
@@ -74,10 +80,6 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		Executor: NativeExecutionDispatch + 'static,
 {
 	fn from_cmd(config: &Configuration, cmd: &PerfCmd) -> CliResult<Self> {
-
-		use async_io::Timer;
-		use futures::Stream;
-		use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 
 		// TODO: can we explicitly disable everything RPC-related? or anything network related, for
 		//       that matter?
@@ -116,7 +118,8 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
-		let mut command_sink = None;
+		// let mut command_sink: Option<Box<Sink<EngineCommand<H256>>>> = None;
+		let mut command_sink: Option<Box<dyn Sink<EngineCommand<H256>, Error = ()>>> = None;
 
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
@@ -126,13 +129,8 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 
-		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
-		{
-			let (sink, stream) = futures::channel::mpsc::channel(1000);
-			// Keep a reference to the other end of the channel. It goes to the RPC.
-			command_sink = Some(sink);
-			Box::new(stream)
-		};
+		log::warn!("opening channel...");
+		let (command_sink, commands_stream) = futures::channel::mpsc::channel(1000);
 
 		let select_chain = maybe_select_chain.expect(
 			"`new_partial` builds a `LongestChainRule` when building dev service.\
@@ -142,6 +140,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		let client_set_aside_for_cidp = client.clone();
 
+		log::warn!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -149,7 +148,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 				env,
 				client: client.clone(),
 				pool: transaction_pool.clone(),
-				commands_stream,
+				commands_stream: Box::new(commands_stream),
 				select_chain,
 				consensus_data_provider: None,
 				create_inherent_data_providers: move |block: H256, ()| {
@@ -176,9 +175,11 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			}),
 		);
 
+		log::warn!("returning new PerfTestRunner");
 		Ok(PerfTestRunner {
 			task_manager,
 			client: client.clone(),
+			manual_seal_command_sink: command_sink,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
 		})
@@ -237,6 +238,20 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
 	}
+
+	/// Author a block through manual sealing
+	fn create_block(&mut self) {
+		log::warn!("Issuing seal command...");
+		let result = self.manual_seal_command_sink.send(
+			EngineCommand::SealNewBlock {
+				create_empty: false,
+				finalize: false,
+				parent_hash: None,
+				sender: None,
+			});
+
+		// log::warn!("SealNewBlock send result: {:?}", result);
+	}
 }
 
 impl CliConfiguration for PerfCmd {
@@ -276,6 +291,7 @@ impl PerfCmd {
 		log::warn!("alice: {:?}", alice);
 
 		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
+		log::warn!("Created runner");
 
 		let mut alice_nonce: U256 = 0.into();
 
@@ -306,6 +322,8 @@ impl PerfCmd {
 		let fibonacci_bytecode = hex::decode(fibonacci_hex)
 			.expect("fibonacci_hex is valid hex; qed");
 
+		// TODO: send txn rather than call create
+		log::warn!("Issuing EVM create call...");
 		let create_results = runner.evm_create(
 			alice,
 			fibonacci_bytecode,
@@ -318,11 +336,14 @@ impl PerfCmd {
 		let fibonacci_address: H160 = create_results.value;
 		log::debug!("fibonacci_address: {:?}", fibonacci_address);
 
+		runner.create_block();
+
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
+		/*
 		let call_results = runner.evm_call(
 			alice,
 			fibonacci_address,
@@ -335,6 +356,10 @@ impl PerfCmd {
 		).expect("EVM call failed while trying to invoke Fibonacci contract");
 
 		log::warn!("EVM call returned {:?}", call_results);
+		*/
+
+		log::warn!("sleeping for a bit...");
+		std::thread::sleep(std::time::Duration::from_millis(5000));
 
 		Ok(())
 	}
