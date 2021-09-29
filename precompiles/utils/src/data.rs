@@ -141,27 +141,27 @@ impl EvmDataWriter {
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
-		Self::build_arrays(&mut self.data, self.arrays, 0);
+		Self::build_arrays(&mut self.data, self.arrays);
 
 		self.data
 	}
 
 	/// Build the array into data.
-	/// `global_offset` represents the start of the frame we are modifying.
-	/// While the main data will have a `global_offset` of 0, inner arrays will have a
-	/// `global_offset` corresponding to the start its parent array size data.
-	fn build_arrays(output: &mut Vec<u8>, arrays: Vec<Array>, global_offset: usize) {
+	fn build_arrays(output: &mut Vec<u8>, arrays: Vec<Array>) {
 		for mut array in arrays {
 			let offset_position = array.offset_position;
 			let offset_position_end = offset_position + 32;
-			let free_space_offset = output.len() + global_offset;
+
+			// The offset is the distance between the start of the offset location and the
+			// start of the array length.
+			let free_space_offset = output.len() - offset_position;
 
 			// Override dummy offset to the offset it will be in the final output.
 			U256::from(free_space_offset)
 				.to_big_endian(&mut output[offset_position..offset_position_end]);
 
 			// Build inner arrays if any.
-			Self::build_arrays(&mut array.data, array.inner_arrays, free_space_offset);
+			Self::build_arrays(&mut array.data, array.inner_arrays);
 
 			// Append this data at the end of the current output.
 			output.append(&mut array.data);
@@ -325,7 +325,8 @@ impl EvmData for bool {
 
 impl<T: EvmData> EvmData for Vec<T> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let array_start: usize = reader
+		let offset_reference = reader.cursor;
+		let array_offset: usize = reader
 			.read::<U256>()
 			.map_err(|_| error("tried to parse array offset out of bounds"))?
 			.try_into()
@@ -333,7 +334,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 		// We temporarily move the cursor to the offset, we'll set it back afterward.
 		let original_cursor = reader.cursor;
-		reader.cursor = array_start;
+		reader.cursor = offset_reference + array_offset;
 
 		let array_size: usize = reader
 			.read::<U256>()

@@ -384,11 +384,8 @@ fn write_address_nested_array() {
 
 	assert_eq!(reader.read::<U256>().expect("read offset"), 0x20.into()); // 0x00
 	assert_eq!(reader.read::<U256>().expect("read size"), 2.into()); // 0x20
-	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x80.into()); // 0x40
-	assert_eq!(
-		reader.read::<U256>().expect("read 2st offset"),
-		0x100.into()
-	); // 0x60
+	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x40.into()); // 0x40
+	assert_eq!(reader.read::<U256>().expect("read 2st offset"), 0xa0.into()); // 0x60
 	assert_eq!(reader.read::<U256>().expect("read 1st size"), 3.into()); // 0x80
 	assert_eq!(reader.read::<Address>().expect("read 1-1"), array[0][0]); // 0xA0
 	assert_eq!(reader.read::<Address>().expect("read 1-2"), array[0][1]); // 0xC0
@@ -441,7 +438,7 @@ fn write_multiple_arrays() {
 	let mut reader = EvmDataReader::new(&writer_output);
 
 	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x40.into()); // 0x00
-	assert_eq!(reader.read::<U256>().expect("read 2nd offset"), 0xc0.into()); // 0x20
+	assert_eq!(reader.read::<U256>().expect("read 2nd offset"), 0xa0.into()); // 0x20
 	assert_eq!(reader.read::<U256>().expect("read 1st size"), 3.into()); // 0x40
 	assert_eq!(reader.read::<Address>().expect("read 1-1"), array1[0]); // 0x60
 	assert_eq!(reader.read::<Address>().expect("read 1-2"), array1[1]); // 0x80
