@@ -54,8 +54,6 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonriverPrecompiles<R>
 where
-	// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands
-	R: pallet_evm::Config,
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,

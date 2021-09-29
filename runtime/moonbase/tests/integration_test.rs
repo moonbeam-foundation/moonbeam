@@ -43,7 +43,11 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
-use xcm::v0::{Junction, MultiLocation::*};
+use xcm::v1::{
+	Junction::{PalletInstance, Parachain},
+	Junctions, MultiLocation,
+};
+use xcm::{latest::prelude::*, VersionedXcm};
 
 #[test]
 fn fast_track_available() {
@@ -199,30 +203,40 @@ fn verify_pallet_indices() {
 			Some(index)
 		);
 	}
+	// System support
 	is_pallet_index::<moonbase_runtime::System>(0);
-	is_pallet_index::<moonbase_runtime::Utility>(1);
-	is_pallet_index::<moonbase_runtime::Timestamp>(2);
-	is_pallet_index::<moonbase_runtime::Balances>(3);
-	is_pallet_index::<moonbase_runtime::Sudo>(4);
-	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(5);
-	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
-	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
-	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);
-	is_pallet_index::<moonbase_runtime::EthereumChainId>(9);
-	is_pallet_index::<moonbase_runtime::EVM>(10);
-	is_pallet_index::<moonbase_runtime::Ethereum>(11);
-	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
-	is_pallet_index::<moonbase_runtime::Scheduler>(13);
-	is_pallet_index::<moonbase_runtime::Democracy>(14);
-	is_pallet_index::<moonbase_runtime::CouncilCollective>(15);
-	is_pallet_index::<moonbase_runtime::TechComitteeCollective>(16);
-	is_pallet_index::<moonbase_runtime::Treasury>(17);
-	is_pallet_index::<moonbase_runtime::AuthorInherent>(18);
-	is_pallet_index::<moonbase_runtime::AuthorFilter>(19);
-	is_pallet_index::<moonbase_runtime::CrowdloanRewards>(20);
-	is_pallet_index::<moonbase_runtime::AuthorMapping>(21);
-	is_pallet_index::<moonbase_runtime::Proxy>(22);
-	is_pallet_index::<moonbase_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbase_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(2);
+	is_pallet_index::<moonbase_runtime::Timestamp>(3);
+	is_pallet_index::<moonbase_runtime::ParachainInfo>(4);
+	// Monetary
+	is_pallet_index::<moonbase_runtime::Balances>(10);
+	is_pallet_index::<moonbase_runtime::TransactionPayment>(11);
+	// Consensus support
+	is_pallet_index::<moonbase_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonbase_runtime::AuthorInherent>(21);
+	is_pallet_index::<moonbase_runtime::AuthorFilter>(22);
+	is_pallet_index::<moonbase_runtime::AuthorMapping>(23);
+	// Handy utilities
+	is_pallet_index::<moonbase_runtime::Utility>(30);
+	is_pallet_index::<moonbase_runtime::Proxy>(31);
+	is_pallet_index::<moonbase_runtime::MaintenanceMode>(32);
+	// Sudo
+	is_pallet_index::<moonbase_runtime::Sudo>(40);
+	// Ethereum compatibility
+	is_pallet_index::<moonbase_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonbase_runtime::EVM>(51);
+	is_pallet_index::<moonbase_runtime::Ethereum>(52);
+	// Governance
+	is_pallet_index::<moonbase_runtime::Scheduler>(60);
+	is_pallet_index::<moonbase_runtime::Democracy>(61);
+	// Council
+	is_pallet_index::<moonbase_runtime::CouncilCollective>(70);
+	is_pallet_index::<moonbase_runtime::TechComitteeCollective>(71);
+	// Treasury
+	is_pallet_index::<moonbase_runtime::Treasury>(80);
+	// Crowdloan
+	is_pallet_index::<moonbase_runtime::CrowdloanRewards>(90);
 }
 
 #[test]
@@ -313,7 +327,7 @@ fn transfer_through_evm_to_stake() {
 					0u32
 				),
 				DispatchError::Module {
-					index: 3,
+					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
 				}
@@ -526,7 +540,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 20,
+					index: 90,
 					error: 8,
 					message: None,
 				},
@@ -1031,7 +1045,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = moonbase_runtime::AssetType::Xcm(X1(Junction::Parent));
+		let source_location = moonbase_runtime::AssetType::Xcm(MultiLocation::parent());
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
 		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),

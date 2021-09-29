@@ -22,9 +22,10 @@ use frame_support::{
 	traits::{Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use xcm::v0::{
-	Error as XcmError,
-	Junction::{AccountKey20, Parachain, Parent},
+use xcm::v1::{
+	AssetId as xcmAssetId, Error as XcmError, Fungibility,
+	Junction::{AccountKey20, Parachain},
+	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
@@ -76,10 +77,13 @@ where
 	AccountId: Into<[u8; 20]>,
 {
 	fn convert(account: AccountId) -> MultiLocation {
-		MultiLocation::X1(AccountKey20 {
-			network: NetworkId::Any,
-			key: account.into(),
-		})
+		MultiLocation {
+			parents: 0,
+			interior: X1(AccountKey20 {
+				network: NetworkId::Any,
+				key: account.into(),
+			}),
+		}
 	}
 }
 
@@ -143,17 +147,19 @@ impl<
 
 		// We are only going to check first asset for now. This should be sufficient for simple token
 		// transfers. We will see later if we change this.
-		match first_asset {
-			MultiAsset::ConcreteFungible { id, .. } => {
+		match (first_asset.id, first_asset.fun) {
+			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
 				let asset_id: AssetId = AssetId::from(asset_type);
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
 					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
-					let required = MultiAsset::ConcreteFungible {
-						amount,
-						id: id.clone(),
+					let required = MultiAsset {
+						fun: Fungibility::Fungible(amount),
+						id: xcmAssetId::Concrete(id.clone()),
 					};
-					let (unused, _) = payment.less(required).map_err(|_| XcmError::TooExpensive)?;
+					let unused = payment
+						.checked_sub(required)
+						.map_err(|_| XcmError::TooExpensive)?;
 					self.0 = self.0.saturating_add(weight);
 
 					// In case the asset matches the one the trader already stored before, add
@@ -189,8 +195,8 @@ impl<
 		}
 	}
 
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
-		let result = if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
+		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
 			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
@@ -199,11 +205,13 @@ impl<
 				prev_amount.saturating_sub(amount),
 				units_per_second,
 			));
-			MultiAsset::ConcreteFungible { id, amount }
+			Some(MultiAsset {
+				fun: Fungibility::Fungible(amount),
+				id: xcmAssetId::Concrete(id.clone()),
+			})
 		} else {
-			MultiAsset::None
-		};
-		result
+			None
+		}
 	}
 }
 
@@ -237,20 +245,34 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 
 		Err(XcmError::TooExpensive)
 	}
-	fn refund_weight(&mut self, weight: Weight) -> MultiAsset {
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		let native = self.native_trader.refund_weight(weight);
-		match native {
-			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return native,
+		match native.clone() {
+			Some(MultiAsset {
+				fun: Fungibility::Fungible(amount),
+				id: xcmAssetId::Concrete(_id),
+			}) => {
+				if !amount.is_zero() {
+					return native;
+				}
+			}
 			_ => {}
 		}
 
 		let other = self.other_trader.refund_weight(weight);
 		match other {
-			MultiAsset::ConcreteFungible { amount, .. } if !amount.is_zero() => return other,
+			Some(MultiAsset {
+				fun: Fungibility::Fungible(amount),
+				id: xcmAssetId::Concrete(_id),
+			}) => {
+				if !amount.is_zero() {
+					return native;
+				}
+			}
 			_ => {}
 		}
 
-		MultiAsset::None
+		None
 	}
 }
 
@@ -262,11 +284,13 @@ pub trait Reserve {
 // Takes the chain part of a MultiAsset
 impl Reserve for MultiAsset {
 	fn reserve(&self) -> Option<MultiLocation> {
-		if let MultiAsset::ConcreteFungible { id, .. } = self {
-			match (id.first(), id.at(1)) {
-				(Some(Parent), Some(Parachain(id))) => Some((Parent, Parachain(*id)).into()),
-				(Some(Parent), _) => Some(Parent.into()),
-				(Some(Parachain(id)), _) => Some(Parachain(*id).into()),
+		if let xcmAssetId::Concrete(location) = self.id.clone() {
+			let first_interior = location.first_interior();
+			let parents = location.parent_count();
+			match (parents, first_interior.clone()) {
+				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
+				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
+				(1, _) => Some(MultiLocation::parent()),
 				_ => None,
 			}
 		} else {

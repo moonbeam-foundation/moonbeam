@@ -16,14 +16,14 @@ parity-scale-codec = { version = "2.2", default-features = false, features = ["d
 log = "0.4"
 hex = { version = "0.4", default-features = false }
 sha3 = { version = "0.8", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "crystalin-v0.9.9-block-response-length" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
-xcm =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
-xcm-builder =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
-xcm-executor =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-v0.9.9-block-response-length" }
+xcm =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm-builder =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm-executor =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 [features]
 default = ["std"]
