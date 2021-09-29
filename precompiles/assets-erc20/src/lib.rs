@@ -65,7 +65,7 @@ pub enum Action {
 
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
-pub trait AccountIdToAssetId<Account, AssetId> {
+pub trait AccountIdAssetIdConversion<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
 
@@ -96,7 +96,7 @@ where
 	Instance: 'static,
 	Erc20AssetsPrecompile<Runtime, Instance>: Precompile,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 {
 	fn execute(
 		address: H160,
@@ -136,7 +136,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
@@ -165,7 +165,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn total_supply(

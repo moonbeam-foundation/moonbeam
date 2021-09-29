@@ -30,7 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
-use pallet_evm_precompile_assets_erc20::AccountIdToAssetId;
+use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use sp_runtime::traits::Hash as THash;
 
@@ -382,7 +382,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 
 // Instruct how to go from an H160 to an AssetID
 // We just take the lowest 128 bits
-impl AccountIdToAssetId<AccountId, AssetId> for Runtime {
+impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
