@@ -46,9 +46,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^5.9.1",
+    "@polkadot/api": "^6.1.2",
     "@polkadot/keyring": "^7.4.1",
-    "@polkadot/types": "^5.9.1",
+    "@polkadot/types": "^6.1.2",
     "@polkadot/util": "^7.4.1",
     "@polkadot/util-crypto": "^7.4.1",
     "@substrate/txwrapper-core": "^1.2.14",

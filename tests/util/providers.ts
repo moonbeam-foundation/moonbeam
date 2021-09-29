@@ -76,7 +76,7 @@ export const providePolkadotApi = async (port: number, isNotMoonbeam?: boolean) 
       })
     : await ApiPromise.create({
         provider: new WsProvider(`ws://localhost:${port}`),
-        typesBundle: typesBundle as any,
+        // typesBundle: typesBundle as any,
       });
 };
 
