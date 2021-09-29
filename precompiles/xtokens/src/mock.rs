@@ -22,7 +22,7 @@ use frame_support::{
 	weights::Weight,
 };
 
-use xcm::v0::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, SendXcm, Xcm};
+use xcm::v1::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, SendXcm, Xcm};
 
 use frame_support::{construct_runtime, parameter_types};
 
@@ -34,8 +34,8 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use xcm::v0::{
-	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain, Parent},
+use xcm::v1::{
+	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
 	NetworkId,
 };
 use xcm_executor::XcmExecutor;
@@ -288,7 +288,7 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 	type Success = MultiLocation;
 
 	fn try_origin(_: Origin) -> Result<MultiLocation, Origin> {
-		Ok(MultiLocation::Null)
+		Ok(MultiLocation::here())
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
@@ -331,7 +331,7 @@ impl WeightTrader for DummyWeightTrader {
 pub struct InvertNothing;
 impl InvertLocation for InvertNothing {
 	fn invert_location(_: &MultiLocation) -> MultiLocation {
-		MultiLocation::Null
+		MultiLocation::here()
 	}
 }
 
@@ -363,6 +363,7 @@ impl xcm_executor::Config for XcmConfig {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type Trader = DummyWeightTrader;
 	type ResponseHandler = ();
+	type SubscriptionService = ();
 }
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum CurrencyId {
@@ -405,12 +406,11 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 			// To distinguish between relay and others, specially for reserve asset
 			CurrencyId::OtherReserve(asset) => {
 				if asset == 0 {
-					Some(MultiLocation::X1(Parent))
+					Some(MultiLocation::parent())
 				} else {
-					Some(MultiLocation::X3(
-						Parent,
-						Parachain(2),
-						GeneralIndex { id: asset },
+					Some(MultiLocation::new(
+						1,
+						Junctions::X2(Parachain(2), GeneralIndex(asset)),
 					))
 				}
 			}
@@ -422,10 +422,13 @@ pub struct AccountIdToMultiLocation;
 impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMultiLocation {
 	fn convert(account: TestAccount) -> MultiLocation {
 		let as_h160: H160 = account.into();
-		MultiLocation::X1(AccountKey20 {
-			network: NetworkId::Any,
-			key: as_h160.as_fixed_bytes().clone(),
-		})
+		MultiLocation::new(
+			1,
+			Junctions::X1(AccountKey20 {
+				network: NetworkId::Any,
+				key: as_h160.as_fixed_bytes().clone(),
+			}),
+		)
 	}
 }
 
@@ -435,8 +438,14 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation = MultiLocation::X2(Parent,  Parachain(ParachainId::get().into()).into());
-	pub SelfReserve: MultiLocation = MultiLocation::X3(Parent, Parachain(ParachainId::get().into()).into(), PalletInstance(<Test as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8));
+	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+
+	pub SelfReserve: MultiLocation = (
+		1,
+		Junctions::X2(
+			Parachain(ParachainId::get().into()),
+			PalletInstance(<Test as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)).into();
 }
 
 impl orml_xtokens::Config for Test {
@@ -449,6 +458,7 @@ impl orml_xtokens::Config for Test {
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type LocationInverter = InvertNothing;
 }
 
 pub(crate) struct ExtBuilder {

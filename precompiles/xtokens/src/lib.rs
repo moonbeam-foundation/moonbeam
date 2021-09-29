@@ -22,7 +22,8 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, Bytes, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper,
+	error, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -35,7 +36,7 @@ use sp_std::{
 mod encoding;
 use encoding::Encoder;
 use sp_std::boxed::Box;
-use xcm::v0::{MultiAsset, MultiLocation};
+use xcm::v1::{AssetId, Fungibility, Junctions, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -107,9 +108,7 @@ where
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
-		let multilocation: Vec<Bytes> = input.read()?;
-
-		let destination: MultiLocation = MultiLocation::from_encoded(multilocation.into())?;
+		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -154,19 +153,14 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-
-		// Read the asset multilocation
-		let asset: Vec<Bytes> = input.read()?;
-
-		let asset_multilocation: MultiLocation = MultiLocation::from_encoded(asset)?;
+		// read destination
+		let asset_multilocation: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
 		// Bound check
 		input.expect_arguments(1)?;
 		let amount: U256 = input.read()?;
 
 		// read destination
-		let multilocation: Vec<Bytes> = input.read()?;
-
-		let destination: MultiLocation = MultiLocation::from_encoded(multilocation)?;
+		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -178,9 +172,9 @@ where
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset(
-			Box::new(MultiAsset::ConcreteFungible {
-				id: asset_multilocation,
-				amount: to_balance,
+			Box::new(MultiAsset {
+				id: AssetId::Concrete(asset_multilocation),
+				fun: Fungibility::Fungible(to_balance),
 			}),
 			Box::new(destination),
 			weight,
@@ -200,5 +194,40 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
+	}
+}
+
+// A wrapper to be able to implement here the evmData reader
+pub struct MultiLocationWrapper(MultiLocation);
+
+impl From<MultiLocation> for MultiLocationWrapper {
+	fn from(location: MultiLocation) -> Self {
+		MultiLocationWrapper(location)
+	}
+}
+
+impl Into<MultiLocation> for MultiLocationWrapper {
+	fn into(self) -> MultiLocation {
+		self.0
+	}
+}
+
+impl EvmData for MultiLocationWrapper {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let num_parents = reader
+			.read::<u8>()
+			.map_err(|_| error("tried to parse array offset out of bounds"))?;
+
+		let junctions: Vec<Bytes> = reader.read()?;
+
+		Ok(MultiLocationWrapper(MultiLocation {
+			parents: num_parents,
+			interior: Junctions::from_encoded(junctions)?,
+		}))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(writer, U256::from(value.0.parents));
+		EvmData::write(writer, Junctions::to_encoded(&value.0.interior));
 	}
 }
