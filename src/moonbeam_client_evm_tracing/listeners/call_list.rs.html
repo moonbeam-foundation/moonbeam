@@ -1112,7 +1112,6 @@
 <span id="1112">1112</span>
 <span id="1113">1113</span>
 <span id="1114">1114</span>
-<span id="1115">1115</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1130,14 +1129,13 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::formatters::blockscout::BlockscoutCall</span> <span class="kw">as</span> <span class="ident">Call</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::formatters::blockscout::BlockscoutCallInner</span> <span class="kw">as</span> <span class="ident">CallInner</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">ContextType</span>, <span class="ident">CreateResult</span>};
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">evm_tracing_events</span>::{
 	<span class="ident">runtime</span>::{<span class="ident">Capture</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>},
-	<span class="ident">ContextType</span>, <span class="ident">Event</span>, <span class="ident">EvmEvent</span>, <span class="ident">GasometerEvent</span>, <span class="ident">Listener</span> <span class="kw">as</span> <span class="ident">ListenerT</span>, <span class="ident">RuntimeEvent</span>,
-};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::api</span>::{
-	<span class="ident">single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>},
-	<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">CreateResult</span>,
+	<span class="ident">Event</span>, <span class="ident">EvmEvent</span>, <span class="ident">GasometerEvent</span>, <span class="ident">Listener</span> <span class="kw">as</span> <span class="ident">ListenerT</span>, <span class="ident">RuntimeEvent</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
 

@@ -31,6 +31,8 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -49,10 +51,12 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">blockscout</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">call_tracer</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">raw</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">trace_filter</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">blockscout::Formatter</span> <span class="kw">as</span> <span class="ident">Blockscout</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">call_tracer::Formatter</span> <span class="kw">as</span> <span class="ident">CallTracer</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">raw::Formatter</span> <span class="kw">as</span> <span class="ident">Raw</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">trace_filter::Formatter</span> <span class="kw">as</span> <span class="ident">TraceFilter</span>;
 

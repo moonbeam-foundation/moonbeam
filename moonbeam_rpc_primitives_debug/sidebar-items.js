@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Response","DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is empty."]],"mod":[["api","Runtime API allowing to debug/trace Ethereum"],["serialization","Provide serialization functions for various types and formats."]],"trait":[["DebugRuntimeApi",""]]});
+initSidebarItems({"enum":[["Response","DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is empty."],["TracerInput",""]],"trait":[["DebugRuntimeApi",""]]});

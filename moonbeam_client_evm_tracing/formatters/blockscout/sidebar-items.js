@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Formatter",""]]});
+initSidebarItems({"enum":[["BlockscoutCallInner",""]],"struct":[["BlockscoutCall",""],["Formatter",""]]});

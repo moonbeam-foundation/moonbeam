@@ -42,6 +42,13 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -62,7 +69,8 @@
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">compat::Compat</span>, <span class="ident">future::BoxFuture</span>};
 <span class="kw">use</span> <span class="ident">jsonrpc_core::Result</span> <span class="kw">as</span> <span class="ident">RpcResult</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::api</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing::types::single</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types::RequestBlockId</span>;
 <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rpc_impl_Debug::gen_server::Debug</span> <span class="kw">as</span> <span class="ident">DebugServer</span>;
@@ -85,7 +93,13 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
 		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">api::single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;debug_traceBlockByNumber&quot;</span>, <span class="ident">alias</span>(<span class="string">&quot;debug_traceBlockByHash&quot;</span>))]</span>
+	<span class="kw">fn</span> <span class="ident">trace_block</span>(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		<span class="ident">id</span>: <span class="ident">RequestBlockId</span>,
+		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_core_debug" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

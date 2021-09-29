@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Debug",""],["DebugHandler",""],["TraceParams",""]],"trait":[["DebugServer",""],["DebugT",""]],"type":[["DebugRequester",""],["Responder",""]]});
+initSidebarItems({"enum":[["RequesterInput",""],["Response",""]],"struct":[["Debug",""],["DebugHandler",""],["TraceParams",""]],"trait":[["DebugServer",""],["DebugT",""]],"type":[["DebugRequester",""],["Responder",""]]});

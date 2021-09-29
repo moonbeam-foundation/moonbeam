@@ -960,14 +960,13 @@
 <span class="kw">use</span> <span class="ident">fc_rpc::internal_err</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
 
-<span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing::formatters::ResponseFormatter</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_trace</span>::{
-	<span class="ident">FilterRequest</span>, <span class="ident">RequestBlockId</span>, <span class="ident">RequestBlockTag</span>, <span class="ident">Trace</span> <span class="kw">as</span> <span class="ident">TraceT</span>, <span class="ident">TraceServer</span>,
+<span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing</span>::{
+	<span class="ident">formatters::ResponseFormatter</span>,
+	<span class="ident">types::block</span>::{<span class="self">self</span>, <span class="ident">TransactionTrace</span>},
 };
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{
-	<span class="ident">api::block</span>::{<span class="self">self</span>, <span class="ident">TransactionTrace</span>},
-	<span class="ident">DebugRuntimeApi</span>,
-};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_trace</span>::{<span class="ident">FilterRequest</span>, <span class="ident">Trace</span> <span class="kw">as</span> <span class="ident">TraceT</span>, <span class="ident">TraceServer</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types</span>::{<span class="ident">RequestBlockId</span>, <span class="ident">RequestBlockTag</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::DebugRuntimeApi</span>;
 
 <span class="doccomment">/// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Trace</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> {
@@ -1016,6 +1015,7 @@
 			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Pending</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;&#39;pending&#39; is not supported&quot;</span>))
 			}
+			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Hash</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not supported&quot;</span>)),
 		}
 	}
 

@@ -149,15 +149,15 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::blockscout::BlockscoutCallInner</span> <span class="kw">as</span> <span class="ident">CallInner</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::listeners::call_list::Listener</span>;
-<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::api</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{
 	<span class="ident">block</span>::{
 		<span class="ident">TransactionTrace</span>, <span class="ident">TransactionTraceAction</span>, <span class="ident">TransactionTraceOutput</span>, <span class="ident">TransactionTraceResult</span>,
 	},
-	<span class="ident">single::CallInner</span>,
 	<span class="ident">CallResult</span>, <span class="ident">CreateResult</span>, <span class="ident">CreateType</span>,
 };
+<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Formatter</span>;
 

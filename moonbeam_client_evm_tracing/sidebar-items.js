@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["formatters",""],["listeners",""]]});
+initSidebarItems({"mod":[["formatters",""],["listeners",""],["types","Runtime API allowing to debug/trace Ethereum"]]});
