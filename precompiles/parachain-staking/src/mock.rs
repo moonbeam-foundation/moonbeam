@@ -265,8 +265,8 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, delegation_amount]
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -275,7 +275,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominations: vec![],
+			delegations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -311,11 +311,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominations(
+	pub(crate) fn with_delegations(
 		mut self,
-		nominations: Vec<(AccountId, AccountId, Balance)>,
+		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominations = nominations;
+		self.delegations = delegations;
 		self
 	}
 
@@ -337,7 +337,7 @@ impl ExtBuilder {
 		.expect("Pallet balances storage can be assimilated");
 		parachain_staking::GenesisConfig::<Test> {
 			candidates: self.collators,
-			nominations: self.nominations,
+			delegations: self.delegations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)

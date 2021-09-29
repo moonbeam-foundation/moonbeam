@@ -221,8 +221,8 @@ where
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::collator_state2(&address) {
-				let collator_nomination_count: u32 = state.nominators.0.len() as u32;
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_state(&address) {
+				let collator_nomination_count: u32 = state.delegators.0.len() as u32;
 
 				log::trace!(
 					target: "staking-precompile",
@@ -261,8 +261,8 @@ where
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::nominator_state2(&address) {
-				let nominator_nomination_count: u32 = state.nominations.0.len() as u32;
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::delegator_state(&address) {
+				let nominator_nomination_count: u32 = state.delegations.0.len() as u32;
 
 				log::trace!(
 					target: "staking-precompile",
@@ -538,6 +538,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
+	// TODO: change to revoke_delegation?? don't keep old method?
 	fn revoke_nomination(
 		mut input: EvmDataReader,
 		context: &Context,
@@ -554,7 +555,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::revoke_nomination(collator);
+		let call = parachain_staking::Call::<Runtime>::revoke_delegation(collator);
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -577,7 +578,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_more(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_more(collator, amount);
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -600,7 +601,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_less(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_less(collator, amount);
 
 		// Return call information
 		Ok((Some(origin).into(), call))

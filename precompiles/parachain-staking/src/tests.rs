@@ -165,7 +165,7 @@ fn collator_nomination_count_works() {
 			(TestAccount::Bogus, 50),
 		])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(TestAccount::Bob, TestAccount::Alice, 50),
 			(TestAccount::Charlie, TestAccount::Alice, 50),
 			(TestAccount::Bogus, TestAccount::Alice, 50),
@@ -204,7 +204,7 @@ fn nominator_nomination_count_works() {
 			(TestAccount::Charlie, 200),
 		])
 		.with_candidates(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(TestAccount::Charlie, TestAccount::Alice, 100),
 			(TestAccount::Charlie, TestAccount::Bob, 100),
 		])
@@ -264,7 +264,7 @@ fn is_nominator_true() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 50)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 50)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 50)])
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"is_nominator(address)")[0..4];
@@ -565,8 +565,9 @@ fn candidate_bond_more_works() {
 			))
 			.dispatch(Origin::root()));
 
+			// scheduled event now
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorBondedMore(TestAccount::Alice, 1_000, 1_500).into();
+				StakingEvent::CollatorBondMoreRequested(TestAccount::Alice, 500, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -600,7 +601,7 @@ fn candidate_bond_less_works() {
 			.dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorBondedLess(TestAccount::Alice, 1_000, 500).into();
+				StakingEvent::CollatorBondLessRequested(TestAccount::Alice, 500, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -644,7 +645,7 @@ fn nominate_works() {
 				TestAccount::Bob,
 				1_000,
 				TestAccount::Alice,
-				parachain_staking::NominatorAdded::AddedToTop { new_total: 2_000 },
+				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
 			)
 			.into();
 			// Assert that the events vector contains the one expected
@@ -657,7 +658,7 @@ fn leave_nominators_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"leave_nominators(uint256)")[0..4];
@@ -692,7 +693,7 @@ fn revoke_nomination_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"revoke_nomination(address)")[0..4];
@@ -714,8 +715,13 @@ fn revoke_nomination_works() {
 			))
 			.dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::NominatorExitScheduled(1, TestAccount::Bob, 3).into();
+			let expected: crate::mock::Event = StakingEvent::NominationRevocationScheduled(
+				1,
+				TestAccount::Bob,
+				TestAccount::Alice,
+				3,
+			)
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -726,7 +732,7 @@ fn nominator_bond_more_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
 		.build()
 		.execute_with(|| {
 			// Construct the nominator_bond_more call
@@ -749,9 +755,13 @@ fn nominator_bond_more_works() {
 			.dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event =
-				StakingEvent::NominationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected_event: crate::mock::Event = StakingEvent::NominationIncreaseScheduled(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				500,
+				3,
+			)
+			.into();
 
 			assert!(events().contains(&expected_event));
 		});
@@ -762,7 +772,7 @@ fn nominator_bond_less_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_500)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_500)])
 		.build()
 		.execute_with(|| {
 			// Construct the nominator_bond_less call
@@ -785,9 +795,13 @@ fn nominator_bond_less_works() {
 			.dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event =
-				StakingEvent::NominationDecreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected_event: crate::mock::Event = StakingEvent::NominationDecreaseScheduled(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				500,
+				3,
+			)
+			.into();
 
 			assert!(events().contains(&expected_event));
 		});
