@@ -331,8 +331,6 @@ where
 			}
 		}?;
 
-		println!("---> BlockId {:?}", reference_id);
-
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend
@@ -342,8 +340,23 @@ where
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
+		let statuses = api
+			.current_transaction_statuses(&reference_id)
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {:?} : {:?}",
+					request_block_id, e
+				))
+			})?;
+
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
+		// Known ethereum transaction hashes.
+		let eth_tx_hashes = statuses
+			.unwrap()
+			.iter()
+			.map(|t| t.transaction_hash)
+			.collect();
 
 		// Trace the block.
 		let f = || -> RpcResult<_> {
@@ -351,7 +364,7 @@ where
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
-				.trace_block(&parent_block_id, ext)
+				.trace_block(&parent_block_id, ext, eth_tx_hashes)
 				.map_err(|e| {
 					internal_err(format!(
 						"Blockchain error when replaying block {} : {:?}",
