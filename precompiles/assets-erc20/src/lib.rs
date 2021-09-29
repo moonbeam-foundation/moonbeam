@@ -28,8 +28,8 @@ use sp_runtime::traits::Zero;
 
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
-	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	error, keccak256, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	LogsBuilder, RuntimeHelper,
 };
 
 use slices::u8_slice;
