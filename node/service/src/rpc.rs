@@ -133,7 +133,7 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let block_data_cache = Arc::new(EthBlockDataCache::new(50, 50));
+	let block_data_cache = Arc::new(EthBlockDataCache::new(3000, 3000));
 
 	let mut overrides_map = BTreeMap::new();
 	overrides_map.insert(
