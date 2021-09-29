@@ -106,28 +106,6 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -151,7 +129,7 @@
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
 <span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_modexp::Modexp</span>;
@@ -161,26 +139,6 @@
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
-
-<span class="doccomment">/// ERC20 metadata for the native token.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NativeErc20Metadata</span>;
-
-<span class="kw">impl</span> <span class="ident">Erc20Metadata</span> <span class="kw">for</span> <span class="ident">NativeErc20Metadata</span> {
-	<span class="doccomment">/// Returns the name of the token.</span>
-	<span class="kw">fn</span> <span class="ident">name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-		<span class="string">&quot;Moonbase tokens&quot;</span>
-	}
-
-	<span class="doccomment">/// Returns the symbol of the token.</span>
-	<span class="kw">fn</span> <span class="ident">symbol</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-		<span class="string">&quot;DEV&quot;</span>
-	}
-
-	<span class="doccomment">/// Returns the decimals places of the token.</span>
-	<span class="kw">fn</span> <span class="ident">decimals</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-		<span class="number">18</span>
-	}
-}
 
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.</span>
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
@@ -213,7 +171,7 @@
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
-	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
@@ -243,11 +201,9 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2049</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
 			)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2050</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="prelude-val">Some</span>(<span class="ident">Erc20BalancesPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-					<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
-				))
-			}
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2050</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Erc20BalancesPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2051</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="prelude-val">Some</span>(<span class="ident">DemocracyWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>))
 			}
