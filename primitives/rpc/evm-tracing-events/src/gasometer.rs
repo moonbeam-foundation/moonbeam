@@ -67,6 +67,7 @@ pub enum GasometerEvent {
 	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl From<evm_gasometer::tracing::Event> for GasometerEvent {
 	fn from(i: evm_gasometer::tracing::Event) -> Self {
 		match i {
