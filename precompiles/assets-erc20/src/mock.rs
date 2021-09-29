@@ -194,7 +194,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles<Self>;
+	type Precompiles = Erc20AssetsPrecompileSet<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
@@ -242,30 +242,6 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
-
-pub struct Precompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for Precompiles<R>
-where
-	R: pallet_balances::Config,
-	R: pallet_evm::Config,
-	R: pallet_assets::Config,
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<pallet_assets::Call<R>>,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	BalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
-	<<R as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
-	R: AccountIdToAssetId<R::AccountId, AssetIdOf<R>>,
-{
-	fn execute(
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
-		Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
-	}
-}
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
