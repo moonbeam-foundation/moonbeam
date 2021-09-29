@@ -143,6 +143,8 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -229,10 +231,12 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EthereumSigner</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">ecdsa::Public</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span>
-			<span class="ident">secp256k1::PublicKey::parse_slice</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">secp256k1::PublicKeyFormat::Compressed</span>))
-				.<span class="ident">expect</span>(<span class="string">&quot;Wrong compressed public key provided&quot;</span>)
-				.<span class="ident">serialize</span>();
+		<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span> <span class="ident">libsecp256k1::PublicKey::parse_slice</span>(
+			<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="number">0</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">libsecp256k1::PublicKeyFormat::Compressed</span>),
+		)
+		.<span class="ident">expect</span>(<span class="string">&quot;Wrong compressed public key provided&quot;</span>)
+		.<span class="ident">serialize</span>();
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
 		<span class="ident">m</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">decompressed</span>[<span class="number">1</span>..<span class="number">65</span>]);
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>).<span class="ident">as_slice</span>()));
@@ -240,8 +244,8 @@
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">secp256k1::PublicKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EthereumSigner</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">secp256k1::PublicKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">libsecp256k1::PublicKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EthereumSigner</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">libsecp256k1::PublicKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
 		<span class="ident">m</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">serialize</span>()[<span class="number">1</span>..<span class="number">65</span>]);
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>).<span class="ident">as_slice</span>()));

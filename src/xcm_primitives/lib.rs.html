@@ -301,6 +301,30 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -326,9 +350,10 @@
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OriginTrait</span>},
 	<span class="ident">weights</span>::{<span class="ident">constants::WEIGHT_PER_SECOND</span>, <span class="ident">Weight</span>},
 };
-<span class="kw">use</span> <span class="ident">xcm::v0</span>::{
-	<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">XcmError</span>,
-	<span class="ident">Junction</span>::{<span class="ident">AccountKey20</span>, <span class="ident">Parachain</span>, <span class="ident">Parent</span>},
+<span class="kw">use</span> <span class="ident">xcm::v1</span>::{
+	<span class="ident">AssetId</span> <span class="kw">as</span> <span class="ident">xcmAssetId</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">XcmError</span>, <span class="ident">Fungibility</span>,
+	<span class="ident">Junction</span>::{<span class="ident">AccountKey20</span>, <span class="ident">Parachain</span>},
+	<span class="ident">Junctions</span>::<span class="kw-2">*</span>,
 	<span class="ident">MultiAsset</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>,
 };
 <span class="kw">use</span> <span class="ident">xcm_builder::TakeRevenue</span>;
@@ -380,10 +405,13 @@
 	<span class="ident">AccountId</span>: <span class="ident">Into</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">20</span>]<span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span> {
-		<span class="ident">MultiLocation::X1</span>(<span class="ident">AccountKey20</span> {
-			<span class="ident">network</span>: <span class="ident">NetworkId::Any</span>,
-			<span class="ident">key</span>: <span class="ident">account</span>.<span class="ident">into</span>(),
-		})
+		<span class="ident">MultiLocation</span> {
+			<span class="ident">parents</span>: <span class="number">0</span>,
+			<span class="ident">interior</span>: <span class="ident">X1</span>(<span class="ident">AccountKey20</span> {
+				<span class="ident">network</span>: <span class="ident">NetworkId::Any</span>,
+				<span class="ident">key</span>: <span class="ident">account</span>.<span class="ident">into</span>(),
+			}),
+		}
 	}
 }
 
@@ -447,17 +475,19 @@
 
 		<span class="comment">// We are only going to check first asset for now. This should be sufficient for simple token</span>
 		<span class="comment">// transfers. We will see later if we change this.</span>
-		<span class="kw">match</span> <span class="ident">first_asset</span> {
-			<span class="ident">MultiAsset::ConcreteFungible</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+		<span class="kw">match</span> (<span class="ident">first_asset</span>.<span class="ident">id</span>, <span class="ident">first_asset</span>.<span class="ident">fun</span>) {
+			(<span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>), <span class="ident">Fungibility::Fungible</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
 				<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId::from</span>(<span class="ident">asset_type</span>);
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units_per_second</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_units_per_second</span>(<span class="ident">asset_id</span>) {
 					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span> <span class="op">*</span> (<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
-					<span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <span class="ident">MultiAsset::ConcreteFungible</span> {
-						<span class="ident">amount</span>,
-						<span class="ident">id</span>: <span class="ident">id</span>.<span class="ident">clone</span>(),
+					<span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
+						<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+						<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>.<span class="ident">clone</span>()),
 					};
-					<span class="kw">let</span> (<span class="ident">unused</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">payment</span>.<span class="ident">less</span>(<span class="ident">required</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">XcmError::TooExpensive</span>)<span class="question-mark">?</span>;
+					<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">payment</span>
+						.<span class="ident">checked_sub</span>(<span class="ident">required</span>)
+						.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">XcmError::TooExpensive</span>)<span class="question-mark">?</span>;
 					<span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">saturating_add</span>(<span class="ident">weight</span>);
 
 					<span class="comment">// In case the asset matches the one the trader already stored before, add</span>
@@ -493,8 +523,8 @@
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiAsset</span> {
-		<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
+	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
 			<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">min</span>(<span class="self">self</span>.<span class="number">0</span>);
 			<span class="self">self</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">weight</span>;
 			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span> <span class="op">*</span> (<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
@@ -503,11 +533,13 @@
 				<span class="ident">prev_amount</span>.<span class="ident">saturating_sub</span>(<span class="ident">amount</span>),
 				<span class="ident">units_per_second</span>,
 			));
-			<span class="ident">MultiAsset::ConcreteFungible</span> { <span class="ident">id</span>, <span class="ident">amount</span> }
+			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
+				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+				<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>.<span class="ident">clone</span>()),
+			})
 		} <span class="kw">else</span> {
-			<span class="ident">MultiAsset::None</span>
-		};
-		<span class="ident">result</span>
+			<span class="prelude-val">None</span>
+		}
 	}
 }
 
@@ -541,20 +573,34 @@
 
 		<span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>)
 	}
-	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiAsset</span> {
+	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">native</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">native_trader</span>.<span class="ident">refund_weight</span>(<span class="ident">weight</span>);
-		<span class="kw">match</span> <span class="ident">native</span> {
-			<span class="ident">MultiAsset::ConcreteFungible</span> { <span class="ident">amount</span>, .. } <span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">native</span>,
+		<span class="kw">match</span> <span class="ident">native</span>.<span class="ident">clone</span>() {
+			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
+				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+				<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">_id</span>),
+			}) <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() {
+					<span class="kw">return</span> <span class="ident">native</span>;
+				}
+			}
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
 		}
 
 		<span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">other_trader</span>.<span class="ident">refund_weight</span>(<span class="ident">weight</span>);
 		<span class="kw">match</span> <span class="ident">other</span> {
-			<span class="ident">MultiAsset::ConcreteFungible</span> { <span class="ident">amount</span>, .. } <span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">other</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
+				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+				<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">_id</span>),
+			}) <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() {
+					<span class="kw">return</span> <span class="ident">native</span>;
+				}
+			}
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
 		}
 
-		<span class="ident">MultiAsset::None</span>
+		<span class="prelude-val">None</span>
 	}
 }
 
@@ -566,11 +612,13 @@
 <span class="comment">// Takes the chain part of a MultiAsset</span>
 <span class="kw">impl</span> <span class="ident">Reserve</span> <span class="kw">for</span> <span class="ident">MultiAsset</span> {
 	<span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">MultiAsset::ConcreteFungible</span> { <span class="ident">id</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-			<span class="kw">match</span> (<span class="ident">id</span>.<span class="ident">first</span>(), <span class="ident">id</span>.<span class="ident">at</span>(<span class="number">1</span>)) {
-				(<span class="prelude-val">Some</span>(<span class="ident">Parent</span>), <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">Parent</span>, <span class="ident">Parachain</span>(<span class="kw-2">*</span><span class="ident">id</span>)).<span class="ident">into</span>()),
-				(<span class="prelude-val">Some</span>(<span class="ident">Parent</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Parent</span>.<span class="ident">into</span>()),
-				(<span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>)), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">into</span>()),
+		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">location</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>() {
+			<span class="kw">let</span> <span class="ident">first_interior</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">first_interior</span>();
+			<span class="kw">let</span> <span class="ident">parents</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">parent_count</span>();
+			<span class="kw">match</span> (<span class="ident">parents</span>, <span class="ident">first_interior</span>.<span class="ident">clone</span>()) {
+				(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">0</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
+				(<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">1</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
+				(<span class="number">1</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::parent</span>()),
 				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
 			}
 		} <span class="kw">else</span> {

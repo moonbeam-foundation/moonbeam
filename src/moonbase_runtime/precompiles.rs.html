@@ -104,8 +104,6 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -166,8 +164,6 @@
 <span class="doccomment">/// 2048-4095 Moonbeam specific precompiles</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">PrecompileSet</span> <span class="kw">for</span> <span class="ident">MoonbasePrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-	<span class="comment">// TODO remove this first trait bound once https://github.com/paritytech/frontier/pull/472 lands</span>
-	<span class="ident">R</span>: <span class="ident">pallet_evm::Config</span>,
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,

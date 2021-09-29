@@ -267,22 +267,6 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -314,11 +298,11 @@
 <span class="kw">use</span> <span class="ident">ethereum::EthereumStorageSchema</span>;
 <span class="kw">use</span> <span class="ident">fc_mapping_sync</span>::{<span class="ident">MappingSyncWorker</span>, <span class="ident">SyncStrategy</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{
-	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>, <span class="ident">EthPubSubApiServer</span>,
-	<span class="ident">EthTask</span>, <span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">OverrideHandle</span>, <span class="ident">RuntimeApiStorageOverride</span>,
-	<span class="ident">SchemaV1Override</span>, <span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
+	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthBlockDataCache</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>,
+	<span class="ident">EthPubSubApiServer</span>, <span class="ident">EthTask</span>, <span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">OverrideHandle</span>,
+	<span class="ident">RuntimeApiStorageOverride</span>, <span class="ident">SchemaV1Override</span>, <span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
 };
-<span class="kw">use</span> <span class="ident">fc_rpc_core::types</span>::{<span class="ident">FilterPool</span>, <span class="ident">PendingTransactions</span>};
+<span class="kw">use</span> <span class="ident">fc_rpc_core::types::FilterPool</span>;
 <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub::manager::SubscriptionManager</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{<span class="ident">Block</span>, <span class="ident">Hash</span>};
@@ -334,9 +318,7 @@
 <span class="kw">use</span> <span class="ident">sc_rpc::SubscriptionTaskExecutor</span>;
 <span class="kw">use</span> <span class="ident">sc_rpc_api::DenyUnsafe</span>;
 <span class="kw">use</span> <span class="ident">sc_service::TaskManager</span>;
-<span class="comment">// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.</span>
-<span class="comment">// Is it only for tests? Should we use it here?</span>
-<span class="kw">use</span> <span class="ident">sc_transaction_pool::test_helpers</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
+<span class="kw">use</span> <span class="ident">sc_transaction_pool</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
 <span class="kw">use</span> <span class="ident">sc_transaction_pool_api::TransactionPool</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
@@ -361,8 +343,6 @@
 	<span class="kw">pub</span> <span class="ident">is_authority</span>: <span class="ident">bool</span>,
 	<span class="doccomment">/// Network service</span>
 	<span class="kw">pub</span> <span class="ident">network</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">NetworkService</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Ethereum pending transactions.</span>
-	<span class="kw">pub</span> <span class="ident">pending_transactions</span>: <span class="ident">PendingTransactions</span>,
 	<span class="doccomment">/// EthFilterApi pool.</span>
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// The list of optional RPC extensions.</span>
@@ -403,7 +383,6 @@
 		<span class="ident">deny_unsafe</span>,
 		<span class="ident">is_authority</span>,
 		<span class="ident">network</span>,
-		<span class="ident">pending_transactions</span>,
 		<span class="ident">filter_pool</span>,
 		<span class="ident">ethapi_cmd</span>,
 		<span class="ident">command_sink</span>,
@@ -424,6 +403,8 @@
 	<span class="comment">// TODO: are we supporting signing?</span>
 	<span class="kw">let</span> <span class="ident">signers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
+	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">EthBlockDataCache::new</span>(<span class="number">3000</span>, <span class="number">3000</span>));
+
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overrides_map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
 	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(
 		<span class="ident">EthereumStorageSchema::V1</span>,
@@ -439,14 +420,15 @@
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthApiServer::to_delegate</span>(<span class="ident">EthApi::new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">pool</span>.<span class="ident">clone</span>(),
+		<span class="ident">graph</span>.<span class="ident">clone</span>(),
 		<span class="ident">transaction_converter</span>,
 		<span class="ident">network</span>.<span class="ident">clone</span>(),
-		<span class="ident">pending_transactions</span>,
 		<span class="ident">signers</span>,
 		<span class="ident">overrides</span>.<span class="ident">clone</span>(),
 		<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 		<span class="ident">is_authority</span>,
 		<span class="ident">max_past_logs</span>,
+		<span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 	)));
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter_pool</span>) <span class="op">=</span> <span class="ident">filter_pool</span> {
@@ -457,6 +439,7 @@
 			<span class="number">500_usize</span>, <span class="comment">// max stored filters</span>
 			<span class="ident">overrides</span>.<span class="ident">clone</span>(),
 			<span class="ident">max_past_logs</span>,
+			<span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 		)));
 	}
 
@@ -499,7 +482,6 @@
 	<span class="kw">pub</span> <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">substrate_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">pending_transactions</span>: <span class="ident">PendingTransactions</span>,
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
 }
 
@@ -543,20 +525,6 @@
 				<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">client</span>),
 				<span class="ident">filter_pool</span>,
 				<span class="ident">FILTER_RETAIN_THRESHOLD</span>,
-			),
-		);
-	}
-
-	<span class="comment">// Frontier pending transactions task. Essential.</span>
-	<span class="comment">// Maintenance for the Frontier-specific pending transaction pool.</span>
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending_transactions</span>) <span class="op">=</span> <span class="ident">params</span>.<span class="ident">pending_transactions</span> {
-		<span class="kw">const</span> <span class="ident">TRANSACTION_RETAIN_THRESHOLD</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">5</span>;
-		<span class="ident">params</span>.<span class="ident">task_manager</span>.<span class="ident">spawn_essential_handle</span>().<span class="ident">spawn</span>(
-			<span class="string">&quot;frontier-pending-transactions&quot;</span>,
-			<span class="ident">EthTask::pending_transaction_task</span>(
-				<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">client</span>),
-				<span class="ident">pending_transactions</span>,
-				<span class="ident">TRANSACTION_RETAIN_THRESHOLD</span>,
 			),
 		);
 	}

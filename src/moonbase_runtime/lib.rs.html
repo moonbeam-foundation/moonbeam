@@ -1481,6 +1481,15 @@
 <span id="1481">1481</span>
 <span id="1482">1482</span>
 <span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1575,11 +1584,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">sp_version::NativeVersion</span>;
 <span class="kw">use</span> <span class="ident">sp_version::RuntimeVersion</span>;
-<span class="kw">use</span> <span class="ident">xcm::v0</span>::{
-	<span class="ident">BodyId</span>,
-	<span class="ident">Junction</span>::{<span class="ident">PalletInstance</span>, <span class="ident">Parachain</span>, <span class="ident">Parent</span>},
-	<span class="ident">MultiLocation</span>::{<span class="self">self</span>, <span class="ident">X2</span>, <span class="ident">X3</span>},
-	<span class="ident">NetworkId</span>,
+<span class="kw">use</span> <span class="ident">xcm::v1</span>::{
+	<span class="ident">BodyId</span>, <span class="ident">Junction</span>,
+	<span class="ident">Junction</span>::{<span class="ident">PalletInstance</span>, <span class="ident">Parachain</span>},
+	<span class="ident">Junctions</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>,
 };
 
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">CanAuthor</span>, <span class="ident">NimbusId</span>};
@@ -2343,11 +2351,13 @@
 	<span class="comment">// Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
 	<span class="comment">// This is used to match it against our Balances pallet when we receive such a MultiLocation</span>
 	<span class="comment">// (Parent, Self Para Id, Self Balances pallet index)</span>
-	<span class="kw">pub</span> <span class="ident">SelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">X3</span>(
-		<span class="ident">Parent</span>,
-		<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()).<span class="ident">into</span>(),
-		<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>)
-	);
+	<span class="kw">pub</span> <span class="ident">SelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+		<span class="ident">parents</span>:<span class="number">1</span>,
+		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
+			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>)
+		)
+	};
 }
 
 <span class="doccomment">/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used</span>
@@ -2463,6 +2473,7 @@
 		<span class="ident">xcm_primitives::FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, ()<span class="op">&gt;</span>,
 	<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> (); <span class="comment">// Don&#39;t handle responses for now.</span>
+	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 }
 
 <span class="kw">type</span> <span class="ident">XcmExecutor</span> <span class="op">=</span> <span class="ident">xcm_executor::XcmExecutor</span><span class="op">&lt;</span><span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span>;
@@ -2479,7 +2490,7 @@
 <span class="doccomment">/// queues.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmRouter</span> <span class="op">=</span> (
 	<span class="comment">// Two routers - use UMP to communicate with the relay chain:</span>
-	<span class="ident">cumulus_primitives_utility::ParentAsUmp</span><span class="op">&lt;</span><span class="ident">ParachainSystem</span><span class="op">&gt;</span>,
+	<span class="ident">cumulus_primitives_utility::ParentAsUmp</span><span class="op">&lt;</span><span class="ident">ParachainSystem</span>, ()<span class="op">&gt;</span>,
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.</span>
 	<span class="ident">XcmpQueue</span>,
 );
@@ -2506,6 +2517,7 @@
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">XcmExecutor</span> <span class="op">=</span> <span class="ident">XcmExecutor</span>;
 	<span class="kw">type</span> <span class="ident">ChannelInfo</span> <span class="op">=</span> <span class="ident">ParachainSystem</span>;
+	<span class="kw">type</span> <span class="ident">VersionWrapper</span> <span class="op">=</span> ();
 }
 
 <span class="kw">impl</span> <span class="ident">cumulus_pallet_dmp_queue::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2555,7 +2567,7 @@
 }
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
 	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="self">Self</span><span class="ident">::Xcm</span>(<span class="ident">MultiLocation::Null</span>)
+		<span class="self">Self</span><span class="ident">::Xcm</span>(<span class="ident">MultiLocation::here</span>())
 	}
 }
 
@@ -2664,7 +2676,12 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BaseXcmWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">100_000_000</span>;
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset</span>
 	<span class="comment">// This however is the chain part only</span>
-	<span class="kw">pub</span> <span class="ident">SelfLocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">X2</span>(<span class="ident">Parent</span>, <span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()));
+	<span class="kw">pub</span> <span class="ident">SelfLocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+		<span class="ident">parents</span>:<span class="number">1</span>,
+		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
+			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>())
+		)
+	};
 }
 
 <span class="kw">impl</span> <span class="ident">orml_xtokens::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2678,6 +2695,7 @@
 	<span class="kw">type</span> <span class="ident">SelfLocation</span> <span class="op">=</span> <span class="ident">SelfLocation</span>;
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">FixedWeightBounds</span><span class="op">&lt;</span><span class="ident">UnitWeightCost</span>, <span class="ident">Call</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BaseXcmWeight</span> <span class="op">=</span> <span class="ident">BaseXcmWeight</span>;
+	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Call filter used during Phase 3 of the Moonriver rollout</span>

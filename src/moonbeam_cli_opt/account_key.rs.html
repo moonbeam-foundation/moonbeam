@@ -89,8 +89,8 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">bip39</span>::{<span class="ident">Language</span>, <span class="ident">Mnemonic</span>, <span class="ident">MnemonicType</span>, <span class="ident">Seed</span>};
+<span class="kw">use</span> <span class="ident">libsecp256k1</span>::{<span class="ident">PublicKey</span>, <span class="ident">SecretKey</span>};
 <span class="kw">use</span> <span class="ident">primitive_types</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>};
-<span class="kw">use</span> <span class="ident">secp256k1</span>::{<span class="ident">PublicKey</span>, <span class="ident">SecretKey</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::IdentifyAccount</span>;
 <span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 <span class="kw">use</span> <span class="ident">tiny_hderive::bip32::ExtendedPrivKey</span>;
