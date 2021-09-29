@@ -83,7 +83,8 @@ export async function logEvents(api: ApiPromise, name: string) {
         (e.toHuman() as any).event.method === "UpwardMessagesReceived" ||
         (e.toHuman() as any).event.method === "ExecutedUpward" ||
         (e.toHuman() as any).event.method === "Deposit" ||
-        (e.toHuman() as any).event.method === "Transferred"
+        (e.toHuman() as any).event.method === "Transferred" ||
+        (e.toHuman() as any).event.method === "ExtrinsicFailed"
       ) {
         console.log(JSON.stringify(e.toHuman()));
       }
