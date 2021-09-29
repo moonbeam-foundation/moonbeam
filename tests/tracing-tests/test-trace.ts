@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
@@ -265,6 +265,29 @@ describeDevMoonbeam("Trace", (context) => {
     ]);
 
     expect(trace.result.length).to.be.eq(1);
+  });
+
+  it("should trace correctly transfers (raw)", async function () {
+    this.timeout(10000);
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        // arbitrary (non-contract) address to transfer to
+        to: ALITH,
+        gas: "0xdb3b",
+        value: "0x10000000",
+        data: "0x",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [data.result]);
+
+    expect(trace.result.gas).to.be.eq("0x5208"); // 21_000 gas for a transfer.
   });
 });
 

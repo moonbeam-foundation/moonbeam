@@ -18,6 +18,7 @@
 
 use codec::{Decode, Encode};
 use ethereum::TransactionV0 as Transaction;
+use ethereum_types::H256;
 use sp_std::vec::Vec;
 
 sp_api::decl_runtime_apis! {
@@ -29,6 +30,7 @@ sp_api::decl_runtime_apis! {
 
 		fn trace_block(
 			extrinsics: Vec<Block::Extrinsic>,
+			known_transactions: Vec<H256>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }
