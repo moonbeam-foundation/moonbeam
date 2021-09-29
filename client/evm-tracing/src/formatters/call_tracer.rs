@@ -117,24 +117,44 @@ impl super::ResponseFormatter for Formatter {
 			//
 			// The last remaining item is the context call with all it's descendants. I.e.
 			//
-			// 		[0,0,0] -> pop() and added to [0,0]
-			// 		[1,0,0] -> pop() and added to [1,0]
-			// 		[1,0,1] -> pop() and added to [1,0]
-			// 		[0,0] -> pop() and added to [0]
-			// 		[0,1] -> pop() and added to [0]
-			// 		[1,0] -> pop() and added to [1]
-			// 		[0] -> pop() and added to []
-			// 		[1] -> pop() and added to []
-			// 		[] -> list length == 1, out
+			// 		# Input
+			// 		[]
+			// 		[0]
+			// 		[0,0]
+			// 		[0,0,0]
+			// 		[0,1]
+			// 		[0,1,0]
+			// 		[0,1,1]
+			// 		[0,1,2]
+			// 		[1]
+			// 		[1,0]
+			//
+			// 		# Sorted
+			// 		[0,0,0] -> pop 0 and push to [0,0]
+			// 		[0,1,0] -> pop 0 and push to [0,1]
+			// 		[0,1,1] -> pop 1 and push to [0,1]
+			// 		[0,1,2] -> pop 2 and push to [0,1]
+			// 		[0,0] -> pop 0 and push to [0]
+			// 		[0,1] -> pop 1 and push to [0]
+			// 		[1,0] -> pop 0 and push to [1]
+			// 		[0] -> pop 0 and push to root
+			// 		[1] -> pop 1 and push to root
+			// 		[]
+			//
+			// 		# Result
+			// 		root {
+			// 			calls: {
+			// 				0 { 0 { 0 }, 1 { 0, 1, 2 }},
+			// 				1 { 0 },
+			// 			}
+			// 		}
 			if result.len() > 1 {
 				// Sort the stack. Assume there is no `Ordering::Equal`, as we are
 				// sorting by index.
 				//
 				// We consider an item to be `Ordering::Less` when:
-				// 	- Is closer to the root.
-				//	- The concatenated numerical representation of it's indexes is
-				//	greater than it's siblings. This allows to later pop (and push) the indexes
-				//	sorted ASC.
+				// 	- Is closer to the root or
+				//	- Is greater than its sibling.
 				result.sort_by(|a, b| match (a, b) {
 					(
 						Call::CallTracer(CallTracerCall {
