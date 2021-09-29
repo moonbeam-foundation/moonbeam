@@ -479,3 +479,75 @@ fn read_multiple_arrays() {
 	let parsed: Vec<H256> = reader.read().expect("to correctly parse Vec<H256>");
 	assert_eq!(array2, parsed);
 }
+
+#[test]
+fn read_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+	let writer_output = EvmDataWriter::new().write(Bytes::from(&data[..])).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Bytes = reader.read().expect("to correctly parse Bytes");
+
+	assert_eq!(data, parsed.as_bytes());
+}
+
+#[test]
+fn write_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new().write(Bytes::from(&data[..])).build();
+
+	// We can read this "manualy" using simpler functions.
+	let mut reader = EvmDataReader::new(&writer_output);
+
+	// We pad data to a multiple of 32 bytes.
+	let mut padded = data.to_vec();
+	assert!(data.len() < 0x80);
+	padded.resize(0x80, 0);
+
+	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+}
+
+#[test]
+fn read_string() {
+	let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+	let writer_output = EvmDataWriter::new().write(Bytes::from(data)).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Bytes = reader.read().expect("to correctly parse Bytes");
+
+	assert_eq!(data, parsed.as_str().expect("valid utf8"));
+}
+
+#[test]
+fn write_string() {
+	let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new().write(Bytes::from(data)).build();
+
+	// We can read this "manualy" using simpler functions.
+	let mut reader = EvmDataReader::new(&writer_output);
+
+	// We pad data to a multiple of 32 bytes.
+	let mut padded = data.as_bytes().to_vec();
+	assert!(data.len() < 0x80);
+	padded.resize(0x80, 0);
+
+	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+}
