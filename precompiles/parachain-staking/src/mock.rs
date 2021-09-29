@@ -222,8 +222,10 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
+	pub const CandidateBondDelay: u32 = 2;
 	pub const LeaveNominatorsDelay: u32 = 2;
 	pub const RevokeNominationDelay: u32 = 2;
+	pub const NominatorBondDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
@@ -241,8 +243,10 @@ impl parachain_staking::Config for Test {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type CandidateBondDelay = CandidateBondDelay;
 	type LeaveNominatorsDelay = LeaveNominatorsDelay;
 	type RevokeNominationDelay = RevokeNominationDelay;
+	type NominatorBondDelay = NominatorBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;

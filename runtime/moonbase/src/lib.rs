@@ -585,10 +585,14 @@ parameter_types! {
 	pub const DefaultBlocksPerRound: u32 = 300;
 	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
 	pub const LeaveCandidatesDelay: u32 = 2;
+	/// Collator candidate bond increases/decreases are delayed by 2 hours (2 * 300 block_time)
+	pub const CandidateBondDelay: u32 = 2;
 	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
 	pub const LeaveNominatorsDelay: u32 = 2;
 	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
 	pub const RevokeNominationDelay: u32 = 2;
+	/// Nomination bond increases/decreases are delayed by 2 hours (2 * 300 * block_time)
+	pub const NominatorBondDelay: u32 = 2;
 	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
@@ -615,8 +619,10 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type CandidateBondDelay = CandidateBondDelay;
 	type LeaveNominatorsDelay = LeaveNominatorsDelay;
 	type RevokeNominationDelay = RevokeNominationDelay;
+	type NominatorBondDelay = NominatorBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
