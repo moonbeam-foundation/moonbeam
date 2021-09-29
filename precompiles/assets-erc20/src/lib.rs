@@ -42,12 +42,10 @@ mod mock;
 mod tests;
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_TRANSFER: &[u8; 32] =
-	u8_slice!("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address,uint256)");
 
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_APPROVAL: &[u8; 32] =
-	u8_slice!("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925");
+pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
