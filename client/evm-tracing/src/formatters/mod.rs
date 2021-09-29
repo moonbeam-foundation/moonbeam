@@ -15,10 +15,12 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod blockscout;
+pub mod call_tracer;
 pub mod raw;
 pub mod trace_filter;
 
 pub use blockscout::Formatter as Blockscout;
+pub use call_tracer::Formatter as CallTracer;
 pub use raw::Formatter as Raw;
 pub use trace_filter::Formatter as TraceFilter;
 

@@ -40,10 +40,9 @@ pub use gasometer::GasometerEvent;
 pub use runtime::RuntimeEvent;
 
 use ::evm::Opcode;
-use alloc::{vec, vec::Vec};
+use alloc::vec::Vec;
 use codec::{Decode, Encode};
-use ethereum_types::{H160, H256, U256};
-use moonbeam_rpc_primitives_debug::api::CallType;
+use ethereum_types::{H160, U256};
 
 environmental::environmental!(listener: dyn Listener + 'static);
 
@@ -95,49 +94,6 @@ impl From<evm_runtime::Context> for Context {
 			apparent_value: i.apparent_value,
 		}
 	}
-}
-
-#[derive(Debug)]
-pub enum ContextType {
-	Call(CallType),
-	Create,
-}
-
-impl ContextType {
-	pub fn from(opcode: Vec<u8>) -> Option<Self> {
-		let opcode = match alloc::str::from_utf8(&opcode[..]) {
-			Ok(op) => op.to_uppercase(),
-			_ => return None,
-		};
-		match &opcode[..] {
-			"CREATE" | "CREATE2" => Some(ContextType::Create),
-			"CALL" => Some(ContextType::Call(CallType::Call)),
-			"CALLCODE" => Some(ContextType::Call(CallType::CallCode)),
-			"DELEGATECALL" => Some(ContextType::Call(CallType::DelegateCall)),
-			"STATICCALL" => Some(ContextType::Call(CallType::StaticCall)),
-			_ => None,
-		}
-	}
-}
-
-pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
-	let size = 32;
-	memory
-		.chunks(size)
-		.map(|c| {
-			let mut msg = [0u8; 32];
-			let chunk = c.len();
-			if chunk < size {
-				let left = size - chunk;
-				let remainder = vec![0; left];
-				msg[0..left].copy_from_slice(&remainder[..]);
-				msg[left..size].copy_from_slice(c);
-			} else {
-				msg[0..size].copy_from_slice(c)
-			}
-			H256::from_slice(&msg[..])
-		})
-		.collect()
 }
 
 /// Converts an Opcode into its name, stored in a `Vec<u8>`.

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::formatters::blockscout::BlockscoutCall as Call;
+use crate::formatters::blockscout::BlockscoutCallInner as CallInner;
+use crate::types::{CallResult, CallType, ContextType, CreateResult};
 use ethereum_types::{H160, U256};
 use evm_tracing_events::{
 	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
-	ContextType, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
-};
-use moonbeam_rpc_primitives_debug::api::{
-	single::{Call, CallInner},
-	CallResult, CallType, CreateResult,
+	Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
 };
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
