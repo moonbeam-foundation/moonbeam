@@ -10,6 +10,7 @@ import { ApiPromise } from "@polkadot/api";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
+const HUNDRED_UNITS_PARA = 100_000_000_000_000_000_000n;
 const THOUSAND_UNITS = 1000000000000000;
 
 interface AssetMetadata {
@@ -27,7 +28,7 @@ const relayAssetMetadata: AssetMetadata = {
 const paraAssetMetadata: AssetMetadata = {
   name: "GLMR",
   symbol: "GLMR",
-  decimals: new BN(12),
+  decimals: new BN(18),
   isFrozen: false,
 };
 const sourceLocationRelay = { XCM: { X1: "Parent" } };
@@ -347,7 +348,6 @@ describeParachain(
   { chain: "moonbase-local", numberOfParachains: 2 },
   (context) => {
     let keyring: Keyring,
-      aliceRelay: KeyringPair,
       alith: KeyringPair,
       baltathar: KeyringPair,
       parachainOne: ApiPromise,
@@ -359,7 +359,6 @@ describeParachain(
       keyring = new Keyring({ type: "sr25519" });
 
       // Setup Relaychain
-      aliceRelay = keyring.addFromUri("//Alice");
       relayOne = context._polkadotApiRelaychains[0];
 
       // Setup Parachains
@@ -373,31 +372,19 @@ describeParachain(
       logEvents(parachainTwo, "PARA B");
       logEvents(relayOne, "RELAY");
 
-      await new Promise((res) => setTimeout(res, 2000));
-
+      // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
-      console.log("Metadata: " + JSON.stringify(metadata.asLatest.toHuman(), null, 2));
-      console.log("metadata.asLatest.toHuman()", metadata.asLatest.toHuman());
-      console.log("metadata.asLatest.toHuman().modules", metadata.asLatest.toHuman().modules);
-      console.log(
-        "palletindex",
-        (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
-          return pallet.name === "Balances";
-        })
-      );
       const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
-      console.log("pallet index", palletIndex);
+      
       expect(palletIndex);
+
       sourceLocationX3 = {
         XCM: {
           X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
         },
       };
-      // PARACHAIN A
-      // registerAsset
-      // ({ assetId } = await registerAssetToParachain(parachainOne, alith));
 
       // PARACHAIN B
       // registerAsset
@@ -412,31 +399,6 @@ describeParachain(
         "balta para one, before, no assetId",
         (await parachainOne.query.system.account(BALTATHAR)).toHuman()
       );
-
-      // // They should have the same id
-      // // expect(assetId).to.eq(assetIdB);
-
-      // // RELAYCHAIN
-      // // send 1000 units to Baltathar in para A
-      // const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
-      //   relayOne,
-      //   aliceRelay,
-      //   relayOne.tx.xcmPallet.reserveTransferAssets(
-      //     { X1: { Parachain: new BN(1000) } },
-      //     { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-      //     [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
-      //     new BN(4000000000)
-      //   )
-      // );
-      // // expect(eventsRelay[0].toHuman().method).to.eq("Attempted");
-
-      // // Wait for parachain block to have been emited
-      // await waitOneBlock(parachainOne, 2);
-
-      // expect(
-      //   (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-      //     "1,000,000,000,000,000"
-      // ).to.eq(true);
     });
     it.only("should be able to receive an asset in para b from para a", async function () {
       // PARACHAIN A
@@ -446,7 +408,8 @@ describeParachain(
         baltathar,
         parachainOne.tx.xTokens.transfer(
           "SelfReserve",
-          new BN(HUNDRED_UNITS),
+          // new BN(HUNDRED_UNITS_PARA),
+          HUNDRED_UNITS_PARA,
           {
             X3: [
               "Parent",
@@ -460,30 +423,15 @@ describeParachain(
       eventsTransfer.forEach((e) => {
         console.log("tsf", e.toHuman());
       });
+      // TODO test event
       await waitOneBlock(parachainTwo, 3);
-
-      console.log(
-        "balta para one, before, no assetId",
-        (await parachainOne.query.system.account(BALTATHAR)).toHuman()
-      );
-
-      console.log(
-        "balta para two",
-        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman()
-      );
-
-      // about 1k should have been substracted from AliceRelay
+      
       expect(
-        ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-      ).to.eq("8.9999 kUnit");
-      // Alith asset balance should have been increased to 1000*e12
-      expect(
-        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "900,000,000,000,000"
-      ).to.eq(true);
+        ((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free
+      ).to.eq('1.2076 MUNIT'); // instead of 1.2077 MUNIT
       expect(
         (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "99,968,000,000,000"
+        '100,000,000,000,000,000,000'
       ).to.eq(true);
     });
   }

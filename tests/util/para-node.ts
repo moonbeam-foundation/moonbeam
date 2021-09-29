@@ -179,7 +179,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       };
     }),
     simpleParachains: [],
-    hrmpChannels: [],
+    hrmpChannels: numberOfParachains === 2?[{
+			"sender": 1000,
+			"recipient": 2000,
+			"maxCapacity": 8,
+			"maxMessageSize": 512
+		},{
+			"sender": 2000,
+			"recipient": 1000,
+			"maxCapacity": 8,
+			"maxMessageSize": 512
+		}]:[],
     finalization: true,
   };
 
