@@ -90,6 +90,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.12.3",
   },
+  "moonbase-0.13.0": {
+    relay: "rococo-9102",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.13.0",
+  },
   local: {
     relay: "rococo-9004",
     chain: "moonbase-local",
