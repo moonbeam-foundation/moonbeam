@@ -1,23 +1,26 @@
-// This file is part of Substrate.
+// Copyright 2019-2021 PureStake Inc.
+// This file is part of Moonbeam.
 
-// Copyright (C) 2020-2021 Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-use crate::PerfCmd;
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_runtime::traits::{Block as BlockT, Header as HeaderT, NumberFor};
+use crate::{PerfCmd, txn_signer::UnsignedTransaction};
+
+use sp_runtime::{
+	traits::{Block as BlockT, Header as HeaderT, NumberFor},
+	transaction_validity::TransactionSource,
+	generic::UncheckedExtrinsic,
+};
 use sc_service::{Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager};
 use sc_cli::{
 	CliConfiguration, Result as CliResult, SharedParams,
@@ -46,11 +49,13 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+use ethereum::{TransactionAction, TransactionSignature};
 
 use async_io::Timer;
 use futures::{Stream, Sink, SinkExt, channel::mpsc::Sender};
 
-use service::{chain_spec, RuntimeApiCollection, Block};
+use service::{chain_spec, RuntimeApiCollection, Block, TransactionConverters};
+
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
 
@@ -65,6 +70,7 @@ struct PerfTestRunner<RuntimeApi, Executor>
 	task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
 	manual_seal_command_sink: futures::channel::mpsc::Sender<EngineCommand<H256>>,
+	pool: sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
@@ -180,6 +186,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			task_manager,
 			client: client.clone(),
 			manual_seal_command_sink: command_sink,
+			pool: transaction_pool,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
 		})
@@ -237,6 +244,47 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
+	}
+
+	/// Creates a transaction out of the given call/create arguments, signs it, and sends it
+	fn evm_sign_and_send_transaction(
+		&mut self,
+		signing_key: &H256,
+		to: Option<H160>,
+		data: Vec<u8>,
+		value: U256,
+		gas_limit: U256,
+		gas_price: U256,
+		nonce: U256,
+	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
+
+		const chain_id: u64 = 1082; // TODO: derive from CLI or from Moonbase
+
+		let action = match to {
+			Some(addr) => TransactionAction::call(addr),
+			None => TransactionAction::create,
+		};
+
+		let unsigned = UnsignedTransaction {
+			nonce,
+			gas_price,
+			gas_limit,
+			action,
+			value,
+			input: data,
+		};
+		let signed = unsigned.sign(signing_key, &chain_id);
+
+		let transaction_converter = TransactionConverters::moonbase();
+		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
+
+		let hash = self.client.info().best_hash;
+		self.pool.submit_one(
+			&BlockId::hash(hash),
+			TransactionSource::Local,
+			unchecked_extrinsic
+		);
+
 	}
 
 	/// Author a block through manual sealing

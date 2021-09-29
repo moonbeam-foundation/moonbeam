@@ -16,6 +16,7 @@
 // limitations under the License.
 
 mod command;
+mod txn_signer;
 
 use structopt::StructOpt;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
