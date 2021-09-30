@@ -6643,7 +6643,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
+ "sp-std",
 ]
 
 [[package]]
