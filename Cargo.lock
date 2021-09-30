@@ -5068,6 +5068,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-assets-erc20",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
@@ -6614,6 +6615,31 @@ dependencies = [
  "rlp",
  "serde",
  "sha3 0.8.2",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-assets-erc20"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-assets",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "serde",
+ "sha3 0.8.2",
+ "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
