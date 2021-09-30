@@ -21,7 +21,9 @@ use precompile_utils::{error, Bytes, EvmDataReader};
 
 use frame_support::ensure;
 use sp_std::vec::Vec;
-use xcm::v1::{Junction, Junctions, MultiLocation, NetworkId};
+use xcm::v1::{Junction, Junctions, NetworkId};
+
+// Encoder trait for xcm types
 pub trait Encoder {
 	type EncodingType;
 	fn to_encoded(&self) -> Self::EncodingType;
@@ -30,6 +32,7 @@ pub trait Encoder {
 		Self: Sized;
 }
 
+// Implementation of the encoder trait for NetworkId
 impl Encoder for NetworkId {
 	type EncodingType = Vec<u8>;
 	fn to_encoded(&self) -> Self::EncodingType {
@@ -72,6 +75,7 @@ impl Encoder for NetworkId {
 	}
 }
 
+// Implementation of the encoder type for Junction
 impl Encoder for Junction {
 	type EncodingType = Vec<u8>;
 	fn to_encoded(&self) -> Self::EncodingType {
@@ -180,6 +184,7 @@ impl Encoder for Junction {
 	}
 }
 
+// Implementation of the encoder type for Junctions
 impl Encoder for Junctions {
 	type EncodingType = Vec<Bytes>;
 	fn to_encoded(&self) -> Self::EncodingType {

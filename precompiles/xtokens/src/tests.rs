@@ -174,6 +174,31 @@ fn junction_decoder_works() {
 }
 
 #[test]
+fn network_id_decoder_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			NetworkId::from_encoded(NetworkId::Any.to_encoded()),
+			Ok(NetworkId::Any)
+		);
+
+		assert_eq!(
+			NetworkId::from_encoded(NetworkId::Named(b"myname".to_vec()).to_encoded()),
+			Ok(NetworkId::Named(b"myname".to_vec()))
+		);
+
+		assert_eq!(
+			NetworkId::from_encoded(NetworkId::Kusama.to_encoded()),
+			Ok(NetworkId::Kusama)
+		);
+
+		assert_eq!(
+			NetworkId::from_encoded(NetworkId::Polkadot.to_encoded()),
+			Ok(NetworkId::Polkadot)
+		);
+	});
+}
+
+#[test]
 fn transfer_self_reserve_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
