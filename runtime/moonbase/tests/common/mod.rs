@@ -247,7 +247,7 @@ impl ExtBuilder {
 					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
 				}
 			}
-			// If any assets specified, we create them here
+			// If any xcm assets specified, we register them here
 			for (asset_type, metadata, balances) in xcm_assets.clone() {
 				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
 					.unwrap();

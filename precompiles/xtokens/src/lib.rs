@@ -108,6 +108,8 @@ where
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
+		// We use the MultiLocationWrapper, which we have instructed how to read
+		// In the end we are using the encoding
 		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
 
 		// Bound check
@@ -115,6 +117,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		// We convert the address into a currency id xtokens understands
 		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(error("cannot convert into currency id"))?;
@@ -153,7 +156,9 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-		// read destination
+
+		// asset is defined as a multiLocation. For now we are assuming these are concrete
+		// fungible assets
 		let asset_multilocation: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
 		// Bound check
 		input.expect_arguments(1)?;
@@ -214,6 +219,13 @@ impl Into<MultiLocation> for MultiLocationWrapper {
 
 impl EvmData for MultiLocationWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		// MultiLocations are defined by their number of parents (u8) and
+		// Junctions. We are assuming the Junctions are encoded as defined in
+		// the encoding module
+
+		// Essentially, they will be a set of bytes specifying the different
+		// enum variants
+
 		let num_parents = reader
 			.read::<u8>()
 			.map_err(|_| error("tried to parse array offset out of bounds"))?;

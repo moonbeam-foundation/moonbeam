@@ -33,6 +33,12 @@ pub trait Encoder {
 }
 
 // Implementation of the encoder trait for NetworkId
+// Each NetworkId variant is represented as bytes
+// The first byte represents the enum variant to be used
+// The rest of the bytes (if any), represent the additional data that such enum variant requires
+// In this case, only Named requies additional non-bounded data.
+// In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
+// end to recover the name
 impl Encoder for NetworkId {
 	type EncodingType = Vec<u8>;
 	fn to_encoded(&self) -> Self::EncodingType {
@@ -76,6 +82,13 @@ impl Encoder for NetworkId {
 }
 
 // Implementation of the encoder type for Junction
+// Each Junction is represented as Bytes.
+// The first byte represents the enum variant to be used
+// The rest of the bytes (if any), represent the additional data that such enum variant requires
+// Example: vec![0, 0, 0, 0, 1] would represent Junction::Parachain(1u32)
+
+// NetworkId encodings, if needed, are appended at the end.
+
 impl Encoder for Junction {
 	type EncodingType = Vec<u8>;
 	fn to_encoded(&self) -> Self::EncodingType {
@@ -185,6 +198,14 @@ impl Encoder for Junction {
 }
 
 // Implementation of the encoder type for Junctions
+
+// Each Junction is represented as Bytes, like we have encoded above
+// The number of junctions represents the enum variant
+// e.g., if Vec<Bytes> is length 1 then we know we have one junction,
+// i.e., we need to use Junctions::X1
+
+// For now we only encode up to 4 junctions, which should be sufficient for token transfers
+// between parachains
 impl Encoder for Junctions {
 	type EncodingType = Vec<Bytes>;
 	fn to_encoded(&self) -> Self::EncodingType {
