@@ -42,7 +42,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-pub type BalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
+pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
@@ -69,7 +69,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn execute(
@@ -93,7 +93,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn transfer(
