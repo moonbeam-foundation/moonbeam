@@ -3,6 +3,9 @@
 <div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Address.html" title="precompile_utils::Address struct">Address</a></div><div class="item-right docblock-short"><p>The <code>address</code> type of Solidity.
 H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
 To avoid issues writing H160 is thus not supported.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Bytes.html" title="precompile_utils::Bytes struct">Bytes</a></div><div class="item-right docblock-short"><p>The <code>bytes</code>/<code>string</code> type of Solidity.
+It is different from <code>Vec&lt;u8&gt;</code> which will be serialized with padding for each <code>u8</code> element
+of the array, while <code>Bytes</code> is tightly packed.</p>
 </div><div class="item-left module-item"><a class="struct" href="struct.EvmDataReader.html" title="precompile_utils::EvmDataReader struct">EvmDataReader</a></div><div class="item-right docblock-short"><p>Wrapper around an EVM input slice, helping to parse it.
 Provide functions to parse common types.</p>
 </div><div class="item-left module-item"><a class="struct" href="struct.EvmDataWriter.html" title="precompile_utils::EvmDataWriter struct">EvmDataWriter</a></div><div class="item-right docblock-short"><p>Help build an EVM input/output data.</p>

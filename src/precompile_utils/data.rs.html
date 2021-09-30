@@ -377,6 +377,115 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -394,6 +503,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">error</span>, <span class="ident">EvmResult</span>};
+<span class="kw">use</span> <span class="ident">alloc::borrow::ToOwned</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">any::type_name</span>, <span class="ident">ops::Range</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
@@ -413,6 +523,37 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">H160</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="ident">Address</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H160</span> {
 		<span class="ident">a</span>.<span class="number">0</span>
+	}
+}
+
+<span class="doccomment">/// The `bytes`/`string` type of Solidity.</span>
+<span class="doccomment">/// It is different from `Vec&lt;u8&gt;` which will be serialized with padding for each `u8` element</span>
+<span class="doccomment">/// of the array, while `Bytes` is tightly packed.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bytes</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">Bytes</span> {
+	<span class="doccomment">/// Interpret as `bytes`.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+	}
+
+	<span class="doccomment">/// Interpret as `string`.</span>
+	<span class="doccomment">/// Can fail if the string is not valid UTF8.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">sp_std::str::Utf8Error</span><span class="op">&gt;</span> {
+		<span class="ident">sp_std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span>(<span class="ident">a</span>.<span class="ident">to_owned</span>())
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="ident">a</span>.<span class="ident">as_bytes</span>().<span class="ident">into</span>()
 	}
 }
 
@@ -496,17 +637,22 @@
 }
 
 <span class="doccomment">/// Help build an EVM input/output data.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Functions takes `self` to allow chaining all calls like</span>
+<span class="doccomment">/// `EvmDataWriter::new().write(...).write(...).build()`.</span>
+<span class="doccomment">/// While it could be more ergonomic to take &amp;mut self, this would</span>
+<span class="doccomment">/// prevent to have a `build` function that don&#39;t clone the output.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EvmDataWriter</span> {
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">arrays</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&gt;</span>,
+	<span class="ident">offset_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Array</span> {
+<span class="kw">struct</span> <span class="ident">OffsetDatum</span> {
 	<span class="ident">offset_position</span>: <span class="ident">usize</span>,
 	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">inner_arrays</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&gt;</span>,
+	<span class="ident">inner_offset_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">EvmDataWriter</span> {
@@ -514,33 +660,33 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">data</span>: <span class="macro">vec!</span>[],
-			<span class="ident">arrays</span>: <span class="macro">vec!</span>[],
+			<span class="ident">offset_data</span>: <span class="macro">vec!</span>[],
 		}
 	}
 
 	<span class="doccomment">/// Return the built data.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-		<span class="ident"><span class="self">Self</span>::build_arrays</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">arrays</span>, <span class="number">0</span>);
+		<span class="ident"><span class="self">Self</span>::compute_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">offset_data</span>);
 
 		<span class="self">self</span>.<span class="ident">data</span>
 	}
 
 	<span class="doccomment">/// Build the array into data.</span>
-	<span class="doccomment">/// `global_offset` represents the start of the frame we are modifying.</span>
-	<span class="doccomment">/// While the main data will have a `global_offset` of 0, inner arrays will have a</span>
-	<span class="doccomment">/// `global_offset` corresponding to the start its parent array size data.</span>
-	<span class="kw">fn</span> <span class="ident">build_arrays</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">arrays</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&gt;</span>, <span class="ident">global_offset</span>: <span class="ident">usize</span>) {
+	<span class="kw">fn</span> <span class="ident">compute_offsets</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">arrays</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>) {
 		<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="kw">in</span> <span class="ident">arrays</span> {
 			<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">array</span>.<span class="ident">offset_position</span>;
 			<span class="kw">let</span> <span class="ident">offset_position_end</span> <span class="op">=</span> <span class="ident">offset_position</span> <span class="op">+</span> <span class="number">32</span>;
-			<span class="kw">let</span> <span class="ident">free_space_offset</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">global_offset</span>;
+
+			<span class="comment">// The offset is the distance between the start of the offset location and the</span>
+			<span class="comment">// start of the array length.</span>
+			<span class="kw">let</span> <span class="ident">free_space_offset</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset_position</span>;
 
 			<span class="comment">// Override dummy offset to the offset it will be in the final output.</span>
 			<span class="ident">U256::from</span>(<span class="ident">free_space_offset</span>)
 				.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">output</span>[<span class="ident">offset_position</span>..<span class="ident">offset_position_end</span>]);
 
 			<span class="comment">// Build inner arrays if any.</span>
-			<span class="ident"><span class="self">Self</span>::build_arrays</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>.<span class="ident">data</span>, <span class="ident">array</span>.<span class="ident">inner_arrays</span>, <span class="ident">free_space_offset</span>);
+			<span class="ident"><span class="self">Self</span>::compute_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>.<span class="ident">data</span>, <span class="ident">array</span>.<span class="ident">inner_offset_data</span>);
 
 			<span class="comment">// Append this data at the end of the current output.</span>
 			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>.<span class="ident">data</span>);
@@ -594,7 +740,7 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="ident">writer</span>.<span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">as_bytes</span>());
+		<span class="ident">writer</span>.<span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="ident">value</span>.<span class="ident">as_bytes</span>());
 	}
 }
 
@@ -662,6 +808,7 @@
 		)<span class="op">*</span>
 	};
 }
+
 <span class="macro">impl_evmdata_for_uints!</span>(<span class="ident">u16</span>, <span class="ident">u32</span>, <span class="ident">u64</span>, <span class="ident">u128</span>,);
 
 <span class="comment">// The implementation for u8 is specific, for performance reasons.</span>
@@ -704,7 +851,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataReader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">array_start</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
+		<span class="kw">let</span> <span class="ident">offset_reference</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
+		<span class="kw">let</span> <span class="ident">array_offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
@@ -712,7 +860,7 @@
 
 		<span class="comment">// We temporarily move the cursor to the offset, we&#39;ll set it back afterward.</span>
 		<span class="kw">let</span> <span class="ident">original_cursor</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
-		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">array_start</span>;
+		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">offset_reference</span> <span class="op">+</span> <span class="ident">array_offset</span>;
 
 		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
@@ -747,13 +895,83 @@
 			<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write</span>(<span class="ident">inner</span>);
 		}
 
-		<span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span> {
+		<span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">OffsetDatum</span> {
 			<span class="ident">offset_position</span>,
 			<span class="ident">data</span>: <span class="ident">inner_writer</span>.<span class="ident">data</span>,
-			<span class="ident">inner_arrays</span>: <span class="ident">inner_writer</span>.<span class="ident">arrays</span>,
+			<span class="ident">inner_offset_data</span>: <span class="ident">inner_writer</span>.<span class="ident">offset_data</span>,
 		};
 
-		<span class="ident">writer</span>.<span class="ident">arrays</span>.<span class="ident">push</span>(<span class="ident">array</span>);
+		<span class="ident">writer</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">array</span>);
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataReader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">offset_reference</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
+		<span class="kw">let</span> <span class="ident">array_offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">try_into</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="comment">// We temporarily move the cursor to the offset, we&#39;ll set it back afterward.</span>
+		<span class="kw">let</span> <span class="ident">original_cursor</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
+		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">offset_reference</span> <span class="op">+</span> <span class="ident">array_offset</span>;
+
+		<span class="comment">// Read bytes/string size.</span>
+		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse bytes/string length out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">try_into</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;bytes/string length is too large&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">array_size</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
+			.<span class="ident">input</span>
+			.<span class="ident">get</span>(<span class="ident">range</span>)
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse bytes/string out of bounds&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">Self</span>(<span class="ident">data</span>.<span class="ident">to_owned</span>());
+
+		<span class="comment">// We set back the cursor to its original location.</span>
+		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">original_cursor</span>;
+
+		<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
+		<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">data</span>.<span class="ident">len</span>();
+		<span class="ident">H256::write</span>(<span class="ident">writer</span>, <span class="ident">H256::repeat_byte</span>(<span class="number">0xff</span>));
+		<span class="comment">// 0xff = When debugging it makes spoting offset values easier.</span>
+
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>();
+
+		<span class="comment">// Write length.</span>
+		<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
+
+		<span class="comment">// Pad the data.</span>
+		<span class="comment">// Leave it as is if a multiple of 32, otherwise pad to next</span>
+		<span class="comment">// multiple or 32.</span>
+		<span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">32</span>;
+		<span class="kw">let</span> <span class="ident">padded_size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">32</span> {
+			<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">chunks</span> <span class="op">*</span> <span class="number">32</span>,
+			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">chunks</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">32</span>,
+		};
+
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">to_vec</span>();
+		<span class="ident">value</span>.<span class="ident">resize</span>(<span class="ident">padded_size</span>, <span class="number">0</span>);
+
+		<span class="comment">// Write bytes data.</span>
+		<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
+
+		<span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">OffsetDatum</span> {
+			<span class="ident">offset_position</span>,
+			<span class="ident">data</span>: <span class="ident">inner_writer</span>.<span class="ident">data</span>,
+			<span class="ident">inner_offset_data</span>: <span class="ident">inner_writer</span>.<span class="ident">offset_data</span>,
+		};
+
+		<span class="ident">writer</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">array</span>);
 	}
 }
 </code></pre></div>
