@@ -22,8 +22,7 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
-	RuntimeHelper,
+	error, Address, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -31,12 +30,11 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
-	vec::Vec,
 };
 mod encoding;
-use encoding::Encoder;
+use encoding::MultiLocationWrapper;
 use sp_std::boxed::Box;
-use xcm::v1::{AssetId, Fungibility, Junctions, MultiAsset, MultiLocation};
+use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -199,47 +197,5 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
-	}
-}
-
-// A wrapper to be able to implement here the evmData reader
-pub struct MultiLocationWrapper(MultiLocation);
-
-impl From<MultiLocation> for MultiLocationWrapper {
-	fn from(location: MultiLocation) -> Self {
-		MultiLocationWrapper(location)
-	}
-}
-
-impl Into<MultiLocation> for MultiLocationWrapper {
-	fn into(self) -> MultiLocation {
-		self.0
-	}
-}
-
-impl EvmData for MultiLocationWrapper {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		// MultiLocations are defined by their number of parents (u8) and
-		// Junctions. We are assuming the Junctions are encoded as defined in
-		// the encoding module
-
-		// Essentially, they will be a set of bytes specifying the different
-		// enum variants
-
-		let num_parents = reader
-			.read::<u8>()
-			.map_err(|_| error("tried to parse array offset out of bounds"))?;
-
-		let junctions: Vec<Bytes> = reader.read()?;
-
-		Ok(MultiLocationWrapper(MultiLocation {
-			parents: num_parents,
-			interior: Junctions::from_encoded(junctions)?,
-		}))
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, U256::from(value.0.parents));
-		EvmData::write(writer, Junctions::to_encoded(&value.0.interior));
 	}
 }
