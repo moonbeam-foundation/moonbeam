@@ -48,7 +48,7 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
-enum Action {
+pub enum Action {
 	Transfer = "transfer(address, u256, bytes[], u64)",
 	TransferMultiAsset = "transfer_multiasset(bytes[], u256, bytes[], u64)",
 }

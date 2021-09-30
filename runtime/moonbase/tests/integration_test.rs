@@ -31,14 +31,16 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetManager, Assets, Balances, BlockWeights, Call,
-	CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System,
+	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
+	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime,
+	System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+use xtokens_precompiles::{Action as XtokensAction, MultiLocationWrapper};
 
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
@@ -1052,7 +1054,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = moonbase_runtime::AssetType::Xcm(MultiLocation::parent());
+		let source_location = AssetType::Xcm(MultiLocation::parent());
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
 		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),
@@ -1309,6 +1311,69 @@ fn asset_erc20_precompiles_approve() {
 				expected_result
 			);
 		});
+}
+
+#[test]
+fn xtokens_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			assert_eq!(
+				Precompiles::execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(XtokensAction::Transfer)
+						.write(EvmAddress(asset_precompile_address))
+						.write(U256::from(500_000_000_000_000u128))
+						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
 }
 
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)
