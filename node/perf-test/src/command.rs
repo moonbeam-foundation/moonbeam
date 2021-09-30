@@ -51,13 +51,20 @@ use nimbus_primitives::NimbusId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
 use ethereum::{TransactionAction, TransactionSignature};
 
 use async_io::Timer;
-use futures::{Stream, Sink, SinkExt, channel::mpsc::Sender};
+use futures::{
+	Stream, Sink, SinkExt, FutureExt,
+	channel::{
+		oneshot,
+		mpsc,
+	},
+};
 
 use service::{chain_spec, RuntimeApiCollection, Block, TransactionConverters};
+use sha3::{Digest, Keccak256};
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -72,7 +79,7 @@ struct PerfTestRunner<RuntimeApi, Executor>
 {
 	task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
-	manual_seal_command_sink: futures::channel::mpsc::Sender<EngineCommand<H256>>,
+	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
 
 	_marker1: PhantomData<RuntimeApi>,
@@ -155,7 +162,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		log::warn!("opening channel...");
 		let mut command_sink = None;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
-			let (sink, stream) = futures::channel::mpsc::channel(1000);
+			let (sink, stream) = mpsc::channel(1000);
 			command_sink = Some(sink);
 			Box::new(stream)
 		};
@@ -238,6 +245,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		estimate: bool,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
+		log::warn!("evm_call best_hash: {:?}", hash);
 
 		let result = self.client.runtime_api().call(
 			&BlockId::Hash(hash),
@@ -265,6 +273,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		estimate: bool,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
+		log::warn!("evm_create best_hash: {:?}", hash);
 
 		let result = self.client.runtime_api().create(
 			&BlockId::Hash(hash),
@@ -290,7 +299,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		gas_limit: U256,
 		gas_price: U256,
 		nonce: U256,
-	) -> Result<(), sp_runtime::DispatchError> {
+	) -> Result<H256, sp_runtime::DispatchError> {
 
 		const CHAIN_ID: u64 = 1281; // TODO: derive from CLI or from Moonbase
 
@@ -310,10 +319,16 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		};
 		let signed = unsigned.sign(signing_key);
 
+		let transaction_hash =
+			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
+
+		log::warn!("transaction_hash: {:?}", transaction_hash);
+
 		let transaction_converter = moonbase_runtime::TransactionConverter;
 		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
 
 		let hash = self.client.info().best_hash;
+		log::warn!("eth_sign_and_send_transaction best_hash: {:?}", hash);
 		self.pool.submit_one(
 			&BlockId::hash(hash),
 			TransactionSource::Local,
@@ -321,22 +336,34 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		);
 
 		// TODO: return txn hash
-		Ok(())
+		Ok(transaction_hash)
 
 	}
 
 	/// Author a block through manual sealing
-	fn create_block(&mut self) {
+	fn create_block(&mut self, create_empty: bool) ->
+		CreatedBlock<H256>
+	{
 		log::warn!("Issuing seal command...");
-		let result = self.manual_seal_command_sink.send(
-			EngineCommand::SealNewBlock {
-				create_empty: false,
-				finalize: false,
-				parent_hash: None,
-				sender: None,
-			});
+		let hash = self.client.info().best_hash;
 
-		// log::warn!("SealNewBlock send result: {:?}", result);
+		let mut sink = self.manual_seal_command_sink.clone();
+		let future = async move {
+			let (sender, receiver) = oneshot::channel();
+			let command = EngineCommand::SealNewBlock {
+				create_empty,
+				finalize: true,
+				parent_hash: Some(hash),
+				sender: Some(sender),
+			};
+			sink.send(command).await;
+			receiver.await
+		};
+
+		log::warn!("waiting for SealNewBlock command to resolve...");
+		futures::executor::block_on(future)
+			.expect("Failed to receive SealNewBlock response")
+			.expect("we have two layers of results, apparently")
 	}
 }
 
@@ -413,9 +440,23 @@ impl PerfCmd {
 		let fibonacci_bytecode = hex::decode(fibonacci_hex)
 			.expect("fibonacci_hex is valid hex; qed");
 
-		// TODO: send txn rather than call create
+		// do a create() call (which doesn't persist) to see what our expected contract address
+		// will be. afterward we create a txn and produce a block so it will persist.
+		// TODO: better way to calculate new contract address
+		let create_info = runner.evm_create(
+			alice,
+			fibonacci_bytecode.clone(),
+			0.into(),
+			1_000_000.into(),
+			Some(1_000_000_000.into()),
+			Some(alice_nonce),
+			false
+		).expect("EVM create failed while estimating contract address");
+		let fibonacci_address = create_info.value;
+		log::warn!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
+
 		log::warn!("Issuing EVM create txn...");
-		let create_results = runner.eth_sign_and_send_transaction(
+		let txn_hash = runner.eth_sign_and_send_transaction(
 			&alice_priv,
 			None,
 			fibonacci_bytecode,
@@ -426,16 +467,13 @@ impl PerfCmd {
 		).expect("EVM create failed while trying to deploy Fibonacci contract");
 
 		log::warn!("Creating block...");
-		runner.create_block();
+		runner.create_block(true);
+
+		// TODO: get txn results
 
 		// TODO: wait properly
 		log::warn!("sleeping so block can be created");
 		std::thread::sleep(std::time::Duration::from_millis(5000));
-
-		/*
-		let fibonacci_address: H160 = create_results.value;
-		log::debug!("fibonacci_address: {:?}", fibonacci_address);
-
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
@@ -454,7 +492,6 @@ impl PerfCmd {
 		).expect("EVM call failed while trying to invoke Fibonacci contract");
 
 		log::warn!("EVM call returned {:?}", call_results);
-		*/
 
 		Ok(())
 	}
