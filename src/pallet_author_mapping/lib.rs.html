@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets&#x2F;author-mapping&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_author_mapping/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets&#x2F;author-mapping&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_author_mapping/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -399,8 +399,7 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
-</pre><pre class="rust">
-<span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
 <span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
@@ -441,7 +440,7 @@
 
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::WeightInfo</span>;
+	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::WeightInfo</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">ReservableCurrency</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
@@ -470,9 +469,9 @@
 		<span class="doccomment">/// The type of authority id that will be used at the consensus layer.</span>
 		<span class="kw">type</span> <span class="ident">AuthorId</span>: <span class="ident">Member</span> <span class="op">+</span> <span class="ident">Parameter</span> <span class="op">+</span> <span class="ident">MaybeSerializeDeserialize</span> <span class="op">+</span> <span class="ident">Default</span>;
 		<span class="doccomment">/// Currency in which the security deposit will be taken.</span>
-		<span class="kw">type</span> <span class="ident">DepositCurrency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::AccountId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ReservableCurrency</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::AccountId</span><span class="op">&gt;</span>;
+		<span class="kw">type</span> <span class="ident">DepositCurrency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ReservableCurrency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// The amount that should be taken as a security deposit when registering an AuthorId.</span>
-		<span class="kw">type</span> <span class="ident">DepositAmount</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span><span class="op">&gt;</span>;
+		<span class="kw">type</span> <span class="ident">DepositAmount</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
 	}
@@ -519,7 +518,7 @@
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AlreadyAssociated</span>
 			);
 
-			<span class="self">Self</span><span class="ident">::enact_registration</span>(<span class="kw-2">&amp;</span><span class="ident">author_id</span>, <span class="kw-2">&amp;</span><span class="ident">account_id</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::enact_registration</span>(<span class="kw-2">&amp;</span><span class="ident">author_id</span>, <span class="kw-2">&amp;</span><span class="ident">account_id</span>)<span class="question-mark">?</span>;
 
 			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorRegistered</span>(<span class="ident">author_id</span>, <span class="ident">account_id</span>));
 
@@ -674,7 +673,7 @@
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="kw">fn</span> <span class="ident">lookup_account</span>(<span class="ident">author</span>: <span class="kw-2">&amp;</span><span class="ident">T::AuthorId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
-			<span class="self">Self</span><span class="ident">::account_id_of</span>(<span class="ident">author</span>)
+			<span class="ident"><span class="self">Self</span>::account_id_of</span>(<span class="ident">author</span>)
 		}
 	}
 
@@ -682,7 +681,7 @@
 		<span class="doccomment">/// A helper function to lookup the account id associated with the given author id. This is</span>
 		<span class="doccomment">/// the primary lookup that this pallet is responsible for.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">account_id_of</span>(<span class="ident">author_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AuthorId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
-			<span class="self">Self</span><span class="ident">::account_and_deposit_of</span>(<span class="ident">author_id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">account</span>)
+			<span class="ident"><span class="self">Self</span>::account_and_deposit_of</span>(<span class="ident">author_id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">account</span>)
 		}
 	}
 
@@ -759,7 +758,7 @@
 				<span class="ident">storage_item_prefix</span>,
 			)
 			.<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-			<span class="self">Self</span><span class="ident">::set_temp_storage</span>(<span class="ident">mapping_count</span>, <span class="string">&quot;mapping_count&quot;</span>);
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">mapping_count</span>, <span class="string">&quot;mapping_count&quot;</span>);
 
 			<span class="comment">// Read an example pair from old storage and set it aside in temp storage</span>
 			<span class="kw">if</span> <span class="ident">mapping_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -771,7 +770,7 @@
 				.<span class="ident">next</span>()
 				.<span class="ident">expect</span>(<span class="string">&quot;We already confirmed that there was at least one item stored&quot;</span>);
 
-				<span class="self">Self</span><span class="ident">::set_temp_storage</span>(<span class="ident">example_pair</span>, <span class="string">&quot;example_pair&quot;</span>);
+				<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">example_pair</span>, <span class="string">&quot;example_pair&quot;</span>);
 			}
 
 			<span class="prelude-val">Ok</span>(())
@@ -782,7 +781,7 @@
 			<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
 
 			<span class="comment">// Check number of entries matches what was set aside in pre_upgrade</span>
-			<span class="kw">let</span> <span class="ident">old_mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
+			<span class="kw">let</span> <span class="ident">old_mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
 				.<span class="ident">expect</span>(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
 			<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 			<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count</span>);
@@ -792,7 +791,7 @@
 				<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_info</span>): (
 					<span class="ident">T::AuthorId</span>,
 					<span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-				) <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+				) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 				<span class="kw">let</span> <span class="ident">migrated_info</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 				<span class="macro">assert_eq!</span>(<span class="ident">original_info</span>, <span class="ident">migrated_info</span>);
 			}
@@ -801,7 +800,7 @@
 		}
 	}
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>
