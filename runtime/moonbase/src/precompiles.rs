@@ -107,6 +107,10 @@ where
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
 			}
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
+			}
 			_ => None,
 		}
 	}
