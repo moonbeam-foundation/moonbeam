@@ -95,7 +95,7 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::v1::{
-	BodyId, Junction,
+	BodyId,
 	Junction::{PalletInstance, Parachain},
 	Junctions, MultiLocation, NetworkId,
 };
