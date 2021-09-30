@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{error, EvmResult};
+use alloc::borrow::ToOwned;
 use core::{any::type_name, ops::Range};
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
@@ -38,6 +39,8 @@ impl From<Address> for H160 {
 }
 
 /// The `bytes`/`string` type of Solidity.
+/// It is different from `Vec<u8>` which will be serialized with padding for each `u8` element
+/// of the array, while `Bytes` is tightly packed.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bytes(pub Vec<u8>);
 
@@ -317,6 +320,7 @@ macro_rules! impl_evmdata_for_uints {
 		)*
 	};
 }
+
 impl_evmdata_for_uints!(u16, u32, u64, u128,);
 
 // The implementation for u8 is specific, for performance reasons.
@@ -456,7 +460,7 @@ impl EvmData for Bytes {
 		let mut inner_writer = EvmDataWriter::new();
 
 		// Write length.
-		inner_writer = inner_writer.write(U256::from(value.0.len()));
+		inner_writer = inner_writer.write(value.0.len() as u64);
 
 		// Pad the data.
 		// Leave it as is if a multiple of 32, otherwise pad to next
