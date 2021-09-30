@@ -123,7 +123,6 @@ impl<'a> EvmDataReader<'a> {
 		Ok(data)
 	}
 
-
 	/// Parse (4 bytes) selector.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_selector<T>(&mut self) -> EvmResult<T>
