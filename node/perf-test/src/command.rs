@@ -329,13 +329,14 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		let hash = self.client.info().best_hash;
 		log::warn!("eth_sign_and_send_transaction best_hash: {:?}", hash);
-		self.pool.submit_one(
+		let future = self.pool.submit_one(
 			&BlockId::hash(hash),
 			TransactionSource::Local,
 			unchecked_extrinsic
 		);
 
-		// TODO: return txn hash
+		futures::executor::block_on(future);
+
 		Ok(transaction_hash)
 
 	}
