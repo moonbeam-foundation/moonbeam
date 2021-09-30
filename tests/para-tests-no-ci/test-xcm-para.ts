@@ -354,9 +354,10 @@ describeParachain(
       parachainTwo: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationX3: { XCM: any };
+      sourceLocationX3: { XCM: any },
+      initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
-      keyring = new Keyring({ type: "sr25519" });
+      keyring = new Keyring({ type: "ethereum" });
 
       // Setup Relaychain
       relayOne = context._polkadotApiRelaychains[0];
@@ -372,12 +373,14 @@ describeParachain(
       logEvents(parachainTwo, "PARA B");
       logEvents(relayOne, "RELAY");
 
+      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
       const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
-      
+
       expect(palletIndex);
 
       sourceLocationX3 = {
@@ -394,13 +397,8 @@ describeParachain(
         sourceLocationX3,
         paraAssetMetadata
       ));
-      console.log("assetId", assetId);
-      console.log(
-        "balta para one, before, no assetId",
-        (await parachainOne.query.system.account(BALTATHAR)).toHuman()
-      );
     });
-    it.only("should be able to receive an asset in para b from para a", async function () {
+    it("should be able to receive an asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
       const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
@@ -408,7 +406,6 @@ describeParachain(
         baltathar,
         parachainOne.tx.xTokens.transfer(
           "SelfReserve",
-          // new BN(HUNDRED_UNITS_PARA),
           HUNDRED_UNITS_PARA,
           {
             X3: [
@@ -420,19 +417,280 @@ describeParachain(
           new BN(4000000000)
         )
       );
-      eventsTransfer.forEach((e) => {
-        console.log("tsf", e.toHuman());
-      });
-      // TODO test event
+
+      expect(eventsTransfer[2].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer[3].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
+
       await waitOneBlock(parachainTwo, 3);
-      
-      expect(
-        ((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free
-      ).to.eq('1.2076 MUNIT'); // instead of 1.2077 MUNIT
+
+      // Verify that difference is 100 units plus fees (less than 1% of 10^18)
+      const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
+      const diff =
+        Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
+      expect(diff < 10000000000000000).to.eq(true);
       expect(
         (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-        '100,000,000,000,000,000,000'
+          "100,000,000,000,000,000,000"
       ).to.eq(true);
+    });
+  }
+);
+
+describeParachain(
+  "XCM - send_para_a_asset_to_para_b_and_back_to_para_a - aka parachainTwo",
+  { chain: "moonbase-local", numberOfParachains: 2 },
+  (context) => {
+    let keyring: Keyring,
+      alith: KeyringPair,
+      baltathar: KeyringPair,
+      parachainOne: ApiPromise,
+      parachainTwo: ApiPromise,
+      relayOne: ApiPromise,
+      assetId: string,
+      sourceLocationX3: { XCM: any },
+      initialBalance: number;
+    before("First send relay chain asset to parachain", async function () {
+      keyring = new Keyring({ type: "ethereum" });
+
+      // Setup Relaychain
+      relayOne = context._polkadotApiRelaychains[0];
+
+      // Setup Parachains
+      alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+      parachainOne = context.polkadotApiParaone;
+      parachainTwo = context._polkadotApiParachains[1][0];
+
+      // Log events
+      logEvents(parachainOne, "PARA A");
+      logEvents(parachainTwo, "PARA B");
+      logEvents(relayOne, "RELAY");
+
+      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+
+      // Get Pallet balances index
+      const metadata = await parachainOne.rpc.state.getMetadata();
+      const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
+        return pallet.name === "Balances";
+      }).index;
+
+      expect(palletIndex);
+
+      sourceLocationX3 = {
+        XCM: {
+          X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
+        },
+      };
+
+      // PARACHAIN B
+      // registerAsset
+      ({ assetId } = await registerAssetToParachain(
+        parachainTwo,
+        alith,
+        sourceLocationX3,
+        paraAssetMetadata
+      ));
+
+      // PARACHAIN A
+      // transfer 100 units to parachain B
+      await createBlockWithExtrinsicParachain(
+        parachainOne,
+        baltathar,
+        parachainOne.tx.xTokens.transfer(
+          "SelfReserve",
+          HUNDRED_UNITS_PARA,
+          {
+            X3: [
+              "Parent",
+              { Parachain: new BN(2000) },
+              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+            ],
+          },
+          new BN(4000000000)
+        )
+      );
+      await waitOneBlock(parachainTwo, 3);
+    });
+    it.only("should be able to receive an asset in para b from para a", async function () {
+      // PARACHAIN B
+      // transfer back 100 units to parachain A
+      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
+        parachainTwo,
+        baltathar,
+        parachainTwo.tx.xTokens.transfer(
+          { OtherReserve: assetId },
+          HUNDRED_UNITS_PARA,
+          {
+            X3: [
+              "Parent",
+              { Parachain: new BN(1000) },
+              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+            ],
+          },
+          new BN(4000000000)
+        )
+      );
+      expect(eventsTransfer[1].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer[2].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer[6].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      await waitOneBlock(parachainTwo, 3);
+
+      const diff =
+        initialBalance - Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+      // Verify that difference is fees (less than 1% of 10^18)
+      expect(diff < 10000000000000000).to.eq(true);
+      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
+        "0"
+      );
+    });
+  }
+);
+
+describeParachain(
+  "XCM - send_para_a_asset_from_para_b_to_para_c",
+  { chain: "moonbase-local", numberOfParachains: 3 },
+  (context) => {
+    let keyring: Keyring,
+      alith: KeyringPair,
+      baltathar: KeyringPair,
+      parachainOne: ApiPromise,
+      parachainTwo: ApiPromise,
+      parachainThree: ApiPromise,
+      relayOne: ApiPromise,
+      assetId: string,
+      sourceLocationX3: { XCM: any },
+      initialBalance: number;
+    before("First send relay chain asset to parachain", async function () {
+      keyring = new Keyring({ type: "ethereum" });
+
+      // Setup Relaychain
+      relayOne = context._polkadotApiRelaychains[0];
+
+      // Setup Parachains
+      alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+      parachainOne = context.polkadotApiParaone;
+      parachainTwo = context._polkadotApiParachains[1][0];
+      parachainThree = context._polkadotApiParachains[2][0];
+
+      // Log events
+      logEvents(parachainOne, "PARA A");
+      logEvents(parachainTwo, "PARA B");
+      logEvents(parachainThree, "PARA C");
+      logEvents(relayOne, "RELAY");
+
+      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+
+      // Get Pallet balances index
+      const metadata = await parachainOne.rpc.state.getMetadata();
+      const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
+        return pallet.name === "Balances";
+      }).index;
+
+      expect(palletIndex);
+
+      sourceLocationX3 = {
+        XCM: {
+          X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
+        },
+      };
+
+      // PARACHAIN B
+      // registerAsset
+      ({ assetId } = await registerAssetToParachain(
+        parachainTwo,
+        alith,
+        sourceLocationX3,
+        paraAssetMetadata
+      ));
+
+      // PARACHAIN C
+      // registerAsset
+      await registerAssetToParachain(parachainThree, alith, sourceLocationX3, paraAssetMetadata);
+    });
+    it("should be able to receive an asset back in para a from para b", async function () {
+      // PARACHAIN A
+      // transfer 100 units to parachain B
+      await createBlockWithExtrinsicParachain(
+        parachainOne,
+        baltathar,
+        parachainOne.tx.xTokens.transfer(
+          "SelfReserve",
+          HUNDRED_UNITS_PARA,
+          {
+            X3: [
+              "Parent",
+              { Parachain: new BN(2000) },
+              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+            ],
+          },
+          new BN(4000000000)
+        )
+      );
+      // eventsTransfer.forEach((e) => {
+      //   console.log("tsf", e.toHuman());
+      // });
+      // expect(eventsTransfer[2].toHuman().method).to.eq("XcmpMessageSent");
+      // expect(eventsTransfer[3].toHuman().method).to.eq("Transferred");
+      // expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      await waitOneBlock(parachainTwo, 3);
+
+      // expect(
+      //   Number(((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free)
+      // ).to.eq(Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA))); // instead of 1.2077 MUNIT
+      // expect(
+      //   (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
+      //     "100,000,000,000,000,000,000"
+      // ).to.eq(true);
+
+      // PARACHAIN B
+      // transfer 100 units to parachain C
+      const { events: eventsTransfer2 } = await createBlockWithExtrinsicParachain(
+        parachainTwo,
+        baltathar,
+        parachainTwo.tx.xTokens.transfer(
+          { OtherReserve: assetId },
+          HUNDRED_UNITS_PARA,
+          {
+            X3: [
+              "Parent",
+              { Parachain: new BN(3000) },
+              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+            ],
+          },
+          new BN(4000000000)
+        )
+      );
+      eventsTransfer2.forEach((e) => {
+        console.log("tsf2", e.toHuman());
+      });
+
+      expect(eventsTransfer2[1].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer2[2].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer2[6].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      await waitOneBlock(parachainThree, 6);
+      // Verify that difference is 100 units plus fees (less than 1% of 10^18)
+      const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
+      const diff =
+        Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
+      // console.log(
+      //   (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance,
+      //   (await parachainThree.query.assets.account(assetId, BALTATHAR)).toHuman().balance
+      // );
+      expect(diff < 10000000000000000).to.eq(true);
+      // expect(
+      //   Number(((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free)
+      // ).to.eq(Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA))); // instead of 1.2077 MUNIT
+      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
+        "0"
+      );
+      expect(
+        (await parachainThree.query.assets.account(assetId, BALTATHAR)).toHuman().balance
+      ).to.eq("99,999,999,996,000,000,000");
     });
   }
 );

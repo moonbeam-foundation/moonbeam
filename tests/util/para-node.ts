@@ -1,21 +1,32 @@
 import tcpPortUsed from "tcp-port-used";
 import path from "path";
 import { killAll, run } from "polkadot-launch";
-import { BINARY_PATH, RELAY_BINARY_PATH, DISPLAY_LOG, SPAWNING_TIME } from "./constants";
+import {
+  BINARY_PATH,
+  RELAY_BINARY_PATH,
+  DISPLAY_LOG,
+  SPAWNING_TIME,
+  RELAY_CHAIN_NODE_NAMES,
+} from "./constants";
 const debug = require("debug")("test:para-node");
 
-export async function findAvailablePorts(extraParachain: boolean = false) {
-  const numberOfNodes = extraParachain ? 8 : 4; // two nodes per parachain, as many relaychain nodes
+export async function findAvailablePorts(numberOfparachains: number = 1) {
+  // 2 nodes per prachain, and as many relaychain nodes
+  const numberOfNodes = numberOfparachains * 2 * 2; // extraParachain ? 8 : 4; // two nodes per parachain, as many relaychain nodes
   const numberOfPorts = numberOfNodes * 3;
   const availablePorts = await Promise.all(
     new Array(numberOfPorts).fill(0).map(async (_, index) => {
       let selectedPort = 0;
-      let port = 1024 + index * 2000 + (process.pid % 2000);
+      let port = 1024 + index * 1000 + (process.pid % 1000);
       let endingPort = 65535;
       while (!selectedPort && port < endingPort) {
-        const inUse = await tcpPortUsed.check(port, "127.0.0.1");
-        if (!inUse) {
-          selectedPort = port;
+        try {
+          const inUse = await tcpPortUsed.check(port, "127.0.0.1");
+          if (!inUse) {
+            selectedPort = port;
+          }
+        } catch (e) {
+          console.log("caught err ", e);
         }
         port++;
       }
@@ -71,9 +82,9 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     });
   }
   const relaychain = options.relaychain || "rococo-local";
-  // For now we only support one or two parachains
+  // For now we only support one, two or three parachains
   const numberOfParachains =
-    (options.numberOfParachains < 3 &&
+    (options.numberOfParachains < 4 &&
       options.numberOfParachains > 0 &&
       options.numberOfParachains) ||
     1;
@@ -81,54 +92,38 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   nodeStarted = true;
   // Each node will have 3 ports. There are 4 nodes total (2 relay, 2 collators) - so 12 ports
   // Plus 2 nodes if we need a second parachain
-  const ports = await findAvailablePorts(numberOfParachains === 2);
+  const ports = await findAvailablePorts(numberOfParachains);
   console.log("PORTS", ports);
+  //Build hrmpChannels, all connected to first parachain
+  const hrmpChannels = [];
+  new Array(numberOfParachains - 1).fill(0).forEach((_, i) => {
+    hrmpChannels.push({
+      sender: 1000,
+      recipient: 1000 * (i + 2),
+      maxCapacity: 8,
+      maxMessageSize: 512,
+    });
+    hrmpChannels.push({
+      sender: 1000 * (i + 2),
+      recipient: 1000,
+      maxCapacity: 8,
+      maxMessageSize: 512,
+    });
+  });
+  console.log("hrmpChannels", hrmpChannels);
+  // Build launchConfig
   const launchConfig = {
     relaychain: {
       bin: RELAY_BINARY_PATH,
       chain: relaychain,
-      nodes:
-        numberOfParachains === 2
-          ? [
-              {
-                name: "Alice",
-                port: ports[0].p2pPort,
-                rpcPort: ports[0].rpcPort,
-                wsPort: ports[0].wsPort,
-              },
-              {
-                name: "Bob",
-                port: ports[1].p2pPort,
-                rpcPort: ports[1].rpcPort,
-                wsPort: ports[1].wsPort,
-              },
-              {
-                name: "Charlie",
-                port: ports[2].p2pPort,
-                rpcPort: ports[2].rpcPort,
-                wsPort: ports[2].wsPort,
-              },
-              {
-                name: "Dave",
-                port: ports[3].p2pPort,
-                rpcPort: ports[3].rpcPort,
-                wsPort: ports[3].wsPort,
-              },
-            ]
-          : [
-              {
-                name: "Alice",
-                port: ports[0].p2pPort,
-                rpcPort: ports[0].rpcPort,
-                wsPort: ports[0].wsPort,
-              },
-              {
-                name: "Bob",
-                port: ports[1].p2pPort,
-                rpcPort: ports[1].rpcPort,
-                wsPort: ports[1].wsPort,
-              },
-            ],
+      nodes: new Array(numberOfParachains * 2).fill(0).map((_, i) => {
+        return {
+          name: RELAY_CHAIN_NODE_NAMES[i],
+          port: ports[i].p2pPort,
+          rpcPort: ports[i].rpcPort,
+          wsPort: ports[i].wsPort,
+        };
+      }),
       genesis: {
         runtime: {
           runtime_genesis_config: {
@@ -179,17 +174,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       };
     }),
     simpleParachains: [],
-    hrmpChannels: numberOfParachains === 2?[{
-			"sender": 1000,
-			"recipient": 2000,
-			"maxCapacity": 8,
-			"maxMessageSize": 512
-		},{
-			"sender": 2000,
-			"recipient": 1000,
-			"maxCapacity": 8,
-			"maxMessageSize": 512
-		}]:[],
+    hrmpChannels: hrmpChannels,
     finalization: true,
   };
 
@@ -206,42 +191,14 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   await run(path.join(__dirname, "../"), launchConfig);
 
   return {
-    relayPorts:
-      numberOfParachains === 2
-        ? [
-            {
-              p2pPort: ports[0].p2pPort,
-              rpcPort: ports[0].rpcPort,
-              wsPort: ports[0].wsPort,
-            },
-            {
-              p2pPort: ports[1].p2pPort,
-              rpcPort: ports[1].rpcPort,
-              wsPort: ports[1].wsPort,
-            },
-            {
-              p2pPort: ports[2].p2pPort,
-              rpcPort: ports[2].rpcPort,
-              wsPort: ports[2].wsPort,
-            },
-            {
-              p2pPort: ports[3].p2pPort,
-              rpcPort: ports[3].rpcPort,
-              wsPort: ports[3].wsPort,
-            },
-          ]
-        : [
-            {
-              p2pPort: ports[0].p2pPort,
-              rpcPort: ports[0].rpcPort,
-              wsPort: ports[0].wsPort,
-            },
-            {
-              p2pPort: ports[1].p2pPort,
-              rpcPort: ports[1].rpcPort,
-              wsPort: ports[1].wsPort,
-            },
-          ],
+    relayPorts: new Array(numberOfParachains * 2).fill(0).map((_, i) => {
+      return {
+        p2pPort: ports[i].p2pPort,
+        rpcPort: ports[i].rpcPort,
+        wsPort: ports[i].wsPort,
+      };
+    }),
+
     paraPorts: parachainArray.map((_, i) => {
       return [
         {
