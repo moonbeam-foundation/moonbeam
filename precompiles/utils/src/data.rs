@@ -146,6 +146,11 @@ impl<'a> EvmDataReader<'a> {
 }
 
 /// Help build an EVM input/output data.
+///
+/// Functions takes `self` to allow chaining all calls like
+/// `EvmDataWriter::new().write(...).write(...).build()`.
+/// While it could be more ergonomic to take &mut self, this would
+/// prevent to have a `build` function that don't clone the output.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
 	pub(crate) data: Vec<u8>,
@@ -453,22 +458,20 @@ impl EvmData for Bytes {
 		// Write length.
 		inner_writer = inner_writer.write(U256::from(value.0.len()));
 
+		// Pad the data.
+		// Leave it as is if a multiple of 32, otherwise pad to next
+		// multiple or 32.
 		let chunks = value.0.len() / 32;
 		let padded_size = match value.0.len() % 32 {
 			0 => chunks * 32,
 			_ => (chunks + 1) * 32,
 		};
 
-		// Pad the data.
 		let mut value = value.0.to_vec();
 		value.resize(padded_size, 0);
 
 		// Write bytes data.
 		inner_writer = inner_writer.write_raw_bytes(&value);
-
-		// // Write padding to return to 32-bytes alignement.
-		// let padding = vec![0; 32 - (value.0.len() % 32)];
-		// inner_writer = inner_writer.write_raw_bytes(&padding);
 
 		let array = OffsetDatum {
 			offset_position,

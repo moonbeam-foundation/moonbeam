@@ -538,7 +538,7 @@ fn write_string() {
 	// We can read this "manualy" using simpler functions.
 	let mut reader = EvmDataReader::new(&writer_output);
 
-	// We pad data to a multiple of 32 bytes.
+	// We pad data to next multiple of 32 bytes.
 	let mut padded = data.as_bytes().to_vec();
 	assert!(data.len() < 0x80);
 	padded.resize(0x80, 0);
