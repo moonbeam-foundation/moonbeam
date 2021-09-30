@@ -551,3 +551,22 @@ fn write_string() {
 	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
 	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
 }
+
+#[test]
+
+fn read_vec_of_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new()
+		.write(vec![Bytes::from(&data[..]), Bytes::from(&data[..])])
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Vec<Bytes> = reader
+		.read::<Vec<Bytes>>()
+		.expect("to correctly parse Vec<u8>")
+		.into();
+
+	assert_eq!(vec![Bytes::from(&data[..]), Bytes::from(&data[..])], parsed);
+}
