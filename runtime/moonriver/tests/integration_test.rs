@@ -216,7 +216,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MOVR),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * MOVR),
 		])
@@ -348,7 +348,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -391,7 +391,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			(AccountId::from(CHARLIE), MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
