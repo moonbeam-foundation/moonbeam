@@ -190,7 +190,7 @@ impl Encoder for Junctions {
 	fn to_encoded(&self) -> Self::EncodingType {
 		let encoded: Vec<Bytes> = self
 			.iter()
-			.map(|junction| junction.to_encoded().into())
+			.map(|junction| junction.to_encoded().as_slice().into())
 			.collect();
 		encoded
 	}
@@ -198,19 +198,19 @@ impl Encoder for Junctions {
 		match encoded.len() {
 			0 => Ok(Junctions::Here),
 			1 => {
-				let first_junction = Junction::from_encoded(encoded[0].clone().into())?;
+				let first_junction = Junction::from_encoded(encoded[0].as_bytes().into())?;
 				Ok(Junctions::X1(first_junction))
 			}
 
 			2 => {
-				let first_junction = Junction::from_encoded(encoded[0].clone().into())?;
-				let second_junction = Junction::from_encoded(encoded[1].clone().into())?;
+				let first_junction = Junction::from_encoded(encoded[0].as_bytes().into())?;
+				let second_junction = Junction::from_encoded(encoded[1].as_bytes().into())?;
 				Ok(Junctions::X2(first_junction, second_junction))
 			}
 			3 => {
-				let first_junction = Junction::from_encoded(encoded[0].clone().into())?;
-				let second_junction = Junction::from_encoded(encoded[1].clone().into())?;
-				let third_junction = Junction::from_encoded(encoded[2].clone().into())?;
+				let first_junction = Junction::from_encoded(encoded[0].as_bytes().into())?;
+				let second_junction = Junction::from_encoded(encoded[1].as_bytes().into())?;
+				let third_junction = Junction::from_encoded(encoded[2].as_bytes().into())?;
 
 				Ok(Junctions::X3(
 					first_junction,
@@ -219,10 +219,10 @@ impl Encoder for Junctions {
 				))
 			}
 			4 => {
-				let first_junction = Junction::from_encoded(encoded[0].clone().into())?;
-				let second_junction = Junction::from_encoded(encoded[1].clone().into())?;
-				let third_junction = Junction::from_encoded(encoded[2].clone().into())?;
-				let fourth_junction = Junction::from_encoded(encoded[3].clone().into())?;
+				let first_junction = Junction::from_encoded(encoded[0].as_bytes().into())?;
+				let second_junction = Junction::from_encoded(encoded[1].as_bytes().into())?;
+				let third_junction = Junction::from_encoded(encoded[2].as_bytes().into())?;
+				let fourth_junction = Junction::from_encoded(encoded[3].as_bytes().into())?;
 
 				Ok(Junctions::X4(
 					first_junction,
