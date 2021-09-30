@@ -100,6 +100,10 @@ impl Into<Junction> for JunctionWrapper {
 	}
 }
 
+// Each Junction is represented as Bytes, like we have encoded above
+// The number of junctions represents the enum variant
+// e.g., if Vec<Bytes> is length 1 then we know we have one junction,
+// i.e., we need to use Junctions::X1
 impl EvmData for JunctionWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let junction = reader.read::<Bytes>()?;

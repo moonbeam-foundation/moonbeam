@@ -35,7 +35,7 @@ use sp_runtime::{
 use xcm::v1::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
-	MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendXcm, Xcm,
+	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendXcm, Xcm,
 };
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
