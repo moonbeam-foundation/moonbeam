@@ -14,6 +14,10 @@ futures = { version = "0.3.1", features = ["compat"] }
 libsecp256k1 = { version = "0.5" }
 ethereum = { version = "0.9.0" }
 rlp = { version = "0.5" }
+sha3 = { version = "0.8" }
+
+# TODO: handle different runtime builds
+moonbase-runtime = { path = "../../runtime/moonbase" }
 
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
 sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-v0.9.9-block-response-length" }
@@ -35,6 +39,7 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-v0.9.9-block-response-length" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }

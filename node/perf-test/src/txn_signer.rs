@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use sp_core::{H256, U256};
-use sp_runtime::traits::Keccak256;
+use sha3::{Keccak256, Digest};
 
 use ethereum::{TransactionAction, TransactionSignature, TransactionV0 as Transaction};
 use rlp::*;
@@ -23,6 +23,7 @@ use rlp::*;
 /// Utilities for signing an Ethereum transaction. Taken from frontier's frame-ethereum test mock.
 
 pub struct UnsignedTransaction {
+	pub chain_id: u64,
 	pub nonce: U256,
 	pub gas_price: U256,
 	pub gas_limit: U256,
@@ -32,7 +33,7 @@ pub struct UnsignedTransaction {
 }
 
 impl UnsignedTransaction {
-	fn signing_rlp_append(&self, s: &mut RlpStream, chain_id: u64) {
+	fn signing_rlp_append(&self, s: &mut RlpStream) {
 		s.begin_list(9);
 		s.append(&self.nonce);
 		s.append(&self.gas_price);
@@ -40,7 +41,7 @@ impl UnsignedTransaction {
 		s.append(&self.action);
 		s.append(&self.value);
 		s.append(&self.input);
-		s.append(&chain_id);
+		s.append(&self.chain_id);
 		s.append(&0u8);
 		s.append(&0u8);
 	}
@@ -51,7 +52,7 @@ impl UnsignedTransaction {
 		H256::from_slice(&Keccak256::digest(&stream.out()).as_slice())
 	}
 
-	pub fn sign(&self, key: &H256, chain_id: u64) -> Transaction {
+	pub fn sign(&self, key: &H256) -> Transaction {
 		let hash = self.signing_hash();
 		let msg = libsecp256k1::Message::parse(hash.as_fixed_bytes());
 		let s = libsecp256k1::sign(
@@ -61,7 +62,7 @@ impl UnsignedTransaction {
 		let sig = s.0.serialize();
 
 		let sig = TransactionSignature::new(
-			s.1.serialize() as u64 % 2 + chain_id * 2 + 35,
+			s.1.serialize() as u64 % 2 + self.chain_id * 2 + 35,
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
 		)

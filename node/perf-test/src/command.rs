@@ -21,7 +21,9 @@ use sp_runtime::{
 	transaction_validity::TransactionSource,
 	generic::UncheckedExtrinsic,
 };
-use sc_service::{Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager};
+use sc_service::{
+	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
+};
 use sc_cli::{
 	CliConfiguration, Result as CliResult, SharedParams,
 };
@@ -43,7 +45,8 @@ use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
 use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
 use sp_state_machine::StateMachine;
 use cli_opt::RpcConfig;
-use fp_rpc::EthereumRuntimeRPCApi;
+use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
+use fc_consensus::FrontierBlockImport;
 use nimbus_primitives::NimbusId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
@@ -70,7 +73,7 @@ struct PerfTestRunner<RuntimeApi, Executor>
 	task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
 	manual_seal_command_sink: futures::channel::mpsc::Sender<EngineCommand<H256>>,
-	pool: sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
 
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
@@ -120,12 +123,26 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 					frontier_backend,
 				),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+
+		// TODO: review -- we don't need any actual networking
+		let (network, system_rpc_tx, network_starter) =
+			sc_service::build_network(sc_service::BuildNetworkParams {
+				config: &config,
+				client: client.clone(),
+				transaction_pool: transaction_pool.clone(),
+				spawn_handle: task_manager.spawn_handle(),
+				import_queue,
+				on_demand: None,
+				block_announce_validator_builder: None,
+				warp_sync: None,
+			})?;
+
+		// TODO: maybe offchain worker needed?
+
 		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
-		// let mut command_sink: Option<Box<Sink<EngineCommand<H256>>>> = None;
-		let mut command_sink: Option<Box<dyn Sink<EngineCommand<H256>, Error = ()>>> = None;
 
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
@@ -136,7 +153,12 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		);
 
 		log::warn!("opening channel...");
-		let (command_sink, commands_stream) = futures::channel::mpsc::channel(1000);
+		let mut command_sink = None;
+		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
+			let (sink, stream) = futures::channel::mpsc::channel(1000);
+			command_sink = Some(sink);
+			Box::new(stream)
+		};
 
 		let select_chain = maybe_select_chain.expect(
 			"`new_partial` builds a `LongestChainRule` when building dev service.\
@@ -146,6 +168,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		let client_set_aside_for_cidp = client.clone();
 
+
 		log::warn!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -154,7 +177,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 				env,
 				client: client.clone(),
 				pool: transaction_pool.clone(),
-				commands_stream: Box::new(commands_stream),
+				commands_stream: command_stream,
 				select_chain,
 				consensus_data_provider: None,
 				create_inherent_data_providers: move |block: H256, ()| {
@@ -181,11 +204,22 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			}),
 		);
 
+		service::rpc::spawn_essential_tasks(service::rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			pending_transactions: pending_transactions.clone(),
+			filter_pool: filter_pool.clone(),
+		});
+
+		network_starter.start_network();
+
 		log::warn!("returning new PerfTestRunner");
 		Ok(PerfTestRunner {
 			task_manager,
 			client: client.clone(),
-			manual_seal_command_sink: command_sink,
+			manual_seal_command_sink: command_sink.unwrap(),
 			pool: transaction_pool,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
@@ -247,7 +281,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 	}
 
 	/// Creates a transaction out of the given call/create arguments, signs it, and sends it
-	fn evm_sign_and_send_transaction(
+	fn eth_sign_and_send_transaction(
 		&mut self,
 		signing_key: &H256,
 		to: Option<H160>,
@@ -256,16 +290,17 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		gas_limit: U256,
 		gas_price: U256,
 		nonce: U256,
-	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
+	) -> Result<(), sp_runtime::DispatchError> {
 
-		const chain_id: u64 = 1082; // TODO: derive from CLI or from Moonbase
+		const CHAIN_ID: u64 = 1281; // TODO: derive from CLI or from Moonbase
 
 		let action = match to {
-			Some(addr) => TransactionAction::call(addr),
-			None => TransactionAction::create,
+			Some(addr) => TransactionAction::Call(addr),
+			None => TransactionAction::Create,
 		};
 
 		let unsigned = UnsignedTransaction {
+			chain_id: CHAIN_ID,
 			nonce,
 			gas_price,
 			gas_limit,
@@ -273,9 +308,9 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			value,
 			input: data,
 		};
-		let signed = unsigned.sign(signing_key, &chain_id);
+		let signed = unsigned.sign(signing_key);
 
-		let transaction_converter = TransactionConverters::moonbase();
+		let transaction_converter = moonbase_runtime::TransactionConverter;
 		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
 
 		let hash = self.client.info().best_hash;
@@ -284,6 +319,9 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			TransactionSource::Local,
 			unchecked_extrinsic
 		);
+
+		// TODO: return txn hash
+		Ok(())
 
 	}
 
@@ -336,6 +374,11 @@ impl PerfCmd {
 			.expect("alice_hex is valid hex; qed");
 		let alice = H160::from_slice(&alice_bytes[..]);
 
+		let alice_priv_hex = "5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
+		let alice_priv_bytes = hex::decode(alice_priv_hex)
+			.expect("alice_priv_hex is valid hex; qed");
+		let alice_priv = H256::from_slice(&alice_priv_bytes[..]);
+
 		log::warn!("alice: {:?}", alice);
 
 		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
@@ -371,27 +414,34 @@ impl PerfCmd {
 			.expect("fibonacci_hex is valid hex; qed");
 
 		// TODO: send txn rather than call create
-		log::warn!("Issuing EVM create call...");
-		let create_results = runner.evm_create(
-			alice,
+		log::warn!("Issuing EVM create txn...");
+		let create_results = runner.eth_sign_and_send_transaction(
+			&alice_priv,
+			None,
 			fibonacci_bytecode,
 			0.into(),
 			1_000_000.into(),
-			Some(1_000_000_000.into()),
-			Some(alice_nonce),
-			false,
+			1_000_000_000.into(),
+			alice_nonce,
 		).expect("EVM create failed while trying to deploy Fibonacci contract");
+
+		log::warn!("Creating block...");
+		runner.create_block();
+
+		// TODO: wait properly
+		log::warn!("sleeping so block can be created");
+		std::thread::sleep(std::time::Duration::from_millis(5000));
+
+		/*
 		let fibonacci_address: H160 = create_results.value;
 		log::debug!("fibonacci_address: {:?}", fibonacci_address);
 
-		runner.create_block();
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
-		/*
 		let call_results = runner.evm_call(
 			alice,
 			fibonacci_address,
@@ -405,9 +455,6 @@ impl PerfCmd {
 
 		log::warn!("EVM call returned {:?}", call_results);
 		*/
-
-		log::warn!("sleeping for a bit...");
-		std::thread::sleep(std::time::Duration::from_millis(5000));
 
 		Ok(())
 	}
