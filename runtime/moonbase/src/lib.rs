@@ -103,7 +103,7 @@ use xcm::v0::{
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::MoonbasePrecompiles;
+use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -389,7 +389,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == &[255u8; 4] {
+		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
 			Some(asset_id)
@@ -401,7 +401,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	// The opposite conversion
 	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
 		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(&mut [255u8; 4]);
+		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
 		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
 		H160::from_slice(&data)
 	}
