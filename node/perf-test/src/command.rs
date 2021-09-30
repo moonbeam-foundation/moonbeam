@@ -16,54 +16,32 @@
 
 use crate::{PerfCmd, txn_signer::UnsignedTransaction};
 
-use sp_runtime::{
-	traits::{Block as BlockT, Header as HeaderT, NumberFor},
-	transaction_validity::TransactionSource,
-	generic::UncheckedExtrinsic,
-};
+use sp_runtime::transaction_validity::TransactionSource;
 use sc_service::{
 	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
 };
 use sc_cli::{
 	CliConfiguration, Result as CliResult, SharedParams,
 };
-use sp_core::{
-	H160, H256, U256,
-	Encode,
-	offchain:: {
-		testing::{TestOffchainExt, TestTransactionPoolExt},
-		OffchainDbExt, OffchainWorkerExt, TransactionPoolExt,
-	}
-};
-use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
-use sc_client_db::BenchmarkingState;
+use sp_core::{H160, H256, U256};
 use sc_client_api::HeaderBackend;
-use sc_executor::NativeExecutor;
-use sp_externalities::Extensions;
-use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStorePtr};
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{fmt::Debug, sync::Arc, marker::PhantomData, time};
-use sp_state_machine::StateMachine;
-use cli_opt::RpcConfig;
+use std::{sync::Arc, marker::PhantomData};
 use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
-use fc_consensus::FrontierBlockImport;
 use nimbus_primitives::NimbusId;
-use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, ParachainInherentData,
-};
+use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
-use ethereum::{TransactionAction, TransactionSignature};
+use ethereum::TransactionAction;
 
-use async_io::Timer;
 use futures::{
-	Stream, Sink, SinkExt, FutureExt,
+	Stream, SinkExt,
 	channel::{
 		oneshot,
 		mpsc,
 	},
 };
 
-use service::{chain_spec, RuntimeApiCollection, Block, TransactionConverters};
+use service::{chain_spec, RuntimeApiCollection, Block};
 use sha3::{Digest, Keccak256};
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
@@ -99,22 +77,6 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		Executor: NativeExecutionDispatch + 'static,
 {
 	fn from_cmd(config: &Configuration, cmd: &PerfCmd) -> CliResult<Self> {
-
-		// TODO: can we explicitly disable everything RPC-related? or anything network related, for
-		//       that matter?
-		//       Note: new_dev() calls `network_starter.start_network()` at the very end
-		let rpc_config = RpcConfig {
-			ethapi: Default::default(),
-			ethapi_max_permits: 0,
-			ethapi_trace_max_count: 0,
-			ethapi_trace_cache_duration: 0,
-			max_past_logs: 0,
-		};
-
-		// TODO: allow CLI to configure or at least make sure this doesn't conflict with available
-		//       CLI options
-		let sealing = cli_opt::Sealing::Manual;
-
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -135,7 +97,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		// TODO: review -- we don't need any actual networking
-		let (network, system_rpc_tx, network_starter) =
+		let (_network, _system_rpc_tx, network_starter) =
 			sc_service::build_network(sc_service::BuildNetworkParams {
 				config: &config,
 				client: client.clone(),
@@ -162,7 +124,6 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 
-		log::debug!("opening channel...");
 		let mut command_sink = None;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
