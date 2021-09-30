@@ -256,8 +256,8 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
       dorothy,
       context.polkadotApi.tx.councilCollective.close(councilProposalHash, 0, 800_000_000, 1_000)
     );
-    // method: 'Rejected', section: 'treasury', index: '0x1103',
-    expect(closeEvents.map((e) => e.index.toHuman())).to.contain("0x1103");
+    // method: 'Rejected', section: 'treasury', index: '0x5003',
+    expect(closeEvents.map((e) => e.index.toHuman())).to.contain("0x5003");
 
     // Verify that the proposal is deleted
     expect((await context.polkadotApi.query.treasury.proposals(0)).toHuman()).to.equal(

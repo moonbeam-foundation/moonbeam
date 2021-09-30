@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use super::blockscout::BlockscoutCallInner as CallInner;
 use crate::listeners::call_list::Listener;
-use ethereum_types::H256;
-use moonbeam_rpc_primitives_debug::api::{
+use crate::types::{
 	block::{
 		TransactionTrace, TransactionTraceAction, TransactionTraceOutput, TransactionTraceResult,
 	},
-	single::CallInner,
 	CallResult, CreateResult, CreateType,
 };
+use ethereum_types::H256;
 
 pub struct Formatter;
 

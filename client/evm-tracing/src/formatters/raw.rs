@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::listeners::raw::Listener;
-use moonbeam_rpc_primitives_debug::api::single::TransactionTrace;
+use crate::types::single::TransactionTrace;
 
 pub struct Formatter;
 
