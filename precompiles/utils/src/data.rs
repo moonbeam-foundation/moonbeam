@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{error, EvmResult};
+use alloc::borrow::ToOwned;
 use core::{any::type_name, ops::Range};
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
@@ -37,19 +38,34 @@ impl From<Address> for H160 {
 	}
 }
 
-/// The `bytes` type of Solidity.
+/// The `bytes`/`string` type of Solidity.
+/// It is different from `Vec<u8>` which will be serialized with padding for each `u8` element
+/// of the array, while `Bytes` is tightly packed.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bytes(pub Vec<u8>);
 
-impl From<Vec<u8>> for Bytes {
-	fn from(a: Vec<u8>) -> Bytes {
-		Bytes(a)
+impl Bytes {
+	/// Interpret as `bytes`.
+	pub fn as_bytes(&self) -> &[u8] {
+		&self.0
+	}
+
+	/// Interpret as `string`.
+	/// Can fail if the string is not valid UTF8.
+	pub fn as_str(&self) -> Result<&str, sp_std::str::Utf8Error> {
+		sp_std::str::from_utf8(&self.0)
 	}
 }
 
-impl From<Bytes> for Vec<u8> {
-	fn from(a: Bytes) -> Vec<u8> {
-		a.0
+impl From<&[u8]> for Bytes {
+	fn from(a: &[u8]) -> Self {
+		Self(a.to_owned())
+	}
+}
+
+impl From<&str> for Bytes {
+	fn from(a: &str) -> Self {
+		a.as_bytes().into()
 	}
 }
 
@@ -146,58 +162,56 @@ impl<'a> EvmDataReader<'a> {
 }
 
 /// Help build an EVM input/output data.
+///
+/// Functions takes `self` to allow chaining all calls like
+/// `EvmDataWriter::new().write(...).write(...).build()`.
+/// While it could be more ergonomic to take &mut self, this would
+/// prevent to have a `build` function that don't clone the output.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
-	// The selector cannot be part of the data we use to construct the offset
-	selector: Vec<u8>,
 	pub(crate) data: Vec<u8>,
-	arrays: Vec<Array>,
+	offset_data: Vec<OffsetDatum>,
 }
 
 #[derive(Clone, Debug)]
-struct Array {
+struct OffsetDatum {
 	offset_position: usize,
 	data: Vec<u8>,
-	inner_arrays: Vec<Array>,
+	inner_offset_data: Vec<OffsetDatum>,
 }
 
 impl EvmDataWriter {
 	/// Creates a new empty output builder.
 	pub fn new() -> Self {
 		Self {
-			selector: vec![],
 			data: vec![],
-			arrays: vec![],
+			offset_data: vec![],
 		}
 	}
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
-		let mut data: Vec<u8> = vec![];
-		// We construct offsets without taking into account selector
-		Self::build_arrays(&mut self.data, self.arrays, 0);
+		Self::compute_offsets(&mut self.data, self.offset_data);
 
-		data.extend(self.selector);
-		data.extend(self.data);
-		data
+		self.data
 	}
 
 	/// Build the array into data.
-	/// `global_offset` represents the start of the frame we are modifying.
-	/// While the main data will have a `global_offset` of 0, inner arrays will have a
-	/// `global_offset` corresponding to the start its parent array size data.
-	fn build_arrays(output: &mut Vec<u8>, arrays: Vec<Array>, global_offset: usize) {
+	fn compute_offsets(output: &mut Vec<u8>, arrays: Vec<OffsetDatum>) {
 		for mut array in arrays {
 			let offset_position = array.offset_position;
 			let offset_position_end = offset_position + 32;
-			let free_space_offset = output.len() + global_offset;
+
+			// The offset is the distance between the start of the offset location and the
+			// start of the array length.
+			let free_space_offset = output.len() - offset_position;
 
 			// Override dummy offset to the offset it will be in the final output.
 			U256::from(free_space_offset)
 				.to_big_endian(&mut output[offset_position..offset_position_end]);
 
 			// Build inner arrays if any.
-			Self::build_arrays(&mut array.data, array.inner_arrays, free_space_offset);
+			Self::compute_offsets(&mut array.data, array.inner_offset_data);
 
 			// Append this data at the end of the current output.
 			output.append(&mut array.data);
@@ -251,7 +265,7 @@ impl EvmData for H256 {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		writer.data.extend_from_slice(&value.as_bytes());
+		writer.data.extend_from_slice(value.as_bytes());
 	}
 }
 
@@ -319,6 +333,7 @@ macro_rules! impl_evmdata_for_uints {
 		)*
 	};
 }
+
 impl_evmdata_for_uints!(u16, u32, u64, u128,);
 
 // The implementation for u8 is specific, for performance reasons.
@@ -361,7 +376,8 @@ impl EvmData for bool {
 
 impl<T: EvmData> EvmData for Vec<T> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let array_start: usize = reader
+		let offset_reference = reader.cursor;
+		let array_offset: usize = reader
 			.read::<U256>()
 			.map_err(|_| error("tried to parse array offset out of bounds"))?
 			.try_into()
@@ -369,7 +385,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 		// We temporarily move the cursor to the offset, we'll set it back afterward.
 		let original_cursor = reader.cursor;
-		reader.cursor = array_start;
+		reader.cursor = offset_reference + array_offset;
 
 		let array_size: usize = reader
 			.read::<U256>()
@@ -404,20 +420,20 @@ impl<T: EvmData> EvmData for Vec<T> {
 			inner_writer = inner_writer.write(inner);
 		}
 
-		let array = Array {
+		let array = OffsetDatum {
 			offset_position,
 			data: inner_writer.data,
-			inner_arrays: inner_writer.arrays,
+			inner_offset_data: inner_writer.offset_data,
 		};
 
-		writer.arrays.push(array);
+		writer.offset_data.push(array);
 	}
 }
 
-// Bytes are read differently
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let array_start: usize = reader
+		let offset_reference = reader.cursor;
+		let array_offset: usize = reader
 			.read::<U256>()
 			.map_err(|_| error("tried to parse array offset out of bounds"))?
 			.try_into()
@@ -425,23 +441,28 @@ impl EvmData for Bytes {
 
 		// We temporarily move the cursor to the offset, we'll set it back afterward.
 		let original_cursor = reader.cursor;
-		reader.cursor = array_start;
+		reader.cursor = offset_reference + array_offset;
 
+		// Read bytes/string size.
 		let array_size: usize = reader
 			.read::<U256>()
-			.map_err(|_| error("tried to parse array length out of bounds"))?
+			.map_err(|_| error("tried to parse bytes/string length out of bounds"))?
 			.try_into()
-			.map_err(|_| error("array length is too large"))?;
+			.map_err(|_| error("bytes/string length is too large"))?;
 
-		let array = reader
-			.read_raw_bytes(array_size)
-			.map_err(|_| error("error while reading array"))?
-			.to_vec();
+		let range = reader.move_cursor(array_size)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse bytes/string out of bounds"))?;
+
+		let bytes = Self(data.to_owned());
 
 		// We set back the cursor to its original location.
 		reader.cursor = original_cursor;
 
-		Ok(array.into())
+		Ok(bytes)
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
@@ -451,29 +472,30 @@ impl EvmData for Bytes {
 
 		let mut inner_writer = EvmDataWriter::new();
 
-		let data: Vec<u8> = value.into();
-		let length = data.len();
-
 		// Write length.
-		inner_writer = inner_writer.write(U256::from(length));
+		inner_writer = inner_writer.write(value.0.len() as u64);
 
-		let mut cursor = 0;
-		while cursor < length {
-			let mut buffer = [0u8; 32];
-			if cursor + 32 > length {
-				buffer[0..length - cursor].copy_from_slice(&data[cursor..]);
-			} else {
-				buffer.copy_from_slice(&data[cursor..cursor + 32]);
-			}
-			inner_writer = inner_writer.write_raw_bytes(&buffer);
-			cursor += 32;
-		}
-		let array = Array {
-			offset_position,
-			data: inner_writer.data,
-			inner_arrays: vec![],
+		// Pad the data.
+		// Leave it as is if a multiple of 32, otherwise pad to next
+		// multiple or 32.
+		let chunks = value.0.len() / 32;
+		let padded_size = match value.0.len() % 32 {
+			0 => chunks * 32,
+			_ => (chunks + 1) * 32,
 		};
 
-		writer.arrays.push(array);
+		let mut value = value.0.to_vec();
+		value.resize(padded_size, 0);
+
+		// Write bytes data.
+		inner_writer = inner_writer.write_raw_bytes(&value);
+
+		let array = OffsetDatum {
+			offset_position,
+			data: inner_writer.data,
+			inner_offset_data: inner_writer.offset_data,
+		};
+
+		writer.offset_data.push(array);
 	}
 }
