@@ -20,6 +20,6 @@ panic = 'unwind'
 
 # Fix EVM tracing impact in block production pipeline.
 [patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "jeremy-optimize-disabled-tracing" }
+evm = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1"}
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }

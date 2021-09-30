@@ -253,6 +253,7 @@ where
 	R: pallet_balances::Config + pallet_treasury::Config,
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
+	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
@@ -261,6 +262,15 @@ where
 			// total_supply accordingly
 			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+		// total_supply accordingly
+		let (_, to_treasury) = amount.ration(80, 20);
+		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 	}
 }
 

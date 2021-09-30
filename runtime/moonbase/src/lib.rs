@@ -30,6 +30,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
+use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
+
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -91,17 +93,16 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::v0::{
-	BodyId,
-	Junction::{PalletInstance, Parachain, Parent},
-	MultiLocation::{self, X2, X3},
-	NetworkId,
+use xcm::v1::{
+	BodyId, Junction,
+	Junction::{PalletInstance, Parachain},
+	Junctions, MultiLocation, NetworkId,
 };
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::MoonbasePrecompiles;
+use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -377,6 +378,33 @@ impl FeeCalculator for FixedGasPrice {
 ///            min is MinimumMultiplier
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+
+// Instruct how to go from an H160 to an AssetID
+// We just take the lowest 128 bits
+impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+		let h160_account: H160 = account.into();
+		let mut data = [0u8; 16];
+		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
+		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
+			data.copy_from_slice(id_part);
+			let asset_id: AssetId = u128::from_be_bytes(data).into();
+			Some(asset_id)
+		} else {
+			None
+		}
+	}
+
+	// The opposite conversion
+	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+		let mut data = [0u8; 20];
+		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
+		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
+		H160::from_slice(&data)
+	}
+}
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -859,11 +887,13 @@ parameter_types! {
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
-	pub SelfReserve: MultiLocation = X3(
-		Parent,
-		Parachain(ParachainInfo::parachain_id().into()).into(),
-		PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-	);
+	pub SelfReserve: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)
+	};
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -979,6 +1009,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;
 	type ResponseHandler = (); // Don't handle responses for now.
+	type SubscriptionService = PolkadotXcm;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -995,7 +1026,7 @@ pub type LocalOriginToLocation =
 /// queues.
 pub type XcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
@@ -1022,6 +1053,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
+	type VersionWrapper = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -1071,7 +1103,7 @@ pub enum AssetType {
 }
 impl Default for AssetType {
 	fn default() -> Self {
-		Self::Xcm(MultiLocation::Null)
+		Self::Xcm(MultiLocation::here())
 	}
 }
 
@@ -1107,8 +1139,10 @@ impl From<AssetType> for AssetId {
 // We instruct how to register the Assets
 // In this case, we tell it to Create an Asset in pallet-assets
 pub struct AssetRegistrar;
-use frame_support::pallet_prelude::DispatchResult;
+use frame_support::{pallet_prelude::DispatchResult, transactional};
+
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
+	#[transactional]
 	fn create_asset(
 		asset: AssetId,
 		min_balance: Balance,
@@ -1122,6 +1156,16 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			min_balance,
 		)?;
 
+		// TODO uncomment when we feel comfortable
+		/*
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/
+
+		// Lastly, the metadata
 		Assets::force_set_metadata(
 			Origin::root(),
 			asset,
@@ -1180,7 +1224,12 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
-	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::parachain_id().into()));
+	pub SelfLocation: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X1(
+			Parachain(ParachainInfo::parachain_id().into())
+		)
+	};
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -1194,6 +1243,7 @@ impl orml_xtokens::Config for Runtime {
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type LocationInverter = LocationInverter<Ancestry>;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
@@ -1223,6 +1273,8 @@ impl Contains<Call> for NormalFilter {
 			Call::Assets(method) => match method {
 				pallet_assets::Call::transfer(..) => true,
 				pallet_assets::Call::transfer_keep_alive(..) => true,
+				pallet_assets::Call::approve_transfer(..) => true,
+				pallet_assets::Call::transfer_approved(..) => true,
 				_ => false,
 			},
 			_ => true,

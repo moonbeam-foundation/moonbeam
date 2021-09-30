@@ -24,32 +24,37 @@
 //! There are two proxy types: `Raw` and `CallList`.
 //! - `Raw` - used for opcode-level traces.
 //! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
+//!
+//! The EVM event types may contain references and not implement Encode/Decode.
+//! This module provide mirror types and conversion into them from the original events.
 
+#![cfg_attr(not(feature = "std"), no_std)]
 extern crate alloc;
+
+pub mod evm;
+pub mod gasometer;
+pub mod runtime;
+
+pub use self::evm::EvmEvent;
+pub use gasometer::GasometerEvent;
+pub use runtime::RuntimeEvent;
+
+use ::evm::Opcode;
+use alloc::vec::Vec;
+use codec::{Decode, Encode};
+use ethereum_types::{H160, U256};
+
 environmental::environmental!(listener: dyn Listener + 'static);
 
-pub use super::types::{
-	evm_runtime_types::{Capture, ExitError, ExitReason, ExitSucceed, Opcode},
-	EvmEvent, GasometerEvent, RuntimeEvent,
-};
-pub use crate::CallType;
-use alloc::{vec, vec::Vec};
-pub use codec::{Decode, Encode};
-pub use ethereum_types::{H160, H256, U256};
-
-pub mod call_list;
-pub mod raw;
-
-/// Main trait to proxy emitted messages.
-pub trait Listener {
-	fn event(&mut self, event: Event);
+pub fn using<R, F: FnOnce() -> R>(l: &mut (dyn Listener + 'static), f: F) -> R {
+	listener::using(l, f)
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum Event {
-	Evm(EvmEvent),
-	Gasometer(GasometerEvent),
-	Runtime(RuntimeEvent),
+	Evm(evm::EvmEvent),
+	Gasometer(gasometer::GasometerEvent),
+	Runtime(runtime::RuntimeEvent),
 	CallListNew(),
 }
 
@@ -63,49 +68,35 @@ impl Event {
 	}
 }
 
-#[derive(Debug)]
-pub enum ContextType {
-	Call(CallType),
-	Create,
+/// Main trait to proxy emitted messages.
+/// Used 2 times :
+/// - Inside the runtime to proxy the events throught the host functions
+/// - Inside the client to forward those events to the client listener.
+pub trait Listener {
+	fn event(&mut self, event: Event);
 }
 
-impl ContextType {
-	pub fn from(opcode: Vec<u8>) -> Option<Self> {
-		let opcode = match alloc::str::from_utf8(&opcode[..]) {
-			Ok(op) => op.to_uppercase(),
-			_ => return None,
-		};
-		match &opcode[..] {
-			"CREATE" | "CREATE2" => Some(ContextType::Create),
-			"CALL" => Some(ContextType::Call(CallType::Call)),
-			"CALLCODE" => Some(ContextType::Call(CallType::CallCode)),
-			"DELEGATECALL" => Some(ContextType::Call(CallType::DelegateCall)),
-			"STATICCALL" => Some(ContextType::Call(CallType::StaticCall)),
-			_ => None,
+#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+pub struct Context {
+	/// Execution address.
+	pub address: H160,
+	/// Caller of the EVM.
+	pub caller: H160,
+	/// Apparent value of the EVM.
+	pub apparent_value: U256,
+}
+
+impl From<evm_runtime::Context> for Context {
+	fn from(i: evm_runtime::Context) -> Self {
+		Self {
+			address: i.address,
+			caller: i.caller,
+			apparent_value: i.apparent_value,
 		}
 	}
 }
 
-pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
-	let size = 32;
-	memory
-		.chunks(size)
-		.map(|c| {
-			let mut msg = [0u8; 32];
-			let chunk = c.len();
-			if chunk < size {
-				let left = size - chunk;
-				let remainder = vec![0; left];
-				msg[0..left].copy_from_slice(&remainder[..]);
-				msg[left..size].copy_from_slice(c);
-			} else {
-				msg[0..size].copy_from_slice(c)
-			}
-			H256::from_slice(&msg[..])
-		})
-		.collect()
-}
-
+/// Converts an Opcode into its name, stored in a `Vec<u8>`.
 pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 	let tmp;
 	let out = match opcode {

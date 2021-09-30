@@ -24,12 +24,11 @@ nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "notlesh-v0.9.9-block-response-length" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
 
 [features]
 default = [ "moonbase-native", "moonriver-native", "moonbeam-native" ]
-evm-tracing = [ "moonbeam-service/evm-tracing", "moonbeam-cli/evm-tracing" ]
 
 rococo-native = [ "moonbeam-service/rococo-native" ]
 westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]
@@ -38,6 +37,8 @@ kusama-native = [ "moonbeam-service/kusama-native" ]
 moonbase-native = [ "moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-native" ]
 moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native" ]
 moonbeam-native = [ "moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native" ]
+
+moonbase-native-tracing = [ "moonbeam-service/moonbase-native-tracing" ]
 
 test-spec = []
 
