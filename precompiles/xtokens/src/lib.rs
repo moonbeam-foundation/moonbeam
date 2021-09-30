@@ -53,7 +53,7 @@ pub enum Action {
 	TransferMultiAsset = "transfer_multiasset(bytes[], u256, bytes[], u64)",
 }
 
-/// This trait ensure we can convert AccountIds to AssetIds
+/// This trait ensure we can convert AccountIds to CurrencyIds
 /// We will require Runtime to have this trait implemented
 pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	// Get assetId from account

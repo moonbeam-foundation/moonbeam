@@ -1206,8 +1206,9 @@ pub enum CurrencyId {
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
-			// pallet-balances precompile, self reserve
+			// the self-reserve currency is identified by the pallet-balances address
 			a if a == H160::from_low_u64_be(2050) => Some(CurrencyId::SelfReserve),
+			// the rest of the currencies, by their corresponding erc20 address
 			_ => Runtime::account_to_asset_id(account)
 				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
 		}
