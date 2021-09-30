@@ -92,6 +92,7 @@ pub enum RuntimeEvent {
 	},
 }
 
+#[cfg(feature = "evm-tracing")]
 impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 	fn from(i: evm_runtime::tracing::Event<'a>) -> Self {
 		match i {

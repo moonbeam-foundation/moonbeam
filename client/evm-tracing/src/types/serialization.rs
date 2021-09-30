@@ -41,6 +41,19 @@ where
 	serializer.serialize_str(&format!("0x{}", hex::encode(bytes)))
 }
 
+pub fn option_bytes_0x_serialize<S>(
+	bytes: &Option<Vec<u8>>,
+	serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	if let Some(bytes) = bytes.as_ref() {
+		return serializer.serialize_str(&format!("0x{}", hex::encode(&bytes[..])));
+	}
+	Err(S::Error::custom("String serialize error."))
+}
+
 pub fn opcode_serialize<S>(opcode: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
@@ -59,6 +72,19 @@ where
 		.map_err(|_| S::Error::custom("String serialize error."))?
 		.to_string();
 	serializer.serialize_str(&d)
+}
+
+pub fn option_string_serialize<S>(value: &Option<Vec<u8>>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	if let Some(value) = value.as_ref() {
+		let d = std::str::from_utf8(&value[..])
+			.map_err(|_| S::Error::custom("String serialize error."))?
+			.to_string();
+		return serializer.serialize_str(&d);
+	}
+	Err(S::Error::custom("String serialize error."))
 }
 
 pub fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>

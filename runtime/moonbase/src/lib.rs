@@ -93,11 +93,10 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::v0::{
-	BodyId,
-	Junction::{PalletInstance, Parachain, Parent},
-	MultiLocation::{self, X2, X3},
-	NetworkId,
+use xcm::v1::{
+	BodyId, Junction,
+	Junction::{PalletInstance, Parachain},
+	Junctions, MultiLocation, NetworkId,
 };
 
 use nimbus_primitives::{CanAuthor, NimbusId};
@@ -888,11 +887,13 @@ parameter_types! {
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
-	pub SelfReserve: MultiLocation = X3(
-		Parent,
-		Parachain(ParachainInfo::parachain_id().into()).into(),
-		PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-	);
+	pub SelfReserve: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)
+	};
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -1008,6 +1009,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;
 	type ResponseHandler = (); // Don't handle responses for now.
+	type SubscriptionService = PolkadotXcm;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -1024,7 +1026,7 @@ pub type LocalOriginToLocation =
 /// queues.
 pub type XcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
@@ -1051,6 +1053,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
+	type VersionWrapper = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -1100,7 +1103,7 @@ pub enum AssetType {
 }
 impl Default for AssetType {
 	fn default() -> Self {
-		Self::Xcm(MultiLocation::Null)
+		Self::Xcm(MultiLocation::here())
 	}
 }
 
@@ -1221,7 +1224,12 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
-	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::parachain_id().into()));
+	pub SelfLocation: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X1(
+			Parachain(ParachainInfo::parachain_id().into())
+		)
+	};
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -1235,6 +1243,7 @@ impl orml_xtokens::Config for Runtime {
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type LocationInverter = LocationInverter<Ancestry>;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
@@ -1287,42 +1296,63 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
+		// System support stuff.
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
-		Utility: pallet_utility::{Pallet, Call, Event} = 1,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 11,
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+
+		// Monetary stuff.
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+
+		// Consensus support.
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 21,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 22,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
+
+		// Handy utilities.
+		Utility: pallet_utility::{Pallet, Call, Event} = 30,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
+
+		// Sudo
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+
+		// Ethereum compatibility
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 52,
+
+		// Governance stuff.
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
+
+		// Council stuff.
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 17,
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 19,
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 23,
-		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+
+		// Treasury stuff.
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
+
+		// Crowdloan stuff.
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
+
+		// Xcm stuff.
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 100,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
 		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
-		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 28,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
+		PolkadotXcm: pallet_xcm::{Pallet, Event<T>, Origin} = 103,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 105,
+		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 106,
 	}
 }
 
