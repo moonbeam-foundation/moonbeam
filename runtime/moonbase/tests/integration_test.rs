@@ -37,8 +37,9 @@ use moonbase_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
-	Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
 use parity_scale_codec::Encode;
@@ -209,30 +210,40 @@ fn verify_pallet_indices() {
 			Some(index)
 		);
 	}
+	// System support
 	is_pallet_index::<moonbase_runtime::System>(0);
-	is_pallet_index::<moonbase_runtime::Utility>(1);
-	is_pallet_index::<moonbase_runtime::Timestamp>(2);
-	is_pallet_index::<moonbase_runtime::Balances>(3);
-	is_pallet_index::<moonbase_runtime::Sudo>(4);
-	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(5);
-	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
-	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
-	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);
-	is_pallet_index::<moonbase_runtime::EthereumChainId>(9);
-	is_pallet_index::<moonbase_runtime::EVM>(10);
-	is_pallet_index::<moonbase_runtime::Ethereum>(11);
-	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
-	is_pallet_index::<moonbase_runtime::Scheduler>(13);
-	is_pallet_index::<moonbase_runtime::Democracy>(14);
-	is_pallet_index::<moonbase_runtime::CouncilCollective>(15);
-	is_pallet_index::<moonbase_runtime::TechComitteeCollective>(16);
-	is_pallet_index::<moonbase_runtime::Treasury>(17);
-	is_pallet_index::<moonbase_runtime::AuthorInherent>(18);
-	is_pallet_index::<moonbase_runtime::AuthorFilter>(19);
-	is_pallet_index::<moonbase_runtime::CrowdloanRewards>(20);
-	is_pallet_index::<moonbase_runtime::AuthorMapping>(21);
-	is_pallet_index::<moonbase_runtime::Proxy>(22);
-	is_pallet_index::<moonbase_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbase_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(2);
+	is_pallet_index::<moonbase_runtime::Timestamp>(3);
+	is_pallet_index::<moonbase_runtime::ParachainInfo>(4);
+	// Monetary
+	is_pallet_index::<moonbase_runtime::Balances>(10);
+	is_pallet_index::<moonbase_runtime::TransactionPayment>(11);
+	// Consensus support
+	is_pallet_index::<moonbase_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonbase_runtime::AuthorInherent>(21);
+	is_pallet_index::<moonbase_runtime::AuthorFilter>(22);
+	is_pallet_index::<moonbase_runtime::AuthorMapping>(23);
+	// Handy utilities
+	is_pallet_index::<moonbase_runtime::Utility>(30);
+	is_pallet_index::<moonbase_runtime::Proxy>(31);
+	is_pallet_index::<moonbase_runtime::MaintenanceMode>(32);
+	// Sudo
+	is_pallet_index::<moonbase_runtime::Sudo>(40);
+	// Ethereum compatibility
+	is_pallet_index::<moonbase_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonbase_runtime::EVM>(51);
+	is_pallet_index::<moonbase_runtime::Ethereum>(52);
+	// Governance
+	is_pallet_index::<moonbase_runtime::Scheduler>(60);
+	is_pallet_index::<moonbase_runtime::Democracy>(61);
+	// Council
+	is_pallet_index::<moonbase_runtime::CouncilCollective>(70);
+	is_pallet_index::<moonbase_runtime::TechComitteeCollective>(71);
+	// Treasury
+	is_pallet_index::<moonbase_runtime::Treasury>(80);
+	// Crowdloan
+	is_pallet_index::<moonbase_runtime::CrowdloanRewards>(90);
 }
 
 #[test]
@@ -323,7 +334,7 @@ fn transfer_through_evm_to_stake() {
 					0u32
 				),
 				DispatchError::Module {
-					index: 3,
+					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
 				}
@@ -536,7 +547,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 20,
+					index: 90,
 					error: 8,
 					message: None,
 				},
@@ -1069,7 +1080,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
 			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1127,7 +1138,7 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1201,7 +1212,7 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = asset_id_to_address(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {

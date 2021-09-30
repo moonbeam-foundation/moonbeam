@@ -28,11 +28,10 @@ use sp_runtime::traits::Zero;
 
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
-	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	error, keccak256, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	LogsBuilder, RuntimeHelper,
 };
 
-use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData, vec};
 
@@ -42,12 +41,10 @@ mod mock;
 mod tests;
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_TRANSFER: &[u8; 32] =
-	u8_slice!("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address,uint256)");
 
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_APPROVAL: &[u8; 32] =
-	u8_slice!("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925");
+pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
@@ -68,7 +65,7 @@ pub enum Action {
 
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
-pub trait AccountIdToAssetId<Account, AssetId> {
+pub trait AccountIdAssetIdConversion<Account, AssetId> {
 	// Get assetId from account
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
 
@@ -99,7 +96,7 @@ where
 	Instance: 'static,
 	Erc20AssetsPrecompile<Runtime, Instance>: Precompile,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 {
 	fn execute(
 		address: H160,
@@ -139,7 +136,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
@@ -168,7 +165,7 @@ where
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdToAssetId<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn total_supply(

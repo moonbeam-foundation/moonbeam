@@ -36,7 +36,7 @@ use xtokens_precompiles::XtokensWrapper;
 // The asset precompile address prefix. Addresses that match against this prefix will be routed
 // to Erc20AssetsPrecompileSet
 
-const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
