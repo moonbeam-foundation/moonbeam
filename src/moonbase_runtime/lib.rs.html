@@ -1490,6 +1490,49 @@
 <span id="1490">1490</span>
 <span id="1491">1491</span>
 <span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1523,6 +1566,8 @@
 
 <span class="kw">use</span> <span class="ident">cumulus_pallet_parachain_system::RelaychainBlockNumberProvider</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion</span>;
+
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Hash</span> <span class="kw">as</span> <span class="ident">THash</span>;
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
@@ -1593,7 +1638,7 @@
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">CanAuthor</span>, <span class="ident">NimbusId</span>};
 
 <span class="kw">mod</span> <span class="ident">precompiles</span>;
-<span class="kw">use</span> <span class="ident">precompiles::MoonbasePrecompiles</span>;
+<span class="kw">use</span> <span class="ident">precompiles</span>::{<span class="ident">MoonbasePrecompiles</span>, <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime::BuildStorage</span>;
@@ -1869,6 +1914,33 @@
 <span class="doccomment">///            min is MinimumMultiplier</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SlowAdjustingFeeUpdate</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">=</span>
 	<span class="ident">TargetedFeeAdjustment</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">TargetBlockFullness</span>, <span class="ident">AdjustmentVariable</span>, <span class="ident">MinimumMultiplier</span><span class="op">&gt;</span>;
+
+<span class="comment">// Instruct how to go from an H160 to an AssetID</span>
+<span class="comment">// We just take the lowest 128 bits</span>
+<span class="kw">impl</span> <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">AssetId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="doccomment">/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF</span>
+	<span class="doccomment">/// and by taking the lowest 128 bits as the assetId</span>
+	<span class="kw">fn</span> <span class="ident">account_to_asset_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">h160_account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
+		<span class="kw">let</span> (<span class="ident">prefix_part</span>, <span class="ident">id_part</span>) <span class="op">=</span> <span class="ident">h160_account</span>.<span class="ident">as_fixed_bytes</span>().<span class="ident">split_at</span>(<span class="number">4</span>);
+		<span class="kw">if</span> <span class="ident">prefix_part</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> {
+			<span class="ident">data</span>.<span class="ident">copy_from_slice</span>(<span class="ident">id_part</span>);
+			<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">u128::from_be_bytes</span>(<span class="ident">data</span>).<span class="ident">into</span>();
+			<span class="prelude-val">Some</span>(<span class="ident">asset_id</span>)
+		} <span class="kw">else</span> {
+			<span class="prelude-val">None</span>
+		}
+	}
+
+	<span class="comment">// The opposite conversion</span>
+	<span class="kw">fn</span> <span class="ident">asset_id_to_account</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AccountId</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">20</span>];
+		<span class="ident">data</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>);
+		<span class="ident">data</span>[<span class="number">4</span>..<span class="number">20</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>.<span class="ident">to_be_bytes</span>());
+		<span class="ident">H160::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)
+	}
+}
 
 <span class="kw">impl</span> <span class="ident">pallet_evm::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> <span class="ident">FixedGasPrice</span>;
@@ -2603,8 +2675,10 @@
 <span class="comment">// We instruct how to register the Assets</span>
 <span class="comment">// In this case, we tell it to Create an Asset in pallet-assets</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrar</span>;
-<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude::DispatchResult</span>;
+<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude::DispatchResult</span>, <span class="ident">transactional</span>};
+
 <span class="kw">impl</span> <span class="ident">pallet_asset_manager::AssetRegistrar</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetRegistrar</span> {
+	<span class="attribute">#[<span class="ident">transactional</span>]</span>
 	<span class="kw">fn</span> <span class="ident">create_asset</span>(
 		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
 		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
@@ -2618,6 +2692,16 @@
 			<span class="ident">min_balance</span>,
 		)<span class="question-mark">?</span>;
 
+		<span class="comment">// TODO uncomment when we feel comfortable</span>
+		<span class="comment">/*
+		// The asset has been created. Let&#39;s put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(asset);
+		pallet_evm::AccountCodes::&lt;Runtime&gt;::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/</span>
+
+		<span class="comment">// Lastly, the metadata</span>
 		<span class="ident">Assets::force_set_metadata</span>(
 			<span class="ident">Origin::root</span>(),
 			<span class="ident">asset</span>,
@@ -2725,6 +2809,8 @@
 			<span class="ident">Call::Assets</span>(<span class="ident">method</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">method</span> {
 				<span class="ident">pallet_assets::Call::transfer</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
 				<span class="ident">pallet_assets::Call::transfer_keep_alive</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::approve_transfer</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::transfer_approved</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
 				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			},
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,

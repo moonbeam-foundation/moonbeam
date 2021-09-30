@@ -27,6 +27,7 @@ sourcesIndex["pallet_asset_manager"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_author_mapping"] = {"name":"","files":["lib.rs","weights.rs"]};
 sourcesIndex["pallet_democracy_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_evm_precompile_assets_erc20"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_balances_erc20"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_maintenance_mode"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_migrations"] = {"name":"","files":["lib.rs"]};

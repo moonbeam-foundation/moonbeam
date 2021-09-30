@@ -1,3 +1,4 @@
 (function() {var implementors = {};
+implementors["pallet_evm_precompile_assets_erc20"] = [{"text":"impl TryFromPrimitive for <a class=\"enum\" href=\"pallet_evm_precompile_assets_erc20/enum.Action.html\" title=\"enum pallet_evm_precompile_assets_erc20::Action\">Action</a>","synthetic":false,"types":["pallet_evm_precompile_assets_erc20::Action"]}];
 implementors["pallet_evm_precompile_balances_erc20"] = [{"text":"impl TryFromPrimitive for <a class=\"enum\" href=\"pallet_evm_precompile_balances_erc20/enum.Action.html\" title=\"enum pallet_evm_precompile_balances_erc20::Action\">Action</a>","synthetic":false,"types":["pallet_evm_precompile_balances_erc20::Action"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -104,6 +104,14 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -127,6 +135,7 @@
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
 <span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20::Erc20BalancesPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
@@ -138,6 +147,10 @@
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
 
+<span class="comment">// The asset precompile address prefix. Addresses that match against this prefix will be routed</span>
+<span class="comment">// to Erc20AssetsPrecompileSet</span>
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">255u8</span>; <span class="number">4</span>];
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.</span>
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
 <span class="doccomment">/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)</span>
@@ -158,16 +171,15 @@
 	}
 }
 
-<span class="doccomment">/// The following distribution has been decided for the precompiles</span>
-<span class="doccomment">/// 0-1023: Ethereum Mainnet Precompiles</span>
-<span class="doccomment">/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific</span>
-<span class="doccomment">/// 2048-4095 Moonbeam specific precompiles</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">PrecompileSet</span> <span class="kw">for</span> <span class="ident">MoonbasePrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="comment">// We require PrecompileSet here because indeed we are dealing with a set of precompiles</span>
+	<span class="comment">// This precompile set does additional checks, e.g., total supply not being 0</span>
+	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
@@ -181,8 +193,8 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ECRecover::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Sha256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">3</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Ripemd160::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">4</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Identity::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">5</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Modexp::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">4</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Identity::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">6</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Add::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">7</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Mul::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Pairing::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
@@ -202,6 +214,10 @@
 			)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2051</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="prelude-val">Some</span>(<span class="ident">DemocracyWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>))
+			}
+			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
+			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)
 			}
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
 		}
