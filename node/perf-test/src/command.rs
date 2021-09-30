@@ -69,6 +69,9 @@ use sha3::{Digest, Keccak256};
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
 
+const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
+const MIN_GAS_PRICE: u64 = 1_000_000_000;
+
 struct PerfTestRunner<RuntimeApi, Executor>
 	where
 		RuntimeApi:
@@ -159,7 +162,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 
-		log::warn!("opening channel...");
+		log::debug!("opening channel...");
 		let mut command_sink = None;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
@@ -176,7 +179,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		let client_set_aside_for_cidp = client.clone();
 
 
-		log::warn!("spawning authorship task...");
+		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -222,7 +225,6 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 
 		network_starter.start_network();
 
-		log::warn!("returning new PerfTestRunner");
 		Ok(PerfTestRunner {
 			task_manager,
 			client: client.clone(),
@@ -245,7 +247,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		estimate: bool,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
-		log::warn!("evm_call best_hash: {:?}", hash);
+		log::info!("evm_call best_hash: {:?}", hash);
 
 		let result = self.client.runtime_api().call(
 			&BlockId::Hash(hash),
@@ -273,7 +275,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		estimate: bool,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
-		log::warn!("evm_create best_hash: {:?}", hash);
+		log::info!("evm_create best_hash: {:?}", hash);
 
 		let result = self.client.runtime_api().create(
 			&BlockId::Hash(hash),
@@ -322,13 +324,11 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		log::warn!("transaction_hash: {:?}", transaction_hash);
-
 		let transaction_converter = moonbase_runtime::TransactionConverter;
 		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
 
 		let hash = self.client.info().best_hash;
-		log::warn!("eth_sign_and_send_transaction best_hash: {:?}", hash);
+		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
 		let future = self.pool.submit_one(
 			&BlockId::hash(hash),
 			TransactionSource::Local,
@@ -345,7 +345,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 	fn create_block(&mut self, create_empty: bool) ->
 		CreatedBlock<H256>
 	{
-		log::warn!("Issuing seal command...");
+		log::debug!("Issuing seal command...");
 		let hash = self.client.info().best_hash;
 
 		let mut sink = self.manual_seal_command_sink.clone();
@@ -361,7 +361,7 @@ impl<RuntimeApi, Executor> PerfTestRunner<RuntimeApi, Executor>
 			receiver.await
 		};
 
-		log::warn!("waiting for SealNewBlock command to resolve...");
+		log::trace!("waiting for SealNewBlock command to resolve...");
 		futures::executor::block_on(future)
 			.expect("Failed to receive SealNewBlock response")
 			.expect("we have two layers of results, apparently")
@@ -395,8 +395,6 @@ impl PerfCmd {
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 	{
-		log::warn!("PerfCmd::run()");
-
 		let alice_hex = "f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 		let alice_bytes = hex::decode(alice_hex)
 			.expect("alice_hex is valid hex; qed");
@@ -407,10 +405,9 @@ impl PerfCmd {
 			.expect("alice_priv_hex is valid hex; qed");
 		let alice_priv = H256::from_slice(&alice_priv_bytes[..]);
 
-		log::warn!("alice: {:?}", alice);
+		log::debug!("alice: {:?}", alice);
 
 		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
-		log::warn!("Created runner");
 
 		let mut alice_nonce: U256 = 0.into();
 
@@ -448,33 +445,29 @@ impl PerfCmd {
 			alice,
 			fibonacci_bytecode.clone(),
 			0.into(),
-			1_000_000.into(),
-			Some(1_000_000_000.into()),
+			EXTRINSIC_GAS_LIMIT.into(),
+			Some(MIN_GAS_PRICE.into()),
 			Some(alice_nonce),
 			false
 		).expect("EVM create failed while estimating contract address");
 		let fibonacci_address = create_info.value;
-		log::warn!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
+		log::debug!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
 
-		log::warn!("Issuing EVM create txn...");
+		log::trace!("Issuing EVM create txn...");
 		let txn_hash = runner.eth_sign_and_send_transaction(
 			&alice_priv,
 			None,
 			fibonacci_bytecode,
 			0.into(),
-			1_000_000.into(),
-			1_000_000_000.into(),
+			EXTRINSIC_GAS_LIMIT.into(),
+			MIN_GAS_PRICE.into(),
 			alice_nonce,
 		).expect("EVM create failed while trying to deploy Fibonacci contract");
 
-		log::warn!("Creating block...");
+		log::trace!("Creating block...");
 		runner.create_block(true);
 
 		// TODO: get txn results
-
-		// TODO: wait properly
-		log::warn!("sleeping so block can be created");
-		std::thread::sleep(std::time::Duration::from_millis(5000));
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
@@ -486,13 +479,13 @@ impl PerfCmd {
 			fibonacci_address,
 			calldata,
 			0.into(),
-			1_000_000.into(),
-			Some(1_000_000_000.into()),
+			EXTRINSIC_GAS_LIMIT.into(),
+			Some(MIN_GAS_PRICE.into()),
 			Some(alice_nonce),
 			false
 		).expect("EVM call failed while trying to invoke Fibonacci contract");
 
-		log::warn!("EVM call returned {:?}", call_results);
+		log::debug!("EVM call returned {:?}", call_results);
 
 		Ok(())
 	}
