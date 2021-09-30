@@ -22,8 +22,6 @@ use frame_support::{
 	weights::Weight,
 };
 
-use xcm::v1::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, SendXcm, Xcm};
-
 use frame_support::{construct_runtime, parameter_types};
 
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
@@ -35,16 +33,16 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::v1::{
+	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
-	NetworkId,
+	MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendXcm, Xcm,
 };
-use xcm_executor::XcmExecutor;
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
-	Assets,
+	Assets, XcmExecutor,
 };
 
 pub type AccountId = TestAccount;
@@ -66,7 +64,6 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		Xtokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
@@ -158,17 +155,6 @@ parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
-impl cumulus_pallet_parachain_system::Config for Test {
-	type SelfParaId = ParachainId;
-	type Event = Event;
-	type OnValidationData = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-}
-
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
@@ -196,7 +182,7 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type OnSetCode = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;

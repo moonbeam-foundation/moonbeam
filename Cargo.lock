@@ -13876,8 +13876,6 @@ dependencies = [
 name = "xtokens-precompiles"
 version = "0.1.0"
 dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-pallet-xcm",
  "cumulus-primitives-core",
  "derive_more",
  "evm",
@@ -13891,9 +13889,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
- "polkadot-parachain",
  "precompile-utils",
- "rlp",
  "rustc-hex",
  "serde",
  "sha3 0.9.1",
@@ -13905,7 +13901,6 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
- "xcm-simulator",
 ]
 
 [[package]]

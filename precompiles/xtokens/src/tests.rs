@@ -24,7 +24,7 @@ use orml_xtokens::Event as XtokensEvent;
 use crate::{Action, MultiLocationWrapper, PrecompileOutput};
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, Bytes, EvmDataWriter};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use sp_std::convert::TryInto;
