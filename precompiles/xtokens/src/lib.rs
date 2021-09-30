@@ -32,7 +32,7 @@ use sp_std::{
 	marker::PhantomData,
 };
 mod encoding;
-use encoding::MultiLocationWrapper;
+pub use encoding::MultiLocationWrapper;
 use sp_std::boxed::Box;
 use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
