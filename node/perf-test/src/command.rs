@@ -368,7 +368,7 @@ impl PerfCmd {
 		println!("Creating 1024 empty blocks...");
 		// measure time to create empty blocks
 		let now = Instant::now();
-		for i in 1..1024 {
+		for i in 0..1024 {
 			runner.create_block(true);
 		}
 		println!("*** Empty block test took {} usec", now.elapsed().as_micros());
@@ -450,24 +450,28 @@ impl PerfCmd {
 		// TODO: get txn results
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
-		let calldata_hex = "3a9bbfcd000000000000000000000000000000000000000000000000000000000000000F";
+		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000172";
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
 		let now = Instant::now();
-		let call_results = runner.evm_call(
-			alice,
-			fibonacci_address,
-			calldata.clone(),
-			0.into(),
-			EXTRINSIC_GAS_LIMIT.into(),
-			Some(MIN_GAS_PRICE.into()),
-			Some(alice_nonce),
-			false
-		).expect("EVM call failed while trying to invoke Fibonacci contract");
-		println!("*** Fibonacci 0x00F took {} usec", now.elapsed().as_micros());
 
-		log::debug!("EVM call returned {:?}", call_results);
+		println!("Calling fib[370] 4096 times...");
+		for i in 0..4096 {
+			let call_results = runner.evm_call(
+				alice,
+				fibonacci_address,
+				calldata.clone(),
+				0.into(),
+				EXTRINSIC_GAS_LIMIT.into(),
+				Some(MIN_GAS_PRICE.into()),
+				Some(alice_nonce),
+				false
+			).expect("EVM call failed while trying to invoke Fibonacci contract");
+
+			log::debug!("EVM call returned {:?}", call_results);
+		}
+		println!("*** Fibonacci calls took {} usec", now.elapsed().as_micros());
 
 		println!("Creating blocks with increasing nonce-dependent txns...");
 		let now = Instant::now();
