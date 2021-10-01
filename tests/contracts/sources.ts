@@ -399,6 +399,23 @@ export const contractSources: { [key: string]: string } = {
               return 1;
           }
       }`,
+  Fibonacci: `
+    pragma solidity>= 0.8.0;
+    contract Fibonacci {
+      function fib2(uint n) public returns(uint b) {
+        if (n == 0) {
+          return 0;
+        }
+        uint a = 1;
+        b = 1;
+        for (uint i = 2; i < n; i++) {
+          uint c = a + b;
+          a = b;
+          b = c;
+        }
+        return b;
+      }
+    }`,
   StakingNominationAttaker: `
     pragma solidity >=0.8.0;
     
