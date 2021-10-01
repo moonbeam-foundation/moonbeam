@@ -24,7 +24,9 @@ use frame_support::ensure;
 use sp_std::vec::Vec;
 use xcm::v1::{Junction, Junctions, MultiLocation, NetworkId};
 
-// Implementation of the encoder trait for NetworkId
+// Function to convert network id to bytes
+// We dont implement EVMData here as these bytes will be appended only
+// to certain Junction variants
 // Each NetworkId variant is represented as bytes
 // The first byte represents the enum variant to be used
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
@@ -54,6 +56,7 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 	}
 }
 
+// Function to convert bytes to networkId
 pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> Result<NetworkId, ExitError> {
 	ensure!(encoded_bytes.len() > 0, error("Junctions cannot be empty"));
 	let mut encoded_network_id = EvmDataReader::new(&encoded_bytes);
@@ -71,7 +74,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> Result<NetworkId,
 	}
 }
 
-// Implementation of the encoder type for Junction
+// Implementation of the EvmData for Junction
 // Each Junction is represented as Bytes.
 // The first byte represents the enum variant to be used
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
@@ -79,15 +82,10 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> Result<NetworkId,
 
 // NetworkId encodings, if needed, are appended at the end.
 
-// A wrapper to be able to implement here the evmData reader
+// A wrapper to be able to implement here the EvmData reader
 #[derive(Clone, Eq, PartialEq)]
 pub struct JunctionWrapper(Junction);
 
-// Implementation of the encoder type for Junction
-// Each Junction is represented as Bytes.
-// The first byte represents the enum variant to be used
-// The rest of the bytes (if any), represent the additional data that such enum variant requires
-// Example: vec![0, 0, 0, 0, 1] would represent Junction::Parachain(1u32)
 impl From<Junction> for JunctionWrapper {
 	fn from(junction: Junction) -> Self {
 		JunctionWrapper(junction)
@@ -100,28 +98,30 @@ impl Into<Junction> for JunctionWrapper {
 	}
 }
 
-// Each Junction is represented as Bytes, like we have encoded above
-// The number of junctions represents the enum variant
-// e.g., if Vec<Bytes> is length 1 then we know we have one junction,
-// i.e., we need to use Junctions::X1
 impl EvmData for JunctionWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let junction = reader.read::<Bytes>()?;
 		let junction_bytes = junction.as_bytes();
 
 		ensure!(junction_bytes.len() > 0, error("Junctions cannot be empty"));
+
+		// For simplicity we use an EvmReader here
 		let mut encoded_junction = EvmDataReader::new(&junction_bytes);
 
+		// We take the first byte
 		let enum_selector = encoded_junction.read_raw_bytes(1)?;
 
+		// The firs byte selects the enum variant
 		match enum_selector[0] {
 			0 => {
+				// In the case of Junction::Parachain, we need 4 additional bytes
 				let mut data: [u8; 4] = Default::default();
 				data.copy_from_slice(&encoded_junction.read_raw_bytes(4)?);
 				let para_id = u32::from_be_bytes(data);
 				Ok(JunctionWrapper(Junction::Parachain(para_id)))
 			}
 			1 => {
+				// In the case of Junction::AccountId32, we need 32 additional bytes plus NetworkId
 				let mut account: [u8; 32] = Default::default();
 				account.copy_from_slice(&encoded_junction.read_raw_bytes(32)?);
 
@@ -131,6 +131,7 @@ impl EvmData for JunctionWrapper {
 				}))
 			}
 			2 => {
+				// In the case of Junction::AccountIndex64, we need 8 additional bytes plus NetworkId
 				let mut index: [u8; 8] = Default::default();
 				index.copy_from_slice(&encoded_junction.read_raw_bytes(8)?);
 				// Now we read the network
@@ -140,6 +141,7 @@ impl EvmData for JunctionWrapper {
 				}))
 			}
 			3 => {
+				// In the case of Junction::AccountKey20, we need 20 additional bytes plus NetworkId
 				let mut account: [u8; 20] = Default::default();
 				account.copy_from_slice(&encoded_junction.read_raw_bytes(20)?);
 
@@ -152,6 +154,7 @@ impl EvmData for JunctionWrapper {
 				encoded_junction.read_raw_bytes(1)?[0],
 			))),
 			5 => {
+				// In the case of Junction::GeneralIndex, we need 16 additional bytes
 				let mut general_index: [u8; 16] = Default::default();
 				general_index.copy_from_slice(&encoded_junction.read_raw_bytes(16)?);
 				Ok(JunctionWrapper(Junction::GeneralIndex(
@@ -217,6 +220,10 @@ impl EvmData for JunctionWrapper {
 	}
 }
 
+// Junctions are defined by the number of Junction items that they point to
+// For that reason, as Junction is defined as Bytes, Junctions will be defined as
+// Vec<Bytes>. E.g., If the length of this vector is 1, we know we should use Junctions::X1
+
 // A wrapper to be able to implement here the evmData reader
 #[derive(Clone, Eq, PartialEq)]
 pub struct JunctionsWrapper(Junctions);
@@ -235,37 +242,15 @@ impl Into<Junctions> for JunctionsWrapper {
 
 impl EvmData for JunctionsWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		// MultiLocations are defined by their number of parents (u8) and
-		// Junctions. We are assuming the Junctions are encoded as defined in
-		// the encoding module
-
-		// Essentially, they will be a set of bytes specifying the different
-		// enum variants
 		let junctions_bytes: Vec<JunctionWrapper> = reader.read()?;
-
-		match junctions_bytes.len() {
-			0 => Ok(JunctionsWrapper(Junctions::Here)),
-			1 => Ok(JunctionsWrapper(Junctions::X1(
-				junctions_bytes[0].clone().into(),
-			))),
-
-			2 => Ok(JunctionsWrapper(Junctions::X2(
-				junctions_bytes[0].clone().into(),
-				junctions_bytes[1].clone().into(),
-			))),
-			3 => Ok(JunctionsWrapper(Junctions::X3(
-				junctions_bytes[0].clone().into(),
-				junctions_bytes[1].clone().into(),
-				junctions_bytes[2].clone().into(),
-			))),
-			4 => Ok(JunctionsWrapper(Junctions::X4(
-				junctions_bytes[0].clone().into(),
-				junctions_bytes[1].clone().into(),
-				junctions_bytes[2].clone().into(),
-				junctions_bytes[3].clone().into(),
-			))),
-			_ => Err(error("Provided more than 4 arguments for multilocation")),
+		let mut junctions = Junctions::Here;
+		for item in junctions_bytes {
+			junctions
+				.push(item.into())
+				.map_err(|_| error("overflow when reading junctions"))?;
 		}
+
+		Ok(JunctionsWrapper::from(junctions))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
