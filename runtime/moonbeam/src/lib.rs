@@ -884,7 +884,7 @@ construct_runtime! {
 		// Ethereum compatibility.
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config} = 52,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
@@ -1117,17 +1117,5 @@ impl fp_self_contained::SelfContainedCall for Call {
 			)),
 			_ => None,
 		}
-	}
-}
-
-// TMP
-impl From<Origin> for Result<pallet_ethereum::RawOrigin, Origin> {
-	fn from(_: Origin) -> Self {
-		todo!()
-	}
-}
-impl From<pallet_ethereum::RawOrigin> for Origin {
-	fn from(_: pallet_ethereum::RawOrigin) -> Self {
-		todo!()
 	}
 }

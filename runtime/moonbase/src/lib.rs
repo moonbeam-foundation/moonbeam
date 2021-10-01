@@ -1307,7 +1307,7 @@ construct_runtime! {
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config} = 11,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
@@ -1548,17 +1548,5 @@ impl fp_self_contained::SelfContainedCall for Call {
 			)),
 			_ => None,
 		}
-	}
-}
-
-// TMP
-impl From<Origin> for Result<pallet_ethereum::RawOrigin, Origin> {
-	fn from(_: Origin) -> Self {
-		todo!()
-	}
-}
-impl From<pallet_ethereum::RawOrigin> for Origin {
-	fn from(_: pallet_ethereum::RawOrigin) -> Self {
-		todo!()
 	}
 }
