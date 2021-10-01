@@ -12,7 +12,7 @@ const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts(numberOfparachains: number = 1) {
   // 2 nodes per prachain, and as many relaychain nodes
-  const numberOfNodes = numberOfparachains * 2 * 2; // extraParachain ? 8 : 4; // two nodes per parachain, as many relaychain nodes
+  const numberOfNodes = numberOfparachains * 2 * 2;
   const numberOfPorts = numberOfNodes * 3;
   const availablePorts = await Promise.all(
     new Array(numberOfPorts).fill(0).map(async (_, index) => {
