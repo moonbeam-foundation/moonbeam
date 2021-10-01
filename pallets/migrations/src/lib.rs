@@ -129,7 +129,10 @@ pub mod pallet {
 				if migration_done {
 					continue;
 				}
-				log::debug!( target: "pallet-migrations", "invoking pre_upgrade() on migration {}", migration_name);
+				log::debug!(
+					target: "pallet-migrations",
+					"invoking pre_upgrade() on migration {}", migration_name
+				);
 
 				// dump the migration name to temp storage so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
@@ -172,7 +175,10 @@ pub mod pallet {
 					None => continue,
 				}
 
-				log::debug!( target: "pallet-migrations", "invoking post_upgrade() on migration {}", migration_name);
+				log::debug!(
+					target: "pallet-migrations",
+					"invoking post_upgrade() on migration {}", migration_name
+				);
 
 				let result = migration.post_upgrade();
 				match result {
