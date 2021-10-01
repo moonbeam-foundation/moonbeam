@@ -90,34 +90,8 @@ describeParachain(
 
       // PARACHAINS
       // registerAsset
-      // const { events: eventsRegister } = await createBlockWithExtrinsicParachain(
-      //   parachainOne,
-      //   alith,
-      //   parachainOne.tx.sudo.sudo(
-      //     parachainOne.tx.assetManager.registerAsset(sourceLocationRelay, relayAssetMetadata, new BN(1))
-      //   )
-      // );
-
-      // // Look for assetId in events
-      // let assetId: string;
-      // eventsRegister.forEach((e) => {
-      //   let ev = e.toHuman();
-      //   if (ev.section === "assetManager") {
-      //     assetId = ev.data[0];
-      //   }
-      // });
-      // if (!assetId) {
-      //   await new Promise((res) => setTimeout(res, 20000));
-      // }
-      // assetId = assetId.replace(/,/g, "");
-
-      // setAssetUnitsPerSecond
       const { events, assetId } = await registerAssetToParachain(parachainOne, alith);
-      // await createBlockWithExtrinsicParachain(
-      //   parachainOne,
-      //   alith,
-      //   parachainOne.tx.sudo.sudo(parachainOne.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
-      // );
+
       expect(events[0].toHuman().method).to.eq("UnitsPerSecondChanged");
       expect(events[2].toHuman().method).to.eq("ExtrinsicSuccess");
 
@@ -163,6 +137,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     relayOne: ApiPromise,
     assetId: string;
   before("First send relay chain asset to parachain", async function () {
+    console.log("ok ca commence");
     keyring = new Keyring({ type: "sr25519" });
 
     // Setup Relaychain
@@ -512,7 +487,7 @@ describeParachain(
       );
       await waitOneBlock(parachainTwo, 3);
     });
-    it.only("should be able to receive an asset in para b from para a", async function () {
+    it("should be able to receive an asset in para b from para a", async function () {
       // PARACHAIN B
       // transfer back 100 units to parachain A
       const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
@@ -629,22 +604,8 @@ describeParachain(
           new BN(4000000000)
         )
       );
-      // eventsTransfer.forEach((e) => {
-      //   console.log("tsf", e.toHuman());
-      // });
-      // expect(eventsTransfer[2].toHuman().method).to.eq("XcmpMessageSent");
-      // expect(eventsTransfer[3].toHuman().method).to.eq("Transferred");
-      // expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
 
       await waitOneBlock(parachainTwo, 3);
-
-      // expect(
-      //   Number(((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free)
-      // ).to.eq(Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA))); // instead of 1.2077 MUNIT
-      // expect(
-      //   (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-      //     "100,000,000,000,000,000,000"
-      // ).to.eq(true);
 
       // PARACHAIN B
       // transfer 100 units to parachain C
@@ -664,9 +625,6 @@ describeParachain(
           new BN(4000000000)
         )
       );
-      eventsTransfer2.forEach((e) => {
-        console.log("tsf2", e.toHuman());
-      });
 
       expect(eventsTransfer2[1].toHuman().method).to.eq("XcmpMessageSent");
       expect(eventsTransfer2[2].toHuman().method).to.eq("Transferred");
@@ -677,14 +635,7 @@ describeParachain(
       const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
       const diff =
         Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
-      // console.log(
-      //   (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance,
-      //   (await parachainThree.query.assets.account(assetId, BALTATHAR)).toHuman().balance
-      // );
       expect(diff < 10000000000000000).to.eq(true);
-      // expect(
-      //   Number(((await parachainOne.query.system.account(BALTATHAR)).toHuman() as any).data.free)
-      // ).to.eq(Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA))); // instead of 1.2077 MUNIT
       expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
         "0"
       );

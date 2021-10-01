@@ -5,6 +5,7 @@ import { AnyTuple } from "@polkadot/types/types";
 import { Event } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
+const debug = require("debug")("test:substrateEvents");
 
 // DEV LOCAL TESTING
 
@@ -62,32 +63,20 @@ export async function waitOneBlock(api: ApiPromise, numberOfBlocks: number = 1) 
   });
 }
 
-// TODO: use debug
+// Log relay/parachain new blocks and events
 export async function logEvents(api: ApiPromise, name: string) {
   api.derive.chain.subscribeNewHeads(async (header) => {
-    console.log(`--- ${name} BLOCK#${header.number}: author ${header.author}, hash ${header.hash}`);
+    debug(
+      `------------- ${name} BLOCK#${header.number}: author ${header.author}, hash ${header.hash}`
+    );
     (await api.query.system.events.at(header.hash)).forEach((e, i) => {
-      console.log(
+      debug(
         `${name} Event :`,
         i,
         header.hash.toHex(),
         (e.toHuman() as any).event.section,
         (e.toHuman() as any).event.method
       );
-      if (
-        (e.toHuman() as any).event.method === "DownwardMessagesReceived" ||
-        (e.toHuman() as any).event.method === "NewAccount" ||
-        (e.toHuman() as any).event.method === "Issued" ||
-        (e.toHuman() as any).event.method === "ExecutedDownward" ||
-        (e.toHuman() as any).event.method === "DownwardMessagesProcessed" ||
-        (e.toHuman() as any).event.method === "UpwardMessagesReceived" ||
-        (e.toHuman() as any).event.method === "ExecutedUpward" ||
-        (e.toHuman() as any).event.method === "Deposit" ||
-        (e.toHuman() as any).event.method === "Transferred" ||
-        (e.toHuman() as any).event.method === "ExtrinsicFailed"
-      ) {
-        console.log(JSON.stringify(e.toHuman()));
-      }
     });
   });
 }

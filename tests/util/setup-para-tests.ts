@@ -54,7 +54,6 @@ export function describeParachain(
             ],
             relayPorts: [],
           };
-
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
 
@@ -118,7 +117,6 @@ export function describeParachain(
       await context.createPolkadotApiRelaychains();
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
-
       debug(
         `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] for ${
           this.currentTest.title

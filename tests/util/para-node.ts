@@ -93,7 +93,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   // Each node will have 3 ports. There are 4 nodes total (2 relay, 2 collators) - so 12 ports
   // Plus 2 nodes if we need a second parachain
   const ports = await findAvailablePorts(numberOfParachains);
-  console.log("PORTS", ports);
   //Build hrmpChannels, all connected to first parachain
   const hrmpChannels = [];
   new Array(numberOfParachains - 1).fill(0).forEach((_, i) => {
@@ -110,7 +109,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       maxMessageSize: 512,
     });
   });
-  console.log("hrmpChannels", hrmpChannels);
+
   // Build launchConfig
   const launchConfig = {
     relaychain: {
@@ -179,7 +178,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   };
 
   const onProcessExit = function () {
-    killAll;
+    killAll();
   };
   const onProcessInterrupt = function () {
     process.exit(2);
@@ -222,6 +221,7 @@ export async function stopParachainNodes() {
     // TODO: improve, make killAll async https://github.com/paritytech/polkadot-launch/issues/139
     console.log("Waiting 10 seconds for processes to shut down...");
     setTimeout(resolve, 10000);
+    nodeStarted = false;
     console.log("... done");
   });
 }
