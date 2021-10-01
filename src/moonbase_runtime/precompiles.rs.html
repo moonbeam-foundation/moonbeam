@@ -112,6 +112,9 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -145,6 +148,7 @@
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">xtokens_precompiles::XtokensWrapper</span>;
 
 <span class="comment">// The asset precompile address prefix. Addresses that match against this prefix will be routed</span>
 <span class="comment">// to Erc20AssetsPrecompileSet</span>
@@ -180,6 +184,7 @@
 	<span class="comment">// This precompile set does additional checks, e.g., total supply not being 0</span>
 	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
 		<span class="ident">address</span>: <span class="ident">H160</span>,
@@ -214,6 +219,7 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2051</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="prelude-val">Some</span>(<span class="ident">DemocracyWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>))
 			}
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2052</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">XtokensWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)

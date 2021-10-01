@@ -37,4 +37,5 @@ sourcesIndex["precompile_utils"] = {"name":"","files":["data.rs","lib.rs"]};
 sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["runtime_common"] = {"name":"","files":["apis.rs","lib.rs","migrations.rs"]};
 sourcesIndex["xcm_primitives"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["xtokens_precompiles"] = {"name":"","files":["encoding.rs","lib.rs"]};
 createSourceSidebar();

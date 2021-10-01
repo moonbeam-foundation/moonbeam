@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["xtokens_precompiles"] = [{"text":"impl <a class=\"trait\" href=\"precompile_utils/data/trait.EvmData.html\" title=\"trait precompile_utils::data::EvmData\">EvmData</a> for <a class=\"struct\" href=\"xtokens_precompiles/struct.MultiLocationWrapper.html\" title=\"struct xtokens_precompiles::MultiLocationWrapper\">MultiLocationWrapper</a>","synthetic":false,"types":["xtokens_precompiles::encoding::MultiLocationWrapper"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

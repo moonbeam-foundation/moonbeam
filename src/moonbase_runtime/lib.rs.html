@@ -1512,6 +1512,19 @@
 <span id="1512">1512</span>
 <span id="1513">1513</span>
 <span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1545,6 +1558,7 @@
 <span class="kw">use</span> <span class="ident">cumulus_pallet_parachain_system::RelaychainBlockNumberProvider</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion</span>;
+<span class="kw">use</span> <span class="ident">xtokens_precompiles::AccountIdToCurrencyId</span>;
 
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Hash</span> <span class="kw">as</span> <span class="ident">THash</span>;
 
@@ -1608,7 +1622,7 @@
 <span class="kw">use</span> <span class="ident">sp_version::NativeVersion</span>;
 <span class="kw">use</span> <span class="ident">sp_version::RuntimeVersion</span>;
 <span class="kw">use</span> <span class="ident">xcm::v1</span>::{
-	<span class="ident">BodyId</span>, <span class="ident">Junction</span>,
+	<span class="ident">BodyId</span>,
 	<span class="ident">Junction</span>::{<span class="ident">PalletInstance</span>, <span class="ident">Parachain</span>},
 	<span class="ident">Junctions</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>,
 };
@@ -2714,6 +2728,18 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CurrencyId</span> {
 	<span class="ident">SelfReserve</span>,
 	<span class="ident">OtherReserve</span>(<span class="ident">AssetId</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
+		<span class="kw">match</span> <span class="ident">account</span> {
+			<span class="comment">// the self-reserve currency is identified by the pallet-balances address</span>
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">H160::from_low_u64_be</span>(<span class="number">2050</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CurrencyId::SelfReserve</span>),
+			<span class="comment">// the rest of the currencies, by their corresponding erc20 address</span>
+			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">account</span>)
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">asset_id</span><span class="op">|</span> <span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset_id</span>)),
+		}
+	}
 }
 
 <span class="comment">// How to convert from CurrencyId to MultiLocation</span>
