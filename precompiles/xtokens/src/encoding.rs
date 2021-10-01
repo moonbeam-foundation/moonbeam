@@ -263,6 +263,13 @@ impl EvmData for JunctionsWrapper {
 	}
 }
 
+// MultiLocations are defined by their number of parents (u8) and
+// Junctions. We are assuming the Junctions are encoded as defined in
+// the encoding module
+
+// Essentially, they will be a set of bytes specifying the different
+// enum variants
+
 // A wrapper to be able to implement here the evmData reader
 #[derive(Clone, Eq, PartialEq)]
 pub struct MultiLocationWrapper(MultiLocation);
@@ -281,13 +288,6 @@ impl Into<MultiLocation> for MultiLocationWrapper {
 
 impl EvmData for MultiLocationWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		// MultiLocations are defined by their number of parents (u8) and
-		// Junctions. We are assuming the Junctions are encoded as defined in
-		// the encoding module
-
-		// Essentially, they will be a set of bytes specifying the different
-		// enum variants
-
 		let num_parents = reader
 			.read::<u8>()
 			.map_err(|_| error("tried to parse array offset out of bounds"))?;
