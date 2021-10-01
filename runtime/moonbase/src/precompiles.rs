@@ -31,6 +31,7 @@ use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xtokens_precompiles::XtokensWrapper;
 
 // The asset precompile address prefix. Addresses that match against this prefix will be routed
 // to Erc20AssetsPrecompileSet
@@ -66,6 +67,7 @@ where
 	// This precompile set does additional checks, e.g., total supply not being 0
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
+	XtokensWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -100,6 +102,7 @@ where
 			a if a == hash(2051) => {
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)

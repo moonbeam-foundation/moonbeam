@@ -111,6 +111,18 @@ impl<'a> EvmDataReader<'a> {
 		Ok(data)
 	}
 
+	/// Read remaining bytes
+	pub fn read_till_end(&mut self) -> EvmResult<&[u8]> {
+		let range = self.move_cursor(self.input.len() - self.cursor)?;
+
+		let data = self
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse raw bytes out of bounds"))?;
+
+		Ok(data)
+	}
+
 	/// Parse (4 bytes) selector.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_selector<T>(&mut self) -> EvmResult<T>
