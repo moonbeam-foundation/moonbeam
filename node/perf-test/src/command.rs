@@ -26,7 +26,11 @@ use sc_cli::{
 use sp_core::{H160, H256, U256};
 use sc_client_api::HeaderBackend;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{sync::Arc, marker::PhantomData};
+use std::{
+	sync::Arc,
+	marker::PhantomData,
+	time::Instant,
+};
 use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
 use nimbus_primitives::NimbusId;
 use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
@@ -356,6 +360,19 @@ impl PerfCmd {
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 	{
+		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
+
+		// create an empty block to warm the runtime cache...
+		runner.create_block(true);
+
+		println!("Creating 1024 empty blocks...");
+		// measure time to create empty blocks
+		let now = Instant::now();
+		for i in 1..1024 {
+			runner.create_block(true);
+		}
+		println!("*** Empty block test took {} usec", now.elapsed().as_micros());
+
 		let alice_hex = "f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 		let alice_bytes = hex::decode(alice_hex)
 			.expect("alice_hex is valid hex; qed");
@@ -367,8 +384,6 @@ impl PerfCmd {
 		let alice_priv = H256::from_slice(&alice_priv_bytes[..]);
 
 		log::debug!("alice: {:?}", alice);
-
-		let mut runner = PerfTestRunner::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
 
 		let mut alice_nonce: U256 = 0.into();
 
@@ -402,6 +417,7 @@ impl PerfCmd {
 		// do a create() call (which doesn't persist) to see what our expected contract address
 		// will be. afterward we create a txn and produce a block so it will persist.
 		// TODO: better way to calculate new contract address
+		let now = Instant::now();
 		let create_info = runner.evm_create(
 			alice,
 			fibonacci_bytecode.clone(),
@@ -411,6 +427,8 @@ impl PerfCmd {
 			Some(alice_nonce),
 			false
 		).expect("EVM create failed while estimating contract address");
+		println!("*** evm_create took {} usec", now.elapsed().as_micros());
+
 		let fibonacci_address = create_info.value;
 		log::debug!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
 
@@ -425,28 +443,52 @@ impl PerfCmd {
 			alice_nonce,
 		).expect("EVM create failed while trying to deploy Fibonacci contract");
 
-		log::trace!("Creating block...");
+		let now = Instant::now();
 		runner.create_block(true);
+		println!("*** executing block with Fibonacci create took {} usec", now.elapsed().as_micros());
 
 		// TODO: get txn results
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
-		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000400";
+		let calldata_hex = "3a9bbfcd000000000000000000000000000000000000000000000000000000000000000F";
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
+		let now = Instant::now();
 		let call_results = runner.evm_call(
 			alice,
 			fibonacci_address,
-			calldata,
+			calldata.clone(),
 			0.into(),
 			EXTRINSIC_GAS_LIMIT.into(),
 			Some(MIN_GAS_PRICE.into()),
 			Some(alice_nonce),
 			false
 		).expect("EVM call failed while trying to invoke Fibonacci contract");
+		println!("*** Fibonacci 0x00F took {} usec", now.elapsed().as_micros());
 
 		log::debug!("EVM call returned {:?}", call_results);
+
+		println!("Creating blocks with increasing nonce-dependent txns...");
+		let now = Instant::now();
+		for i in 1..67 {
+			for j in 1..i {
+				let txn_hash = runner.eth_sign_and_send_transaction(
+					&alice_priv,
+					Some(fibonacci_address),
+					calldata.clone(),
+					0.into(),
+					EXTRINSIC_GAS_LIMIT.into(),
+					MIN_GAS_PRICE.into(),
+					alice_nonce,
+				).expect("EVM create failed while trying to deploy Fibonacci contract");
+
+				alice_nonce = alice_nonce.saturating_add(1.into());
+			}
+
+			runner.create_block(true);
+		}
+		println!("*** nonce-dependent blocks test took {} usec", now.elapsed().as_micros());
 
 		Ok(())
 	}
