@@ -17,19 +17,16 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
+use frame_support::assert_ok;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 
-use frame_support::assert_ok;
-
-use xcm::v0::{
-	Junction::{self, PalletInstance, Parachain, Parent},
-	MultiAsset::*,
-	MultiLocation::*,
-	NetworkId,
+use xcm::v1::{
+	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
+	Junctions::*,
+	MultiLocation, NetworkId,
 };
-use xcm_simulator::MultiLocation;
 use xcm_simulator::TestExt;
 
 // Send a relay asset (like DOT) to a parachain A
@@ -37,7 +34,7 @@ use xcm_simulator::TestExt;
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -60,18 +57,18 @@ fn receive_relay_asset_from_relay() {
 	});
 
 	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			X1(Parachain(1)),
-			X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: PARAALICE
-			}),
-			vec![ConcreteFungible {
-				id: MultiLocation::Null,
-				amount: 123
-			}],
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 123).into()),
+			0,
 			123,
 		));
 	});
@@ -88,7 +85,7 @@ fn receive_relay_asset_from_relay() {
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -112,18 +109,18 @@ fn send_relay_asset_to_relay() {
 		));
 	});
 
+	let dest: MultiLocation = Junction::AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			X1(Parachain(1)),
-			X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: PARAALICE
-			}),
-			vec![ConcreteFungible {
-				id: Null,
-				amount: 123
-			}],
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 123).into()),
+			0,
 			123,
 		));
 	});
@@ -138,26 +135,28 @@ fn send_relay_asset_to_relay() {
 		balance_before_sending = RelayBalances::free_balance(&RELAYALICE);
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X1(AccountId32 {
+			network: NetworkId::Any,
+			id: RELAYALICE.into(),
+		}),
+	};
+
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
-			100,
-			Box::new(X2(
-				Junction::Parent,
-				Junction::AccountId32 {
-					network: NetworkId::Any,
-					id: RELAYALICE.into()
-				}
-			)),
-			4000
+			123,
+			Box::new(dest),
+			40000
 		));
 	});
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 23);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 
 	Relay::execute_with(|| {
@@ -170,7 +169,7 @@ fn send_relay_asset_to_relay() {
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -207,18 +206,18 @@ fn send_relay_asset_to_para_b() {
 		));
 	});
 
+	let dest: MultiLocation = Junction::AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			X1(Parachain(1)),
-			X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: PARAALICE
-			}),
-			vec![ConcreteFungible {
-				id: Null,
-				amount: 123
-			}],
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 123).into()),
+			0,
 			123,
 		));
 	});
@@ -228,21 +227,25 @@ fn send_relay_asset_to_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(2),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
-			4000
+			Box::new(dest),
+			40000
 		));
 	});
 
@@ -261,7 +264,7 @@ fn send_relay_asset_to_para_b() {
 fn send_para_a_asset_to_para_b() {
 	MockNet::reset();
 
-	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -285,20 +288,24 @@ fn send_para_a_asset_to_para_b() {
 		));
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(2),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
+			Box::new(dest),
 			800000
 		));
 	});
@@ -320,7 +327,7 @@ fn send_para_a_asset_to_para_b() {
 fn send_para_a_asset_from_para_b_to_para_c() {
 	MockNet::reset();
 
-	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -358,20 +365,23 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		));
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(2),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
+			Box::new(dest),
 			800000
 		));
 	});
@@ -389,20 +399,24 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(3),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
 	ParaB::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(3),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
+			Box::new(dest),
 			800000
 		));
 	});
@@ -417,7 +431,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
-	let para_a_balances = X3(Parent, Parachain(1).into(), PalletInstance(1u8));
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -441,20 +455,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		));
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(2),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
+			Box::new(dest),
 			4000
 		));
 	});
@@ -472,20 +489,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(1),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
 	ParaB::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(X3(
-				Junction::Parent,
-				Junction::Parachain(1),
-				Junction::AccountKey20 {
-					network: NetworkId::Any,
-					key: PARAALICE.into()
-				}
-			)),
+			Box::new(dest),
 			4000
 		));
 	});
@@ -503,7 +523,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 fn receive_relay_asset_with_trader() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -529,21 +549,22 @@ fn receive_relay_asset_with_trader() {
 		));
 	});
 
+	let dest: MultiLocation = Junction::AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
 	// We are sending 100 tokens from relay.
 	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
 	// Therefore with no refund, we should receive 10 tokens less
+	// Native trader fails for this, and we use the asset trader
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			X1(Parachain(1)),
-			X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: PARAALICE
-			}),
-			vec![ConcreteFungible {
-				id: Null,
-				amount: 100
-			}],
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 100).into()),
+			0,
 			10_000_000u64,
 		));
 	});
@@ -558,7 +579,7 @@ fn receive_relay_asset_with_trader() {
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(X1(Junction::Parent));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -567,6 +588,11 @@ fn error_when_not_paying_enough() {
 		decimals: 12,
 	};
 
+	let dest: MultiLocation = Junction::AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
 	// This time we are gonna put a rather high number of units per second
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
@@ -590,15 +616,10 @@ fn error_when_not_paying_enough() {
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			X1(Parachain(1)),
-			X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: PARAALICE
-			}),
-			vec![ConcreteFungible {
-				id: Null,
-				amount: 5
-			}],
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 5).into()),
+			0,
 			10_000_000u64,
 		));
 	});

@@ -29,7 +29,7 @@ use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
 
-pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
+pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
 #[cfg(test)]

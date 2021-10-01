@@ -18,8 +18,6 @@ evm = { version = "0.30.1", default-features = false, features = ["with-codec"] 
 evm-runtime = { version = "0.30.0", default-features = false }
 evm-gasometer = { version = "0.30.0", default-features = false }
 
-moonbeam-rpc-primitives-debug = { path = "../debug", default-features = false }
-
 [features]
 default = ["std"]
 evm-tracing = ["evm/tracing", "evm-runtime/tracing", "evm-gasometer/tracing"]
@@ -31,5 +29,4 @@ std = [
 	"evm/std",
 	"evm-runtime/std",
 	"evm-gasometer/std",
-    "moonbeam-rpc-primitives-debug/std",
 ]

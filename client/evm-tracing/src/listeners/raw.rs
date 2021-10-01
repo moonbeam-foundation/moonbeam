@@ -17,12 +17,11 @@
 use ethereum_types::{H160, H256};
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
+use crate::types::{convert_memory, single::RawStepLog, ContextType};
 use evm_tracing_events::{
-	convert_memory,
 	runtime::{Capture, ExitReason},
-	ContextType, Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+	Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
 };
-use moonbeam_rpc_primitives_debug::api::single::RawStepLog;
 
 #[derive(Debug)]
 pub struct Listener {

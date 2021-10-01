@@ -15,11 +15,11 @@ ethereum = { version = "0.9.0", default-features = false, features = ["with-code
 ethereum-types = { version = "0.12.0", default-features = false }
 
 environmental = { version = "1.1.2", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-api = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate.git", branch = "crystalin-v0.9.9-block-response-length", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-api = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 hex = { version = "0.4", features = ["serde"], optional = true}

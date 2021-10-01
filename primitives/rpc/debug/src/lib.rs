@@ -15,12 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// These functions are quite usefull, shoud it be moved into its own crate ?
-#[cfg(feature = "std")]
-pub mod serialization;
 
-pub mod api;
-
+use codec::{Decode, Encode};
 use ethereum::TransactionV0 as Transaction;
 use ethereum_types::H256;
 use sp_std::vec::Vec;
@@ -37,6 +33,13 @@ sp_api::decl_runtime_apis! {
 			known_transactions: Vec<H256>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum TracerInput {
+	None,
+	Blockscout,
+	CallTracer,
 }
 
 /// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is
