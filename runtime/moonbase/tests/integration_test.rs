@@ -610,8 +610,11 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			let public2 = pair2.public();
 
 			// signature is new_account || previous_account
-			let mut message = AccountId::from(DAVE).encode();
+			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES.to_vec();
+			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
+			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES.to_vec());
+
 			let signature1 = pair1.sign(&message);
 			let signature2 = pair2.sign(&message);
 
