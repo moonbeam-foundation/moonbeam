@@ -16,7 +16,6 @@
 
 //! A collection of node-specific RPC extensions and related background tasks.
 
-#[cfg(feature = "evm-tracing")]
 pub mod tracing;
 
 use std::{sync::Arc, time::Duration};
@@ -29,11 +28,11 @@ use cli_opt::EthApi as EthApiCmd;
 use ethereum::EthereumStorageSchema;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
-	EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle, RuntimeApiStorageOverride,
-	SchemaV1Override, StorageOverride, Web3Api, Web3ApiServer,
+	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
+	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
+	RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, Web3Api, Web3ApiServer,
 };
-use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
@@ -49,9 +48,7 @@ use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
-// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
-// Is it only for tests? Should we use it here?
-use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::{HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{
@@ -76,8 +73,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub is_authority: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
-	/// Ethereum pending transactions.
-	pub pending_transactions: PendingTransactions,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
@@ -118,7 +113,6 @@ where
 		deny_unsafe,
 		is_authority,
 		network,
-		pending_transactions,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
@@ -139,6 +133,8 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
+	let block_data_cache = Arc::new(EthBlockDataCache::new(3000, 3000));
+
 	let mut overrides_map = BTreeMap::new();
 	overrides_map.insert(
 		EthereumStorageSchema::V1,
@@ -154,14 +150,15 @@ where
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
+		graph.clone(),
 		transaction_converter,
 		network.clone(),
-		pending_transactions,
 		signers,
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
 		max_past_logs,
+		block_data_cache.clone(),
 	)));
 
 	if let Some(filter_pool) = filter_pool {
@@ -172,6 +169,7 @@ where
 			500_usize, // max stored filters
 			overrides.clone(),
 			max_past_logs,
+			block_data_cache.clone(),
 		)));
 	}
 
@@ -214,7 +212,6 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
 	pub frontier_backend: Arc<fc_db::Backend<B>>,
-	pub pending_transactions: PendingTransactions,
 	pub filter_pool: Option<FilterPool>,
 }
 
@@ -258,20 +255,6 @@ where
 				Arc::clone(&params.client),
 				filter_pool,
 				FILTER_RETAIN_THRESHOLD,
-			),
-		);
-	}
-
-	// Frontier pending transactions task. Essential.
-	// Maintenance for the Frontier-specific pending transaction pool.
-	if let Some(pending_transactions) = params.pending_transactions {
-		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
-		params.task_manager.spawn_essential_handle().spawn(
-			"frontier-pending-transactions",
-			EthTask::pending_transaction_task(
-				Arc::clone(&params.client),
-				pending_transactions,
-				TRANSACTION_RETAIN_THRESHOLD,
 			),
 		);
 	}

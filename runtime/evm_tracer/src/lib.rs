@@ -24,22 +24,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(feature = "evm-tracing"))]
-pub mod tracer {
-	pub struct EvmTracer;
-	impl EvmTracer {
-		pub fn new() -> Self {
-			Self
-		}
-		pub fn trace<R, F: FnOnce() -> R>(self, _f: F) {}
-		pub fn emit_new() {}
-	}
-}
-
-#[cfg(feature = "evm-tracing")]
 pub mod tracer {
 	use codec::Encode;
-	use moonbeam_rpc_primitives_debug::proxy::types::{EvmEvent, GasometerEvent, RuntimeEvent};
+	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent};
 
 	use evm::tracing::{using as evm_using, EventListener as EvmListener};
 	use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};
@@ -75,10 +62,6 @@ pub mod tracer {
 		/// Consume the tracer and return it alongside the return value of
 		/// the closure.
 		pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
-			evm::tracing::enable_tracing(true);
-			evm_gasometer::tracing::enable_tracing(true);
-			evm_runtime::tracing::enable_tracing(true);
-
 			let wrapped = Rc::new(RefCell::new(self));
 
 			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
@@ -92,10 +75,6 @@ pub mod tracer {
 			let f = || gasometer_using(&mut gasometer, f);
 			let f = || evm_using(&mut evm, f);
 			f();
-
-			evm::tracing::enable_tracing(false);
-			evm_gasometer::tracing::enable_tracing(false);
-			evm_runtime::tracing::enable_tracing(false);
 		}
 
 		pub fn emit_new() {

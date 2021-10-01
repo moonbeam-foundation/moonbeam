@@ -367,7 +367,9 @@ jobs:
       - name: Build Tracing Node
         run: |
           env
-          cargo build --release -p moonbeam --features evm-tracing
+          cargo moonbase-tracing
+      - name: Unit tests (tracing)
+        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
       - name: Save moonbeam tracing binary
         run: |
           mkdir -p build
