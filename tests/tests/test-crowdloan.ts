@@ -823,7 +823,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
       ).toHuman() as any
     ).to.be.null;
 
-    let message = new Uint8Array([...stringToU8a("<Bytes>"),...toAssociateAccount.addressRaw, ...firstAccount.addressRaw,...stringToU8a("</Bytes>")]);
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...toAssociateAccount.addressRaw,
+      ...firstAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
 
     // Construct the signatures
     let signature1 = {};
