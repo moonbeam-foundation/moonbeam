@@ -17,7 +17,7 @@
 use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	pallet_prelude::PhantomData,
-	storage::migration::{remove_storage_prefix, storage_iter, storage_key_iter},
+	storage::migration::{remove_storage_prefix, storage_key_iter},
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 	Twox64Concat,
@@ -78,7 +78,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		use frame_support::{storage::migration::storage_iter, traits::OnRuntimeUpgradeHelpersExt};
 
 		let pallet_prefix: &[u8] = b"AuthorMapping";
 		let storage_item_prefix: &[u8] = b"MappingWithDeposit";

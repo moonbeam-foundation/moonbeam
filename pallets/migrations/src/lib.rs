@@ -251,7 +251,7 @@ pub mod pallet {
 					0u64.into()
 				};
 
-				log::info!( target: "pallet-migrations", 
+				log::info!( target: "pallet-migrations",
 					"performing migration {}, available weight: {}",
 					migration_name,
 					available_for_step

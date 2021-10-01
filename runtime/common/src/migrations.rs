@@ -18,7 +18,7 @@
 
 use frame_support::{pallet_prelude::Get, traits::OnRuntimeUpgrade, weights::Weight};
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
-use pallet_migrations::{Config as MigrationsConfig, Migration};
+use pallet_migrations::Migration;
 use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
