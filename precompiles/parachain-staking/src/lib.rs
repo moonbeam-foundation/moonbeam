@@ -31,7 +31,6 @@ use pallet_evm::Precompile;
 use precompile_utils::{
 	error, Address, EvmData, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper,
 };
-use sp_core::H160;
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -77,7 +76,6 @@ pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -137,7 +135,6 @@ where
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -216,7 +213,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -256,7 +253,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -299,7 +296,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -322,7 +319,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -345,7 +342,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -498,7 +495,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(4)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
 		let collator_nomination_count = input.read()?;
 		let nominator_nomination_count = input.read()?;
@@ -551,7 +548,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -573,7 +570,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
@@ -596,7 +593,7 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.

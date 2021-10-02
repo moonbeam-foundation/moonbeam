@@ -433,6 +433,7 @@ fn join_candidates_works() {
 			let expected: crate::mock::Event =
 				StakingEvent::JoinedCollatorCandidates(TestAccount::Alice, 1000, 1000).into();
 			// Assert that the events vector contains the one expected
+			println!("{:?}", events());
 			assert!(events().contains(&expected));
 		});
 }
