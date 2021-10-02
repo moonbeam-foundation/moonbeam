@@ -21,4 +21,5 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"frame-support/std",
+	"pallet-author-mapping/std",
 ]
