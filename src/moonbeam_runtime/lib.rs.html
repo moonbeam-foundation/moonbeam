@@ -1905,7 +1905,7 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_migrations::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> <span class="ident">runtime_common::migrations::CommonMigrations</span>;
+	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> <span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Call filter expected to be used during Phase 3 of the Moonbeam rollout</span>

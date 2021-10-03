@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["TwoXToBlake","Migrates the AuthorMapping’s storage map fro mthe insecure Twox64 hasher to the secure BlakeTwo hasher."]]});
