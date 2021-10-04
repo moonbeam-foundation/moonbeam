@@ -44,6 +44,18 @@ pub trait Migration {
 	/// constraints will lead to a bricked chain upon a runtime upgrade because the parachain will
 	/// not be able to produce a block that the relay chain will accept.
 	fn migrate(&self, available_weight: Weight) -> Weight;
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		Ok(())
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		Ok(())
+	}
 }
 
 #[pallet]
@@ -103,6 +115,93 @@ pub mod pallet {
 
 			weight
 		}
+
+		#[cfg(feature = "try-runtime")]
+		fn pre_upgrade() -> Result<(), &'static str> {
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+			let mut failed = false;
+			for migration in &T::MigrationsList::get() {
+				let migration_name = migration.friendly_name();
+				let migration_name_as_bytes = migration_name.as_bytes();
+
+				let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
+				if migration_done {
+					continue;
+				}
+				log::debug!(
+					target: "pallet-migrations",
+					"invoking pre_upgrade() on migration {}", migration_name
+				);
+
+				// dump the migration name to temp storage so post_upgrade will know which
+				// migrations were performed (as opposed to skipped)
+				Self::set_temp_storage(true, migration_name);
+
+				match migration.pre_upgrade() {
+					Ok(()) => {
+						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
+					}
+					Err(msg) => {
+						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
+						failed = true;
+					}
+				}
+			}
+
+			if failed {
+				Err("One or more pre_upgrade tests failed; see output above.")
+			} else {
+				Ok(())
+			}
+		}
+
+		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+		#[cfg(feature = "try-runtime")]
+		fn post_upgrade() -> Result<(), &'static str> {
+			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+			// TODO: my desire to DRY all the things feels like this code is very repetitive...
+
+			let mut failed = false;
+			for migration in &T::MigrationsList::get() {
+				let migration_name = migration.friendly_name();
+
+				// we can't query MigrationState because on_runtime_upgrade() would have
+				// unconditionally set it to true, so we read a hint from temp storage which was
+				// left for us by pre_upgrade()
+				match Self::get_temp_storage::<bool>(migration_name) {
+					Some(value) => assert!(true == value, "our dummy value might as well be true"),
+					None => continue,
+				}
+
+				log::debug!(
+					target: "pallet-migrations",
+					"invoking post_upgrade() on migration {}", migration_name
+				);
+
+				let result = migration.post_upgrade();
+				match result {
+					Ok(()) => {
+						log::info!("migration {} post_upgrade() => Ok()", migration_name);
+					}
+					Err(msg) => {
+						log::error!(
+							"migration {} post_upgrade() => Err({})",
+							migration_name,
+							msg
+						);
+						failed = true;
+					}
+				}
+			}
+
+			if failed {
+				Err("One or more post_upgrade tests failed; see output above.")
+			} else {
+				Ok(())
+			}
+		}
 	}
 
 	#[pallet::storage]
@@ -137,7 +236,7 @@ pub mod pallet {
 		for migration in &T::MigrationsList::get() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
-			log::trace!("evaluating migration {}", migration_name);
+			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);
 
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
@@ -158,7 +257,7 @@ pub mod pallet {
 					0u64.into()
 				};
 
-				log::trace!(
+				log::info!( target: "pallet-migrations",
 					"performing migration {}, available weight: {}",
 					migration_name,
 					available_for_step
