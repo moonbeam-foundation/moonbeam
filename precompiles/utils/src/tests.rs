@@ -16,6 +16,7 @@
 
 use super::*;
 use sp_core::{H256, U256};
+
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
 

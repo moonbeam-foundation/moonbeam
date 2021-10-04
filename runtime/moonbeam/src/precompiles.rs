@@ -86,9 +86,6 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2050) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
-				input, target_gas, context,
-			)),
 			_ => None,
 		}
 	}

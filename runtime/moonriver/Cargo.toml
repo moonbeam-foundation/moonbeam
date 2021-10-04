@@ -163,7 +163,7 @@ std = [
 	"pallet-author-mapping/std",
 	"pallet-maintenance-mode/std",
 	"pallet-treasury/std",
-	"evm/std"
+	"evm/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
