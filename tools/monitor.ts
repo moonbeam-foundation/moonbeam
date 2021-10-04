@@ -34,9 +34,9 @@ const argv = yargs(process.argv.slice(2))
 
 const main = async () => {
   if (argv.networks) {
-    argv.networks.map((network) => getMonitoredApiFor(network, argv.finalized));
+    argv.networks.map((network) => getMonitoredApiFor({ network, finalized: argv.finalized }));
   } else {
-    getMonitoredApiFor(argv.url, argv.finalized);
+    getMonitoredApiFor(argv);
   }
 };
 

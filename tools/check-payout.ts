@@ -25,7 +25,7 @@ const argv = yargs(process.argv.slice(2))
   }).argv;
 
 const main = async () => {
-  const api = await getApiFor(argv.url || argv.network);
+  const api = await getApiFor(argv);
 
   const blockNumber = argv.at;
   const blockHash = (await api.rpc.chain.getBlockHash(blockNumber)).toString();

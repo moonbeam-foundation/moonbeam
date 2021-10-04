@@ -7,8 +7,6 @@ import yargs from "yargs";
 import { getMonitoredApiFor, NETWORK_YARGS_OPTIONS } from "../utils/networks";
 import { sendAllAndWaitLast } from "../utils/transactions";
 
-type Account = ReturnType<Keyring["addFromUri"]>;
-
 const argv = yargs(process.argv.slice(2))
   .usage("Usage: $0")
   .version("1.0.0")
@@ -50,7 +48,7 @@ const argv = yargs(process.argv.slice(2))
   }).argv;
 
 const main = async () => {
-  const polkadotApi = await getMonitoredApiFor(argv.url || argv.network);
+  const polkadotApi = await getMonitoredApiFor(argv);
 
   const keyring = new Keyring({ type: "ethereum" });
   const targetAccount = await keyring.addFromUri(argv.from || argv.to);

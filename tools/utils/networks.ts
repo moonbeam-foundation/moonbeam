@@ -35,6 +35,13 @@ export const NETWORK_COLORS: { [name in NETWORK_NAME]: chalk.ChalkFunction } = {
 export type NetworkOptions = {
   url: Options & { type: "string" };
   network: Options & { type: "string" };
+  finalized: Options & { type: "boolean" };
+};
+
+type Argv = {
+  url?: string;
+  network?: string;
+  finalized?: boolean;
 };
 
 export const NETWORK_YARGS_OPTIONS: NetworkOptions = {
@@ -50,6 +57,11 @@ export const NETWORK_YARGS_OPTIONS: NetworkOptions = {
     description: "Known network",
     string: true,
   },
+  finalized: {
+    type: "boolean",
+    default: false,
+    description: "listen to finalized only",
+  },
 };
 
 export function isKnownNetwork(name: string): name is NETWORK_NAME {
@@ -61,34 +73,34 @@ export const getWsProviderForNetwork = (name: NETWORK_NAME) => {
 };
 
 // Supports providing an URL or a known network
-export const getWsProviderFor = (name_or_url: NETWORK_NAME | string) => {
-  if (isKnownNetwork(name_or_url)) {
-    return getWsProviderForNetwork(name_or_url);
+export const getWsProviderFor = (argv: Argv) => {
+  if (isKnownNetwork(argv.network)) {
+    return getWsProviderForNetwork(argv.network);
   }
-  return new WsProvider(name_or_url);
+  return new WsProvider(argv.url);
 };
 
-export const getApiFor = async (name_or_url: NETWORK_NAME | string) => {
-  const wsProvider = getWsProviderFor(name_or_url);
+export const getApiFor = async (argv: Argv) => {
+  const wsProvider = getWsProviderFor(argv);
   return await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle,
   });
 };
 
-export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string, finalized = false) => {
-  const wsProvider = getWsProviderFor(name_or_url);
+export const getMonitoredApiFor = async (argv: Argv) => {
+  const wsProvider = getWsProviderFor(argv);
   const api = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle,
   });
   let previousBlockDetails: RealtimeBlockDetails = null;
-  listenBlocks(api, finalized, async (blockDetails) => {
+  listenBlocks(api, argv.finalized, async (blockDetails) => {
     printBlockDetails(
       blockDetails,
       {
-        prefix: isKnownNetwork(name_or_url)
-          ? NETWORK_COLORS[name_or_url](name_or_url.padStart(10, " "))
+        prefix: isKnownNetwork(argv.network)
+          ? NETWORK_COLORS[argv.network](argv.network.padStart(10, " "))
           : undefined,
       },
       previousBlockDetails
@@ -98,9 +110,9 @@ export const getMonitoredApiFor = async (name_or_url: NETWORK_NAME | string, fin
   return api;
 };
 
-export const getWeb3For = async (name_or_url: NETWORK_NAME | string) => {
-  if (isKnownNetwork(name_or_url)) {
-    return new Web3(NETWORK_WS_URLS[name_or_url]);
+export const getWeb3For = async (argv) => {
+  if (isKnownNetwork(argv.network)) {
+    return new Web3(NETWORK_WS_URLS[argv.network]);
   }
-  return new Web3(name_or_url);
+  return new Web3(argv.url);
 };

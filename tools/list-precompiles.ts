@@ -85,7 +85,7 @@ const KNOWN_PRECOMPILES = [
 ];
 
 const main = async () => {
-  const api = await getApiFor(argv.url || argv.network);
+  const api = await getApiFor(argv);
 
   const addresses = argv.address ? [argv.address] : KNOWN_PRECOMPILES.map((p) => p.index);
 

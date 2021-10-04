@@ -18,7 +18,7 @@
     "pkg": "^4.4.9",
     "polkadot-launch": "https://github.com/PureStake/polkadot-launch",
     "rlp": "^2.2.6",
-    "solc": "^0.8.0",
+    "solc": "^0.8.7-fixed",
     "truffle-privatekey-provider": "^1.5.0",
     "ts-node": "^8.10.1",
     "typescript": "^4.3.5",

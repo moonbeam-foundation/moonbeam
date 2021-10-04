@@ -32,7 +32,7 @@ const argv = yargs(process.argv.slice(2))
   }).argv;
 
 const main = async () => {
-  const polkadotApi = await getMonitoredApiFor(argv.url || argv.network);
+  const polkadotApi = await getMonitoredApiFor(argv);
 
   const keyring = new Keyring({ type: "ethereum" });
   const fromAccount = await keyring.addFromUri(argv.from);

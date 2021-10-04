@@ -357,13 +357,15 @@ function start() {
     ];
     parachainConfig.nodes[0].wsPort = startingPort + 102 + i * 100;
 
-    parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
-    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
-    parachainConfig.nodes[1].flags = [
-      `--rpc-port=${startingPort + 111 + i * 100}`,
-      ...parachainConfig.nodes[1].flags,
-    ];
-    parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
+    if (1 in parachainConfig.nodes) {
+      parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
+      parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
+      parachainConfig.nodes[1].flags = [
+        `--rpc-port=${startingPort + 111 + i * 100}`,
+        ...parachainConfig.nodes[1].flags,
+      ];
+      parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
+    }
     launchConfig.parachains.push(parachainConfig);
 
     // Two relay nodes per para
@@ -482,6 +484,9 @@ const parachainTemplate = {
       flags: [
         "--log=info,rpc=trace,evm=trace,ethereum=trace,cumulus-collator=trace",
         "--unsafe-rpc-external",
+        // "--state-cache-size=4",
+        "--db-cache=1000",
+        "--rpc-methods=unsafe",
         "--rpc-cors=all",
         "--",
         "--execution=wasm",

@@ -1,6 +1,5 @@
 import Web3 from "web3";
 import { Account } from "web3-core";
-import solc from "solc";
 import { JsonRpcResponse } from "web3-core-helpers";
 
 import * as RLP from "rlp";
@@ -129,34 +128,6 @@ export const importAccount = (privateKey: string) => {
   const storageKey = web3Utils.sha3("0x".concat(mapKey.concat(mapStorageSlot)));
   return { ...account, storageKey };
 };
-
-export function compileSolidity(contractContent: string, contractName: string = "Test") {
-  let result = JSON.parse(
-    solc.compile(
-      JSON.stringify({
-        language: "Solidity",
-        sources: {
-          "main.sol": {
-            content: contractContent,
-          },
-        },
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["*"],
-            },
-          },
-        },
-      })
-    )
-  );
-
-  const contract = result.contracts["main.sol"][contractName];
-  return {
-    bytecode: "0x" + contract.evm.bytecode.object,
-    contract,
-  };
-}
 
 // make a web3 request, adapted to manual seal testing
 export async function customRequest(method: string, params: any[]) {

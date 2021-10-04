@@ -1,9 +1,9 @@
 import { ApiPromise } from "@polkadot/api";
 import { Extrinsic, BlockHash, EventRecord } from "@polkadot/types/interfaces";
 import { Block } from "@polkadot/types/interfaces/runtime/types";
-import type { TxWithEvent } from "@polkadot/api-derive/types";
 import { mapExtrinsics, TxWithEventAndFee } from "./types";
 import chalk from "chalk";
+const debug = require("debug")("monitoring");
 
 export interface BlockDetails {
   block: Block;
@@ -14,6 +14,7 @@ export interface BlockDetails {
 }
 
 const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash) => {
+  debug(`Querying ${blockHash}`);
   const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
   const [{ block }, records, blockTime] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
