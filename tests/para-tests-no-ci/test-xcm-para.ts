@@ -137,7 +137,6 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     relayOne: ApiPromise,
     assetId: string;
   before("First send relay chain asset to parachain", async function () {
-    console.log("ok ca commence");
     keyring = new Keyring({ type: "sr25519" });
 
     // Setup Relaychain
@@ -280,7 +279,7 @@ describeParachain(
           "1,000,000,000,000,000"
       ).to.eq(true);
     });
-    it("should be able to receive an asset in para b from para a", async function () {
+    it("should be able to receive a non-reserve asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
       const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
