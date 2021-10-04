@@ -26,7 +26,7 @@ interface RelayEncoder {
     // @param reward_destination: uint8 selecting one of RewardDestination
     // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
     // @returns The bytes associated with the encoded call
-    function encode_bond(uint256 controller_address, uint256 amount, uint8 reward_destination, uint256 specified_account) external view returns (bytes memory result);
+    function encode_bond(uint256 controller_address, uint256 amount, bytes memory reward_destination) external view returns (bytes memory result);
 
     // dev Encode 'bond_extra' relay call
     // @param amount: The extra amount to bond
@@ -63,7 +63,7 @@ interface RelayEncoder {
     // @param reward_destination: uint8 selecting one of RewardDestination
     // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
     // @returns The bytes associated with the encoded call
-    function encode_set_payee(uint8 reward_destination, uint256 reward_address) external view returns (bytes memory result);
+    function encode_set_payee(bytes memory reward_destination) external view returns (bytes memory result);
 
     // dev Encode 'set_controller' relay call
     // @param controller: The controller address
@@ -82,14 +82,14 @@ interface RelayEncoder {
 // Eventually we will probably want a better way of generating these and copying them to Rust
 
 //{
-//	"be3e0400": "encode_bond(uint256,uint256,uint8,uint256)",
-//	"49def326": "encode_bond_extra(uint256)",
-//	"bc4b2187": "encode_chill()",
-//	"a7cb124b": "encode_nominate(uint256[])",
-//	"add6b3bf": "encode_rebond(uint256)",
-//	"7a8f48c2": "encode_set_controller(uint256)",
-//	"3da48767": "encode_set_payee(uint8,uint256)",
-//	"2cd61217": "encode_unbond(uint256)",
-//	"3a0d803a": "encode_validate(uint256,bool)",
-//	"2d220331": "encode_withdraw_unbonded(uint32)"
+//    "31627376": "encode_bond(uint256,uint256,bytes)",
+//    "49def326": "encode_bond_extra(uint256)",
+//    "bc4b2187": "encode_chill()",
+//    "a7cb124b": "encode_nominate(uint256[])",
+//    "add6b3bf": "encode_rebond(uint256)",
+//    "7a8f48c2": "encode_set_controller(uint256)",
+//    "9801b147": "encode_set_payee(bytes)",
+//    "2cd61217": "encode_unbond(uint256)",
+//    "3a0d803a": "encode_validate(uint256,bool)",
+//    "2d220331": "encode_withdraw_unbonded(uint32)"
 //}

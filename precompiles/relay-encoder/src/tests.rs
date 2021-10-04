@@ -79,15 +79,12 @@ fn test_encode_bond() {
 		.execute_with(|| {
 			let controller_address: H256 = [1u8; 32].into();
 			let amount: U256 = 100u32.into();
-			let reward_dest = 2u8;
-			let reward_dest_address: H256 = [0u8; 32].into();
 
 			let input_data = EvmDataWriter::new()
 				.write_selector(Action::EncodeBond)
 				.write(controller_address)
 				.write(amount)
-				.write(reward_dest)
-				.write(reward_dest_address)
+				.write(RewardDestinationWrapper(RewardDestination::Controller))
 				.build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
@@ -277,13 +274,9 @@ fn test_encode_set_payee() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let reward_dest = 2u8;
-			let reward_dest_address: H256 = [0u8; 32].into();
-
 			let input_data = EvmDataWriter::new()
 				.write_selector(Action::EncodeSetPayee)
-				.write(reward_dest)
-				.write(reward_dest_address)
+				.write(RewardDestinationWrapper(RewardDestination::Controller))
 				.build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(

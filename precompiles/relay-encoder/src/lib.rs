@@ -20,11 +20,14 @@
 
 use cumulus_primitives_core::relay_chain;
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	ensure,
+};
 use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
 use precompile_utils::{
-	error, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	error, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -63,14 +66,14 @@ pub trait StakeEncodeCall {
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
-	EncodeBond = "encode_bond(uint256, uint256, uint8, uint256)",
+	EncodeBond = "encode_bond(uint256, uint256, Bytes)",
 	EncodeBondExtra = "encode_bond_extra(uint256)",
 	EncodeUnbond = "encode_unbond(uint256)",
 	EncodeWithdrawUnbonded = "encode_withdraw_unbonded(uint32)",
 	EncodeValidate = "encode_validate(uint256, bool)",
 	EncodeNominate = "encode_nominate(uint256 [] memory nominees)",
 	EncodeChill = "encode_chill(uint256,uint256)",
-	EncodeSetPayee = "encode_set_payee(uint8, uint256)",
+	EncodeSetPayee = "encode_set_payee(Bytes)",
 	EncodeSetController = "encode_set_controller(uint256)",
 	EncodeRebond = "encode_rebond(uint256)",
 }
@@ -131,10 +134,7 @@ where
 		let amount: U256 = input.read()?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let option: u8 = input.read()?;
-		let reward_address: [u8; 32] = input.read::<H256>()?.into();
-
-		let reward_destination = parse_reward_destination(option, reward_address.into())?;
+		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 			address.into(),
 			relay_amount,
@@ -308,10 +308,7 @@ where
 
 		input.expect_arguments(2)?;
 
-		let option: u8 = input.read()?;
-		let reward_address: [u8; 32] = input.read::<H256>()?.into();
-
-		let reward_destination = parse_reward_destination(option, reward_address.into())?;
+		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
@@ -378,16 +375,77 @@ pub fn u256_to_relay_amount(value: U256) -> EvmResult<relay_chain::Balance> {
 		.map_err(|_| error("amount is too large for provided balance type"))
 }
 
-pub fn parse_reward_destination(
-	option: u8,
-	address: AccountId32,
-) -> Result<pallet_staking::RewardDestination<relay_chain::AccountId>, ExitError> {
-	match option {
-		0u8 => Ok(RewardDestination::Staked),
-		1u8 => Ok(RewardDestination::Stash),
-		2u8 => Ok(RewardDestination::Controller),
-		3u8 => Ok(RewardDestination::Account(address)),
-		4u8 => Ok(RewardDestination::None),
-		_ => Err(error("Not available enum")),
+// A wrapper to be able to implement here the EvmData reader
+#[derive(Clone, Eq, PartialEq)]
+pub struct RewardDestinationWrapper(RewardDestination<AccountId32>);
+
+impl From<RewardDestination<AccountId32>> for RewardDestinationWrapper {
+	fn from(reward_dest: RewardDestination<AccountId32>) -> Self {
+		RewardDestinationWrapper(reward_dest)
+	}
+}
+
+impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
+	fn into(self) -> RewardDestination<AccountId32> {
+		self.0
+	}
+}
+
+impl EvmData for RewardDestinationWrapper {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let reward_destination = reader.read::<Bytes>()?;
+		let reward_destination_bytes = reward_destination.as_bytes();
+		ensure!(
+			reward_destination_bytes.len() > 0,
+			error("Reward destinations cannot be empty")
+		);
+		// For simplicity we use an EvmReader here
+		let mut encoded_reward_destination = EvmDataReader::new(&reward_destination_bytes);
+
+		// We take the first byte
+		let enum_selector = encoded_reward_destination.read_raw_bytes(1)?;
+		// The firs byte selects the enum variant
+		match enum_selector[0] {
+			0u8 => Ok(RewardDestinationWrapper(RewardDestination::Staked)),
+			1u8 => Ok(RewardDestinationWrapper(RewardDestination::Stash)),
+			2u8 => Ok(RewardDestinationWrapper(RewardDestination::Controller)),
+			3u8 => {
+				let address = encoded_reward_destination.read::<H256>()?;
+				Ok(RewardDestinationWrapper(RewardDestination::Account(
+					address.as_fixed_bytes().clone().into(),
+				)))
+			}
+			4u8 => Ok(RewardDestinationWrapper(RewardDestination::None)),
+			_ => Err(error("Not available enum")),
+		}
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let mut encoded: Vec<u8> = Vec::new();
+		let encoded_bytes: Bytes = match value.0 {
+			RewardDestination::Staked => {
+				encoded.push(0);
+				encoded.as_slice().into()
+			}
+			RewardDestination::Stash => {
+				encoded.push(1);
+				encoded.as_slice().into()
+			}
+			RewardDestination::Controller => {
+				encoded.push(2);
+				encoded.as_slice().into()
+			}
+			RewardDestination::Account(address) => {
+				encoded.push(3);
+				let address_bytes: [u8; 32] = address.into();
+				encoded.append(&mut address_bytes.to_vec());
+				encoded.as_slice().into()
+			}
+			RewardDestination::None => {
+				encoded.push(4);
+				encoded.as_slice().into()
+			}
+		};
+		EvmData::write(writer, encoded_bytes);
 	}
 }
