@@ -20,7 +20,7 @@ use crate::mock::*;
 use crate::*;
 
 use pallet_evm::PrecompileSet;
-use precompile_utils::{error, EvmDataWriter, LogsBuilder};
+use precompile_utils::{error, Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 
 #[test]
@@ -670,7 +670,7 @@ fn get_metadata_name() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new()
-						.write_raw_bytes("Mock tokens".as_bytes())
+						.write::<Bytes>("Mock tokens".into())
 						.build(),
 					cost: Default::default(),
 					logs: Default::default(),
@@ -698,9 +698,7 @@ fn get_metadata_symbol() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new()
-						.write_raw_bytes("MOCK".as_bytes())
-						.build(),
+					output: EvmDataWriter::new().write::<Bytes>("MOCK".into()).build(),
 					cost: Default::default(),
 					logs: Default::default(),
 				}))

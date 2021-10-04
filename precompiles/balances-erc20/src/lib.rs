@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, keccak256, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	error, keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -429,7 +429,7 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: 0,
 			output: EvmDataWriter::new()
-				.write_raw_bytes(Metadata::name().as_bytes())
+				.write::<Bytes>(Metadata::name().into())
 				.build(),
 			logs: Default::default(),
 		})
@@ -441,7 +441,7 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: 0,
 			output: EvmDataWriter::new()
-				.write_raw_bytes(Metadata::symbol().as_bytes())
+				.write::<Bytes>(Metadata::symbol().into())
 				.build(),
 			logs: Default::default(),
 		})
