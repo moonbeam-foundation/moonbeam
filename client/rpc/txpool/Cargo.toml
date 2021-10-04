@@ -24,4 +24,4 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "elois-signed", features = ["rpc_binary_search_estimate"] }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics", features = ["rpc_binary_search_estimate"] }

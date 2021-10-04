@@ -27,7 +27,7 @@ moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "elois-signed" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "elois-signed" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "elois-signed", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "elois-signed" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
