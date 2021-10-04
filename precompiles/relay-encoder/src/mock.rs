@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 
+use evm::Context;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,

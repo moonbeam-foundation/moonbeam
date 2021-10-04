@@ -21,12 +21,87 @@ use crate::test_relay_runtime::TestEncoder;
 use crate::StakeEncodeCall;
 use crate::*;
 use crate::{AvailableStakeCalls, PrecompileOutput};
+use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
 use precompile_utils::{Bytes, EvmDataWriter};
+use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 use sp_runtime::Perbill;
+
+#[test]
+fn test_selector_enum() {
+	let mut buffer = [0u8; 4];
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_bond(uint256,uint256,bytes)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeBond,
+	);
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_bond_extra(uint256)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeBondExtra,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_chill()")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeChill,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_nominate(uint256[])")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeNominate,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_rebond(uint256)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeRebond,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_set_controller(uint256)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeSetController,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_set_payee(bytes)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeSetPayee,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_unbond(uint256)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeUnbond,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_validate(uint256,bool)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeValidate,
+	);
+
+	buffer.copy_from_slice(&Keccak256::digest(b"encode_withdraw_unbonded(uint32)")[0..4]);
+
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::EncodeWithdrawUnbonded,
+	);
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -181,7 +256,6 @@ fn test_encode_nominate() {
 				.write(array)
 				.build();
 
-			println!("{:?}", input_data);
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
 					[1u8; 32].into(),

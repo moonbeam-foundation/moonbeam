@@ -66,14 +66,14 @@ pub trait StakeEncodeCall {
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 enum Action {
-	EncodeBond = "encode_bond(uint256, uint256, Bytes)",
+	EncodeBond = "encode_bond(uint256,uint256,bytes)",
 	EncodeBondExtra = "encode_bond_extra(uint256)",
 	EncodeUnbond = "encode_unbond(uint256)",
 	EncodeWithdrawUnbonded = "encode_withdraw_unbonded(uint32)",
-	EncodeValidate = "encode_validate(uint256, bool)",
-	EncodeNominate = "encode_nominate(uint256 [] memory nominees)",
-	EncodeChill = "encode_chill(uint256,uint256)",
-	EncodeSetPayee = "encode_set_payee(Bytes)",
+	EncodeValidate = "encode_validate(uint256,bool)",
+	EncodeNominate = "encode_nominate(uint256[])",
+	EncodeChill = "encode_chill()",
+	EncodeSetPayee = "encode_set_payee(bytes)",
 	EncodeSetController = "encode_set_controller(uint256)",
 	EncodeRebond = "encode_rebond(uint256)",
 }
