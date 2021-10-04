@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to call pallet-crowdloan-rewards runtime methods via the EVM
+//! Precompile to encode relay stake calls via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use cumulus_primitives_core::relay_chain;
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
@@ -78,7 +78,7 @@ enum Action {
 	EncodeRebond = "encode_rebond(uint256)",
 }
 
-/// A precompile to wrap the functionality from pallet_crowdloan_rewards.
+/// A precompile to provide relay stake calls encoding through evm
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
 impl<Runtime, RelayRuntime> Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
@@ -90,12 +90,12 @@ where
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
-		context: &evm::Context,
+		_context: &evm::Context,
 	) -> Result<PrecompileOutput, ExitError> {
 		let mut input = EvmDataReader::new(input);
 
 		// Parse the function selector
-		// These are the four-byte function selectors calculated from the DemocracyInterface.sol
+		// These are the four-byte function selectors calculated from the RelayEncoder.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match &input.read_selector()? {
@@ -120,7 +120,6 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	// The accessors are first. They directly return their result.
 	fn encode_bond(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
