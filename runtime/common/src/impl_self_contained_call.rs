@@ -37,14 +37,21 @@ macro_rules! impl_self_contained_call {
 			fn validate_self_contained(&self, info: &Self::SignedInfo) -> Option<TransactionValidity> {
 				match self {
 					Call::Ethereum(call) => {
+						// Previously, ethereum transactions were contained in an unsigned
+						// extrinsic, we now use a new form of dedicated extrinsic defined by
+						// frontier, but to keep the same behavior as before, we must perform
+						// the controls that were performed on the unsigned extrinsic.
 						if let pallet_ethereum::Call::transact(ref eth_tx) = call {
-							if let Err(error) = frame_system::CheckWeight::<Runtime>::do_validate(
+							use sp_runtime::traits::SignedExtension as _;
+							if let Err(error) = SignedExtra::validate_unsigned(
+								&self,
 								&self.get_dispatch_info(),
 								eth_tx.input.len(),
 							) {
 								return Some(Err(error));
 							}
 						}
+						// Then, do the controls defined by the ethereum pallet.
 						call.validate_self_contained(info)
 					}
 					_ => None,
