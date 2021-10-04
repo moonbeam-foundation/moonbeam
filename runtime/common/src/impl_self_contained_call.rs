@@ -27,14 +27,19 @@ macro_rules! impl_self_contained_call {
 				}
 			}
 
-			fn check_self_contained(&self) -> Option<Result<Self::SignedInfo, TransactionValidityError>> {
+			fn check_self_contained(
+				&self
+			) -> Option<Result<Self::SignedInfo, TransactionValidityError>> {
 				match self {
 					Call::Ethereum(call) => call.check_self_contained(),
 					_ => None,
 				}
 			}
 
-			fn validate_self_contained(&self, signed_info: &Self::SignedInfo) -> Option<TransactionValidity> {
+			fn validate_self_contained(
+				&self,
+				signed_info: &Self::SignedInfo
+			) -> Option<TransactionValidity> {
 				match self {
 					Call::Ethereum(ref call) => {
 						Some(validate_self_contained_inner(&self, &call, signed_info))
@@ -48,9 +53,11 @@ macro_rules! impl_self_contained_call {
 				info: Self::SignedInfo,
 			) -> Option<sp_runtime::DispatchResultWithInfo<PostDispatchInfoOf<Self>>> {
 				match self {
-					call @ Call::Ethereum(pallet_ethereum::Call::transact(_)) => Some(call.dispatch(
-						Origin::from(pallet_ethereum::RawOrigin::EthereumTransaction(info)),
-					)),
+					call @ Call::Ethereum(pallet_ethereum::Call::transact(_)) => Some(
+						call.dispatch(Origin::from(
+							pallet_ethereum::RawOrigin::EthereumTransaction(info)
+						))
+					),
 					_ => None,
 				}
 			}
