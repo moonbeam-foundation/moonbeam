@@ -31,6 +31,7 @@ use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xtokens_precompiles::XtokensWrapper;
 
 // The asset precompile address prefix. Addresses that match against this prefix will be routed
 // to Erc20AssetsPrecompileSet
@@ -50,7 +51,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049, 2050, 2051]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053]
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
@@ -66,6 +67,7 @@ where
 	// This precompile set does additional checks, e.g., total supply not being 0
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
+	XtokensWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -100,6 +102,7 @@ where
 			a if a == hash(2051) => {
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
 				input, target_gas, context,
 			)),

@@ -199,4 +199,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
+	"pallet-migrations/try-runtime",
 ]
