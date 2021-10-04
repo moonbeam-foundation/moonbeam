@@ -1070,6 +1070,7 @@
 <span id="1070">1070</span>
 <span id="1071">1071</span>
 <span id="1072">1072</span>
+<span id="1073">1073</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1112,7 +1113,7 @@
 	},
 	<span class="ident">PalletId</span>,
 };
-<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>};
+<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{
 	<span class="ident">AccountId</span>, <span class="ident">AccountIndex</span>, <span class="ident">Address</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">DigestItem</span>, <span class="ident">Hash</span>, <span class="ident">Header</span>, <span class="ident">Index</span>,
 	<span class="ident">Signature</span>,
@@ -1770,6 +1771,7 @@
 	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> <span class="ident">AccountId32</span>;
+	<span class="kw">type</span> <span class="ident">RewardAddressChangeOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">RewardAddressRelayVoteThreshold</span> <span class="op">=</span> <span class="ident">RelaySignaturesThreshold</span>;
 	<span class="kw">type</span> <span class="ident">VestingBlockNumber</span> <span class="op">=</span> <span class="ident">cumulus_primitives_core::relay_chain::BlockNumber</span>;
 	<span class="kw">type</span> <span class="ident">VestingBlockProvider</span> <span class="op">=</span>
