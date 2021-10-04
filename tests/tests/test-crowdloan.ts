@@ -3,7 +3,7 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
-import { formatBalance } from "@polkadot/util";
+import { formatBalance, stringToU8a } from "@polkadot/util";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
 
@@ -823,7 +823,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
       ).toHuman() as any
     ).to.be.null;
 
-    let message = new Uint8Array([...toAssociateAccount.addressRaw, ...firstAccount.addressRaw]);
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...toAssociateAccount.addressRaw,
+      ...firstAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
 
     // Construct the signatures
     let signature1 = {};
