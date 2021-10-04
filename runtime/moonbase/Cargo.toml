@@ -42,6 +42,7 @@ pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", 
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "elois-signed" }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
+xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
@@ -205,7 +206,8 @@ std = [
 	"orml-xtokens/std",
 	"xcm-primitives/std",
 	"pallet-evm-precompile-balances-erc20/std",
-	"pallet-evm-precompile-assets-erc20/std"
+	"pallet-evm-precompile-assets-erc20/std",
+	"xtokens-precompiles/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -243,4 +245,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
+	"pallet-migrations/try-runtime",
 ]
