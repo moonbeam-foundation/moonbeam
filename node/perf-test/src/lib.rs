@@ -17,6 +17,7 @@
 
 mod command;
 mod txn_signer;
+mod tests;
 
 use structopt::StructOpt;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
