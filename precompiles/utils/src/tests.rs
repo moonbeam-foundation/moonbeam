@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use crate::data::Bytes;
 use sp_core::{H256, U256};
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
@@ -205,48 +204,6 @@ fn write_address() {
 }
 
 #[test]
-fn read_u32() {
-	let value: u32 = 1000u32;
-	let writer_output = EvmDataWriter::new().write(value).build();
-
-	let mut reader = EvmDataReader::new(&writer_output);
-	let parsed: u32 = reader.read().expect("to correctly parse u32");
-
-	assert_eq!(value, parsed);
-}
-
-#[test]
-fn write_u32() {
-	let value: u32 = 1000u32;
-
-	let output = EvmDataWriter::new().write(value).build();
-
-	assert_eq!(output.len(), 32);
-	assert_eq!(&output[28..32], value.to_be_bytes());
-}
-
-#[test]
-fn read_u8() {
-	let value = 100u8;
-	let writer_output = EvmDataWriter::new().write(value).build();
-
-	let mut reader = EvmDataReader::new(&writer_output);
-	let parsed: u8 = reader.read().expect("to correctly parse u8");
-
-	assert_eq!(value, parsed);
-}
-
-#[test]
-fn write_u8() {
-	let value = 100u8;
-
-	let output = EvmDataWriter::new().write(value).build();
-
-	assert_eq!(output.len(), 32);
-	assert_eq!(output[31], value);
-}
-
-#[test]
 fn read_address() {
 	let value = H160::repeat_byte(0xAA);
 	let writer_output = EvmDataWriter::new().write(Address(value)).build();
@@ -377,98 +334,6 @@ fn read_address_array() {
 	let parsed: Vec<Address> = reader.read().expect("to correctly parse Vec<H256>");
 
 	assert_eq!(array, parsed);
-}
-
-#[test]
-fn write_bytes() {
-	let array: Bytes = [1u8; 50].to_vec().into();
-	let writer_output = EvmDataWriter::new().write(array.clone()).build();
-
-	// We can read this "manualy" using simpler functions since arrays are 32-byte aligned.
-	let mut reader = EvmDataReader::new(&writer_output);
-
-	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
-	assert_eq!(reader.read::<U256>().expect("read size"), 50.into());
-	assert_eq!(
-		[1u8; 50].to_vec(),
-		reader.read_raw_bytes(50).expect("read 1st")
-	);
-}
-
-#[test]
-fn read_bytes() {
-	let array: Bytes = [1u8; 50].to_vec().into();
-	let writer_output = EvmDataWriter::new().write(array.clone()).build();
-
-	let mut reader = EvmDataReader::new(&writer_output);
-	let parsed: Vec<u8> = reader
-		.read::<Bytes>()
-		.expect("to correctly parse Vec<u8>")
-		.into();
-
-	assert_eq!([1u8; 50].to_vec(), parsed);
-}
-
-#[test]
-
-fn write_multiple_bytes() {
-	let array1: Bytes = [1u8; 50].to_vec().into();
-
-	let array2: Bytes = [2u8; 50].to_vec().into();
-
-	let writer_output = EvmDataWriter::new()
-		.write(array1.clone())
-		.write(array2.clone())
-		.build();
-
-	assert_eq!(writer_output.len(), 0x100);
-	// We can read this "manualy" using simpler functions since arrays are 32-byte aligned.
-	let mut reader = EvmDataReader::new(&writer_output);
-
-	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x40.into()); // 0x00
-	assert_eq!(reader.read::<U256>().expect("read 2nd offset"), 0xa0.into()); // 0x20
-	assert_eq!(reader.read::<U256>().expect("read 1st size"), 50.into()); // 0x40
-	assert_eq!(
-		[1u8; 50].to_vec(),
-		reader.read_raw_bytes(50).expect("read 1st")
-	);
-
-	// read remaining zeros
-	reader.read_raw_bytes(14).expect("read 1st");
-
-	assert_eq!(reader.read::<U256>().expect("read 2nd size"), 50.into()); // 0xC0
-	assert_eq!(
-		[2u8; 50].to_vec(),
-		reader.read_raw_bytes(50).expect("read 1st")
-	);
-}
-
-#[test]
-
-fn read_multiple_bytes() {
-	let array1: Bytes = [1u8; 50].to_vec().into();
-
-	let array2: Bytes = [2u8; 50].to_vec().into();
-
-	let writer_output = EvmDataWriter::new()
-		.write(array1.clone())
-		.write(array2.clone())
-		.build();
-
-	assert_eq!(writer_output.len(), 0x100);
-
-	let mut reader = EvmDataReader::new(&writer_output);
-	let parsed: Vec<u8> = reader
-		.read::<Bytes>()
-		.expect("to correctly parse Vec<u8>")
-		.into();
-	assert_eq!(array1, parsed.into());
-
-	let parsed_2: Vec<u8> = reader
-		.read::<Bytes>()
-		.expect("to correctly parse Vec<u8>")
-		.into();
-	assert_eq!(array2, parsed_2.into());
 }
 
 #[test]
