@@ -9,7 +9,8 @@ const main = async () => {
   });
 
   const startBlockNumber = 400458n; // transfer-enabled runtime upgrade block
-  const endBlockNumber = (await polkadotApi.rpc.chain.getBlock()).block.header.number.toBigInt(); // or 414465
+  const endBlockNumber = (await polkadotApi.rpc.chain.getBlock()).block.header.number.toBigInt();
+  // or 414465
 
   for (
     let currentBlockNumber = startBlockNumber;
@@ -46,7 +47,8 @@ const main = async () => {
           const substrateHash = extrinsic.hash.toString();
 
           console.log(
-            `#${block.header.number}: Substrate Transfer from ${from} to ${to} of ${balance} (${substrateHash})`
+            `#${block.header.number}: Substrate Transfer from ${from} to ${to} of ${balance}` +
+              ` (${substrateHash})`
           );
         }
       });

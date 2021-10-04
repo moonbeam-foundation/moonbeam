@@ -44,7 +44,8 @@ const main = async () => {
         roundInfo.length.toNumber() -
         (roundDuration * (paymentDurationRounds - 1) + 1);
   console.log(
-    `========= Checking payout at round ${roundInfo.current.toNumber()}, for round ${roundNumber}  (ending at ${roundLastBlockNumber})`
+    `========= Checking payout at round ${roundInfo.current.toNumber()}, for round ${roundNumber}` +
+      ` (ending at ${roundLastBlockNumber})`
   );
   const roundBlockHash = (await api.rpc.chain.getBlockHash(roundLastBlockNumber)).toString();
   // const selectedCandidates = (
