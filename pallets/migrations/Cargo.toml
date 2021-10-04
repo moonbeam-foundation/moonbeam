@@ -26,3 +26,6 @@ std = [
 	"sp-std/std",
 	"sp-runtime/std",
 ]
+try-runtime = [
+	"frame-support/try-runtime",
+]
