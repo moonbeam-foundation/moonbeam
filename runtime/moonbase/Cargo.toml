@@ -233,6 +233,7 @@ runtime-benchmarks = [
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",

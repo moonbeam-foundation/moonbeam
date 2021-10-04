@@ -165,7 +165,8 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"moonbeam-native",
-	"moonbeam-runtime/runtime-benchmarks"
+	"moonbeam-runtime/runtime-benchmarks",
+	"ethereum/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",

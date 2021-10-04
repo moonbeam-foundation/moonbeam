@@ -191,4 +191,5 @@ runtime-benchmarks = [
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-migrations/try-runtime",
+	"pallet-ethereum/runtime-benchmarks",
 ]
