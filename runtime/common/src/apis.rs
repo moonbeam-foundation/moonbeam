@@ -89,92 +89,82 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
-					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
-					use moonbeam_rpc_primitives_debug::single::TraceType;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
-
-					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
-					// transactions that preceded the requested transaction.
-					for ext in extrinsics.into_iter() {
-						let _ = match &ext.function {
-							Call::Ethereum(transact(t)) => {
-								if t == transaction {
-									match trace_type {
-										TraceType::Raw {
-											disable_storage,
-											disable_memory,
-											disable_stack,
-										} => {
-											RawTracer::new(
-												disable_storage,
-												disable_memory,
-												disable_stack,
-											).trace(|| Executive::apply_extrinsic(ext));
-										},
-										TraceType::CallList => {
-											CallListTracer::default()
-												.trace(|| Executive::apply_extrinsic(ext));
-										},
-									};
-									return Ok(());
-								} else {
-									Executive::apply_extrinsic(ext)
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+						// transactions that preceded the requested transaction.
+						for ext in extrinsics.into_iter() {
+							let _ = match &ext.function {
+								Call::Ethereum(transact(t)) => {
+									if t == transaction {
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										return Ok(());
+									} else {
+										Executive::apply_extrinsic(ext)
+									}
 								}
-							}
-							_ => Executive::apply_extrinsic(ext),
-						};
-					}
+								_ => Executive::apply_extrinsic(ext),
+							};
+						}
 
+						Err(sp_runtime::DispatchError::Other(
+							"Failed to find Ethereum transaction among the extrinsics.",
+						))
+					}
+					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
-						"Failed to find Ethereum transaction among the extrinsics.",
+						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+					known_transactions: Vec<H256>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::CallListTracer;
-					use moonbeam_rpc_primitives_debug::{
-						block, single, CallResult, CreateResult, CreateType,
-					};
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use sha3::{Digest, Keccak256};
 
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+						let mut config = <Runtime as pallet_evm::Config>::config().clone();
+						config.estimate = true;
 
-					let mut config = <Runtime as pallet_evm::Config>::config().clone();
-					config.estimate = true;
+						// Apply all extrinsics. Ethereum extrinsics are traced.
+						for ext in extrinsics.into_iter() {
+							match &ext.function {
+								Call::Ethereum(transact(transaction)) => {
+									let eth_extrinsic_hash =
+										H256::from_slice(Keccak256::digest(&rlp::encode(transaction)).as_slice());
+									if known_transactions.contains(&eth_extrinsic_hash) {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+									} else {
+										let _ = Executive::apply_extrinsic(ext);
+									}
+								}
+								_ => {
+									let _ = Executive::apply_extrinsic(ext);
+								}
+							};
+						}
 
-					// Apply all extrinsics. Ethereum extrinsics are traced.
-					for ext in extrinsics.into_iter() {
-						match &ext.function {
-							Call::Ethereum(transact(_transaction)) => {
-								// Each extrinsic is a new call stack.
-								CallListTracer::emit_new();
-								CallListTracer::default().trace(|| Executive::apply_extrinsic(ext));
-							}
-							_ => {
-								let _ = Executive::apply_extrinsic(ext);
-							}
-						};
+						Ok(())
 					}
-
-					Ok(())
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
 				}
 			}
 
@@ -220,7 +210,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					Ethereum::find_author()
+					<pallet_evm::Pallet<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -317,6 +307,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_transaction_statuses(),
 					)
 				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.function {
+						Call::Ethereum(transact(t)) => Some(t),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
+				}
 			}
 
 			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
@@ -342,20 +341,43 @@ macro_rules! impl_runtime_apis_plus_common {
 					slot: u32,
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
+					let block_number = parent_header.number + 1;
+
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
 					// the state it will be in when the next block is being executed.
 					use frame_support::traits::OnInitialize;
 					System::initialize(
-						&(parent_header.number + 1),
+						&block_number,
 						&parent_header.hash(),
 						&parent_header.digest,
 						frame_system::InitKind::Inspection
 					);
-					RandomnessCollectiveFlip::on_initialize(System::block_number());
+					RandomnessCollectiveFlip::on_initialize(block_number);
 
-					// And now the actual prediction call
-					AuthorInherent::can_author(&author, &slot)
+					// Because the staking solution calculates the next staking set at the beginning
+					// of the first block in the new round, the only way to accurately predict the
+					// authors is to compute the selection during prediction.
+					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+						// get author account id
+						use nimbus_primitives::AccountLookup;
+						let author_account_id = if let Some(account) =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
+							account
+						} else {
+							// return false if author mapping not registered like in can_author impl
+							return false
+						};
+						// predict eligibility post-selection by computing selection results now
+						let (eligible, _) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
+								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								&slot
+							);
+						eligible.contains(&author_account_id)
+					} else {
+						AuthorInherent::can_author(&author, &slot)
+					}
 				}
 			}
 
@@ -367,6 +389,30 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
+
+				fn benchmark_metadata(extra: bool) -> (
+					Vec<frame_benchmarking::BenchmarkList>,
+					Vec<frame_support::traits::StorageInfo>,
+				) {
+					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					use frame_support::traits::StorageInfoTrait;
+					use frame_system_benchmarking::Pallet as SystemBench;
+					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
+					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+
+					let mut list = Vec::<BenchmarkList>::new();
+
+					list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
+
+					let storage_info = AllPalletsWithSystem::storage_info();
+
+					return (list, storage_info)
+				}
+
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
@@ -391,12 +437,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						parachain_staking,
 						ParachainStakingBench::<Runtime>
 					);
-					// add_benchmark!(
-					// 	params,
-					// 	batches,
-					// 	pallet_crowdloan_rewards,
-					// 	PalletCrowdloanRewardsBench::<Runtime>
-					// );
+					add_benchmark!(
+					params,
+						batches,
+						pallet_crowdloan_rewards,
+						PalletCrowdloanRewardsBench::<Runtime>
+					);
 					add_benchmark!(
 						params,
 						batches,
@@ -409,6 +455,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						return Err("Benchmark not found for this pallet.".into());
 					}
 					Ok(batches)
+				}
+			}
+
+			#[cfg(feature = "try-runtime")]
+			impl frame_try_runtime::TryRuntime<Block> for Runtime {
+				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+					log::info!("try-runtime::on_runtime_upgrade()");
+					let weight = Executive::try_runtime_upgrade()?;
+					Ok((weight, BlockWeights::get().max_block))
 				}
 			}
 		}

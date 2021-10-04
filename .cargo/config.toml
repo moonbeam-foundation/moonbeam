@@ -1,0 +1,9 @@
+[alias]
+moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
+moonbase-rococo = " build --release -p moonbeam --no-default-features --features moonbase-native,rococo-native"
+moonbase-tracing = " build --release -p moonbeam --features moonbase-native-tracing"
+moonriver = " build --release -p moonbeam --no-default-features --features moonriver-native"
+moonriver-rococo = " build --release -p moonbeam --no-default-features --features moonriver-native,rococo-native"
+moonriver-kusama = " build --release -p moonbeam --no-default-features --features moonriver-native,kusama-native"
+moonbeam = " build --release -p moonbeam --no-default-features --features moonbeam-native"
+moonbeam-rococo = " build --release -p moonbeam --no-default-features --features moonbeam-native,rococo-native"

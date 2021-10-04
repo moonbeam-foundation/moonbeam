@@ -60,6 +60,21 @@ pub trait StakeEncodeCall {
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
 }
 
+#[precompile_utils::generate_function_selector]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+enum Action {
+	EncodeBond = "encode_bond(uint256, uint256, uint8, uint256)",
+	EncodeBondExtra = "encode_bond_extra(uint256)",
+	EncodeUnbond = "encode_unbond(uint256)",
+	EncodeWithdrawUnbonded = "encode_withdraw_unbonded(uint32)",
+	EncodeValidate = "encode_validate(uint256, bool)",
+	EncodeNominate = "encode_nominate(uint256 [] memory nominees)",
+	EncodeChill = "encode_chill(uint256,uint256)",
+	EncodeSetPayee = "encode_set_payee(uint8, uint256)",
+	EncodeSetController = "encode_set_controller(uint256)",
+	EncodeRebond = "encode_rebond(uint256)",
+}
+
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
@@ -72,54 +87,27 @@ where
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
-		context: &Context,
+		context: &evm::Context,
 	) -> Result<PrecompileOutput, ExitError> {
 		let mut input = EvmDataReader::new(input);
+
 		// Parse the function selector
-		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
+		// These are the four-byte function selectors calculated from the DemocracyInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-
 		match &input.read_selector()? {
-			// Check for accessor methods first. These return results immediately
-			[0xbe, 0x3e, 0x04, 0x00] => {
-				return Self::encode_bond(input, target_gas);
-			}
-			[0x49, 0xde, 0xf3, 0x26] => {
-				return Self::encode_bond_extra(input, target_gas);
-			}
-			[0xbc, 0x4b, 0x21, 0x87] => {
-				return Self::encode_chill(input, target_gas);
-			}
-			[0xa7, 0xcb, 0x12, 0x4b] => {
-				return Self::encode_nominate(input, target_gas);
-			}
-			[0xad, 0xd6, 0xb3, 0xbf] => {
-				return Self::encode_rebond(input, target_gas);
-			}
-			[0x7a, 0x8f, 0x48, 0xc2] => {
-				return Self::encode_set_controller(input, target_gas);
-			}
-			[0x3d, 0xa4, 0x87, 0x67] => {
-				return Self::encode_set_payee(input, target_gas);
-			}
-			[0x2c, 0xd6, 0x12, 0x17] => {
-				return Self::encode_unbond(input, target_gas);
-			}
-			[0x3a, 0x0d, 0x80, 0x3a] => {
-				return Self::encode_validate(input, target_gas);
-			}
-			[0x2d, 0x22, 0x03, 0x31] => {
-				return Self::encode_withdraw_unbonded(input, target_gas);
-			}
-			_ => {
-				log::trace!(
-					target: "relay-encoder-precompile",
-					"Failed to match function selector in crowdloan rewards precompile"
-				);
-				return Err(error("No relay wrapper method at given selector".into()));
-			}
-		};
+			// Storage Accessors
+			Action::EncodeBond => Self::encode_bond(input, target_gas),
+			Action::EncodeBondExtra => Self::encode_bond_extra(input, target_gas),
+			Action::EncodeUnbond => Self::encode_unbond(input, target_gas),
+			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(input, target_gas),
+			Action::EncodeValidate => Self::encode_validate(input, target_gas),
+			Action::EncodeNominate => Self::encode_nominate(input, target_gas),
+			Action::EncodeChill => Self::encode_chill(input, target_gas),
+			Action::EncodeSetPayee => Self::encode_set_payee(input, target_gas),
+			Action::EncodeSetController => Self::encode_set_controller(input, target_gas),
+			Action::EncodeRebond => Self::encode_rebond(input, target_gas),
+		}
 	}
 }
 
@@ -152,6 +140,7 @@ where
 			relay_amount,
 			reward_destination,
 		))
+		.as_slice()
 		.into();
 
 		Ok(PrecompileOutput {
@@ -173,7 +162,9 @@ where
 		let amount: U256 = input.read()?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount)).into();
+			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
+				.as_slice()
+				.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -195,8 +186,9 @@ where
 		let amount: U256 = input.read()?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount)).into();
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
+			.as_slice()
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -218,6 +210,7 @@ where
 		let num_slashing_spans: u32 = input.read()?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans))
+				.as_slice()
 				.into();
 
 		Ok(PrecompileOutput {
@@ -246,6 +239,7 @@ where
 				blocked: blocked,
 			},
 		))
+		.as_slice()
 		.into();
 
 		Ok(PrecompileOutput {
@@ -272,8 +266,9 @@ where
 				as_bytes.into()
 			})
 			.collect();
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated)).into();
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
+			.as_slice()
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -292,7 +287,9 @@ where
 
 		input.expect_arguments(0)?;
 
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill).into();
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
+			.as_slice()
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -317,7 +314,9 @@ where
 		let reward_destination = parse_reward_destination(option, reward_address.into())?;
 
 		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination)).into();
+			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
+				.as_slice()
+				.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -337,7 +336,9 @@ where
 		let controller: [u8; 32] = input.read::<H256>()?.into();
 
 		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into())).into();
+			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
+				.as_slice()
+				.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -358,8 +359,9 @@ where
 
 		let amount: U256 = input.read()?;
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount)).into();
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
+			.as_slice()
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,

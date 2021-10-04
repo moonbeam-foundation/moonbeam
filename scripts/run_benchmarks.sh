@@ -15,4 +15,5 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --repeat 64 \
     --raw \
     --template=./benchmarking/frame-weight-template.hbs \
-    --output /tmp/
+    --output /tmp/ \
+    --record-proof

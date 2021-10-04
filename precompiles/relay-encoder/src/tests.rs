@@ -19,12 +19,12 @@ use crate::mock::{
 };
 use crate::test_relay_runtime::TestEncoder;
 use crate::StakeEncodeCall;
+use crate::*;
 use crate::{AvailableStakeCalls, PrecompileOutput};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
 use precompile_utils::{Bytes, EvmDataWriter};
-use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 use sp_runtime::Perbill;
 
@@ -57,9 +57,7 @@ fn no_selector_exists_but_length_is_right() {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(ExitError::Other(
-			"No relay wrapper method at given selector".into(),
-		)));
+		let expected_result = Some(Err(ExitError::Other("unknown selector".into())));
 
 		assert_eq!(
 			Precompiles::execute(
@@ -79,14 +77,13 @@ fn test_encode_bond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_bond(uint256,uint256,uint8,uint256)")[0..4];
 			let controller_address: H256 = [1u8; 32].into();
 			let amount: U256 = 100u32.into();
 			let reward_dest = 2u8;
 			let reward_dest_address: H256 = [0u8; 32].into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeBond)
 				.write(controller_address)
 				.write(amount)
 				.write(reward_dest)
@@ -98,6 +95,7 @@ fn test_encode_bond() {
 				100u32.into(),
 				RewardDestination::Controller,
 			))
+			.as_slice()
 			.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -120,15 +118,16 @@ fn test_encode_bond_more() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_bond_extra(uint256)")[0..4];
 			let amount: U256 = 100u32.into();
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeBondExtra)
 				.write(amount)
 				.build();
 
 			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into())).into();
+				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
+					.as_slice()
+					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
@@ -150,11 +149,13 @@ fn test_encode_chill() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_chill()")[0..4];
+			let input_data = EvmDataWriter::new()
+				.write_selector(Action::EncodeChill)
+				.build();
 
-			let input_data = EvmDataWriter::new().write_selector(selector).build();
-
-			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill).into();
+			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill)
+				.as_slice()
+				.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
@@ -176,11 +177,10 @@ fn test_encode_nominate() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_nominate(uint256[])")[0..4];
 			let array: Vec<H256> = vec![[1u8; 32].into(), [2u8; 32].into()];
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeNominate)
 				.write(array)
 				.build();
 
@@ -190,6 +190,7 @@ fn test_encode_nominate() {
 					[1u8; 32].into(),
 					[2u8; 32].into(),
 				]))
+				.as_slice()
 				.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -212,16 +213,17 @@ fn test_encode_rebond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_rebond(uint256)")[0..4];
 			let amount: U256 = 100u32.into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeRebond)
 				.write(amount)
 				.build();
 
 			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128)).into();
+				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
+					.as_slice()
+					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
@@ -243,16 +245,16 @@ fn test_encode_set_controller() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_set_controller(uint256)")[0..4];
 			let controller: H256 = [1u8; 32].into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeSetController)
 				.write(controller)
 				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
+					.as_slice()
 					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -275,12 +277,11 @@ fn test_encode_set_payee() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_set_payee(uint8,uint256)")[0..4];
 			let reward_dest = 2u8;
 			let reward_dest_address: H256 = [0u8; 32].into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeSetPayee)
 				.write(reward_dest)
 				.write(reward_dest_address)
 				.build();
@@ -288,6 +289,7 @@ fn test_encode_set_payee() {
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
 				RewardDestination::Controller,
 			))
+			.as_slice()
 			.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -310,16 +312,17 @@ fn test_encode_unbond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_unbond(uint256)")[0..4];
 			let amount: U256 = 100u32.into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeUnbond)
 				.write(amount)
 				.build();
 
 			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into())).into();
+				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
+					.as_slice()
+					.into();
 
 			// Expected result is one
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -343,12 +346,11 @@ fn test_encode_validate() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_validate(uint256,bool)")[0..4];
 			let amount: U256 = 100u32.into();
 			let blocked = true;
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeValidate)
 				.write(amount)
 				.write(blocked)
 				.build();
@@ -358,6 +360,7 @@ fn test_encode_validate() {
 					commission: Perbill::from_parts(100u32.into()),
 					blocked: true,
 				}))
+				.as_slice()
 				.into();
 
 			// Expected result is one
@@ -382,17 +385,17 @@ fn test_encode_withdraw_unbonded() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_withdraw_unbonded(uint32)")[0..4];
 			let amount: U256 = 100u32.into();
 
 			let input_data = EvmDataWriter::new()
-				.write_selector(selector)
+				.write_selector(Action::EncodeWithdrawUnbonded)
 				.write(amount)
 				.build();
 
 			// Ethereum style
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
+					.as_slice()
 					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {

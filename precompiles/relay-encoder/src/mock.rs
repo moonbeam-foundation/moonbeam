@@ -17,9 +17,11 @@
 //! Test utilities
 use super::*;
 
-use frame_support::{construct_runtime, parameter_types, traits::MaxEncodedLen};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use parity_scale_codec::{Decode, Encode};
+use frame_support::{construct_runtime, parameter_types};
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
+};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;
@@ -201,6 +203,8 @@ impl pallet_evm::Config for Test {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
+	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
 }
 
 parameter_types! {

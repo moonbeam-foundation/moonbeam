@@ -15,6 +15,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -73,8 +75,28 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.9.6",
   },
-  local: {
+  "moonbase-0.10.0": {
     relay: "rococo-9004",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.10.0",
+  },
+  "moonbase-0.11.3": {
+    relay: "rococo-9004",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.11.3",
+  },
+  "moonbase-0.12.3": {
+    relay: "rococo-9102",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.12.3",
+  },
+  "moonbase-0.13.0": {
+    relay: "rococo-9100",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.13.0",
+  },
+  local: {
+    relay: "rococo-9100",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -106,6 +128,14 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "rococo-local",
   },
+  "rococo-9100": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.10",
+    chain: "rococo-local",
+  },
+  "rococo-9102": {
+    docker: "purestake/moonbase-relay-testnet:sha-43d9b899",
+    chain: "rococo-local",
+  },
   "rococo-9004": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "rococo-local",
@@ -125,14 +155,17 @@ const relays: { [name: string]: NetworkConfig } = {
 };
 const relayNames = Object.keys(relays);
 
-function start() {
+// We support 3 parachains for now
+const validatorNames = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
+
+async function start() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run launch [args]")
     .version("1.0.0")
     .options({
       parachain: {
         type: "string",
-        choices: Object.keys(parachains),
+        choices: parachainNames,
         default: "local",
         describe: "which parachain configuration to run",
       },
@@ -143,7 +176,7 @@ function start() {
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
       relay: {
         type: "string",
-        choices: Object.keys(relays),
+        choices: relayNames,
         describe: "overrides relay configuration",
       },
       "relay-chain": {
@@ -171,11 +204,62 @@ function start() {
 
   const portPrefix = argv["port-prefix"] || 34;
   const startingPort = portPrefix * 1000;
-  const parachainName = argv.parachain.toString();
-  const parachain = parachains[parachainName];
-  const parachainChain = argv["parachain-chain"] || parachain.chain;
+  let paras = [];
+  let parasNames = [];
+  let parachainsChains = [];
+  let paraIds = [];
 
-  const relayName = argv.relay || parachain.relay;
+  // We start gathering all the information about the parachains
+  if (Array.isArray(argv["parachain-id"])) {
+    // We need two validators per parachain, so there is a maximum we can support
+    if (argv["parachain-id"].length * 2 > validatorNames.length) {
+      console.error(`Exceeded max number of paras: ${validatorNames.length / 2}`);
+      return;
+    }
+    for (let i = 0; i < argv["parachain-id"].length; i++) {
+      paraIds.push(argv["parachain-id"][i]);
+    }
+  }
+
+  if (Array.isArray(argv.parachain)) {
+    for (let i = 0; i < argv.parachain.length; i++) {
+      if (i >= paraIds.length) {
+        // If no paraId was provided for all of them, we just start assigning defaults
+        // But if one of the defaults was assigned to a previous para, we error
+        if (paraIds.includes(1000 + i)) {
+          console.error(`Para id already included as default: ${1000 + i}`);
+          return;
+        } else {
+          paraIds.push(1000 + i);
+        }
+      }
+      const parachainName = argv.parachain[i].toString();
+      parasNames.push(parachainName);
+      paras.push(parachains[parachainName]);
+      // If it is an array, push the position at which we are
+      if (Array.isArray(argv["parachain-chain"])) {
+        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+      }
+      // Else, push the value to the first parachain if it exists, else the default
+      else {
+        if (i == 0) {
+          parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        } else {
+          parachainsChains.push(parachains[parachainName].chain);
+        }
+      }
+    }
+  }
+  // If it is not an array, we just simply push it
+  else {
+    paraIds.push(argv["parachain-id"] || 1000);
+    const parachainName = argv.parachain.toString();
+    parasNames.push(parachainName);
+    paras.push(parachains[parachainName]);
+    parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+  }
+
+  const relayName = argv.relay || paras[0].relay;
 
   if (!relayName || !relayNames.includes(relayName)) {
     console.error(`Invalid relay name: ${relayName}`);
@@ -190,37 +274,45 @@ function start() {
     `🚀 Relay:     ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayChain})`
   );
 
-  let parachainBinary;
-  if (parachain.binary) {
-    parachainBinary = parachain.binary;
-    const parachainPath = path.join(__dirname, parachain.binary);
-    if (!fs.existsSync(parachainPath)) {
-      console.log(`     Missing ${parachainPath}`);
-      return;
+  let parachainBinaries = [];
+  let parachainPaths = [];
+
+  // We retrieve the binaries and paths for all parachains
+  for (let i = 0; i < paras.length; i++) {
+    if (paras[i].binary) {
+      parachainBinaries.push(paras[i].binary);
+      const parachainPath = path.join(__dirname, paras[i].binary);
+      if (!fs.existsSync(parachainPath)) {
+        console.log(`     Missing ${parachainPath}`);
+        return;
+      }
+      parachainPaths.push(parachainPath);
+    } else {
+      if (process.platform != "linux") {
+        console.log(
+          `docker binaries are only supported on linux. Use "local" config for compiled binaries`
+        );
+        return;
+      }
+      const parachainBinary = `build/${parasNames[i]}/moonbeam`;
+      const parachainPath = path.join(__dirname, parachainBinary);
+      if (!fs.existsSync(parachainPath)) {
+        console.log(`     Missing ${parachainBinary} locally, downloading it...`);
+        child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
+            docker create --name moonbeam-tmp ${paras[i].docker} && \
+            docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
+            docker rm moonbeam-tmp`);
+        console.log(`${parachainBinary} downloaded !`);
+      }
+      parachainBinaries.push(parachainBinary);
+      parachainPaths.push(parachainPath);
     }
-  } else {
-    if (process.platform != "linux") {
-      console.log(
-        `docker binaries are only supported on linux. Use "local" config for compiled binaries`
-      );
-      return;
-    }
-    parachainBinary = `build/${parachainName}/moonbeam`;
-    const parachainPath = path.join(__dirname, `build/${parachainName}/moonbeam`);
-    if (!fs.existsSync(parachainPath)) {
-      console.log(`     Missing ${parachainBinary} locally, downloading it...`);
-      child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
-          docker create --name moonbeam-tmp ${parachain.docker} && \
-          docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
-          docker rm moonbeam-tmp`);
-      console.log(`     ${parachainBinary} downloaded !`);
-    }
+    console.log(
+      `🚀 Parachain: ${parasNames[i].padEnd(20)} - ${paras[i].docker || paras[i].binary} (${
+        parachainsChains[i]
+      })`
+    );
   }
-  console.log(
-    `🚀 Parachain: ${parachainName.padEnd(20)} - ${
-      parachain.docker || parachain.binary
-    } (${parachainChain})`
-  );
 
   let relayBinary;
   if (relay.binary) {
@@ -253,26 +345,53 @@ function start() {
   let launchConfig = launchTemplate;
   launchConfig.relaychain.bin = relayBinary;
   launchConfig.relaychain.chain = relayChain;
-  launchConfig.parachains[0].bin = parachainBinary;
-  launchConfig.parachains[0].chain = parachainChain;
 
-  launchConfig.parachains[0].id = argv["parachain-id"] || 1000;
+  let relay_nodes = [];
+  // We need to build the configuration for each of the paras
+  for (let i = 0; i < parachainBinaries.length; i++) {
+    let relayNodeConfig = JSON.parse(JSON.stringify(relayNodeTemplate));
+    let parachainConfig = JSON.parse(JSON.stringify(parachainTemplate));
+    // HRMP is not configurable in Kusama and Westend thorugh genesis. We should detect this here
+    // Maybe there is a nicer way of doing this
+    if (launchConfig.relaychain.chain.startsWith("rococo")) {
+      // Create HRMP channels
+      // HRMP channels are uni-directonal, we need to create both ways
+      for (let j = 0; j < paraIds.length; j++) {
+        let hrmpConfig = JSON.parse(JSON.stringify(hrmpTemplate));
+        if (j != i) {
+          hrmpConfig.sender = paraIds[i];
+          hrmpConfig.recipient = paraIds[j];
+          launchConfig.hrmpChannels.push(hrmpConfig);
+        }
+      }
+    }
 
-  launchConfig.relaychain.nodes[0].port = startingPort;
-  launchConfig.relaychain.nodes[0].rpcPort = startingPort + 1;
-  launchConfig.relaychain.nodes[0].wsPort = startingPort + 2;
+    parachainConfig.bin = parachainBinaries[i];
+    parachainConfig.chain = parachainsChains[i];
+    parachainConfig.id = paraIds[i];
+    parachainConfig.nodes[0].port = startingPort + 100 + i * 100;
+    parachainConfig.nodes[0].rpcPort = startingPort + 101 + i * 100;
+    parachainConfig.nodes[0].wsPort = startingPort + 102 + i * 100;
 
-  launchConfig.relaychain.nodes[1].port = startingPort + 10;
-  launchConfig.relaychain.nodes[1].rpcPort = startingPort + 11;
-  launchConfig.relaychain.nodes[1].wsPort = startingPort + 12;
+    parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
+    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
+    parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
+    launchConfig.parachains.push(parachainConfig);
 
-  launchConfig.parachains[0].nodes[0].port = startingPort + 100;
-  launchConfig.parachains[0].nodes[0].rpcPort = startingPort + 101;
-  launchConfig.parachains[0].nodes[0].wsPort = startingPort + 102;
+    // Two relay nodes per para
+    relayNodeConfig[0].name = validatorNames[i * 2];
+    relayNodeConfig[0].port = startingPort + i * 10;
+    relayNodeConfig[0].rpcPort = startingPort + 1 + i * 10;
+    relayNodeConfig[0].wsPort = startingPort + 2 + i * 10;
+    relayNodeConfig[1].name = validatorNames[i * 2 + 1];
+    relayNodeConfig[1].port = startingPort + i * 10;
+    relayNodeConfig[1].rpcPort = startingPort + 1 + i * 10;
+    relayNodeConfig[1].wsPort = startingPort + 1 + i * 10;
+    relay_nodes.push(relayNodeConfig[0]);
+    relay_nodes.push(relayNodeConfig[1]);
+  }
 
-  launchConfig.parachains[0].nodes[1].port = startingPort + 110;
-  launchConfig.parachains[0].nodes[1].rpcPort = startingPort + 111;
-  launchConfig.parachains[0].nodes[1].wsPort = startingPort + 112;
+  launchConfig.relaychain.nodes = relay_nodes;
 
   const knownRelayChains = ["kusama", "westend", "rococo", "polkadot"]
     .map((network) => [`${network}`, `${network}-local`, `${network}-dev`])
@@ -303,27 +422,14 @@ function start() {
     process.exit(2);
   });
 
-  run(__dirname, launchConfig);
+  await run(__dirname, launchConfig);
 }
 
 const launchTemplate = {
   relaychain: {
     bin: "...",
     chain: "...",
-    nodes: [
-      {
-        name: "alice",
-        port: 0,
-        rpcPort: 1,
-        wsPort: 2,
-      },
-      {
-        name: "bob",
-        port: 10,
-        rpcPort: 11,
-        wsPort: 12,
-      },
-    ],
+    nodes: [],
     genesis: {
       runtime: {
         parachainsConfiguration: {
@@ -335,42 +441,7 @@ const launchTemplate = {
       },
     },
   },
-  parachains: [
-    {
-      bin: "...",
-      id: 1000,
-      balance: "1000000000000000000000",
-      chain: "...",
-      nodes: [
-        {
-          port: 100,
-          rpcPort: 101,
-          wsPort: 102,
-          name: "alice",
-          flags: [
-            "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--unsafe-rpc-external",
-            "--rpc-cors=all",
-            "--",
-            "--execution=wasm",
-          ],
-        },
-        {
-          port: 110,
-          rpcPort: 111,
-          wsPort: 112,
-          name: "bob",
-          flags: [
-            "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--unsafe-rpc-external",
-            "--rpc-cors=all",
-            "--",
-            "--execution=wasm",
-          ],
-        },
-      ],
-    },
-  ],
+  parachains: [],
   simpleParachains: [],
   hrmpChannels: [],
   types: {
@@ -379,6 +450,63 @@ const launchTemplate = {
     RoundIndex: "u32",
   },
   finalization: true,
+};
+
+const relayNodeTemplate = [
+  {
+    name: "alice",
+    port: 0,
+    rpcPort: 1,
+    wsPort: 2,
+  },
+  {
+    name: "bob",
+    port: 10,
+    rpcPort: 11,
+    wsPort: 12,
+  },
+];
+
+const parachainTemplate = {
+  bin: "...",
+  id: 1000,
+  balance: "1000000000000000000000",
+  chain: "...",
+  nodes: [
+    {
+      port: 100,
+      rpcPort: 101,
+      wsPort: 102,
+      name: "alice",
+      flags: [
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--unsafe-rpc-external",
+        "--rpc-cors=all",
+        "--",
+        "--execution=wasm",
+      ],
+    },
+    {
+      port: 110,
+      rpcPort: 111,
+      wsPort: 112,
+      name: "bob",
+      flags: [
+        "--log=info,rpc=trace,evm=trace,ethereum=trace",
+        "--unsafe-rpc-external",
+        "--rpc-cors=all",
+        "--",
+        "--execution=wasm",
+      ],
+    },
+  ],
+};
+
+const hrmpTemplate = {
+  sender: "200",
+  recipient: "300",
+  maxCapacity: 8,
+  maxMessageSize: 32768,
 };
 
 start();

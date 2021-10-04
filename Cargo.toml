@@ -2,12 +2,14 @@
 members = [
     'runtime/moonbeam',
     'runtime/moonriver',
-    'runtime/moonshadow',
     'runtime/moonbase',
     'node',
     'node/cli',
     'node/service',
+    'pallets/migrations',
     'bin/utils/moonkey',
+    'pallets/maintenance-mode',
+    'precompiles/utils/macro',
 ]
 exclude = [
     'bin/utils/moonkey'
@@ -15,3 +17,9 @@ exclude = [
 
 [profile.release]
 panic = 'unwind'
+
+# Fix EVM tracing impact in block production pipeline.
+[patch.crates-io]
+evm = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1"}
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }

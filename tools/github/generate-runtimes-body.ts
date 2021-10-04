@@ -55,7 +55,7 @@ async function main() {
   const previousTag = argv.from;
   const newTag = argv.to;
 
-  const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
+  const runtimes = ["moonbase", "moonriver", "moonbeam"].map((runtimeName) =>
     getRuntimeInfo(argv["srtool-report-folder"], runtimeName)
   );
 
@@ -80,11 +80,16 @@ async function main() {
 ${runtimes
   .map(
     (runtime) => `### ${capitalize(runtime.name)}
-
-* spec_version: ${runtime.version}
-* sha256: ${runtime.srtool.runtimes.compact.sha256}
-* size: ${runtime.srtool.runtimes.compact.size}
-* proposal: ${runtime.srtool.runtimes.compact.prop}`
+\`\`\`
+✨ spec_version                : ${runtime.version}
+🏋 size                        : ${runtime.srtool.runtimes.compressed.size}
+#️⃣ sha256                      : ${runtime.srtool.runtimes.compressed.sha256}
+#️⃣ blake2-256                  : ${runtime.srtool.runtimes.compressed.blake2_256}
+🗳️ proposal (setCode)          : ${runtime.srtool.runtimes.compressed.prop}
+🗳️ proposal (authorizeUpgrade) : ${
+      runtime.srtool.runtimes.compressed.subwasm.parachain_authorize_upgrade_hash
+    }
+\`\`\``
   )
   .join(`\n\n`)}
 `
