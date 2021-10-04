@@ -29,8 +29,8 @@ use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
 
-pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
-pub use precompile_utils_macro::generate_function_selector;
+pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
 #[cfg(test)]
 mod tests;
@@ -195,7 +195,12 @@ where
 			used_weight.unwrap_or(dispatch_info.weight),
 		))
 	}
+}
 
+impl<Runtime> RuntimeHelper<Runtime>
+where
+	Runtime: pallet_evm::Config,
+{
 	/// Cost of a Substrate DB write in gas.
 	pub fn db_write_gas_cost() -> u64 {
 		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(

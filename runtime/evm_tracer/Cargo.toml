@@ -8,19 +8,19 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonriver-phase-four" }
-evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
-evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
-evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
-sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
-sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
-sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
-sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.8" }
-moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+evm-runtime = { version = "0.30.0", default-features = false }
+evm-gasometer = { version = "0.30.0", default-features = false }
+sp-core = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
+sp-std = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
+sp-io = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
+sp-runtime = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.10" }
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false, features = ["evm-tracing"] }
 moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
-ethereum-types = { version = "0.11.0", default-features = false }
+ethereum-types = { version = "0.12.0", default-features = false }
 
 [features]
 default = ["std"]
@@ -36,6 +36,6 @@ std = [
 	"sp-runtime/std",
 	"ethereum-types/std",
 	"fp-evm/std",
-	"moonbeam-rpc-primitives-debug/std",
+	"evm-tracing-events/std",
 	"moonbeam-primitives-ext/std",
 ]

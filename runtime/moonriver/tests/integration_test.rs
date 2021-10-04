@@ -34,7 +34,9 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
+use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
+use sp_core::Pair;
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
@@ -59,8 +61,8 @@ fn verify_pallet_prefixes() {
 			Some(name)
 		);
 	}
-	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
-	// is pulled in substrate deps.
+	// TODO: use StorageInfoTrait from https://github.com/paritytech/substrate/pull/9246
+	// This is now available with polkadot-v0.9.9 dependencies
 	is_pallet_prefix::<moonriver_runtime::System>("System");
 	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
 	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
@@ -85,17 +87,21 @@ fn verify_pallet_prefixes() {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
 		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
-		res
+		res.to_vec()
 	};
 	assert_eq!(
 		<moonriver_runtime::Timestamp as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"Now".to_vec(),
 				prefix: prefix(b"Timestamp", b"Now"),
 				max_values: Some(1),
 				max_size: Some(8),
 			},
 			StorageInfo {
+				pallet_name: b"Timestamp".to_vec(),
+				storage_name: b"DidUpdate".to_vec(),
 				prefix: prefix(b"Timestamp", b"DidUpdate"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -106,26 +112,36 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"TotalIssuance".to_vec(),
 				prefix: prefix(b"Balances", b"TotalIssuance"),
 				max_values: Some(1),
 				max_size: Some(16),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: Some(300_000),
 				max_size: Some(100),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
 				max_values: Some(300_000),
 				max_size: Some(1287),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Reserves".to_vec(),
 				prefix: prefix(b"Balances", b"Reserves"),
 				max_values: None,
 				max_size: Some(1037),
 			},
 			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"StorageVersion".to_vec(),
 				prefix: prefix(b"Balances", b"StorageVersion"),
 				max_values: Some(1),
 				max_size: Some(1),
@@ -136,28 +152,31 @@ fn verify_pallet_prefixes() {
 		<moonriver_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Proxies".to_vec(),
 				prefix: prefix(b"Proxy", b"Proxies"),
 				max_values: None,
 				max_size: Some(845),
 			},
 			StorageInfo {
+				pallet_name: b"Proxy".to_vec(),
+				storage_name: b"Announcements".to_vec(),
 				prefix: prefix(b"Proxy", b"Announcements"),
 				max_values: None,
 				max_size: Some(1837),
 			}
 		]
 	);
-	// Ready to go once we have https://github.com/paritytech/substrate/pull/9246
-	// assert_eq!(
-	// 	<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
-	// 	vec![
-	// 		StorageInfo {
-	// 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
-	// 			max_values: None,
-	// 			max_size: Some(845),
-	// 		},
-	// 	]
-	// );
+	assert_eq!(
+		<moonriver_runtime::MaintenanceMode as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			pallet_name: b"MaintenanceMode".to_vec(),
+			storage_name: b"MaintenanceMode".to_vec(),
+			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
+			max_values: Some(1),
+			max_size: Some(1),
+		},]
+	);
 }
 
 #[test]
@@ -420,11 +439,11 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1079592333275448000000,
+				1082693333281650000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				528942666637724000000,
+				525841666640825000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
@@ -455,7 +474,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 48 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -545,6 +564,103 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 }
 
 #[test]
+fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MOVR)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_vesting_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+
+			let (pair1, _) = sp_core::sr25519::Pair::generate();
+			let (pair2, _) = sp_core::sr25519::Pair::generate();
+
+			let public1 = pair1.public();
+			let public2 = pair2.public();
+
+			// signature is new_account || previous_account
+			let mut message = AccountId::from(DAVE).encode();
+			message.append(&mut AccountId::from(CHARLIE).encode());
+			let signature1 = pair1.sign(&message);
+			let signature2 = pair2.sign(&message);
+
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				// two relay accounts pointing at the same reward account
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							public1.into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MOVR
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							public2.into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MOVR
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 900_000 * MOVR);
+
+			// this should fail, as we are only providing one signature
+			assert_noop!(
+				CrowdloanRewards::change_association_with_relay_keys(
+					origin_of(AccountId::from(CHARLIE)),
+					AccountId::from(DAVE),
+					AccountId::from(CHARLIE),
+					vec![(public1.into(), signature1.clone().into())]
+				),
+				pallet_crowdloan_rewards::Error::<Runtime>::InsufficientNumberOfValidProofs
+			);
+
+			// this should be valid
+			assert_ok!(CrowdloanRewards::change_association_with_relay_keys(
+				origin_of(AccountId::from(CHARLIE)),
+				AccountId::from(DAVE),
+				AccountId::from(CHARLIE),
+				vec![
+					(public1.into(), signature1.into()),
+					(public2.into(), signature2.into())
+				]
+			));
+
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+					.unwrap()
+					.claimed_reward,
+				(900_000 * MOVR)
+			);
+		});
+}
+
+#[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -565,7 +681,7 @@ fn claim_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -656,7 +772,7 @@ fn is_contributor_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -774,7 +890,7 @@ fn reward_info_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -864,7 +980,7 @@ fn update_reward_address_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -985,4 +1101,20 @@ fn multiplier_growth_simulator() {
 		blocks += 1;
 		println!("block = {} multiplier {:?}", blocks, multiplier);
 	}
+}
+
+#[test]
+fn ethereum_invalid_transaction() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Ensure an extrinsic not containing enough gas limit to store the transaction
+		// on chain is rejected.
+		assert_eq!(
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
+			Err(
+				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+				)
+			)
+		);
+	});
 }

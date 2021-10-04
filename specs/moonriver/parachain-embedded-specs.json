@@ -20,7 +20,6 @@
   "relayChain": "kusama",
   "paraId": 2023,
   "consensusEngine": null,
-  "lightSyncState": null,
   "codeSubstitutes": {},
   "genesis": {
     "raw": {

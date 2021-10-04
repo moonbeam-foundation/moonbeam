@@ -27,21 +27,21 @@ jobs:
           ref: ${{ github.event.inputs.to }}
       - name: Srtool build
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.1.0
+        uses: chevdor/srtool-actions@v0.3.0
         with:
           chain: ${{ matrix.chain }}
-          tag: 1.53.0-rc2
+          tag: 1.53.0
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
           cat ${{ matrix.chain }}-srtool-digest.json
-          cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}-runtime.compact.wasm
+          cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}-runtime.compact.compressed.wasm
       - name: Archive Artifacts for ${{ matrix.chain }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.chain }}-runtime
           path: |
-            ${{ matrix.chain }}-runtime.compact.wasm
+            ${{ matrix.chain }}-runtime.compact.compressed.wasm
             ${{ matrix.chain }}-srtool-digest.json
 
   ####### Prepare the release draft #######
@@ -88,17 +88,17 @@ jobs:
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
-          mv build/moonbase-runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
+          mv build/moonbase-runtime.compact.compressed.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
           mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
 
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
-          mv build/moonriver-runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
           mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
 
           runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
-          mv build/moonbeam-runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
           mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
 
       - name: Create draft release
@@ -107,6 +107,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          commitish: ${{ github.event.inputs.to }}
           tag_name: ${{ github.event.inputs.to }}
           release_name: Runtime ${{ github.event.inputs.to }}
           body_path: body.md

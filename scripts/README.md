@@ -64,59 +64,31 @@ The standalone nodes are made to be executed without explicitly supplied specs.
 They also don't require any runtime wasm file or genesis state.
 
 ```bash
-scripts/run-moonbase-dev.sh
+./target/release/moonbeam --dev
 ```
 
-# Alphanet local nodes
+It will creatte a new block each time a new transaction is received.
+You can change this behavior by providing `--sealing 12000`
+(to produce a block every 12s)
 
-The alphanet nodes will run on a rococo-local relay, preventing them from connecting to the real alphanet.
-It requires having relay nodes (at least 2) and parachain nodes (at least 1).
-Those require sharing many files (specs, runtime wasm, genesis state).
+## Running complete local network
 
-The following steps will guide you through the generation of those files.
+Moonbeam rely on `polkadot-launch` to provide a simple command to create a local network including
+the relay and the parachain nodes.
 
-## Generating the relay specs
+The script [tools/launch.ts] contains a list of presets to execute the different possible networks.
+Ex:
 
-```bash
-scripts/generate-relay-specs.sh
+```
+yarn launch --parachain moonbase-0.13.0
 ```
 
-The script downloads `purestake/moonbase-relay-testnet:$POLKADOT_VERSION` docker image and execute the build-spec.
-It also relies on the `rococo-local` for the specs.
-
-## Generating the parachain specs
-
-```bash
-scripts/generate-parachain-specs.sh
-```
-
-The script executes (by default) `target/release/moonbeam` `build-spec`
-It also relies on the [../specs/alphanet/parachain-specs-template.json] for the specs template.
-The files generated are (by default) stored in `build/alphanet/parachain-specs-[plain,raw].json`
-
-It also generates the `build/alphanet/runtime.wasm` and `build/alphanet/genesis.txt`
-
-## Running Relay nodes
-
-You can run up to 3 relay chain validators with this script. We use the `purestake/moonbase-relay-testnet` docker image for validators. Currently this image is manually published from commit (TODO), but this will change in the future.
-Each node will get its key inserted prior to running the node.
-
-```bash
-scripts/run-alphanet-relay.sh
-```
-
-## Running Parachain nodes
-
-You can run up to 3 relay nodes with this script
-
-```bash
-scripts/run-alphanet-parachain.sh
-```
+(More details in [tools/README.md])
 
 ## Running a parachain test
 
 You can directly launch a parachain test with this script.
-It takes care of getting the binary relay node and spawns 2 validators and 2 collators. 
+It takes care of getting the binary relay node and spawns 2 validators and 2 collators.
 
 ```bash
 scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts

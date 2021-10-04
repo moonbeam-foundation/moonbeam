@@ -15,6 +15,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -78,13 +80,23 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.10.0",
   },
-  "moonbase-0.11.2": {
+  "moonbase-0.11.3": {
     relay: "rococo-9004",
     chain: "moonbase-local",
-    docker: "purestake/moonbeam:v0.11.2",
+    docker: "purestake/moonbeam:v0.11.3",
+  },
+  "moonbase-0.12.3": {
+    relay: "rococo-9102",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.12.3",
+  },
+  "moonbase-0.13.0": {
+    relay: "rococo-9100",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.13.0",
   },
   local: {
-    relay: "rococo-9004",
+    relay: "rococo-9100",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -116,6 +128,14 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "rococo-local",
   },
+  "rococo-9100": {
+    docker: "purestake/moonbase-relay-testnet:v0.9.10",
+    chain: "rococo-local",
+  },
+  "rococo-9102": {
+    docker: "purestake/moonbase-relay-testnet:sha-43d9b899",
+    chain: "rococo-local",
+  },
   "rococo-9004": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "rococo-local",
@@ -138,14 +158,14 @@ const relayNames = Object.keys(relays);
 // We support 3 parachains for now
 const validatorNames = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 
-function start() {
+async function start() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run launch [args]")
     .version("1.0.0")
     .options({
       parachain: {
         type: "string",
-        choices: Object.keys(parachains),
+        choices: parachainNames,
         default: "local",
         describe: "which parachain configuration to run",
       },
@@ -156,7 +176,7 @@ function start() {
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
       relay: {
         type: "string",
-        choices: Object.keys(relays),
+        choices: relayNames,
         describe: "overrides relay configuration",
       },
       "relay-chain": {
@@ -275,7 +295,7 @@ function start() {
         return;
       }
       const parachainBinary = `build/${parasNames[i]}/moonbeam`;
-      const parachainPath = path.join(__dirname, `build/${parasNames[i]}/moonbeam`);
+      const parachainPath = path.join(__dirname, parachainBinary);
       if (!fs.existsSync(parachainPath)) {
         console.log(`     Missing ${parachainBinary} locally, downloading it...`);
         child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
@@ -412,7 +432,7 @@ function start() {
     process.exit(2);
   });
 
-  run(__dirname, launchConfig);
+  await run(__dirname, launchConfig);
 }
 
 const launchTemplate = {

@@ -23,16 +23,31 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNIT, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::UNIT, AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances,
+	Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
+use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
 use sp_core::H160;
 use sp_runtime::Perbill;
 
 use std::collections::BTreeMap;
+
+use fp_rpc::ConvertTransaction;
+
+// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+pub const VALID_ETH_TX: &str =
+	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
+	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
+	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
+
+// Gas limit < transaction cost.
+pub const INVALID_ETH_TX: &str =
+	"f86180843b9aca00809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ca00e28ba2dd3c5a\
+	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
+	ecec29011f6f5bf0b1a552c55ea348df35f";
 
 pub fn run_to_block(n: u32) {
 	while System::block_number() < n {
@@ -59,10 +74,11 @@ pub fn evm_test_context() -> evm::Context {
 		apparent_value: From::from(0),
 	}
 }
-
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
+	// [asset, Vec<Account, Balance>]
+	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
@@ -77,6 +93,8 @@ pub struct ExtBuilder {
 	chain_id: u64,
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
+	// [assettype, metadata, Vec<Account, Balance>]
+	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
 }
 
 impl Default for ExtBuilder {
@@ -84,6 +102,7 @@ impl Default for ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
+			assets: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -108,6 +127,7 @@ impl Default for ExtBuilder {
 			crowdloan_fund: 0,
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
+			xcm_assets: vec![],
 		}
 	}
 }
@@ -130,6 +150,19 @@ impl ExtBuilder {
 
 	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominations = nominations;
+		self
+	}
+
+	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
+		self.assets = assets;
+		self
+	}
+
+	pub fn with_xcm_assets(
+		mut self,
+		xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	) -> Self {
+		self.xcm_assets = xcm_assets;
 		self
 	}
 
@@ -188,20 +221,48 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
-		pallet_evm::GenesisConfig {
-			accounts: self.evm_accounts,
-		}
-		.assimilate_storage::<Runtime>(&mut t)
-		.unwrap();
-
-		pallet_ethereum::GenesisConfig::assimilate_storage::<Runtime>(
-			&pallet_ethereum::GenesisConfig {},
+		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_evm::GenesisConfig {
+				accounts: self.evm_accounts,
+			},
 			&mut t,
 		)
 		.unwrap();
 
+		<pallet_ethereum::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_ethereum::GenesisConfig {},
+			&mut t,
+		)
+		.unwrap();
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+
+		let assets = self.assets.clone();
+		let xcm_assets = self.xcm_assets.clone();
+
+		ext.execute_with(|| {
+			// If any assets specified, we create them here
+			for (asset_id, balances) in assets.clone() {
+				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+				for (account, balance) in balances {
+					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+				}
+			}
+			// If any xcm assets specified, we register them here
+			for (asset_type, metadata, balances) in xcm_assets.clone() {
+				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
+					.unwrap();
+				for (account, balance) in balances {
+					Assets::mint(
+						origin_of(AssetManager::account_id()),
+						asset_type.clone().into(),
+						account,
+						balance,
+					)
+					.unwrap();
+				}
+			}
+			System::set_block_number(1);
+		});
 		ext
 	}
 }
@@ -259,4 +320,16 @@ pub fn set_parachain_inherent_data() {
 		)
 	)
 	.dispatch(inherent_origin()));
+}
+
+pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {
+	let converter = TransactionConverter;
+	converter.convert_transaction(ethereum_transaction(raw_hex_tx))
+}
+
+pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
+	let bytes = hex::decode(raw_hex_tx).expect("Transaction bytes.");
+	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
+	assert!(transaction.is_ok());
+	transaction.unwrap()
 }
