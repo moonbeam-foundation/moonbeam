@@ -29,6 +29,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
+use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -69,6 +70,7 @@ where
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
 {
 	fn execute(
 		address: H160,
