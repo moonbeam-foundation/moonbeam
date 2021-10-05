@@ -29,12 +29,25 @@ npm run test-with-logs
 
 # Running a parachain test
 
+## Using Script
+
 You can directly launch a parachain test with this script.
-It takes care of getting the binary relay node and spawns 2 validators and 2 collators. 
+It takes care of getting the binary relay node and spawns 2 validators and 2 collators.
 
 ```bash
 scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
 ```
+
+## Using parachain testing framework
+
+First make sure you have compiled moonbeam with `cargo build --release` and also copied
+the polkadot executable (built with `cargo build --release`) into the same folder as
+the moonbeam executable: `./target/release`
+(`cp ./target/release/polkadot ../moonbeam/target/release/polkadot`).
+
+Then run `npm run para-test-no-ci` to run the parachain tests in the para-tests-no-ci folder.
+
+Also don't forget to build `moonbeam-types-bundle` with `yarn run build` in that folder.
 
 ## Write Tests
 
