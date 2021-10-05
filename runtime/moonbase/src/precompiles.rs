@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use pallet_democracy_precompiles::DemocracyWrapper;

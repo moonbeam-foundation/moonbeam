@@ -21,7 +21,7 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::Everything,
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
@@ -256,23 +256,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-
-		System::set_block_number(System::block_number() + 1);
-
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
-}
-
-pub(crate) fn events() -> Vec<Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
 }
