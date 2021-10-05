@@ -408,6 +408,61 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -443,8 +498,8 @@
 };
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">error</span>, <span class="ident">keccak256</span>, <span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">LogsBuilder</span>,
-	<span class="ident">RuntimeHelper</span>,
+	<span class="ident">error</span>, <span class="ident">keccak256</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>,
+	<span class="ident">LogsBuilder</span>, <span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
@@ -533,17 +588,34 @@
 	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256)&quot;</span>,
 	<span class="ident">Approve</span> <span class="op">=</span> <span class="string">&quot;approve(address,uint256)&quot;</span>,
 	<span class="ident">TransferFrom</span> <span class="op">=</span> <span class="string">&quot;transferFrom(address,address,uint256)&quot;</span>,
+	<span class="ident">Name</span> <span class="op">=</span> <span class="string">&quot;name()&quot;</span>,
+	<span class="ident">Symbol</span> <span class="op">=</span> <span class="string">&quot;symbol()&quot;</span>,
+	<span class="ident">Decimals</span> <span class="op">=</span> <span class="string">&quot;decimals()&quot;</span>,
+}
+
+<span class="doccomment">/// Metadata of an ERC20 token.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Erc20Metadata</span> {
+	<span class="doccomment">/// Returns the name of the token.</span>
+	<span class="kw">fn</span> <span class="ident">name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+
+	<span class="doccomment">/// Returns the symbol of the token.</span>
+	<span class="kw">fn</span> <span class="ident">symbol</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+
+	<span class="doccomment">/// Returns the decimals places of the token.</span>
+	<span class="kw">fn</span> <span class="ident">decimals</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
 }
 
 <span class="doccomment">/// Precompile exposing a pallet_balance as an ERC20.</span>
 <span class="doccomment">/// Multiple precompiles can support instances of pallet_balance.</span>
 <span class="doccomment">/// The precompile uses an additional storage to store approvals.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span>: <span class="lifetime">&#39;static</span> <span class="op">=</span> ()<span class="op">&gt;</span>(
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">Instance</span>)<span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Metadata</span>: <span class="ident">Erc20Metadata</span>, <span class="ident">Instance</span>: <span class="lifetime">&#39;static</span> <span class="op">=</span> ()<span class="op">&gt;</span>(
+	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">Metadata</span>, <span class="ident">Instance</span>)<span class="op">&gt;</span>,
 );
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Metadata</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Precompile</span>
+	<span class="kw">for</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Metadata</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
 <span class="kw">where</span>
+	<span class="ident">Metadata</span>: <span class="ident">Erc20Metadata</span>,
 	<span class="ident">Instance</span>: <span class="ident">InstanceToPrefix</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">Runtime</span>: <span class="ident">pallet_balances::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
@@ -565,12 +637,16 @@
 			<span class="ident">Action::Approve</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::approve</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::Transfer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::TransferFrom</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::transfer_from</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Name</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::name</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Symbol</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::symbol</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Decimals</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::decimals</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Metadata</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Metadata</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
 <span class="kw">where</span>
+	<span class="ident">Metadata</span>: <span class="ident">Erc20Metadata</span>,
 	<span class="ident">Instance</span>: <span class="ident">InstanceToPrefix</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">Runtime</span>: <span class="ident">pallet_balances::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
@@ -809,6 +885,40 @@
 					<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
 				)
 				.<span class="ident">build</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">name</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>()
+				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Metadata::name</span>().<span class="ident">into</span>())
+				.<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">symbol</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>()
+				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Metadata::symbol</span>().<span class="ident">into</span>())
+				.<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">decimals</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">Metadata::decimals</span>()).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
 		})
 	}
 
