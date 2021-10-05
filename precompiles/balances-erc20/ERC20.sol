@@ -36,7 +36,7 @@ interface IERC20 {
    * @param owner The address to query the balance of.
    * @return An uint256 representing the amount owned by the passed address.
    */
-  function balanceOf(address who) external view returns (uint256);
+  function balanceOf(address owner) external view returns (uint256);
 
   /**
    * @dev Function to check the amount of tokens that an owner allowed to a spender.
