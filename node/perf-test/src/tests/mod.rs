@@ -29,11 +29,17 @@ pub mod fibonacci;
 /// struct representing the test results of a single test
 #[derive(Default)]
 pub struct TestResults {
-	overall_duration: Duration,
-	num_iterations: u64,
-	score: u64, // TODO: some "objective" metric, relatable to reference hardware
+	pub test_name: String,
+	pub overall_duration: Duration,
+}
 
-	// TODO: other ideas: how many times we repeated, some statistics based on that, etc.
+impl TestResults {
+    pub fn new(name: &str, duration: Duration) -> Self {
+        TestResults {
+            test_name: name.into(),
+            overall_duration: duration,
+        }
+    }
 }
 
 pub trait TestRunner<RuntimeApi, Executor>
@@ -44,6 +50,6 @@ pub trait TestRunner<RuntimeApi, Executor>
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 {
-	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<TestResults, String>;
+	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>;
 }
 

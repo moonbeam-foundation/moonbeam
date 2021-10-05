@@ -371,6 +371,11 @@ impl PerfCmd {
 		let mut fib_test = FibonacciPerfTest::new();
 		let fib_test_results = fib_test.run(&runner)?;
 
+		println!("Test results:");
+		for fib_test_result in fib_test_results {
+			println!("    {}: {:?}", fib_test_result.test_name, fib_test_result.overall_duration);
+		}
+
 		Ok(())
 	}
 }

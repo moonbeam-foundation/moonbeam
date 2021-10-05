@@ -72,8 +72,10 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 {
 
 	// taking a different approach and starting a full dev service
-	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<TestResults, String>
+	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>
 	{
+		let mut results: Vec<TestResults> = Default::default();
+
 		let alice_hex = "f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 		let alice_bytes = hex::decode(alice_hex)
 			.expect("alice_hex is valid hex; qed");
@@ -128,7 +130,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 			Some(alice_nonce),
 			false
 		).expect("EVM create failed while estimating contract address");
-		println!("*** evm_create took {} usec", now.elapsed().as_micros());
+		results.push(TestResults::new("evm_create", now.elapsed()));
 
 		let fibonacci_address = create_info.value;
 		log::debug!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
@@ -146,7 +148,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 
 		let now = Instant::now();
 		context.create_block(true);
-		println!("*** executing block with Fibonacci create took {} usec", now.elapsed().as_micros());
+		results.push(TestResults::new("create_fibonacci", now.elapsed()));
 
 		// TODO: get txn results
 
@@ -172,7 +174,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 
 			log::debug!("EVM call returned {:?}", call_results);
 		}
-		println!("*** Fibonacci calls took {} usec", now.elapsed().as_micros());
+		results.push(TestResults::new("fibonacci_calls", now.elapsed()));
 
 		println!("Creating blocks with increasing nonce-dependent txns...");
 		let now = Instant::now();
@@ -193,9 +195,9 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 
 			context.create_block(true);
 		}
-		println!("*** nonce-dependent blocks test took {} usec", now.elapsed().as_micros());
+		results.push(TestResults::new("nonce-dependent blocks", now.elapsed()));
 
-		Ok(Default::default())
+		Ok(results)
 	}
 }
 
