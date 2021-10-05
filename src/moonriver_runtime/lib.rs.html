@@ -1059,18 +1059,6 @@
 <span id="1059">1059</span>
 <span id="1060">1060</span>
 <span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2011,19 +1999,7 @@
 	<span class="ident">frame_system::ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
 	<span class="ident">AllPallets</span>,
-	<span class="ident">MigratePalletVersionToStorageVersion</span>,
 <span class="op">&gt;</span>;
-
-<span class="doccomment">/// Migrate from `PalletVersion` to the new `StorageVersion`</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigratePalletVersionToStorageVersion</span>;
-
-<span class="kw">impl</span> <span class="ident">frame_support::traits::OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MigratePalletVersionToStorageVersion</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">frame_support::weights::Weight</span> {
-		<span class="ident">frame_support::migrations::migrate_from_pallet_version_to_storage_version</span>::<span class="op">&lt;</span>
-			<span class="ident">AllPalletsWithSystem</span>,
-		<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">RocksDbWeight::get</span>())
-	}
-}
 
 <span class="comment">// All of our runtimes share most of their Runtime API implementations.</span>
 <span class="comment">// We use a macro to implement this common part and add runtime-specific additional implementations.</span>
