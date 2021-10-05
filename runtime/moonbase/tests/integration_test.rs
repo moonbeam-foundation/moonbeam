@@ -1503,5 +1503,13 @@ fn ethereum_invalid_transaction() {
 				)
 			)
 		);
+		assert_eq!(
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
+			Ok(Err(DispatchError::Module {
+				index: 10,
+				error: 0,
+				message: Some("BalanceLow")
+			}))
+		);
 	});
 }
