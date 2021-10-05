@@ -303,7 +303,7 @@ pub mod pallet {
 			// ensure bond above min after decrease (TODO: change error?)
 			ensure!(self.bond > less, Error::<T>::CollatorBondBelowMin);
 			ensure!(
-				self.bond - less > T::MinCollatorCandidateStk::get().into(),
+				self.bond - less >= T::MinCollatorCandidateStk::get().into(),
 				Error::<T>::CollatorBondBelowMin
 			);
 			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();

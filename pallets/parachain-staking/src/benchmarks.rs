@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, Pallet, Range};
+use crate::{BalanceOf, Call, CandidateBondChange, CandidateBondRequest, Config, Pallet, Range};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
@@ -25,62 +25,96 @@ use nimbus_primitives::EventHandler;
 use sp_runtime::{Perbill, Percent};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
-/// Default balance amount is minimum collator stake
-fn default_balance<T: Config>() -> BalanceOf<T> {
+/// Minimum collator candidate stake
+fn min_candidate_stk<T: Config>() -> BalanceOf<T> {
 	<<T as Config>::MinCollatorStk as Get<BalanceOf<T>>>::get()
 }
 
+/// Minimum delegator stake
+fn min_delegator_stk<T: Config>() -> BalanceOf<T> {
+	<<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get()
+}
+
 /// Create a funded user.
+/// Extra + min_candidate_stk is total minted funds
+/// Returns tuple (id, balance)
 fn create_funded_user<T: Config>(
 	string: &'static str,
 	n: u32,
 	extra: BalanceOf<T>,
-) -> T::AccountId {
+) -> (T::AccountId, BalanceOf<T>) {
 	const SEED: u32 = 0;
 	let user = account(string, n, SEED);
-	let default_balance = default_balance::<T>();
-	let total = default_balance + extra;
+	let min_candidate_stk = min_candidate_stk::<T>();
+	let total = min_candidate_stk + extra;
 	T::Currency::make_free_balance_be(&user, total);
 	T::Currency::issue(total);
-	user
+	(user, total)
 }
 
-/// Create a funded nominator. Base balance is MinCollatorStk == default_balance
-/// but the amount for the nomination is MinNominatorStk << MinCollatorStk => the rest + extra
-/// is free balance for the returned account.
+/// Create a funded nominator.
 fn create_funded_nominator<T: Config>(
 	string: &'static str,
 	n: u32,
 	extra: BalanceOf<T>,
 	collator: T::AccountId,
+	min_bond: bool,
 	collator_nominator_count: u32,
 ) -> Result<T::AccountId, &'static str> {
-	let user = create_funded_user::<T>(string, n, extra);
+	let (user, total) = create_funded_user::<T>(string, n, extra);
+	let bond = if min_bond {
+		min_delegator_stk::<T>()
+	} else {
+		total
+	};
 	Pallet::<T>::nominate(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
-		<<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get(),
+		bond,
 		collator_nominator_count,
 		0u32, // first nomination for all calls
 	)?;
 	Ok(user)
 }
 
-/// Create a funded collator. Base amount is MinCollatorStk == default_balance but the
-/// last parameter `extra` represents how much additional balance is minted to the collator.
+/// Create a funded collator.
 fn create_funded_collator<T: Config>(
 	string: &'static str,
 	n: u32,
 	extra: BalanceOf<T>,
+	min_bond: bool,
 	candidate_count: u32,
 ) -> Result<T::AccountId, &'static str> {
-	let user = create_funded_user::<T>(string, n, extra);
+	let (user, total) = create_funded_user::<T>(string, n, extra);
+	let bond = if min_bond {
+		min_candidate_stk::<T>()
+	} else {
+		total
+	};
 	Pallet::<T>::join_candidates(
 		RawOrigin::Signed(user.clone()).into(),
-		default_balance::<T>(),
+		bond,
 		candidate_count,
 	)?;
 	Ok(user)
+}
+
+/// Run to end block and author
+fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
+	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
+	let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
+	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
+	let end = Pallet::<T>::round().first + (round_length * round_delay.into());
+	while now < end {
+		Pallet::<T>::note_author(author.clone());
+		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
+		<frame_system::Pallet<T>>::set_block_number(
+			<frame_system::Pallet<T>>::block_number() + 1u32.into(),
+		);
+		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
+		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
+		now += 1u32.into();
+	}
 }
 
 const USER_SEED: u32 = 999666;
@@ -153,12 +187,13 @@ benchmarks! {
 				"collator",
 				seed,
 				0u32.into(),
+				true,
 				candidate_count
 			)?;
 			candidate_count += 1u32;
 		}
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>(), candidate_count)
+		let (caller, min_candidate_stk) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+	}: _(RawOrigin::Signed(caller.clone()), min_candidate_stk, candidate_count)
 	verify {
 		assert!(Pallet::<T>::is_candidate(&caller));
 	}
@@ -175,6 +210,7 @@ benchmarks! {
 				"collator",
 				seed,
 				0u32.into(),
+				true,
 				candidate_count
 			)?;
 			candidate_count += 1u32;
@@ -183,12 +219,13 @@ benchmarks! {
 			"caller",
 			USER_SEED,
 			0u32.into(),
+			true,
 			candidate_count,
 		)?;
 		candidate_count += 1u32;
 	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
 	verify {
-		assert!(Pallet::<T>::collator_state2(&caller).unwrap().is_leaving());
+		assert!(Pallet::<T>::candidate_state(&caller).unwrap().is_leaving());
 	}
 
 	go_offline {
@@ -196,11 +233,12 @@ benchmarks! {
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(!Pallet::<T>::collator_state2(&caller).unwrap().is_active());
+		assert!(!Pallet::<T>::candidate_state(&caller).unwrap().is_active());
 	}
 
 	go_online {
@@ -208,40 +246,62 @@ benchmarks! {
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
 		Pallet::<T>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(Pallet::<T>::collator_state2(&caller).unwrap().is_active());
+		assert!(Pallet::<T>::candidate_state(&caller).unwrap().is_active());
 	}
 
 	candidate_bond_more {
-		let balance = default_balance::<T>();
+		let more = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
-			balance,
+			more,
+			true,
 			1u32,
 		)?;
-	}: _(RawOrigin::Signed(caller.clone()), balance)
+	}: _(RawOrigin::Signed(caller.clone()), more)
 	verify {
-		let expected_bond = balance * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+		let state = Pallet::<T>::candidate_state(&caller).expect("request bonded more so exists");
+		assert_eq!(
+			state.request,
+			Some(CandidateBondRequest {
+				amount: more,
+				change: CandidateBondChange::Increase,
+				when: 3,
+			})
+		);
+		// TODO: Move to execution
+		// let expected_bond = balance * 2u32.into();
+		// assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	candidate_bond_less {
-		let balance = default_balance::<T>();
+		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
-			balance,
+			min_candidate_stk,
+			false,
 			1u32,
 		)?;
-		Pallet::<T>::candidate_bond_more(RawOrigin::Signed(caller.clone()).into(), balance)?;
-	}: _(RawOrigin::Signed(caller.clone()), balance)
+	}: _(RawOrigin::Signed(caller.clone()), min_candidate_stk)
 	verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), balance);
+		let state = Pallet::<T>::candidate_state(&caller).expect("request bonded less so exists");
+		assert_eq!(
+			state.request,
+			Some(CandidateBondRequest {
+				amount: min_candidate_stk,
+				change: CandidateBondChange::Decrease,
+				when: 3,
+			})
+		);
+		// TODO: Move to execution benchmark
+		// assert_eq!(T::Currency::reserved_balance(&caller), balance);
 	}
 
 	nominate {
@@ -258,17 +318,18 @@ benchmarks! {
 				"collator",
 				seed,
 				0u32.into(),
+				true,
 				collators.len() as u32 + 1u32,
 			)?;
 			collators.push(collator.clone());
 		}
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
-		let extra = if (bond * (collators.len() as u32 + 1u32).into()) > default_balance::<T>() {
-			(bond * (collators.len() as u32 + 1u32).into()) - default_balance::<T>()
+		let extra = if (bond * (collators.len() as u32 + 1u32).into()) > min_candidate_stk::<T>() {
+			(bond * (collators.len() as u32 + 1u32).into()) - min_candidate_stk::<T>()
 		} else {
 			0u32.into()
 		};
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, extra.into());
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, extra.into());
 		// Nomination count
 		let mut nom_nom_count = 0u32;
 		// Nominate MaxCollatorsPerNominators collator candidates
@@ -283,6 +344,7 @@ benchmarks! {
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			collators.len() as u32 + 1u32,
 		)?;
 		// Worst Case Complexity is insertion into an almost full collator
@@ -294,6 +356,7 @@ benchmarks! {
 				seed,
 				0u32.into(),
 				collator.clone(),
+				true,
 				col_nom_count,
 			)?;
 			col_nom_count += 1u32;
@@ -314,20 +377,21 @@ benchmarks! {
 				"collator",
 				seed,
 				0u32.into(),
+				true,
 				collators.len() as u32 + 1u32
 			)?;
 			collators.push(collator.clone());
 		}
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		let need = bond * (collators.len() as u32).into();
-		let default_minted = default_balance::<T>();
+		let default_minted = min_candidate_stk::<T>();
 		let need: BalanceOf<T> = if need > default_minted {
 			need - default_minted
 		} else {
 			0u32.into()
 		};
 		// Fund the nominator
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, need);
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, need);
 		let nomination_count = collators.len() as u32;
 		// Nomination count
 		let mut nom_count = 0u32;
@@ -344,17 +408,18 @@ benchmarks! {
 		}
 	}: _(RawOrigin::Signed(caller.clone()), nomination_count)
 	verify {
-		assert!(Pallet::<T>::nominator_state2(&caller).unwrap().is_leaving());
+		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_leaving());
 	}
 
-	revoke_nomination {
+	revoke_delegation {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		Pallet::<T>::nominate(RawOrigin::Signed(
 			caller.clone()).into(),
@@ -365,20 +430,20 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
-		assert_eq!(
-			Pallet::<T>::nominator_state2(&caller).unwrap().revocations.0[0],
-			collator
+		assert!(
+			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator).is_some()
 		);
 	}
 
-	nominator_bond_more {
+	delegator_bond_more {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		Pallet::<T>::nominate(
 			RawOrigin::Signed(caller.clone()).into(),
@@ -389,19 +454,21 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
 	verify {
-		let expected_bond = bond * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+		// TODO move to Execution
+		// let expected_bond = bond * 2u32.into();
+		// assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
-	nominator_bond_less {
+	delegator_bond_less {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let total = default_balance::<T>();
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let total = min_candidate_stk::<T>();
 		Pallet::<T>::nominate(RawOrigin::Signed(
 			caller.clone()).into(),
 			collator.clone(),
@@ -412,8 +479,9 @@ benchmarks! {
 		let bond_less = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 	}: _(RawOrigin::Signed(caller.clone()), collator, bond_less)
 	verify {
-		let expected = total - bond_less;
-		assert_eq!(T::Currency::reserved_balance(&caller), expected);
+		// TODO move to Execution
+		// let expected = total - bond_less;
+		// assert_eq!(T::Currency::reserved_balance(&caller), expected);
 	}
 
 	// ON_INITIALIZE
@@ -444,7 +512,8 @@ benchmarks! {
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
-				default_balance::<T>() * 1_000_000u32.into(),
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				true,
 				collator_count
 			)?;
 			collators.push(collator);
@@ -467,8 +536,9 @@ benchmarks! {
 				let nominator = create_funded_nominator::<T>(
 					"nominator",
 					seed,
-					default_balance::<T>() * 1_000_000u32.into(),
+					min_candidate_stk::<T>() * 1_000_000u32.into(),
 					collators[0].clone(),
+					true,
 					nominators.len() as u32,
 				)?;
 				nominators.push(nominator);
@@ -480,8 +550,9 @@ benchmarks! {
 				let nominator = create_funded_nominator::<T>(
 					"nominator",
 					seed,
-					default_balance::<T>() * 1_000_000u32.into(),
+					min_candidate_stk::<T>() * 1_000_000u32.into(),
 					collators[0].clone(),
+					true,
 					nominators.len() as u32,
 				)?;
 				nominators.push(nominator);
@@ -565,6 +636,7 @@ benchmarks! {
 			"collator",
 			USER_SEED,
 			0u32.into(),
+			true,
 			1u32
 		)?;
 		let start = <frame_system::Pallet<T>>::block_number();
@@ -599,140 +671,140 @@ mod tests {
 	#[test]
 	fn bench_set_staking_expectations() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_staking_expectations::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_staking_expectations());
 		});
 	}
 
 	#[test]
 	fn bench_set_inflation() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_inflation::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_inflation());
 		});
 	}
 
 	#[test]
 	fn bench_set_parachain_bond_account() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_parachain_bond_account::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_account());
 		});
 	}
 
 	#[test]
 	fn bench_set_parachain_bond_reserve_percent() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_parachain_bond_reserve_percent::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_reserve_percent());
 		});
 	}
 
 	#[test]
 	fn bench_set_total_selected() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_total_selected::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_total_selected());
 		});
 	}
 
 	#[test]
 	fn bench_set_collator_commission() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_collator_commission::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_collator_commission());
 		});
 	}
 
 	#[test]
 	fn bench_set_blocks_per_round() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_blocks_per_round::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_blocks_per_round());
 		});
 	}
 
 	#[test]
 	fn bench_join_candidates() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_join_candidates::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_join_candidates());
 		});
 	}
 
 	#[test]
 	fn bench_leave_candidates() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_leave_candidates::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_leave_candidates());
 		});
 	}
 
 	#[test]
 	fn bench_go_offline() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_go_offline::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_go_offline());
 		});
 	}
 
 	#[test]
 	fn bench_go_online() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_go_online::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_go_online());
 		});
 	}
 
 	#[test]
 	fn bench_candidate_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_candidate_bond_more::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_more());
 		});
 	}
 
 	#[test]
 	fn bench_candidate_bond_less() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_candidate_bond_less::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_less());
 		});
 	}
 
 	#[test]
 	fn bench_nominate() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_nominate::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_nominate());
 		});
 	}
 
 	#[test]
 	fn bench_leave_nominators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_leave_nominators::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_leave_nominators());
 		});
 	}
 
 	#[test]
-	fn bench_revoke_nomination() {
+	fn bench_revoke_delegation() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_revoke_nomination::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_revoke_delegation());
 		});
 	}
 
 	#[test]
-	fn bench_nominator_bond_more() {
+	fn bench_delegator_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_nominator_bond_more::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_more());
 		});
 	}
 
 	#[test]
-	fn bench_nominator_bond_less() {
+	fn bench_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_nominator_bond_less::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_less());
 		});
 	}
 
 	#[test]
 	fn bench_active_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_active_on_initialize::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_active_on_initialize());
 		});
 	}
 
 	#[test]
 	fn bench_passive_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_passive_on_initialize::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_passive_on_initialize());
 		});
 	}
 }
