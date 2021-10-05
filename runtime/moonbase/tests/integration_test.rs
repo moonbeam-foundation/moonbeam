@@ -19,7 +19,9 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
+use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
+
+use evm::{executor::PrecompileOutput, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -28,19 +30,29 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
-	ParachainStaking, Precompiles, Runtime, System,
+	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
+	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime,
+	System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_evm_precompile_assets_erc20::{
+	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+};
+use xtokens_precompiles::{Action as XtokensAction, MultiLocationWrapper};
+
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
+use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
+use sp_core::Pair;
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
+use xcm::latest::prelude::*;
+use xcm::v1::{Junctions, MultiLocation};
 
 #[test]
 fn fast_track_available() {
@@ -440,11 +452,11 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1079592333275448000000,
+				1082693333281650000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				528942666637724000000,
+				525841666640825000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
@@ -475,7 +487,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -565,6 +577,106 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 }
 
 #[test]
+fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * UNIT)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_vesting_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+
+			let (pair1, _) = sp_core::sr25519::Pair::generate();
+			let (pair2, _) = sp_core::sr25519::Pair::generate();
+
+			let public1 = pair1.public();
+			let public2 = pair2.public();
+
+			// signature is new_account || previous_account
+			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
+			message.append(&mut AccountId::from(DAVE).encode());
+			message.append(&mut AccountId::from(CHARLIE).encode());
+			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
+
+			let signature1 = pair1.sign(&message);
+			let signature2 = pair2.sign(&message);
+
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				// two relay accounts pointing at the same reward account
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							public1.into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * UNIT
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							public2.into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * UNIT
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 900_000 * UNIT);
+
+			// this should fail, as we are only providing one signature
+			assert_noop!(
+				CrowdloanRewards::change_association_with_relay_keys(
+					origin_of(AccountId::from(CHARLIE)),
+					AccountId::from(DAVE),
+					AccountId::from(CHARLIE),
+					vec![(public1.into(), signature1.clone().into())]
+				),
+				pallet_crowdloan_rewards::Error::<Runtime>::InsufficientNumberOfValidProofs
+			);
+
+			// this should be valid
+			assert_ok!(CrowdloanRewards::change_association_with_relay_keys(
+				origin_of(AccountId::from(CHARLIE)),
+				AccountId::from(DAVE),
+				AccountId::from(CHARLIE),
+				vec![
+					(public1.into(), signature1.into()),
+					(public2.into(), signature2.into())
+				]
+			));
+
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+					.unwrap()
+					.claimed_reward,
+				(900_000 * UNIT)
+			);
+		});
+}
+
+#[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -585,7 +697,7 @@ fn claim_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -673,7 +785,7 @@ fn is_contributor_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -781,7 +893,7 @@ fn reward_info_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -866,7 +978,7 @@ fn update_reward_address_via_precompile() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
-			let init_block = CrowdloanRewards::init_relay_block();
+			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
@@ -924,6 +1036,392 @@ fn update_reward_address_via_precompile() {
 					.unwrap()
 					.claimed_reward,
 				(450_000 * UNIT)
+			);
+		})
+}
+
+#[test]
+fn asset_can_be_registered() {
+	ExtBuilder::default().build().execute_with(|| {
+		let source_location = AssetType::Xcm(MultiLocation::parent());
+		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
+			name: b"RelayToken".to_vec(),
+			symbol: b"Relay".to_vec(),
+			decimals: 12,
+			is_frozen: false,
+		};
+		assert_ok!(AssetManager::register_asset(
+			moonbase_runtime::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert!(AssetManager::asset_id_type(source_id).is_some());
+	});
+}
+
+#[test]
+fn asset_erc20_precompiles_supply_and_balance() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * UNIT)])])
+		.build()
+		.execute_with(|| {
+			// Assert the asset has been created with the correct supply
+			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
+
+			// Convert the assetId to its corresponding precompile address
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+
+			// The expected result for both total supply and balance of is the same, as only Alice
+			// holds balance
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(1000 * UNIT)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Access totalSupply through precompile. Important that the context is correct
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::TotalSupply)
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Access balanceOf through precompile
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(ALICE.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * UNIT)])])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+
+			// Expected result for a transfer
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 25084u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Aice to Bob, 400 unit.
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::Transfer)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * UNIT))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for balanceOf BOB
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure BOB has 400 unit
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(BOB.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_approve() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * UNIT)])])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 19035u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_APPROVAL,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					)
+					.build(),
+			}));
+
+			// Aprove Bob for spending 400 unit from Alice
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::Approve)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * UNIT))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for transfer_from
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 36042u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(CHARLIE),
+						EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Alice to Charlie by using BOB as origin
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::TransferFrom)
+						.write(EvmAddress(ALICE.into()))
+						.write(EvmAddress(CHARLIE.into()))
+						.write(U256::from(400 * UNIT))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for balance of CHARLIE
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure CHARLIE has 400 unit
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(CHARLIE.into()))
+						.build(),
+					None,
+					&evm::Context {
+						address: asset_precompile_address,
+						caller: CHARLIE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn xtokens_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			// We use the address of the asset as an identifier of the asset we want to transferS
+			assert_eq!(
+				Precompiles::execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(XtokensAction::Transfer)
+						.write(EvmAddress(asset_precompile_address))
+						.write(U256::from(500_000_000_000_000u128))
+						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
+}
+
+#[test]
+fn xtokens_precompiles_transfer_multiasset() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			// This time we transfer it through TransferMultiAsset
+			// Instead of the address, we encode directly the multilocation referencing the asset
+			assert_eq!(
+				Precompiles::execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new()
+						.write_selector(XtokensAction::TransferMultiAsset)
+						// We want to transfer the relay token
+						.write(MultiLocationWrapper::from(MultiLocation::parent()))
+						.write(U256::from(500_000_000_000_000u128))
+						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&evm::Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
 			);
 		})
 }
