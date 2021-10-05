@@ -16,7 +16,7 @@
 
 use crate::{
 	PerfCmd,
-	tests::{TestRunner, TestResults, fibonacci::FibonacciPerfTest},
+	tests::{ TestRunner, TestResults, FibonacciPerfTest, BlockCreationPerfTest},
 	txn_signer::UnsignedTransaction,
 };
 
@@ -203,6 +203,18 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		})
 	}
 
+	pub fn get_alice_details(&self) -> AccountDetails {
+		use std::str::FromStr;
+		AccountDetails {
+			address: H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
+				.expect("valid hex provided; qed"),
+			privkey: H256::from_str("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133")
+				.expect("valid hex provided; qed"),
+			nonce: U256::from(0),
+
+		}
+	}
+
 	pub fn evm_call(
 		&self,
 		from: H160,
@@ -336,6 +348,14 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 	}
 }
 
+/// Struct representing account details, including private key
+#[derive(Debug)]
+pub struct AccountDetails {
+	pub address: H160,
+	pub privkey: H256,
+	pub nonce: U256,
+}
+
 impl CliConfiguration for PerfCmd {
 	fn shared_params(&self) -> &SharedParams {
 		&self.shared_params
@@ -368,12 +388,16 @@ impl PerfCmd {
 		// create an empty block to warm the runtime cache...
 		runner.create_block(true);
 
-		let mut fib_test = FibonacciPerfTest::new();
-		let fib_test_results = fib_test.run(&runner)?;
+		let mut tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec!(
+			Box::new(FibonacciPerfTest::new()),
+			Box::new(BlockCreationPerfTest::new()),
+		);
 
-		println!("Test results:");
-		for fib_test_result in fib_test_results {
-			println!("    {}: {:?}", fib_test_result.test_name, fib_test_result.overall_duration);
+		for mut test in tests {
+			let results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
+			for result in results {
+				println!("    {}: {:?}", result.test_name, result.overall_duration);
+			}
 		}
 
 		Ok(())

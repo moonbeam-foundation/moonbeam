@@ -76,20 +76,8 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 	{
 		let mut results: Vec<TestResults> = Default::default();
 
-		let alice_hex = "f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
-		let alice_bytes = hex::decode(alice_hex)
-			.expect("alice_hex is valid hex; qed");
-		let alice = H160::from_slice(&alice_bytes[..]);
-
-		let alice_priv_hex = "5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-		let alice_priv_bytes = hex::decode(alice_priv_hex)
-			.expect("alice_priv_hex is valid hex; qed");
-		let alice_priv = H256::from_slice(&alice_priv_bytes[..]);
-
-		log::debug!("alice: {:?}", alice);
-
+		let alice = context.get_alice_details();
 		let mut alice_nonce: U256 = 0.into();
-
 
 		// Fibonacci contract:
 		/*
@@ -122,7 +110,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		// TODO: better way to calculate new contract address
 		let now = Instant::now();
 		let create_info = context.evm_create(
-			alice,
+			alice.address,
 			fibonacci_bytecode.clone(),
 			0.into(),
 			EXTRINSIC_GAS_LIMIT.into(),
@@ -137,7 +125,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 
 		log::trace!("Issuing EVM create txn...");
 		let txn_hash = context.eth_sign_and_send_transaction(
-			&alice_priv,
+			&alice.privkey,
 			None,
 			fibonacci_bytecode,
 			0.into(),
@@ -150,19 +138,18 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		context.create_block(true);
 		results.push(TestResults::new("create_fibonacci", now.elapsed()));
 
-		// TODO: get txn results
+		// TODO: verify txn results
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex = "3a9bbfcd0000000000000000000000000000000000000000000000000000000000000172";
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
-		let now = Instant::now();
-
 		println!("Calling fib[370] 4096 times...");
+		let now = Instant::now();
 		for i in 0..4096 {
 			let call_results = context.evm_call(
-				alice,
+				alice.address,
 				fibonacci_address,
 				calldata.clone(),
 				0.into(),
@@ -175,27 +162,6 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 			log::debug!("EVM call returned {:?}", call_results);
 		}
 		results.push(TestResults::new("fibonacci_calls", now.elapsed()));
-
-		println!("Creating blocks with increasing nonce-dependent txns...");
-		let now = Instant::now();
-		for i in 1..67 {
-			for j in 1..i {
-				let txn_hash = context.eth_sign_and_send_transaction(
-					&alice_priv,
-					Some(fibonacci_address),
-					calldata.clone(),
-					0.into(),
-					EXTRINSIC_GAS_LIMIT.into(),
-					MIN_GAS_PRICE.into(),
-					alice_nonce,
-				).expect("EVM create failed while trying to deploy Fibonacci contract");
-
-				alice_nonce = alice_nonce.saturating_add(1.into());
-			}
-
-			context.create_block(true);
-		}
-		results.push(TestResults::new("nonce-dependent blocks", now.elapsed()));
 
 		Ok(results)
 	}

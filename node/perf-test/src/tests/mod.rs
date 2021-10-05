@@ -24,10 +24,13 @@ use sc_service::{
 	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
 };
 
-pub mod fibonacci;
+mod fibonacci;
+mod block_creation;
+pub use fibonacci::FibonacciPerfTest;
+pub use block_creation::BlockCreationPerfTest;
 
 /// struct representing the test results of a single test
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TestResults {
 	pub test_name: String,
 	pub overall_duration: Duration,
