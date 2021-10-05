@@ -14,6 +14,7 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { KeyringPair } from "@substrate/txwrapper-core";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
@@ -175,17 +176,25 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Join Nominators", (context) => {
-  let ethan;
+describeDevMoonbeam("Staking - Join Nominators (and leave)", (context) => {
+  let ethan: KeyringPair, initialBalance;
   before("should succesfully call nominate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    // check that reserved balance is null and check initial balance that shouldnt change
+    initialBalance = ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data
+      .free;
+    expect(
+      ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data.reserved
+    ).to.eq("0");
+    // Ethan nominates Alith
     await context.polkadotApi.tx.parachainStaking
       .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it("should have succesfully called nominate on ALITH", async function () {
+  it.only("should have succesfully called nominate on ALITH", async function () {
+    // check that Ethan is nominator
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
@@ -197,13 +206,32 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     expect(nominatorsAfter.toHuman()["status"]).equal("Active");
     expect(nominatorsAfter.toHuman()["nominations"][0].owner).equal(ALITH);
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("5.0000 UNIT");
+
+    // Free Balance shouldn't have changed
+    expect(
+      ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data.free
+    ).to.eq(initialBalance);
+    // Reserved Balance should be '5.0000 UNIT'
+    expect(
+      ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data.reserved
+    ).to.eq("5.0000 UNIT");
   });
-  it("should succesfully revoke nomination on ALITH", async function () {
+  it.only("should succesfully revoke nomination on ALITH", async function () {
+    // Check that leaving nomination is possible
     await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
     await context.createBlock();
 
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(nominatorsAfter.toHuman()["status"].Leaving).equal("3");
+
+    // Free Balance shouldn't have changed
+    expect(
+      ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data.free
+    ).to.eq(initialBalance);
+    // Reserved Balance should be '0 UNIT'
+    expect(
+      ((await context.polkadotApi.query.system.account(ETHAN)).toHuman() as any).data.reserved
+    ).to.eq("0");
   });
 });
 
