@@ -39,7 +39,7 @@ pub struct NativeErc20Metadata;
 impl Erc20Metadata for NativeErc20Metadata {
 	/// Returns the name of the token.
 	fn name() -> &'static str {
-		"Moonbase tokens"
+		"DEV token"
 	}
 
 	/// Returns the symbol of the token.

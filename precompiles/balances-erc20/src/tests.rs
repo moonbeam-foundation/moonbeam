@@ -670,7 +670,7 @@ fn get_metadata_name() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new()
-						.write::<Bytes>("Mock tokens".into())
+						.write::<Bytes>("Mock token".into())
 						.build(),
 					cost: Default::default(),
 					logs: Default::default(),
