@@ -31,7 +31,7 @@ const paraAssetMetadata: AssetMetadata = {
   decimals: new BN(18),
   isFrozen: false,
 };
-const sourceLocationRelay = { XCM: { X1: "Parent" } };
+const sourceLocationRelay = { XCM: { parents: 1, junctions: "Here" } }; // { XCM: "Parent" }; // { XCM: { X1: "Parent" } };
 
 async function registerAssetToParachain(
   parachainApi: ApiPromise,
@@ -58,6 +58,7 @@ async function registerAssetToParachain(
     await new Promise((res) => setTimeout(res, 20000));
   }
   assetId = assetId.replace(/,/g, "");
+  console.log("asset id", assetId);
 
   // setAssetUnitsPerSecond
   const { events } = await createBlockWithExtrinsicParachain(
@@ -72,7 +73,7 @@ describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
   (context) => {
-    it("should be able to receive an asset from relay", async function () {
+    it.only("should be able to receive an asset from relay", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
@@ -100,13 +101,25 @@ describeParachain(
       expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
 
       // RELAYCHAIN
+      // Trigger the transfer
       const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
         relayOne,
         aliceRelay,
         relayOne.tx.xcmPallet.reserveTransferAssets(
-          { X1: { Parachain: new BN(1000) } },
-          { X1: { AccountKey20: { network: "Any", key: ALITH } } },
-          [{ ConcreteFungible: { id: "Here", amount: new BN(1000000000000000) } }],
+          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+
+          {
+            V1: {
+              parents: new BN(0),
+              interior: { X1: { AccountKey20: { network: "Any", key: ALITH } } },
+            },
+          },
+          //[
+          {
+            V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+          },
+          //], //["Here", new BN(1000000000000000)]],
+          0,
           new BN(4000000000)
         )
       );
