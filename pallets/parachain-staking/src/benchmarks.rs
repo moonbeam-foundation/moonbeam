@@ -17,7 +17,10 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, CandidateBondChange, CandidateBondRequest, Config, Pallet, Range};
+use crate::{
+	BalanceOf, Call, CandidateBondChange, CandidateBondRequest, Config, DelegationChange,
+	DelegationRequest, Pallet, Range,
+};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
@@ -430,8 +433,14 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
-		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator).is_some()
+		assert_eq!(
+			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator),
+			Some(&DelegationRequest {
+				collator,
+				amount: bond,
+				when: 3,
+				action: DelegationChange::Revoke
+			})
 		);
 	}
 
@@ -452,8 +461,19 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
+	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond)
 	verify {
+		let state = Pallet::<T>::delegator_state(&caller)
+			.expect("just request bonded less so exists");
+		assert_eq!(
+			state.requests.requests.get(&collator),
+			Some(&DelegationRequest {
+				collator,
+				amount: 5u32.into(),
+				when: 3,
+				action: DelegationChange::Increase
+			})
+		);
 		// TODO move to Execution
 		// let expected_bond = bond * 2u32.into();
 		// assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
@@ -467,8 +487,7 @@ benchmarks! {
 			true,
 			1u32
 		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let total = min_candidate_stk::<T>();
+		let (caller, total) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		Pallet::<T>::nominate(RawOrigin::Signed(
 			caller.clone()).into(),
 			collator.clone(),
@@ -477,8 +496,19 @@ benchmarks! {
 			0u32
 		)?;
 		let bond_less = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
-	}: _(RawOrigin::Signed(caller.clone()), collator, bond_less)
+	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond_less)
 	verify {
+		let state = Pallet::<T>::delegator_state(&caller)
+			.expect("just request bonded less so exists");
+		assert_eq!(
+			state.requests.requests.get(&collator),
+			Some(&DelegationRequest {
+				collator,
+				amount: 5u32.into(),
+				when: 3,
+				action: DelegationChange::Decrease
+			})
+		);
 		// TODO move to Execution
 		// let expected = total - bond_less;
 		// assert_eq!(T::Currency::reserved_balance(&caller), expected);

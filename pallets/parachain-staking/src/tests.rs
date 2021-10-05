@@ -26,8 +26,8 @@ use crate::mock::{
 	Stake, Test,
 };
 use crate::{
-	Bond, CandidateBondChange, CandidateBondRequest, CollatorStatus, DelegatorAdded, Error, Event,
-	Range,
+	Bond, CandidateBondChange, CandidateBondRequest, CollatorStatus, DelegationChange,
+	DelegationRequest, DelegatorAdded, Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -1867,6 +1867,28 @@ fn delegator_bond_more_event_emits_correctly() {
 }
 
 #[test]
+fn delegator_bond_more_updates_delegator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			let state = Stake::delegator_state(&2).expect("just request bonded less so exists");
+			assert_eq!(
+				state.requests.requests.get(&1),
+				Some(&DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Increase
+				})
+			);
+		});
+}
+
+#[test]
 fn cannot_delegator_bond_more_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
@@ -1893,7 +1915,7 @@ fn cannot_delegator_bond_more_if_revoking() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			assert_noop!(
 				Stake::delegator_bond_more(Origin::signed(2), 1, 5),
-				Error::<Test>::PendingNominationRequestAlreadyExists
+				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 		});
 }
@@ -1972,6 +1994,28 @@ fn delegator_bond_less_event_emits_correctly() {
 }
 
 #[test]
+fn delegator_bond_less_updates_delegator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
+			let state = Stake::delegator_state(&2).expect("just request bonded less so exists");
+			assert_eq!(
+				state.requests.requests.get(&1),
+				Some(&DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Decrease
+				})
+			);
+		});
+}
+
+#[test]
 fn cannot_delegator_bond_less_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
@@ -1998,7 +2042,7 @@ fn cannot_delegator_bond_less_if_revoking() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			assert_noop!(
 				Stake::delegator_bond_less(Origin::signed(2), 1, 1),
-				Error::<Test>::PendingNominationRequestAlreadyExists
+				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 		});
 }
@@ -2347,7 +2391,7 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			assert_noop!(
 				Stake::delegator_bond_more(Origin::signed(2), 1, 10),
-				Error::<Test>::PendingNominationRequestAlreadyExists
+				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 3, 10));
 			roll_to(10);
@@ -2375,7 +2419,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 			);
 			assert_noop!(
 				Stake::delegator_bond_less(Origin::signed(2), 1, 2),
-				Error::<Test>::PendingNominationRequestAlreadyExists
+				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 3, 2));
 			roll_to(10);

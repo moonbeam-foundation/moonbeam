@@ -652,7 +652,7 @@ pub mod pallet {
 		/// Total balance locked for this delegator
 		pub total: Balance,
 		/// Requests to change delegations, relevant iff active
-		pub requests: PendingNominationRequests<AccountId, Balance>,
+		pub requests: PendingDelegationRequests<AccountId, Balance>,
 		/// Status for this delegator
 		pub status: DelegatorStatus,
 	}
@@ -677,7 +677,7 @@ pub mod pallet {
 					amount,
 				}]),
 				total: amount,
-				requests: PendingNominationRequests::new(),
+				requests: PendingDelegationRequests::new(),
 				status: DelegatorStatus::Active,
 			}
 		}
@@ -835,7 +835,7 @@ pub mod pallet {
 		{
 			ensure!(self.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let now = <Round<T>>::get().current;
-			let NominationRequest {
+			let DelegationRequest {
 				amount,
 				action,
 				when,
@@ -844,9 +844,9 @@ pub mod pallet {
 				.requests
 				.requests
 				.remove(&candidate)
-				.ok_or(Error::<T>::PendingNominationRequestDNE)?
+				.ok_or(Error::<T>::PendingDelegationRequestDNE)?
 				.clone();
-			ensure!(when <= now, Error::<T>::PendingNominationRequestNotDueYet);
+			ensure!(when <= now, Error::<T>::PendingDelegationRequestNotDueYet);
 			let (balance_amt, candidate_id, nominator_id): (
 				BalanceOf<T>,
 				T::AccountId,
@@ -857,7 +857,7 @@ pub mod pallet {
 				self.id.clone().into(),
 			);
 			match action {
-				NominationChange::Revoke => {
+				DelegationChange::Revoke => {
 					// revoking last delegation => leaving set of delegators
 					let leaving = if self.delegations.0.len() == 1usize {
 						true
@@ -891,7 +891,7 @@ pub mod pallet {
 						Ok(revocation_event)
 					}
 				}
-				NominationChange::Increase => {
+				DelegationChange::Increase => {
 					// remove from pending requests
 					self.requests.more_total -= amount;
 					// increase delegation
@@ -925,7 +925,7 @@ pub mod pallet {
 					}
 					Err(Error::<T>::NominationDNE.into())
 				}
-				NominationChange::Decrease => {
+				DelegationChange::Decrease => {
 					// remove from pending requests
 					self.requests.less_total -= amount;
 					// decrease nomination
@@ -981,22 +981,22 @@ pub mod pallet {
 		pub fn cancel_pending_request<T: Config>(
 			&mut self,
 			candidate: AccountId,
-		) -> Result<NominationRequest<AccountId, Balance>, DispatchError> {
+		) -> Result<DelegationRequest<AccountId, Balance>, DispatchError> {
 			ensure!(self.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let order = self
 				.requests
 				.requests
 				.remove(&candidate)
-				.ok_or(Error::<T>::PendingNominationRequestDNE)?;
+				.ok_or(Error::<T>::PendingDelegationRequestDNE)?;
 			match order.action {
-				NominationChange::Revoke => {
+				DelegationChange::Revoke => {
 					self.requests.revocations_count -= 1u32;
 					self.requests.less_total -= order.amount;
 				}
-				NominationChange::Decrease => {
+				DelegationChange::Decrease => {
 					self.requests.less_total -= order.amount;
 				}
-				NominationChange::Increase => {
+				DelegationChange::Increase => {
 					self.requests.more_total -= order.amount;
 				}
 			}
@@ -1005,39 +1005,39 @@ pub mod pallet {
 	}
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
-	/// Changes requested by the nominator
-	/// - limit of 1 ongoing change per nomination
+	/// Changes requested by the delegator
+	/// - limit of 1 ongoing change per delegation
 	/// - no changes allowed if nominator is leaving
-	pub enum NominationChange {
+	pub enum DelegationChange {
 		Revoke,
 		Increase,
 		Decrease,
 	}
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
-	pub struct NominationRequest<AccountId, Balance> {
+	pub struct DelegationRequest<AccountId, Balance> {
 		pub collator: AccountId,
 		pub amount: Balance,
 		pub when: RoundIndex,
-		pub action: NominationChange,
+		pub action: DelegationChange,
 	}
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug)]
-	/// Pending requests to mutate delegations for each nominator
-	pub struct PendingNominationRequests<AccountId, Balance> {
+	/// Pending requests to mutate delegations for each delegator
+	pub struct PendingDelegationRequests<AccountId, Balance> {
 		/// Number of pending revocations (necessary for determining whether revoke is exit)
 		pub revocations_count: u32,
-		/// Map from collator -> Request (enforces at most 1 pending request per nomination)
-		pub requests: BTreeMap<AccountId, NominationRequest<AccountId, Balance>>,
+		/// Map from collator -> Request (enforces at most 1 pending request per delegation)
+		pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
 		/// Sum of pending revocation amounts + bond less amounts
 		pub less_total: Balance,
 		/// Sum of pending bond more amounts
 		pub more_total: Balance,
 	}
 
-	impl<A: Ord, B: Zero> Default for PendingNominationRequests<A, B> {
-		fn default() -> PendingNominationRequests<A, B> {
-			PendingNominationRequests {
+	impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
+		fn default() -> PendingDelegationRequests<A, B> {
+			PendingDelegationRequests {
 				revocations_count: 0u32,
 				requests: BTreeMap::new(),
 				less_total: B::zero(),
@@ -1056,11 +1056,11 @@ pub mod pallet {
 				+ sp_std::ops::Add<Output = B>
 				+ sp_std::ops::SubAssign
 				+ sp_std::ops::Sub<Output = B>,
-		> PendingNominationRequests<A, B>
+		> PendingDelegationRequests<A, B>
 	{
 		/// New default (empty) pending requests
-		pub fn new() -> PendingNominationRequests<A, B> {
-			PendingNominationRequests::default()
+		pub fn new() -> PendingDelegationRequests<A, B> {
+			PendingDelegationRequests::default()
 		}
 		/// Add bond more order to pending requests
 		pub fn bond_more<T: Config>(
@@ -1071,15 +1071,15 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
-				Error::<T>::PendingNominationRequestAlreadyExists
+				Error::<T>::PendingDelegationRequestAlreadyExists
 			);
 			self.requests.insert(
 				collator.clone(),
-				NominationRequest {
+				DelegationRequest {
 					collator,
 					amount,
 					when,
-					action: NominationChange::Increase,
+					action: DelegationChange::Increase,
 				},
 			);
 			self.more_total += amount;
@@ -1096,15 +1096,15 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
-				Error::<T>::PendingNominationRequestAlreadyExists
+				Error::<T>::PendingDelegationRequestAlreadyExists
 			);
 			self.requests.insert(
 				collator.clone(),
-				NominationRequest {
+				DelegationRequest {
 					collator,
 					amount,
 					when,
-					action: NominationChange::Decrease,
+					action: DelegationChange::Decrease,
 				},
 			);
 			self.less_total += amount;
@@ -1121,15 +1121,15 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
-				Error::<T>::PendingNominationRequestAlreadyExists
+				Error::<T>::PendingDelegationRequestAlreadyExists
 			);
 			self.requests.insert(
 				collator.clone(),
-				NominationRequest {
+				DelegationRequest {
 					collator,
 					amount,
 					when,
-					action: NominationChange::Revoke,
+					action: DelegationChange::Revoke,
 				},
 			);
 			self.revocations_count += 1u32;
@@ -1339,9 +1339,9 @@ pub mod pallet {
 		PendingCollatorRequestDNE,
 		PendingCollatorRequestAlreadyExists,
 		PendingCollatorRequestNotDueYet,
-		PendingNominationRequestDNE,
-		PendingNominationRequestAlreadyExists,
-		PendingNominationRequestNotDueYet,
+		PendingDelegationRequestDNE,
+		PendingDelegationRequestAlreadyExists,
+		PendingDelegationRequestNotDueYet,
 	}
 
 	#[pallet::event]
@@ -1390,7 +1390,7 @@ pub mod pallet {
 		/// Nominator
 		NominatorExitCancelled(T::AccountId),
 		/// Nominator, Cancelled Request
-		CancelledNominationRequest(T::AccountId, NominationRequest<T::AccountId, BalanceOf<T>>),
+		CancelledDelegationRequest(T::AccountId, DelegationRequest<T::AccountId, BalanceOf<T>>),
 		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Counted if in Top
 		Nomination(
 			T::AccountId,
@@ -2261,7 +2261,7 @@ pub mod pallet {
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::NominatorDNE)?;
 			let request = state.cancel_pending_request::<T>(collator.clone())?;
 			<DelegatorState<T>>::insert(&delegator, state);
-			Self::deposit_event(Event::CancelledNominationRequest(delegator, request));
+			Self::deposit_event(Event::CancelledDelegationRequest(delegator, request));
 			Ok(().into())
 		}
 	}
