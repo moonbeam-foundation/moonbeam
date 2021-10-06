@@ -253,10 +253,10 @@ pub enum UtilityCall {
 
 pub struct UtilityCallEncoder;
 
-impl EncodeCall<Test> for UtilityCallEncoder {
-	fn encode_call(call: AvailableCalls) -> Vec<u8> {
+impl UtilityEncodeCall for UtilityCallEncoder {
+	fn encode_call(call: UtilityAvailableCalls) -> Vec<u8> {
 		match call {
-			AvailableCalls::AsDerivative(a, b) => {
+			UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
 				call.append(&mut b.clone());
