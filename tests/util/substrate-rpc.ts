@@ -77,15 +77,6 @@ export async function logEvents(api: ApiPromise, name: string) {
         (e.toHuman() as any).event.section,
         (e.toHuman() as any).event.method
       );
-      if (
-        (e.toHuman() as any).event.method === "ExtrinsicFailed" ||
-        (e.toHuman() as any).event.method === "Fail" ||
-        (e.toHuman() as any).event.method === "ForceCreated" ||
-        (e.toHuman() as any).event.method === "MetadataSet" ||
-        (e.toHuman() as any).event.method === "AssetRegistered"
-      ) {
-        console.log(JSON.stringify(e.toHuman(), null, 2));
-      }
     });
   });
 }

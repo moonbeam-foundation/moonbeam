@@ -31,22 +31,20 @@ const paraAssetMetadata: AssetMetadata = {
   decimals: new BN(18),
   isFrozen: false,
 };
-interface sourceLocation {
+interface SourceLocation {
   XCM: {
     parents: number | BN;
     interior: any;
   };
 }
-const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } }; // { XCM: "Parent" }; // { XCM: { X1: "Parent" } };
+const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } };
 
 async function registerAssetToParachain(
   parachainApi: ApiPromise,
   sudoKeyring: KeyringPair,
-  assetLocation: sourceLocation = sourceLocationRelay,
+  assetLocation: SourceLocation = sourceLocationRelay,
   assetMetadata: AssetMetadata = relayAssetMetadata
 ) {
-  console.log("assetLocation", JSON.stringify(assetLocation, null, 2));
-  console.log("assetMetadata", assetMetadata);
   const { events: eventsRegister } = await createBlockWithExtrinsicParachain(
     parachainApi,
     sudoKeyring,
@@ -66,7 +64,6 @@ async function registerAssetToParachain(
     await new Promise((res) => setTimeout(res, 20000));
   }
   assetId = assetId.replace(/,/g, "");
-  console.log("asset id", assetId);
 
   // setAssetUnitsPerSecond
   const { events } = await createBlockWithExtrinsicParachain(
@@ -364,7 +361,7 @@ describeParachain(
       parachainTwo: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationParaA: sourceLocation,
+      sourceLocationParaA: SourceLocation,
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
@@ -460,7 +457,7 @@ describeParachain(
       parachainTwo: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationParaA: sourceLocation,
+      sourceLocationParaA: SourceLocation,
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
@@ -577,7 +574,7 @@ describeParachain(
       parachainThree: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationParaA: { XCM: any },
+      sourceLocationParaA: SourceLocation,
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
