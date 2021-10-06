@@ -17,7 +17,7 @@ sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
@@ -29,8 +29,8 @@ pallet-asset-manager = { path = "../../pallets/asset-manager", default-features 
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
@@ -93,15 +93,15 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-f
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
 
-cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
 # xcmp 
 xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
@@ -118,8 +118,8 @@ frame-system-benchmarking = { git = "https://github.com/purestake/substrate", de
 frame-try-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10", optional = true }
 
 [dev-dependencies]
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 rlp = "0.5"
 hex = "0.4"

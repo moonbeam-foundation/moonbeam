@@ -29,10 +29,10 @@ pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "m
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 serde = "1.0.100"
 derive_more = "0.99"
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "elois-force-authoring-when-runtime-change" }
 
 [features]
 default = ["std"]

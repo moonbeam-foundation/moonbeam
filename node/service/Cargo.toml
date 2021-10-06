@@ -95,20 +95,20 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polk
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
 
 # Nimbus dependencies
-nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }

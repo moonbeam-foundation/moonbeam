@@ -30,7 +30,7 @@ derive_more = "0.99"
 pallet-balances =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
 pallet-timestamp =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "elois-force-authoring-when-runtime-change" }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
 xcm-primitives = { path = "../../primitives/xcm/"}
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
