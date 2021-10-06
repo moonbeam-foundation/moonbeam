@@ -19,7 +19,8 @@
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
-use cli_opt::{EthApi, Sealing};
+use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -59,6 +60,17 @@ pub enum Subcommand {
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
+
+	/// Try some command against runtime state.
+	#[cfg(feature = "try-runtime")]
+	TryRuntime(try_runtime_cli::TryRuntimeCmd),
+
+	/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
+	#[cfg(not(feature = "try-runtime"))]
+	TryRuntime,
+
+	/// Key management cli utilities
+	Key(KeyCmd),
 }
 
 #[derive(Debug, StructOpt)]
@@ -85,8 +97,8 @@ pub struct ExportGenesisStateCommand {
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long, default_value = "1000")]
-	pub parachain_id: u32,
+	#[structopt(long)]
+	pub parachain_id: Option<u32>,
 
 	/// Write output in binary. Default is to write in hex.
 	#[structopt(short, long)]
@@ -116,11 +128,7 @@ pub struct ExportGenesisWasmCommand {
 #[derive(Debug, StructOpt)]
 pub struct RunCmd {
 	#[structopt(flatten)]
-	pub base: sc_cli::RunCmd,
-
-	/// Id of the parachain this collator collates for.
-	#[structopt(long)]
-	pub parachain_id: Option<u32>,
+	pub base: cumulus_client_cli::RunCmd,
 
 	/// Enable the development service to run without a backing relay chain
 	#[structopt(long)]
@@ -172,17 +180,34 @@ pub struct RunCmd {
 	/// Force using Moonriver native runtime.
 	#[structopt(long = "force-moonriver")]
 	pub force_moonriver: bool,
-
-	/// Force using Moonshadow native runtime.
-	#[structopt(long = "force-moonshadow")]
-	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {
-	type Target = sc_cli::RunCmd;
+	type Target = cumulus_client_cli::RunCmd;
 
 	fn deref(&self) -> &Self::Target {
 		&self.base
+	}
+}
+
+#[derive(Debug, StructOpt)]
+pub enum KeyCmd {
+	#[structopt(flatten)]
+	BaseCli(sc_cli::KeySubcommand),
+	/// Generate an Ethereum account.
+	GenerateAccountKey(GenerateAccountKey),
+}
+
+impl KeyCmd {
+	/// run the key subcommands
+	pub fn run<C: SubstrateCli>(&self, cli: &C) -> Result<(), CliError> {
+		match self {
+			KeyCmd::BaseCli(cmd) => cmd.run(cli),
+			KeyCmd::GenerateAccountKey(cmd) => {
+				cmd.run();
+				Ok(())
+			}
+		}
 	}
 }
 
@@ -198,12 +223,6 @@ pub struct Cli {
 
 	#[structopt(flatten)]
 	pub run: RunCmd,
-
-	/// Run node as collator.
-	///
-	/// Note that this is the same as running with `--validator`.
-	#[structopt(long, conflicts_with = "validator")]
-	pub collator: bool,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

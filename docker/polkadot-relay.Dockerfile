@@ -16,6 +16,7 @@ RUN git clone ${POLKADOT_REPO}
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
 
+# RUN sed -i 's/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 1 \* HOURS/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 2 \* MINUTES/' runtime/*/src/constants.rs
 # Download rust dependencies and build the rust binary
 RUN cargo build --$PROFILE
 
@@ -35,11 +36,8 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 
 USER moonbeam
 
-COPY --chown=moonbeam specs/stagenet/rococo-embedded-specs-v7.json /moonbase-alphanet/stagenet-relay-raw-specs.json
-COPY --chown=moonbeam specs/alphanet/rococo-embedded-specs-v7.json /moonbase-alphanet/alphanet-relay-raw-specs.json
-RUN grep -v '/p2p/' /moonbase-alphanet/stagenet-relay-raw-specs.json > \
-    /moonbase-alphanet/stagenet-relay-raw-specs-no-bootnodes.json && \
-	grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
+COPY --chown=moonbeam specs/alphanet/rococo-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
+RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
     /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic

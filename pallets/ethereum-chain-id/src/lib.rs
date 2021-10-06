@@ -26,7 +26,6 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
 
 	/// The Ethereum Chain Id Pallet
 	#[pallet::pallet]
@@ -41,12 +40,6 @@ pub mod pallet {
 			Self::chain_id()
 		}
 	}
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
-
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {}
 
 	#[pallet::storage]
 	#[pallet::getter(fn chain_id)]

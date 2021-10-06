@@ -15,6 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use std::str::FromStr;
 
+pub mod account_key;
+
 /// Block authoring scheme to be used by the dev service.
 #[derive(Debug)]
 pub enum Sealing {
@@ -67,7 +69,8 @@ impl FromStr for EthApi {
 	}
 }
 
-pub struct RpcParams {
+pub struct RpcConfig {
+	pub ethapi: Vec<EthApi>,
 	pub ethapi_max_permits: u32,
 	pub ethapi_trace_max_count: u32,
 	pub ethapi_trace_cache_duration: u64,

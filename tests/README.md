@@ -1,6 +1,6 @@
 # Functional testing for Moonbeam
 
-This folder contains a set of functional tests desgined for Moonbeam network.
+This folder contains a set of functional tests designed for Moonbeam network.
 
 It is written in typescript, using Mocha/Chai as Test framework.
 
@@ -25,6 +25,15 @@ and to print more information:
 
 ```
 npm run test-with-logs
+```
+
+# Running a parachain test
+
+You can directly launch a parachain test with this script.
+It takes care of getting the binary relay node and spawns 2 validators and 2 collators. 
+
+```bash
+scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
 ```
 
 ## Write Tests

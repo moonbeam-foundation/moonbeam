@@ -1,0 +1,31 @@
+[package]
+name = "pallet-migrations"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "migrations management pallet"
+
+[dependencies]
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+log = "0.4"
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false }
+
+[dev-dependencies]
+environmental = "1.1.2"
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+
+[features]
+default = ["std"]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"sp-std/std",
+	"sp-runtime/std",
+]
+try-runtime = [
+	"frame-support/try-runtime",
+]

@@ -68,7 +68,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(message).to.eq(
             `balances.transfer(0x1111111111111111111111111111111111111111, 123)`
           );
-          expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
+          expect(ex.signer.toString()).to.eq(GENESIS_ACCOUNT);
           break;
         default:
           throw new Error(`Unexpected extrinsic: ${message}`);

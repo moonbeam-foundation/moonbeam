@@ -1,131 +1,58 @@
 name: Release
 
-# Using a single file workflow is the preferred solution for our CI over workflow_runs.
-# 1. It generates only 1 action item in the list making it more readable
-# 2. It includes the PR/Commit text in the action item
-# 3. Artifacts are not available between workflows.
-
-# This is only allowing pushes on the moonbeam repo for pull requests.
-####### DO NOT CHANGE THIS !! #######
-on: ["push"]
+# The code (like generate-release-body) will be taken from the tag version, not master
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag (ex. v0.8.3) to generate release note and srtool runtime images from
+        required: true
 
 jobs:
-  ####### Check files and formatting #######
-
-  check-copyright:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Find un-copyrighted files
-        run: |
-          find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
-          FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            true
-          else
-            false
-          fi
-
-  check-links:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
-        with:
-          use-quiet-mode: "yes"
-
-  check-editorconfig:
-    name: "Check editorconfig"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup editorconfig checker
-        run: |
-          ls /tmp/bin/ec-linux-amd64 || \
-          cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz && \
-          tar xvf ec-linux-amd64.tar.gz && \
-          chmod +x bin/ec-linux-amd64
-      - name: Check files
-        run: /tmp/bin/ec-linux-amd64
-
-  check-prettier:
-    name: "Check with Prettier"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
-      - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
-
-  ####### Building and Testing binaries #######
+  ####### Building binaries #######
 
   build:
     runs-on: self-hosted
     env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      CARGO_SCCACHE_COMMIT: 49ab6cb5f216a6529f7273de4322e0a9194e6951
       RUSTFLAGS: "-C opt-level=3"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        # Install sccache
+        with:
+          ref: ${{ github.event.inputs.tag }}
       - uses: actions/cache@v2
         with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
 
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
-
-      - name: Install sccache
+      - name: SCCache
         run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          # We altered the path to avoid old actions to overwrite it
+          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
+          if [ ! -f $SCCACHE_BIN ]; then
+            cargo install sccache --git https://github.com/paritytech/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
           fi
-        shell: bash
-      - name: Start sccache
-        run: |
-          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
+          ls -la $SCCACHE_BIN
+          ps aux | grep sccache
+          if [[ -z `pgrep sccache` ]]; then
+            chmod +x $SCCACHE_BIN
+            $SCCACHE_BIN --start-server
+          fi
+          $SCCACHE_BIN -s
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
         run: cargo build --release --all
-      # We determine whether there are unmodified Cargo.lock files by:
-      # 1. Asking git for a list of all modified files
-      # 2. Using grep to reduce the list to only Cargo.lock files
-      # 3. Counting the number of lines of output
-      - name: Check Cargo Toml
-        run: |
-          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            echo "All lock files are valid"
-          else
-            echo "The following Cargo.lock files have uncommitted changes"
-            git diff-index --name-only HEAD | grep Cargo.lock
-            false
-          fi
-      - name: Unit tests
-        run: cargo test --release --all
-      - name: Stop sccache
-        run: |
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -135,137 +62,44 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Check with Clippy
-        run: cargo clippy --release --workspace
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
-
-  typescript-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
-      - name: Typescript integration tests (against dev service)
-        env:
-          BINARY_PATH: ../build/moonbeam
-        run: |
-          chmod uog+x build/moonbeam
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          node_modules/.bin/mocha -r ts-node/register 'tests/**/test-*.ts'
 
   ####### Prepare and Deploy Docker images #######
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: ["build", "typescript-tests"]
+    needs: ["build"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.tag }}
       - uses: actions/download-artifact@v2
         with:
           name: moonbeam
           path: build
-      - name: Generate specs
+      - name: Make moonbeam executable
         run: |
           chmod uog+x build/moonbeam
+      - name: Generate specs
+        run: |
           MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
+      - name: Generate runtimes
+        run: |
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-runtimes.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
           name: moonbeam
           path: build
 
-  docker-parachain:
-    runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain
-          VERSION=noop
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            MINOR=${VERSION%.*}
-            MAJOR=${MINOR%.*}
-            TAGS="$TAGS,${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:latest"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
-          fi
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push parachain
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/moonbase-parachain.Dockerfile
-          platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["build", "generate-parachain-specs"]
-    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.tag }}
       - uses: actions/download-artifact@v2
         with:
           name: moonbeam
@@ -274,19 +108,7 @@ jobs:
         id: prep
         run: |
           DOCKER_IMAGE=purestake/moonbeam
-          VERSION=noop
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
+          VERSION=${{ github.event.inputs.tag }}
           TAGS="${DOCKER_IMAGE}:${VERSION}"
           if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             MINOR=${VERSION%.*}
@@ -330,14 +152,43 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
+  ####### Build runtimes with srtool #######
+
+  build-srtool-runtimes:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chain: ["moonbase", "moonriver", "moonbeam"]
+    steps:
+      - name: Get Timestamp
+        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.tag }}
+      - name: Srtool build
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.1.0
+        with:
+          chain: ${{ matrix.chain }}
+          tag: 1.53.0-rc2
+      - name: Summary
+        run: |
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
+          cat ${{ matrix.chain }}-srtool-digest.json
+          cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}-runtime.compact.wasm
+      - name: Archive Artifacts for ${{ matrix.chain }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.chain }}-runtime
+          path: |
+            ${{ matrix.chain }}-runtime.compact.wasm
+            ${{ matrix.chain }}-srtool-digest.json
+
   ####### Prepare the release draft #######
 
   publish-draft-release:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/v')
+    needs: ["build", "generate-parachain-specs", "build-srtool-runtimes"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
@@ -345,69 +196,126 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          ref: ${{ github.event.inputs.tag }}
           fetch-depth: 0
-          path: moonbeam
-      # - name: Set up Ruby 2.7
-      #   uses: actions/setup-ruby@v1
-      #   with:
-      #     ruby-version: 2.7
-      # - name: Generate release text
-      #   env:
-      #     RUSTC: ${{ needs.build.outputs.rustc }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gem install changelogerator git toml
-      #     ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Download moonbase runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonbase-runtime
+          path: build
+      - name: Download moonriver runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonriver-runtime
+          path: build
+      - name: Download moonbeam runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonbeam-runtime
+          path: build
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Generate release body
+        id: generate-release-body
+        run: |
+          cd tools
+          yarn
+          yarn -s run ts-node github/generate-release-body.ts --srtool-report-folder '../build/' > ../body.md
+      - name: Get runtime version
+        id: get-runtime-ver
+        run: |
+          runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+
+          echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
+          mv build/moonbase-runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
+          mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
+          runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+
+          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          mv build/moonriver-runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+
+          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          mv build/moonbeam-runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
+
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Moonbase ${{ github.ref }}
-          body: "TBD"
+          tag_name: ${{ github.event.inputs.tag }}
+          release_name: Moonbase ${{ github.event.inputs.tag }}
+          body_path: body.md
           draft: true
-
-  publish-runtimes:
-    runs-on: ubuntu-latest
-    needs: ["publish-draft-release"]
-    # We want to store the binaries also when it is not a version release. This is used
-    # in case such as providing binaries when creating a new tutorial version.
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-      - name: Set up Ruby 2.7
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.7
-      - name: Get runtime version
-        id: get-runtime-ver
-        run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("lib.rs")')"
-          echo "::set-output name=runtime_ver::$runtime_ver"
-      - name: Upload wasm
+      - name: Upload moonbase wasm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/parachain-runtime.wasm
-          asset_name: runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
-          asset_content_type: application/wasm
-      - name: Upload binary
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+          asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+          asset_content_type: application/octet-stream
+      - name: Upload moonbase srtool digest
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}-srtool-digest.json
+          asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.srtool-digest.json
+          asset_content_type: application/json
+      - name: Upload moonriver wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+          asset_content_type: application/octet-stream
+      - name: Upload moonriver srtool digest
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}-srtool-digest.json
+          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.srtool-digest.json
+          asset_content_type: application/json
+      - name: Upload moonbeam wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+          asset_content_type: application/octet-stream
+      - name: Upload moonbeam srtool digest
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}-srtool-digest.json
+          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.srtool-digest.json
+          asset_content_type: application/json
+      - name: Upload moonbeam
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: build/moonbeam
           asset_name: moonbeam
           asset_content_type: application/octet-stream

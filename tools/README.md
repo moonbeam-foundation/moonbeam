@@ -2,173 +2,238 @@
 
 _NB: this folder is yarn only_
 
-## Moonbeam-Launch
+## Launching complete network
 
-_Moonbeam-launch_ (https://github.com/PureStake/polkadot-launch/tree/moonbeam-launch) is a fork of polkadot-launch adapted for Moonbeam's needs for testing. Eventually, polkadot-launch should catch up and remove the need for a custom implementation.
+Based on [polkadot-launch](https://github.com/paritytech/polkadot-launch), the tool to launch
+multiple relay and parachain nodes, the script [launch.ts](./launch.ts) allows to start a complete
+network based on the different version of the runtimes
 
-_Polkadot-launch_ (https://github.com/paritytech/polkadot-launch) allows to start a local network of polkadot relaychain and parachain nodes with the desired configuration.
+As the moonbeam and relay runtimes evolved, more configurations will be added to the script.
 
-For this setup, you want to have moonbeam and polkadot cloned in the same repo:
+To make it easier and faster to run, it will detect and download the binaries
+from the given docker images.  
+(This is only supported on Linux. Other OS must use local configuration, see further)
 
-- repo
-  - moonbeam
-  - polkadot
+### Installation
 
-### Build Parachain
-
-In the moonbeam repo, checkout to the desired commit of moonbeam and then run:
-
-```
-cargo build --release
-./target/release/moonbeam --version
-```
-
-### Build Relaychain
-
-First, in the moonbeam repo, look in the cargo.lock file to get the sha of the commit of the used polkadot version (ctrl+f `https://github.com/paritytech/polkadot`), or run any of the relay related scripts to see that sha logged.
-
-Then, in the polkadot repo, cloned in the same repo as the moonbeam repo, run:
+(Docker is required for using network configurations other than "local")
 
 ```
-git checkout <commit sha>
-cargo build --release
+yarn install
 ```
 
-### Launch Script
-
-Run `yarn run build-moonbeam-launch` to install the correct dependency
-
-- Installs PureStake moonbeam-launch branch
-
-Run `yarn run moonbeam-launch` to start a network with `config_moonbeam.json`
-
-- Installs PureStake moonbeam-launch branch
-- Starts a local network with `config_moonbeam.json`
-
-Run `yarn run moonbeam-test`, if you want to run a simple test sending transactions to different addresses:
-
-- Installs PureStake moonbeam-launch branch
-- Starts a local network with `config_moonbeam.json`
-- Runs a simple test sending transactions and testing propagation
-
-### Launch Custom Scripts
-
-Before you run a custom script, run `yarn run build-moonbeam-launch` to install the correct dependency
-
-If you want to run the staking test, run `ts-node test-staking.ts`
-
-If you want to write your own custom test, use the start function from `polkadot-launch` :
-
-`import { start } from "polkadot-launch";`
-
-And then you can call it with the desired test-config this way:
-
-`await start("config_moonbeam_staking.json");`
-
-### Change Config
-
-Change the path in the config_moonbeam.json file to use polkadot in a different location.
-
-### Understand The Config
-
-Let's look at the staking test-config:
+### Usage
 
 ```
-{
-  "relaychain": { // This field corresponds to the relaychain nodes config
-    "bin": "../../polkadot/target/release/polkadot", // The executable for the relay chain
-    "chain": "rococo-local", // chain param for relay-chain
-    "nodes": [ // # of nodes needs to be >= # of collator nodes
-      {
-        "name": "alice",
-        "wsPort": 36944,
-        "port": 36444
-      },
-      {
-        "name": "bob",
-        "wsPort": 36955,
-        "port": 36555
-      },
-      {
-        "name": "charlie",
-        "wsPort": 36956,
-        "port": 36556
-      },
-      {
-        "name": "dave",
-        "wsPort": 36957,
-        "port": 36557
-      }
-    ]
-  },
-  "parachains": [ // This field corresponds to the parachain nodes config
-    {
-      "bin": "../target/release/moonbeam", // parachain executable
-      "id": "1000", // Parachain id, use the same id if collators are of the same parachain
-      "rpcPort": 36846,
-      "wsPort": 36946, // Don't forget to increment the ports
-      "port": 36335,
-      "balance": "1000", // Balance of relaychain tokens used by the parachain to register
-      "chain": "staking-test-spec.json", // custom specs for the parachain
-      "flags": [
-        "--no-telemetry",
-        "--no-prometheus",
-        "--author-id=6be02d1d3665660d22ff9624b7be0551ee1ac91b",
-        "--", // before this are the collator flags, after are the relaychain related flags
-        "--execution=wasm"
-      ]
-    },
-    {
-      "bin": "../target/release/moonbeam",
-      "id": "1000", // this node is of the same parachain
-      "rpcPort": 36847,
-      "wsPort": 36947,
-      "port": 36336,
-      "balance": "1000",
-      "chain": "staking-test-spec.json",
-      "flags": [
-        "--no-telemetry",
-        "--no-prometheus",
-        "--author-id=C0F0f4ab324C46e55D02D0033343B4Be8A55532d",
-        "--",
-        "--execution=wasm"
-      ]
-    },
-    {
-      "bin": "../target/release/moonbeam",
-      "id": "1000",
-      "rpcPort": 36848,
-      "wsPort": 36948,
-      "port": 36337,
-      "balance": "1000",
-      "chain": "staking-test-spec.json",
-      "flags": [
-        "--no-telemetry",
-        "--no-prometheus",
-        "--author-id=Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB",
-        "--",
-        "--execution=wasm"
-      ]
-    }
-  ],
-  "simpleParachains": [], // This is used by paritytech to test "simple" (dev) parachains
-  "hrmpChannels": [], // This is used to setup hrmp channels from the start
-  // it would look like this:
-  // {
-  //		"sender": 200,
-  // 		"recipient": 300,
-  //		"maxCapacity": 8,
-  //   		"maxMessageSize": 512
-  // }
-  "types": { // This is were relaychain types are added. We are adding this due to discrepancy
-  // between polkadot repo and published polkadot rococo
-    "Address": "MultiAddress",
-    "LookupSource": "MultiAddress"
-  }
+yarn run launch --parachain moonbase-0.11.2
+```
+
+The launch script accepts a preconfigured network (default is "local", see further).
+Those are listed directly inside [launch.ts](./launch.ts). Ex:
+
+```
+"moonriver-genesis": {
+  relay: "kusama-9040",
+  chain: "moonriver-local",
+  docker: "purestake/moonbeam:moonriver-genesis",
 }
 ```
 
-### Generate Test Specs
+- "moonriver-genesis" is the name of the configuration
+- "relay" is the name of the configured relay
+  (see relay preconfigured network in [launch.ts](./launch.ts))
+- "chain" is the chain (including which runtime) to use.
+- "docker" is from which docker image to take the binary matching this version
 
-To generate the specs, run :
-`./target/release/moonbeam build-spec --chain local >new-specs.json`
+It is also possible to specify a binary instead of a docker image. Ex:
+
+```
+yarn run launch --parachain local
+# or
+yarn run launch
+```
+
+which uses the configuration (based on latest rococo, you can override using `--relay local`):
+
+```
+# parachain
+local: {
+  relay: "rococo-9004",
+  chain: "moonbase-local",
+  binary: "../target/release/moonbeam",
+}
+
+# relay
+local: {
+  binary: "../../polkadot/target/release/polkadot",
+  chain: "rococo-local",
+},
+
+```
+
+- "binary" is the path to the binary to execute (related to the tools folder)
+
+### Parameters
+
+See all parameters and possible choices doing
+
+```
+> npm run launch --help
+
+Usage: launch [args]
+
+Options:
+  --version          Show version number                               [boolean]
+
+  --parachain        which parachain configuration to run               [string]
+                     [choices: "moonriver-genesis", "moonriver-genesis-fast",
+                      "alphanet-8.1", "alphanet-8.0", "local"] [default: "local"]
+
+  --parachain-chain  overrides parachain chain/runtime                  [string]
+                     [choices: "moonbase", "moonriver", "moonbeam",
+                      "moonbase-local", "moonriver-local",
+                      "moonbeam-local"]
+
+  --parachain-id     overrides parachain-id             [number] [default: 1000]
+
+  --relay            overrides relay configuration                      [string]
+                     [choices: "kusama-9030", "kusama-9040", "kusama-9030-fast",
+                      "kusama-9040-fast", "rococo-9001", "rococo-9003",
+                      "rococo-9004", "westend-9030", "westend-9040", "local"]
+
+  --relay-chain      overrides relay chain/runtime                      [string]
+                     [choices: "rococo", "westend", "kusama", "polkadot",
+                      "rococo-local", "westend-local", "kusama-local",
+                      "polkadot-local"]
+
+  --port-prefix      provides port prefix for nodes       [number] [default: 34]
+
+  --help             Show help
+```
+
+Ex: _Run only local binaries (with runtime moonriver and relay runtime kusama)_
+
+```
+npm run launch --parachain-chain moonriver-local --relay local --relay-chain kusama-local
+```
+
+(no --parachain defaults to `--parachain local`)
+
+Ex: _Run alphanet-8.1 with westend 9030 runtime_
+
+```
+npm run launch --parachain alphanet-8.1 --relay westend-9030
+```
+
+### Fast local build
+
+If you want to use your local binary for parachain or relay chain, you can reduce your compilation
+time by including only the native runtimes you need.
+For that you have to carefully check which runtimes you need, both on the moonbeam side and on the
+polkadot side.
+
+Here is the list of cargo aliases allowing you to compile only some native rutimes:
+
+| command | native runtimes |
+|-|-|
+| `cargo moonbase`  | `moonbase, westend, polkadot`  |
+| `cargo moonbase-rococo`  | `moonbase, rococo, westend, polkadot` |
+| `cargo moonriver` | `moonriver, polkadot` |
+| `cargo moonriver-rococo` | `moonriver, rococo, polkadot` |
+| `cargo moonriver-kusama` | `moonriver, kusama, polkadot` |
+| `cargo moonbeam` | `moonbeam, polkadot` |
+| `cargo moonbeam-rococo` | `moonbeam, rococo, polkadot` |
+
+* The `moonbase` native runtime require `westend` native runtime to compile.
+* The `polkadot` native runtime is always included (This is requirement from polkadot repo).
+
+### Port assignments
+
+The ports are assigned following this given logic:
+
+```
+const portPrefix = argv["port-prefix"] || 34;
+const startingPort = portPrefix * 1000;
+
+each relay node:
+  - p2p: startingPort + i * 10
+  - rpc: startingPort + i * 10 + 1
+  - ws: startingPort + i * 10 + 2
+
+each parachain node:
+  - p2p: startingPort + 100 + i * 10
+  - rpc: startingPort + 100 + i * 10 + 1
+  - ws: startingPort + 100 + i * 10 + 2
+```
+
+For the default configuration, you can access through polkadotjs:
+
+- relay node 1: https://polkadot.js.org/apps/?rpc=ws://localhost:34002
+- parachain node 1: https://polkadot.js.org/apps/?rpc=ws://localhost:34102
+
+### Example of output:
+
+```
+└────╼ npm run launch moonriver-genesis-fast
+
+> moonbeam-tools@0.0.1 launch /home/alan/projects/moonbeam/tools
+> ts-node launch "moonriver-genesis-fast"
+
+🚀 Relay:     kusama-9030-fast    - purestake/moonbase-relay-testnet:kusama-0.9.3-fast (kusama-local)
+     Missing build/moonriver-genesis-fast/moonbeam locally, downloading it...
+     build/moonriver-genesis-fast/moonbeam downloaded !
+🚀 Parachain: moonriver-genesis-fast   - purestake/moonbase-parachain:moonriver-genesis-fast (moonriver-local)
+     Missing build/kusama-9030-fast/polkadot locally, downloading it...
+     build/kusama-9030-fast/polkadot downloaded !
+
+2021-06-06 04:28:46  Building chain spec
+
+🧹 Starting with a fresh authority set...
+  👤 Added Genesis Authority alice
+  👤 Added Genesis Authority bob
+
+⚙ Updating Parachains Genesis Configuration
+
+⛓ Adding Genesis Parachains
+⛓ Adding Genesis HRMP Channels
+
+2021-06-06 04:28:52  Building chain spec
+```
+
+## Listing dependency pull request by labels
+
+Using script [github/list-pr-labels.ts]:
+
+```
+npm run list-pull-request-labels -- --from polkadot-v0.9.4 --to polkadot-v0.9.5 --repo paritytech/substrate
+```
+
+### Parameters
+
+```
+Options:
+  --version     Show version number                                    [boolean]
+  --from        commit-sha/tag of range start                [string] [required]
+  --to          commit-sha/tag of range end                  [string] [required]
+  --repo        which repository to read                     [string] [required]
+                [choices: "paritytech/substrate", "paritytech/polkadot"]
+  --only-label  filter specific labels (using grep)                      [array]
+  --help        Show help                                              [boolean]
+```
+
+### Expected output
+
+```
+> npm run list-pr-labels -- --from polkadot-v0.9.4 --to polkadot-v0.9.5 --repo paritytech/substrate --only-label runtime
+
+found 55 total commits in https://github.com/paritytech/substrate/compare/polkadot-v0.9.4...polkadot-v0.9.5
+===== E1-runtimemigration
+  (paritytech/substrate#9061) Migrate pallet-randomness-collective-flip to pallet attribute macro
+===== B7-runtimenoteworthy
+  (paritytech/substrate#7778) Named reserve
+  (paritytech/substrate#8955) update ss58 type to u16
+  (paritytech/substrate#8909) contracts: Add new `seal_call` that offers new features
+  (paritytech/substrate#9083) Migrate pallet-staking to pallet attribute macro
+  (paritytech/substrate#9085) Enforce pub calls in pallets
+  (paritytech/substrate#8912) staking/election: prolonged era and emergency mode for governance submission.
+```

