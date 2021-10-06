@@ -251,17 +251,32 @@ pub enum UtilityCall {
 	AsDerivative(u16),
 }
 
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum Transactors {
+	Relay,
+}
 pub struct UtilityCallEncoder;
 
-impl UtilityEncodeCall for UtilityCallEncoder {
-	fn encode_call(call: UtilityAvailableCalls) -> Vec<u8> {
-		match call {
-			UtilityAvailableCalls::AsDerivative(a, b) => {
-				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
-				call.append(&mut b.clone());
-				call
+impl crate::XcmTransact for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			Transactors::Relay => {
+				match call {
+					UtilityAvailableCalls::AsDerivative(a, b) => {
+						let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+						// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
+						call.append(&mut b.clone());
+						call
+					}
+				}
 			}
+		}
+	}
+
+	fn destination(self) -> MultiLocation {
+		match self {
+			Transactors::Relay => MultiLocation::parent()
 		}
 	}
 }
@@ -269,7 +284,7 @@ impl UtilityEncodeCall for UtilityCallEncoder {
 impl Config for Test {
 	type Event = Event;
 	type Balance = Balance;
-	type CallEncoder = UtilityCallEncoder;
+	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;

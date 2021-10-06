@@ -37,7 +37,7 @@ fn test_transact_through_derivative_errors() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
-					MultiLocation::parent(),
+					Transactors::Relay,
 					1,
 					MultiAsset {
 						id: AssetId::Concrete(MultiLocation::parent()),
@@ -56,7 +56,7 @@ fn test_transact_through_derivative_errors() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
-					MultiLocation::parent(),
+					Transactors::Relay,
 					1,
 					MultiAsset {
 						id: AssetId::Concrete(MultiLocation::new(
@@ -69,47 +69,6 @@ fn test_transact_through_derivative_errors() {
 					vec![0u8]
 				),
 				Error::<Test>::NotAllowed
-			);
-
-			// SelfLocation not working
-			assert_noop!(
-				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
-					MultiLocation::new(1, Junctions::X1(Junction::Parachain(100))),
-					1,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::new(
-							1,
-							Junctions::X1(Junction::Parachain(100))
-						)),
-						fun: Fungibility::Fungible(100)
-					},
-					100u64,
-					vec![0u8]
-				),
-				Error::<Test>::NotCrossChainTransfer
-			);
-
-			// Invalid Destination. Transact should go to a consensus system, not an account/pallet index itself
-			assert_noop!(
-				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
-					MultiLocation::new(
-						1,
-						Junctions::X2(Junction::Parachain(100), Junction::GeneralIndex(1))
-					),
-					1,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::new(
-							1,
-							Junctions::X1(Junction::Parachain(100))
-						)),
-						fun: Fungibility::Fungible(100)
-					},
-					100u64,
-					vec![0u8]
-				),
-				Error::<Test>::InvalidDest
 			);
 		})
 }
@@ -126,7 +85,7 @@ fn test_transact_through_derivative_success() {
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
 				Origin::signed(1u64),
-				MultiLocation::parent(),
+				Transactors::Relay,
 				1,
 				MultiAsset {
 					id: AssetId::Concrete(MultiLocation::parent()),
@@ -140,7 +99,7 @@ fn test_transact_through_derivative_success() {
 				crate::Event::Transacted(
 					1u64,
 					MultiLocation::parent(),
-					UtilityCallEncoder::encode_call(UtilityAvailableCalls::AsDerivative(
+					Transactors::Relay.encode_call(UtilityAvailableCalls::AsDerivative(
 						1,
 						vec![1u8],
 					)),

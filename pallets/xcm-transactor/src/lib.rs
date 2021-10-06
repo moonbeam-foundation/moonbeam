@@ -41,7 +41,7 @@ pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use orml_traits::location::{Parse, Reserve};
+	use orml_traits::{XcmTransfer, location::{Parse, Reserve}};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
 
@@ -74,9 +74,8 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 
-		/// XCM executor.
-		type CallEncoder: UtilityEncodeCall;
-
+		type Transactor: Parameter + Member + Clone + XcmTransact;
+		
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
 
 		/// XCM executor.
@@ -101,9 +100,11 @@ pub mod pallet {
 		AsDerivative(u16, Vec<u8>),
 	}
 
-	pub trait UtilityEncodeCall {
+	pub trait XcmTransact {
 		/// Encode call from the relay.
-		fn encode_call(call: UtilityAvailableCalls) -> Vec<u8>;
+		fn destination(self) -> MultiLocation;
+		/// Encode call from the relay.
+		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
 	}
 
 	#[pallet::storage]
@@ -159,7 +160,7 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
-			dest: MultiLocation,
+			dest: T::Transactor,
 			index: u16,
 			fee: MultiAsset,
 			dest_weight: Weight,
@@ -172,16 +173,16 @@ pub mod pallet {
 			// The derivative index is owned by the origin
 			ensure!(account == who, Error::<T>::NotOwner);
 
-			let dest = Self::transfer_kind(&fee, &dest)?;
+			let destination = Self::transfer_kind(&fee, &dest.clone().destination())?;
 
 			// Encode call bytes
 			let call_bytes: Vec<u8> =
-				T::CallEncoder::encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+				dest.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
 
 			let mut xcm: Xcm<T::Call> = Self::transact_fee_in_dest_chain_asset(
-				dest.clone(),
+				destination.clone(),
 				fee,
 				dest_weight,
 				OriginKind::SovereignAccount,
@@ -202,7 +203,7 @@ pub mod pallet {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
 			} else {
 				// Deposit event
-				Self::deposit_event(Event::<T>::Transacted(who.clone(), dest, call_bytes));
+				Self::deposit_event(Event::<T>::Transacted(who.clone(), destination, call_bytes));
 			}
 
 			Ok(())
