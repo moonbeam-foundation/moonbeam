@@ -27,6 +27,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
@@ -91,6 +92,7 @@ moonbeam-evm-tracer = { path = "../evm_tracer", optional = true, default-feature
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
+moonbeam-relay-encoder = {path = "../relay-encoder", default-features = false }
 
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
