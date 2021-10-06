@@ -31,14 +31,22 @@ const paraAssetMetadata: AssetMetadata = {
   decimals: new BN(18),
   isFrozen: false,
 };
-const sourceLocationRelay = { XCM: { parents: 1, junctions: "Here" } }; // { XCM: "Parent" }; // { XCM: { X1: "Parent" } };
+interface sourceLocation {
+  XCM: {
+    parents: number | BN;
+    interior: any;
+  };
+}
+const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } }; // { XCM: "Parent" }; // { XCM: { X1: "Parent" } };
 
 async function registerAssetToParachain(
   parachainApi: ApiPromise,
   sudoKeyring: KeyringPair,
-  assetLocation: { XCM: any } = sourceLocationRelay,
+  assetLocation: sourceLocation = sourceLocationRelay,
   assetMetadata: AssetMetadata = relayAssetMetadata
 ) {
+  console.log("assetLocation", JSON.stringify(assetLocation, null, 2));
+  console.log("assetMetadata", assetMetadata);
   const { events: eventsRegister } = await createBlockWithExtrinsicParachain(
     parachainApi,
     sudoKeyring,
@@ -73,7 +81,7 @@ describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
   (context) => {
-    it.only("should be able to receive an asset from relay", async function () {
+    it("should be able to receive an asset from relay", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
@@ -107,18 +115,15 @@ describeParachain(
         aliceRelay,
         relayOne.tx.xcmPallet.reserveTransferAssets(
           { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-
           {
             V1: {
               parents: new BN(0),
               interior: { X1: { AccountKey20: { network: "Any", key: ALITH } } },
             },
           },
-          //[
           {
             V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
           },
-          //], //["Here", new BN(1000000000000000)]],
           0,
           new BN(4000000000)
         )
@@ -178,9 +183,17 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
       relayOne,
       aliceRelay,
       relayOne.tx.xcmPallet.reserveTransferAssets(
-        { X1: { Parachain: new BN(1000) } },
-        { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-        [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+        { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+        {
+          V1: {
+            parents: new BN(0),
+            interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+          },
+        },
+        {
+          V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+        },
+        0,
         new BN(4000000000)
       )
     );
@@ -192,11 +205,10 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     expect(
       ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
     ).to.eq("8.9999 kUnit");
-    // // Alith asset balance should have been increased to 1000*e12
-    expect(
-      (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-        "1,000,000,000,000,000"
-    ).to.eq(true);
+    // // BALTATHAR asset balance should have been increased to 1000*e12
+    expect((await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
+      "1,000,000,000,000,000"
+    );
   });
   it("should be able to receive an asset in relaychain from parachain", async function () {
     // PARACHAIN A
@@ -208,7 +220,8 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
         { OtherReserve: assetId },
         new BN(HUNDRED_UNITS),
         {
-          X2: ["Parent", { AccountId32: { network: "Any", id: aliceRelay.addressRaw } }],
+          parents: new BN(1),
+          interior: { X1: { AccountId32: { network: "Any", id: aliceRelay.addressRaw } } },
         },
         new BN(4000000000)
       )
@@ -277,9 +290,17 @@ describeParachain(
         relayOne,
         aliceRelay,
         relayOne.tx.xcmPallet.reserveTransferAssets(
-          { X1: { Parachain: new BN(1000) } },
-          { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-          [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+          {
+            V1: {
+              parents: new BN(0),
+              interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+            },
+          },
+          {
+            V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+          },
+          0,
           new BN(4000000000)
         )
       );
@@ -295,18 +316,20 @@ describeParachain(
     it("should be able to receive a non-reserve asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
-      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
+      await createBlockWithExtrinsicParachain(
         parachainOne,
         baltathar,
         parachainOne.tx.xTokens.transfer(
           { OtherReserve: assetId },
           new BN(HUNDRED_UNITS),
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(2000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(2000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -341,7 +364,7 @@ describeParachain(
       parachainTwo: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationX3: { XCM: any },
+      sourceLocationParaA: sourceLocation,
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
@@ -370,9 +393,10 @@ describeParachain(
 
       expect(palletIndex);
 
-      sourceLocationX3 = {
+      sourceLocationParaA = {
         XCM: {
-          X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
+          parents: 1,
+          interior: { X2: [{ Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }] },
         },
       };
 
@@ -381,7 +405,7 @@ describeParachain(
       ({ assetId } = await registerAssetToParachain(
         parachainTwo,
         alith,
-        sourceLocationX3,
+        sourceLocationParaA,
         paraAssetMetadata
       ));
     });
@@ -395,11 +419,13 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(2000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(2000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -416,10 +442,9 @@ describeParachain(
       const diff =
         Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
       expect(diff < 10000000000000000).to.eq(true);
-      expect(
-        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "100,000,000,000,000,000,000"
-      ).to.eq(true);
+      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
+        "100,000,000,000,000,000,000"
+      );
     });
   }
 );
@@ -435,7 +460,7 @@ describeParachain(
       parachainTwo: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationX3: { XCM: any },
+      sourceLocationParaA: sourceLocation,
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
@@ -464,9 +489,10 @@ describeParachain(
 
       expect(palletIndex);
 
-      sourceLocationX3 = {
+      sourceLocationParaA = {
         XCM: {
-          X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
+          parents: new BN(1),
+          interior: { X2: [{ Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }] },
         },
       };
 
@@ -475,7 +501,7 @@ describeParachain(
       ({ assetId } = await registerAssetToParachain(
         parachainTwo,
         alith,
-        sourceLocationX3,
+        sourceLocationParaA,
         paraAssetMetadata
       ));
 
@@ -488,11 +514,13 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(2000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(2000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -509,11 +537,13 @@ describeParachain(
           { OtherReserve: assetId },
           HUNDRED_UNITS_PARA,
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(1000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(1000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -547,7 +577,7 @@ describeParachain(
       parachainThree: ApiPromise,
       relayOne: ApiPromise,
       assetId: string,
-      sourceLocationX3: { XCM: any },
+      sourceLocationParaA: { XCM: any },
       initialBalance: number;
     before("First send relay chain asset to parachain", async function () {
       keyring = new Keyring({ type: "ethereum" });
@@ -578,9 +608,10 @@ describeParachain(
 
       expect(palletIndex);
 
-      sourceLocationX3 = {
+      sourceLocationParaA = {
         XCM: {
-          X3: ["Parent", { Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }],
+          parents: new BN(1),
+          interior: { X2: [{ Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }] },
         },
       };
 
@@ -589,13 +620,13 @@ describeParachain(
       ({ assetId } = await registerAssetToParachain(
         parachainTwo,
         alith,
-        sourceLocationX3,
+        sourceLocationParaA,
         paraAssetMetadata
       ));
 
       // PARACHAIN C
       // registerAsset
-      await registerAssetToParachain(parachainThree, alith, sourceLocationX3, paraAssetMetadata);
+      await registerAssetToParachain(parachainThree, alith, sourceLocationParaA, paraAssetMetadata);
     });
     it("should be able to receive an asset back in para a from para b", async function () {
       // PARACHAIN A
@@ -607,11 +638,13 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(2000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(2000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -627,12 +660,15 @@ describeParachain(
         parachainTwo.tx.xTokens.transfer(
           { OtherReserve: assetId },
           HUNDRED_UNITS_PARA,
+
           {
-            X3: [
-              "Parent",
-              { Parachain: new BN(3000) },
-              { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-            ],
+            parents: new BN(1),
+            interior: {
+              X2: [
+                { Parachain: new BN(3000) },
+                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+              ],
+            },
           },
           new BN(4000000000)
         )
@@ -642,7 +678,7 @@ describeParachain(
       expect(eventsTransfer2[2].toHuman().method).to.eq("Transferred");
       expect(eventsTransfer2[6].toHuman().method).to.eq("ExtrinsicSuccess");
 
-      await waitOneBlock(parachainThree, 6);
+      await waitOneBlock(parachainThree, 3);
       // Verify that difference is 100 units plus fees (less than 1% of 10^18)
       const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
       const diff =
