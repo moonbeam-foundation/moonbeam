@@ -110,6 +110,7 @@ pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features =
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm-transactor =  { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10", optional = true }
@@ -204,7 +205,8 @@ std = [
 	"xcm-primitives/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-assets-erc20/std",
-	"xtokens-precompiles/std"
+	"xtokens-precompiles/std",
+	"xcm-transactor/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

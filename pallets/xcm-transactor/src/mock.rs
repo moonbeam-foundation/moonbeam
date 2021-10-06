@@ -23,7 +23,7 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
@@ -33,7 +33,7 @@ use sp_runtime::{
 };
 use xcm::v1::{
 	Error as XcmError,
-	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
+	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendXcm, Xcm,
 };
 
