@@ -1512,7 +1512,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1522,7 +1522,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1546,7 +1546,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1571,7 +1571,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1596,7 +1596,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "derive_more",
  "futures 0.3.16",
@@ -1620,7 +1620,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "futures 0.3.16",
@@ -1644,7 +1644,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1673,7 +1673,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -1692,7 +1692,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
@@ -1748,7 +1748,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
@@ -1770,7 +1770,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcm"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -1786,7 +1786,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -1804,7 +1804,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -1840,7 +1840,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
@@ -1882,7 +1882,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "sp-inherents",
@@ -1893,7 +1893,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-utility"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -1911,7 +1911,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "parity-scale-codec",
@@ -5915,7 +5915,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5945,7 +5945,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6306,7 +6306,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6342,7 +6342,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -7326,7 +7326,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#033db97d0612bef771396202100cf6b439cf6230"
+source = "git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change#cef7921ca5edd559892d6704b94e11be45d31631"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=elois-force-authoring-when-runtime-change)",
  "frame-support",
@@ -13115,7 +13115,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
