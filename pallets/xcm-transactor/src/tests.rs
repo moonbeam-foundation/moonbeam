@@ -90,7 +90,7 @@ fn test_transact_through_derivative_errors() {
 				Error::<Test>::NotCrossChainTransfer
 			);
 
-			// Invalid Destination. Transact should go to a consensus system, not an account itself
+			// Invalid Destination. Transact should go to a consensus system, not an account/pallet index itself
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
@@ -140,7 +140,10 @@ fn test_transact_through_derivative_success() {
 				crate::Event::Transacted(
 					1u64,
 					MultiLocation::parent(),
-					UtilityCallEncoder::encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+					UtilityCallEncoder::encode_call(UtilityAvailableCalls::AsDerivative(
+						1,
+						vec![1u8],
+					)),
 				),
 			];
 			assert_eq!(events(), expected);

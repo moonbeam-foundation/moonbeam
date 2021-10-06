@@ -546,6 +546,45 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type CallEncoder = MockEncoder;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call>;
+	type LocationInverter = LocationInverter<Ancestry>;
+}
+
+// We need to use the encoding from the relay mock runtime
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+pub struct MockEncoder;
+impl xcm_transactor::UtilityEncodeCall for MockEncoder {
+	fn encode_call(call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+		match call {
+			xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
+				call.append(&mut b.clone());
+				call
+			}
+		}
+	}
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -563,5 +602,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+
 	}
 );
