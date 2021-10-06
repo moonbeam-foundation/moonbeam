@@ -75,7 +75,7 @@ pub mod pallet {
 			+ Into<u128>;
 
 		/// XCM executor.
-		type CallEncoder: EncodeCall<Self>;
+		type CallEncoder: UtilityEncodeCall;
 
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
 
@@ -97,13 +97,13 @@ pub mod pallet {
 	}
 
 	#[derive(Debug, PartialEq, Eq)]
-	pub enum AvailableCalls {
+	pub enum UtilityAvailableCalls {
 		AsDerivative(u16, Vec<u8>),
 	}
 
-	pub trait EncodeCall<T: Config> {
+	pub trait UtilityEncodeCall {
 		/// Encode call from the relay.
-		fn encode_call(call: AvailableCalls) -> Vec<u8>;
+		fn encode_call(call: UtilityAvailableCalls) -> Vec<u8>;
 	}
 
 	#[pallet::storage]
@@ -176,7 +176,7 @@ pub mod pallet {
 
 			// Encode call bytes
 			let call_bytes: Vec<u8> =
-				T::CallEncoder::encode_call(AvailableCalls::AsDerivative(index, inner_call));
+				T::CallEncoder::encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
 

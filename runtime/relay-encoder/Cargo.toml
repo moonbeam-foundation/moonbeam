@@ -16,6 +16,7 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", defaul
 pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm-transactor =  { path = "../../pallets/xcm-transactor", default-features = false }
 
 [dev-dependencies]
 polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
@@ -24,6 +25,8 @@ westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moo
 rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+
 
 [features]
 default = ["std"]
@@ -36,4 +39,5 @@ std = [
     "sp-runtime/std",
     "parity-scale-codec/std",
     "frame-system/std",
+    "xcm-transactor/std"
 ]
