@@ -16,7 +16,7 @@
 
 use crate::{
 	PerfCmd,
-	tests::{ TestRunner, TestResults, FibonacciPerfTest, BlockCreationPerfTest},
+	tests::{ TestRunner, TestResults, FibonacciPerfTest, BlockCreationPerfTest, StoragePerfTest},
 	txn_signer::UnsignedTransaction,
 };
 
@@ -205,12 +205,24 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 
 	pub fn get_alice_details(&self) -> AccountDetails {
 		use std::str::FromStr;
+
+		let alice_address = H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
+				.expect("valid hex provided; qed");
+
+		let block = BlockId::Hash(self.client.info().best_hash);
+
+		let nonce = self
+			.client
+			.runtime_api()
+			.account_basic(&block, alice_address)
+			.expect("should be able to get alices' account info")
+		.nonce;
+
 		AccountDetails {
-			address: H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
-				.expect("valid hex provided; qed"),
+			address: alice_address,
 			privkey: H256::from_str("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133")
 				.expect("valid hex provided; qed"),
-			nonce: U256::from(0),
+			nonce: nonce,
 
 		}
 	}
@@ -391,6 +403,7 @@ impl PerfCmd {
 		let mut tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec!(
 			Box::new(FibonacciPerfTest::new()),
 			Box::new(BlockCreationPerfTest::new()),
+			Box::new(StoragePerfTest::new()),
 		);
 
 		for mut test in tests {

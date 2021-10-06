@@ -26,8 +26,10 @@ use sc_service::{
 
 mod fibonacci;
 mod block_creation;
+mod storage;
 pub use fibonacci::FibonacciPerfTest;
 pub use block_creation::BlockCreationPerfTest;
+pub use storage::StoragePerfTest;
 
 /// struct representing the test results of a single test
 #[derive(Default, Clone)]

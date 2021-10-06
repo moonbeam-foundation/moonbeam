@@ -71,7 +71,6 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for BlockCreationPer
 		Executor: NativeExecutionDispatch + 'static,
 {
 
-	// taking a different approach and starting a full dev service
 	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>
 	{
 		let mut results: Vec<TestResults> = Default::default();

@@ -71,13 +71,12 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		Executor: NativeExecutionDispatch + 'static,
 {
 
-	// taking a different approach and starting a full dev service
 	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>
 	{
 		let mut results: Vec<TestResults> = Default::default();
 
 		let alice = context.get_alice_details();
-		let mut alice_nonce: U256 = 0.into();
+		let mut alice_nonce = alice.nonce;
 
 		// Fibonacci contract:
 		/*
