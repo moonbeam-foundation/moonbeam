@@ -20,8 +20,11 @@ describeDevMoonbeam("Block 1", (context) => {
     expect(block.timestamp).to.be.below(next5Minutes);
   });
 
-  it("should contain block information", async function () {
+  it.only("should contain block information", async function () {
     const block = await context.web3.eth.getBlock("latest");
+    console.log("ok");
+    console.log(block);
+    console.log(JSON.stringify(block, null, 2));
     expect(block).to.include({
       author: COLLATOR_ACCOUNT,
       difficulty: "0",
