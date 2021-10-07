@@ -32,6 +32,7 @@ pub enum RelayCall {
 	Stake(StakeCall),
 }
 
+// Utility call encoding, needed for xcm transactor pallet
 #[derive(Encode, Decode)]
 
 pub enum UtilityCall {

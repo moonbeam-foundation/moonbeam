@@ -1261,6 +1261,8 @@ impl orml_xtokens::Config for Runtime {
 }
 
 // For now we only allow to transact in the relay, although this might change in the future
+// Transactors just defines the chains in which we allow transactions to be issued through
+// xcm
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum Transactors {
 	Relay,
@@ -1269,6 +1271,8 @@ pub enum Transactors {
 impl xcm_transactor::UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
+			// Shall we use polkadot for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to polkadot-runtime I think
 			Transactors::Relay => {
 				moonbeam_relay_encoder::polkadot::PolkadotEncoder.encode_call(call)
 			}

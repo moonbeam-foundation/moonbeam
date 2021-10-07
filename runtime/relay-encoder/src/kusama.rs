@@ -31,6 +31,7 @@ pub enum RelayCall {
 	Utility(UtilityCall),
 }
 
+// Utility call encoding, needed for xcm transactor pallet
 #[derive(Encode, Decode)]
 pub enum UtilityCall {
 	#[codec(index = 1u8)]
