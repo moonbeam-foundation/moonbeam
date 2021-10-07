@@ -19,14 +19,14 @@
 //! ## Overview
 //!
 //! Module to provide transact capabilitise in other chains
-//! 
+//!
 //! This module the transactions are dispatched from a derivative account
 //! of the sovereign account
 //! This module only stores the index of the derivative account used, but
 //! not the derivative account itself. The only assumption this trait makes
 //! is the existence of the pallet_utility pallet in the destination chain
 //! through the XcmTransact trait.
-//! 
+//!
 //! All calls will be wrapped around utility::as_derivative. This makes sure
 //! the inner call is executed from the derivative account and not the sovereign
 //! account itself. This derivative account can be funded by external users to
@@ -146,7 +146,8 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		Transacted(T::AccountId, MultiLocation, Vec<u8>),
+		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
+		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
 	}
@@ -157,7 +158,7 @@ pub mod pallet {
 		/// Register a derivative index for an account id. Dispatchable by DerivativeAddressRegistrationOrigin
 		/// We do not store the derivative address, but only the index. We do not need to store the derivative
 		/// address to issue calls, only the index is enough
-		/// 
+		///
 		/// For now an index is registered for all possible destinations and not per-destination. We can change
 		/// this in the future although it would just make things more complicated
 		pub fn register(origin: OriginFor<T>, who: T::AccountId, index: u16) -> DispatchResult {
@@ -178,7 +179,7 @@ pub mod pallet {
 		}
 
 		/// Transact the inner call through a derivative account in a destination chain, using 'fee' to pay for the fees
-		/// 
+		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs to be a reserve asset
 		/// for the destination transactor::multilocation.
 		#[pallet::weight(0)]
@@ -231,7 +232,63 @@ pub mod pallet {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
 			} else {
 				// Deposit event
-				Self::deposit_event(Event::<T>::Transacted(who.clone(), destination, call_bytes));
+				Self::deposit_event(Event::<T>::TransactedDerivative(
+					who.clone(),
+					destination,
+					call_bytes,
+					index,
+				));
+			}
+
+			Ok(())
+		}
+
+		/// Transact the call through the sovereign account in a destination chain,
+		/// 'fee_payer' pays for the 'fee'
+		///
+		/// Root callable only
+		#[pallet::weight(0)]
+		pub fn transact_through_sovereign(
+			origin: OriginFor<T>,
+			destination: MultiLocation,
+			fee_payer: T::AccountId,
+			fee: MultiAsset,
+			dest_weight: Weight,
+			call: Vec<u8>,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+
+			// Convert origin to multilocation
+			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
+
+			// Gather the xcm call
+			let mut xcm: Xcm<T::Call> = Self::transact_fee_in_dest_chain_asset(
+				destination.clone(),
+				fee,
+				dest_weight,
+				OriginKind::SovereignAccount,
+				call.clone(),
+			)?;
+
+			let weight =
+				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
+			let outcome =
+				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+
+			let maybe_xcm_err: Option<XcmError> = match outcome {
+				Outcome::Complete(_w) => Option::None,
+				Outcome::Incomplete(_w, err) => Some(err),
+				Outcome::Error(err) => Some(err),
+			};
+			if let Some(xcm_err) = maybe_xcm_err {
+				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
+			} else {
+				// Deposit event
+				Self::deposit_event(Event::<T>::TransactedSovereign(
+					fee_payer.clone(),
+					destination,
+					call,
+				));
 			}
 
 			Ok(())
