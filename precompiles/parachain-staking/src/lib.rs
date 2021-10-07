@@ -58,7 +58,7 @@ enum Action {
 	CandidateBondLess = "candidate_bond_less(uint256)",
 	CandidateBondMore = "candidate_bond_more(uint256)",
 	Nominate = "nominate(address,uint256,uint256,uint256)",
-	LeaveNominators = "leave_nominators(uint256)",
+	LeaveNominators = "leave_delegators(uint256)",
 	RevokeNomination = "revoke_nomination(address)",
 	NominatorBondLess = "nominator_bond_less(address,uint256)",
 	NominatorBondMore = "nominator_bond_more(address,uint256)",
@@ -112,7 +112,7 @@ where
 			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
 			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
 			Action::Nominate => Self::nominate(input, context)?,
-			Action::LeaveNominators => Self::leave_nominators(input, context)?,
+			Action::LeaveNominators => Self::leave_delegators(input, context)?,
 			Action::RevokeNomination => Self::revoke_nomination(input, context)?,
 			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
 			Action::NominatorBondMore => Self::nominator_bond_more(input, context)?,
@@ -513,7 +513,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn leave_nominators(
+	fn leave_delegators(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -529,7 +529,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_nominators(nomination_count);
+		let call = parachain_staking::Call::<Runtime>::leave_delegators(nomination_count);
 
 		// Return call information
 		Ok((Some(origin).into(), call))

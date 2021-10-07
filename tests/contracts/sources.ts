@@ -335,7 +335,7 @@ export const contractSources: { [key: string]: string } = {
         function nominate(address collator, uint256 amount) external;
     
         /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-        function leave_nominators() external;
+        function leave_delegators() external;
     
         /// Revoke an existing nomination
         function revoke_nomination(address collator) external;
@@ -436,7 +436,7 @@ export const contractSources: { [key: string]: string } = {
         function nominate(address collator, uint256 amount) external;
     
         /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-        function leave_nominators() external;
+        function leave_delegators() external;
     
         /// Revoke an existing nomination
         function revoke_nomination(address collator) external;

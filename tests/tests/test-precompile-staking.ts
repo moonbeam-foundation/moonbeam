@@ -31,7 +31,7 @@ const SELECTORS = {
   is_nominator: "8e5080e7",
   join_candidates: "0a1bff60",
   leave_candidates: "72b02a31",
-  leave_nominators: "b71d2153",
+  leave_delegators: "b71d2153",
   min_nomination: "c9f593b2",
   nominate: "49df6eb3",
   nominator_bond_less: "f6a52569",

@@ -655,16 +655,16 @@ fn nominate_works() {
 }
 
 #[test]
-fn leave_nominators_works() {
+fn leave_delegators_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"leave_nominators(uint256)")[0..4];
+			let selector = &Keccak256::digest(b"leave_delegators(uint256)")[0..4];
 
-			// Construct selector for leave_nominators
+			// Construct selector for leave_delegators
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&selector);
 			let nomination_count = U256::one();

@@ -42,7 +42,7 @@
 //! `T::MaxCollatorsPerNominator` collator candidates by calling `nominate`.
 //!
 //! To revoke a nomination, call `revoke_nomination` with the collator candidate's account.
-//! To leave the set of nominators and revoke all delegations, call `leave_nominators`.
+//! To leave the set of nominators and revoke all delegations, call `leave_delegators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -333,13 +333,12 @@ pub mod pallet {
 					T::Currency::reserve(&caller, request.amount.into())?;
 					let new_total = <Total<T>>::get().saturating_add(request.amount.into());
 					<Total<T>>::put(new_total);
-					let before = self.bond;
 					self.bond += request.amount;
 					self.total_counted += request.amount;
 					self.total_backing += request.amount;
 					Event::CollatorBondedMore(
 						self.id.clone().into(),
-						before.into(),
+						request.amount.into(),
 						self.bond.into(),
 					)
 				}
@@ -349,13 +348,12 @@ pub mod pallet {
 					<Total<T>>::put(new_total_staked);
 					// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 					// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
-					let before = self.bond;
 					self.bond -= request.amount;
 					self.total_counted -= request.amount;
 					self.total_backing -= request.amount;
 					Event::CollatorBondedLess(
 						self.id.clone().into(),
-						before.into(),
+						request.amount.into(),
 						self.bond.into(),
 					)
 				}
@@ -1357,9 +1355,9 @@ pub mod pallet {
 		CollatorBondMoreRequested(T::AccountId, BalanceOf<T>, RoundIndex),
 		/// Collator Account, Amount To Decrease, Round at which request can be executed by caller
 		CollatorBondLessRequested(T::AccountId, BalanceOf<T>, RoundIndex),
-		/// Collator Account, Old Bond, New Bond
+		/// Collator Account, Amount, New Bond Total
 		CollatorBondedMore(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Collator Account, Old Bond, New Bond
+		/// Collator Account, Amount, New Bond
 		CollatorBondedLess(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		CollatorWentOffline(RoundIndex, T::AccountId),
 		CollatorBackOnline(RoundIndex, T::AccountId),
@@ -2135,7 +2133,7 @@ pub mod pallet {
 		/// Request to leave the set of nominators. If successful, the nominator is scheduled
 		/// to be allowed to exit. Success forbids future nominator actions until the request is
 		/// invoked or cancelled.
-		pub fn leave_nominators(
+		pub fn leave_delegators(
 			origin: OriginFor<T>,
 			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -2153,7 +2151,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Execute the right to exit the set of nominators and revoke all ongoing delegations.
-		pub fn execute_leave_nominators(
+		pub fn execute_leave_delegators(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
@@ -2173,8 +2171,8 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
-		/// request (thereby resetting the delay upon another `leave_nominators` call).
-		pub fn cancel_leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		/// request (thereby resetting the delay upon another `leave_delegators` call).
+		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			// ensure delegator state exists
 			let mut state = <DelegatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;

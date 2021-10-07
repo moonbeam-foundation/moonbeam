@@ -278,9 +278,6 @@ benchmarks! {
 				when: 3,
 			})
 		);
-		// TODO: Move to execution
-		// let expected_bond = balance * 2u32.into();
-		// assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	candidate_bond_less {
@@ -303,8 +300,39 @@ benchmarks! {
 				when: 3,
 			})
 		);
-		// TODO: Move to execution benchmark
-		// assert_eq!(T::Currency::reserved_balance(&caller), balance);
+	}
+
+	execute_candidate_bond_more {
+		let min_candidate_stk = min_candidate_stk::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			min_candidate_stk,
+			true,
+			1u32,
+		)?;
+		Pallet::<T>::candidate_bond_more(RawOrigin::Signed(caller.clone()).into(), min_candidate_stk);
+		roll_to_and_author::<T>(3, caller.clone());
+	}: { Pallet::<T>::execute_candidate_bond_request(RawOrigin::Signed(caller.clone()).into(), caller.clone()); }
+	verify {
+		let expected_bond = min_candidate_stk * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+	}
+
+	execute_candidate_bond_less {
+		let min_candidate_stk = min_candidate_stk::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			min_candidate_stk,
+			false,
+			1u32,
+		)?;
+		Pallet::<T>::candidate_bond_less(RawOrigin::Signed(caller.clone()).into(), min_candidate_stk);
+		roll_to_and_author::<T>(3, caller.clone());
+	}: { Pallet::<T>::execute_candidate_bond_request(RawOrigin::Signed(caller.clone()).into(), caller.clone()); }
+	verify {
+		assert_eq!(T::Currency::reserved_balance(&caller), min_candidate_stk);
 	}
 
 	nominate {
@@ -369,7 +397,7 @@ benchmarks! {
 		assert!(Pallet::<T>::is_nominator(&caller));
 	}
 
-	leave_nominators {
+	leave_delegators {
 		let x in 2..<<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get();
 		// Worst Case is full of nominations before exit
 		let mut collators: Vec<T::AccountId> = Vec::new();
@@ -513,6 +541,15 @@ benchmarks! {
 		// let expected = total - bond_less;
 		// assert_eq!(T::Currency::reserved_balance(&caller), expected);
 	}
+
+	// do one for each type of request
+	// first for collators
+	// execute_delegation_request {
+	// 	// TODO
+	// }: _(RawOrigin::Signed(caller.clone()))
+	// verify {
+	// 	// TODO
+	// }
 
 	// ON_INITIALIZE
 
@@ -790,6 +827,20 @@ mod tests {
 	}
 
 	#[test]
+	fn bench_execute_candidate_bond_more() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_more());
+		});
+	}
+
+	#[test]
+	fn bench_execute_candidate_bond_less() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_less());
+		});
+	}
+
+	#[test]
 	fn bench_nominate() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_nominate());
@@ -797,9 +848,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_leave_nominators() {
+	fn bench_leave_delegators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_leave_nominators());
+			assert_ok!(Pallet::<Test>::test_benchmark_leave_delegators());
 		});
 	}
 

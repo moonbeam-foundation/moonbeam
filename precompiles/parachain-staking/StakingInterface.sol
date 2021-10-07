@@ -110,7 +110,7 @@ interface ParachainStaking {
     /// @dev Leave the set of nominators and, by implication, revoke all ongoing nominations
     /// Selector: b71d2153
     /// @param nominatorNominationCount The number of existing nominations to be revoked by caller
-    function leave_nominators(uint256 nominatorNominationCount) external;
+    function leave_delegators(uint256 nominatorNominationCount) external;
 
     /// @dev Revoke an existing nomination
     /// Selector: 4b65c34b
