@@ -21,9 +21,6 @@ export async function findAvailablePorts(parachainCount: number = 1) {
       let selectedPort = 0;
       let endingPort = 65535;
       const portDistance: number = Math.floor((endingPort - 1024) / numberOfPorts);
-      console.log("endingPort", endingPort);
-      console.log("numberOfPorts", numberOfPorts);
-      console.log("portDistance", portDistance);
       let port = 1024 + index * portDistance + (process.pid % portDistance);
       while (!selectedPort && port < endingPort) {
         try {
@@ -99,7 +96,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   // Each node will have 3 ports. There are 2 nodes per parachain, and as many relaychain nodes.
   // So numberOfPorts =  3 * 2 * parachainCount
   const ports = await findAvailablePorts(numberOfParachains);
-  console.log("ports", ports);
+
   //Build hrmpChannels, all connected to first parachain
   const hrmpChannels = [];
   new Array(numberOfParachains - 1).fill(0).forEach((_, i) => {
