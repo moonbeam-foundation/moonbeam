@@ -41,7 +41,7 @@ pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use orml_traits::{XcmTransfer, location::{Parse, Reserve}};
+	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
 
@@ -74,8 +74,9 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 
+		// XcmTransact needs to be implemented
 		type Transactor: Parameter + Member + Clone + XcmTransact;
-		
+
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
 
 		/// XCM executor.
@@ -100,11 +101,17 @@ pub mod pallet {
 		AsDerivative(u16, Vec<u8>),
 	}
 
-	pub trait XcmTransact {
+	// Trait that the ensures we can encode a call with utility functions.
+	pub trait UtilityEncodeCall {
+		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+	}
+
+	// Trait to ensure we can retrieve the destination of a given type
+	// It must implement UtilityEncodeCall
+	// We separate this in two traits to be able to implement UtilityEncodeCall separately
+	pub trait XcmTransact: UtilityEncodeCall {
 		/// Encode call from the relay.
 		fn destination(self) -> MultiLocation;
-		/// Encode call from the relay.
-		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
 	}
 
 	#[pallet::storage]

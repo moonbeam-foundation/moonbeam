@@ -99,10 +99,8 @@ fn test_transact_through_derivative_success() {
 				crate::Event::Transacted(
 					1u64,
 					MultiLocation::parent(),
-					Transactors::Relay.encode_call(UtilityAvailableCalls::AsDerivative(
-						1,
-						vec![1u8],
-					)),
+					Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 				),
 			];
 			assert_eq!(events(), expected);

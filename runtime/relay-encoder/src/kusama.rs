@@ -69,7 +69,7 @@ pub enum StakeCall {
 pub struct KusamaEncoder;
 
 impl xcm_transactor::UtilityEncodeCall for KusamaEncoder {
-	fn encode_call(call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();

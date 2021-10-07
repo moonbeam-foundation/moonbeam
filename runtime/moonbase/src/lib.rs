@@ -1260,15 +1260,39 @@ impl orml_xtokens::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
+// For now we only allow to transact in the relay, although this might change in the future
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum Transactors {
+	Relay,
+}
+
+impl xcm_transactor::UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			Transactors::Relay => {
+				moonbeam_relay_encoder::polkadot::PolkadotEncoder.encode_call(call)
+			}
+		}
+	}
+}
+
+impl xcm_transactor::XcmTransact for Transactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			Transactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
 impl xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type CallEncoder = moonbeam_relay_encoder::polkadot::PolkadotEncoder;
+	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
 	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call>;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 

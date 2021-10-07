@@ -163,7 +163,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	pub const UnitWeightCost: Weight = 1;
+	pub const UnitWeightCost: Weight = 200_000_000;
 }
 
 // Instructing how incoming xcm assets will be handled
@@ -549,7 +549,7 @@ impl pallet_asset_manager::Config for Runtime {
 impl xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type CallEncoder = MockEncoder;
+	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
 	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
@@ -571,15 +571,33 @@ pub enum UtilityCall {
 	#[codec(index = 1u8)]
 	AsDerivative(u16),
 }
-pub struct MockEncoder;
-impl xcm_transactor::UtilityEncodeCall for MockEncoder {
-	fn encode_call(call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
-		match call {
-			xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
-				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
-				call.append(&mut b.clone());
-				call
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl xcm_transactor::XcmTransact for MockTransactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_transactor::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => {
+				match call {
+					xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+						let mut call =
+							RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+						// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
+						call.append(&mut b.clone());
+						call
+					}
+				}
 			}
 		}
 	}

@@ -70,7 +70,7 @@ pub enum StakeCall {
 pub struct WestendEncoder;
 
 impl xcm_transactor::UtilityEncodeCall for WestendEncoder {
-	fn encode_call(call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
