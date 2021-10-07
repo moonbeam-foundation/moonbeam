@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::block::{
-	TransactionTrace, TransactionTraceAction, TransactionTraceOutput, TransactionTraceResult,
+use super::blockscout::BlockscoutCallInner as CallInner;
+use crate::listeners::call_list::Listener;
+use crate::types::{
+	block::{
+		TransactionTrace, TransactionTraceAction, TransactionTraceOutput, TransactionTraceResult,
+	},
+	CallResult, CreateResult, CreateType,
 };
-use crate::proxy::v2::call_list::Listener;
-use crate::{single::CallInner, CallResult, CreateResult, CreateType};
+use ethereum_types::H256;
 
-pub use ethereum_types::{H160, H256, U256};
+pub struct Formatter;
 
-pub struct Response;
-
-#[cfg(feature = "std")]
-impl super::TraceResponseBuilder for Response {
+impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = Vec<TransactionTrace>;
 
-	fn build(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
+	fn format(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
 		// Remove empty BTreeMaps pushed to `entries`.
 		// I.e. InvalidNonce or other pallet_evm::runner exits
 		listener.entries.retain(|x| !x.is_empty());
@@ -106,14 +107,11 @@ impl super::TraceResponseBuilder for Response {
 							transaction_position: eth_tx_index as u32,
 						}
 					}
-					CallInner::SelfDestruct {
-						balance,
-						refund_address,
-					} => TransactionTrace {
+					CallInner::SelfDestruct { balance, to } => TransactionTrace {
 						action: TransactionTraceAction::Suicide {
 							address: trace.from,
 							balance,
-							refund_address,
+							refund_address: to,
 						},
 						// Can't be known here, must be inserted upstream.
 						block_hash: H256::default(),

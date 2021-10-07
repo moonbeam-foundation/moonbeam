@@ -33,9 +33,9 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
+	error, keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	LogsBuilder, RuntimeHelper,
 };
-use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -49,12 +49,10 @@ mod mock;
 mod tests;
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_TRANSFER: &[u8; 32] =
-	u8_slice!("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address,uint256)");
 
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
-pub const SELECTOR_LOG_APPROVAL: &[u8; 32] =
-	u8_slice!("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925");
+pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
 /// Associates pallet Instance to a prefix used for the Approves storage.
 /// This trait is implemented for () and the 16 substrate Instance.
@@ -125,17 +123,34 @@ pub enum Action {
 	Transfer = "transfer(address,uint256)",
 	Approve = "approve(address,uint256)",
 	TransferFrom = "transferFrom(address,address,uint256)",
+	Name = "name()",
+	Symbol = "symbol()",
+	Decimals = "decimals()",
+}
+
+/// Metadata of an ERC20 token.
+pub trait Erc20Metadata {
+	/// Returns the name of the token.
+	fn name() -> &'static str;
+
+	/// Returns the symbol of the token.
+	fn symbol() -> &'static str;
+
+	/// Returns the decimals places of the token.
+	fn decimals() -> u8;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
 /// The precompile uses an additional storage to store approvals.
-pub struct Erc20BalancesPrecompile<Runtime, Instance: 'static = ()>(
-	PhantomData<(Runtime, Instance)>,
+pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: 'static = ()>(
+	PhantomData<(Runtime, Metadata, Instance)>,
 );
 
-impl<Runtime, Instance> Precompile for Erc20BalancesPrecompile<Runtime, Instance>
+impl<Runtime, Metadata, Instance> Precompile
+	for Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
+	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -157,12 +172,16 @@ where
 			Action::Approve => Self::approve(input, target_gas, context),
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
+			Action::Name => Self::name(input, target_gas, context),
+			Action::Symbol => Self::symbol(input, target_gas, context),
+			Action::Decimals => Self::decimals(input, target_gas, context),
 		}
 	}
 }
 
-impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
+impl<Runtime, Metadata, Instance> Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
+	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -401,6 +420,40 @@ where
 					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
+		})
+	}
+
+	fn name(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(Metadata::name().into())
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn symbol(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(Metadata::symbol().into())
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn decimals(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
+			logs: Default::default(),
 		})
 	}
 

@@ -215,16 +215,28 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 		.ok_or_else(|| "Could not find wasm file in genesis state!".into())
 }
 
+fn validate_trace_environment(cli: &Cli) -> Result<()> {
+	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
+		&& cli
+			.run
+			.base
+			.base
+			.import_params
+			.wasm_runtime_overrides
+			.is_none()
+	{
+		return Err(
+			"`debug` or `trace` namespaces requires `--wasm-runtime-overrides /path/to/overrides`."
+				.into(),
+		);
+	}
+	Ok(())
+}
+
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let mut cli = Cli::from_args();
-
-	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
-		&& cfg!(not(feature = "evm-tracing"))
-	{
-		return Err("`--ethapi` only available on `evm-tracing` feature.".into());
-	}
-
+	let _ = validate_trace_environment(&cli)?;
 	// Set --execution wasm as default
 	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
 	if execution_strategies.execution.is_none() {

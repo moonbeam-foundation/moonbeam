@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::proxy::v2::call_list::Listener;
-use crate::single::TransactionTrace;
+pub mod blockscout;
+pub mod call_tracer;
+pub mod raw;
+pub mod trace_filter;
 
-pub struct Response;
+pub use blockscout::Formatter as Blockscout;
+pub use call_tracer::Formatter as CallTracer;
+pub use raw::Formatter as Raw;
+pub use trace_filter::Formatter as TraceFilter;
 
-#[cfg(feature = "std")]
-impl super::TraceResponseBuilder for Response {
-	type Listener = Listener;
-	type Response = TransactionTrace;
+use evm_tracing_events::Listener;
+use serde::Serialize;
 
-	fn build(listener: Listener) -> Option<TransactionTrace> {
-		if let Some(entry) = listener.entries.last() {
-			return Some(TransactionTrace::CallList(
-				entry.into_iter().map(|(_, value)| value.clone()).collect(),
-			));
-		}
-		None
-	}
+pub trait ResponseFormatter {
+	type Listener: Listener;
+	type Response: Serialize;
+
+	fn format(listener: Self::Listener) -> Option<Self::Response>;
 }

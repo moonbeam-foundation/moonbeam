@@ -11,6 +11,15 @@
       }
     },
     {
+      "label": "Build Moonbeam (debug symbols + tracing)",
+      "type": "shell",
+      "command": "RUSTFLAGS=-g cargo build --release --features=evm-tracing",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
       "label": "Run single test file in debug mode",
       "type": "shell",
       "command": "cd tests && DEBUG_MODE=true npm run test-single",

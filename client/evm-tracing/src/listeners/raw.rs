@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use super::{
-	convert_memory, Capture, ContextType, Event, ExitReason, GasometerEvent, Listener as ListenerT,
-	RuntimeEvent, H160, H256,
-};
-use alloc::{collections::btree_map::BTreeMap, vec, vec::Vec};
+use ethereum_types::{H160, H256};
+use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-use crate::single::RawStepLog;
+use crate::types::{convert_memory, single::RawStepLog, ContextType};
+use evm_tracing_events::{
+	runtime::{Capture, ExitReason},
+	Event, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+};
 
 #[derive(Debug)]
 pub struct Listener {
@@ -80,15 +80,16 @@ impl Listener {
 	}
 
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
-		super::listener::using(self, f)
+		evm_tracing_events::using(self, f)
 	}
 
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
-			GasometerEvent::RecordTransaction { .. } => {
+			GasometerEvent::RecordTransaction { cost, .. } => {
 				// First event of a transaction.
 				// Next step will be the first context.
 				self.new_context = true;
+				self.final_gas = cost;
 			}
 			GasometerEvent::RecordCost { cost, snapshot } => {
 				if let Some(context) = self.context_stack.last_mut() {
@@ -96,8 +97,9 @@ impl Listener {
 					if let Some(step) = &mut context.current_step {
 						step.gas = snapshot.gas();
 						step.gas_cost = cost;
-						self.final_gas = step.gas;
 					}
+
+					self.final_gas = snapshot.used_gas;
 				}
 			}
 			GasometerEvent::RecordDynamicCost {
@@ -108,8 +110,9 @@ impl Listener {
 					if let Some(step) = &mut context.current_step {
 						step.gas = snapshot.gas();
 						step.gas_cost = gas_cost;
-						self.final_gas = step.gas;
 					}
+
+					self.final_gas = snapshot.used_gas;
 				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -281,8 +284,8 @@ impl Listener {
 impl ListenerT for Listener {
 	fn event(&mut self, event: Event) {
 		match event {
-			Event::Gasometer(gasometer_event) => self.gasometer_event(gasometer_event),
-			Event::Runtime(runtime_event) => self.runtime_event(runtime_event),
+			Event::Gasometer(e) => self.gasometer_event(e),
+			Event::Runtime(e) => self.runtime_event(e),
 			_ => {}
 		};
 	}

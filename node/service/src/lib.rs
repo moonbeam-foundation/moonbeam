@@ -22,9 +22,9 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use cli_opt::RpcConfig;
+use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
@@ -249,7 +249,6 @@ pub fn new_partial<RuntimeApi, Executor>(
 				Arc<TFullClient<Block, RuntimeApi, Executor>>,
 				TFullClient<Block, RuntimeApi, Executor>,
 			>,
-			PendingTransactions,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -305,8 +304,6 @@ where
 		client.clone(),
 	);
 
-	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
-
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 
 	let frontier_backend = open_frontier_backend(config)?;
@@ -347,7 +344,6 @@ where
 		select_chain: maybe_select_chain,
 		other: (
 			frontier_block_import,
-			pending_transactions,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -441,14 +437,8 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config, false)?;
-	let (
-		block_import,
-		pending_transactions,
-		filter_pool,
-		mut telemetry,
-		telemetry_worker_handle,
-		frontier_backend,
-	) = params.other;
+	let (block_import, filter_pool, mut telemetry, telemetry_worker_handle, frontier_backend) =
+		params.other;
 
 	let relay_chain_full_node =
 		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle)
@@ -491,32 +481,37 @@ where
 		client: client.clone(),
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
-		pending_transactions: pending_transactions.clone(),
 		filter_pool: filter_pool.clone(),
 	});
 
-	#[cfg(feature = "evm-tracing")]
-	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	let ethapi_cmd = rpc_config.ethapi.clone();
+	let tracing_requesters =
+		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+			rpc::tracing::spawn_tracing_tasks(
+				&rpc_config,
+				rpc::SpawnTasksParams {
+					task_manager: &task_manager,
+					client: client.clone(),
+					substrate_backend: backend.clone(),
+					frontier_backend: frontier_backend.clone(),
+					filter_pool: filter_pool.clone(),
+				},
+			)
+		} else {
+			rpc::tracing::RpcRequesters {
+				debug: None,
+				trace: None,
+			}
+		};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
-		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
-		let ethapi_cmd = rpc_config.ethapi.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
@@ -538,7 +533,6 @@ where
 				deny_unsafe,
 				is_authority: collator,
 				network: network.clone(),
-				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
@@ -549,13 +543,14 @@ where
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			#[cfg(feature = "evm-tracing")]
-			rpc::tracing::extend_with_tracing(
-				client.clone(),
-				tracing_requesters.clone(),
-				rpc_config.ethapi_trace_max_count,
-				&mut io,
-			);
+			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
 			Ok(io)
 		})
 	};
@@ -704,15 +699,7 @@ where
 		keystore_container,
 		select_chain: maybe_select_chain,
 		transaction_pool,
-		other:
-			(
-				block_import,
-				pending_transactions,
-				filter_pool,
-				telemetry,
-				_telemetry_worker_handle,
-				frontier_backend,
-			),
+		other: (block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
 	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
@@ -842,30 +829,34 @@ where
 		client: client.clone(),
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
-		pending_transactions: pending_transactions.clone(),
 		filter_pool: filter_pool.clone(),
 	});
-
-	#[cfg(feature = "evm-tracing")]
-	let tracing_requesters = rpc::tracing::spawn_tracing_tasks(
-		&rpc_config,
-		rpc::SpawnTasksParams {
-			task_manager: &task_manager,
-			client: client.clone(),
-			substrate_backend: backend.clone(),
-			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
-			filter_pool: filter_pool.clone(),
-		},
-	);
+	let ethapi_cmd = rpc_config.ethapi.clone();
+	let tracing_requesters =
+		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+			rpc::tracing::spawn_tracing_tasks(
+				&rpc_config,
+				rpc::SpawnTasksParams {
+					task_manager: &task_manager,
+					client: client.clone(),
+					substrate_backend: backend.clone(),
+					frontier_backend: frontier_backend.clone(),
+					filter_pool: filter_pool.clone(),
+				},
+			)
+		} else {
+			rpc::tracing::RpcRequesters {
+				debug: None,
+				trace: None,
+			}
+		};
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
-		let pending = pending_transactions;
-		let ethapi_cmd = rpc_config.ethapi.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
@@ -887,7 +878,6 @@ where
 				deny_unsafe,
 				is_authority: collator,
 				network: network.clone(),
-				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
@@ -898,13 +888,14 @@ where
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-			#[cfg(feature = "evm-tracing")]
-			rpc::tracing::extend_with_tracing(
-				client.clone(),
-				tracing_requesters.clone(),
-				rpc_config.ethapi_trace_max_count,
-				&mut io,
-			);
+			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+				rpc::tracing::extend_with_tracing(
+					client.clone(),
+					tracing_requesters.clone(),
+					rpc_config.ethapi_trace_max_count,
+					&mut io,
+				);
+			}
 			Ok(io)
 		})
 	};
