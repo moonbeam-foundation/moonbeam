@@ -251,6 +251,7 @@ pub enum UtilityCall {
 	AsDerivative(u16),
 }
 
+// Transactors for the mock runtime. Only relay chain
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum Transactors {
 	Relay,

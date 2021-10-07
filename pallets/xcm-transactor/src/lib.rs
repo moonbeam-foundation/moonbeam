@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! # Liquid Staking Module
+//! # Xcm Transactor Module
 //!
 //! ## Overview
 //!
-//! Module to provide interaction with Relay Chain Tokens directly
-//! This module allows to
-//! - Token transfer from parachain to relay chain.
-//! - Token transfer from relay to parachain
-//! - Exposure to staking functions
+//! Module to provide transact capabilitise in other chains
+//! 
+//! This module the transactions are dispatched from a derivative account
+//! of the sovereign account
+//! This module only stores the index of the derivative account used, but
+//! not the derivative account itself. The only assumption this trait makes
+//! is the existence of the pallet_utility pallet in the destination chain
+//! through the XcmTransact trait.
+//! 
+//! All calls will be wrapped around utility::as_derivative. This makes sure
+//! the inner call is executed from the derivative account and not the sovereign
+//! account itself. This derivative account can be funded by external users to
+//! ensure it has enough funds to make the calls
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -52,16 +60,6 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// Stores info about how many DOTS someone has staked and the relation with the ratio
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
-	pub struct DerivativeInfo<T: Config> {
-		pub index: u16,
-		pub account: T::AccountId,
-	}
-
-	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
-	/// ensure that only staked accounts can create registrations in the first place. This could be
-	/// generalized.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
@@ -74,9 +72,11 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 
-		// XcmTransact needs to be implemented
+		// XcmTransact needs to be implemented. This type needs to implement
+		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
 
+		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
 
 		/// XCM executor.
@@ -96,12 +96,18 @@ pub mod pallet {
 		type SelfLocation: Get<MultiLocation>;
 	}
 
+	// The utility calls that need to be implemented as part of
+	// this pallet
 	#[derive(Debug, PartialEq, Eq)]
 	pub enum UtilityAvailableCalls {
 		AsDerivative(u16, Vec<u8>),
 	}
 
 	// Trait that the ensures we can encode a call with utility functions.
+	// With this trait we ensure that the user cannot control entirely the call
+	// to be performed in the destination chain. It only can control the call inside
+	// the as_derivative extrinsic, and thus, this call can only be dispatched from the
+	// derivative account
 	pub trait UtilityEncodeCall {
 		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
 	}
@@ -109,6 +115,7 @@ pub mod pallet {
 	// Trait to ensure we can retrieve the destination of a given type
 	// It must implement UtilityEncodeCall
 	// We separate this in two traits to be able to implement UtilityEncodeCall separately
+	// for different runtimes of our choice
 	pub trait XcmTransact: UtilityEncodeCall {
 		/// Encode call from the relay.
 		fn destination(self) -> MultiLocation;
@@ -147,6 +154,12 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
+		/// Register a derivative index for an account id. Dispatchable by DerivativeAddressRegistrationOrigin
+		/// We do not store the derivative address, but only the index. We do not need to store the derivative
+		/// address to issue calls, only the index is enough
+		/// 
+		/// For now an index is registered for all possible destinations and not per-destination. We can change
+		/// this in the future although it would just make things more complicated
 		pub fn register(origin: OriginFor<T>, who: T::AccountId, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
@@ -164,6 +177,10 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Transact the inner call through a derivative account in a destination chain, using 'fee' to pay for the fees
+		/// 
+		/// The caller needs to have the index registered in this pallet. The fee multiasset needs to be a reserve asset
+		/// for the destination transactor::multilocation.
 		#[pallet::weight(0)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
@@ -180,14 +197,18 @@ pub mod pallet {
 			// The derivative index is owned by the origin
 			ensure!(account == who, Error::<T>::NotOwner);
 
+			// Gather the destination
 			let destination = Self::transfer_kind(&fee, &dest.clone().destination())?;
 
 			// Encode call bytes
+			// We make sure the inner call is wrapped on a as_derivative dispatchable
 			let call_bytes: Vec<u8> =
 				dest.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
+			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
 
+			// Gather the xcm call
 			let mut xcm: Xcm<T::Call> = Self::transact_fee_in_dest_chain_asset(
 				destination.clone(),
 				fee,
@@ -218,6 +239,7 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		/// Construct the transact xcm message with the provided parameters
 		fn transact_fee_in_dest_chain_asset(
 			dest: MultiLocation,
 			asset: MultiAsset,
@@ -247,6 +269,7 @@ pub mod pallet {
 			})
 		}
 
+		/// Construct a buy execution xcm order with the provided parameters
 		fn buy_execution(
 			asset: MultiAsset,
 			at: &MultiLocation,
@@ -266,7 +289,7 @@ pub mod pallet {
 			})
 		}
 
-		/// Ensure has the `dest` has chain part and recipient part.
+		/// Ensure has the `dest` has chain part and none recipient part.
 		fn ensure_valid_dest(dest: &MultiLocation) -> Result<MultiLocation, DispatchError> {
 			if let (Some(dest), None) = (dest.chain_part(), dest.non_chain_part()) {
 				Ok(dest)
@@ -278,11 +301,7 @@ pub mod pallet {
 		/// Get the transfer kind.
 		///
 		/// Returns `Err` if `asset` and `dest` combination doesn't make sense,
-		/// else returns a tuple of:
-		/// - `transfer_kind`.
-		/// - asset's `reserve` parachain or relay chain location,
-		/// - `dest` parachain or relay chain location.
-		/// - `recipient` location.
+		/// else returns `dest`, parachain or relay chain location.
 		fn transfer_kind(
 			asset: &MultiAsset,
 			dest: &MultiLocation,

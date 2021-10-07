@@ -52,7 +52,7 @@ fn test_transact_through_derivative_errors() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
-			// Not using the same fee as the destination chain, so error
+			// Not using the same fee asset as the destination chain, so error
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
