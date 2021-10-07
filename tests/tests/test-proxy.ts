@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import Keyring from "@polkadot/keyring";
+import { Event } from "@polkadot/types/interfaces";
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
   CHARLETH_ADDRESS,
 } from "../util/constants";
-import { blake2AsU8a } from "@polkadot/util-crypto";
+import { createBlockWithExtrinsic, logEvents } from "../util/substrate-rpc";
+const debug = require("debug")("test:proxy");
 
 // In these tests Alith will allow Baltathar to perform calls on her behalf.
 // Charleth is used as a target account when making transfers.
@@ -19,17 +20,16 @@ const charleth = keyring.addFromUri(CHARLETH_PRIVATE_KEY, null, "ethereum");
 
 /// Sign and sand Substrate transaction then create a block.
 /// Will provide events emited by the transaction to check if they match what is expected.
-async function substrateTransaction(context, sender, polkadotCall, inBlockCallback) {
+async function substrateTransaction(
+  context,
+  sender,
+  polkadotCall,
+  inBlockCallback: (events: Event[]) => void
+) {
   await new Promise(async (resolve) => {
-    const unsub = await polkadotCall.signAndSend(sender, ({ events = [], status }) => {
-      if (status.isInBlock) {
-        inBlockCallback(events);
-        unsub();
-        resolve(null);
-      }
-    });
-
-    await context.createBlock();
+    const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
+    await inBlockCallback(events);
+    resolve(events);
   });
 }
 
@@ -56,7 +56,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept unknown proxy", (context) =
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         ),
         (events) => {
-          expect(events[3].event.method).to.be.eq("ExtrinsicFailed");
+          expect(events[3].method).to.be.eq("ExtrinsicFailed");
         }
       );
     });
@@ -71,7 +71,7 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
         alith,
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0),
         (events) => {
-          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[4].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -84,7 +84,7 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         ),
         (events) => {
-          expect(events[3].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[3].method).to.be.eq("ExtrinsicSuccess");
         }
       );
     });
@@ -99,7 +99,7 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
         alith,
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0),
         (events) => {
-          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[4].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -108,7 +108,7 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
         alith,
         context.polkadotApi.tx.proxy.removeProxy(baltathar.address, "Any", 0),
         (events) => {
-          expect(events[2].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[2].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -121,7 +121,7 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         ),
         (events) => {
-          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
+          expect(events[1].method).to.be.eq("ExtrinsicFailed");
         }
       );
     });
@@ -136,7 +136,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
         alith,
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2),
         (events) => {
-          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[4].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -149,7 +149,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         ),
         (events) => {
-          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
+          expect(events[1].method).to.be.eq("ExtrinsicFailed");
         }
       );
     });
@@ -162,9 +162,10 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
       await substrateTransaction(
         context,
         alith,
-        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2),
+        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 6),
         (events) => {
-          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+          events.forEach((event) => debug(`1${event.method}(${event.data})`));
+          expect(events[4].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -175,8 +176,9 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
         baltathar,
         context.polkadotApi.tx.proxy.announce(alith.address, transfer.hash),
         (events) => {
-          expect(events[1].event.method).to.be.eq("Announced");
-          expect(events[3].event.method).to.be.eq("ExtrinsicSuccess");
+          events.forEach((event) => debug(`2${event.method}(${event.data})`));
+          expect(events[1].method).to.be.eq("Announced");
+          expect(events[3].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -191,8 +193,8 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
           transfer
         ),
         (events) => {
-          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
-          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
+          events.forEach((event) => debug(`3${event.method}(${event.data})`));
+          expect(events[1].method).to.be.eq("ExtrinsicFailed");
         }
       );
     });
@@ -200,43 +202,37 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
 });
 
 describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (context) => {
-  it("should accept on-time delayed proxy", async () => {
-    await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
+  it("should accept on-time delayed proxy ", async () => {
+    await expectBalanceDifference(context, CHARLETH_ADDRESS, 100, async () => {
       await substrateTransaction(
         context,
         alith,
-        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0),
+        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2),
         (events) => {
-          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+          events.forEach((e) => {
+            debug(e.toHuman());
+          });
+          expect(events[4].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
+      // Build transaction
       const transfer = context.polkadotApi.tx.balances.transfer(charleth.address, 100);
-      const transfer_hash = blake2AsU8a(transfer.data, 256);
-      console.log("data : ");
-      console.log(transfer.data);
-      console.log(transfer.toU8a());
-
-      console.log("hash : ");
-      console.log(transfer_hash);
-      console.log(transfer.hash);
+      const u8a = transfer.method.toU8a();
+      const transfer_hash = transfer.registry.hash(u8a).toHex();
 
       await substrateTransaction(
         context,
         baltathar,
         context.polkadotApi.tx.proxy.announce(alith.address, transfer_hash),
         (events) => {
-          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
-
-          expect(events[1].event.method).to.be.eq("Announced");
-          expect(events[1].event.data[2]).to.be.deep.eq(transfer_hash);
-          expect(events[3].event.method).to.be.eq("ExtrinsicSuccess");
+          events.forEach((event) => debug(`${event.method}(${event.data})`));
+          expect(events[1].method).to.be.eq("Announced");
+          expect(events[1].data[2].toHex()).to.eq(transfer_hash);
+          expect(events[3].method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
-      await context.createBlock();
-      await context.createBlock();
-      await context.createBlock();
       await context.createBlock();
       await context.createBlock();
 
@@ -251,9 +247,9 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
           transfer
         ),
         (events) => {
-          console.log("------");
-          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
-          expect(events[1].event.method).not.to.be.eq("ExtrinsicFailed");
+          debug("------");
+          events.forEach((event) => debug(`${event.method}(${event.data})`));
+          expect(events[1].method).not.to.be.eq("ExtrinsicFailed");
         }
       );
     });
