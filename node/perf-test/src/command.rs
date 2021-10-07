@@ -95,7 +95,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			other:
 				(
 					block_import,
-					pending_transactions,
 					filter_pool,
 					telemetry,
 					_telemetry_worker_handle,
@@ -187,7 +186,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			client: client.clone(),
 			substrate_backend: backend.clone(),
 			frontier_backend: frontier_backend.clone(),
-			pending_transactions: pending_transactions.clone(),
 			filter_pool: filter_pool.clone(),
 		});
 

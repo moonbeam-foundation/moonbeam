@@ -7581,7 +7581,7 @@ dependencies = [
  "fc-consensus",
  "fp-evm",
  "fp-rpc",
- "futures 0.3.17",
+ "futures 0.3.16",
  "hex",
  "libsecp256k1 0.5.0",
  "log",
