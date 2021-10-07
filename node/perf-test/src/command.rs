@@ -342,10 +342,13 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 
 		let mut sink = self.manual_seal_command_sink.clone();
 		let future = async move {
+			// TODO: why use oneshot here? is it impacting txn pool?
 			let (sender, receiver) = oneshot::channel();
 			let command = EngineCommand::SealNewBlock {
 				create_empty,
 				finalize: true,
+				// TODO: why did I change these (compared to the --dev in crate service)?
+				//       try changing them to be similar to --dev...
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
