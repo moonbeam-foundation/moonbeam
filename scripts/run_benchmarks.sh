@@ -5,14 +5,15 @@
 
 export WASMTIME_BACKTRACE_DETAILS=1
 
-./../../target/release/moonbeam benchmark \
+./target/release/moonbeam benchmark \
     --chain dev \
     --execution=wasm \
     --wasm-execution=compiled \
-    --pallet "parachain_staking" \
+    --pallet "pallet_author_mapping" \
     --extrinsic "*" \
     --steps 32 \
     --repeat 64 \
     --raw \
-    --template=./frame-weight-template.hbs \
-    --output /tmp/
+    --template=./benchmarking/frame-weight-template.hbs \
+    --output /tmp/ \
+    --record-proof

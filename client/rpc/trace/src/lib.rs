@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -52,10 +52,13 @@ use ethereum_types::H256;
 use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
 
-pub use moonbeam_rpc_core_trace::{
-	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
+use moonbeam_client_evm_tracing::{
+	formatters::ResponseFormatter,
+	types::block::{self, TransactionTrace},
 };
-use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
+pub use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TraceServer};
+use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
+use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
@@ -104,6 +107,7 @@ where
 			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
 				Err(internal_err("'pending' is not supported"))
 			}
+			Some(RequestBlockId::Hash(_)) => Err(internal_err("Block hash not supported")),
 		}
 	}
 
@@ -819,37 +823,76 @@ where
 		};
 
 		let eth_block_hash = eth_block.header.hash();
+		let eth_tx_hashes = eth_transactions
+			.iter()
+			.map(|t| t.transaction_hash)
+			.collect();
 
 		// Get extrinsics (containing Ethereum ones)
 		let extrinsics = backend
 			.blockchain()
 			.body(substrate_block_id)
-			.unwrap()
-			.unwrap();
-
-		// Trace the block.
-		let mut traces: Vec<_> = api
-			.trace_block(&substrate_parent_id, extrinsics)
 			.map_err(|e| {
 				internal_err(format!(
-					"Blockchain error when replaying block {} : {:?}",
+					"Blockchain error when fetching extrinsics of block {} : {:?}",
 					height, e
 				))
 			})?
-			.map_err(|e| {
+			.ok_or_else(|| {
 				internal_err(format!(
-					"Internal runtime error when replaying block {} : {:?}",
-					height, e
+					"Could not find block {} when fetching extrinsics.",
+					height
 				))
 			})?;
 
+		// Trace the block.
+		let f = || -> Result<_> {
+			api.initialize_block(&substrate_parent_id, &block_header)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
+			let _result = api
+				.trace_block(&substrate_parent_id, extrinsics, eth_tx_hashes)
+				.map_err(|e| {
+					internal_err(format!(
+						"Blockchain error when replaying block {} : {:?}",
+						height, e
+					))
+				})?
+				.map_err(|e| {
+					tracing::warn!(
+						"Internal runtime error when replaying block {} : {:?}",
+						height,
+						e
+					);
+					internal_err(format!(
+						"Internal runtime error when replaying block {} : {:?}",
+						height, e
+					))
+				})?;
+			Ok(moonbeam_rpc_primitives_debug::Response::Block)
+		};
+
+		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+		proxy.using(f)?;
+		let mut traces: Vec<_> =
+			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy).unwrap();
 		// Fill missing data.
 		for trace in traces.iter_mut() {
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
 			trace.transaction_hash = eth_transactions
 				.get(trace.transaction_position as usize)
-				.expect("amount of eth transactions should match")
+				.ok_or_else(|| {
+					tracing::warn!(
+						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+						height
+					);
+
+					internal_err(format!(
+						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+						height
+					))
+				})?
 				.transaction_hash;
 
 			// Reformat error messages.
@@ -859,7 +902,6 @@ where
 				}
 			}
 		}
-
 		Ok(traces)
 	}
 }

@@ -1,6 +1,6 @@
 import tcpPortUsed from "tcp-port-used";
 import { spawn, ChildProcess } from "child_process";
-import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "./constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, ETHAPI_CMD } from "./constants";
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -38,7 +38,7 @@ let nodeStarted = false;
 
 // This will start a moonbeam dev node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startMoonbeamDevNode(): Promise<{
+export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
@@ -54,12 +54,12 @@ export async function startMoonbeamDevNode(): Promise<{
   const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
-  const args = [
-    `--execution=Native`, // Faster execution using native
+  let args = [
+    withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
-    `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,
@@ -67,6 +67,9 @@ export async function startMoonbeamDevNode(): Promise<{
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
+  if (ETHAPI_CMD != "") {
+    args.push("--wasm-runtime-overrides=/");
+  }
   debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
 
   const onProcessExit = function () {

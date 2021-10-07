@@ -27,15 +27,14 @@ use evm::GenesisAccount;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
+	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_core::H160;
 use sp_runtime::Perbill;
 use std::str::FromStr;
 
@@ -45,9 +44,9 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
 	// Default mnemonic if none was provided
-	let parent_mnemonic = mnemonic.unwrap_or(
-		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string(),
-	);
+	let parent_mnemonic = mnemonic.unwrap_or_else(|| {
+		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string()
+	});
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	// We add Gerald here
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
@@ -57,14 +56,14 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		ChainType::Development,
 		move || {
 			testnet_genesis(
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				// Validator
+				// Collator Candidate: Alice -> Alith
 				vec![(
-					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-					None,
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+					get_from_seed::<NimbusId>("Alice"),
 					1_000 * MOVR,
 				)],
-				moonbeam_inflation_config(),
+				// Nominations
+				vec![],
 				accounts.clone(),
 				3_000_000 * MOVR,
 				Default::default(), // para_id
@@ -74,7 +73,12 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -94,15 +98,27 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				// Validator
-				vec![(
-					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-					None,
-					1_000 * MOVR,
-				)],
-				moonbeam_inflation_config(),
-				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				// Collator Candidates
+				vec![
+					// Alice -> Alith
+					(
+						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+						get_from_seed::<NimbusId>("Alice"),
+						1_000 * MOVR,
+					),
+					// Bob -> Baltithar
+					(
+						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+						get_from_seed::<NimbusId>("Bob"),
+						1_000 * MOVR,
+					),
+				],
+				// Nominations
+				vec![],
+				vec![
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+				],
 				3_000_000 * MOVR,
 				para_id,
 				1280, //ChainId
@@ -111,9 +127,14 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
+		),
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "kusama-local".into(),
 			para_id: para_id.into(),
 		},
 	)
@@ -141,9 +162,8 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
-	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-	inflation_config: InflationInfo<Balance>,
+	candidates: Vec<(AccountId, NimbusId, Balance)>,
+	nominations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
@@ -154,44 +174,35 @@ pub fn testnet_genesis(
 	// within contracts. TODO We should have a test to ensure this is the right bytecode.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
-	// TODO consider whether this should be imported from moonbeam precompiles
-	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
-		.into_iter()
-		.map(H160::from_low_u64_be);
+
 	GenesisConfig {
-		frame_system: SystemConfig {
+		system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		pallet_balances: BalancesConfig {
+		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
 		},
-		pallet_crowdloan_rewards: CrowdloanRewardsConfig {
+		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		pallet_sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
-		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
-		pallet_evm: EVMConfig {
+		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
-			// TODO Cleanly fetch the addresses from
-			// the runtime/moonbeam precompiles and systematically fill them with code
-			// that will revert if it is called by accident (it shouldn't be because
-			// it is shadowed by the precompile).
-			// This one is for the parachain staking precompile wrappers
-			accounts: precompile_addresses
-				.map(|a| {
+			accounts: Precompiles::used_addresses()
+				.map(|addr| {
 					(
-						a,
+						addr,
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),
@@ -202,46 +213,41 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
-		pallet_ethereum: EthereumConfig {},
-		pallet_democracy: DemocracyConfig {},
-		pallet_scheduler: SchedulerConfig {},
+		ethereum: EthereumConfig {},
+		democracy: DemocracyConfig::default(),
+		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
-			stakers: stakers.clone(),
-			inflation_config,
+			candidates: candidates
+				.iter()
+				.cloned()
+				.map(|(account, _, bond)| (account, bond))
+				.collect(),
+			nominations,
+			inflation_config: moonbeam_inflation_config(),
 		},
-		pallet_collective_Instance1: CouncilCollectiveConfig {
+		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_collective_Instance2: TechComitteeCollectiveConfig {
+		tech_comittee_collective: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_slot_filter: AuthorFilterConfig {
+		author_filter: AuthorFilterConfig {
 			eligible_ratio: sp_runtime::Percent::from_percent(50),
 		},
-		pallet_author_mapping: AuthorMappingConfig {
-			// Pretty hacky. We just set the first staker to use alice's session keys.
-			// Maybe this is the moment we should finally make the `--alice` flags make sense.
-			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
-			author_ids: stakers
+		author_mapping: AuthorMappingConfig {
+			mappings: candidates
 				.iter()
-				.take(1)
-				.map(|staker| {
-					let author_id = get_from_seed::<NimbusId>("Alice");
-					let account_id = staker.0;
-					// This println confirmed that I mapped Alice's session key to Gerald's account ID
-					// Now I'm disabling it because it also showed up in my parachain genesis state file
-					// println!(
-					// 	"Initializing author -> account mapping: ({:?}, {:?})",
-					// 	author_id, account_id
-					// );
-					(author_id, account_id)
-				})
+				.cloned()
+				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
-		pallet_treasury_Instance1: Default::default(),
-		pallet_treasury_Instance2: Default::default(),
+		treasury: Default::default(),
+		migrations: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: false,
+		},
 	}
 }
 

@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { COLLATOR_ACCOUNT } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 describeDevMoonbeam("Block 1", (context) => {
@@ -22,15 +23,15 @@ describeDevMoonbeam("Block 1", (context) => {
   it("should contain block information", async function () {
     const block = await context.web3.eth.getBlock("latest");
     expect(block).to.include({
-      author: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
+      author: COLLATOR_ACCOUNT,
       difficulty: "0",
       extraData: "0x",
       gasLimit: 15000000,
       gasUsed: 0,
       logsBloom: `0x${"0".repeat(512)}`,
-      miner: "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
+      miner: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
       number: 1,
-      receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       totalDifficulty: "0",
       transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",

@@ -1,0 +1,26 @@
+[package]
+name = "pallet-maintenance-mode"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "Puts a FRAME-based runtime into maintenance mode where restricted interactions are allowed."
+
+[dependencies]
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+log = "0.4"
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+
+[features]
+default = ["std"]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"sp-runtime/std",
+]
+try-runtime = ["frame-support/try-runtime"]

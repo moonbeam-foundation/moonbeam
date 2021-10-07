@@ -1,0 +1,16 @@
+# Migration History
+
+## Delay nominator exits by changing NominatorState and ExitQueue
+
+- [Migration PR `#610`](https://github.com/PureStake/moonbeam/pull/610)
+- [Migration Removal PR `#662`](https://github.com/PureStake/moonbeam/pull/662)
+
+## Patch nomination DOS attack vector by changing CollatorState
+
+- [Migration PR `#505`](https://github.com/PureStake/moonbeam/pull/505)
+- [Migration Removal PR `#553`](https://github.com/PureStake/moonbeam/pull/553)
+
+## Patch underflow bug and correct Total storage item
+
+- [Migration PR `#502`](https://github.com/PureStake/moonbeam/pull/502)
+- [Migration Removal PR `#553`](https://github.com/PureStake/moonbeam/pull/553)

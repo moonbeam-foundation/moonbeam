@@ -41,15 +41,17 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
     ).to.equal(21994);
   });
 
-  it("should fail with a lower gas limit", async function () {
-    await multContract.methods
-      .multiply(3)
-      .estimateGas({
+  // Since the binary search has been activated, the gas indicated in the request is not taken into
+  // account by the estimation, so any provided gas limit should work:
+  // https://github.com/PureStake/frontier/blob/moonbeam-polkadot-v0.9.8-binary-search/client/rpc/
+  // src/eth.rs#L907
+  //TODO ^^ What is this link supposed to link to? not best = mid right? Can we link to master?
+  // To a specific commit?
+  it("should work with a lower gas limit", async function () {
+    expect(
+      await multContract.methods.multiply(3).estimateGas({
         gas: 21993,
       })
-      .then(() => {
-        return Promise.reject({ message: "Execution succeeded but should have failed" });
-      })
-      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas`));
+    ).to.equal(21994);
   });
 });
