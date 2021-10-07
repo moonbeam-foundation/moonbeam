@@ -1271,11 +1271,9 @@ pub enum Transactors {
 impl xcm_transactor::UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			// Shall we use polkadot for moonbase? The tests are probably based on rococo
-			// but moonbase-alpha is attached to polkadot-runtime I think
-			Transactors::Relay => {
-				moonbeam_relay_encoder::polkadot::PolkadotEncoder.encode_call(call)
-			}
+			// Shall we use westend for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to westend-runtime I think
+			Transactors::Relay => moonbeam_relay_encoder::westend::WestendEncoder.encode_call(call),
 		}
 	}
 }
