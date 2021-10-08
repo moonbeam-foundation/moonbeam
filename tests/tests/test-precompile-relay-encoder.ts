@@ -2,21 +2,11 @@ import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import { ethers } from "ethers";
-import Web3 from 'web3';
-import { getCompiled } from "../util/contracts";
-import { createContract, createContractExecution, GENESIS_TRANSACTION } from "../util/transactions";
-
 
 import {
-  GENESIS_ACCOUNT,
-  ALITH,
-  BALTATHAR,
-  ALITH_PRIV_KEY,
-  CHARLETH,
-  BALTATHAR_PRIV_KEY,
+  GENESIS_ACCOUNT
 } from "../util/constants";
 
-import { createTransaction } from "../util/transactions";
 
 var contractAbi = [
 	{
@@ -221,24 +211,9 @@ var contractAbi = [
 ]
 
 const ADDRESS_RELAY_ENCODER = "0x0000000000000000000000000000000000000805";
-const ALICE = "d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
 const ALICE_HEX = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
 
-const BOB = "8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
 const BOB_HEX = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
-
-const SELECTORS = {
-  bond: "31627376",
-  bond_more: "49def326",
-  chill: "bc4b2187",
-  unbond: "2cd61217",
-  withdrawUnbonded: "2d220331",
-  validate: "3a0d803a",
-  nominate: "a7cb124b",
-  setPayee: "9801b147",
-  setController: "7a8f48c2",
-  rebond: "add6b3bf",
-};
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
