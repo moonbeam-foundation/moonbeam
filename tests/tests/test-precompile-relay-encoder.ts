@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
+import { getCompiled } from "../util/contracts";
+import { createContract, createContractExecution, GENESIS_TRANSACTION } from "../util/transactions";
+
+
 import {
   GENESIS_ACCOUNT,
   ALITH,
@@ -9,6 +13,7 @@ import {
   CHARLETH,
   BALTATHAR_PRIV_KEY,
 } from "../util/constants";
+
 import { createTransaction } from "../util/transactions";
 
 const ADDRESS_RELAY_ENCODER = "0x0000000000000000000000000000000000000805";
@@ -26,9 +31,14 @@ const SELECTORS = {
   setController: "7a8f48c2",
   rebond: "add6b3bf",
 };
+
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
+  let contract;
+  before("Deploy contract", async () => {
+    const { contract, rawTx } = await createContract(context.web3, "RelayStakeEncoder");
+  });
   it("allows to get encoding of bond stake call", async function () {
     // 100 units
     const amount = `64`.padStart(64, "0");
@@ -80,6 +90,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of unbond stake call", async function () {
+
     // 100 units
     const amount = `64`.padStart(64, "0");
 
