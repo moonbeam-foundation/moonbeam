@@ -28,14 +28,6 @@ pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account()
 }
 
-pub fn para_b_account() -> AccountId32 {
-	ParaId::from(2).into_account()
-}
-
-pub fn para_c_account() -> AccountId32 {
-	ParaId::from(3).into_account()
-}
-
 decl_test_parachain! {
 	pub struct ParaA {
 		Runtime = parachain::Runtime,
