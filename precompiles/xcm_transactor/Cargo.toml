@@ -1,0 +1,49 @@
+[package]
+name = "xcm-transactor-precompiles"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "A Precompile to make xtokens accessible to pallet-evm"
+
+[dependencies]
+log = "0.4"
+rustc-hex = { version = "2.0.1", default-features = false }
+
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+precompile-utils = { path = "../utils", default-features = false }
+num_enum = { version = "0.5.3", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+
+[dev-dependencies]
+sha3 = "0.9"
+serde = "1.0.100"
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
+derive_more = "0.99"
+pallet-balances =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
+pallet-timestamp =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+xcm-primitives = { path = "../../primitives/xcm/"}
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+[features]
+default = ["std"]
+std = [
+    "frame-support/std",
+    "evm/std",
+    "sp-std/std",
+    "sp-core/std",
+    "frame-system/std",
+    "precompile-utils/std",
+    "pallet-evm/std",
+    "xcm-transactor/std",
+]
