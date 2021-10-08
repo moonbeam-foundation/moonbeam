@@ -65,6 +65,11 @@ export type ParachainOptions = {
   numberOfParachains?: number;
 };
 
+export interface ParachainPorts {
+  parachainId: number;
+  ports: NodePorts[];
+}
+
 export interface NodePorts {
   p2pPort: number;
   rpcPort: number;
@@ -76,7 +81,7 @@ export interface NodePorts {
 // Returns ports for the 3rd parachain node
 export async function startParachainNodes(options: ParachainOptions): Promise<{
   relayPorts: NodePorts[];
-  paraPorts: NodePorts[][]; // add ports
+  paraPorts: ParachainPorts[];
 }> {
   while (nodeStarted) {
     // Wait 100ms to see if the node is free
@@ -203,18 +208,21 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     }),
 
     paraPorts: parachainArray.map((_, i) => {
-      return [
-        {
-          p2pPort: ports[i * 2 + numberOfParachains + 1].p2pPort,
-          rpcPort: ports[i * 2 + numberOfParachains + 1].rpcPort,
-          wsPort: ports[i * 2 + numberOfParachains + 1].wsPort,
-        },
-        {
-          p2pPort: ports[i * 2 + numberOfParachains + 2].p2pPort,
-          rpcPort: ports[i * 2 + numberOfParachains + 2].rpcPort,
-          wsPort: ports[i * 2 + numberOfParachains + 2].wsPort,
-        },
-      ];
+      return {
+        parachainId: 1000 * (i + 1),
+        ports: [
+          {
+            p2pPort: ports[i * 2 + numberOfParachains + 1].p2pPort,
+            rpcPort: ports[i * 2 + numberOfParachains + 1].rpcPort,
+            wsPort: ports[i * 2 + numberOfParachains + 1].wsPort,
+          },
+          {
+            p2pPort: ports[i * 2 + numberOfParachains + 2].p2pPort,
+            rpcPort: ports[i * 2 + numberOfParachains + 2].rpcPort,
+            wsPort: ports[i * 2 + numberOfParachains + 2].wsPort,
+          },
+        ],
+      };
     }),
   };
 }

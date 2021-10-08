@@ -261,7 +261,7 @@ describeParachain(
       alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
       parachainOne = context.polkadotApiParaone;
-      parachainTwo = context._polkadotApiParachains[1][0];
+      parachainTwo = context._polkadotApiParachains[1].apis[0];
 
       // Log events
       logEvents(parachainOne, "PARA A");
@@ -373,7 +373,7 @@ describeParachain(
       alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
       parachainOne = context.polkadotApiParaone;
-      parachainTwo = context._polkadotApiParachains[1][0];
+      parachainTwo = context._polkadotApiParachains[1].apis[0];
 
       // Log events
       logEvents(parachainOne, "PARA A");
@@ -469,7 +469,7 @@ describeParachain(
       alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
       parachainOne = context.polkadotApiParaone;
-      parachainTwo = context._polkadotApiParachains[1][0];
+      parachainTwo = context._polkadotApiParachains[1].apis[0];
 
       // Log events
       logEvents(parachainOne, "PARA A");
@@ -586,8 +586,8 @@ describeParachain(
       alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
       parachainOne = context.polkadotApiParaone;
-      parachainTwo = context._polkadotApiParachains[1][0];
-      parachainThree = context._polkadotApiParachains[2][0];
+      parachainTwo = context._polkadotApiParachains[1].apis[0];
+      parachainThree = context._polkadotApiParachains[2].apis[0];
 
       // Log events
       logEvents(parachainOne, "PARA A");
@@ -647,7 +647,7 @@ describeParachain(
         )
       );
 
-      await waitOneBlock(parachainTwo, 3);
+      await waitOneBlock(parachainTwo, 6);
 
       // PARACHAIN B
       // transfer 100 units to parachain C
@@ -657,7 +657,6 @@ describeParachain(
         parachainTwo.tx.xTokens.transfer(
           { OtherReserve: assetId },
           HUNDRED_UNITS_PARA,
-
           {
             parents: new BN(1),
             interior: {
