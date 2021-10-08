@@ -895,6 +895,7 @@ impl_runtime_apis! {
 
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+			known_transactions: Vec<H256>,
 		) -> Result<
 			(),
 			sp_runtime::DispatchError,
