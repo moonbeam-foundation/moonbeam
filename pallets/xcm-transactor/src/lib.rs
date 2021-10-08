@@ -342,7 +342,7 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 			Ok(BuyExecution {
 				fees,
-				weight: 0,
+				weight: weight,
 				debt: weight,
 				halt_on_error: false,
 				instructions: instructions,
