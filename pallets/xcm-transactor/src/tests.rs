@@ -96,13 +96,58 @@ fn test_transact_through_derivative_success() {
 			));
 			let expected = vec![
 				crate::Event::RegisterdDerivative(1u64, 1),
-				crate::Event::Transacted(
+				crate::Event::TransactedDerivative(
 					1u64,
 					MultiLocation::parent(),
 					Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+					1,
 				),
 			];
+			assert_eq!(events(), expected);
+		})
+}
+
+#[test]
+fn test_root_can_transact_through_sovereign() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Only root can do this
+			assert_noop!(
+				XcmTransactor::transact_through_sovereign(
+					Origin::signed(1),
+					MultiLocation::parent(),
+					1u64,
+					MultiAsset {
+						id: AssetId::Concrete(MultiLocation::parent()),
+						fun: Fungibility::Fungible(100)
+					},
+					100u64,
+					vec![1u8],
+				),
+				DispatchError::BadOrigin
+			);
+
+			// fee as destination are the same, this time it should work
+			assert_ok!(XcmTransactor::transact_through_sovereign(
+				Origin::root(),
+				MultiLocation::parent(),
+				1u64,
+				MultiAsset {
+					id: AssetId::Concrete(MultiLocation::parent()),
+					fun: Fungibility::Fungible(100)
+				},
+				100u64,
+				vec![1u8]
+			));
+
+			let expected = vec![crate::Event::TransactedSovereign(
+				1u64,
+				MultiLocation::parent(),
+				vec![1u8],
+			)];
 			assert_eq!(events(), expected);
 		})
 }
