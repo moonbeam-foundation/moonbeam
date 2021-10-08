@@ -163,7 +163,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<KusamaEncoder as xcm_transactor::UtilityEncodeCall>::encode_call(
+			xcm_transactor::UtilityEncodeCall::encode_call(
+				KusamaEncoder,
 				xcm_transactor::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 			),
 			expected_encoded

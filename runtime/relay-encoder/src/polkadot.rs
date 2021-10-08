@@ -167,7 +167,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<PolkadotEncoder as xcm_transactor::UtilityEncodeCall>::encode_call(
+			xcm_transactor::UtilityEncodeCall::encode_call(
+				PolkadotEncoder,
 				xcm_transactor::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 			),
 			expected_encoded
