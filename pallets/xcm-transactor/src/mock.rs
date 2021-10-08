@@ -268,17 +268,14 @@ impl crate::XcmTransact for Transactors {
 impl crate::UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			Transactors::Relay => {
-				match call {
-					UtilityAvailableCalls::AsDerivative(a, b) => {
-						let mut call =
-							RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-						// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
-						call.append(&mut b.clone());
-						call
-					}
+			Transactors::Relay => match call {
+				UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
 				}
-			}
+			},
 		}
 	}
 }

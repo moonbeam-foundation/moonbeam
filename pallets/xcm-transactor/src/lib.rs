@@ -155,12 +155,14 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
-		/// Register a derivative index for an account id. Dispatchable by DerivativeAddressRegistrationOrigin
-		/// We do not store the derivative address, but only the index. We do not need to store the derivative
-		/// address to issue calls, only the index is enough
+		/// Register a derivative index for an account id. Dispatchable by
+		/// DerivativeAddressRegistrationOrigin
 		///
-		/// For now an index is registered for all possible destinations and not per-destination. We can change
-		/// this in the future although it would just make things more complicated
+		/// We do not store the derivative address, but only the index. We do not need to store
+		/// the derivative address to issue calls, only the index is enough
+		///
+		/// For now an index is registered for all possible destinations and not per-destination.
+		/// We can change this in the future although it would just make things more complicated
 		pub fn register(origin: OriginFor<T>, who: T::AccountId, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
@@ -178,10 +180,11 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Transact the inner call through a derivative account in a destination chain, using 'fee' to pay for the fees
+		/// Transact the inner call through a derivative account in a destination chain,
+		/// using 'fee' to pay for the fees
 		///
-		/// The caller needs to have the index registered in this pallet. The fee multiasset needs to be a reserve asset
-		/// for the destination transactor::multilocation.
+		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
+		/// to be a reserve asset for the destination transactor::multilocation.
 		#[pallet::weight(0)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
