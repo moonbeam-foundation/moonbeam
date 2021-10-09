@@ -24,6 +24,14 @@ export const NETWORK_HTTP_URLS: { [name in NETWORK_NAME]: string } = {
 };
 export const NETWORK_NAMES = Object.keys(NETWORK_WS_URLS) as NETWORK_NAME[];
 
+export const NETWORK_CHAIN_MAPPING: { [name: string]: NETWORK_NAME } = {
+  "Moonbase Stage": "stagenet",
+  "Moonbase Alphanet": "alphanet",
+  Moonsama: "moonsama",
+  Moonsilver: "moonsilver",
+  Moonriver: "moonriver",
+};
+
 export const NETWORK_COLORS: { [name in NETWORK_NAME]: chalk.ChalkFunction } = {
   stagenet: chalk.blueBright,
   alphanet: chalk.greenBright,
@@ -94,13 +102,17 @@ export const getMonitoredApiFor = async (argv: Argv) => {
     provider: wsProvider,
     typesBundle: typesBundle,
   });
+  const networkName = argv.url
+    ? NETWORK_CHAIN_MAPPING[(await api.rpc.system.chain()).toString()]
+    : argv.network;
+
   let previousBlockDetails: RealtimeBlockDetails = null;
   listenBlocks(api, argv.finalized, async (blockDetails) => {
     printBlockDetails(
       blockDetails,
       {
-        prefix: isKnownNetwork(argv.network)
-          ? NETWORK_COLORS[argv.network](argv.network.padStart(10, " "))
+        prefix: isKnownNetwork(networkName)
+          ? NETWORK_COLORS[networkName](networkName.padStart(10, " "))
           : undefined,
       },
       previousBlockDetails
