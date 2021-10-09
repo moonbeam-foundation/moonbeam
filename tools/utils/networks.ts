@@ -26,7 +26,7 @@ export const NETWORK_NAMES = Object.keys(NETWORK_WS_URLS) as NETWORK_NAME[];
 
 export const NETWORK_CHAIN_MAPPING: { [name: string]: NETWORK_NAME } = {
   "Moonbase Stage": "stagenet",
-  "Moonbase Alphanet": "alphanet",
+  "Moonbase Alpha": "alphanet",
   Moonsama: "moonsama",
   Moonsilver: "moonsilver",
   Moonriver: "moonriver",
