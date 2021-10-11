@@ -1086,9 +1086,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
-						.write_selector(AssetAction::TotalSupply)
-						.build(),
+					&EvmDataWriter::new().build_with_selector(AssetAction::TotalSupply),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1104,9 +1102,8 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(ALICE.into()))
-						.build(),
+						.build_with_selector(AssetAction::BalanceOf),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1151,10 +1148,9 @@ fn asset_erc20_precompiles_transfer() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::Transfer)
 						.write(EvmAddress(BOB.into()))
 						.write(U256::from(400 * UNIT))
-						.build(),
+						.build_with_selector(AssetAction::Transfer),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1178,9 +1174,8 @@ fn asset_erc20_precompiles_transfer() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(BOB.into()))
-						.build(),
+						.build_with_selector(AssetAction::BalanceOf),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1225,10 +1220,9 @@ fn asset_erc20_precompiles_approve() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::Approve)
 						.write(EvmAddress(BOB.into()))
 						.write(U256::from(400 * UNIT))
-						.build(),
+						.build_with_selector(AssetAction::Approve),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1259,11 +1253,10 @@ fn asset_erc20_precompiles_approve() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::TransferFrom)
 						.write(EvmAddress(ALICE.into()))
 						.write(EvmAddress(CHARLIE.into()))
 						.write(U256::from(400 * UNIT))
-						.build(),
+						.build_with_selector(AssetAction::TransferFrom),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1287,9 +1280,8 @@ fn asset_erc20_precompiles_approve() {
 				Precompiles::execute(
 					asset_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(CHARLIE.into()))
-						.build(),
+						.build_with_selector(AssetAction::BalanceOf),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1343,12 +1335,11 @@ fn xtokens_precompiles_transfer() {
 				Precompiles::execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
 						.write(U256::from(500_000_000_000_000u128))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build(),
+						.build_with_selector(XtokensAction::Transfer),
 					None,
 					&evm::Context {
 						address: xtokens_precompile_address,
@@ -1402,13 +1393,12 @@ fn xtokens_precompiles_transfer_multiasset() {
 				Precompiles::execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new()
-						.write_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
 						.write(MultiLocationWrapper::from(MultiLocation::parent()))
 						.write(U256::from(500_000_000_000_000u128))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(MultiLocationWrapper::from(destination))
 						.write(U256::from(4000000))
-						.build(),
+						.build_with_selector(XtokensAction::TransferMultiAsset),
 					None,
 					&evm::Context {
 						address: xtokens_precompile_address,

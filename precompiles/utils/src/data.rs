@@ -195,6 +195,15 @@ impl EvmDataWriter {
 		self.data
 	}
 
+	/// Return the built data.
+	pub fn build_with_selector(mut self, value: impl Into<u32>) -> Vec<u8> {
+		Self::compute_offsets(&mut self.data, self.offset_data);
+
+		let mut output = value.into().to_be_bytes().to_vec();
+		output.append(&mut self.data);
+		output
+	}
+
 	/// Build the array into data.
 	fn compute_offsets(output: &mut Vec<u8>, arrays: Vec<OffsetDatum>) {
 		for mut array in arrays {
@@ -219,17 +228,9 @@ impl EvmDataWriter {
 
 	/// Write arbitrary bytes.
 	/// Doesn't handle any alignement checks, prefer using `write` instead if possible.
-	pub fn write_raw_bytes(mut self, value: &[u8]) -> Self {
+	fn write_raw_bytes(mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
 		self
-	}
-
-	/// Write a selector.
-	/// The provided type must impl `Into<u32>`.
-	/// Doesn't handle any alignement checks, should be used only when adding the initial
-	/// selector of a Solidity call data.
-	pub fn write_selector<T: Into<u32>>(self, value: T) -> Self {
-		self.write_raw_bytes(&value.into().to_be_bytes())
 	}
 
 	/// Write data of requested type.
