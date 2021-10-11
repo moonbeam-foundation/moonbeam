@@ -12,6 +12,6 @@ describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
         from: GENESIS_ACCOUNT,
         data: contract.byteCode,
       })
-    ).to.equal(149143);
+    ).to.equal(150926);
   });
 });
