@@ -12,8 +12,10 @@ describeDevMoonbeam("Estimate Gas - infinite loop", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
-    await expect(contract.methods.infinite().estimateGas({
-      gas: null,
-    })).to.be.rejectedWith('gas required exceeds allowance 1500000');
+    await expect(
+      contract.methods.infinite().estimateGas({
+        gas: null,
+      })
+    ).to.be.rejectedWith("gas required exceeds allowance 1500000");
   });
 });

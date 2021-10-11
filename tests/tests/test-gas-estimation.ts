@@ -40,14 +40,16 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
   it("should ignore from balance (?)", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
-        from: "0x0000000000000000000000000000000000000000"
+        from: "0x0000000000000000000000000000000000000000",
       })
     ).to.equal(22405);
   });
 
   it("should not work with a lower gas limit", async function () {
-    await expect(multContract.methods.multiply(3).estimateGas({
-      gas: 21900,
-    })).to.be.rejectedWith('gas required exceeds allowance 21900');
+    await expect(
+      multContract.methods.multiply(3).estimateGas({
+        gas: 21900,
+      })
+    ).to.be.rejectedWith("gas required exceeds allowance 21900");
   });
 });
