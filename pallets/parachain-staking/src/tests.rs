@@ -1291,11 +1291,11 @@ fn cannot_candidate_bond_less_if_exited_candidates() {
 		});
 }
 
-// EXECUTE_CANDIDATE_BOND_REQUEST
+// EXECUTE CANDIDATE BOND REQUEST
 // 1. BOND MORE REQUEST
 
 #[test]
-fn execute_candidate_bond_more_femits_correct_event() {
+fn execute_candidate_bond_more_emits_correct_event() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50)])
 		.with_candidates(vec![(1, 20)])
@@ -3097,7 +3097,168 @@ fn execute_delegator_bond_less_does_not_delete_bottom_delegations() {
 		});
 }
 
-// TODO: CANCEL PENDING DELEGATION REQUEST
+// CANCEL PENDING DELEGATION REQUEST
+// 1. CANCEL REVOKE DELEGATION
+
+#[test]
+fn cancel_revoke_delegation_emits_correct_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CancelledDelegationRequest(
+					2,
+					DelegationRequest {
+						collator: 1,
+						amount: 10,
+						when: 3,
+						action: DelegationChange::Revoke,
+					}
+				))
+			);
+		});
+}
+
+#[test]
+fn cancel_revoke_delegation_updates_delegator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert_eq!(
+				state.requests.requests.get(&1),
+				Some(&DelegationRequest {
+					collator: 1,
+					amount: 10,
+					when: 3,
+					action: DelegationChange::Revoke,
+				})
+			);
+			assert_eq!(state.requests.less_total, 10);
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert!(state.requests.requests.get(&1).is_none());
+			assert_eq!(state.requests.less_total, 0);
+		});
+}
+
+// 2. CANCEL DELEGATOR BOND MORE
+
+#[test]
+fn cancel_delegator_bond_more_emits_correct_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CancelledDelegationRequest(
+					2,
+					DelegationRequest {
+						collator: 1,
+						amount: 5,
+						when: 3,
+						action: DelegationChange::Increase,
+					}
+				))
+			);
+		});
+}
+
+#[test]
+fn cancel_delegator_bond_more_updates_delegator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert_eq!(
+				state.requests.requests.get(&1),
+				Some(&DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Increase,
+				})
+			);
+			assert_eq!(state.requests.more_total, 5);
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert!(state.requests.requests.get(&1).is_none());
+			assert_eq!(state.requests.more_total, 0);
+		});
+}
+
+// 3. CANCEL DELEGATOR BOND LESS
+
+#[test]
+fn cancel_delegator_bond_less_correct_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CancelledDelegationRequest(
+					2,
+					DelegationRequest {
+						collator: 1,
+						amount: 5,
+						when: 3,
+						action: DelegationChange::Decrease,
+					}
+				))
+			);
+		});
+}
+
+#[test]
+fn cancel_delegator_bond_less_updates_delegator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert_eq!(
+				state.requests.requests.get(&1),
+				Some(&DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Decrease,
+				})
+			);
+			assert_eq!(state.requests.less_total, 5);
+			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
+			let state = Stake::delegator_state(&2).unwrap();
+			assert!(state.requests.requests.get(&1).is_none());
+			assert_eq!(state.requests.less_total, 0);
+		});
+}
 
 // ~~ PROPERTY-BASED TESTS ~~
 

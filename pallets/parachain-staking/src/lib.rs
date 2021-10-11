@@ -822,10 +822,7 @@ pub mod pallet {
 			Ok((now, when))
 		}
 		/// Execute pending nomination change request
-		pub fn execute_pending_request<T: Config>(
-			&mut self,
-			candidate: AccountId,
-		) -> Result<Event<T>, DispatchError>
+		pub fn execute_pending_request<T: Config>(&mut self, candidate: AccountId) -> DispatchResult
 		where
 			BalanceOf<T>: From<Balance> + Into<Balance>,
 			T::AccountId: From<AccountId>,
@@ -877,17 +874,19 @@ pub mod pallet {
 						candidate_id.clone(),
 						false, // will not execute if candidate is already leaving
 					)?;
-					let revocation_event =
-						Event::NominationRevoked(nominator_id.clone(), candidate_id, balance_amt);
+					Pallet::<T>::deposit_event(Event::NominationRevoked(
+						nominator_id.clone(),
+						candidate_id,
+						balance_amt,
+					));
 					if leaving {
 						<DelegatorState<T>>::remove(&nominator_id);
-						Pallet::<T>::deposit_event(revocation_event);
-						Ok(Event::NominatorLeft(nominator_id, balance_amt))
+						Pallet::<T>::deposit_event(Event::NominatorLeft(nominator_id, balance_amt));
 					} else {
 						let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
 						<DelegatorState<T>>::insert(&nominator_id, nom_st);
-						Ok(revocation_event)
 					}
+					Ok(())
 				}
 				DelegationChange::Increase => {
 					// remove from pending requests
@@ -913,12 +912,13 @@ pub mod pallet {
 							<Total<T>>::put(new_total_staked);
 							let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
 							<DelegatorState<T>>::insert(&nominator_id, nom_st);
-							return Ok(Event::NominationIncreased(
+							Pallet::<T>::deposit_event(Event::NominationIncreased(
 								nominator_id,
 								candidate_id,
 								balance_amt,
 								in_top,
 							));
+							return Ok(());
 						}
 					}
 					Err(Error::<T>::NominationDNE.into())
@@ -959,14 +959,15 @@ pub mod pallet {
 								let nom_st: Delegator<T::AccountId, BalanceOf<T>> =
 									self.clone().into();
 								<DelegatorState<T>>::insert(&nominator_id, nom_st);
-								return Ok(Event::NominationDecreased(
+								Pallet::<T>::deposit_event(Event::NominationDecreased(
 									nominator_id,
 									candidate_id,
 									balance_amt,
 									in_top,
 								));
+								return Ok(());
 							} else {
-								// must rm entire nomination if x.amount <= less
+								// must rm entire delegation if x.amount <= less or cancel request
 								return Err(Error::<T>::NominationBelowMin.into());
 							}
 						}
@@ -2242,11 +2243,9 @@ pub mod pallet {
 			delegator: T::AccountId,
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?; // we may want to reward this if caller != delegator
+			ensure_signed(origin)?; // we may want to reward caller if caller != delegator
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::NominatorDNE)?;
-			let event = state.execute_pending_request::<T>(candidate.clone())?;
-			// TODO: just emit the event in the helper function anyway and don't return event anymore
-			Self::deposit_event(event);
+			state.execute_pending_request::<T>(candidate)?;
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
