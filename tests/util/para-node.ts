@@ -15,12 +15,12 @@ export async function findAvailablePorts(parachainCount: number = 1) {
   const relayCount = parachainCount + 1;
   const paraNodeCount = parachainCount * 2; // * 2;
   const nodeCount = relayCount + paraNodeCount;
-  const numberOfPorts = nodeCount * 3;
+  const portCount = nodeCount * 3;
   const availablePorts = await Promise.all(
-    new Array(numberOfPorts).fill(0).map(async (_, index) => {
+    new Array(portCount).fill(0).map(async (_, index) => {
       let selectedPort = 0;
       let endingPort = 65535;
-      const portDistance: number = Math.floor((endingPort - 1024) / numberOfPorts);
+      const portDistance: number = Math.floor((endingPort - 1024) / portCount);
       let port = 1024 + index * portDistance + (process.pid % portDistance);
       while (!selectedPort && port < endingPort) {
         try {
