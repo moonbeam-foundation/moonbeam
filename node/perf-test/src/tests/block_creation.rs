@@ -15,20 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	command::{TestContext, FullClient, FullBackend},
-	tests::{TestRunner, TestResults},
+	command::{FullBackend, FullClient, TestContext},
+	tests::{TestResults, TestRunner},
 };
 
 use sc_service::NativeExecutionDispatch;
 use sp_api::ConstructRuntimeApi;
 use std::time::Instant;
 
-use service::{RuntimeApiCollection, Block};
+use service::{Block, RuntimeApiCollection};
 
 const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
 const MIN_GAS_PRICE: u64 = 1_000_000_000;
 
-pub struct BlockCreationPerfTest { }
+pub struct BlockCreationPerfTest {}
 
 impl BlockCreationPerfTest {
 	pub fn new() -> Self {
@@ -36,35 +36,38 @@ impl BlockCreationPerfTest {
 	}
 }
 
-impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for BlockCreationPerfTest 
-	where
-		RuntimeApi:
-			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-		RuntimeApi::RuntimeApi:
-			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-		Executor: NativeExecutionDispatch + 'static,
+impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for BlockCreationPerfTest
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
-
-	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>
-	{
+	fn run(
+		&mut self,
+		context: &TestContext<RuntimeApi, Executor>,
+	) -> Result<Vec<TestResults>, String> {
 		let mut results: Vec<TestResults> = Default::default();
 
 		let alice = context.get_alice_details();
-		let mut alice_nonce =  alice.nonce;
+		let mut alice_nonce = alice.nonce;
 
 		println!("Creating blocks with increasing nonce-dependent txns...");
 		let now = Instant::now();
 		for i in 1..67 {
 			for _ in 1..i {
-				let _txn_hash = context.eth_sign_and_send_transaction(
-					&alice.privkey,
-					Some(alice.address),
-					Default::default(),
-					1.into(),
-					EXTRINSIC_GAS_LIMIT.into(),
-					MIN_GAS_PRICE.into(),
-					alice_nonce,
-				).expect("Failed to send funds in nonce-dependent test");
+				let _txn_hash = context
+					.eth_sign_and_send_transaction(
+						&alice.privkey,
+						Some(alice.address),
+						Default::default(),
+						1.into(),
+						EXTRINSIC_GAS_LIMIT.into(),
+						MIN_GAS_PRICE.into(),
+						alice_nonce,
+					)
+					.expect("Failed to send funds in nonce-dependent test");
 
 				alice_nonce = alice_nonce.saturating_add(1.into());
 			}
@@ -76,4 +79,3 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for BlockCreationPer
 		Ok(results)
 	}
 }
-

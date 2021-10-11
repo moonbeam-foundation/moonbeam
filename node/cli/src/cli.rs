@@ -20,9 +20,9 @@
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use perf_test::PerfCmd;
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
-use perf_test::PerfCmd;
 use std::path::PathBuf;
 use structopt::StructOpt;
 

@@ -16,15 +16,14 @@
 // limitations under the License.
 
 mod command;
-mod txn_signer;
 mod tests;
+mod txn_signer;
 
-use structopt::StructOpt;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub struct PerfCmd {
-
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
 	pub shared_params: sc_cli::SharedParams,

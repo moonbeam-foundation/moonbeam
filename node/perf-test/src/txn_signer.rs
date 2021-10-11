@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
-use sha3::{Keccak256, Digest};
 
 use ethereum::{TransactionAction, TransactionSignature, TransactionV0 as Transaction};
 use rlp::*;
@@ -79,4 +79,3 @@ impl UnsignedTransaction {
 		}
 	}
 }
-

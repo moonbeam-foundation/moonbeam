@@ -16,17 +16,17 @@
 
 use std::time::Duration;
 
-use crate::command::{TestContext, FullClient, FullBackend};
+use crate::command::{FullBackend, FullClient, TestContext};
 
-use sp_api::ConstructRuntimeApi;
-use service::{RuntimeApiCollection, Block};
 use sc_service::NativeExecutionDispatch;
+use service::{Block, RuntimeApiCollection};
+use sp_api::ConstructRuntimeApi;
 
-mod fibonacci;
 mod block_creation;
+mod fibonacci;
 mod storage;
-pub use fibonacci::FibonacciPerfTest;
 pub use block_creation::BlockCreationPerfTest;
+pub use fibonacci::FibonacciPerfTest;
 pub use storage::StoragePerfTest;
 
 /// struct representing the test results of a single test
@@ -37,22 +37,24 @@ pub struct TestResults {
 }
 
 impl TestResults {
-    pub fn new(name: &str, duration: Duration) -> Self {
-        TestResults {
-            test_name: name.into(),
-            overall_duration: duration,
-        }
-    }
+	pub fn new(name: &str, duration: Duration) -> Self {
+		TestResults {
+			test_name: name.into(),
+			overall_duration: duration,
+		}
+	}
 }
 
 pub trait TestRunner<RuntimeApi, Executor>
-	where
-		RuntimeApi:
-			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-		RuntimeApi::RuntimeApi:
-			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-		Executor: NativeExecutionDispatch + 'static,
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
-	fn run(&mut self, context: &TestContext<RuntimeApi, Executor>) -> Result<Vec<TestResults>, String>;
+	fn run(
+		&mut self,
+		context: &TestContext<RuntimeApi, Executor>,
+	) -> Result<Vec<TestResults>, String>;
 }
-

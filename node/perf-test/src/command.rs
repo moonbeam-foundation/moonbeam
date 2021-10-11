@@ -15,52 +15,44 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	PerfCmd,
-	tests::{ TestRunner, TestResults, FibonacciPerfTest, BlockCreationPerfTest, StoragePerfTest},
+	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
+	PerfCmd,
 };
 
-use sp_runtime::transaction_validity::TransactionSource;
-use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
-};
-use sc_cli::{
-	CliConfiguration, Result as CliResult, SharedParams,
-};
-use sp_core::{H160, H256, U256};
-use sc_client_api::HeaderBackend;
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{
-	sync::Arc,
-	marker::PhantomData,
-};
-use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
-use nimbus_primitives::NimbusId;
 use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
 use ethereum::TransactionAction;
+use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
+use nimbus_primitives::NimbusId;
+use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
+use sc_client_api::HeaderBackend;
+use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
+use sc_service::{
+	Configuration, NativeExecutionDispatch, TFullBackend, TFullClient, TaskManager, TransactionPool,
+};
+use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
+use sp_core::{H160, H256, U256};
+use sp_runtime::transaction_validity::TransactionSource;
+use std::{marker::PhantomData, sync::Arc};
 
 use futures::{
-	Stream, SinkExt,
-	channel::{
-		oneshot,
-		mpsc,
-	},
+	channel::{mpsc, oneshot},
+	SinkExt, Stream,
 };
 
-use service::{rpc, chain_spec, RuntimeApiCollection, Block, TransactionConverters};
+use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 pub type FullBackend = TFullBackend<Block>;
 
 pub struct TestContext<RuntimeApi, Executor>
-	where
-		RuntimeApi:
-			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-		RuntimeApi::RuntimeApi:
-			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-		Executor: NativeExecutionDispatch + 'static,
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
 	_task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
@@ -72,12 +64,12 @@ pub struct TestContext<RuntimeApi, Executor>
 }
 
 impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
-	where
-		RuntimeApi:
-			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-		RuntimeApi::RuntimeApi:
-			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-		Executor: NativeExecutionDispatch + 'static,
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
 	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		let sc_service::PartialComponents {
@@ -89,13 +81,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			select_chain: maybe_select_chain,
 			transaction_pool,
 			other:
-				(
-					block_import,
-					filter_pool,
-					telemetry,
-					_telemetry_worker_handle,
-					frontier_backend,
-				),
+				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		// TODO: review -- we don't need any actual networking
@@ -140,7 +126,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		);
 
 		let client_set_aside_for_cidp = client.clone();
-
 
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
@@ -211,7 +196,9 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
-					transaction_converter: TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter),
+					transaction_converter: TransactionConverters::Moonbase(
+						moonbase_runtime::TransactionConverter,
+					),
 				};
 				#[allow(unused_mut)]
 				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -252,7 +239,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		use std::str::FromStr;
 
 		let alice_address = H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
-				.expect("valid hex provided; qed");
+			.expect("valid hex provided; qed");
 
 		let block = BlockId::Hash(self.client.info().best_hash);
 
@@ -261,14 +248,15 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			.runtime_api()
 			.account_basic(&block, alice_address)
 			.expect("should be able to get alices' account info")
-		.nonce;
+			.nonce;
 
 		AccountDetails {
 			address: alice_address,
-			privkey: H256::from_str("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133")
-				.expect("valid hex provided; qed"),
+			privkey: H256::from_str(
+				"5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133",
+			)
+			.expect("valid hex provided; qed"),
 			nonce: nonce,
-
 		}
 	}
 
@@ -337,7 +325,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		gas_price: U256,
 		nonce: U256,
 	) -> Result<H256, sp_runtime::DispatchError> {
-
 		const CHAIN_ID: u64 = 1281; // TODO: derive from CLI or from Moonbase
 
 		let action = match to {
@@ -367,20 +354,16 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		let future = self.pool.submit_one(
 			&BlockId::hash(hash),
 			TransactionSource::Local,
-			unchecked_extrinsic
+			unchecked_extrinsic,
 		);
 
 		futures::executor::block_on(future);
 
 		Ok(transaction_hash)
-
 	}
 
 	/// Author a block through manual sealing
-	pub fn create_block(&self, create_empty: bool) ->
-		CreatedBlock<H256>
-	{
-
+	pub fn create_block(&self, create_empty: bool) -> CreatedBlock<H256> {
 		// TODO: Joshy's idea: call into propose_with() directly (or similar) rather than go through
 		// manual seal
 
@@ -435,9 +418,8 @@ impl CliConfiguration for PerfCmd {
 }
 
 impl PerfCmd {
-
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(&self, config: Configuration, ) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -452,11 +434,11 @@ impl PerfCmd {
 		// create an empty block to warm the runtime cache...
 		runner.create_block(true);
 
-		let tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec!(
+		let tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec![
 			Box::new(FibonacciPerfTest::new()),
 			Box::new(BlockCreationPerfTest::new()),
 			Box::new(StoragePerfTest::new()),
-		);
+		];
 
 		for mut test in tests {
 			let results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
@@ -468,4 +450,3 @@ impl PerfCmd {
 		Ok(())
 	}
 }
-
