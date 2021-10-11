@@ -144,9 +144,10 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		let calldata = hex::decode(calldata_hex)
 			.expect("calldata is valid hex; qed");
 
-		println!("Calling fib[370] 4096 times...");
+		const NUM_FIB_370_CALLS: u32 = 4096;
+		println!("Calling fib[370] {} times...", NUM_FIB_370_CALLS);
 		let now = Instant::now();
-		for i in 0..4096 {
+		for i in 0..NUM_FIB_370_CALLS {
 			let call_results = context.evm_call(
 				alice.address,
 				fibonacci_address,
