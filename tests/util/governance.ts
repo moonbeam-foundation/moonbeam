@@ -28,6 +28,17 @@ export const notePreimage = async <
   return blake2AsHex(encodedProposal);
 };
 
+export const getMethodEncodedHash = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  proposal: Call
+): Promise<string> => {
+  const encodedProposal = proposal.method.toHex(); //|| "";
+  // return encodedHash
+  return blake2AsHex(encodedProposal);
+};
+
 export const execFromTwoThirdsOfCouncil = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
