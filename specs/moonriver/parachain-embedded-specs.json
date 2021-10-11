@@ -6,7 +6,9 @@
     "/dns4/bootnode1.moonriver.moonbeam.network/tcp/30334/p2p/12D3KooWDh3gKFpsY9GrzYcWR8iqdBagMjkgHC1a7QNHVVWg8FC3",
     "/dns4/bootnode2.moonriver.moonbeam.network/tcp/30334/p2p/12D3KooWBaQTfVqXtjgNCDiWwawfs4txPqV7Q1MU6SKp75AHuAv9",
     "/dns4/bootnode3.moonriver.moonbeam.network/tcp/30334/p2p/12D3KooWPiX8VNtGR27k4g4pueFZwfdpUsQTrjozQoB9Wo6VkYnD",
-    "/dns4/bootnode4.moonriver.moonbeam.network/tcp/30334/p2p/12D3KooWJBVsJCh61QD98NACNDENtamETuLRnPhoWzPwNYeH7WFB"
+    "/dns4/bootnode4.moonriver.moonbeam.network/tcp/30334/p2p/12D3KooWJBVsJCh61QD98NACNDENtamETuLRnPhoWzPwNYeH7WFB",
+    "/dns4/node-6844441322559299584-0.p2p.onfinality.io/tcp/27387/ws/p2p/12D3KooWPtd4griLrKn6XnrGfBCacNVvBGj8vnYGVbyC7iHetKq4",
+    "/dns4/node-6844484891634491392-0.p2p.onfinality.io/tcp/14108/ws/p2p/12D3KooWRGTB3pGd95amXNGTqVuVQW7oeTP5BDemD1d63TSnini8"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
