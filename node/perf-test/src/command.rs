@@ -49,7 +49,7 @@ use futures::{
 	},
 };
 
-use service::{chain_spec, RuntimeApiCollection, Block};
+use service::{rpc, chain_spec, RuntimeApiCollection, Block, TransactionConverters};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
@@ -83,7 +83,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: &Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -103,7 +103,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		// TODO: review -- we don't need any actual networking
-		let (_network, _system_rpc_tx, network_starter) =
+		let (network, system_rpc_tx, network_starter) =
 			sc_service::build_network(sc_service::BuildNetworkParams {
 				config: &config,
 				client: client.clone(),
@@ -181,6 +181,9 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			}),
 		);
 
+		let subscription_task_executor =
+			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+
 		service::rpc::spawn_essential_tasks(service::rpc::SpawnTasksParams {
 			task_manager: &task_manager,
 			client: client.clone(),
@@ -188,6 +191,54 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			frontier_backend: frontier_backend.clone(),
 			filter_pool: filter_pool.clone(),
 		});
+
+		let command_sink_for_deps = command_sink.clone();
+
+		let rpc_extensions_builder = {
+			let client = client.clone();
+			let pool = transaction_pool.clone();
+			let backend = backend.clone();
+			let network = network.clone();
+			let max_past_logs = 1000;
+
+			Box::new(move |deny_unsafe, _| {
+				let deps = rpc::FullDeps {
+					client: client.clone(),
+					pool: pool.clone(),
+					graph: pool.pool().clone(),
+					deny_unsafe,
+					is_authority: true,
+					network: network.clone(),
+					filter_pool: filter_pool.clone(),
+					ethapi_cmd: Default::default(),
+					command_sink: command_sink_for_deps.clone(),
+					frontier_backend: frontier_backend.clone(),
+					backend: backend.clone(),
+					max_past_logs,
+					transaction_converter: TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter),
+				};
+				#[allow(unused_mut)]
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+				Ok(io)
+			})
+		};
+
+		let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+			network,
+			client: client.clone(),
+			keystore: keystore_container.sync_keystore(),
+			task_manager: &mut task_manager,
+			transaction_pool: transaction_pool.clone(),
+			rpc_extensions_builder,
+			on_demand: None,
+			remote_blockchain: None,
+			backend,
+			system_rpc_tx,
+			config,
+			telemetry: None,
+		})?;
+
+		log::info!("Perf-test Service Ready");
 
 		network_starter.start_network();
 
@@ -335,6 +386,10 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 	pub fn create_block(&self, create_empty: bool) ->
 		CreatedBlock<H256>
 	{
+
+		// TODO: Joshy's idea: call into propose_with() directly (or similar) rather than go through
+		// manual seal
+
 		log::debug!("Issuing seal command...");
 		let hash = self.client.info().best_hash;
 
@@ -396,7 +451,9 @@ impl PerfCmd {
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 	{
-		let mut runner = TestContext::<RuntimeApi, Executor>::from_cmd(&config, &self)?;
+		// TODO: Joshy suggested looking at the substrate browser "test":
+		// <substrate_repo>/bin/node/browser-testing/src/lib.rs
+		let mut runner = TestContext::<RuntimeApi, Executor>::from_cmd(config, &self)?;
 
 		// create an empty block to warm the runtime cache...
 		runner.create_block(true);

@@ -7597,6 +7597,7 @@ dependencies = [
  "sc-client-db",
  "sc-consensus-manual-seal",
  "sc-executor",
+ "sc-rpc",
  "sc-service",
  "sc-transaction-pool",
  "sha3 0.8.2",

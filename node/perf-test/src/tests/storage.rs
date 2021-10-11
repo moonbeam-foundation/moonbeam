@@ -171,7 +171,9 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for StoragePerfTest
 				alice_nonce,
 			).expect("EVM create failed while trying to deploy storage_bloater contract");
 
+			log::warn!(target: "storage_bloat", "creating block...");
 			context.create_block(true);
+			log::warn!(target: "storage_bloat", "done creating block...");
 			alice_nonce = alice_nonce.saturating_add(1.into());
 		}
 
