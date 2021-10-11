@@ -83,6 +83,29 @@ impl<'a> EvmDataReader<'a> {
 		Self { input, cursor: 0 }
 	}
 
+	/// Create a new input parser from a selector-initial input.
+	pub fn new_with_selector<T>(input: &'a [u8]) -> EvmResult<(Self, T)>
+	where
+		T: num_enum::TryFromPrimitive<Primitive = u32>,
+	{
+		if input.len() < 4 {
+			return Err(error("tried to parse selector out of bounds"));
+		}
+
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(&input[0..4]);
+		let selector = T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
+			log::trace!(
+				target: "precompile-utils",
+				"Failed to match function selector for {}",
+				type_name::<T>()
+			);
+			error("unknown selector")
+		})?;
+
+		Ok((Self::new(&input[4..]), selector))
+	}
+
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
 	pub fn expect_arguments(&self, args: usize) -> EvmResult {
 		if self.input.len() >= self.cursor + args * 32 {
@@ -121,27 +144,6 @@ impl<'a> EvmDataReader<'a> {
 			.ok_or_else(|| error("tried to parse raw bytes out of bounds"))?;
 
 		Ok(data)
-	}
-
-	/// Parse (4 bytes) selector.
-	/// Returns an error if trying to parse out of bounds.
-	pub fn read_selector<T>(&mut self) -> EvmResult<T>
-	where
-		T: num_enum::TryFromPrimitive<Primitive = u32>,
-	{
-		let mut buffer = [0u8; 4];
-		buffer.copy_from_slice(
-			self.read_raw_bytes(4)
-				.map_err(|_| error("tried to parse selector out of bounds"))?,
-		);
-		T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
-			log::trace!(
-				target: "precompile-utils",
-				"Failed to match function selector for {}",
-				type_name::<T>()
-			);
-			error("unknown selector")
-		})
 	}
 
 	/// Move the reading cursor with provided length, and return a range from the previous cursor

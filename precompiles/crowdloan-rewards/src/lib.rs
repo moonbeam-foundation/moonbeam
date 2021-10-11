@@ -70,9 +70,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		match &input.read_selector()? {
+		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::IsContributor => Self::is_contributor(input, target_gas),
 			Action::RewardInfo => Self::reward_info(input, target_gas),

@@ -127,12 +127,10 @@ fn read_selector() {
 	}
 
 	let selector = &Keccak256::digest(b"action1()")[0..4];
-	let mut reader = EvmDataReader::new(selector);
+	let (_, parsed_selector) =
+		EvmDataReader::new_with_selector::<FakeAction>(selector).expect("there is a selector");
 
-	assert_eq!(
-		reader.read_selector::<FakeAction>().unwrap(),
-		FakeAction::Action1
-	)
+	assert_eq!(parsed_selector, FakeAction::Action1)
 }
 
 #[test]
