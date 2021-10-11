@@ -263,7 +263,7 @@ const TYPES_400_599: RegistryTypes = {
   },
 };
 
-const TYPES_600_undefined: RegistryTypes = {
+const TYPES_600_799: RegistryTypes = {
   ...TYPES_400_599,
   AssetType: {
     _enum: {
@@ -318,6 +318,24 @@ const TYPES_600_undefined: RegistryTypes = {
   MultiLocation: "MultiLocationV0",
 };
 
+const TYPES_800_undefined: RegistryTypes = {
+  ...TYPES_600_799,
+  JunctionV1: {
+    _enum: {
+      Parachain: "Compact<u32>",
+      AccountId32: "ENUM_AccountId32",
+      AccountIndex64: "ENUM_AccountIndex64",
+      AccountKey20: "ENUM_AccountKey20",
+      PalletInstance: "u8",
+      GeneralIndex: "Compact<u128>",
+      GeneralKey: "Vec<u8>",
+      OnlyChild: "Null",
+      Plurality: "ENUM_Plurality",
+    },
+  },
+  MultiLocation: "MultiLocationV1",
+};
+
 export const moonbeamDefinitions = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
@@ -367,8 +385,12 @@ export const moonbeamDefinitions = {
       types: TYPES_400_599,
     },
     {
-      minmax: [600, undefined],
-      types: TYPES_600_undefined,
+      minmax: [600, 799],
+      types: TYPES_600_799,
+    },
+    {
+      minmax: [800, undefined],
+      types: TYPES_800_undefined,
     },
   ],
 } as OverrideBundleDefinition;
