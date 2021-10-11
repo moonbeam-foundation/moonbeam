@@ -19,37 +19,11 @@ use crate::{
 	tests::{TestRunner, TestResults},
 };
 
-use sp_runtime::transaction_validity::TransactionSource;
-use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
-};
-use sc_cli::{
-	CliConfiguration, Result as CliResult, SharedParams,
-};
-use sp_core::{H160, H256, U256};
-use sc_client_api::HeaderBackend;
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{
-	sync::Arc,
-	marker::PhantomData,
-	time::Instant,
-};
-use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
-use nimbus_primitives::NimbusId;
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
-use ethereum::TransactionAction;
+use sc_service::NativeExecutionDispatch;
+use sp_api::ConstructRuntimeApi;
+use std::time::Instant;
 
-use futures::{
-	Stream, SinkExt,
-	channel::{
-		oneshot,
-		mpsc,
-	},
-};
-
-use service::{chain_spec, RuntimeApiCollection, Block};
-use sha3::{Digest, Keccak256};
+use service::{RuntimeApiCollection, Block};
 
 const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
 const MIN_GAS_PRICE: u64 = 1_000_000_000;
@@ -115,7 +89,6 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 			EXTRINSIC_GAS_LIMIT.into(),
 			Some(MIN_GAS_PRICE.into()),
 			Some(alice_nonce),
-			false
 		).expect("EVM create failed while estimating contract address");
 		results.push(TestResults::new("evm_create", now.elapsed()));
 
@@ -123,7 +96,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		log::debug!("Fibonacci fibonacci_address expected to be {:?}", fibonacci_address);
 
 		log::trace!("Issuing EVM create txn...");
-		let txn_hash = context.eth_sign_and_send_transaction(
+		let _txn_hash = context.eth_sign_and_send_transaction(
 			&alice.privkey,
 			None,
 			fibonacci_bytecode,
@@ -147,7 +120,7 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 		const NUM_FIB_370_CALLS: u32 = 4096;
 		println!("Calling fib[370] {} times...", NUM_FIB_370_CALLS);
 		let now = Instant::now();
-		for i in 0..NUM_FIB_370_CALLS {
+		for _ in 0..NUM_FIB_370_CALLS {
 			let call_results = context.evm_call(
 				alice.address,
 				fibonacci_address,
@@ -156,7 +129,6 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for FibonacciPerfTes
 				EXTRINSIC_GAS_LIMIT.into(),
 				Some(MIN_GAS_PRICE.into()),
 				Some(alice_nonce),
-				false
 			).expect("EVM call failed while trying to invoke Fibonacci contract");
 
 			log::debug!("EVM call returned {:?}", call_results);

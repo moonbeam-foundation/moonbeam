@@ -19,36 +19,12 @@ use crate::{
 	tests::{TestRunner, TestResults},
 };
 
-use sp_runtime::transaction_validity::TransactionSource;
-use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
-};
-use sc_cli::{
-	CliConfiguration, Result as CliResult, SharedParams,
-};
-use sp_core::{H160, H256, U256};
-use sc_client_api::HeaderBackend;
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{
-	sync::Arc,
-	marker::PhantomData,
-	time::Instant,
-};
-use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
-use nimbus_primitives::NimbusId;
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
-use ethereum::TransactionAction;
+use sc_service::NativeExecutionDispatch;
+use sp_core::U256;
+use sp_api::ConstructRuntimeApi;
+use std::time::Instant;
 
-use futures::{
-	Stream, SinkExt,
-	channel::{
-		oneshot,
-		mpsc,
-	},
-};
-
-use service::{chain_spec, RuntimeApiCollection, Block};
+use service::{RuntimeApiCollection, Block};
 use sha3::{Digest, Keccak256};
 
 const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
@@ -132,13 +108,12 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for StoragePerfTest
 			EXTRINSIC_GAS_LIMIT.into(),
 			Some(MIN_GAS_PRICE.into()),
 			Some(alice_nonce),
-			false
 		).expect("EVM create failed while estimating contract address");
 		let storage_bloater_address = create_info.value;
 		log::debug!("storage_bloater address expected to be {:?}", storage_bloater_address);
 
 		log::trace!("Issuing EVM create txn for stoarge_bloater...");
-		let txn_hash = context.eth_sign_and_send_transaction(
+		let _txn_hash = context.eth_sign_and_send_transaction(
 			&alice.privkey,
 			None,
 			storage_bloater_bytecode,
@@ -159,9 +134,9 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for StoragePerfTest
 		for i in 0..100 {
 
 			// create calldata 
-			let calldata = calculate_bloat_storage_calldata((i * 500), 500, 0);
+			let calldata = calculate_bloat_storage_calldata(i * 500, 500, 0);
 
-			let txn_hash = context.eth_sign_and_send_transaction(
+			let _txn_hash = context.eth_sign_and_send_transaction(
 				&alice.privkey,
 				Some(storage_bloater_address),
 				calldata.clone(),

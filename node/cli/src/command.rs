@@ -31,7 +31,6 @@ use sc_cli::{
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use service::{chain_spec, frontier_database_dir, IdentifyVariant};
-use perf_test::PerfCmd;
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};

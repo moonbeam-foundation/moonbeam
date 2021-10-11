@@ -18,11 +18,9 @@ use std::time::Duration;
 
 use crate::command::{TestContext, FullClient, FullBackend};
 
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use service::{chain_spec, RuntimeApiCollection, Block};
-use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
-};
+use sp_api::ConstructRuntimeApi;
+use service::{RuntimeApiCollection, Block};
+use sc_service::NativeExecutionDispatch;
 
 mod fibonacci;
 mod block_creation;

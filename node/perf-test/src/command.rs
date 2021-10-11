@@ -33,7 +33,6 @@ use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
 use std::{
 	sync::Arc,
 	marker::PhantomData,
-	time::Instant,
 };
 use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
 use nimbus_primitives::NimbusId;
@@ -55,9 +54,6 @@ use sha3::{Digest, Keccak256};
 pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 pub type FullBackend = TFullBackend<Block>;
 
-const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
-const MIN_GAS_PRICE: u64 = 1_000_000_000;
-
 pub struct TestContext<RuntimeApi, Executor>
 	where
 		RuntimeApi:
@@ -66,7 +62,7 @@ pub struct TestContext<RuntimeApi, Executor>
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 {
-	task_manager: TaskManager,
+	_task_manager: TaskManager,
 	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
 	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
@@ -83,7 +79,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 			RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 		Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -243,7 +239,7 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		network_starter.start_network();
 
 		Ok(TestContext {
-			task_manager,
+			_task_manager: task_manager,
 			client: client.clone(),
 			manual_seal_command_sink: command_sink.unwrap(),
 			pool: transaction_pool,
@@ -285,7 +281,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		gas_limit: U256,
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
-		estimate: bool,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
 		log::info!("evm_call best_hash: {:?}", hash);
@@ -313,7 +308,6 @@ impl<RuntimeApi, Executor> TestContext<RuntimeApi, Executor>
 		gas_limit: U256,
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
-		estimate: bool,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
 		log::info!("evm_create best_hash: {:?}", hash);
@@ -453,12 +447,12 @@ impl PerfCmd {
 	{
 		// TODO: Joshy suggested looking at the substrate browser "test":
 		// <substrate_repo>/bin/node/browser-testing/src/lib.rs
-		let mut runner = TestContext::<RuntimeApi, Executor>::from_cmd(config, &self)?;
+		let runner = TestContext::<RuntimeApi, Executor>::from_cmd(config, &self)?;
 
 		// create an empty block to warm the runtime cache...
 		runner.create_block(true);
 
-		let mut tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec!(
+		let tests: Vec<Box<dyn TestRunner<RuntimeApi, Executor>>> = vec!(
 			Box::new(FibonacciPerfTest::new()),
 			Box::new(BlockCreationPerfTest::new()),
 			Box::new(StoragePerfTest::new()),

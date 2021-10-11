@@ -19,37 +19,11 @@ use crate::{
 	tests::{TestRunner, TestResults},
 };
 
-use sp_runtime::transaction_validity::TransactionSource;
-use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullClient, TFullBackend, TaskManager, TransactionPool,
-};
-use sc_cli::{
-	CliConfiguration, Result as CliResult, SharedParams,
-};
-use sp_core::{H160, H256, U256};
-use sc_client_api::HeaderBackend;
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi, BlockId};
-use std::{
-	sync::Arc,
-	marker::PhantomData,
-	time::Instant,
-};
-use fp_rpc::{EthereumRuntimeRPCApi, ConvertTransaction};
-use nimbus_primitives::NimbusId;
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams, CreatedBlock};
-use ethereum::TransactionAction;
+use sc_service::NativeExecutionDispatch;
+use sp_api::ConstructRuntimeApi;
+use std::time::Instant;
 
-use futures::{
-	Stream, SinkExt,
-	channel::{
-		oneshot,
-		mpsc,
-	},
-};
-
-use service::{chain_spec, RuntimeApiCollection, Block};
-use sha3::{Digest, Keccak256};
+use service::{RuntimeApiCollection, Block};
 
 const EXTRINSIC_GAS_LIMIT: u64 = 12_995_000;
 const MIN_GAS_PRICE: u64 = 1_000_000_000;
@@ -81,8 +55,8 @@ impl<RuntimeApi, Executor> TestRunner<RuntimeApi, Executor> for BlockCreationPer
 		println!("Creating blocks with increasing nonce-dependent txns...");
 		let now = Instant::now();
 		for i in 1..67 {
-			for j in 1..i {
-				let txn_hash = context.eth_sign_and_send_transaction(
+			for _ in 1..i {
+				let _txn_hash = context.eth_sign_and_send_transaction(
 					&alice.privkey,
 					Some(alice.address),
 					Default::default(),
