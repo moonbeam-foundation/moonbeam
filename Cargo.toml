@@ -18,8 +18,12 @@ exclude = [
 [profile.release]
 panic = 'unwind'
 
-# Fix EVM tracing impact in block production pipeline.
+# These overrides are necessary to support scale-info.
+# Each one is associated with a PR in a dependency repo
 [patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
+
+# https://github.com/rust-blockchain/evm/pull/63
+evm-core = { git = "https://github.com/purestake/evm", branch = "joshy-scale-info"}
+
+# https://github.com/rust-blockchain/ethereum/pull/22
+ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info"}
