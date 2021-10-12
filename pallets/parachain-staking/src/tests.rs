@@ -22,8 +22,8 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
-	Stake, Test,
+	assert_eq_events, assert_event_emitted, assert_last_event, roll_to, set_author, Balances,
+	Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
 	Bond, CandidateBondChange, CandidateBondRequest, CollatorStatus, DelegationChange,
@@ -31,18 +31,6 @@ use crate::{
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
-
-/// Prints the diff iff assert_eq fails, should only be used for debugging purposes
-#[macro_export]
-macro_rules! asserts_eq {
-	($left:expr, $right:expr) => {
-		match (&$left, &$right) {
-			(left_val, right_val) => {
-				similar_asserts::assert_eq!(*left_val, *right_val);
-			}
-		}
-	};
-}
 
 // ~~ ROOT ~~
 
@@ -70,10 +58,7 @@ fn invalid_root_origin_fails() {
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
-		);
+		assert_last_event(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32)));
 	});
 }
 
@@ -115,13 +100,10 @@ fn set_collator_commission_event_emits_correctly() {
 			Origin::root(),
 			Perbill::from_percent(5)
 		));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::CollatorCommissionSet(
-				Perbill::from_percent(20),
-				Perbill::from_percent(5),
-			))
-		);
+		assert_last_event(MetaEvent::Stake(Event::CollatorCommissionSet(
+			Perbill::from_percent(20),
+			Perbill::from_percent(5),
+		)));
 	});
 }
 
@@ -153,18 +135,15 @@ fn cannot_set_collator_commission_to_current_collator_commission() {
 fn set_blocks_per_round_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::BlocksPerRoundSet(
-				1,
-				0,
-				5,
-				3,
-				Perbill::from_parts(463),
-				Perbill::from_parts(463),
-				Perbill::from_parts(463)
-			))
-		);
+		assert_last_event(MetaEvent::Stake(Event::BlocksPerRoundSet(
+			1,
+			0,
+			5,
+			3,
+			Perbill::from_parts(463),
+			Perbill::from_parts(463),
+			Perbill::from_parts(463),
+		)));
 	});
 }
 
@@ -206,10 +185,10 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 		.execute_with(|| {
 			// default round every 5 blocks
 			roll_to(8);
-			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(5, 2, 1, 20)));
+			assert_last_event(MetaEvent::Stake(Event::NewRound(5, 2, 1, 20)));
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(9, 3, 1, 20)));
+			assert_last_event(MetaEvent::Stake(Event::NewRound(9, 3, 1, 20)));
 		});
 }
 
@@ -276,10 +255,9 @@ fn set_staking_event_emits_event_correctly() {
 				max: 5u128,
 			}
 		));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::StakeExpectationsSet(3u128, 4u128, 5u128))
-		);
+		assert_last_event(MetaEvent::Stake(Event::StakeExpectationsSet(
+			3u128, 4u128, 5u128,
+		)));
 	});
 }
 
@@ -370,17 +348,14 @@ fn set_inflation_event_emits_correctly() {
 			Origin::root(),
 			Range { min, ideal, max }
 		));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::InflationSet(
-				min,
-				ideal,
-				max,
-				Perbill::from_parts(57),
-				Perbill::from_parts(75),
-				Perbill::from_parts(93)
-			))
-		);
+		assert_last_event(MetaEvent::Stake(Event::InflationSet(
+			min,
+			ideal,
+			max,
+			Perbill::from_parts(57),
+			Perbill::from_parts(75),
+			Perbill::from_parts(93),
+		)));
 	});
 }
 
@@ -466,10 +441,7 @@ fn cannot_set_same_inflation() {
 fn set_parachain_bond_account_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::ParachainBondAccountSet(0, 11))
-		);
+		assert_last_event(MetaEvent::Stake(Event::ParachainBondAccountSet(0, 11)));
 	});
 }
 
@@ -491,13 +463,10 @@ fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 			Origin::root(),
 			Percent::from_percent(50)
 		));
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::ParachainBondReservePercentSet(
-				Percent::from_percent(30),
-				Percent::from_percent(50)
-			))
-		);
+		assert_last_event(MetaEvent::Stake(Event::ParachainBondReservePercentSet(
+			Percent::from_percent(30),
+			Percent::from_percent(50),
+		)));
 	});
 }
 
@@ -540,10 +509,9 @@ fn join_candidates_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 0u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
-			);
+			assert_last_event(MetaEvent::Stake(Event::JoinedCollatorCandidates(
+				1, 10u128, 10u128,
+			)));
 		});
 }
 
@@ -715,10 +683,7 @@ fn leave_candidates_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorScheduledExit(1, 1, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(1, 1, 3)));
 		});
 }
 
@@ -803,10 +768,7 @@ fn execute_leave_candidates_emits_event() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorLeft(1, 10, 0))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorLeft(1, 10, 0)));
 		});
 }
 
@@ -905,10 +867,7 @@ fn cancel_leave_candidates_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
 			assert_ok!(Stake::cancel_leave_candidates(Origin::signed(1), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledCandidateExit(1))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledCandidateExit(1)));
 		});
 }
 
@@ -955,10 +914,7 @@ fn go_offline_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::go_offline(Origin::signed(1)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorWentOffline(1, 1))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorWentOffline(1, 1)));
 		});
 }
 
@@ -1026,10 +982,7 @@ fn go_online_event_emits_correctly() {
 		.execute_with(|| {
 			assert_ok!(Stake::go_offline(Origin::signed(1)));
 			assert_ok!(Stake::go_online(Origin::signed(1)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorBackOnline(1, 1))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorBackOnline(1, 1)));
 		});
 }
 
@@ -1103,10 +1056,7 @@ fn candidate_bond_more_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorBondMoreRequested(1, 30, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorBondMoreRequested(1, 30, 3)));
 		});
 }
 
@@ -1212,10 +1162,7 @@ fn candidate_bond_less_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorBondLessRequested(1, 10, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorBondLessRequested(1, 10, 3)));
 		});
 }
 
@@ -1304,10 +1251,7 @@ fn execute_candidate_bond_more_emits_correct_event() {
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
 			roll_to(10);
 			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorBondedMore(1, 30, 50))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorBondedMore(1, 30, 50)));
 		});
 }
 
@@ -1400,10 +1344,7 @@ fn execute_candidate_bond_less_emits_correct_event() {
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 30));
 			roll_to(10);
 			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorBondedLess(1, 30, 20))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorBondedLess(1, 30, 20)));
 		});
 }
 
@@ -1496,17 +1437,14 @@ fn cancel_candidate_bond_more_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 10));
 			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledCollatorBondChange(
-					1,
-					CandidateBondRequest {
-						amount: 10,
-						change: CandidateBondChange::Increase,
-						when: 3
-					}
-				))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledCollatorBondChange(
+				1,
+				CandidateBondRequest {
+					amount: 10,
+					change: CandidateBondChange::Increase,
+					when: 3,
+				},
+			)));
 		});
 }
 
@@ -1549,17 +1487,14 @@ fn cancel_candidate_bond_less_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
 			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledCollatorBondChange(
-					1,
-					CandidateBondRequest {
-						amount: 10,
-						change: CandidateBondChange::Decrease,
-						when: 3
-					}
-				))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledCollatorBondChange(
+				1,
+				CandidateBondRequest {
+					amount: 10,
+					change: CandidateBondChange::Decrease,
+					when: 3,
+				},
+			)));
 		});
 }
 
@@ -1601,15 +1536,12 @@ fn nominate_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::Nomination(
-					2,
-					10,
-					1,
-					DelegatorAdded::AddedToTop { new_total: 40 }
-				)),
-			);
+			assert_last_event(MetaEvent::Stake(Event::Nomination(
+				2,
+				10,
+				1,
+				DelegatorAdded::AddedToTop { new_total: 40 },
+			)));
 		});
 }
 
@@ -1844,10 +1776,7 @@ fn leave_delegators_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::leave_delegators(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3)));
 		});
 }
 
@@ -1925,7 +1854,7 @@ fn execute_leave_delegators_event_emits_correctly() {
 			assert_ok!(Stake::leave_delegators(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
-			assert!(events().contains(&Event::NominatorLeft(2, 10)));
+			assert_event_emitted(Event::NominatorLeft(2, 10));
 		});
 }
 
@@ -2048,10 +1977,7 @@ fn cancel_leave_delegators_emits_correct_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::leave_delegators(Origin::signed(2), 1));
 			assert_ok!(Stake::cancel_leave_delegators(Origin::signed(2)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominatorExitCancelled(2))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominatorExitCancelled(2)));
 		});
 }
 
@@ -2081,13 +2007,12 @@ fn revoke_delegation_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationRevocationScheduled(
+				1, 2, 1, 3,
+			)));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+			assert_event_emitted(Event::NominatorLeftCollator(2, 1, 10, 30));
 		});
 }
 
@@ -2171,10 +2096,9 @@ fn delegator_bond_more_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationIncreaseScheduled(2, 1, 5, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationIncreaseScheduled(
+				2, 1, 5, 3,
+			)));
 		});
 }
 
@@ -2298,10 +2222,9 @@ fn delegator_bond_less_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationDecreaseScheduled(2, 1, 5, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationDecreaseScheduled(
+				2, 1, 5, 3,
+			)));
 		});
 }
 
@@ -2460,8 +2383,8 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
-			assert!(events().contains(&Event::NominatorLeft(2, 10)));
+			assert_event_emitted(Event::NominatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::NominatorLeft(2, 10));
 		});
 }
 
@@ -2499,9 +2422,8 @@ fn revoke_delegation_executes_exit_if_last_delegation() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			// TODO: do this more and add helper functions that do it
-			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
-			assert!(events().contains(&Event::NominatorLeft(2, 10)));
+			assert_event_emitted(Event::NominatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::NominatorLeft(2, 10));
 		});
 }
 
@@ -2516,7 +2438,7 @@ fn execute_revoke_delegation_emits_correct_event() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+			assert_event_emitted(Event::NominatorLeftCollator(2, 1, 10, 30));
 		});
 }
 
@@ -2713,10 +2635,9 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationRevocationScheduled(
+				1, 2, 1, 3,
+			)));
 			assert_noop!(
 				Stake::delegator_bond_less(Origin::signed(2), 1, 2),
 				Error::<Test>::PendingDelegationRequestAlreadyExists
@@ -2725,10 +2646,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationDecreased(2, 3, 2, true))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationDecreased(2, 3, 2, true)));
 			assert!(Stake::is_nominator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 8);
 			assert_eq!(Balances::free_balance(&2), 22);
@@ -2841,10 +2759,7 @@ fn execute_delegator_bond_more_updates_candidate_state_bottom_delegations() {
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NominationIncreased(2, 1, 5, false))
-			);
+			assert_last_event(MetaEvent::Stake(Event::NominationIncreased(2, 1, 5, false)));
 			assert_eq!(
 				Stake::candidate_state(1)
 					.expect("exists")
@@ -3110,18 +3025,15 @@ fn cancel_revoke_delegation_emits_correct_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledDelegationRequest(
-					2,
-					DelegationRequest {
-						collator: 1,
-						amount: 10,
-						when: 3,
-						action: DelegationChange::Revoke,
-					}
-				))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledDelegationRequest(
+				2,
+				DelegationRequest {
+					collator: 1,
+					amount: 10,
+					when: 3,
+					action: DelegationChange::Revoke,
+				},
+			)));
 		});
 }
 
@@ -3164,18 +3076,15 @@ fn cancel_delegator_bond_more_emits_correct_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledDelegationRequest(
-					2,
-					DelegationRequest {
-						collator: 1,
-						amount: 5,
-						when: 3,
-						action: DelegationChange::Increase,
-					}
-				))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledDelegationRequest(
+				2,
+				DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Increase,
+				},
+			)));
 		});
 }
 
@@ -3218,18 +3127,15 @@ fn cancel_delegator_bond_less_correct_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CancelledDelegationRequest(
-					2,
-					DelegationRequest {
-						collator: 1,
-						amount: 5,
-						when: 3,
-						action: DelegationChange::Decrease,
-					}
-				))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CancelledDelegationRequest(
+				2,
+				DelegationRequest {
+					collator: 1,
+					amount: 5,
+					when: 3,
+					action: DelegationChange::Decrease,
+				},
+			)));
 		});
 }
 
@@ -3358,7 +3264,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(2, 5, 10),
 				Event::NewRound(5, 2, 5, 140),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 1);
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
@@ -3384,7 +3290,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(15, 4, 5, 140),
 			];
 			expected.append(&mut new);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 16);
 			// ~ set block author as 1 for all blocks this round
 			set_author(3, 1, 100);
@@ -3439,7 +3345,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(30, 7, 5, 130),
 			];
 			expected.append(&mut new2);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 65);
 			assert_ok!(Stake::set_parachain_bond_reserve_percent(
 				Origin::root(),
@@ -3467,7 +3373,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(35, 8, 5, 130),
 			];
 			expected.append(&mut new3);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 95);
 			set_author(7, 1, 100);
 			roll_to(40);
@@ -3485,7 +3391,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(40, 9, 5, 130),
 			];
 			expected.append(&mut new4);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, 100);
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
@@ -3505,7 +3411,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(45, 10, 5, 140),
 			];
 			expected.append(&mut new5);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 160);
 			set_author(9, 1, 100);
 			set_author(10, 1, 100);
@@ -3524,7 +3430,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(50, 11, 5, 140),
 			];
 			expected.append(&mut new6);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 195);
 			roll_to(55);
 			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
@@ -3542,7 +3448,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(55, 12, 5, 140),
 			];
 			expected.append(&mut new7);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 			assert_eq!(Balances::free_balance(&11), 232);
 		});
 }
@@ -3568,12 +3474,11 @@ fn paid_collator_commission_matches_config() {
 				Event::CollatorChosen(2, 1, 40),
 				Event::NewRound(5, 2, 1, 40),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
-			);
+			assert_last_event(MetaEvent::Stake(Event::JoinedCollatorCandidates(
+				4, 20u128, 60u128,
+			)));
 			roll_to(9);
 			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
 			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
@@ -3587,7 +3492,7 @@ fn paid_collator_commission_matches_config() {
 				Event::NewRound(10, 3, 2, 80),
 			];
 			expected.append(&mut new);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// only reward author with id 4
 			set_author(3, 4, 100);
 			roll_to(21);
@@ -3605,7 +3510,7 @@ fn paid_collator_commission_matches_config() {
 				Event::NewRound(20, 5, 2, 80),
 			];
 			expected.append(&mut new2);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 		});
 }
 
@@ -3650,7 +3555,7 @@ fn collator_exit_executes_after_delay() {
 				Event::NewRound(20, 5, 1, 700),
 				Event::CollatorLeft(2, 400, 700),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 		});
 }
 
@@ -3681,19 +3586,15 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(2, 5, 60),
 				Event::NewRound(5, 2, 5, 400),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4)));
 			roll_to(21);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6));
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
-			);
+			assert_last_event(MetaEvent::Stake(Event::JoinedCollatorCandidates(
+				6, 69u128, 469u128,
+			)));
 			roll_to(27);
 			// should choose top TotalSelectedCandidates (5), in order
 			let expected = vec![
@@ -3731,7 +3632,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(6, 6, 69),
 				Event::NewRound(25, 6, 5, 409),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 		});
 }
 
@@ -3762,7 +3663,7 @@ fn payout_distribution_to_solo_collators() {
 				Event::CollatorChosen(2, 5, 60),
 				Event::NewRound(5, 2, 5, 400),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
 			roll_to(16);
@@ -3783,7 +3684,7 @@ fn payout_distribution_to_solo_collators() {
 				Event::NewRound(15, 4, 5, 400),
 			];
 			expected.append(&mut new);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// ~ set block author as 1 for 3 blocks this round
 			set_author(4, 1, 60);
 			// ~ set block author as 2 for 2 blocks this round
@@ -3807,7 +3708,7 @@ fn payout_distribution_to_solo_collators() {
 				Event::NewRound(25, 6, 5, 400),
 			];
 			expected.append(&mut new1);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// ~ each collator produces 1 block this round
 			set_author(6, 1, 20);
 			set_author(6, 2, 20);
@@ -3836,7 +3737,7 @@ fn payout_distribution_to_solo_collators() {
 				Event::NewRound(35, 8, 5, 400),
 			];
 			expected.append(&mut new2);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 			// check that distributing rewards clears awarded pts
 			assert!(Stake::awarded_pts(1, 1).is_zero());
 			assert!(Stake::awarded_pts(4, 1).is_zero());
@@ -3884,7 +3785,7 @@ fn multiple_delegations() {
 				Event::CollatorChosen(2, 5, 10),
 				Event::NewRound(5, 2, 5, 140),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 10, 10));
 			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 10, 10));
 			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
@@ -3907,7 +3808,7 @@ fn multiple_delegations() {
 				Event::NewRound(15, 4, 5, 170),
 			];
 			expected.append(&mut new);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			roll_to(21);
 			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 10, 10));
 			assert_ok!(Stake::nominate(Origin::signed(10), 2, 10, 10, 10),);
@@ -3929,12 +3830,9 @@ fn multiple_delegations() {
 				Event::NewRound(25, 6, 5, 250),
 			];
 			expected.append(&mut new2);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8))
-			);
+			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8)));
 			roll_to(31);
 			let mut new3 = vec![
 				Event::CollatorScheduledExit(6, 2, 8),
@@ -3945,7 +3843,7 @@ fn multiple_delegations() {
 				Event::NewRound(30, 7, 4, 120),
 			];
 			expected.append(&mut new3);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 			// verify that delegations are removed after collator leaves, not before
 			assert_eq!(Stake::delegator_state(7).unwrap().total, 90);
 			assert_eq!(
@@ -4015,7 +3913,7 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(2, 5, 10),
 				Event::NewRound(5, 2, 5, 140),
 			];
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
 			roll_to(16);
@@ -4039,7 +3937,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(15, 4, 5, 140),
 			];
 			expected.append(&mut new);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// ~ set block author as 1 for all blocks this round
 			set_author(3, 1, 100);
 			set_author(4, 1, 100);
@@ -4081,7 +3979,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NominatorLeft(6, 10),
 			];
 			expected.append(&mut new2);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			// 6 won't be paid for this round because they left already
 			set_author(7, 1, 100);
 			roll_to(35);
@@ -4109,7 +4007,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(35, 8, 5, 130),
 			];
 			expected.append(&mut new3);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			set_author(8, 1, 100);
 			roll_to(40);
 			// no more paying 6
@@ -4125,7 +4023,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(40, 9, 5, 130),
 			];
 			expected.append(&mut new4);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			set_author(9, 1, 100);
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
@@ -4143,7 +4041,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(45, 10, 5, 140),
 			];
 			expected.append(&mut new5);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			set_author(10, 1, 100);
 			roll_to(50);
 			// new nomination is still not rewarded yet
@@ -4159,7 +4057,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(50, 11, 5, 140),
 			];
 			expected.append(&mut new6);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected.clone());
 			roll_to(55);
 			// new nomination is rewarded for first time, 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
@@ -4175,7 +4073,7 @@ fn payouts_follow_nomination_changes() {
 				Event::NewRound(55, 12, 5, 140),
 			];
 			expected.append(&mut new7);
-			assert_eq!(events(), expected);
+			assert_eq_events(expected);
 		});
 }
 
@@ -4216,7 +4114,7 @@ fn nominations_merged_before_reward_payout() {
 				Event::CollatorChosen(4, 4, 50),
 				Event::NewRound(15, 4, 4, 200),
 			];
-			assert_eq!(events(), expected_events);
+			assert_eq_events(expected_events);
 		});
 }
 
@@ -4362,12 +4260,10 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 8));
-			let expected_event = Event::NominationIncreaseScheduled(3, 1, 8, 3);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(3, 1, 8, 3));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
-			let expected_event = Event::NominationIncreased(3, 1, 8, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(3, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
 			assert_eq!(collator_state.total_counted, 90);
@@ -4378,12 +4274,10 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(4), 1, 8));
-			let expected_event = Event::NominationIncreaseScheduled(4, 1, 8, 5);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(4, 1, 8, 5));
 			roll_to(20);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(4), 4, 1));
-			let expected_event = Event::NominationIncreased(4, 1, 8, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(4, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 17 + 18 + 19 + 20 + 20 = 94 (top 4 + self bond)
 			assert_eq!(collator_state.total_counted, 94);
@@ -4394,12 +4288,10 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(5), 1, 8));
-			let expected_event = Event::NominationIncreaseScheduled(5, 1, 8, 7);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(5, 1, 8, 7));
 			roll_to(30);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(5), 5, 1));
-			let expected_event = Event::NominationIncreased(5, 1, 8, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(5, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 18 + 19 + 20 + 21 + 20 = 98 (top 4 + self bond)
 			assert_eq!(collator_state.total_counted, 98);
@@ -4410,12 +4302,10 @@ fn only_top_collators_are_counted() {
 			);
 			// bump bottom to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(6), 1, 8));
-			let expected_event = Event::NominationIncreaseScheduled(6, 1, 8, 9);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(6, 1, 8, 9));
 			roll_to(40);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
-			let expected_event = Event::NominationIncreased(6, 1, 8, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(6, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 19 + 20 + 21 + 22 + 20 = 102 (top 4 + self bond)
 			assert_eq!(collator_state.total_counted, 102);
@@ -4452,9 +4342,12 @@ fn nomination_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
 			// Top delegations are full, new highest nomination is made
 			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15, 10, 10));
-			let expected_event =
-				Event::Nomination(7, 15, 1, DelegatorAdded::AddedToTop { new_total: 74 });
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::Nomination(
+				7,
+				15,
+				1,
+				DelegatorAdded::AddedToTop { new_total: 74 },
+			));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
@@ -4465,8 +4358,7 @@ fn nomination_events_convey_correct_position() {
 			);
 			// New nomination is added to the bottom
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
-			let expected_event = Event::Nomination(8, 10, 1, DelegatorAdded::AddedToBottom);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::Nomination(8, 10, 1, DelegatorAdded::AddedToBottom));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
@@ -4477,12 +4369,10 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 8 increases nomination to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(8), 1, 3));
-			let expected_event = Event::NominationIncreaseScheduled(8, 1, 3, 3);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(8, 1, 3, 3));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(8), 8, 1));
-			let expected_event = Event::NominationIncreased(8, 1, 3, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(8, 1, 3, true));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 75);
@@ -4493,12 +4383,10 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 3 increases nomination but stays in bottom
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 1));
-			let expected_event = Event::NominationIncreaseScheduled(3, 1, 1, 5);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreaseScheduled(3, 1, 1, 5));
 			roll_to(20);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
-			let expected_event = Event::NominationIncreased(3, 1, 1, false);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationIncreased(3, 1, 1, false));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 75);
@@ -4509,12 +4397,10 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination but stays in top
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 2));
-			let expected_event = Event::NominationDecreaseScheduled(6, 1, 2, 7);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationDecreaseScheduled(6, 1, 2, 7));
 			roll_to(30);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
-			let expected_event = Event::NominationDecreased(6, 1, 2, true);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationDecreased(6, 1, 2, true));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)ƒ
 			assert_eq!(collator1_state.total_counted, 73);
@@ -4525,12 +4411,10 @@ fn nomination_events_convey_correct_position() {
 			);
 			// 6 decreases nomination and is bumped to bottom
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 1));
-			let expected_event = Event::NominationDecreaseScheduled(6, 1, 1, 9);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationDecreaseScheduled(6, 1, 1, 9));
 			roll_to(40);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
-			let expected_event = Event::NominationDecreased(6, 1, 1, false);
-			assert!(events().contains(&expected_event));
+			assert_event_emitted(Event::NominationDecreased(6, 1, 1, false));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 13 + 15 + 20 = 73 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 73);

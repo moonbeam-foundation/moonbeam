@@ -257,6 +257,41 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
+/// Prints the diff iff assert_eq fails, should only be used for debugging purposes
+#[macro_export]
+macro_rules! asserts_eq {
+	($left:expr, $right:expr) => {
+		match (&$left, &$right) {
+			(left_val, right_val) => {
+				similar_asserts::assert_eq!(*left_val, *right_val);
+			}
+		}
+	};
+}
+
+pub(crate) fn assert_last_event(e: Event) {
+	assert_eq!(e, last_event());
+}
+
+/// Compares the system events with passed in events
+/// Prints diff iff assert_eq fails using above macro
+pub(crate) fn assert_eq_events(e: Vec<pallet::Event<Test>>) {
+	asserts_eq!(e, events());
+}
+
+/// Panics if an event is not found in the system log of events
+pub(crate) fn assert_event_emitted(event: pallet::Event<Test>) {
+	for e in events() {
+		if e == event {
+			return;
+		}
+	}
+	println!("Event {:?} was not found in events:", events());
+	println!("{:?}", events());
+	// panic
+	assert!(false);
+}
+
 // Same storage changes as EventHandler::note_author impl
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
