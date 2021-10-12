@@ -58,9 +58,17 @@ pub struct TestResults {
 
 impl TestResults {
 	pub fn new(name: &str, duration: Duration, reference_duration: Duration) -> Self {
-		let this_run = duration.as_micros() as f64;
-		let ref_run = reference_duration.as_micros() as f64;
-		let relative = ref_run / this_run;
+		let ours = duration.as_micros() as f64;
+		let reference = reference_duration.as_micros() as f64;
+
+		std::assert!(reference > 0f64, "make sure reference is set and > 0");
+		let relative = if ours > reference {
+			// the reference is better -- negative % expected
+			- (1f64 - (reference / ours))
+		} else {
+			// we beat the reference -- positive % expected
+			(reference / ours) - 1f64
+		};
 
 		TestResults {
 			test_name: name.into(),
@@ -95,3 +103,56 @@ fn display_duration(duration: &Duration) -> impl std::fmt::Display {
 fn display_relative(relative: &f64) -> impl std::fmt::Display {
 	format!("{:.1} %", relative * 100f64)
 }
+
+/*
+ * TODO: tests via 'cargo test -p perf-test' producing compiler errors?
+ *
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn positive_tests_produce_correct_percentage() {
+		let result = TestResults::new(
+			"+100%",
+			std::time::Duration::from_micros(50000),
+			std::time::Duration::from_micros(100000),
+		);
+		assert_eq!(1_f64, result.relative);
+
+		let result = TestResults::new(
+			"+300%",
+			std::time::Duration::from_micros(25000),
+			std::time::Duration::from_micros(100000),
+		);
+		assert_eq!(3_f64, result.relative);
+	}
+
+	#[test]
+	fn negative_tests_produce_correct_percentage() {
+		let result = TestResults::new(
+			"-50%",
+			std::time::Duration::from_micros(200000),
+			std::time::Duration::from_micros(100000),
+		);
+		assert_eq!(-0.5_f64, result.relative);
+
+		let result = TestResults::new(
+			"-75%",
+			std::time::Duration::from_micros(400000),
+			std::time::Duration::from_micros(100000),
+		);
+		assert_eq!(-0.75_f64, result.relative);
+	}
+
+	#[test]
+	fn equal_test_produce_correct_percentage() {
+		let result = TestResults::new(
+			"0%",
+			std::time::Duration::from_micros(100000),
+			std::time::Duration::from_micros(100000),
+		);
+		assert_eq!(0.0_f64, result.relative);
+	}
+}
+*/
