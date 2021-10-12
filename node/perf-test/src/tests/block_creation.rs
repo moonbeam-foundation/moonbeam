@@ -77,7 +77,7 @@ where
 		results.push(TestResults::new(
 			"nonce-dependent blocks",
 			now.elapsed(),
-			std::time::Duration::from_micros(29144699),
+			std::time::Duration::from_micros(22317571),
 		));
 
 		Ok(results)

@@ -95,7 +95,7 @@ where
 		results.push(TestResults::new(
 			"evm_create fibonacci",
 			now.elapsed(),
-			std::time::Duration::from_micros(1777),
+			std::time::Duration::from_micros(790),
 		));
 
 		let fibonacci_address = create_info.value;
@@ -122,7 +122,7 @@ where
 		results.push(TestResults::new(
 			"create_fibonacci",
 			now.elapsed(),
-			std::time::Duration::from_micros(26915),
+			std::time::Duration::from_micros(22780),
 		));
 
 		// TODO: verify txn results
@@ -153,7 +153,7 @@ where
 		results.push(TestResults::new(
 			"fibonacci_calls",
 			now.elapsed(),
-			std::time::Duration::from_micros(294365591),
+			std::time::Duration::from_micros(9119442),
 		));
 
 		Ok(results)
