@@ -22,6 +22,8 @@ use sc_service::NativeExecutionDispatch;
 use service::{Block, RuntimeApiCollection};
 use sp_api::ConstructRuntimeApi;
 
+use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
+
 mod block_creation;
 mod fibonacci;
 mod storage;
@@ -30,9 +32,11 @@ pub use fibonacci::FibonacciPerfTest;
 pub use storage::StoragePerfTest;
 
 /// struct representing the test results of a single test
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Table)]
 pub struct TestResults {
+	#[table(title = "Test Name")]
 	pub test_name: String,
+	#[table(title = "Overall Time", display_fn = "display_duration", justify = "Justify::Right")]
 	pub overall_duration: Duration,
 }
 
@@ -57,4 +61,11 @@ where
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
 	) -> Result<Vec<TestResults>, String>;
+}
+
+fn display_duration(duration: &Duration) -> impl std::fmt::Display {
+	let ms = duration.as_millis();
+	let us = duration.as_micros() % 1000;
+	let as_decimal: f64 = ms as f64 + (us as f64 / 1000.0);
+	format!("{:.3} ms", as_decimal)
 }

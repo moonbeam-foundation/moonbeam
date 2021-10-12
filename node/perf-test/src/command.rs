@@ -42,6 +42,7 @@ use futures::{
 
 use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
+use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
 
 pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 pub type FullBackend = TFullBackend<Block>;
@@ -440,12 +441,15 @@ impl PerfCmd {
 			Box::new(StoragePerfTest::new()),
 		];
 
+		let mut all_results: Vec<TestResults> = Default::default();
+
 		for mut test in tests {
-			let results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
-			for result in results {
-				println!("    {}: {:?}", result.test_name, result.overall_duration);
-			}
+			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
+			all_results.append(&mut results);
 		}
+
+		let table = all_results.with_title();
+		print_stdout(table).expect("failed to print results");
 
 		Ok(())
 	}
