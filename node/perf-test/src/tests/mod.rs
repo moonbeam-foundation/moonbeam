@@ -64,7 +64,7 @@ impl TestResults {
 		std::assert!(reference > 0f64, "make sure reference is set and > 0");
 		let relative = if ours > reference {
 			// the reference is better -- negative % expected
-			- (1f64 - (reference / ours))
+			-(1f64 - (reference / ours))
 		} else {
 			// we beat the reference -- positive % expected
 			(reference / ours) - 1f64
