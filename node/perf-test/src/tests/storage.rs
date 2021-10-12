@@ -145,6 +145,7 @@ where
 		results.push(TestResults::new(
 			"storage bloat contract creation",
 			now.elapsed(),
+			std::time::Duration::from_micros(22959),
 		));
 
 		// fill our storage contract with bloat
@@ -171,7 +172,10 @@ where
 			alice_nonce = alice_nonce.saturating_add(1.into());
 		}
 
-		results.push(TestResults::new("storage bloating", now.elapsed()));
+		results.push(TestResults::new(
+				"storage bloating",
+				now.elapsed(),
+				std::time::Duration::from_micros(44555001)));
 
 		// TODO: read storage
 

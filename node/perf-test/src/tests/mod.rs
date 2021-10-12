@@ -42,13 +42,27 @@ pub struct TestResults {
 		justify = "Justify::Right"
 	)]
 	pub overall_duration: Duration,
+	#[table(
+		title = "Reference",
+		display_fn = "display_duration",
+		justify = "Justify::Right"
+	)]
+	pub reference_duration: Duration,
+	#[table(title = "Relative", display_fn = "display_relative", justify = "Justify::Right")]
+	pub relative: f64,
 }
 
 impl TestResults {
-	pub fn new(name: &str, duration: Duration) -> Self {
+	pub fn new(name: &str, duration: Duration, reference_duration: Duration) -> Self {
+		let this_run = duration.as_micros() as f64;
+		let ref_run = reference_duration.as_micros() as f64;
+		let relative = ref_run / this_run;
+
 		TestResults {
 			test_name: name.into(),
 			overall_duration: duration,
+			reference_duration,
+			relative,
 		}
 	}
 }
@@ -72,4 +86,8 @@ fn display_duration(duration: &Duration) -> impl std::fmt::Display {
 	let us = duration.as_micros() % 1000;
 	let as_decimal: f64 = ms as f64 + (us as f64 / 1000.0);
 	format!("{:.3} ms", as_decimal)
+}
+
+fn display_relative(relative: &f64) -> impl std::fmt::Display {
+	format!("{:.1} %", relative * 100f64)
 }
