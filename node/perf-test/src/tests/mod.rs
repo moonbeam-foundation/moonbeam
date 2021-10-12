@@ -36,7 +36,11 @@ pub use storage::StoragePerfTest;
 pub struct TestResults {
 	#[table(title = "Test Name")]
 	pub test_name: String,
-	#[table(title = "Overall Time", display_fn = "display_duration", justify = "Justify::Right")]
+	#[table(
+		title = "Overall Time",
+		display_fn = "display_duration",
+		justify = "Justify::Right"
+	)]
 	pub overall_duration: Duration,
 }
 

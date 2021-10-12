@@ -40,9 +40,9 @@ use futures::{
 	SinkExt, Stream,
 };
 
+use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
 use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
 
 pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 pub type FullBackend = TFullBackend<Block>;
