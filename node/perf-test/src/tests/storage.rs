@@ -173,9 +173,10 @@ where
 		}
 
 		results.push(TestResults::new(
-				"storage bloating",
-				now.elapsed(),
-				std::time::Duration::from_micros(44555001)));
+			"storage bloating",
+			now.elapsed(),
+			std::time::Duration::from_micros(44555001),
+		));
 
 		// TODO: read storage
 

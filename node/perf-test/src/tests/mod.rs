@@ -48,7 +48,11 @@ pub struct TestResults {
 		justify = "Justify::Right"
 	)]
 	pub reference_duration: Duration,
-	#[table(title = "Relative", display_fn = "display_relative", justify = "Justify::Right")]
+	#[table(
+		title = "Relative",
+		display_fn = "display_relative",
+		justify = "Justify::Right"
+	)]
 	pub relative: f64,
 }
 

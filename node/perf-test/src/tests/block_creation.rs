@@ -75,9 +75,10 @@ where
 			context.create_block(true);
 		}
 		results.push(TestResults::new(
-				"nonce-dependent blocks",
-				now.elapsed(),
-				std::time::Duration::from_micros(29144699)));
+			"nonce-dependent blocks",
+			now.elapsed(),
+			std::time::Duration::from_micros(29144699),
+		));
 
 		Ok(results)
 	}
