@@ -9,6 +9,8 @@ export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/rel
 export const SPAWNING_TIME = 20000;
 export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
 
+export const RELAY_CHAIN_NODE_NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie", "One"];
+
 // Test variables
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const TREASURY_ACCOUNT = "0x6d6f646c70632f74727372790000000000000000";
