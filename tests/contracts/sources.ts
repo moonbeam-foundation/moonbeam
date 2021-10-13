@@ -488,17 +488,26 @@ export const contractSources: { [key: string]: string } = {
          * @param destination The Multilocation to which we want to send the tokens
          * @param destination The weight we want to buy in the destination chain
          */
-        function transfer(address currency_address, uint256 amount, Multilocation memory destination, uint64 weight) external;
+        function transfer(
+            address currency_address,
+            uint256 amount,
+            Multilocation memory destination,
+            uint64 weight
+        ) external;
 
         /** Transfer a token through XCM based on its currencyId
          *
          * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param asset The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets
+         * @param asset The asset we want to transfer, defined by its multilocation. 
+         * Currently only Concrete Fungible assets
          * @param amount The amount of tokens we want to transfer
          * @param destination The Multilocation to which we want to send the tokens
          * @param destination The weight we want to buy in the destination chain
          */
-        function transfer_multiasset(Multilocation memory asset, uint256 amount, Multilocation memory destination, uint64 weight) external;
+        function transfer_multiasset(
+            Multilocation memory asset,
+            uint256 amount,
+            Multilocation memory destination, uint64 weight) external;
     }
 
     // Function selector reference
@@ -512,11 +521,21 @@ export const contractSources: { [key: string]: string } = {
     /// The Xtokens wrapper at the known pre-compile address.
     Xtokens public xtokens = Xtokens(0x0000000000000000000000000000000000000804);
 
-        function transfer(address currency_address, uint256 amount, Multilocation memory destination, uint64 weight) override external {
+        function transfer(
+            address currency_address,
+            uint256 amount,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
             // We nominate our target collator with all the tokens provided
             xtokens.transfer(currency_address, amount, destination, weight);
         }
-        function transfer_multiasset(Multilocation memory asset, uint256 amount, Multilocation memory destination, uint64 weight) override external {
+        function transfer_multiasset(
+            Multilocation memory asset,
+            uint256 amount,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
             xtokens.transfer_multiasset(asset, amount, destination, weight);
         }
     }`,
