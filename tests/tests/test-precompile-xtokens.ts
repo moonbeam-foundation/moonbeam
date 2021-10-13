@@ -3,9 +3,7 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import { ethers } from "ethers";
 
-import {
-  GENESIS_ACCOUNT,
-} from "../util/constants";
+import { GENESIS_ACCOUNT } from "../util/constants";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
