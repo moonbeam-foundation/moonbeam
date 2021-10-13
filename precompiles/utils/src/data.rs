@@ -190,6 +190,7 @@ impl<'a> EvmDataReader<'a> {
 pub struct EvmDataWriter {
 	pub(crate) data: Vec<u8>,
 	offset_data: Vec<OffsetDatum>,
+	selector: Option<u32>,
 }
 
 #[derive(Clone, Debug)]
@@ -204,11 +205,23 @@ struct OffsetDatum {
 }
 
 impl EvmDataWriter {
-	/// Creates a new empty output builder.
+	/// Creates a new empty output builder (without selector).
 	pub fn new() -> Self {
 		Self {
 			data: vec![],
 			offset_data: vec![],
+			selector: None,
+		}
+	}
+
+	/// Creates a new empty output builder with provided selector.
+	/// Selector will only be appended before the data when calling
+	/// `build` to not mess with the offsets.
+	pub fn new_with_selector(selector: impl Into<u32>) -> Self {
+		Self {
+			data: vec![],
+			offset_data: vec![],
+			selector: Some(selector.into()),
 		}
 	}
 
@@ -216,16 +229,13 @@ impl EvmDataWriter {
 	pub fn build(mut self) -> Vec<u8> {
 		Self::bake_offsets(&mut self.data, self.offset_data);
 
-		self.data
-	}
-
-	/// Return the built data.
-	pub fn build_with_selector(mut self, value: impl Into<u32>) -> Vec<u8> {
-		Self::bake_offsets(&mut self.data, self.offset_data);
-
-		let mut output = value.into().to_be_bytes().to_vec();
-		output.append(&mut self.data);
-		output
+		if let Some(selector) = self.selector {
+			let mut output = selector.to_be_bytes().to_vec();
+			output.append(&mut self.data);
+			output
+		} else {
+			self.data
+		}
 	}
 
 	/// Add offseted data at the end of this writer's data, updating the offsets.
@@ -264,7 +274,7 @@ impl EvmDataWriter {
 	}
 
 	/// Writes a pointer to given data.
-	/// The data will be appended when calling `build`/`build_with_selector`.
+	/// The data will be appended when calling `build`.
 	/// Initially write a dummy value as offset in this writer's data, which will be replaced by
 	/// the correct offset once the pointed data is appended.
 	///
