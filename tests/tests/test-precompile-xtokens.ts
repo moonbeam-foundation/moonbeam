@@ -112,13 +112,13 @@ var contractAbi = [
 ]
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
-describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   let iFace;
   before("Deploy contract", async () => {
     iFace = new ethers.utils.Interface(contractAbi)
   });
 
-  it("allows to get encoding of bond stake call", async function () {
+  it("allows to issue transfer xtokens", async function () {
     const data = iFace.encodeFunctionData("transfer",[BALANCES_ADDRESS, 100, [1, ["0x01010101010101010101010101010101010101010101010101010101010101010100"]], 100]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
@@ -131,6 +131,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         data: data,
       },
     ]);
-    console.log(tx_call)
+	// result only exists if the call is succesful
+    expect(tx_call.hasOwnProperty('result'));
   });
 });

@@ -473,7 +473,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let mut inner_reader = dbg!(reader.read_pointer()?);
+		let mut inner_reader = reader.read_pointer()?;
 
 		// Read bytes/string size.
 		let array_size: usize = inner_reader
@@ -481,8 +481,6 @@ impl EvmData for Bytes {
 			.map_err(|_| error("tried to parse bytes/string length out of bounds"))?
 			.try_into()
 			.map_err(|_| error("bytes/string length is too large"))?;
-
-		dbg!(array_size);
 
 		// Get valid range over the bytes data.
 		let range = inner_reader.move_cursor(array_size)?;
@@ -493,8 +491,6 @@ impl EvmData for Bytes {
 			.ok_or_else(|| error("tried to parse bytes/string out of bounds"))?;
 
 		let bytes = Self(data.to_owned());
-
-		println!("{:?}", bytes);
 
 		Ok(bytes)
 	}
