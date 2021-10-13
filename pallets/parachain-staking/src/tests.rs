@@ -682,7 +682,7 @@ fn leave_candidates_event_emits_correctly() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(1, 1, 3)));
 		});
 }
@@ -695,7 +695,7 @@ fn leave_candidates_removes_candidate_from_candidate_pool() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Stake::candidate_pool().0.len(), 1);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert!(Stake::candidate_pool().0.is_empty());
 		});
 }
@@ -704,7 +704,7 @@ fn leave_candidates_removes_candidate_from_candidate_pool() {
 fn cannot_leave_candidates_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			Stake::leave_candidates(Origin::signed(1), 1u32),
+			Stake::schedule_leave_candidates(Origin::signed(1), 1u32),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -717,9 +717,9 @@ fn cannot_leave_candidates_if_already_leaving_candidates() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_noop!(
-				Stake::leave_candidates(Origin::signed(1), 1u32),
+				Stake::schedule_leave_candidates(Origin::signed(1), 1u32),
 				Error::<Test>::CandidateAlreadyLeaving
 			);
 		});
@@ -734,7 +734,7 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 		.execute_with(|| {
 			for i in 1..6 {
 				assert_noop!(
-					Stake::leave_candidates(Origin::signed(i), 4u32),
+					Stake::schedule_leave_candidates(Origin::signed(i), 4u32),
 					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
 				);
 			}
@@ -750,7 +750,7 @@ fn sufficient_leave_candidates_weight_hint_succeeds() {
 		.execute_with(|| {
 			let mut count = 5u32;
 			for i in 1..6 {
-				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
+				assert_ok!(Stake::schedule_leave_candidates(Origin::signed(i), count));
 				count -= 1u32;
 			}
 		});
@@ -765,7 +765,7 @@ fn execute_leave_candidates_emits_event() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_last_event(MetaEvent::Stake(Event::CollatorLeft(1, 10, 0)));
@@ -779,7 +779,7 @@ fn execute_leave_candidates_callable_by_any_signed() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1));
 		});
@@ -794,7 +794,7 @@ fn execute_leave_candidates_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(Balances::reserved_balance(&1), 10);
 			assert_eq!(Balances::free_balance(&1), 0);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_eq!(Balances::reserved_balance(&1), 0);
@@ -810,7 +810,7 @@ fn execute_leave_candidates_decreases_total_staked() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Stake::total(), 10);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_eq!(Stake::total(), 0);
@@ -824,7 +824,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			// candidate state is not immediately removed
 			let candidate_state = Stake::candidate_state(1).expect("just left => still exists");
 			assert_eq!(candidate_state.bond, 10u128);
@@ -841,7 +841,7 @@ fn cannot_execute_leave_candidates_before_delay() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_noop!(
 				Stake::execute_leave_candidates(Origin::signed(3), 1),
 				Error::<Test>::CandidateCannotLeaveYet
@@ -865,7 +865,7 @@ fn cancel_leave_candidates_emits_event() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_ok!(Stake::cancel_leave_candidates(Origin::signed(1), 1));
 			assert_last_event(MetaEvent::Stake(Event::CancelledCandidateExit(1)));
 		});
@@ -878,7 +878,7 @@ fn cancel_leave_candidates_updates_candidate_state() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_ok!(Stake::cancel_leave_candidates(Origin::signed(1), 1));
 			let candidate = Stake::candidate_state(&1).expect("just cancelled leave so exists");
 			assert!(candidate.is_active());
@@ -892,7 +892,7 @@ fn cancel_leave_candidates_adds_to_candidate_pool() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_ok!(Stake::cancel_leave_candidates(Origin::signed(1), 1));
 			assert_eq!(
 				Stake::candidate_pool().0[0],
@@ -1126,7 +1126,7 @@ fn cannot_candidate_bond_more_if_leaving_candidates() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
 				Error::<Test>::CannotActBecauseLeaving
@@ -1142,7 +1142,7 @@ fn cannot_candidate_bond_more_if_exited_candidates() {
 		.build()
 		.execute_with(|| {
 			roll_to(4);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
@@ -1212,7 +1212,7 @@ fn cannot_candidate_bond_less_if_leaving_candidates() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 10),
 				Error::<Test>::CannotActBecauseLeaving
@@ -1228,7 +1228,7 @@ fn cannot_candidate_bond_less_if_exited_candidates() {
 		.build()
 		.execute_with(|| {
 			roll_to(4);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(30);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
@@ -2573,7 +2573,7 @@ fn cannot_execute_revoke_delegation_for_leaving_candidate() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			// cannot execute delegation request for leaving candidate
@@ -2592,7 +2592,7 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			// revocation executes during execute leave candidates (callable by anyone)
@@ -3533,7 +3533,7 @@ fn collator_exit_executes_after_delay() {
 		.build()
 		.execute_with(|| {
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 2));
 			let info = Stake::candidate_state(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
 			roll_to(21);
@@ -3587,7 +3587,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq_events(expected.clone());
-			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(6), 6));
 			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4)));
 			roll_to(21);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6));
@@ -3831,7 +3831,7 @@ fn multiple_delegations() {
 			];
 			expected.append(&mut new2);
 			assert_eq_events(expected.clone());
-			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5));
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 5));
 			assert_last_event(MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8)));
 			roll_to(31);
 			let mut new3 = vec![

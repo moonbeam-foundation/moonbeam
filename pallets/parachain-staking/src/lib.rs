@@ -300,7 +300,7 @@ pub mod pallet {
 				self.request.is_none(),
 				Error::<T>::PendingCollatorRequestAlreadyExists
 			);
-			// ensure bond above min after decrease (TODO: change error?)
+			// ensure bond above min after decrease
 			ensure!(self.bond > less, Error::<T>::CollatorBondBelowMin);
 			ensure!(
 				self.bond - less >= T::MinCollatorCandidateStk::get().into(),
@@ -839,8 +839,7 @@ pub mod pallet {
 				.requests
 				.requests
 				.remove(&candidate)
-				.ok_or(Error::<T>::PendingDelegationRequestDNE)?
-				.clone();
+				.ok_or(Error::<T>::PendingDelegationRequestDNE)?;
 			ensure!(when <= now, Error::<T>::PendingDelegationRequestNotDueYet);
 			let (balance_amt, candidate_id, nominator_id): (
 				BalanceOf<T>,
@@ -1541,7 +1540,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
-	/// DEPRECATED: TODO remove this code
+	/// DEPRECATED, to be removed in future runtime upgrade but necessary for runtime migration
 	/// A queue of collators and nominators awaiting exit
 	type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
@@ -1612,7 +1611,7 @@ pub mod pallet {
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
-					T::Currency::free_balance(&candidate) >= balance,
+					T::Currency::free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
 				candidate_count += 1u32;
@@ -1631,15 +1630,15 @@ pub mod pallet {
 			// Initialize the delegations
 			for &(ref nominator, ref target, balance) in &self.delegations {
 				assert!(
-					T::Currency::free_balance(&nominator) >= balance,
+					T::Currency::free_balance(nominator) >= balance,
 					"Account does not have enough balance to place nomination."
 				);
-				let cn_count = if let Some(x) = col_nominator_count.get(&target) {
+				let cn_count = if let Some(x) = col_nominator_count.get(target) {
 					*x
 				} else {
 					0u32
 				};
-				let nn_count = if let Some(x) = nom_nominator_count.get(&nominator) {
+				let nn_count = if let Some(x) = nom_nominator_count.get(nominator) {
 					*x
 				} else {
 					0u32
@@ -1653,12 +1652,12 @@ pub mod pallet {
 				) {
 					log::warn!("Join nominators failed in genesis with error {:?}", error);
 				} else {
-					if let Some(x) = col_nominator_count.get_mut(&target) {
+					if let Some(x) = col_nominator_count.get_mut(target) {
 						*x += 1u32;
 					} else {
 						col_nominator_count.insert(target.clone(), 1u32);
 					};
-					if let Some(x) = nom_nominator_count.get_mut(&nominator) {
+					if let Some(x) = nom_nominator_count.get_mut(nominator) {
 						*x += 1u32;
 					} else {
 						nom_nominator_count.insert(nominator.clone(), 1u32);
@@ -1876,7 +1875,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::leave_candidates(*candidate_count))]
 		/// Request to leave the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator.
-		pub fn leave_candidates(
+		pub fn schedule_leave_candidates(
 			origin: OriginFor<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -2256,7 +2255,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::NominatorDNE)?;
-			let request = state.cancel_pending_request::<T>(collator.clone())?;
+			let request = state.cancel_pending_request::<T>(collator)?;
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::CancelledDelegationRequest(delegator, request));
 			Ok(().into())
@@ -2264,7 +2263,6 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		// TODO: change to is_delegator
 		pub fn is_delegator(acc: &T::AccountId) -> bool {
 			<DelegatorState<T>>::get(acc).is_some()
 		}
@@ -2274,7 +2272,7 @@ pub mod pallet {
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
 		}
-		// ensure candidate is active before calling
+		/// Caller must ensure candidate is active before calling
 		fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 			let mut candidates = <CandidatePool<T>>::get();
 			candidates.remove(&Bond::from_owner(candidate.clone()));
@@ -2284,7 +2282,7 @@ pub mod pallet {
 			});
 			<CandidatePool<T>>::put(candidates);
 		}
-		// Calculate round issuance based on total staked for the given round
+		/// Compute round issuance based on total staked for the given round
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);

@@ -203,7 +203,7 @@ benchmarks! {
 
 	// This call schedules the collator's exit and removes them from the candidate pool
 	// -> it retains the self-bond and nominator bonds
-	leave_candidates {
+	schedule_leave_candidates {
 		let x in 3..1_000;
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
@@ -239,7 +239,7 @@ benchmarks! {
 			true,
 			0u32,
 		)?;
-		Pallet::<T>::leave_candidates(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
+		Pallet::<T>::schedule_leave_candidates(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
 		roll_to_and_author::<T>(2, caller.clone());
 	}: _(RawOrigin::Signed(caller.clone()), caller.clone())
 	verify {
@@ -268,7 +268,7 @@ benchmarks! {
 			true,
 			candidate_count,
 		)?;
-		Pallet::<T>::leave_candidates(RawOrigin::Signed(caller.clone()).into(), candidate_count)?;
+		Pallet::<T>::schedule_leave_candidates(RawOrigin::Signed(caller.clone()).into(), candidate_count)?;
 		candidate_count -= 1u32;
 	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
 	verify {
@@ -1130,9 +1130,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_leave_candidates() {
+	fn bench_schedule_leave_candidates() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_leave_candidates());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_leave_candidates());
 		});
 	}
 
