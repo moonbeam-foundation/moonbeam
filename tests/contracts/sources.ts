@@ -464,4 +464,104 @@ export const contractSources: { [key: string]: string } = {
             revert("By reverting this transaction, we return the eth to the caller");
         }
     }`,
+  RelayEncoderInstance: `
+    pragma solidity >=0.8.0;
+
+    /// @author The Moonbeam Team
+    /// @title The interface through which solidity contracts will interact with Relay Encoder
+    /// We follow this same interface including four-byte function selectors, in the precompile that
+    /// wraps the pallet
+    interface RelayEncoder {
+        
+        // dev Encode 'bond' relay call
+        // @param controller_address: Address of the controller
+        // @param amount: The amount to bond
+        // @param reward_destination: uint8 selecting one of RewardDestination
+        // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+        // @returns The bytes associated with the encoded call
+        function encode_bond(uint256 controller_address, uint256 amount, bytes memory reward_destination) external view returns (bytes memory result);
+
+        // dev Encode 'bond_extra' relay call
+        // @param amount: The extra amount to bond
+        // @returns The bytes associated with the encoded call
+        function encode_bond_extra(uint256 amount) external view returns (bytes memory result);
+
+        // dev Encode 'unbond' relay call
+        // @param amount: The amount to unbond
+        // @returns The bytes associated with the encoded call
+        function encode_unbond(uint256 amount) external view returns (bytes memory result);
+
+        // dev Encode 'withdraw_unbonded' relay call
+        // @param slashes: Weight hint, number of slashing spans
+        // @returns The bytes associated with the encoded call
+        function encode_withdraw_unbonded(uint32 slashes) external view returns (bytes memory result);
+
+        // dev Encode 'validate' relay call
+        // @param comission: Comission of the validator as parts_per_billion
+        // @param blocked: Whether or not the validator is accepting more nominations
+        // @returns The bytes associated with the encoded call
+        function encode_validate(uint256 comission, bool blocked) external view returns (bytes memory result);
+
+        // dev Encode 'nominate' relay call
+        // @param nominees: An array of AccountIds corresponding to the accounts we will nominate
+        // @param blocked: Whether or not the validator is accepting more nominations
+        // @returns The bytes associated with the encoded call
+        function encode_nominate(uint256 [] memory nominees) external view returns (bytes memory result);
+
+        // dev Encode 'chill' relay call
+        // @returns The bytes associated with the encoded call
+        function encode_chill() external view returns (bytes memory result);
+
+        // dev Encode 'set_payee' relay call
+        // @param reward_destination: uint8 selecting one of RewardDestination
+        // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+        // @returns The bytes associated with the encoded call
+        function encode_set_payee(bytes memory reward_destination) external view returns (bytes memory result);
+
+        // dev Encode 'set_controller' relay call
+        // @param controller: The controller address
+        // @returns The bytes associated with the encoded call
+        function encode_set_controller(uint256 controller) external view returns (bytes memory result);
+
+        // dev Encode 'rebond' relay call
+        // @param amount: The amount to rebond
+        // @returns The bytes associated with the encoded call
+        function encode_rebond(uint256 amount) external view returns (bytes memory result);
+
+    }
+    
+    contract RelayEncoderInstance is RelayEncoder {
+        /// The Relay Encoder wrapper at the known pre-compile address.
+        RelayEncoder public relayencoder = RelayEncoder(0x0000000000000000000000000000000000000805);
+        function encode_bond(uint256 controller_address, uint256 amount, bytes memory reward_destination) external view override returns (bytes memory result){
+            return relayencoder.encode_bond(controller_address, amount, reward_destination);
+        }
+        function encode_bond_extra(uint256 amount) external view override returns (bytes memory result){
+            return relayencoder.encode_bond_extra(amount);
+        }
+        function encode_unbond(uint256 amount) external view override returns (bytes memory result) {
+            return relayencoder.encode_unbond(amount);
+        }
+        function encode_withdraw_unbonded(uint32 slashes) external view override returns (bytes memory result) {
+            return relayencoder.encode_withdraw_unbonded(slashes);
+        }
+        function encode_validate(uint256 comission, bool blocked) external view override returns (bytes memory result) {
+            return relayencoder.encode_validate(comission, blocked);
+        }
+        function encode_nominate(uint256 [] memory nominees) external view override returns (bytes memory result) {
+            return relayencoder.encode_nominate(nominees);
+        }
+        function encode_chill() external view override returns (bytes memory result) {
+            return relayencoder.encode_chill();
+        }
+        function encode_set_payee(bytes memory reward_destination) external view override returns (bytes memory result) {
+            return relayencoder.encode_set_payee(reward_destination);
+        }
+        function encode_set_controller(uint256 controller) external view override returns (bytes memory result){
+            return relayencoder.encode_set_controller(controller);
+        }
+        function encode_rebond(uint256 amount) external view override returns (bytes memory result){
+            return relayencoder.encode_rebond(amount);
+        }
+    }`,
 };
