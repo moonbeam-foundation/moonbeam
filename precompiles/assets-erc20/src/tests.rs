@@ -135,9 +135,7 @@ fn get_total_supply() {
 			assert_eq!(
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::TotalSupply)
-						.build(),
+					&EvmDataWriter::new().build_with_selector(Action::TotalSupply),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -178,9 +176,8 @@ fn get_balances_known_user() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -221,9 +218,8 @@ fn get_balances_unknown_user() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -265,10 +261,9 @@ fn approve() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
-						.build(),
+						.build_with_selector(Action::Approve),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -318,10 +313,9 @@ fn check_allowance_existing() {
 			Erc20AssetsPrecompileSet::<Runtime>::execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
-					.build(),
+					.build_with_selector(Action::Approve),
 				None,
 				&evm::Context {
 					address: Account::AssetId(0u128).into(),
@@ -334,10 +328,9 @@ fn check_allowance_existing() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::Allowance),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -380,10 +373,9 @@ fn check_allowance_not_existing() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::Allowance),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -425,10 +417,9 @@ fn transfer() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
-						.build(),
+						.build_with_selector(Action::Transfer),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -455,9 +446,8 @@ fn transfer() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -477,9 +467,8 @@ fn transfer() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -521,10 +510,9 @@ fn transfer_not_enough_founds() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-					.write_selector(Action::Transfer)
-					.write(Address(Account::Charlie.into()))
+						.write(Address(Account::Charlie.into()))
 						.write(U256::from(50))
-						.build(),
+						.build_with_selector(Action::Transfer),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -562,10 +550,9 @@ fn transfer_from() {
 			Erc20AssetsPrecompileSet::<Runtime>::execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
-					.build(),
+					.build_with_selector(Action::Approve),
 				None,
 				&evm::Context {
 					address: Account::AssetId(0u128).into(),
@@ -578,11 +565,10 @@ fn transfer_from() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Charlie.into()))
 						.write(U256::from(400))
-						.build(),
+						.build_with_selector(Action::TransferFrom),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -609,9 +595,8 @@ fn transfer_from() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -631,9 +616,8 @@ fn transfer_from() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -653,9 +637,8 @@ fn transfer_from() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Charlie.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -698,10 +681,9 @@ fn transfer_from_non_incremental_approval() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
-						.build(),
+						.build_with_selector(Action::Approve),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -732,10 +714,9 @@ fn transfer_from_non_incremental_approval() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(300))
-						.build(),
+						.build_with_selector(Action::Approve),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -763,11 +744,10 @@ fn transfer_from_non_incremental_approval() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
-						.build(),
+						.build_with_selector(Action::TransferFrom),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -807,10 +787,9 @@ fn transfer_from_above_allowance() {
 			Erc20AssetsPrecompileSet::<Runtime>::execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(300))
-					.build(),
+					.build_with_selector(Action::Approve),
 				None,
 				&evm::Context {
 					address: Account::AssetId(0u128).into(),
@@ -823,11 +802,10 @@ fn transfer_from_above_allowance() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
-						.build(),
+						.build_with_selector(Action::TransferFrom),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -868,11 +846,10 @@ fn transfer_from_self() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
-						.build(),
+						.build_with_selector(Action::TransferFrom),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -900,9 +877,8 @@ fn transfer_from_self() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
@@ -922,9 +898,8 @@ fn transfer_from_self() {
 				Erc20AssetsPrecompileSet::<Runtime>::execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
-						.build(),
+						.build_with_selector(Action::BalanceOf),
 					None,
 					&evm::Context {
 						address: Account::AssetId(0u128).into(),
