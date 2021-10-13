@@ -22,6 +22,9 @@ evm = { version = "0.30.1", default-features = false, features = ["with-codec"] 
 
 precompile-utils-macro = { path = "macro" }
 
+[dev-dependencies]
+hex-literal = "0.3.1"
+
 [features]
 default = ["std"]
 std = [

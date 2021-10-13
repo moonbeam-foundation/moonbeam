@@ -97,9 +97,7 @@ fn selectors() {
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read prop count
-		let input = EvmDataWriter::new()
-			.write_selector(Action::PublicPropCount)
-			.build();
+		let input = EvmDataWriter::new().build_with_selector(Action::PublicPropCount);
 
 		// Expected result is zero. because no props are open yet.
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -130,9 +128,7 @@ fn prop_count_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let input = EvmDataWriter::new()
-				.write_selector(Action::PublicPropCount)
-				.build();
+			let input = EvmDataWriter::new().build_with_selector(Action::PublicPropCount);
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -166,9 +162,8 @@ fn deposit_of_non_zero() {
 
 			// Construct data to read prop count
 			let input = EvmDataWriter::new()
-				.write_selector(Action::DepositOf)
 				.write(0u32)
-				.build();
+				.build_with_selector(Action::DepositOf);
 
 			// Expected result is Alice's deposit of 1000
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -190,9 +185,8 @@ fn deposit_of_bad_index() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read prop count
 		let input = EvmDataWriter::new()
-			.write_selector(Action::DepositOf)
 			.write(10u32)
-			.build();
+			.build_with_selector(Action::DepositOf);
 
 		// Expected result is an error stating there is no such proposal in the underlying pallet
 		let expected_result = Some(Err(error("No such proposal in pallet democracy")));
@@ -208,9 +202,7 @@ fn deposit_of_bad_index() {
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read lowest unbaked referendum index
-		let input = EvmDataWriter::new()
-			.write_selector(Action::LowestUnbaked)
-			.build();
+		let input = EvmDataWriter::new().build_with_selector(Action::LowestUnbaked);
 
 		// Expected result is zero
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -280,9 +272,7 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			// Construct data to read lowest unbaked referendum index
-			let input = EvmDataWriter::new()
-				.write_selector(Action::LowestUnbaked)
-				.build();
+			let input = EvmDataWriter::new().build_with_selector(Action::LowestUnbaked);
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -349,10 +339,9 @@ fn propose_works() {
 		.execute_with(|| {
 			// Construct data to propose empty hash with value 100
 			let input = EvmDataWriter::new()
-				.write_selector(Action::Propose)
 				.write(sp_core::H256::zero())
 				.write(100u64)
-				.build();
+				.build_with_selector(Action::Propose);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -397,10 +386,9 @@ fn second_works() {
 
 			// Construct the call to second via a precompile
 			let input = EvmDataWriter::new()
-				.write_selector(Action::Second)
 				.write(0u64) //prop index
 				.write(100u64) // seconds upper bound
-				.build();
+				.build_with_selector(Action::Second);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -446,12 +434,11 @@ fn standard_vote_aye_works() {
 		.execute_with(|| {
 			// Construct input data to vote aye
 			let input = EvmDataWriter::new()
-				.write_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(true) // Aye
 				.write(100_000u128) // 100_000 tokens
 				.write(0u8) // No conviction
-				.build();
+				.build_with_selector(Action::StandardVote);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -510,12 +497,11 @@ fn standard_vote_nay_conviction_works() {
 		.execute_with(|| {
 			// Construct input data to vote aye
 			let input = EvmDataWriter::new()
-				.write_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(false) // Nay
 				.write(100_000u128) // 100_000 tokens
 				.write(3u8) // 3X conviction
-				.build();
+				.build_with_selector(Action::StandardVote);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -592,9 +578,8 @@ fn remove_vote_works() {
 
 			// Construct input data to remove the vote
 			let input = EvmDataWriter::new()
-				.write_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
-				.build();
+				.build_with_selector(Action::RemoveVote);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -651,9 +636,8 @@ fn remove_vote_dne() {
 
 			// Construct input data to remove a non-existant vote
 			let input = EvmDataWriter::new()
-				.write_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
-				.build();
+				.build_with_selector(Action::RemoveVote);
 
 			// Expected result is an error from the pallet
 			if let Some(Err(ExitError::Other(e))) =
@@ -674,11 +658,10 @@ fn delegate_works() {
 		.execute_with(|| {
 			// Construct input data to delegate Alice -> Bob
 			let input = EvmDataWriter::new()
-				.write_selector(Action::Delegate)
 				.write::<Address>(H160::from(Bob).into()) // Delegate to
 				.write(2u8) // 2X conviction
 				.write(100u128) // 100 tokens
-				.build();
+				.build_with_selector(Action::Delegate);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -744,9 +727,7 @@ fn undelegate_works() {
 			));
 
 			// Construct input data to un-delegate Alice
-			let input = EvmDataWriter::new()
-				.write_selector(Action::UnDelegate)
-				.build();
+			let input = EvmDataWriter::new().build_with_selector(Action::UnDelegate);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -787,9 +768,7 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct input data to un-delegate Alice
-		let input = EvmDataWriter::new()
-			.write_selector(Action::UnDelegate)
-			.build();
+		let input = EvmDataWriter::new().build_with_selector(Action::UnDelegate);
 
 		// Expected result is an error from the pallet
 		if let Some(Err(ExitError::Other(e))) =
@@ -849,9 +828,8 @@ fn unlock_works() {
 
 			// Construct input data to un-lock tokens for Alice
 			let input = EvmDataWriter::new()
-				.write_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
-				.build();
+				.build_with_selector(Action::Unlock);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -886,9 +864,8 @@ fn unlock_with_nothing_locked() {
 		.execute_with(|| {
 			// Construct input data to un-lock tokens for Alice
 			let input = EvmDataWriter::new()
-				.write_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
-				.build();
+				.build_with_selector(Action::Unlock);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
