@@ -92,13 +92,13 @@ where
 		target_gas: Option<u64>,
 		_context: &evm::Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the RelayEncoder.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		match &input.read_selector()? {
+		match selector {
 			// Storage Accessors
 			Action::EncodeBond => Self::encode_bond(input, target_gas),
 			Action::EncodeBondExtra => Self::encode_bond_extra(input, target_gas),

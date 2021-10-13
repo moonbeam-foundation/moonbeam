@@ -222,7 +222,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   before("Deploy contract", async () => {
     iFace = new ethers.utils.Interface(contractAbi)
   });
-  it.skip("allows to get encoding of bond stake call", async function () {
+  it("allows to get encoding of bond stake call", async function () {
 
     const data = iFace.encodeFunctionData("encode_bond",[ALICE_HEX, 100, 0x02]);
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
@@ -341,7 +341,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.validate}${comission}${blocked}`,
+        data: data,
       },
     ]);
 
