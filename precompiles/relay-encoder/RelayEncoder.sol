@@ -7,19 +7,6 @@ pragma solidity >=0.8.0;
 /// wraps the pallet
 interface RelayEncoder {
     
-    /* enum RewardDestination {
-        /// Pay into the stash account, increasing the amount at stake accordingly.
-    	Staked,
-	    /// Pay into the stash account, not increasing the amount at stake.
-	    Stash,
-	    /// Pay into the controller account.
-	    Controller,
-	    /// Pay into a specified account.
-	    Account(AccountId),
-	    /// Receive no reward.
-	    None,
-    }*/
-    
     // dev Encode 'bond' relay call
     // @param controller_address: Address of the controller
     // @param amount: The amount to bond

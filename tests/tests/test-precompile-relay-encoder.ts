@@ -1,44 +1,27 @@
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
-import {
-  GENESIS_ACCOUNT,
-  ALITH,
-  BALTATHAR,
-  ALITH_PRIV_KEY,
-  CHARLETH,
-  BALTATHAR_PRIV_KEY,
-} from "../util/constants";
-import { createTransaction } from "../util/transactions";
+import { ethers } from "ethers";
+import { getCompiled } from "../util/contracts";
+
+import { GENESIS_ACCOUNT } from "../util/constants";
 
 const ADDRESS_RELAY_ENCODER = "0x0000000000000000000000000000000000000805";
-const ALICE = "d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
-const BOB = "8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
-const SELECTORS = {
-  bond: "31627376",
-  bond_more: "49def326",
-  chill: "bc4b2187",
-  unbond: "2cd61217",
-  withdrawUnbonded: "2d220331",
-  validate: "3a0d803a",
-  nominate: "a7cb124b",
-  setPayee: "9801b147",
-  setController: "7a8f48c2",
-  rebond: "add6b3bf",
-};
+const ALICE_HEX = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+
+const BOB_HEX = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
+
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
+  let iFace;
+  let contractData;
+  before("Deploy contract", async () => {
+    contractData = await getCompiled("RelayEncoderInstance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+  });
   it("allows to get encoding of bond stake call", async function () {
-    // 100 units
-    const amount = `64`.padStart(64, "0");
-    // Offset relative of the bytes object
-    const offset = `20`.padStart(64, "0");
-    // length of the bytes object
-    const length = `01`.padStart(64, "0");
-    // controller enum (position 2)
-    const bytes = `02`.padEnd(64, "0");
-
+    const data = iFace.encodeFunctionData("encode_bond", [ALICE_HEX, 100, 0x02]);
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
@@ -46,7 +29,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.bond}${ALICE}${amount}${offset}${length}${bytes}`,
+        data: data,
       },
     ]);
     expect(tx_call.result).to.equal(
@@ -58,8 +41,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of bond_more stake call", async function () {
-    // 100 units
-    const amount = `64`.padStart(64, "0");
+    const data = iFace.encodeFunctionData("encode_bond_extra", [100]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -68,7 +50,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.bond_more}${amount}`,
+        data: data,
       },
     ]);
 
@@ -80,8 +62,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of unbond stake call", async function () {
-    // 100 units
-    const amount = `64`.padStart(64, "0");
+    const data = iFace.encodeFunctionData("encode_unbond", [100]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -90,7 +71,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.unbond}${amount}`,
+        data: data,
       },
     ]);
 
@@ -102,6 +83,8 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of chill stake call", async function () {
+    const data = iFace.encodeFunctionData("encode_chill", []);
+
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
@@ -109,7 +92,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.chill}`,
+        data: data,
       },
     ]);
 
@@ -121,8 +104,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of withdraw_unbonded stake call", async function () {
-    const slashingSpans = `64`.padStart(64, "0");
-
+    const data = iFace.encodeFunctionData("encode_withdraw_unbonded", [100]);
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
@@ -130,7 +112,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.withdrawUnbonded}${slashingSpans}`,
+        data: data,
       },
     ]);
 
@@ -142,6 +124,8 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of validate stake call", async function () {
+    const data = iFace.encodeFunctionData("encode_validate", [100000000, false]);
+
     // this is parts per billion. we are going to set it to 10%, i.e., 100000000
     const comission = `5F5E100`.padStart(64, "0");
     // this is for the blocked boolean. We set it to false
@@ -154,7 +138,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.validate}${comission}${blocked}`,
+        data: data,
       },
     ]);
 
@@ -166,11 +150,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of nominate stake call", async function () {
-    // we need to construct the input, which is an array of addresses
-    // Offset relative of the vector object
-    const offset = `20`.padStart(64, "0");
-    // length of the vec. we will use a 2 length array, alice and bob
-    const length = `02`.padStart(64, "0");
+    const data = iFace.encodeFunctionData("encode_nominate", [[ALICE_HEX, BOB_HEX]]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -179,7 +159,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.nominate}${offset}${length}${ALICE}${BOB}`,
+        data: data,
       },
     ]);
 
@@ -193,12 +173,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of set_payee stake call", async function () {
-    // Offset relative of the bytes object
-    const offset = `20`.padStart(64, "0");
-    // length of the bytes object
-    const length = `01`.padStart(64, "0");
-    // controller enum (position 2)
-    const bytes = `02`.padEnd(64, "0");
+    const data = iFace.encodeFunctionData("encode_set_payee", [0x02]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -207,7 +182,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.setPayee}${offset}${length}${bytes}`,
+        data: data,
       },
     ]);
 
@@ -219,6 +194,8 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of set_controller stake call", async function () {
+    const data = iFace.encodeFunctionData("encode_set_controller", [ALICE_HEX]);
+
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
@@ -226,7 +203,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.setController}${ALICE}`,
+        data: data,
       },
     ]);
 
@@ -239,8 +216,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
   });
 
   it("allows to get encoding of rebond stake call", async function () {
-    // 100 units
-    const amount = `64`.padStart(64, "0");
+    const data = iFace.encodeFunctionData("encode_rebond", [100]);
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -249,7 +225,7 @@ describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
         gas: "0x10000",
         gasPrice: GAS_PRICE,
         to: ADDRESS_RELAY_ENCODER,
-        data: `0x${SELECTORS.rebond}${amount}`,
+        data: data,
       },
     ]);
 

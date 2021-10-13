@@ -4,8 +4,11 @@ import { readFileSync } from "fs";
 import yargs from "yargs";
 import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
+// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 3.
+const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0603";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -22,6 +25,20 @@ function getRuntimeInfo(srtoolReportFolder: string, runtimeName: string) {
       readFileSync(path.join(srtoolReportFolder, `./${runtimeName}-srtool-digest.json`)).toString()
     ),
   };
+}
+
+// Srtool expects the pallet parachain_system to be at index 1. However, in the case of moonbase,
+// the pallet parachain_system is at index 6, so we have to recalculate the hash of the
+// authorizeUpgrade call in the case of moonbase by hand.
+function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
+  if (runtimeName == "moonbase") {
+    return blake2AsHex(
+      MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
+  } else {
+    return srtool.runtimes.compressed.subwasm.parachain_authorize_upgrade_hash;
+  }
 }
 
 async function main() {
@@ -73,6 +90,8 @@ async function main() {
   );
   const filteredPr = prByLabels[RUNTIME_CHANGES_LABEL] || [];
 
+  //
+
   const template = `${
     runtimes.length > 0
       ? `## Runtimes
@@ -86,9 +105,7 @@ ${runtimes
 #️⃣ sha256                      : ${runtime.srtool.runtimes.compressed.sha256}
 #️⃣ blake2-256                  : ${runtime.srtool.runtimes.compressed.blake2_256}
 🗳️ proposal (setCode)          : ${runtime.srtool.runtimes.compressed.prop}
-🗳️ proposal (authorizeUpgrade) : ${
-      runtime.srtool.runtimes.compressed.subwasm.parachain_authorize_upgrade_hash
-    }
+🗳️ proposal (authorizeUpgrade) : ${authorizeUpgradeHash(runtime.name, runtime.srtool)}
 \`\`\``
   )
   .join(`\n\n`)}

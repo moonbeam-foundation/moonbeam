@@ -86,9 +86,10 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+
 		// Return early if storage getter; return (origin, call) if dispatchable
-		let (origin, call) = match &input.read_selector()? {
+		let (origin, call) = match selector {
 			// constants
 			Action::MinNomination => return Self::min_nomination(target_gas),
 			// storage getters
