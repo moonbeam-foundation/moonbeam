@@ -1846,7 +1846,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
+			ensure!(!Self::is_delegator(&acc), Error::<T>::NominatorExists);
 			ensure!(
 				bond >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::CollatorBondBelowMin
@@ -2265,7 +2265,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		// TODO: change to is_delegator
-		pub fn is_nominator(acc: &T::AccountId) -> bool {
+		pub fn is_delegator(acc: &T::AccountId) -> bool {
 			<DelegatorState<T>>::get(acc).is_some()
 		}
 		pub fn is_candidate(acc: &T::AccountId) -> bool {

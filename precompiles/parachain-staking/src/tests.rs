@@ -234,11 +234,11 @@ fn nominator_nomination_count_works() {
 }
 
 #[test]
-fn is_nominator_false() {
+fn is_delegator_false() {
 	ExtBuilder::default().build().execute_with(|| {
-		let selector = &Keccak256::digest(b"is_nominator(address)")[0..4];
+		let selector = &Keccak256::digest(b"is_delegator(address)")[0..4];
 
-		// Construct data to read is_nominator
+		// Construct data to read is_delegator
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
 		input_data[0..4].copy_from_slice(&selector);
 		input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
@@ -260,16 +260,16 @@ fn is_nominator_false() {
 }
 
 #[test]
-fn is_nominator_true() {
+fn is_delegator_true() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 50)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 50)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"is_nominator(address)")[0..4];
+			let selector = &Keccak256::digest(b"is_delegator(address)")[0..4];
 
-			// Construct data to read is_nominator
+			// Construct data to read is_delegator
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
@@ -640,7 +640,7 @@ fn nominate_works() {
 			))
 			.dispatch(Origin::root()));
 
-			assert!(ParachainStaking::is_nominator(&TestAccount::Bob));
+			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
 			let expected: crate::mock::Event = StakingEvent::Nomination(
 				TestAccount::Bob,

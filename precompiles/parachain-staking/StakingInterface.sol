@@ -12,7 +12,7 @@ interface ParachainStaking {
     /// Selector: 8e5080e7
     /// @param nominator the address that we want to confirm is a nominator
     /// @return A boolean confirming whether the address is a nominator
-    function is_nominator(address nominator) external view returns (bool);
+    function is_delegator(address nominator) external view returns (bool);
 
     /// @dev Check whether the specified address is currently a collator candidate
     /// Selector: 8545c833

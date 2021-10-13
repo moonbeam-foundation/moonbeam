@@ -28,7 +28,7 @@ const SELECTORS = {
   go_online: "d2f73ceb",
   is_candidate: "8545c833",
   is_selected_candidate: "8f6d27c7",
-  is_nominator: "8e5080e7",
+  is_delegator: "8e5080e7",
   join_candidates: "0a1bff60",
   leave_candidates: "72b02a31",
   leave_delegators: "b71d2153",
@@ -51,7 +51,7 @@ async function isSelectedCandidate(context: DevTestContext, address: string) {
 }
 
 async function isNominator(context: DevTestContext, address: string) {
-  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_nominator", [address]);
+  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_delegator", [address]);
 }
 
 async function isCandidate(context: DevTestContext, address: string) {

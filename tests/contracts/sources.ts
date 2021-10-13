@@ -306,7 +306,7 @@ export const contractSources: { [key: string]: string } = {
         // First some simple accessors
     
         /// Check whether the specified address is currently a staking nominator
-        function is_nominator(address) external view returns (bool);
+        function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
     
@@ -407,7 +407,7 @@ export const contractSources: { [key: string]: string } = {
         // First some simple accessors
     
         /// Check whether the specified address is currently a staking nominator
-        function is_nominator(address) external view returns (bool);
+        function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
     

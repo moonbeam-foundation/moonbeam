@@ -2597,7 +2597,7 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 			roll_to(10);
 			// revocation executes during execute leave candidates (callable by anyone)
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
-			assert!(!Stake::is_nominator(&2));
+			assert!(!Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
 		});
@@ -2620,7 +2620,7 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
-			assert!(Stake::is_nominator(&2));
+			assert!(Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 20);
 			assert_eq!(Balances::free_balance(&2), 10);
 		});
@@ -2647,7 +2647,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
 			assert_last_event(MetaEvent::Stake(Event::NominationDecreased(2, 3, 2, true)));
-			assert!(Stake::is_nominator(&2));
+			assert!(Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 8);
 			assert_eq!(Balances::free_balance(&2), 22);
 		});
@@ -4248,7 +4248,7 @@ fn only_top_collators_are_counted() {
 		.execute_with(|| {
 			// sanity check that 3-10 are nominators immediately
 			for i in 3..11 {
-				assert!(Stake::is_nominator(&i));
+				assert!(Stake::is_delegator(&i));
 			}
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 15 + 16 + 17 + 18 + 20 = 86 (top 4 + self bond)

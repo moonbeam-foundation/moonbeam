@@ -48,7 +48,7 @@ enum Action {
 	CandidateCount = "candidate_count()",
 	CollatorNominationCount = "collator_nomination_count(address)",
 	NominatorNominationCount = "nominator_nomination_count(address)",
-	IsNominator = "is_nominator(address)",
+	IsNominator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
@@ -101,7 +101,7 @@ where
 				return Self::nominator_nomination_count(input, target_gas)
 			}
 			// role verifiers
-			Action::IsNominator => return Self::is_nominator(input, target_gas),
+			Action::IsNominator => return Self::is_delegator(input, target_gas),
 			Action::IsCandidate => return Self::is_candidate(input, target_gas),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
 			// runtime methods (dispatchables)
@@ -288,7 +288,15 @@ where
 
 	// Role Verifiers
 
+	/// DEPRECATED
 	fn is_nominator(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		Self::is_delegator(input, target_gas)
+	}
+
+	fn is_delegator(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
@@ -300,13 +308,13 @@ where
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_nominator = parachain_staking::Pallet::<Runtime>::is_nominator(&address);
+		let is_delegator = parachain_staking::Pallet::<Runtime>::is_delegator(&address);
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(is_nominator).build(),
+			output: EvmDataWriter::new().write(is_delegator).build(),
 			logs: vec![],
 		})
 	}

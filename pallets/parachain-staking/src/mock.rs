@@ -326,13 +326,13 @@ fn geneses() {
 			assert!(Stake::is_candidate(&2));
 			// nominators
 			for x in 3..7 {
-				assert!(Stake::is_nominator(&x));
+				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 0);
 				assert_eq!(Balances::reserved_balance(&x), 100);
 			}
 			// uninvolved
 			for x in 7..10 {
-				assert!(!Stake::is_nominator(&x));
+				assert!(!Stake::is_delegator(&x));
 			}
 			assert_eq!(Balances::free_balance(&7), 100);
 			assert_eq!(Balances::reserved_balance(&7), 0);
@@ -376,7 +376,7 @@ fn geneses() {
 			assert_eq!(Balances::reserved_balance(&5), 10);
 			// nominators
 			for x in 6..11 {
-				assert!(Stake::is_nominator(&x));
+				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 90);
 				assert_eq!(Balances::reserved_balance(&x), 10);
 			}
