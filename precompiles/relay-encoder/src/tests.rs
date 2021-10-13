@@ -250,7 +250,7 @@ fn test_encode_nominate() {
 			let input_data = EvmDataWriter::new()
 				.write(array)
 				.build_with_selector(Action::EncodeNominate);
-			
+
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
 					[1u8; 32].into(),
