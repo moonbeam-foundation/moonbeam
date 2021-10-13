@@ -63,15 +63,16 @@ where
 	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	TransactorOf<Runtime>: From<u8>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		match &input.read_selector()? {
+		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::AccountIndex => Self::account_index(input, target_gas),
 			Action::TransferThroughDerivative => {
@@ -135,7 +136,8 @@ where
 		let fee_amount: U256 = input.read()?;
 		let weight: u64 = input.read::<u64>()?;
 
-		let inner_call_bytes: &[u8] = input.read::<Bytes>()?.as_bytes();
+		// inner call
+		let inner_call = input.read::<Bytes>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = fee_amount
@@ -150,7 +152,7 @@ where
 				fun: Fungibility::Fungible(to_balance),
 			},
 			weight,
-			inner_call_bytes.to_vec(),
+			inner_call.as_bytes().to_vec(),
 		);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
