@@ -159,8 +159,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
           1,
           // X2(Parachain, PalletInstance)
           // Parachain: Parachain selector (00) + parachain id (1000) in 4 bytes (000003E8)
-          // PalletInstance: Selectorn (04) + pallet instance 1 byte (03)
-          // 2 junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
+          // PalletInstance: Selector (04) + pallet instance 1 byte (03)
           ["0x00000003e8", "0x0403"],
         ],
         // amount
