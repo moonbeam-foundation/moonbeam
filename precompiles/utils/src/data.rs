@@ -214,29 +214,29 @@ impl EvmDataWriter {
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
-		Self::compute_offsets(&mut self.data, self.offset_data);
+		Self::bake_offsets(&mut self.data, self.offset_data);
 
 		self.data
 	}
 
 	/// Return the built data.
 	pub fn build_with_selector(mut self, value: impl Into<u32>) -> Vec<u8> {
-		Self::compute_offsets(&mut self.data, self.offset_data);
+		Self::bake_offsets(&mut self.data, self.offset_data);
 
 		let mut output = value.into().to_be_bytes().to_vec();
 		output.append(&mut self.data);
 		output
 	}
 
-	/// Build the array into data.
-	fn compute_offsets(output: &mut Vec<u8>, offsets: Vec<OffsetDatum>) {
+	/// Add offseted data at the end of this writer's data, updating the offsets.
+	fn bake_offsets(output: &mut Vec<u8>, offsets: Vec<OffsetDatum>) {
 		for mut offset_datum in offsets {
 			let offset_position = offset_datum.offset_position;
 			let offset_position_end = offset_position + 32;
 
 			// The offset is the distance between the start of the data and the
-			// start of the array length. Offsets in inner data are relative to the start of their
-			// respective "container".
+			// start of the pointed data (start of a struct, length of an array).
+			// Offsets in inner data are relative to the start of their respective "container".
 			// However in arrays the "container" is actually the item itself instead of the whole
 			// array, which is corrected by `offset_shift`.
 			let free_space_offset = output.len() - offset_datum.offset_shift;
@@ -450,7 +450,6 @@ impl<T: EvmData> EvmData for Vec<T> {
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
 
-		// Write elements of array.
 		for inner in value {
 			// Any offset in items are relative to the start of the item instead of the
 			// start of the array. However if there is offseted data it must but appended after
@@ -473,7 +472,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let mut inner_reader = dbg!(reader.read_pointer()?);
+		let mut inner_reader = reader.read_pointer()?;
 
 		// Read bytes/string size.
 		let array_size: usize = inner_reader
@@ -481,8 +480,6 @@ impl EvmData for Bytes {
 			.map_err(|_| error("tried to parse bytes/string length out of bounds"))?
 			.try_into()
 			.map_err(|_| error("bytes/string length is too large"))?;
-
-		dbg!(array_size);
 
 		// Get valid range over the bytes data.
 		let range = inner_reader.move_cursor(array_size)?;
@@ -493,8 +490,6 @@ impl EvmData for Bytes {
 			.ok_or_else(|| error("tried to parse bytes/string out of bounds"))?;
 
 		let bytes = Self(data.to_owned());
-
-		println!("{:?}", bytes);
 
 		Ok(bytes)
 	}
