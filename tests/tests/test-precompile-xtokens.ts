@@ -5,13 +5,7 @@ import { ethers } from "ethers";
 
 import {
   GENESIS_ACCOUNT,
-  ALITH,
-  BALTATHAR,
-  ALITH_PRIV_KEY,
-  CHARLETH,
-  BALTATHAR_PRIV_KEY,
 } from "../util/constants";
-import { createTransaction } from "../util/transactions";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
