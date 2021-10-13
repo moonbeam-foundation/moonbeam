@@ -21,7 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, ReferendumInfo, Vote};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{

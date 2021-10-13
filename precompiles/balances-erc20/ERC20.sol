@@ -4,8 +4,27 @@ pragma solidity ^0.4.24;
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
  * @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts
+ * Moonbase address : 0x0000000000000000000000000000000000000802
  */
 interface IERC20 {
+  /**
+   * @dev Returns the name of the token.
+   * Selector: 06fdde03
+   */
+  function name() external view returns (string memory);
+
+  /**
+   * @dev Returns the symbol of the token.
+   * Selector: 95d89b41
+   */
+  function symbol() external view returns (string memory);
+
+  /**
+   * @dev Returns the decimals places of the token.
+   * Selector: 313ce567
+   */
+  function decimals() external view returns (uint8);
+
   /**
    * @dev Total number of tokens in existence
    * Selector: 18160ddd
@@ -18,7 +37,7 @@ interface IERC20 {
    * @param owner The address to query the balance of.
    * @return An uint256 representing the amount owned by the passed address.
    */
-  function balanceOf(address who) external view returns (uint256);
+  function balanceOf(address owner) external view returns (uint256);
 
   /**
    * @dev Function to check the amount of tokens that an owner allowed to a spender.

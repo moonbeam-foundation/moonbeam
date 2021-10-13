@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, keccak256, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	error, keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -123,17 +123,34 @@ pub enum Action {
 	Transfer = "transfer(address,uint256)",
 	Approve = "approve(address,uint256)",
 	TransferFrom = "transferFrom(address,address,uint256)",
+	Name = "name()",
+	Symbol = "symbol()",
+	Decimals = "decimals()",
+}
+
+/// Metadata of an ERC20 token.
+pub trait Erc20Metadata {
+	/// Returns the name of the token.
+	fn name() -> &'static str;
+
+	/// Returns the symbol of the token.
+	fn symbol() -> &'static str;
+
+	/// Returns the decimals places of the token.
+	fn decimals() -> u8;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
 /// The precompile uses an additional storage to store approvals.
-pub struct Erc20BalancesPrecompile<Runtime, Instance: 'static = ()>(
-	PhantomData<(Runtime, Instance)>,
+pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: 'static = ()>(
+	PhantomData<(Runtime, Metadata, Instance)>,
 );
 
-impl<Runtime, Instance> Precompile for Erc20BalancesPrecompile<Runtime, Instance>
+impl<Runtime, Metadata, Instance> Precompile
+	for Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
+	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -155,12 +172,16 @@ where
 			Action::Approve => Self::approve(input, target_gas, context),
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
+			Action::Name => Self::name(input, target_gas, context),
+			Action::Symbol => Self::symbol(input, target_gas, context),
+			Action::Decimals => Self::decimals(input, target_gas, context),
 		}
 	}
 }
 
-impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
+impl<Runtime, Metadata, Instance> Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
+	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -399,6 +420,40 @@ where
 					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
+		})
+	}
+
+	fn name(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(Metadata::name().into())
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn symbol(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(Metadata::symbol().into())
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn decimals(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
+			logs: Default::default(),
 		})
 	}
 
