@@ -464,7 +464,7 @@ export const contractSources: { [key: string]: string } = {
             revert("By reverting this transaction, we return the eth to the caller");
         }
     }`,
-    XtokensInstance: `
+  XtokensInstance: `
     pragma solidity >=0.8.0;
 
     /**

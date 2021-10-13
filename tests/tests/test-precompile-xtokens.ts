@@ -13,7 +13,7 @@ const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
   let iFace;
-  let contractData; 
+  let contractData;
 
   before("Deploy contract", async () => {
     contractData = await getCompiled("XtokensInstance");
