@@ -639,7 +639,12 @@ fn read_vec_of_bytes() {
 // 	   bytes [] interior;
 // }
 //
-// function transfer(address currency_address, uint256 amount, MultiLocation memory destination, uint64 weight) external;
+// function transfer(
+//     address currency_address,
+//     uint256 amount,
+//     MultiLocation memory destination,
+//     uint64 weight
+// ) external;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct MultiLocation {
