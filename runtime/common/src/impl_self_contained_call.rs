@@ -48,6 +48,16 @@ macro_rules! impl_self_contained_call {
 				}
 			}
 
+			fn pre_dispatch_self_contained(
+				&self,
+				info: &Self::SignedInfo,
+			) -> Option<Result<(), TransactionValidityError>> {
+				match self {
+					Call::Ethereum(call) => call.pre_dispatch_self_contained(info),
+					_ => None,
+				}
+			}
+
 			fn apply_self_contained(
 				self,
 				info: Self::SignedInfo,

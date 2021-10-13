@@ -1111,11 +1111,7 @@ fn ethereum_invalid_transaction() {
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
 		// on chain is rejected.
 		assert_eq!(
-			Executive::validate_transaction(
-				sp_runtime::transaction_validity::TransactionSource::External,
-				unchecked_eth_tx(INVALID_ETH_TX),
-				sp_core::H256::default()
-			),
+			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
 			Err(
 				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
 					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
