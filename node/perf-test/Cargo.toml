@@ -16,6 +16,7 @@ ethereum = { version = "0.9.0" }
 rlp = { version = "0.5" }
 sha3 = { version = "0.8" }
 cli-table = "0.4"
+psutil = "3.2.1"
 
 # TODO: handle different runtime builds
 moonbase-runtime = { path = "../../runtime/moonbase" }

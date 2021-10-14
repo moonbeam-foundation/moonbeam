@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use psutil::{cpu, disk, memory, host};
+
 // Utilities for querying system information, namely:
 //
 // * Linux kernel info
@@ -23,6 +25,7 @@
 // * Disk information
 
 /// Basic system-wide information
+#[derive(Default, Debug)]
 pub struct SystemInfo {
 	pub cpu_info: CPUInfo,
 	pub mem_info: MemoryInfo,
@@ -32,6 +35,7 @@ pub struct SystemInfo {
 }
 
 /// Memory info
+#[derive(Default, Debug)]
 pub struct MemoryInfo {
 	pub total_memory_mb: u64,
 	pub available_memory_mb: u64,
@@ -39,6 +43,7 @@ pub struct MemoryInfo {
 }
 
 /// CPU info
+#[derive(Default, Debug)]
 pub struct CPUInfo {
 	pub cpu_model: String,
 	pub cpu_max_speed_mhz: u64,
@@ -48,6 +53,7 @@ pub struct CPUInfo {
 }
 
 /// Information about a physical disk
+#[derive(Default, Debug)]
 pub struct PhysicalDiskInfo {
 	pub model_name: String,
 	pub device_file: String,
@@ -56,6 +62,7 @@ pub struct PhysicalDiskInfo {
 }
 
 /// Information about a partition
+#[derive(Default, Debug)]
 pub struct PartitionInfo {
 	pub mount_point: String,
 	pub device_file: String,
@@ -66,12 +73,51 @@ pub struct PartitionInfo {
 }
 
 pub fn query_system_info() -> Result<SystemInfo, String> {
-	todo!()
+	let virtual_memory = memory::virtual_memory().unwrap();
+	dbg!(virtual_memory);
+	let host_info = host::info();
+	dbg!(host_info);
+	Ok(Default::default())
 }
 
 /// query the partition info corresponding to the given path. the path doesn't need to be an
 /// explicit mountpoint; it can be a subdirectory of a mountpoint.
 /// TODO: use std::path::Path or whatever the CLI parameter for --base-path uses
 pub fn query_partition_info(path: &str) -> Result<PartitionInfo, String> {
-	todo!()
+	use std::{collections::HashMap, path::Path};
+
+	let partitions = disk::partitions_physical().unwrap();
+
+	let mut partitions_map = HashMap::<String, disk::Partition>::new();
+	for partition in partitions {
+		partitions_map.insert(
+			partition.mountpoint().to_str().expect("fs paths expected to be valid UTF-8").into(),
+			partition);
+	}
+
+	// crawl up the parent dirs in path to find a match from our partitions
+	let mut ancestors = Path::new(path).ancestors();
+	let partition = ancestors.find_map(|dir| {
+		let dir_str = dir.to_str().expect("path should be valid UTF-8");
+		if let partition = partitions_map.get(dir_str) {
+			partition
+		} else {
+			None
+		}
+	}).expect("Any path should exist under some partition; qed");
+
+	let disk_usage = disk::disk_usage(partition.mountpoint())
+		.expect("A partition was found at mountpoint; qed");
+
+	Ok(PartitionInfo {
+		mount_point: partition.mountpoint()
+			.to_str()
+			.expect("fs paths expected to be valid UTF-8")
+			.into(),
+		device_file: partition.device().into(),
+		fs_type: partition.filesystem().as_str().into(),
+		total_size_bytes: disk_usage.total(),
+		available_bytes: disk_usage.free(),
+		physical_disk: Default::default(), // TODO
+	})
 }
