@@ -81,6 +81,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
 
+    // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
       BigInt(await getBalance(context, 1, GENESIS_ACCOUNT)) -
         BigInt(amountTransferred) -
@@ -127,6 +128,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     // weight
     let weight = 100;
 
+    // encode the input with ethers
     const data = iFace.encodeFunctionData(
       // action
       "transfer_multiasset",
@@ -140,6 +142,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       ]
     );
 
+    // create tx
     const tx = await createTransaction(context.web3, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
@@ -157,6 +160,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
 
+    // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
       BigInt(await getBalance(context, 1, GENESIS_ACCOUNT)) -
         BigInt(amountTransferred) -
