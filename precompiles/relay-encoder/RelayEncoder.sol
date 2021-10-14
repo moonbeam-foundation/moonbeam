@@ -10,8 +10,7 @@ interface RelayEncoder {
     // dev Encode 'bond' relay call
     // @param controller_address: Address of the controller
     // @param amount: The amount to bond
-    // @param reward_destination: uint8 selecting one of RewardDestination
-    // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+    // @param reward_destination: the account that should receive the reward
     // @returns The bytes associated with the encoded call
     function encode_bond(uint256 controller_address, uint256 amount, bytes memory reward_destination) external view returns (bytes memory result);
 
@@ -47,8 +46,7 @@ interface RelayEncoder {
     function encode_chill() external view returns (bytes memory result);
 
     // dev Encode 'set_payee' relay call
-    // @param reward_destination: uint8 selecting one of RewardDestination
-    // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+    // @param reward_destination: the account that should receive the reward
     // @returns The bytes associated with the encoded call
     function encode_set_payee(bytes memory reward_destination) external view returns (bytes memory result);
 
