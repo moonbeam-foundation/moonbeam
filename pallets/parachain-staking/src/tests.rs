@@ -2566,7 +2566,7 @@ fn execute_revoke_delegation_removes_nomination_from_candidate_state() {
 }
 
 #[test]
-fn cannot_execute_revoke_delegation_for_leaving_candidate() {
+fn can_execute_revoke_delegation_for_leaving_candidate() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2576,11 +2576,8 @@ fn cannot_execute_revoke_delegation_for_leaving_candidate() {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
-			// cannot execute delegation request for leaving candidate
-			assert_noop!(
-				Stake::execute_delegation_request(Origin::signed(2), 2, 1),
-				Error::<Test>::CannotActBecauseLeaving
-			);
+			// can execute delegation request for leaving candidate
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 		});
 }
 
@@ -2785,6 +2782,22 @@ fn execute_delegator_bond_more_increases_total() {
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert_eq!(Stake::total(), 45);
+		});
+}
+
+#[test]
+fn can_execute_delegator_bond_more_for_leaving_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			roll_to(10);
+			// can execute bond more delegation request for leaving candidate
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 		});
 }
 
@@ -3009,6 +3022,22 @@ fn execute_delegator_bond_less_does_not_delete_bottom_delegations() {
 				pre_call_collator_state.total_counted - 4,
 				post_call_collator_state.total_counted
 			);
+		});
+}
+
+#[test]
+fn can_execute_delegator_bond_less_for_leaving_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
+			roll_to(10);
+			// can execute bond more delegation request for leaving candidate
+			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 		});
 }
 

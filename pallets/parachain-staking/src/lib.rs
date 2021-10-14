@@ -30,8 +30,8 @@
 //! * a new set of collators is chosen from the candidates
 //!
 //! To join the set of candidates, call `join_candidates` with `bond >= MinCollatorCandidateStk`.
-//!
-//! To leave the set of candidates, call `leave_candidates`. If the call succeeds,
+//! TODO: update these docs!!!
+//! To leave the set of candidates, call `schedule_leave_candidates`. If the call succeeds,
 //! the collator is removed from the pool of candidates so they cannot be selected for future
 //! collator sets, but they are not unstaked until `T::LeaveCandidatesDelay` rounds later.
 //! The exit request is stored in the `ExitQueue` and processed `T::LeaveCandidatesDelay` rounds
@@ -865,13 +865,12 @@ pub mod pallet {
 					// remove from pending requests
 					self.requests.less_total -= amount;
 					self.requests.revocations_count -= 1u32;
-					// remove nomination from nominator state
+					// remove delegation from nominator state
 					self.rm_nomination(candidate.clone());
-					// remove nomination from collator state delegations
+					// remove delegation from collator state delegations
 					Pallet::<T>::delegator_leaves_collator(
 						nominator_id.clone(),
 						candidate_id.clone(),
-						false, // will not execute if candidate is already leaving
 					)?;
 					Pallet::<T>::deposit_event(Event::NominationRevoked(
 						nominator_id.clone(),
@@ -2160,7 +2159,7 @@ pub mod pallet {
 			ensure!(state.can_leave::<T>()?, Error::<T>::NominatorCannotLeaveYet);
 			for bond in state.delegations.0 {
 				if let Err(error) =
-					Self::delegator_leaves_collator(delegator.clone(), bond.owner.clone(), true)
+					Self::delegator_leaves_collator(delegator.clone(), bond.owner.clone())
 				{
 					log::warn!("Nominator exit collator failed with error: {:?}", error);
 				}
@@ -2298,13 +2297,8 @@ pub mod pallet {
 		fn delegator_leaves_collator(
 			nominator: T::AccountId,
 			collator: T::AccountId,
-			delegator_exit: bool,
 		) -> DispatchResult {
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			if !delegator_exit {
-				// revocation execution requires candidate is not leaving
-				ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
-			}
 			let (total_changed, nominator_stake) = state.rm_delegator::<T>(nominator.clone())?;
 			T::Currency::unreserve(&nominator, nominator_stake);
 			if state.is_active() && total_changed {
