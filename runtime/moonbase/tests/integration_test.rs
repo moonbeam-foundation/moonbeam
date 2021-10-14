@@ -1086,7 +1086,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new().build_with_selector(AssetAction::TotalSupply),
+					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1101,9 +1101,9 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(ALICE.into()))
-						.build_with_selector(AssetAction::BalanceOf),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1147,10 +1147,10 @@ fn asset_erc20_precompiles_transfer() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
 						.write(EvmAddress(BOB.into()))
 						.write(U256::from(400 * UNIT))
-						.build_with_selector(AssetAction::Transfer),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1173,9 +1173,9 @@ fn asset_erc20_precompiles_transfer() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(BOB.into()))
-						.build_with_selector(AssetAction::BalanceOf),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1219,10 +1219,10 @@ fn asset_erc20_precompiles_approve() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::Approve)
 						.write(EvmAddress(BOB.into()))
 						.write(U256::from(400 * UNIT))
-						.build_with_selector(AssetAction::Approve),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1252,11 +1252,11 @@ fn asset_erc20_precompiles_approve() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
 						.write(EvmAddress(ALICE.into()))
 						.write(EvmAddress(CHARLIE.into()))
 						.write(U256::from(400 * UNIT))
-						.build_with_selector(AssetAction::TransferFrom),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1279,9 +1279,9 @@ fn asset_erc20_precompiles_approve() {
 			assert_eq!(
 				Precompiles::execute(
 					asset_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(CHARLIE.into()))
-						.build_with_selector(AssetAction::BalanceOf),
+						.build(),
 					None,
 					&evm::Context {
 						address: asset_precompile_address,
@@ -1334,12 +1334,12 @@ fn xtokens_precompiles_transfer() {
 			assert_eq!(
 				Precompiles::execute(
 					xtokens_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
 						.write(U256::from(500_000_000_000_000u128))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build_with_selector(XtokensAction::Transfer),
+						.build(),
 					None,
 					&evm::Context {
 						address: xtokens_precompile_address,
@@ -1392,13 +1392,13 @@ fn xtokens_precompiles_transfer_multiasset() {
 			assert_eq!(
 				Precompiles::execute(
 					xtokens_precompile_address,
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
 						.write(MultiLocationWrapper::from(MultiLocation::parent()))
 						.write(U256::from(500_000_000_000_000u128))
 						.write(MultiLocationWrapper::from(destination))
 						.write(U256::from(4000000))
-						.build_with_selector(XtokensAction::TransferMultiAsset),
+						.build(),
 					None,
 					&evm::Context {
 						address: xtokens_precompile_address,

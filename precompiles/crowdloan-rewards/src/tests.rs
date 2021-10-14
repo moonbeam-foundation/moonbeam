@@ -99,9 +99,9 @@ fn is_contributor_returns_false() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new()
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
-				.build_with_selector(Action::IsContributor);
+				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -142,9 +142,9 @@ fn is_contributor_returns_true() {
 				init_block + VESTING
 			));
 
-			let input = EvmDataWriter::new()
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
-				.build_with_selector(Action::IsContributor);
+				.build();
 
 			// Assert that no props have been opened.
 			assert_eq!(
@@ -184,7 +184,7 @@ fn claim_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new().build_with_selector(Action::Claim);
+			let input = EvmDataWriter::new_with_selector(Action::Claim).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -229,9 +229,9 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new()
+			let input = EvmDataWriter::new_with_selector(Action::RewardInfo)
 				.write(Address(H160::from(Alice)))
-				.build_with_selector(Action::RewardInfo);
+				.build();
 
 			// Assert that no props have been opened.
 			assert_eq!(
@@ -274,9 +274,9 @@ fn update_reward_address_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new()
+			let input = EvmDataWriter::new_with_selector(Action::UpdateRewardAddress)
 				.write(Address(H160::from(Charlie)))
-				.build_with_selector(Action::UpdateRewardAddress);
+				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
