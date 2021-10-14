@@ -77,6 +77,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
+	/// Size of the LRU cache for block data and their transaction statuses.
+	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -115,6 +117,7 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
+		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
@@ -133,7 +136,10 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let block_data_cache = Arc::new(EthBlockDataCache::new(3000, 3000));
+	let block_data_cache = Arc::new(EthBlockDataCache::new(
+		eth_log_block_cache,
+		eth_log_block_cache,
+	));
 
 	let mut overrides_map = BTreeMap::new();
 	overrides_map.insert(
