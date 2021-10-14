@@ -30,6 +30,12 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+    // Junction::AccountId32
+    const destination_enum_selector = "0x01";
+    // [0x01; 32]
+    const destination_address = "0101010101010101010101010101010101010101010101010101010101010101";
+    // NetworkId::Any
+    const destination_network_id = "00";
 
     // This represents X2(Parent, AccountId32([0x01; 32]))
     // We will transfer the tokens the former account in the relay chain
@@ -41,7 +47,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         // one parent
         1,
         // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
-        ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
+        [destination_enum_selector + destination_address + destination_network_id],
       ];
     // 100 units
     let amountTransferred = 1000;
@@ -97,10 +103,23 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+    // Junction::AccountId32
+    const destination_enum_selector = "0x01";
+    // [0x01; 32]
+    const destination_address = "0101010101010101010101010101010101010101010101010101010101010101";
+    // NetworkId::Any
+    const destination_network_id = "00";
 
-    let id = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
+    // Junction::Parachain(0)
+    const x2_parachain_asset_enum_selector = "0x00";
+    const x2_parachain_id = "00000000";
+
+    // Junction::PalletInstance(3)
+    const x2_pallet_instance_enum_selector = "0x04";
+    const x2_instance = "03";
 
     // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+
     // This multilocation represents our native token
     let asset = [
       // one parent
@@ -108,7 +127,10 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       // X2(Parachain, PalletInstance)
       // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
-      ["0x0000000000", "0x0403"],
+      [
+        x2_parachain_asset_enum_selector + x2_parachain_id,
+        x2_pallet_instance_enum_selector + x2_instance,
+      ],
     ];
     // This represents X2(Parent, AccountId32([0x01; 32]))
     // We will transfer the tokens the former account in the relay chain
@@ -120,7 +142,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         // one parent
         1,
         // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
-        ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
+        [destination_enum_selector + destination_address + destination_network_id],
       ];
     // 100 units
     let amountTransferred = 100;
