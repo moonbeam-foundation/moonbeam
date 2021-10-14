@@ -1,26 +1,50 @@
-import { expect } from "chai";
+  import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../util/contracts";
+import { createContract, createTransaction } from "../util/transactions";
 
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, ALITH, ALITH_PRIV_KEY } from "../util/constants";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  let iFace;
-  let contractData;
+async function getBalance(context, blockHeight, address) {
+  const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
+  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
+  return account.data.free;
+}
 
-  before("Deploy contract", async () => {
-    contractData = await getCompiled("XtokensInstance");
-    iFace = new ethers.utils.Interface(contractData.contract.abi);
-  });
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
 
   it("allows to issue transfer xtokens", async function () {
+
+    const contractData = await getCompiled("XtokensInstance");
+    const iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const address = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+
+    // This represents X2(Parent, AccountId32([0x01; 32]))
+    // We will transfer the tokens the former account in the relay chain
+    // However it does not really matter as we are not testing what happens
+    // in the relay side of things
+    let destination =  // Destination as multilocation
+    [
+      // one parent
+      1,
+      // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
+      ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
+    ];
+    // 100 units
+    let amountTransferred = 1000;
+
+    // weight
+    let weight = 100;
+
     const data = iFace.encodeFunctionData(
       // action
       "transfer",
@@ -28,61 +52,87 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         // address of the multiasset, in this case our own balances
         BALANCES_ADDRESS,
         // amount
-        100,
+        amountTransferred,
         // Destination as multilocation
-        [
-          // one parent
-          1,
-          // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
-          ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
-        ],
+        destination,
         // weight
-        100,
+        weight,
       ]
     );
 
-    const tx_call = await customWeb3Request(context.web3, "eth_call", [
-      {
-        from: GENESIS_ACCOUNT,
-        value: "0x0",
-        gas: "0x10000",
-        gasPrice: GAS_PRICE,
-        to: ADDRESS_XTOKENS,
-        data: data,
-      },
-    ]);
-    // result only exists if the call is succesful
-    expect(tx_call.hasOwnProperty("result"));
-  });
+    const tx = await createTransaction(context.web3, {
+      from: GENESIS_ACCOUNT,
+      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: ADDRESS_XTOKENS,
+      data,
+    });
 
+    const block = await context.createBlock({
+      transactions: [tx],
+    });
+    
+    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
+    console.log(fees)
+
+    expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
+      BigInt(await getBalance(context, 1, GENESIS_ACCOUNT)) - BigInt(amountTransferred) - BigInt(fees)
+    );
+  });
+});
+
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
+    const contractData = await getCompiled("XtokensInstance");
+    const iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const address = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+
+    // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+    // This multilocation represents our native token
+    let asset =  [
+      // one parent
+      1,
+      // X2(Parachain, PalletInstance)
+      // Parachain: Parachain selector (00) + parachain id (1000) in 4 bytes (000003E8)
+      // PalletInstance: Selector (04) + pallet instance 1 byte (03)
+      ["0x00000003e8", "0x0403"],
+    ];
+    // This represents X2(Parent, AccountId32([0x01; 32]))
+    // We will transfer the tokens the former account in the relay chain
+    // However it does not really matter as we are not testing what happens
+    // in the relay side of things
+    let destination =  // Destination as multilocation
+    [
+      // one parent
+      1,
+      // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
+      ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
+    ];
+    // 100 units
+    let amountTransferred = 100;
+
+    // weight
+    let weight = 100;
+
     const data = iFace.encodeFunctionData(
       // action
       "transfer_multiasset",
       [
-        // Asset as MultiLocation + amount
-        [
-          // one parent
-          1,
-          // X2(Parachain, PalletInstance)
-          // Parachain: Parachain selector (00) + parachain id (1000) in 4 bytes (000003E8)
-          // PalletInstance: Selector (04) + pallet instance 1 byte (03)
-          ["0x00000003e8", "0x0403"],
-        ],
+       asset,
         // amount
-        100,
-        // Destination as multilocation
-        [
-          // one parent
-          1,
-          // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
-          ["0x01010101010101010101010101010101010101010101010101010101010101010100"],
-        ],
+        amountTransferred,
+        destination,
         // weight
-        100,
+        weight,
       ]
     );
 
+    console.log(data)
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
@@ -93,6 +143,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         data: data,
       },
     ]);
+    console.log(tx_call)
     // result only exists if the call is succesful
     expect(tx_call.hasOwnProperty("result"));
   });
