@@ -267,6 +267,12 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -346,6 +352,8 @@
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// The list of optional RPC extensions.</span>
 	<span class="kw">pub</span> <span class="ident">ethapi_cmd</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApiCmd</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Size of the LRU cache for block data and their transaction statuses.</span>
+	<span class="kw">pub</span> <span class="ident">eth_log_block_cache</span>: <span class="ident">usize</span>,
 	<span class="doccomment">/// Frontier Backend.</span>
 	<span class="kw">pub</span> <span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Backend.</span>
@@ -384,6 +392,7 @@
 		<span class="ident">network</span>,
 		<span class="ident">filter_pool</span>,
 		<span class="ident">ethapi_cmd</span>,
+		<span class="ident">eth_log_block_cache</span>,
 		<span class="ident">command_sink</span>,
 		<span class="ident">frontier_backend</span>,
 		<span class="ident">backend</span>: <span class="kw">_</span>,
@@ -402,7 +411,10 @@
 	<span class="comment">// TODO: are we supporting signing?</span>
 	<span class="kw">let</span> <span class="ident">signers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
-	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">EthBlockDataCache::new</span>(<span class="number">3000</span>, <span class="number">3000</span>));
+	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">EthBlockDataCache::new</span>(
+		<span class="ident">eth_log_block_cache</span>,
+		<span class="ident">eth_log_block_cache</span>,
+	));
 
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overrides_map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
 	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(

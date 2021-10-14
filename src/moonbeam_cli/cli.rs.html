@@ -260,6 +260,10 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -430,6 +434,10 @@
 	<span class="doccomment">/// discarded.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u64</span>,
+
+	<span class="doccomment">/// Size of the LRU cache for block data and their transaction statuses.</span>
+	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;3000&quot;</span>)]</span>
+	<span class="kw">pub</span> <span class="ident">eth_log_block_cache</span>: <span class="ident">usize</span>,
 
 	<span class="doccomment">/// Maximum number of logs in a query.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10000&quot;</span>)]</span>

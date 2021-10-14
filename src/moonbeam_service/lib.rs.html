@@ -916,6 +916,8 @@
 <span id="916">916</span>
 <span id="917">917</span>
 <span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1441,18 +1443,19 @@
 			};
 
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">rpc::FullDeps</span> {
-				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
-				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
-				<span class="ident">deny_unsafe</span>,
-				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
-				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
-				<span class="ident">filter_pool</span>: <span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">ethapi_cmd</span>: <span class="ident">ethapi_cmd</span>.<span class="ident">clone</span>(),
-				<span class="ident">command_sink</span>: <span class="prelude-val">None</span>,
-				<span class="ident">frontier_backend</span>: <span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 				<span class="ident">backend</span>: <span class="ident">backend</span>.<span class="ident">clone</span>(),
+				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
+				<span class="ident">command_sink</span>: <span class="prelude-val">None</span>,
+				<span class="ident">deny_unsafe</span>,
+				<span class="ident">ethapi_cmd</span>: <span class="ident">ethapi_cmd</span>.<span class="ident">clone</span>(),
+				<span class="ident">eth_log_block_cache</span>: <span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span>,
+				<span class="ident">filter_pool</span>: <span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">frontier_backend</span>: <span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
+				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
+				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">max_past_logs</span>,
+				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
 				<span class="ident">transaction_converter</span>,
 			};
 			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
@@ -1786,18 +1789,19 @@
 			};
 
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">rpc::FullDeps</span> {
-				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
-				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
-				<span class="ident">deny_unsafe</span>,
-				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
-				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
-				<span class="ident">filter_pool</span>: <span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">ethapi_cmd</span>: <span class="ident">ethapi_cmd</span>.<span class="ident">clone</span>(),
-				<span class="ident">command_sink</span>: <span class="ident">command_sink</span>.<span class="ident">clone</span>(),
-				<span class="ident">frontier_backend</span>: <span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 				<span class="ident">backend</span>: <span class="ident">backend</span>.<span class="ident">clone</span>(),
+				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
+				<span class="ident">command_sink</span>: <span class="ident">command_sink</span>.<span class="ident">clone</span>(),
+				<span class="ident">deny_unsafe</span>,
+				<span class="ident">ethapi_cmd</span>: <span class="ident">ethapi_cmd</span>.<span class="ident">clone</span>(),
+				<span class="ident">eth_log_block_cache</span>: <span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span>,
+				<span class="ident">filter_pool</span>: <span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">frontier_backend</span>: <span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
+				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
+				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">max_past_logs</span>,
+				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
 				<span class="ident">transaction_converter</span>,
 			};
 			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
