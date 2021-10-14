@@ -436,22 +436,17 @@ impl<T: EvmData> EvmData for Vec<T> {
 			.map_err(|_| error("array length is too large"))?;
 
 		let mut array = vec![];
-		let mut item_cursor = inner_reader.cursor;
+
+		let mut item_reader = EvmDataReader {
+			input: inner_reader
+				.input
+				.get(32..)
+				.ok_or_else(|| error("try to read array items out of bound"))?,
+			cursor: 0,
+		};
 
 		for _ in 0..array_size {
-			// We create a new reader that starts where the array item starts.
-			// It is necessary to correctly handle arrays of offsets, whose offsets are relative
-			// to the start of the item, and not the start of the array itself.
-			let mut item_reader = EvmDataReader {
-				input: inner_reader
-					.input
-					.get(item_cursor..)
-					.ok_or_else(|| error("try to read array item out of bound"))?,
-				cursor: 0,
-			};
-
 			array.push(item_reader.read()?);
-			item_cursor += item_reader.cursor;
 		}
 
 		Ok(array)
@@ -470,7 +465,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
 			for mut offset_datum in item_writer.offset_data {
-				offset_datum.offset_shift += shift;
+				offset_datum.offset_shift += 32;
 				offset_datum.offset_position += shift;
 				inner_writer.offset_data.push(offset_datum);
 			}
