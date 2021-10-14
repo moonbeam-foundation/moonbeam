@@ -31,6 +31,7 @@ pub struct SystemInfo {
 	pub mem_info: MemoryInfo,
 	pub kernel_version: String,
 	pub distro_name: String,
+	pub architecture: String,
 	// TODO: could include array of PhysicalDiskInfo and/or PartitionInfo
 }
 
@@ -74,10 +75,30 @@ pub struct PartitionInfo {
 
 pub fn query_system_info() -> Result<SystemInfo, String> {
 	let virtual_memory = memory::virtual_memory().unwrap();
-	dbg!(virtual_memory);
+	dbg!(virtual_memory.clone());
+
 	let host_info = host::info();
-	dbg!(host_info);
-	Ok(Default::default())
+	dbg!(host_info.clone());
+
+	let cpu_freq = cpu::cpu_freq().expect("CPU must exist; qed");
+	dbg!(cpu_freq.current());
+
+	Ok(SystemInfo {
+		cpu_info: CPUInfo {
+			cpu_model: "FIXME".into(),
+			cpu_max_speed_mhz: cpu_freq.max() as u64,
+			cpu_base_speed_mhz: cpu_freq.min() as u64, // TODO: we want base, not min
+			num_physical_cores: cpu::cpu_count_physical(),
+			num_threads: cpu::cpu_count(),
+		},
+		mem_info: MemoryInfo {
+			total_memory_mb: virtual_memory.total(),
+			available_memory_mb: virtual_memory.available(),
+		},
+		kernel_version: host_info.release().into(),
+		distro_name: host_info.version().into(),
+		architecture: host_info.architecture().as_str().into(),
+	})
 }
 
 /// query the partition info corresponding to the given path. the path doesn't need to be an

@@ -86,9 +86,12 @@ where
 				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
-		query_system_info();
-		let partition_info = query_partition_info("/home/stephen/dev/purestake/moonbeam");
-		dbg!(partition_info);
+		let system_info = query_system_info();
+		dbg!(system_info);
+
+		// let partition_info = query_partition_info("/home/stephen/dev/purestake/moonbeam");
+		// dbg!(partition_info);
+
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
