@@ -1268,6 +1268,16 @@ pub enum Transactors {
 	Relay,
 }
 
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
 impl xcm_transactor::UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
 		match self {

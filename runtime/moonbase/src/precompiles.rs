@@ -31,6 +31,7 @@ use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xcm_transactor_precompiles::XcmTransactorWrapper;
 use xtokens_precompiles::XtokensWrapper;
 
 /// ERC20 metadata for the native token.
@@ -89,6 +90,7 @@ where
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -127,6 +129,9 @@ where
 			}
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set

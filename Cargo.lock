@@ -5122,6 +5122,7 @@ dependencies = [
  "xcm-primitives",
  "xcm-simulator",
  "xcm-transactor",
+ "xcm-transactor-precompiles",
  "xtokens-precompiles",
 ]
 
@@ -8837,6 +8838,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
+ "xcm",
 ]
 
 [[package]]
@@ -13948,6 +13950,37 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
+]
+
+[[package]]
+name = "xcm-transactor-precompiles"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+ "xcm-transactor",
 ]
 
 [[package]]
