@@ -121,6 +121,7 @@ impl<'test> MockMigrationManager<'test> {
 		self.pre_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
 		self.post_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
 	}
+	#[cfg(feature = "try-runtime")]
 	pub fn register_callback_with_try_fns<FN, FM, FT1, FT2>(
 		&mut self,
 		name_fn: FN,
@@ -149,10 +150,12 @@ impl<'test> MockMigrationManager<'test> {
 		self.migrate_fn_callbacks[index](available_weight)
 	}
 
+	#[cfg(feature = "try-runtime")]
 	pub(crate) fn invoke_pre_upgrade(&mut self, index: usize) -> Result<(), &'static str> {
 		self.pre_upgrade_fn_callbacks[index]()
 	}
 
+	#[cfg(feature = "try-runtime")]
 	pub(crate) fn invoke_post_upgrade(&mut self, index: usize) -> Result<(), &'static str> {
 		self.post_upgrade_fn_callbacks[index]()
 	}
