@@ -1296,6 +1296,7 @@ impl xcm_transactor::Config for Runtime {
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type BaseXcmWeight = BaseXcmWeight;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
