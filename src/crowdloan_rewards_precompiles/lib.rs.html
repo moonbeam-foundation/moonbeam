@@ -290,7 +290,7 @@
 	<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
 
 <span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">num_enum::TryFromPrimitive</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">num_enum::TryFromPrimitive</span>, <span class="ident">num_enum::IntoPrimitive</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">IsContributor</span> <span class="op">=</span> <span class="string">&quot;is_contributor(address)&quot;</span>,
 	<span class="ident">RewardInfo</span> <span class="op">=</span> <span class="string">&quot;reward_info(address)&quot;</span>,
@@ -314,9 +314,9 @@
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">EvmDataReader::new</span>(<span class="ident">input</span>);
+		<span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span> {
+		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Check for accessor methods first. These return results immediately</span>
 			<span class="ident">Action::IsContributor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::is_contributor</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
 			<span class="ident">Action::RewardInfo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::reward_info</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),

@@ -623,9 +623,9 @@
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">EvmDataReader::new</span>(<span class="ident">input</span>);
+		<span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span> {
+		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="ident">Action::TotalSupply</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::total_supply</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::BalanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::balance_of</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::Allowance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::allowance</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),

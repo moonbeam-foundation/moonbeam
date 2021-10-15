@@ -498,6 +498,30 @@
 <span id="498">498</span>
 <span id="499">499</span>
 <span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -583,6 +607,29 @@
 		<span class="self">Self</span> { <span class="ident">input</span>, <span class="ident">cursor</span>: <span class="number">0</span> }
 	}
 
+	<span class="doccomment">/// Create a new input parser from a selector-initial input.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">T</span>)<span class="op">&gt;</span>
+	<span class="kw">where</span>
+		<span class="ident">T</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
+	{
+		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;tried to parse selector out of bounds&quot;</span>));
+		}
+
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
+		<span class="ident">buffer</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">0</span>..<span class="number">4</span>]);
+		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">T::try_from_primitive</span>(<span class="ident">u32::from_be_bytes</span>(<span class="ident">buffer</span>)).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+			<span class="macro">log::trace!</span>(
+				<span class="ident">target</span>: <span class="string">&quot;precompile-utils&quot;</span>,
+				<span class="string">&quot;Failed to match function selector for {}&quot;</span>,
+				<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+			);
+			<span class="ident">error</span>(<span class="string">&quot;unknown selector&quot;</span>)
+		})<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>((<span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span>..]), <span class="ident">selector</span>))
+	}
+
 	<span class="doccomment">/// Check the input has at least the correct amount of arguments before the end (32 bytes values).</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span> {
 		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">+</span> <span class="ident">args</span> <span class="op">*</span> <span class="number">32</span> {
@@ -611,6 +658,24 @@
 		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 	}
 
+	<span class="doccomment">/// Reads a pointer, returning a reader targetting the pointed location.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_pointer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="self">self</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">try_into</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>(<span class="string">&quot;pointer points out of bounds&quot;</span>));
+		}
+
+		<span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+			<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input</span>[<span class="ident">offset</span>..],
+			<span class="ident">cursor</span>: <span class="number">0</span>,
+		})
+	}
+
 	<span class="doccomment">/// Read remaining bytes</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_till_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">cursor</span>)<span class="question-mark">?</span>;
@@ -621,27 +686,6 @@
 			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse raw bytes out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
-	}
-
-	<span class="doccomment">/// Parse (4 bytes) selector.</span>
-	<span class="doccomment">/// Returns an error if trying to parse out of bounds.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">T</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
-	{
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-		<span class="ident">buffer</span>.<span class="ident">copy_from_slice</span>(
-			<span class="self">self</span>.<span class="ident">read_raw_bytes</span>(<span class="number">4</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse selector out of bounds&quot;</span>))<span class="question-mark">?</span>,
-		);
-		<span class="ident">T::try_from_primitive</span>(<span class="ident">u32::from_be_bytes</span>(<span class="ident">buffer</span>)).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;precompile-utils&quot;</span>,
-				<span class="string">&quot;Failed to match function selector for {}&quot;</span>,
-				<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
-			);
-			<span class="ident">error</span>(<span class="string">&quot;unknown selector&quot;</span>)
-		})
 	}
 
 	<span class="doccomment">/// Move the reading cursor with provided length, and return a range from the previous cursor</span>
@@ -670,72 +714,104 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EvmDataWriter</span> {
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 	<span class="ident">offset_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>,
+	<span class="ident">selector</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">OffsetDatum</span> {
+	<span class="comment">// Offset location in the container data.</span>
 	<span class="ident">offset_position</span>: <span class="ident">usize</span>,
+	<span class="comment">// Data pointed by the offset that must be inserted at the end of container data.</span>
 	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">inner_offset_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>,
+	<span class="comment">// Inside of arrays, the offset is not from the start of array data (length), but from the start</span>
+	<span class="comment">// of the item. This shift allow to correct this.</span>
+	<span class="ident">offset_shift</span>: <span class="ident">usize</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">EvmDataWriter</span> {
-	<span class="doccomment">/// Creates a new empty output builder.</span>
+	<span class="doccomment">/// Creates a new empty output builder (without selector).</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">data</span>: <span class="macro">vec!</span>[],
 			<span class="ident">offset_data</span>: <span class="macro">vec!</span>[],
+			<span class="ident">selector</span>: <span class="prelude-val">None</span>,
+		}
+	}
+
+	<span class="doccomment">/// Creates a new empty output builder with provided selector.</span>
+	<span class="doccomment">/// Selector will only be appended before the data when calling</span>
+	<span class="doccomment">/// `build` to not mess with the offsets.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_selector</span>(<span class="ident">selector</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span> {
+			<span class="ident">data</span>: <span class="macro">vec!</span>[],
+			<span class="ident">offset_data</span>: <span class="macro">vec!</span>[],
+			<span class="ident">selector</span>: <span class="prelude-val">Some</span>(<span class="ident">selector</span>.<span class="ident">into</span>()),
 		}
 	}
 
 	<span class="doccomment">/// Return the built data.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-		<span class="ident"><span class="self">Self</span>::compute_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">offset_data</span>);
+		<span class="ident"><span class="self">Self</span>::bake_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">offset_data</span>);
 
-		<span class="self">self</span>.<span class="ident">data</span>
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">selector</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">selector</span> {
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">selector</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>();
+			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>);
+			<span class="ident">output</span>
+		} <span class="kw">else</span> {
+			<span class="self">self</span>.<span class="ident">data</span>
+		}
 	}
 
-	<span class="doccomment">/// Build the array into data.</span>
-	<span class="kw">fn</span> <span class="ident">compute_offsets</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">arrays</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>) {
-		<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="kw">in</span> <span class="ident">arrays</span> {
-			<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">array</span>.<span class="ident">offset_position</span>;
+	<span class="doccomment">/// Add offseted data at the end of this writer&#39;s data, updating the offsets.</span>
+	<span class="kw">fn</span> <span class="ident">bake_offsets</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">offsets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>) {
+		<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">offset_datum</span> <span class="kw">in</span> <span class="ident">offsets</span> {
+			<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">offset_datum</span>.<span class="ident">offset_position</span>;
 			<span class="kw">let</span> <span class="ident">offset_position_end</span> <span class="op">=</span> <span class="ident">offset_position</span> <span class="op">+</span> <span class="number">32</span>;
 
-			<span class="comment">// The offset is the distance between the start of the offset location and the</span>
-			<span class="comment">// start of the array length.</span>
-			<span class="kw">let</span> <span class="ident">free_space_offset</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset_position</span>;
+			<span class="comment">// The offset is the distance between the start of the data and the</span>
+			<span class="comment">// start of the pointed data (start of a struct, length of an array).</span>
+			<span class="comment">// Offsets in inner data are relative to the start of their respective &quot;container&quot;.</span>
+			<span class="comment">// However in arrays the &quot;container&quot; is actually the item itself instead of the whole</span>
+			<span class="comment">// array, which is corrected by `offset_shift`.</span>
+			<span class="kw">let</span> <span class="ident">free_space_offset</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset_datum</span>.<span class="ident">offset_shift</span>;
 
 			<span class="comment">// Override dummy offset to the offset it will be in the final output.</span>
 			<span class="ident">U256::from</span>(<span class="ident">free_space_offset</span>)
 				.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">output</span>[<span class="ident">offset_position</span>..<span class="ident">offset_position_end</span>]);
 
-			<span class="comment">// Build inner arrays if any.</span>
-			<span class="ident"><span class="self">Self</span>::compute_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>.<span class="ident">data</span>, <span class="ident">array</span>.<span class="ident">inner_offset_data</span>);
-
 			<span class="comment">// Append this data at the end of the current output.</span>
-			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>.<span class="ident">data</span>);
+			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">offset_datum</span>.<span class="ident">data</span>);
 		}
 	}
 
 	<span class="doccomment">/// Write arbitrary bytes.</span>
 	<span class="doccomment">/// Doesn&#39;t handle any alignement checks, prefer using `write` instead if possible.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_raw_bytes</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">write_raw_bytes</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="ident">value</span>);
 		<span class="self">self</span>
-	}
-
-	<span class="doccomment">/// Write a selector.</span>
-	<span class="doccomment">/// The provided type must impl `Into&lt;u32&gt;`.</span>
-	<span class="doccomment">/// Doesn&#39;t handle any alignement checks, should be used only when adding the initial</span>
-	<span class="doccomment">/// selector of a Solidity call data.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_selector</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">into</span>().<span class="ident">to_be_bytes</span>())
 	}
 
 	<span class="doccomment">/// Write data of requested type.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="ident">T::write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>);
 		<span class="self">self</span>
+	}
+
+	<span class="doccomment">/// Writes a pointer to given data.</span>
+	<span class="doccomment">/// The data will be appended when calling `build`.</span>
+	<span class="doccomment">/// Initially write a dummy value as offset in this writer&#39;s data, which will be replaced by</span>
+	<span class="doccomment">/// the correct offset once the pointed data is appended.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Takes `&amp;mut self` since its goal is to be used inside `EvmData` impl and not in chains.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_pointer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
+		<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>();
+		<span class="ident">H256::write</span>(<span class="self">self</span>, <span class="ident">H256::repeat_byte</span>(<span class="number">0xff</span>));
+
+		<span class="self">self</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">OffsetDatum</span> {
+			<span class="ident">offset_position</span>,
+			<span class="ident">data</span>,
+			<span class="ident">offset_shift</span>: <span class="number">0</span>,
+		});
 	}
 }
 
@@ -875,18 +951,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataReader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">offset_reference</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
-		<span class="kw">let</span> <span class="ident">array_offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
 
-		<span class="comment">// We temporarily move the cursor to the offset, we&#39;ll set it back afterward.</span>
-		<span class="kw">let</span> <span class="ident">original_cursor</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
-		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">offset_reference</span> <span class="op">+</span> <span class="ident">array_offset</span>;
-
-		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
+		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">inner_reader</span>
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array length out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
@@ -894,91 +961,76 @@
 
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">array_size</span> {
-			<span class="ident">array</span>.<span class="ident">push</span>(<span class="ident">reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>);
-		}
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item_reader</span> <span class="op">=</span> <span class="ident">EvmDataReader</span> {
+			<span class="ident">input</span>: <span class="ident">inner_reader</span>
+				.<span class="ident">input</span>
+				.<span class="ident">get</span>(<span class="number">32</span>..)
+				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;try to read array items out of bound&quot;</span>))<span class="question-mark">?</span>,
+			<span class="ident">cursor</span>: <span class="number">0</span>,
+		};
 
-		<span class="comment">// We set back the cursor to its original location.</span>
-		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">original_cursor</span>;
+		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">array_size</span> {
+			<span class="ident">array</span>.<span class="ident">push</span>(<span class="ident">item_reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>);
+		}
 
 		<span class="prelude-val">Ok</span>(<span class="ident">array</span>)
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">data</span>.<span class="ident">len</span>();
-		<span class="ident">H256::write</span>(<span class="ident">writer</span>, <span class="ident">H256::repeat_byte</span>(<span class="number">0xff</span>));
-		<span class="comment">// 0xff = When debugging it makes spoting offset values easier.</span>
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">value</span>.<span class="ident">len</span>()));
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>();
-
-		<span class="comment">// Write length.</span>
-		<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">value</span>.<span class="ident">len</span>()));
-
-		<span class="comment">// Write elements of array.</span>
 		<span class="kw">for</span> <span class="ident">inner</span> <span class="kw">in</span> <span class="ident">value</span> {
-			<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write</span>(<span class="ident">inner</span>);
+			<span class="comment">// Any offset in items are relative to the start of the item instead of the</span>
+			<span class="comment">// start of the array. However if there is offseted data it must but appended after</span>
+			<span class="comment">// all items (offsets) are written. We thus need to rely on `compute_offsets` to do</span>
+			<span class="comment">// that, and must store a &quot;shift&quot; to correct the offsets.</span>
+			<span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">data</span>.<span class="ident">len</span>();
+			<span class="kw">let</span> <span class="ident">item_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">inner</span>);
+
+			<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">item_writer</span>.<span class="ident">data</span>);
+			<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">offset_datum</span> <span class="kw">in</span> <span class="ident">item_writer</span>.<span class="ident">offset_data</span> {
+				<span class="ident">offset_datum</span>.<span class="ident">offset_shift</span> <span class="op">+</span><span class="op">=</span> <span class="number">32</span>;
+				<span class="ident">offset_datum</span>.<span class="ident">offset_position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">shift</span>;
+				<span class="ident">inner_writer</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">offset_datum</span>);
+			}
 		}
 
-		<span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">OffsetDatum</span> {
-			<span class="ident">offset_position</span>,
-			<span class="ident">data</span>: <span class="ident">inner_writer</span>.<span class="ident">data</span>,
-			<span class="ident">inner_offset_data</span>: <span class="ident">inner_writer</span>.<span class="ident">offset_data</span>,
-		};
-
-		<span class="ident">writer</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">array</span>);
+		<span class="ident">writer</span>.<span class="ident">write_pointer</span>(<span class="ident">inner_writer</span>.<span class="ident">build</span>());
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataReader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">offset_reference</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
-		<span class="kw">let</span> <span class="ident">array_offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
-
-		<span class="comment">// We temporarily move the cursor to the offset, we&#39;ll set it back afterward.</span>
-		<span class="kw">let</span> <span class="ident">original_cursor</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">cursor</span>;
-		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">offset_reference</span> <span class="op">+</span> <span class="ident">array_offset</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Read bytes/string size.</span>
-		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">reader</span>
+		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">inner_reader</span>
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse bytes/string length out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;bytes/string length is too large&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">array_size</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Get valid range over the bytes data.</span>
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">move_cursor</span>(<span class="ident">array_size</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
+		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">inner_reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
 			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse bytes/string out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">Self</span>(<span class="ident">data</span>.<span class="ident">to_owned</span>());
 
-		<span class="comment">// We set back the cursor to its original location.</span>
-		<span class="ident">reader</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">original_cursor</span>;
-
 		<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">data</span>.<span class="ident">len</span>();
-		<span class="ident">H256::write</span>(<span class="ident">writer</span>, <span class="ident">H256::repeat_byte</span>(<span class="number">0xff</span>));
-		<span class="comment">// 0xff = When debugging it makes spoting offset values easier.</span>
-
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>();
-
-		<span class="comment">// Write length.</span>
-		<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
+		<span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>();
 
 		<span class="comment">// Pad the data.</span>
 		<span class="comment">// Leave it as is if a multiple of 32, otherwise pad to next</span>
 		<span class="comment">// multiple or 32.</span>
-		<span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">32</span>;
-		<span class="kw">let</span> <span class="ident">padded_size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">32</span> {
+		<span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="number">32</span>;
+		<span class="kw">let</span> <span class="ident">padded_size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">length</span> <span class="op">%</span> <span class="number">32</span> {
 			<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">chunks</span> <span class="op">*</span> <span class="number">32</span>,
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">chunks</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">32</span>,
 		};
@@ -986,16 +1038,12 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="number">0</span>.<span class="ident">to_vec</span>();
 		<span class="ident">value</span>.<span class="ident">resize</span>(<span class="ident">padded_size</span>, <span class="number">0</span>);
 
-		<span class="comment">// Write bytes data.</span>
-		<span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">inner_writer</span>.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
-
-		<span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">OffsetDatum</span> {
-			<span class="ident">offset_position</span>,
-			<span class="ident">data</span>: <span class="ident">inner_writer</span>.<span class="ident">data</span>,
-			<span class="ident">inner_offset_data</span>: <span class="ident">inner_writer</span>.<span class="ident">offset_data</span>,
-		};
-
-		<span class="ident">writer</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">array</span>);
+		<span class="ident">writer</span>.<span class="ident">write_pointer</span>(
+			<span class="ident">EvmDataWriter::new</span>()
+				.<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">length</span>))
+				.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)
+				.<span class="ident">build</span>(),
+		);
 	}
 }
 </code></pre></div>
