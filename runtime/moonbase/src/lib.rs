@@ -39,7 +39,7 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	signed_extensions::{AdjustPriority, Divide},
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced,
+		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -1038,7 +1038,7 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Everything;
+	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = ();
 	type XcmReserveTransferFilter = Everything;
