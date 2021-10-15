@@ -270,12 +270,12 @@ fn transfer_self_reserve_works() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(SelfReserve.into()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::Transfer),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),
@@ -314,12 +314,12 @@ fn transfer_to_reserve_works() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(0u128).into()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::Transfer),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),
@@ -360,12 +360,12 @@ fn transfer_non_reserve_to_non_reserve_works() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(1u128).into()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::Transfer),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),
@@ -407,12 +407,12 @@ fn transfer_multi_asset_to_reserve_works() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
 						.write(MultiLocationWrapper::from(asset.clone()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::TransferMultiAsset),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),
@@ -460,12 +460,12 @@ fn transfer_multi_asset_self_reserve_works() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
 						.write(MultiLocationWrapper::from(self_reserve.clone()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::TransferMultiAsset),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),
@@ -516,12 +516,12 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
-					&EvmDataWriter::new()
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
 						.write(MultiLocationWrapper::from(asset_location.clone()))
 						.write(U256::from(500))
 						.write(MultiLocationWrapper::from(destination.clone()))
 						.write(U256::from(4000000))
-						.build_with_selector(Action::TransferMultiAsset),
+						.build(),
 					None,
 					&evm::Context {
 						address: Precompile.into(),

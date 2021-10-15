@@ -190,6 +190,7 @@ impl<'a> EvmDataReader<'a> {
 pub struct EvmDataWriter {
 	pub(crate) data: Vec<u8>,
 	offset_data: Vec<OffsetDatum>,
+	selector: Option<u32>,
 }
 
 #[derive(Clone, Debug)]
@@ -204,11 +205,23 @@ struct OffsetDatum {
 }
 
 impl EvmDataWriter {
-	/// Creates a new empty output builder.
+	/// Creates a new empty output builder (without selector).
 	pub fn new() -> Self {
 		Self {
 			data: vec![],
 			offset_data: vec![],
+			selector: None,
+		}
+	}
+
+	/// Creates a new empty output builder with provided selector.
+	/// Selector will only be appended before the data when calling
+	/// `build` to not mess with the offsets.
+	pub fn new_with_selector(selector: impl Into<u32>) -> Self {
+		Self {
+			data: vec![],
+			offset_data: vec![],
+			selector: Some(selector.into()),
 		}
 	}
 
@@ -216,16 +229,13 @@ impl EvmDataWriter {
 	pub fn build(mut self) -> Vec<u8> {
 		Self::bake_offsets(&mut self.data, self.offset_data);
 
-		self.data
-	}
-
-	/// Return the built data.
-	pub fn build_with_selector(mut self, value: impl Into<u32>) -> Vec<u8> {
-		Self::bake_offsets(&mut self.data, self.offset_data);
-
-		let mut output = value.into().to_be_bytes().to_vec();
-		output.append(&mut self.data);
-		output
+		if let Some(selector) = self.selector {
+			let mut output = selector.to_be_bytes().to_vec();
+			output.append(&mut self.data);
+			output
+		} else {
+			self.data
+		}
 	}
 
 	/// Add offseted data at the end of this writer's data, updating the offsets.
@@ -264,7 +274,7 @@ impl EvmDataWriter {
 	}
 
 	/// Writes a pointer to given data.
-	/// The data will be appended when calling `build`/`build_with_selector`.
+	/// The data will be appended when calling `build`.
 	/// Initially write a dummy value as offset in this writer's data, which will be replaced by
 	/// the correct offset once the pointed data is appended.
 	///
@@ -426,22 +436,17 @@ impl<T: EvmData> EvmData for Vec<T> {
 			.map_err(|_| error("array length is too large"))?;
 
 		let mut array = vec![];
-		let mut item_cursor = inner_reader.cursor;
+
+		let mut item_reader = EvmDataReader {
+			input: inner_reader
+				.input
+				.get(32..)
+				.ok_or_else(|| error("try to read array items out of bound"))?,
+			cursor: 0,
+		};
 
 		for _ in 0..array_size {
-			// We create a new reader that starts where the array item starts.
-			// It is necessary to correctly handle arrays of offsets, whose offsets are relative
-			// to the start of the item, and not the start of the array itself.
-			let mut item_reader = EvmDataReader {
-				input: inner_reader
-					.input
-					.get(item_cursor..)
-					.ok_or_else(|| error("try to read array item out of bound"))?,
-				cursor: 0,
-			};
-
 			array.push(item_reader.read()?);
-			item_cursor += item_reader.cursor;
 		}
 
 		Ok(array)
@@ -460,7 +465,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
 			for mut offset_datum in item_writer.offset_data {
-				offset_datum.offset_shift += shift;
+				offset_datum.offset_shift += 32;
 				offset_datum.offset_position += shift;
 				inner_writer.offset_data.push(offset_datum);
 			}
