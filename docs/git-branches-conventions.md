@@ -33,7 +33,7 @@ Example:
 You have to make a first hotfix on the release v2.3.0 and your nickname is kevin. We suppose that
 it is for example a bug in the `key` subcommand.
 
-1. Create a branch name `hotfix-v2.3`
+1. Create a branch name `hotfix-v2.3` from an existing release tag.
 2. Create a branch name `kevin-hotfix-v2.3-key-command`
 3. Create a PR from `kevin-hotfix-v2.3-key-command` into `hotfix-v2.3`.
 4. Request an emergency one or more reviews of this PR.
