@@ -13,25 +13,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-use crate::encoding::{
-	network_id_from_bytes, network_id_to_bytes, JunctionWrapper, JunctionsWrapper,
-};
 use crate::mock::{
-	events, evm_test_context, CurrencyId, ExtBuilder, Origin, Precompiles, TestAccount::*,
-	XcmTransactor,
+	evm_test_context, ExtBuilder, Origin, Precompiles, TestAccount::*, XcmTransactor,
 };
-use evm::ExitError::Other;
+
 use frame_support::assert_ok;
 
-use crate::{Action, MultiLocationWrapper, PrecompileOutput};
+use crate::{Action, PrecompileOutput};
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, Bytes, EvmDataReader, EvmDataWriter};
+use precompile_utils::{error, Address, Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
-use sp_std::convert::TryInto;
-use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation, NetworkId};
+use xcm::v1::MultiLocation;
 
 #[test]
 fn test_selector_enum() {
@@ -154,7 +148,7 @@ fn test_transactor() {
 					&EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
 						.write(0u8)
 						.write(0u16)
-						.write(MultiLocationWrapper::from(fee_payer_asset.clone()))
+						.write(fee_payer_asset)
 						.write(U256::from(500))
 						.write(U256::from(4000000))
 						.write(bytes)

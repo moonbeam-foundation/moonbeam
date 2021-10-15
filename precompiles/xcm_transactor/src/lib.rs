@@ -32,8 +32,6 @@ use sp_std::{
 	fmt::Debug,
 	marker::PhantomData,
 };
-mod encoding;
-pub use encoding::MultiLocationWrapper;
 use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
@@ -128,11 +126,11 @@ where
 		let transactor: TransactorOf<Runtime> = input
 			.read::<u8>()?
 			.try_into()
-			.map_err(|e| error("Non-existent transactor"))?;
+			.map_err(|_| error("Non-existent transactor"))?;
 		let index: u16 = input.read::<u16>()?;
 
 		// read fee location
-		let fee_multilocation: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		input.expect_arguments(2)?;
 		// read fee amount
 		let fee_amount: U256 = input.read()?;

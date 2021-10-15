@@ -19,6 +19,7 @@ frame-system = { git = "https://github.com/purestake/substrate", default-feature
 
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 precompile-utils-macro = { path = "macro" }
 

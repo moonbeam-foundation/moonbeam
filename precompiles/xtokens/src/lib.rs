@@ -26,14 +26,12 @@ use precompile_utils::{
 };
 
 use sp_core::{H160, U256};
+use sp_std::boxed::Box;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
 };
-mod encoding;
-pub use encoding::MultiLocationWrapper;
-use sp_std::boxed::Box;
 use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
@@ -105,9 +103,9 @@ where
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
-		// We use the MultiLocationWrapper, which we have instructed how to read
+		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -156,13 +154,13 @@ where
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		// Bound check
 		input.expect_arguments(1)?;
 		let amount: U256 = input.read()?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
 		// Bound check
 		input.expect_arguments(1)?;
