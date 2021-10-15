@@ -3,7 +3,13 @@ import { ethers } from "ethers";
 import { provideWeb3Api, provideEthersApi, providePolkadotApi, EnhancedWeb3 } from "./providers";
 import { DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
-import { NodePorts, ParachainOptions, startParachainNodes, stopParachainNodes } from "./para-node";
+import {
+  NodePorts,
+  ParachainOptions,
+  ParachainPorts,
+  startParachainNodes,
+  stopParachainNodes,
+} from "./para-node";
 const debug = require("debug")("test:setup");
 
 export interface ParaTestContext {
@@ -18,8 +24,13 @@ export interface ParaTestContext {
   polkadotApiParaone: ApiPromise;
 }
 
+export interface ParachainApis {
+  parachainId: number;
+  apis: ApiPromise[];
+}
+
 export interface InternalParaTestContext extends ParaTestContext {
-  _polkadotApiParachains: ApiPromise[];
+  _polkadotApiParachains: ParachainApis[];
   _polkadotApiRelaychains: ApiPromise[];
   _web3Providers: HttpProvider[];
 }
@@ -45,14 +56,18 @@ export function describeParachain(
         : {
             paraPorts: [
               {
-                p2pPort: 19931,
-                wsPort: 19933,
-                rpcPort: 19932,
+                parachainId: 1000,
+                ports: [
+                  {
+                    p2pPort: 19931,
+                    wsPort: 19933,
+                    rpcPort: 19932,
+                  },
+                ],
               },
             ],
             relayPorts: [],
           };
-
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
 
@@ -63,28 +78,39 @@ export function describeParachain(
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
         const provider =
           protocol == "ws"
-            ? await provideWeb3Api(init.paraPorts[0].wsPort, "ws")
-            : await provideWeb3Api(init.paraPorts[0].rpcPort, "http");
+            ? await provideWeb3Api(init.paraPorts[0].ports[0].wsPort, "ws")
+            : await provideWeb3Api(init.paraPorts[0].ports[0].rpcPort, "http");
         context._web3Providers.push((provider as any)._provider);
         return provider;
       };
-      context.createEthers = async () => provideEthersApi(init.paraPorts[0].rpcPort);
+      context.createEthers = async () => provideEthersApi(init.paraPorts[0].ports[0].rpcPort);
       context.createPolkadotApiParachains = async () => {
         const apiPromises = await Promise.all(
-          init.paraPorts.map(async (ports: NodePorts) => {
-            return await providePolkadotApi(ports.wsPort);
+          init.paraPorts.map(async (parachain: ParachainPorts) => {
+            return {
+              parachainId: parachain.parachainId,
+              apis: await Promise.all(
+                parachain.ports.map(async (ports: NodePorts) => {
+                  return providePolkadotApi(ports.wsPort);
+                })
+              ),
+            };
           })
         );
         // We keep track of the polkadotApis to close them at the end of the test
         context._polkadotApiParachains = apiPromises;
-        await Promise.all(apiPromises.map((promise) => promise.isReady));
+        await Promise.all(
+          apiPromises.map(async (promises) =>
+            Promise.all(promises.apis.map((promise) => promise.isReady))
+          )
+        );
         // Necessary hack to allow polkadotApi to finish its internal metadata loading
         // apiPromise.isReady unfortunately doesn't wait for those properly
         await new Promise((resolve) => {
           setTimeout(resolve, 100);
         });
 
-        return apiPromises[0];
+        return apiPromises[0].apis[0];
       };
       context.createPolkadotApiRelaychains = async () => {
         const apiPromises = await Promise.all(
@@ -108,7 +134,6 @@ export function describeParachain(
       await context.createPolkadotApiRelaychains();
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
-
       debug(
         `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] for ${
           this.currentTest.title
@@ -118,7 +143,11 @@ export function describeParachain(
 
     after(async function () {
       await Promise.all(context._web3Providers.map((p) => p.disconnect()));
-      await Promise.all(context._polkadotApiParachains.map((p) => p.disconnect()));
+      await Promise.all(
+        context._polkadotApiParachains.map(
+          async (ps) => await Promise.all(ps.apis.map((p) => p.disconnect()))
+        )
+      );
       await Promise.all(context._polkadotApiRelaychains.map((p) => p.disconnect()));
 
       if (!DEBUG_MODE) {
