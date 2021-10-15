@@ -35,14 +35,17 @@ use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocati
 #[test]
 fn test_selector_enum() {
 	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"transfer(address, u256, bytes[], u64)")[0..4]);
+	buffer.copy_from_slice(
+		&Keccak256::digest(b"transfer(address,uint256,(uint8,bytes[]),uint64)")[0..4],
+	);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
 		Action::Transfer,
 	);
 
 	buffer.copy_from_slice(
-		&Keccak256::digest(b"transfer_multiasset(bytes[], u256, bytes[], u64)")[0..4],
+		&Keccak256::digest(b"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")
+			[0..4],
 	);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
