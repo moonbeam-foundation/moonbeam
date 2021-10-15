@@ -31,6 +31,7 @@ use xcm::v1::{
 };
 use xcm_simulator::TestExt;
 
+// Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
@@ -42,6 +43,7 @@ fn receive_relay_asset_from_relay() {
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
 	};
+	// register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
@@ -56,6 +58,7 @@ fn receive_relay_asset_from_relay() {
 		));
 	});
 
+	// Actually send relay asset to parachain
 	let dest: MultiLocation = AccountKey20 {
 		network: NetworkId::Any,
 		key: PARAALICE,
@@ -72,12 +75,14 @@ fn receive_relay_asset_from_relay() {
 		));
 	});
 
+	// Verify that parachain received the asset
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 }
 
+// Send relay asset (like DOT) back from Parachain A to relaychain
 #[test]
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
@@ -91,6 +96,7 @@ fn send_relay_asset_to_relay() {
 		decimals: 12,
 	};
 
+	// First send relay chain asset to Parachain like in previous test
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
