@@ -97,9 +97,7 @@ fn selectors() {
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read prop count
-		let input = EvmDataWriter::new()
-			.write_selector(Action::PublicPropCount)
-			.build();
+		let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
 
 		// Expected result is zero. because no props are open yet.
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -130,9 +128,7 @@ fn prop_count_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let input = EvmDataWriter::new()
-				.write_selector(Action::PublicPropCount)
-				.build();
+			let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -165,8 +161,7 @@ fn deposit_of_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let input = EvmDataWriter::new()
-				.write_selector(Action::DepositOf)
+			let input = EvmDataWriter::new_with_selector(Action::DepositOf)
 				.write(0u32)
 				.build();
 
@@ -189,8 +184,7 @@ fn deposit_of_non_zero() {
 fn deposit_of_bad_index() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read prop count
-		let input = EvmDataWriter::new()
-			.write_selector(Action::DepositOf)
+		let input = EvmDataWriter::new_with_selector(Action::DepositOf)
 			.write(10u32)
 			.build();
 
@@ -208,9 +202,7 @@ fn deposit_of_bad_index() {
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct data to read lowest unbaked referendum index
-		let input = EvmDataWriter::new()
-			.write_selector(Action::LowestUnbaked)
-			.build();
+		let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
 
 		// Expected result is zero
 		let expected_zero_result = Some(Ok(PrecompileOutput {
@@ -233,7 +225,7 @@ fn lowest_unbaked_zero() {
 #[test]
 fn lowest_unbaked_non_zero() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice, 1_000_000)])
 		.with_referenda(vec![
 			(Default::default(), VoteThreshold::SimpleMajority, 10),
 			(Default::default(), VoteThreshold::SimpleMajority, 10),
@@ -280,9 +272,7 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			// Construct data to read lowest unbaked referendum index
-			let input = EvmDataWriter::new()
-				.write_selector(Action::LowestUnbaked)
-				.build();
+			let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -348,8 +338,7 @@ fn propose_works() {
 		.build()
 		.execute_with(|| {
 			// Construct data to propose empty hash with value 100
-			let input = EvmDataWriter::new()
-				.write_selector(Action::Propose)
+			let input = EvmDataWriter::new_with_selector(Action::Propose)
 				.write(sp_core::H256::zero())
 				.write(100u64)
 				.build();
@@ -396,8 +385,7 @@ fn second_works() {
 			.dispatch(Origin::signed(Alice)));
 
 			// Construct the call to second via a precompile
-			let input = EvmDataWriter::new()
-				.write_selector(Action::Second)
+			let input = EvmDataWriter::new_with_selector(Action::Second)
 				.write(0u64) //prop index
 				.write(100u64) // seconds upper bound
 				.build();
@@ -445,8 +433,7 @@ fn standard_vote_aye_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let input = EvmDataWriter::new()
-				.write_selector(Action::StandardVote)
+			let input = EvmDataWriter::new_with_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(true) // Aye
 				.write(100_000u128) // 100_000 tokens
@@ -509,8 +496,7 @@ fn standard_vote_nay_conviction_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let input = EvmDataWriter::new()
-				.write_selector(Action::StandardVote)
+			let input = EvmDataWriter::new_with_selector(Action::StandardVote)
 				.write(0u32) // Referendum index 0
 				.write(false) // Nay
 				.write(100_000u128) // 100_000 tokens
@@ -591,8 +577,7 @@ fn remove_vote_works() {
 			));
 
 			// Construct input data to remove the vote
-			let input = EvmDataWriter::new()
-				.write_selector(Action::RemoveVote)
+			let input = EvmDataWriter::new_with_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
 				.build();
 
@@ -650,8 +635,7 @@ fn remove_vote_dne() {
 			roll_to(<Test as DemocracyConfig>::LaunchPeriod::get());
 
 			// Construct input data to remove a non-existant vote
-			let input = EvmDataWriter::new()
-				.write_selector(Action::RemoveVote)
+			let input = EvmDataWriter::new_with_selector(Action::RemoveVote)
 				.write(0u32) // Referendum index 0
 				.build();
 
@@ -673,8 +657,7 @@ fn delegate_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to delegate Alice -> Bob
-			let input = EvmDataWriter::new()
-				.write_selector(Action::Delegate)
+			let input = EvmDataWriter::new_with_selector(Action::Delegate)
 				.write::<Address>(H160::from(Bob).into()) // Delegate to
 				.write(2u8) // 2X conviction
 				.write(100u128) // 100 tokens
@@ -744,9 +727,7 @@ fn undelegate_works() {
 			));
 
 			// Construct input data to un-delegate Alice
-			let input = EvmDataWriter::new()
-				.write_selector(Action::UnDelegate)
-				.build();
+			let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -787,9 +768,7 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Construct input data to un-delegate Alice
-		let input = EvmDataWriter::new()
-			.write_selector(Action::UnDelegate)
-			.build();
+		let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
 
 		// Expected result is an error from the pallet
 		if let Some(Err(ExitError::Other(e))) =
@@ -848,8 +827,7 @@ fn unlock_works() {
 			roll_to(21);
 
 			// Construct input data to un-lock tokens for Alice
-			let input = EvmDataWriter::new()
-				.write_selector(Action::Unlock)
+			let input = EvmDataWriter::new_with_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
 				.build();
 
@@ -885,8 +863,7 @@ fn unlock_with_nothing_locked() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to un-lock tokens for Alice
-			let input = EvmDataWriter::new()
-				.write_selector(Action::Unlock)
+			let input = EvmDataWriter::new_with_selector(Action::Unlock)
 				.write::<Address>(H160::from(Alice).into())
 				.build();
 
