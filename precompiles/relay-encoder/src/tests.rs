@@ -155,11 +155,11 @@ fn test_encode_bond() {
 			let controller_address: H256 = [1u8; 32].into();
 			let amount: U256 = 100u32.into();
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeBond)
 				.write(controller_address)
 				.write(amount)
 				.write(RewardDestinationWrapper(RewardDestination::Controller))
-				.build_with_selector(Action::EncodeBond);
+				.build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
 				[1u8; 32].into(),
@@ -190,9 +190,9 @@ fn test_encode_bond_more() {
 		.build()
 		.execute_with(|| {
 			let amount: U256 = 100u32.into();
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeBondExtra)
 				.write(amount)
-				.build_with_selector(Action::EncodeBondExtra);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
@@ -219,7 +219,7 @@ fn test_encode_chill() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new().build_with_selector(Action::EncodeChill);
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeChill).build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill)
 				.as_slice()
@@ -247,9 +247,9 @@ fn test_encode_nominate() {
 		.execute_with(|| {
 			let array: Vec<H256> = vec![[1u8; 32].into(), [2u8; 32].into()];
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeNominate)
 				.write(array)
-				.build_with_selector(Action::EncodeNominate);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
@@ -281,9 +281,9 @@ fn test_encode_rebond() {
 		.execute_with(|| {
 			let amount: U256 = 100u32.into();
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeRebond)
 				.write(amount)
-				.build_with_selector(Action::EncodeRebond);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
@@ -312,9 +312,9 @@ fn test_encode_set_controller() {
 		.execute_with(|| {
 			let controller: H256 = [1u8; 32].into();
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeSetController)
 				.write(controller)
-				.build_with_selector(Action::EncodeSetController);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
@@ -341,9 +341,9 @@ fn test_encode_set_payee() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeSetPayee)
 				.write(RewardDestinationWrapper(RewardDestination::Controller))
-				.build_with_selector(Action::EncodeSetPayee);
+				.build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
 				RewardDestination::Controller,
@@ -373,9 +373,9 @@ fn test_encode_unbond() {
 		.execute_with(|| {
 			let amount: U256 = 100u32.into();
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeUnbond)
 				.write(amount)
-				.build_with_selector(Action::EncodeUnbond);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
@@ -407,10 +407,10 @@ fn test_encode_validate() {
 			let amount: U256 = 100u32.into();
 			let blocked = true;
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeValidate)
 				.write(amount)
 				.write(blocked)
-				.build_with_selector(Action::EncodeValidate);
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
@@ -444,9 +444,9 @@ fn test_encode_withdraw_unbonded() {
 		.execute_with(|| {
 			let amount: U256 = 100u32.into();
 
-			let input_data = EvmDataWriter::new()
+			let input_data = EvmDataWriter::new_with_selector(Action::EncodeWithdrawUnbonded)
 				.write(amount)
-				.build_with_selector(Action::EncodeWithdrawUnbonded);
+				.build();
 
 			// Ethereum style
 			let expected_bytes: Bytes =
