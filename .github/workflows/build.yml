@@ -301,6 +301,8 @@ jobs:
       # 3. Counting the number of lines of output
       - name: Check package-lock.json
         run: |
+          # Log npm version to make sure it maches with local version
+          npm -v
           # Make sure git is working, and if not abort early. When git is not working it looks like:
           # $ git diff-index --name-only HEAD
           # fatal: not a git repository (or any of the parent directories): .git
