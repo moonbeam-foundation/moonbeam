@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to xtokens runtime methods via the EVM
+//! Precompile to xcm transactor runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -34,7 +34,6 @@ use sp_std::{
 };
 mod encoding;
 pub use encoding::MultiLocationWrapper;
-use sp_std::boxed::Box;
 use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
@@ -49,8 +48,8 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 pub enum Action {
 	AccountIndex = "account_index(address)",
-	TransferThroughDerivative =
-		"transfer_multiasset(uint8, uint16, bytes[], uint256, uint64, bytes)",
+	TransactThroughDerivative =
+		"transact_through_derivative(uint8, uint16, (uint8,bytes[]), uint256, uint64, bytes)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -63,7 +62,7 @@ where
 	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	TransactorOf<Runtime>: From<u8>,
+	TransactorOf<Runtime>: TryFrom<u8>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -75,8 +74,8 @@ where
 		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::AccountIndex => Self::account_index(input, target_gas),
-			Action::TransferThroughDerivative => {
-				Self::transfer_through_derivative(input, target_gas, context)
+			Action::TransactThroughDerivative => {
+				Self::transact_through_derivative(input, target_gas, context)
 			}
 		}
 	}
@@ -89,7 +88,7 @@ where
 	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	TransactorOf<Runtime>: From<u8>,
+	TransactorOf<Runtime>: TryFrom<u8>,
 {
 	fn account_index(
 		mut input: EvmDataReader,
@@ -115,7 +114,7 @@ where
 		})
 	}
 
-	fn transfer_through_derivative(
+	fn transact_through_derivative(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
@@ -126,7 +125,10 @@ where
 		// fungible assets
 		// Bound check
 		input.expect_arguments(2)?;
-		let transactor: u8 = input.read::<u8>()?;
+		let transactor: TransactorOf<Runtime> = input
+			.read::<u8>()?
+			.try_into()
+			.map_err(|e| error("Non-existent transactor"))?;
 		let index: u16 = input.read::<u16>()?;
 
 		// read fee location
@@ -145,7 +147,7 @@ where
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative(
-			transactor.into(),
+			transactor,
 			index,
 			MultiAsset {
 				id: AssetId::Concrete(fee_multilocation),

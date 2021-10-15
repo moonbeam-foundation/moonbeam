@@ -94,6 +94,13 @@ pub mod pallet {
 		/// Self chain location.
 		#[pallet::constant]
 		type SelfLocation: Get<MultiLocation>;
+
+		// Base XCM weight.
+		///
+		/// The actually weight for an XCM message is `T::BaseXcmWeight +
+		/// T::Weigher::weight(&msg)`.
+		#[pallet::constant]
+		type BaseXcmWeight: Get<Weight>;
 	}
 
 	// The utility calls that need to be implemented as part of
@@ -185,7 +192,7 @@ pub mod pallet {
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
-		#[pallet::weight(0)]
+		#[pallet::weight(Pallet::<T>::weight_of_transact_through_derivative(&fee, &dest, dest_weight, inner_call))]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
 			dest: T::Transactor,
@@ -375,6 +382,28 @@ pub mod pallet {
 			ensure!(reserve == dest, Error::<T>::NotAllowed);
 
 			Ok(dest)
+		}
+
+		/// Returns weight of `transact_through_derivative` call.
+		fn weight_of_transact_through_derivative(
+			asset: &MultiAsset,
+			dest: &T::Transactor,
+			weight: &u64,
+			call: &Vec<u8>,
+		) -> Weight {
+			if let Ok(mut msg) = Self::transact_fee_in_dest_chain_asset(
+				dest.clone().destination(),
+				asset.clone(),
+				weight.clone(),
+				OriginKind::SovereignAccount,
+				call.clone(),
+			) {
+				T::Weigher::weight(&mut msg).map_or(Weight::max_value(), |w| {
+					T::BaseXcmWeight::get().saturating_add(w)
+				})
+			} else {
+				0
+			}
 		}
 	}
 }

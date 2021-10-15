@@ -64,7 +64,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Xtokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
@@ -149,6 +149,20 @@ impl From<TestAccount> for H160 {
 	}
 }
 
+pub struct AccountIdToMultiLocation;
+impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMultiLocation {
+	fn convert(account: TestAccount) -> MultiLocation {
+		let as_h160: H160 = account.into();
+		MultiLocation::new(
+			1,
+			Junctions::X1(AccountKey20 {
+				network: NetworkId::Any,
+				key: as_h160.as_fixed_bytes().clone(),
+			}),
+		)
+	}
+}
+
 pub type AssetId = u128;
 
 parameter_types! {
@@ -213,14 +227,14 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	R: orml_xtokens::Config,
+	R: xcm_transactor::Config,
 	R: pallet_evm::Config,
 	R::AccountId: From<H160>,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<orml_xtokens::Call<R>>,
+	R::Call: From<xcm_transactor::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	XBalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
-	R: AccountIdToCurrencyId<R::AccountId, CurrencyIdOf<R>>,
+	TransactorOf<R>: TryFrom<u8>,
 {
 	fn execute(
 		address: H160,
@@ -229,9 +243,9 @@ where
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
-			a if a == precompile_address() => {
-				Some(XtokensWrapper::<R>::execute(input, target_gas, context))
-			}
+			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
 			_ => None,
 		}
 	}
@@ -357,67 +371,6 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl Into<Option<CurrencyId>> for TestAccount {
-	fn into(self) -> Option<CurrencyId> {
-		match self {
-			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
-			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
-			_ => None,
-		}
-	}
-}
-
-// Implement the trait, where we convert AccountId to AssetID
-impl AccountIdToCurrencyId<AccountId, CurrencyId> for Test {
-	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
-	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
-		match account {
-			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
-			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
-			_ => None,
-		}
-	}
-}
-
-pub struct CurrencyIdToMultiLocation;
-
-impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
-	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
-		match currency {
-			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = SelfReserve::get();
-				Some(multi)
-			}
-			// To distinguish between relay and others, specially for reserve asset
-			CurrencyId::OtherReserve(asset) => {
-				if asset == 0 {
-					Some(MultiLocation::parent())
-				} else {
-					Some(MultiLocation::new(
-						1,
-						Junctions::X2(Parachain(2), GeneralIndex(asset)),
-					))
-				}
-			}
-		}
-	}
-}
-
-pub struct AccountIdToMultiLocation;
-impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMultiLocation {
-	fn convert(account: TestAccount) -> MultiLocation {
-		let as_h160: H160 = account.into();
-		MultiLocation::new(
-			1,
-			Junctions::X1(AccountKey20 {
-				network: NetworkId::Any,
-				key: as_h160.as_fixed_bytes().clone(),
-			}),
-		)
-	}
-}
-
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
@@ -434,17 +387,70 @@ parameter_types! {
 		)).into();
 }
 
-impl orml_xtokens::Config for Test {
+impl xcm_transactor::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
-	type CurrencyId = CurrencyId;
+	type Transactor = MockTransactors;
+	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = CurrencyIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call>;
-	type BaseXcmWeight = BaseXcmWeight;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type LocationInverter = InvertNothing;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
+// We need to use the encoding from the relay mock runtime
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl TryFrom<u8> for MockTransactors {
+	type Error = ();
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0x0 => Ok(MockTransactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
+impl xcm_transactor::XcmTransact for MockTransactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_transactor::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
+	}
 }
 
 pub(crate) struct ExtBuilder {
