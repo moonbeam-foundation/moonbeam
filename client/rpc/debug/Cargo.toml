@@ -27,7 +27,7 @@ moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-gas-esti" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-gas-esti" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-gas-esti", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10-gas-esti" }
