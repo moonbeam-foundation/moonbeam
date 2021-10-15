@@ -305,6 +305,10 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -595,11 +599,11 @@
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">MultiLocationWrapper</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataReader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">num_parents</span> <span class="op">=</span> <span class="ident">reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">junctions</span>: <span class="ident">JunctionsWrapper</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">num_parents</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">junctions</span>: <span class="ident">JunctionsWrapper</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">MultiLocationWrapper</span>(<span class="ident">MultiLocation</span> {
 			<span class="ident">parents</span>: <span class="ident">num_parents</span>,
@@ -608,8 +612,12 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, <span class="ident">U256::from</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">parents</span>));
-		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, <span class="ident">JunctionsWrapper</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">interior</span>));
+		<span class="kw">let</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
+			.<span class="ident">write</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">parents</span>)
+			.<span class="ident">write</span>(<span class="ident">JunctionsWrapper</span>(<span class="ident">value</span>.<span class="number">0</span>.<span class="ident">interior</span>))
+			.<span class="ident">build</span>();
+
+		<span class="ident">EvmDataWriter::write_pointer</span>(<span class="ident">writer</span>, <span class="ident">inner_writer</span>);
 	}
 }
 </code></pre></div>
