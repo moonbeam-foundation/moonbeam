@@ -16,7 +16,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
-use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
+use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
@@ -88,7 +88,7 @@ where
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
-	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
+	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -126,7 +126,7 @@ where
 				Some(DemocracyWrapper::<R>::execute(input, target_gas, context))
 			}
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
-			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
+			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, WestendEncoder>::execute(
 				input, target_gas, context,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
