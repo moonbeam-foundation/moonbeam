@@ -10,14 +10,14 @@ log = "0.4"
 sha3 = { version = "0.9", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, tag = 'monthly-2021-10' }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, tag = 'monthly-2021-10' }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, tag = 'monthly-2021-10' }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, tag = 'monthly-2021-10' }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, tag = 'monthly-2021-10' }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = 'workshop-target' }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 
 precompile-utils-macro = { path = "macro" }
