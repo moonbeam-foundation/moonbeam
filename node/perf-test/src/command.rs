@@ -74,6 +74,7 @@ where
 	Executor: NativeExecutionDispatch + 'static,
 {
 	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -93,7 +94,7 @@ where
 			&cmd.shared_params
 				.base_path
 				.as_ref()
-				.expect("base_path (-d) must be provided"),
+				.expect("base_path is overridden with working-dir; qed"),
 		);
 		dbg!(partition_info);
 

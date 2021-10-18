@@ -440,8 +440,22 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::PerfTest(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			return runner.sync_run(|config| {
+			if let Some(_) = cmd.shared_params.base_path {
+				log::warn!("base_path is overwritten by working_dir in perf-test");
+			}
+
+			let mut working_dir = cmd.working_dir.clone();
+			working_dir.push("perf_test");
+			if working_dir.exists() {
+				eprintln!("test subdir {:?} exists, please remove", working_dir);
+				std::process::exit(1);
+			}
+
+			let mut cmd: perf_test::PerfCmd = cmd.clone();
+			cmd.shared_params.base_path = Some(working_dir.clone());
+
+			let runner = cli.create_runner(&cmd)?;
+			runner.sync_run(|config| {
 				#[cfg(feature = "moonbase-native")]
 				return cmd
 					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
@@ -449,7 +463,12 @@ pub fn run() -> Result<()> {
 					);
 				#[cfg(not(feature = "moonbase-native"))]
 				panic!("perf-test only available for moonbase");
-			});
+			})?;
+
+			log::debug!("removing temp perf_test dir {:?}", working_dir);
+			std::fs::remove_dir_all(working_dir)?;
+
+			Ok(())
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {

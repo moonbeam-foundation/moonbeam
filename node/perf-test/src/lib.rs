@@ -23,11 +23,20 @@ mod txn_signer;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Clone, StructOpt)]
 pub struct PerfCmd {
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
 	pub shared_params: sc_cli::SharedParams,
+
+	#[structopt(
+		long = "working-dir",
+		help = "Used for temp blockchain data. Should exist on desired test hardware.",
+		required = true,
+	)]
+	pub working_dir: std::path::PathBuf,
+
+	// TODO: these values were borrowed from the benchmark command. are they needed?
 
 	/// The execution strategy that should be used for perf tests
 	#[structopt(
