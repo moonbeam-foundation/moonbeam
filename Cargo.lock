@@ -5051,6 +5051,7 @@ dependencies = [
  "log",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
+ "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5097,6 +5098,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-runtime-parachains",
  "precompile-utils",
+ "relay-encoder-precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5233,6 +5235,25 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
+]
+
+[[package]]
+name = "moonbeam-relay-encoder"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "kusama-runtime",
+ "pallet-proxy",
+ "pallet-staking",
+ "parity-scale-codec",
+ "polkadot-runtime",
+ "relay-encoder-precompiles",
+ "rococo-runtime",
+ "sp-runtime",
+ "sp-std",
+ "westend-runtime",
 ]
 
 [[package]]
@@ -9459,6 +9480,34 @@ dependencies = [
  "libc",
  "mach",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "relay-encoder-precompiles"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-staking",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
