@@ -3,7 +3,7 @@ name = "relay-encoder-precompiles"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "A Precompile to make relay stack calls encoding accessible to pallet-evm"
+description = "A Precompile to make relay staking calls encoding accessible to pallet-evm"
 
 [dependencies]
 sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
