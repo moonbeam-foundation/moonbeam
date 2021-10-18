@@ -908,7 +908,7 @@ fn note_preimage_works() {
 				.write(dummy_bytes)
 				.build();
 
-			// // Make sure the call goes through successfully
+			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
 				Alice.into(),
 				precompile_address(),
@@ -934,5 +934,64 @@ fn note_preimage_works() {
 
 #[test]
 fn cannot_note_duplicate_preimage() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let proposal_hash =
+				<<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+					&dummy_preimage[..],
+				);
+			let expected_deposit =
+				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// First call should go successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input.clone(),
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Second call should fail because that preimage is already noted
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(Alice, expected_deposit).into(),
+					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::ExecutedFailed(precompile_address()).into(),
+				]
+			);
+		})
+
+	// Test over runtime preimage size limit
+
+	// Tests for note imminent preimage
+
+	// Tests for accessor method for size limit.
 }
