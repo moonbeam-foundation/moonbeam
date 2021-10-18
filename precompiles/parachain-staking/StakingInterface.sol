@@ -128,4 +128,60 @@ interface ParachainStaking {
     /// @param candidate The address of the collator candidate for which nomination is decreased
     /// @param less The amount by which the nomination is decreased
     function nominator_bond_less(address candidate, uint256 less) external;
+
+    event JoinedCollatorCandidates(
+        address indexed who,
+        uint256 value,
+        uint256 new_total
+    );
+
+    event CollatorBondedMore(
+        address indexed who,
+        uint256 old_bond,
+        uint256 new_bond
+    );
+
+    event CollatorBondedLess(
+        address indexed who,
+        uint256 old_bond,
+        uint256 new_bond
+    );
+
+    event CollatorWentOffline(uint256 indexed round_index, address indexed who);
+
+    event CollatorWentBackOnline(
+        uint256 indexed round_index,
+        address indexed who
+    );
+
+    // I probably won't do anything related to the exits here because of imminent PR
+    // https://github.com/PureStake/moonbeam/pull/810
+    // event CollatorLeft(
+    //     address indexed who,
+    //     uint256 value,
+    //     uint256 value
+    // );
+
+    event NominationIncreased(
+        address indexed who,
+        address indexed target,
+        uint256 value,
+        bool in_top
+    );
+
+    event NominationDecreased(
+        address indexed who,
+        address indexed target,
+        uint256 value,
+        bool in_top
+    );
+
+    // This is slightly different than the pallet because of the enum type used there.
+    // I've just left that out entirely for now.
+    event Nomination(
+        address indexed who,
+        uint256 amout,
+        address indexed target
+        // NominatorAdded
+    );
 }
