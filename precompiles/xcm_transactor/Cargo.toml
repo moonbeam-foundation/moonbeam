@@ -3,7 +3,7 @@ name = "xcm-transactor-precompiles"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "A Precompile to make xtokens accessible to pallet-evm"
+description = "A Precompile to make xcm-transactor accessible to pallet-evm"
 
 [dependencies]
 log = "0.4"
