@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use psutil::{disk, host};
+use heim_common::units::{frequency, information};
 use heim_cpu;
 use heim_memory;
-use heim_common::units::{frequency, information};
+use psutil::{disk, host};
 
 // Utilities for querying system information, namely:
 //
@@ -70,15 +70,14 @@ pub struct PartitionInfo {
 pub fn query_system_info() -> Result<SystemInfo, String> {
 	use raw_cpuid::CpuId;
 
-	let memory_info = futures::executor::block_on(heim_memory::memory())
-		.expect("Memory must exist; qed");
+	let memory_info =
+		futures::executor::block_on(heim_memory::memory()).expect("Memory must exist; qed");
 
 	let host_info = host::info();
 	dbg!(host_info.clone());
 
 	// TODO: block on multiple futures
-	let cpu_freq = futures::executor::block_on(heim_cpu::frequency())
-		.expect("CPU must exist; qed");
+	let cpu_freq = futures::executor::block_on(heim_cpu::frequency()).expect("CPU must exist; qed");
 
 	let cpu_logical_cores = num_cpus::get() as u64;
 	let cpu_physical_cores = num_cpus::get_physical() as u64;
@@ -87,16 +86,20 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 
 	Ok(SystemInfo {
 		cpu_info: CPUInfo {
-			cpu_vendor: cpuid.get_vendor_info()
+			cpu_vendor: cpuid
+				.get_vendor_info()
 				.map_or_else(|| String::from("n/a"), |s| s.as_str().into())
 				.into(),
-			cpu_model: cpuid.get_processor_brand_string()
+			cpu_model: cpuid
+				.get_processor_brand_string()
 				.map_or_else(|| String::from("n/a"), |s| s.as_str().into())
 				.into(),
-			cpu_max_speed_mhz: cpu_freq.max()
+			cpu_max_speed_mhz: cpu_freq
+				.max()
 				.expect("could not get CPU max")
 				.get::<frequency::megahertz>(),
-			cpu_base_speed_mhz: cpu_freq.min() // TODO: we want base, not min
+			cpu_base_speed_mhz: cpu_freq
+				.min() // TODO: we want base, not min
 				.expect("could not get CPU min")
 				.get::<frequency::megahertz>(),
 			num_physical_cores: cpu_physical_cores,
@@ -125,26 +128,34 @@ pub fn query_partition_info(path: &std::path::PathBuf) -> Result<PartitionInfo, 
 	let mut partitions_map = HashMap::<String, disk::Partition>::new();
 	for partition in partitions {
 		partitions_map.insert(
-			partition.mountpoint().to_str().expect("fs paths expected to be valid UTF-8").into(),
-			partition);
+			partition
+				.mountpoint()
+				.to_str()
+				.expect("fs paths expected to be valid UTF-8")
+				.into(),
+			partition,
+		);
 	}
 
 	// crawl up the parent dirs in path to find a match from our partitions
 	let mut ancestors = canon_path.ancestors();
-	let partition = ancestors.find_map(|dir| {
-		let dir_str = dir.to_str().expect("path should be valid UTF-8");
-		if let partition = partitions_map.get(dir_str) {
-			partition
-		} else {
-			None
-		}
-	}).expect("Any path should exist under some partition; qed");
+	let partition = ancestors
+		.find_map(|dir| {
+			let dir_str = dir.to_str().expect("path should be valid UTF-8");
+			if let partition = partitions_map.get(dir_str) {
+				partition
+			} else {
+				None
+			}
+		})
+		.expect("Any path should exist under some partition; qed");
 
-	let disk_usage = disk::disk_usage(partition.mountpoint())
-		.expect("A partition was found at mountpoint; qed");
+	let disk_usage =
+		disk::disk_usage(partition.mountpoint()).expect("A partition was found at mountpoint; qed");
 
 	Ok(PartitionInfo {
-		mount_point: partition.mountpoint()
+		mount_point: partition
+			.mountpoint()
 			.to_str()
 			.expect("fs paths expected to be valid UTF-8")
 			.into(),

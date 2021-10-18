@@ -15,9 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
+	sysinfo::{query_partition_info, query_system_info},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
-	sysinfo::{query_partition_info, query_system_info},
 	PerfCmd,
 };
 
@@ -90,10 +90,12 @@ where
 		dbg!(system_info);
 
 		let partition_info = query_partition_info(
-			&cmd.shared_params.base_path.as_ref()
-			.expect("base_path (-d) must be provided"));
+			&cmd.shared_params
+				.base_path
+				.as_ref()
+				.expect("base_path (-d) must be provided"),
+		);
 		dbg!(partition_info);
-
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
