@@ -465,215 +465,126 @@ export const contractSources: { [key: string]: string } = {
         }
     }`,
   RelayEncoderInstance: `
-  pragma solidity >=0.8.0;
-
-  /// @author The Moonbeam Team
-  /// @title The interface through which solidity contracts will interact with Relay Encoder
-  /// We follow this same interface including four-byte function selectors, in the precompile that
-  /// wraps the pallet
-  interface RelayEncoder {
-      
-      // dev Encode 'bond' relay call
-      // @param controller_address: Address of the controller
-      // @param amount: The amount to bond
-      // @param reward_destination: uint8 selecting one of RewardDestination
-      // @param specified_account: In case 'Account' is chosen in the previous parameter,
-      // this is the address of such account. Else can be 0
-      // @returns The bytes associated with the encoded call
-      function encode_bond(
-          uint256 controller_address,
-          uint256 amount,
-          bytes memory reward_destination
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'bond_extra' relay call
-      // @param amount: The extra amount to bond
-      // @returns The bytes associated with the encoded call
-      function encode_bond_extra(uint256 amount) external view returns (bytes memory result);
-
-      // dev Encode 'unbond' relay call
-      // @param amount: The amount to unbond
-      // @returns The bytes associated with the encoded call
-      function encode_unbond(uint256 amount) external view returns (bytes memory result);
-
-      // dev Encode 'withdraw_unbonded' relay call
-      // @param slashes: Weight hint, number of slashing spans
-      // @returns The bytes associated with the encoded call
-      function encode_withdraw_unbonded(
-          uint32 slashes
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'validate' relay call
-      // @param comission: Comission of the validator as parts_per_billion
-      // @param blocked: Whether or not the validator is accepting more nominations
-      // @returns The bytes associated with the encoded call
-      function encode_validate(
-          uint256 comission,
-          bool blocked
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'nominate' relay call
-      // @param nominees: An array of AccountIds corresponding to the accounts we will nominate
-      // @param blocked: Whether or not the validator is accepting more nominations
-      // @returns The bytes associated with the encoded call
-      function encode_nominate(
-          uint256 [] memory nominees
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'chill' relay call
-      // @returns The bytes associated with the encoded call
-      function encode_chill() external view returns (bytes memory result);
-
-      // dev Encode 'set_payee' relay call
-      // @param reward_destination: uint8 selecting one of RewardDestination
-      // @param specified_account: In case 'Account' is chosen in the previous parameter,
-      // this is the address of such account. Else can be 0
-      // @returns The bytes associated with the encoded call
-      function encode_set_payee(
-          bytes memory reward_destination
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'set_controller' relay call
-      // @param controller: The controller address
-      // @returns The bytes associated with the encoded call
-      function encode_set_controller(
-          uint256 controller
-      ) external view returns (bytes memory result);
-
-      // dev Encode 'rebond' relay call
-      // @param amount: The amount to rebond
-      // @returns The bytes associated with the encoded call
-      function encode_rebond(uint256 amount) external view returns (bytes memory result);
-  }
-  
-  contract RelayEncoderInstance is RelayEncoder {
-      /// The Relay Encoder wrapper at the known pre-compile address.
-      RelayEncoder public relayencoder = RelayEncoder(0x0000000000000000000000000000000000000805);
-      function encode_bond(
-          uint256 controller_address,
-          uint256 amount, bytes
-          memory reward_destination
-      )  external view override returns (bytes memory result){
-          return relayencoder.encode_bond(controller_address, amount, reward_destination);
-      }
-      function encode_bond_extra(
-          uint256 amount
-      ) external view override returns (bytes memory result){
-          return relayencoder.encode_bond_extra(amount);
-      }
-      function encode_unbond(
-          uint256 amount
-      ) external view override returns (bytes memory result) {
-          return relayencoder.encode_unbond(amount);
-      }
-      function encode_withdraw_unbonded(
-          uint32 slashes
-      ) external view override returns (bytes memory result) {
-          return relayencoder.encode_withdraw_unbonded(slashes);
-      }
-      function encode_validate(
-          uint256 comission,
-          bool blocked
-      ) external view override returns (bytes memory result) {
-          return relayencoder.encode_validate(comission, blocked);
-      }
-      function encode_nominate(
-          uint256 [] memory nominees
-      ) external view override returns (bytes memory result) {
-          return relayencoder.encode_nominate(nominees);
-      }
-      function encode_chill() external view override returns (bytes memory result) {
-          return relayencoder.encode_chill();
-      }
-      function encode_set_payee(
-          bytes memory reward_destination
-      ) external view override returns (bytes memory result) {
-          return relayencoder.encode_set_payee(reward_destination);
-      }
-      function encode_set_controller(
-          uint256 controller
-      ) external view override returns (bytes memory result){
-          return relayencoder.encode_set_controller(controller);
-      }
-      function encode_rebond(
-          uint256 amount
-      ) external view override returns (bytes memory result){
-          return relayencoder.encode_rebond(amount);
-      }
-  }`,
-  XtokensInstance: `
+    // SPDX-License-Identifier: GPL-3.0-only
     pragma solidity >=0.8.0;
 
-    /**
-     * @title Xtokens Interface
-     *
-     * The interface through which solidity contracts will interact with xtokens pallet
-     *
-     */
-    interface Xtokens {
-        // A multilocation is defined by its number of parents and the encoded junctions (interior)
-        struct Multilocation {
-            uint8 parents;
-            bytes [] interior;
-        }
+    /// @author The Moonbeam Team
+    /// @title The interface through which solidity contracts will interact with Relay Encoder
+    /// We follow this same interface including four-byte function selectors, in the precompile that
+    /// wraps the pallet
+    interface RelayEncoder {
+        
+        // dev Encode 'bond' relay call
+        // @param controller_address: Address of the controller
+        // @param amount: The amount to bond
+        // @param reward_destination: uint8 selecting one of RewardDestination
+        // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+        // @returns The bytes associated with the encoded call
+        function encode_bond(uint256 controller_address, uint256 amount, bytes memory reward_destination) external pure returns (bytes memory result);
 
-        /** Transfer a token through XCM based on its currencyId
-         *
-         * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param currency_address The ERC20 address of the currency we want to transfer
-         * @param amount The amount of tokens we want to transfer
-         * @param destination The Multilocation to which we want to send the tokens
-         * @param destination The weight we want to buy in the destination chain
-         */
-        function transfer(
-            address currency_address,
-            uint256 amount,
-            Multilocation memory destination,
-            uint64 weight
-        ) external;
+        // dev Encode 'bond_extra' relay call
+        // @param amount: The extra amount to bond
+        // @returns The bytes associated with the encoded call
+        function encode_bond_extra(uint256 amount) external pure returns (bytes memory result);
 
-        /** Transfer a token through XCM based on its currencyId
-         *
-         * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param asset The asset we want to transfer, defined by its multilocation. 
-         * Currently only Concrete Fungible assets
-         * @param amount The amount of tokens we want to transfer
-         * @param destination The Multilocation to which we want to send the tokens
-         * @param destination The weight we want to buy in the destination chain
-         */
-        function transfer_multiasset(
-            Multilocation memory asset,
-            uint256 amount,
-            Multilocation memory destination, uint64 weight) external;
+        // dev Encode 'unbond' relay call
+        // @param amount: The amount to unbond
+        // @returns The bytes associated with the encoded call
+        function encode_unbond(uint256 amount) external pure returns (bytes memory result);
+
+        // dev Encode 'withdraw_unbonded' relay call
+        // @param slashes: Weight hint, number of slashing spans
+        // @returns The bytes associated with the encoded call
+        function encode_withdraw_unbonded(uint32 slashes) external pure returns (bytes memory result);
+
+        // dev Encode 'validate' relay call
+        // @param comission: Comission of the validator as parts_per_billion
+        // @param blocked: Whether or not the validator is accepting more nominations
+        // @returns The bytes associated with the encoded call
+        function encode_validate(uint256 comission, bool blocked) external pure returns (bytes memory result);
+
+        // dev Encode 'nominate' relay call
+        // @param nominees: An array of AccountIds corresponding to the accounts we will nominate
+        // @param blocked: Whether or not the validator is accepting more nominations
+        // @returns The bytes associated with the encoded call
+        function encode_nominate(uint256 [] memory nominees) external pure returns (bytes memory result);
+
+        // dev Encode 'chill' relay call
+        // @returns The bytes associated with the encoded call
+        function encode_chill() external pure returns (bytes memory result);
+
+        // dev Encode 'set_payee' relay call
+        // @param reward_destination: uint8 selecting one of RewardDestination
+        // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+        // @returns The bytes associated with the encoded call
+        function encode_set_payee(bytes memory reward_destination) external pure returns (bytes memory result);
+
+        // dev Encode 'set_controller' relay call
+        // @param controller: The controller address
+        // @returns The bytes associated with the encoded call
+        function encode_set_controller(uint256 controller) external pure returns (bytes memory result);
+
+        // dev Encode 'rebond' relay call
+        // @param amount: The amount to rebond
+        // @returns The bytes associated with the encoded call
+        function encode_rebond(uint256 amount) external pure returns (bytes memory result);
+
     }
 
-    // Function selector reference
-    // {
-    // "b9f813ff": "transfer(address,uint256,(uint8,bytes[]),uint64)",
-    // "b38c60fa": "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)"
-    //}
-
-    contract XtokensInstance is Xtokens {
-
-    /// The Xtokens wrapper at the known pre-compile address.
-    Xtokens public xtokens = Xtokens(0x0000000000000000000000000000000000000804);
-
-        function transfer(
-            address currency_address,
-            uint256 amount,
-            Multilocation memory destination,
-            uint64 weight
-        ) override external {
-            // We nominate our target collator with all the tokens provided
-            xtokens.transfer(currency_address, amount, destination, weight);
+    // We only use this to be able to generate the input data, since we need a compiled instance
+    contract RelayEncoderInstance is RelayEncoder {
+        /// The Relay Encoder wrapper at the known pre-compile address.
+        RelayEncoder public relayencoder = RelayEncoder(0x0000000000000000000000000000000000000805);
+        function encode_bond(
+            uint256 controller_address,
+            uint256 amount, bytes
+            memory reward_destination
+        )  external pure override returns (bytes memory result){
+            return "0x00";
         }
-        function transfer_multiasset(
-            Multilocation memory asset,
-            uint256 amount,
-            Multilocation memory destination,
-            uint64 weight
-        ) override external {
-            xtokens.transfer_multiasset(asset, amount, destination, weight);
+        function encode_bond_extra(
+            uint256 amount
+        ) external pure override returns (bytes memory result){
+            return "0x00";
+        }
+        function encode_unbond(
+            uint256 amount
+        ) external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_withdraw_unbonded(
+            uint32 slashes
+        ) external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_validate(
+            uint256 comission,
+            bool blocked
+        ) external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_nominate(
+            uint256 [] memory nominees
+        ) external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_chill() external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_set_payee(
+            bytes memory reward_destination
+        ) external pure override returns (bytes memory result) {
+            return "0x00";
+        }
+        function encode_set_controller(
+            uint256 controller
+        ) external pure override returns (bytes memory result){
+            return "0x00";
+        }
+        function encode_rebond(
+            uint256 amount
+        ) external pure override returns (bytes memory result){
+            return "0x00";
         }
     }`,
 };
