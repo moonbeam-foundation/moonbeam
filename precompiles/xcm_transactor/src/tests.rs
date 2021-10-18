@@ -30,10 +30,10 @@ use xcm::v1::MultiLocation;
 #[test]
 fn test_selector_enum() {
 	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"account_index(address)")[0..4]);
+	buffer.copy_from_slice(&Keccak256::digest(b"index_to_account(uint16)")[0..4]);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::AccountIndex,
+		Action::IndexToAccount,
 	);
 
 	buffer.copy_from_slice(
@@ -94,8 +94,8 @@ fn take_index_for_account() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::AccountIndex)
-				.write(Address(H160::from(Alice)))
+			let input = EvmDataWriter::new_with_selector(Action::IndexToAccount)
+				.write(0u16)
 				.build();
 
 			// Assert that errors since no index is assigned
@@ -110,12 +110,13 @@ fn take_index_for_account() {
 			// Expected result is zero
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(0u16).build(),
+				output: EvmDataWriter::new()
+					.write(Address(H160::from(Alice)))
+					.build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
 				expected_result
@@ -129,10 +130,6 @@ fn test_transactor() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::AccountIndex)
-				.write(Address(H160::from(Alice)))
-				.build();
-
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
@@ -166,20 +163,6 @@ fn test_transactor() {
 					output: vec![],
 					logs: vec![]
 				}))
-			);
-
-			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(0u16).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
-				expected_result
 			);
 		});
 }

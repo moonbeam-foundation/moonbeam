@@ -15,14 +15,15 @@ pragma solidity >=0.8.0;
         }
 
         /** Get index of an account in xcm transactor
-         *
-         * @param account The account of which we want to retrieve the index
+         * Selector 71b0edfa
+         * @param index The index of which we want to retrieve the account
          */
-        function account_index(address account) external view returns(uint16);
+        function index_to_account(uint16 index) external view returns(address);
 
         /** Transfer a token through XCM based on its currencyId
          *
          * @dev The token transfer burns/transfers the corresponding amount before sending
+         * Selector 93a8f668
          * @param transactor The transactor to be used
          * @param index The index to be used
          * @param fee_asset The asset in which we want to pay fees. It has to be a reserve of the destination chain

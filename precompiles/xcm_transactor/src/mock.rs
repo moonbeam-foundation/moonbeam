@@ -235,6 +235,7 @@ where
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	XBalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<R>: TryFrom<u8>,
+	R::AccountId: Into<H160>,
 {
 	fn execute(
 		address: H160,

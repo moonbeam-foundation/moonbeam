@@ -128,13 +128,11 @@ pub mod pallet {
 		fn destination(self) -> MultiLocation;
 	}
 
+	// Stores the index to account mapping. These indices are usable as derivative
+	// in the relay chain
 	#[pallet::storage]
-	#[pallet::getter(fn claimed_indices)]
-	pub type ClaimedIndices<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn account_to_index)]
-	pub type AccountToIndex<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, u16>;
+	#[pallet::getter(fn index_to_account)]
+	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -174,12 +172,11 @@ pub mod pallet {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				ClaimedIndices::<T>::get(&index).is_none(),
+				IndexToAccount::<T>::get(&index).is_none(),
 				Error::<T>::IndexAlreadyClaimed
 			);
 
-			ClaimedIndices::<T>::insert(&index, who.clone());
-			AccountToIndex::<T>::insert(&who, index);
+			IndexToAccount::<T>::insert(&index, who.clone());
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::RegisterdDerivative(who, index));
@@ -211,7 +208,7 @@ pub mod pallet {
 			let who = ensure_signed(origin.clone())?;
 
 			// The index exists
-			let account = ClaimedIndices::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
+			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
 			ensure!(account == who, Error::<T>::NotOwner);
 

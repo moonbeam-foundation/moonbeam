@@ -35,8 +35,7 @@ fn test_register_address() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
-			assert_eq!(XcmTransactor::claimed_indices(&1).unwrap(), 1u64);
-			assert_eq!(XcmTransactor::account_to_index(&1u64).unwrap(), 1);
+			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
 			let expected = vec![crate::Event::RegisterdDerivative(1u64, 1)];
 			assert_eq!(events(), expected);

@@ -45,12 +45,12 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 pub enum Action {
-	AccountIndex = "account_index(address)",
+	IndexToAccount = "index_to_account(uint16)",
 	TransactThroughDerivative =
 		"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)",
 }
 
-/// A precompile to wrap the functionality from xtokens
+/// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for XcmTransactorWrapper<Runtime>
@@ -61,6 +61,7 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<Runtime>: TryFrom<u8>,
+	Runtime::AccountId: Into<H160>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -71,7 +72,7 @@ where
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::AccountIndex => Self::account_index(input, target_gas),
+			Action::IndexToAccount => Self::account_index(input, target_gas),
 			Action::TransactThroughDerivative => {
 				Self::transact_through_derivative(input, target_gas, context)
 			}
@@ -87,6 +88,7 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<Runtime>: TryFrom<u8>,
+	Runtime::AccountId: Into<H160>,
 {
 	fn account_index(
 		mut input: EvmDataReader,
@@ -97,17 +99,17 @@ where
 
 		// Bound check
 		input.expect_arguments(1)?;
-		let to_address: H160 = input.read::<Address>()?.into();
-		let account = Runtime::AddressMapping::into_account_id(to_address);
+		let index: u16 = input.read::<u16>()?;
 
 		// fetch data from pallet
-		let index = xcm_transactor::Pallet::<Runtime>::account_to_index(account)
-			.ok_or(error("No index assigned"))?;
+		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)
+			.ok_or(error("No index assigned"))?
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(index).build(),
+			output: EvmDataWriter::new().write(Address(account)).build(),
 			logs: Default::default(),
 		})
 	}
@@ -119,8 +121,6 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
-		// asset is defined as a multiLocation. For now we are assuming these are concrete
-		// fungible assets
 		// Bound check
 		input.expect_arguments(2)?;
 		let transactor: TransactorOf<Runtime> = input
@@ -130,6 +130,8 @@ where
 		let index: u16 = input.read::<u16>()?;
 
 		// read fee location
+		// defined as a multiLocation. For now we are assuming these are concrete
+		// fungible assets
 		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		input.expect_arguments(2)?;
 		// read fee amount

@@ -71,8 +71,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to retrieve index through precompiles", async function () {
     let data = iFace.encodeFunctionData(
       // action
-      "account_index",
-      [ALITH]
+      "index_to_account",
+      [0]
     );
     let tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -86,7 +86,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     ]);
 
     expect(tx_call.result).to.equal(
-      "0x0000000000000000000000000000000000000000000000000000000000000000"
+      "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
     );
   });
 

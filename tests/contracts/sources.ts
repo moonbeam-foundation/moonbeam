@@ -686,72 +686,73 @@ export const contractSources: { [key: string]: string } = {
         }
     }`,
   XcmTransactorInstance: `
-  pragma solidity >=0.8.0;
-
-  /**
-   * @title Xcm Transactor Interface
-   *
-   * The interface through which solidity contracts will interact with xcm transactor pallet
-   *
-   */
-  interface XcmTransactor {
-      // A multilocation is defined by its number of parents and the encoded junctions (interior)
-      struct Multilocation {
-          uint8 parents;
-          bytes [] interior;
-      }
-
-      /** Get index of an account in xcm transactor
-       *
-       * @param account The account of which we want to retrieve the index
-       */
-      function account_index(address account) external view returns(uint16);
-
-      /** Transfer a token through XCM based on its currencyId
-       *
-       * @dev The token transfer burns/transfers the corresponding amount before sending
-       * @param transactor The transactor to be used
-       * @param index The index to be used
-       * @param fee_asset The asset in which we want to pay fees. It has to be a reserve of the destination chain
-       * @param amount The amount of tokens we want to transfer
-       * @param weight The weight we want to buy in the destination chain
-       * @param inner_call The inner call to be executed in the destination chain
-       */
-      function transact_through_derivative(
-          uint8 transactor,
-          uint16 index,
-          Multilocation memory fee_asset,
-          uint256 amount,
-          uint64 weight,
-          bytes memory inner_call
-      ) external;
-  }
-
-  contract XcmTransactorInstance is XcmTransactor {
-
-  /// The Xcm Transactor wrapper at the known pre-compile address.
-  XcmTransactor public xcmtransactor = XcmTransactor(0x0000000000000000000000000000000000000806);
-
-      function account_index(address account) external view override returns(uint16) {
-          // We nominate our target collator with all the tokens provided
-          xcmtransactor.account_index(account);
-      }
-      function transact_through_derivative(
-          uint8 transactor,
-          uint16 index,
-          Multilocation memory fee_asset,
-          uint256 amount,
-          uint64 weight,
-          bytes memory inner_call
-      ) override external {
-          xcmtransactor.transact_through_derivative(
-              transactor,
-              index,
-              fee_asset,
-              amount,
-              weight,
-              inner_call
-          );
-      }
-  }`,
+    // SPDX-License-Identifier: GPL-3.0-only
+    pragma solidity >=0.8.0;
+  
+    /**
+    * @title Xcm Transactor Interface
+    *
+    * The interface through which solidity contracts will interact with xcm transactor pallet
+    *
+    */
+    interface XcmTransactor {
+        // A multilocation is defined by its number of parents and the encoded junctions (interior)
+        struct Multilocation {
+            uint8 parents;
+            bytes [] interior;
+        }
+  
+        /** Get index of an account in xcm transactor
+        *
+        * @param index The index of which we want to retrieve the account
+        */
+        function index_to_account(uint16 index) external view returns(address);
+  
+        /** Transfer a token through XCM based on its currencyId
+        *
+        * @dev The token transfer burns/transfers the corresponding amount before sending
+        * @param transactor The transactor to be used
+        * @param index The index to be used
+        * @param fee_asset The asset in which we want to pay fees. It has to be a reserve of the destination chain
+        * @param amount The amount of tokens we want to transfer
+        * @param weight The weight we want to buy in the destination chain
+        * @param inner_call The inner call to be executed in the destination chain
+        */
+        function transact_through_derivative(
+            uint8 transactor,
+            uint16 index,
+            Multilocation memory fee_asset,
+            uint256 amount,
+            uint64 weight,
+            bytes memory inner_call
+        ) external;
+    }
+  
+    contract XcmTransactorInstance is XcmTransactor {
+  
+    /// The Xcm Transactor wrapper at the known pre-compile address.
+    XcmTransactor public xcmtransactor = XcmTransactor(0x0000000000000000000000000000000000000806);
+  
+        function index_to_account(uint16 index) external view override returns(address) {
+            // We nominate our target collator with all the tokens provided
+            return xcmtransactor.index_to_account(index);
+        }
+        function transact_through_derivative(
+            uint8 transactor,
+            uint16 index,
+            Multilocation memory fee_asset,
+            uint256 amount,
+            uint64 weight,
+            bytes memory inner_call
+        ) override external {
+            xcmtransactor.transact_through_derivative(
+                transactor,
+                index,
+                fee_asset,
+                amount,
+                weight,
+                inner_call
+            );
+        }
+    }`,
 };
