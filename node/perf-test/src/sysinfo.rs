@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use psutil::{cpu, disk, memory, host};
+use psutil::{disk, host};
+use heim_cpu;
+use heim_memory;
+use heim_common::units::{frequency, information};
 
 // Utilities for querying system information, namely:
 //
@@ -74,26 +77,38 @@ pub struct PartitionInfo {
 }
 
 pub fn query_system_info() -> Result<SystemInfo, String> {
-	let virtual_memory = memory::virtual_memory().unwrap();
-	dbg!(virtual_memory.clone());
+	let memory_info = futures::executor::block_on(heim_memory::memory())
+		.expect("Memory must exist; qed");
 
 	let host_info = host::info();
 	dbg!(host_info.clone());
 
-	let cpu_freq = cpu::cpu_freq().expect("CPU must exist; qed");
+	// TODO: block on multiple futures
+	let cpu_freq = futures::executor::block_on(heim_cpu::frequency())
+		.expect("CPU must exist; qed");
 	dbg!(cpu_freq.current());
+
+	let cpu_logical_cores = futures::executor::block_on(heim_cpu::logical_count())
+		.expect("CPU must exist; qed");
+	let cpu_physical_cores = futures::executor::block_on(heim_cpu::physical_count())
+		.expect("CPU must exist; qed")
+		.expect("CPU should report num physical cores");
 
 	Ok(SystemInfo {
 		cpu_info: CPUInfo {
 			cpu_model: "FIXME".into(),
-			cpu_max_speed_mhz: cpu_freq.max() as u64,
-			cpu_base_speed_mhz: cpu_freq.min() as u64, // TODO: we want base, not min
-			num_physical_cores: cpu::cpu_count_physical(),
-			num_threads: cpu::cpu_count(),
+			cpu_max_speed_mhz: cpu_freq.max()
+				.expect("could not get CPU max")
+				.get::<frequency::megahertz>(),
+			cpu_base_speed_mhz: cpu_freq.min() // TODO: we want base, not min
+				.expect("could not get CPU min")
+				.get::<frequency::megahertz>(),
+			num_physical_cores: cpu_physical_cores,
+			num_threads: cpu_logical_cores,
 		},
 		mem_info: MemoryInfo {
-			total_memory_mb: virtual_memory.total(),
-			available_memory_mb: virtual_memory.available(),
+			total_memory_mb: memory_info.total().get::<information::megabyte>(),
+			available_memory_mb: memory_info.available().get::<information::megabyte>(),
 		},
 		kernel_version: host_info.release().into(),
 		distro_name: host_info.version().into(),
