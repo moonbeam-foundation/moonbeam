@@ -1192,21 +1192,6 @@ pub mod pallet {
 		pub status: DelegatorStatus,
 	}
 
-	// #[derive(Clone, Encode, Decode, RuntimeDebug)]
-	// /// Delegator state
-	// pub struct Delegator<AccountId, Balance> {
-	// 	/// Delegator account
-	// 	pub id: AccountId,
-	// 	/// All current delegations
-	// 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-	// 	/// Total balance locked for this delegator
-	// 	pub total: Balance,
-	// 	/// Requests to change delegations, relevant iff active
-	// 	pub requests: PendingDelegationRequests<AccountId, Balance>,
-	// 	/// Status for this delegator
-	// 	pub status: DelegatorStatus,
-	// }
-
 	/// Temporary function to migrate state
 	pub fn migrate_nominator_to_delegator_state<T: Config>(
 		id: T::AccountId,
@@ -1549,7 +1534,7 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// TODO: ExitQueue2 --> individual storage items
+		/// Runtime migration, can be run more than once without risk of corruption
 		fn on_runtime_upgrade() -> Weight {
 			let (reads, writes) = remove_exit_queue_migration::<T>();
 			let db_weight = T::DbWeight::get();
