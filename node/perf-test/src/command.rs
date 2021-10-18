@@ -89,7 +89,9 @@ where
 		let system_info = query_system_info();
 		dbg!(system_info);
 
-		let partition_info = query_partition_info(&cmd.shared_params.base_path.as_ref().expect("base_path (-d) must be provided"));
+		let partition_info = query_partition_info(
+			&cmd.shared_params.base_path.as_ref()
+			.expect("base_path (-d) must be provided"));
 		dbg!(partition_info);
 
 
