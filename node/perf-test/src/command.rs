@@ -73,7 +73,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -89,8 +89,8 @@ where
 		let system_info = query_system_info();
 		dbg!(system_info);
 
-		// let partition_info = query_partition_info("/home/stephen/dev/purestake/moonbeam");
-		// dbg!(partition_info);
+		let partition_info = query_partition_info(&cmd.shared_params.base_path.as_ref().expect("base_path (-d) must be provided"));
+		dbg!(partition_info);
 
 
 		// TODO: review -- we don't need any actual networking

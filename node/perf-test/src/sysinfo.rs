@@ -57,15 +57,6 @@ pub struct CPUInfo {
 	pub num_threads: u64, // TODO: be more technically correct?
 }
 
-/// Information about a physical disk
-#[derive(Default, Debug)]
-pub struct PhysicalDiskInfo {
-	pub model_name: String,
-	pub device_file: String,
-	pub total_size_bytes: u64,
-	pub available_bytes: u64,
-}
-
 /// Information about a partition
 #[derive(Default, Debug)]
 pub struct PartitionInfo {
@@ -74,7 +65,6 @@ pub struct PartitionInfo {
 	pub fs_type: String,
 	pub total_size_bytes: u64,
 	pub available_bytes: u64,
-	pub physical_disk: PhysicalDiskInfo,
 }
 
 pub fn query_system_info() -> Result<SystemInfo, String> {
@@ -89,7 +79,6 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 	// TODO: block on multiple futures
 	let cpu_freq = futures::executor::block_on(heim_cpu::frequency())
 		.expect("CPU must exist; qed");
-	dbg!(cpu_freq.current());
 
 	let cpu_logical_cores = num_cpus::get() as u64;
 	let cpu_physical_cores = num_cpus::get_physical() as u64;
@@ -126,8 +115,10 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 /// query the partition info corresponding to the given path. the path doesn't need to be an
 /// explicit mountpoint; it can be a subdirectory of a mountpoint.
 /// TODO: use std::path::Path or whatever the CLI parameter for --base-path uses
-pub fn query_partition_info(path: &str) -> Result<PartitionInfo, String> {
+pub fn query_partition_info(path: &std::path::PathBuf) -> Result<PartitionInfo, String> {
 	use std::{collections::HashMap, path::Path};
+
+	let canon_path = std::fs::canonicalize(path).expect("Could not deduce canonical path");
 
 	let partitions = disk::partitions_physical().unwrap();
 
@@ -139,7 +130,7 @@ pub fn query_partition_info(path: &str) -> Result<PartitionInfo, String> {
 	}
 
 	// crawl up the parent dirs in path to find a match from our partitions
-	let mut ancestors = Path::new(path).ancestors();
+	let mut ancestors = canon_path.ancestors();
 	let partition = ancestors.find_map(|dir| {
 		let dir_str = dir.to_str().expect("path should be valid UTF-8");
 		if let partition = partitions_map.get(dir_str) {
@@ -161,6 +152,5 @@ pub fn query_partition_info(path: &str) -> Result<PartitionInfo, String> {
 		fs_type: partition.filesystem().as_str().into(),
 		total_size_bytes: disk_usage.total(),
 		available_bytes: disk_usage.free(),
-		physical_disk: Default::default(), // TODO
 	})
 }
