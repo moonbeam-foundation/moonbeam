@@ -99,9 +99,7 @@ fn is_contributor_returns_false() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -144,9 +142,7 @@ fn is_contributor_returns_true() {
 				init_block + VESTING
 			));
 
-			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -188,8 +184,7 @@ fn claim_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"claim()")[0..4];
-			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+			let input = EvmDataWriter::new_with_selector(Action::Claim).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
@@ -234,9 +229,7 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::RewardInfo)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -281,9 +274,7 @@ fn update_reward_address_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::UpdateRewardAddress)
 				.write(Address(H160::from(Charlie)))
 				.build();
 
@@ -316,11 +307,8 @@ fn test_bound_checks_for_address_parsing() {
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(&selector)
-				.write_raw_bytes(&[1u8; 4]) // incomplete data
-				.build();
+			let mut input = Keccak256::digest(b"update_reward_address(address)")[0..4].to_vec();
+			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),

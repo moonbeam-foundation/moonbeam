@@ -5159,7 +5159,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5187,7 +5187,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "account",
  "libsecp256k1 0.6.0",
@@ -5501,7 +5501,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -8825,6 +8825,7 @@ dependencies = [
  "evm",
  "frame-support",
  "frame-system",
+ "hex-literal",
  "log",
  "num_enum",
  "pallet-evm",
