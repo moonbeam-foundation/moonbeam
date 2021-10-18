@@ -181,6 +181,16 @@ interface Democracy {
      * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
      */
     function note_preimage(bytes memory encoded_proposal) external;
+
+    /**
+     * Register the preimage for an upcoming proposal. This requires the proposal to be
+     * in the dispatch queue. No deposit is needed. When this call is successful, i.e.
+     * the preimage has not been uploaded before and matches some imminent proposal,
+     * no fee is paid.
+     *
+     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+     */
+    function note_imminent_preimage(bytes memory encoded_proposal) external;
 }
 
 // Function selector reference
@@ -189,6 +199,7 @@ interface Democracy {
 // "a30305e9": "deposit_of(uint256)",
 // "b1fd383f": "finished_referendum_info(uint256)",
 // "0388f282": "lowest_unbaked()",
+// "cf205f96": "note_imminent_preimage(bytes)",
 // "200881f5": "note_preimage(bytes)",
 // "8b93d11a": "ongoing_referendum_info(uint256)",
 // "7824e7d1": "propose(bytes32,uint256)",

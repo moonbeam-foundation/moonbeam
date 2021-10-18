@@ -988,10 +988,39 @@ fn cannot_note_duplicate_preimage() {
 				]
 			);
 		})
+}
 
-	// Test over runtime preimage size limit
+#[test]
+fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = Bytes(dummy_preimage.clone());
 
-	// Tests for note imminent preimage
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NoteImminentPreimage)
+				.write(dummy_bytes)
+				.build();
 
-	// Tests for accessor method for size limit.
+			// This call should not succeed because
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![EvmEvent::ExecutedFailed(precompile_address()).into()]
+			);
+		})
 }
