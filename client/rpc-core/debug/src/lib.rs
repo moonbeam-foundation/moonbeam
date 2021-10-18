@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use ethereum_types::H256;
-use futures::{compat::Compat, future::BoxFuture};
+use futures::future::BoxFuture;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 use moonbeam_client_evm_tracing::types::single;
@@ -41,11 +41,11 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
+	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>>;
 	#[rpc(name = "debug_traceBlockByNumber", alias("debug_traceBlockByHash"))]
 	fn trace_block(
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>>;
+	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>;
 }

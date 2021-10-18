@@ -328,10 +328,10 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer(
-					Runtime::Lookup::unlookup(to),
-					amount,
-				),
+				pallet_balances::Call::<Runtime, Instance>::transfer {
+					dest: Runtime::Lookup::unlookup(to),
+					value: amount,
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -398,10 +398,10 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(from).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer(
-					Runtime::Lookup::unlookup(to),
-					amount,
-				),
+				pallet_balances::Call::<Runtime, Instance>::transfer {
+					dest: Runtime::Lookup::unlookup(to),
+					value: amount,
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;

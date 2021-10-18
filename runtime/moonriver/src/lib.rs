@@ -31,8 +31,9 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
-	construct_runtime, parameter_types,
-	signed_extensions::{AdjustPriority, Divide},
+	construct_runtime,
+	parameter_types,
+	// signed_extensions::{AdjustPriority, Divide},
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -574,7 +575,7 @@ pub struct TransactionConverter;
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		)
 	}
 }
@@ -585,7 +586,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 		transaction: pallet_ethereum::Transaction,
 	) -> opaque::UncheckedExtrinsic {
 		let extrinsic = UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		);
 		let encoded = extrinsic.encode();
 		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
@@ -781,7 +782,10 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
 			ProxyType::CancelProxy => {
-				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+				matches!(
+					c,
+					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+				)
 			}
 		}
 	}
@@ -873,7 +877,7 @@ construct_runtime! {
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 52,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config} = 52,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
@@ -984,7 +988,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
 			// we modify its priority.
 			Ok(match &xt.function {
-				Call::Ethereum(transact(_)) => intermediate_valid,
+				Call::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
 					let tip = match xt.signature {

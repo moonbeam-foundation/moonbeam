@@ -36,8 +36,9 @@ use xtokens_precompiles::AccountIdToCurrencyId;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
-	construct_runtime, parameter_types,
-	signed_extensions::{AdjustPriority, Divide},
+	construct_runtime,
+	parameter_types,
+	// signed_extensions::{AdjustPriority, Divide},
 	traits::{
 		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
@@ -633,7 +634,7 @@ pub struct TransactionConverter;
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		)
 	}
 }
@@ -644,7 +645,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 		transaction: pallet_ethereum::Transaction,
 	) -> opaque::UncheckedExtrinsic {
 		let extrinsic = UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		);
 		let encoded = extrinsic.encode();
 		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
@@ -843,7 +844,10 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
 			ProxyType::CancelProxy => {
-				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+				matches!(
+					c,
+					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+				)
 			}
 		}
 	}
@@ -1285,10 +1289,10 @@ impl Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Assets(method) => match method {
-				pallet_assets::Call::transfer(..) => true,
-				pallet_assets::Call::transfer_keep_alive(..) => true,
-				pallet_assets::Call::approve_transfer(..) => true,
-				pallet_assets::Call::transfer_approved(..) => true,
+				pallet_assets::Call::transfer { .. } => true,
+				pallet_assets::Call::transfer_keep_alive { .. } => true,
+				pallet_assets::Call::approve_transfer { .. } => true,
+				pallet_assets::Call::transfer_approved { .. } => true,
 				_ => false,
 			},
 			_ => true,
@@ -1321,7 +1325,7 @@ construct_runtime! {
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 11,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config} = 11,
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
@@ -1379,7 +1383,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	AdjustPriority<frame_system::CheckWeight<Runtime>, Divide, CHECK_WEIGHT_PRIORITY_DIVISOR>,
+	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
@@ -1440,7 +1444,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
 			// we modify its priority.
 			Ok(match &xt.function {
-				Call::Ethereum(transact(_)) => intermediate_valid,
+				Call::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
 					let tip = match xt.signature {

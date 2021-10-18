@@ -70,6 +70,7 @@ pub mod pallet {
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::{Decode, Encode};
+	use scale_info::TypeInfo;
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Saturating, Zero},
 		Perbill, Percent, RuntimeDebug,
@@ -80,7 +81,7 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct Bond<AccountId, Balance> {
 		pub owner: AccountId,
 		pub amount: Balance,
@@ -115,7 +116,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The activity status of the collator
 	pub enum CollatorStatus {
 		/// Committed to be online and producing valid blocks (not equivocating)
@@ -132,7 +133,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Default, Encode, Decode, RuntimeDebug)]
+	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Snapshot of collator state at the start of the round for which they are selected
 	pub struct CollatorSnapshot<AccountId, Balance> {
 		pub bond: Balance,
@@ -140,7 +141,7 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator2<AccountId, Balance> {
 		/// The account of this collator
@@ -458,7 +459,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum NominatorStatus {
 		/// Active with no scheduled exit
 		Active,
@@ -466,7 +467,7 @@ pub mod pallet {
 		Leaving(RoundIndex),
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
 		/// All current nominations
@@ -585,7 +586,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The current round index and transition information
 	pub struct RoundInfo<BlockNumber> {
 		/// Current round index
@@ -633,7 +634,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Reserve information { account, percent_of_inflation }
 	pub struct ParachainBondConfig<AccountId> {
 		/// Account which receives funds intended for parachain bond
@@ -650,7 +651,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug, Default)]
+	#[derive(Encode, Decode, RuntimeDebug, Default, TypeInfo)]
 	/// Store and process all delayed exits by collators and nominators
 	pub struct ExitQ<AccountId> {
 		/// Candidate exit set

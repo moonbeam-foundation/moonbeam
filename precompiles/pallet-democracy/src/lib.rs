@@ -265,7 +265,10 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::propose(proposal_hash.into(), amount);
+		let call = DemocracyCall::<Runtime>::propose {
+			proposal_hash: proposal_hash.into(),
+			value: amount,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -292,16 +295,19 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal_index = input.read()?;
+		let proposal = input.read()?;
 		let seconds_upper_bound = input.read()?;
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound
+			"Seconding proposal {:?}, with bound {:?}", proposal, seconds_upper_bound
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::second(proposal_index, seconds_upper_bound);
+		let call = DemocracyCall::<Runtime>::second {
+			proposal,
+			seconds_upper_bound,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -335,7 +341,7 @@ where
 			.read::<u8>()?
 			.try_into()
 			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
-		let account_vote = AccountVote::Standard {
+		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
 			balance,
 		};
@@ -346,7 +352,10 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
+		let call = DemocracyCall::<Runtime>::vote {
+			ref_index,
+			vote
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -373,12 +382,14 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let ref_index = input.read()?;
+		let index = input.read()?;
 
-		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", ref_index);
+		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", index);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::remove_vote(ref_index);
+		let call = DemocracyCall::<Runtime>::remove_vote {
+			index
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -405,8 +416,8 @@ where
 		// Bound check
 		input.expect_arguments(3)?;
 
-		let to_address: H160 = input.read::<Address>()?.into();
-		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		let to: H160 = input.read::<Address>()?.into();
+		let to = Runtime::AddressMapping::into_account_id(to);
 		let conviction = input
 			.read::<u8>()?
 			.try_into()
@@ -415,11 +426,13 @@ where
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
-			to_account, conviction, balance
+			to, conviction, balance
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::delegate(to_account, conviction, balance);
+		let call = DemocracyCall::<Runtime>::delegate {
+			to, conviction, balance
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -440,7 +453,7 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::undelegate();
+		let call = DemocracyCall::<Runtime>::undelegate {};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -467,16 +480,16 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let target_address: H160 = input.read::<Address>()?.into();
-		let target_account = Runtime::AddressMapping::into_account_id(target_address);
+		let target: H160 = input.read::<Address>()?.into();
+		let target = Runtime::AddressMapping::into_account_id(target);
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Unlocking democracy tokens for {:?}", target_account
+			"Unlocking democracy tokens for {:?}", target
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::unlock(target_account);
+		let call = DemocracyCall::<Runtime>::unlock { target };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

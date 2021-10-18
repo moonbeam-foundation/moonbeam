@@ -9,32 +9,32 @@ description = "A Precompile to make xtokens accessible to pallet-evm"
 log = "0.4"
 rustc-hex = { version = "2.0.1", default-features = false }
 
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 
 [dev-dependencies]
 sha3 = "0.9"
 serde = "1.0.100"
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11"}
 derive_more = "0.99"
-pallet-balances =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
-pallet-timestamp =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
+pallet-balances =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11"}
+pallet-timestamp =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11"}
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 xcm-primitives = { path = "../../primitives/xcm/"}
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 [features]
 default = ["std"]
 std = [

@@ -303,11 +303,11 @@ where
 			// Allowance() should be checked instead of doing this Result matching
 			let used_gas = match RuntimeHelper::<Runtime>::try_dispatch(
 				<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin::root(),
-				pallet_assets::Call::<Runtime, Instance>::force_cancel_approval(
-					asset_id,
-					Runtime::Lookup::unlookup(caller),
-					Runtime::Lookup::unlookup(spender.clone()),
-				),
+				pallet_assets::Call::<Runtime, Instance>::force_cancel_approval {
+					id: asset_id,
+					owner: Runtime::Lookup::unlookup(caller),
+					delegate: Runtime::Lookup::unlookup(spender.clone()),
+				},
 				gasometer.remaining_gas()?,
 			) {
 				Ok(gas_used) => Ok(gas_used),
@@ -328,11 +328,11 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::approve_transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(spender),
+				pallet_assets::Call::<Runtime, Instance>::approve_transfer {
+					id: asset_id,
+					delegate: Runtime::Lookup::unlookup(spender),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -381,11 +381,11 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(to),
+				pallet_assets::Call::<Runtime, Instance>::transfer {
+					id: asset_id,
+					target: Runtime::Lookup::unlookup(to),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -438,23 +438,23 @@ where
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer_approved(
-						asset_id,
-						Runtime::Lookup::unlookup(from),
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer_approved {
+						id: asset_id,
+						owner: Runtime::Lookup::unlookup(from),
+						destination: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			} else {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(from).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer(
-						asset_id,
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer {
+						id: asset_id,
+						target: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			}?;

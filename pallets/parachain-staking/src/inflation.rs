@@ -18,6 +18,7 @@
 use crate::pallet::{BalanceOf, Config, Pallet};
 use frame_support::traits::Currency;
 use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_runtime::PerThing;
@@ -35,7 +36,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 pub struct Range<T> {
 	pub min: T,
 	pub ideal: T,
@@ -94,7 +95,7 @@ pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 pub struct InflationInfo<Balance> {
 	/// Staking expectations
 	pub expect: Range<Balance>,
