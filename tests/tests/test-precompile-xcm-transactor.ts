@@ -93,7 +93,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
-    
+
     // Build types
     let balance = context.polkadotApi.createType("Balance", 100000000000000);
     let assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
