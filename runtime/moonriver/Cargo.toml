@@ -30,11 +30,11 @@ pallet-author-mapping = { path = "../../pallets/author-mapping", default-feature
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 evm = { version = "0.30.1", default-features = false, features=["with-codec"] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
@@ -62,10 +62,10 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/puresta
 pallet-utility = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 # Frontier dependencies
-fp-rpc = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-fp-self-contained = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
+fp-rpc = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+fp-self-contained = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 
 pallet-democracy = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
