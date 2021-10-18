@@ -676,7 +676,7 @@ export const contractSources: { [key: string]: string } = {
             xtokens.transfer_multiasset(asset, amount, destination, weight);
         }
     }`,
-    XcmTransactorInstance: `
+  XcmTransactorInstance: `
     pragma solidity >=0.8.0;
 
     /**
@@ -707,20 +707,20 @@ export const contractSources: { [key: string]: string } = {
          * @param fee_asset The weight we want to buy in the destination chain
          * @param inner_call The inner call to be executed in the destination chain
          */
-        function transfer_through_derivative(
+        function transact_through_derivative(
             uint8 transactor,
             uint16 index,
             Multilocation memory fee_asset,
             uint256 amount,
-            bytes memory inner_call,
-            uint64 weight
+            uint64 weight,
+            bytes memory inner_call
         ) external;
     }
 
     // Function selector reference
     // {
     //  "6b1954bc": "account_index(address)",
-    //  "dbc4b26b": "transfer_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,bytes,uint64)"
+    //  "93a8f668": "transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)"
     // }
 
     contract XcmTransactorInstance is XcmTransactor {
@@ -732,21 +732,21 @@ export const contractSources: { [key: string]: string } = {
             // We nominate our target collator with all the tokens provided
             xcmtransactor.account_index(account);
         }
-        function transfer_through_derivative(
+        function transact_through_derivative(
             uint8 transactor,
             uint16 index,
             Multilocation memory fee_asset,
             uint256 amount,
-            bytes memory inner_call,
-            uint64 weight
+            uint64 weight,
+            bytes memory inner_call
         ) override external {
-            xcmtransactor.transfer_through_derivative(
+            xcmtransactor.transact_through_derivative(
                 transactor,
                 index,
                 fee_asset,
                 amount,
-                inner_call,
-                weight
+                weight,
+                inner_call
             );
         }
     }`,

@@ -47,7 +47,7 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 pub enum Action {
 	AccountIndex = "account_index(address)",
 	TransactThroughDerivative =
-		"transact_through_derivative(uint8, uint16, (uint8,bytes[]), uint256, uint64, bytes)",
+		"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xtokens

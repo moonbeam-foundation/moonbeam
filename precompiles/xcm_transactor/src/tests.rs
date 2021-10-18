@@ -38,7 +38,7 @@ fn test_selector_enum() {
 
 	buffer.copy_from_slice(
 		&Keccak256::digest(
-			b"transact_through_derivative(uint8, uint16, (uint8,bytes[]), uint256, uint64, bytes)",
+			b"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)",
 		)[0..4],
 	);
 	assert_eq!(
