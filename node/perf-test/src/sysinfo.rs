@@ -91,11 +91,8 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 		.expect("CPU must exist; qed");
 	dbg!(cpu_freq.current());
 
-	let cpu_logical_cores = futures::executor::block_on(heim_cpu::logical_count())
-		.expect("CPU must exist; qed");
-	let cpu_physical_cores = futures::executor::block_on(heim_cpu::physical_count())
-		.expect("CPU must exist; qed")
-		.expect("CPU should report num physical cores");
+	let cpu_logical_cores = num_cpus::get() as u64;
+	let cpu_physical_cores = num_cpus::get_physical() as u64;
 
 	let cpuid = CpuId::new();
 

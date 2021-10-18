@@ -18,6 +18,7 @@ sha3 = { version = "0.8" }
 cli-table = "0.4"
 psutil = "3.2.1"
 raw-cpuid = "10.2.0"
+num_cpus = "1.13.0"
 heim = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
 heim-cpu = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
 heim-common = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }

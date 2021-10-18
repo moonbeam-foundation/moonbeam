@@ -7773,6 +7773,7 @@ dependencies = [
  "moonbeam-cli-opt",
  "moonbeam-service",
  "nimbus-primitives",
+ "num_cpus",
  "pallet-ethereum",
  "psutil",
  "raw-cpuid",
