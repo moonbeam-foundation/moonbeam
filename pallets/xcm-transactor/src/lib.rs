@@ -192,6 +192,7 @@ pub mod pallet {
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_derivative(
 				&fee,
+				&index,
 				&dest,
 				dest_weight,
 				inner_call
@@ -261,7 +262,14 @@ pub mod pallet {
 		/// 'fee_payer' pays for the 'fee'
 		///
 		/// Root callable only
-		#[pallet::weight(0)]
+		#[pallet::weight(
+			Pallet::<T>::weight_of_transact_through_sovereign(
+				&fee,
+				&destination,
+				dest_weight,
+				call
+			)
+		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
 			destination: MultiLocation,
@@ -391,12 +399,41 @@ pub mod pallet {
 		/// Returns weight of `transact_through_derivative` call.
 		fn weight_of_transact_through_derivative(
 			asset: &MultiAsset,
+			index: &u16,
 			dest: &T::Transactor,
 			weight: &u64,
 			call: &Vec<u8>,
 		) -> Weight {
+			let call_bytes: Vec<u8> =
+				dest.clone()
+					.encode_call(UtilityAvailableCalls::AsDerivative(
+						index.clone(),
+						call.clone(),
+					));
 			if let Ok(mut msg) = Self::transact_fee_in_dest_chain_asset(
 				dest.clone().destination(),
+				asset.clone(),
+				weight.clone(),
+				OriginKind::SovereignAccount,
+				call_bytes.clone(),
+			) {
+				T::Weigher::weight(&mut msg).map_or(Weight::max_value(), |w| {
+					T::BaseXcmWeight::get().saturating_add(w)
+				})
+			} else {
+				0
+			}
+		}
+
+		/// Returns weight of `transact_through_sovereign call.
+		fn weight_of_transact_through_sovereign(
+			asset: &MultiAsset,
+			dest: &MultiLocation,
+			weight: &u64,
+			call: &Vec<u8>,
+		) -> Weight {
+			if let Ok(mut msg) = Self::transact_fee_in_dest_chain_asset(
+				dest.clone(),
 				asset.clone(),
 				weight.clone(),
 				OriginKind::SovereignAccount,
