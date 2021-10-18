@@ -49,6 +49,7 @@ pub struct MemoryInfo {
 /// CPU info
 #[derive(Default, Debug)]
 pub struct CPUInfo {
+	pub cpu_vendor: String,
 	pub cpu_model: String,
 	pub cpu_max_speed_mhz: u64,
 	pub cpu_base_speed_mhz: u64,
@@ -77,6 +78,8 @@ pub struct PartitionInfo {
 }
 
 pub fn query_system_info() -> Result<SystemInfo, String> {
+	use raw_cpuid::CpuId;
+
 	let memory_info = futures::executor::block_on(heim_memory::memory())
 		.expect("Memory must exist; qed");
 
@@ -94,9 +97,16 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 		.expect("CPU must exist; qed")
 		.expect("CPU should report num physical cores");
 
+	let cpuid = CpuId::new();
+
 	Ok(SystemInfo {
 		cpu_info: CPUInfo {
-			cpu_model: "FIXME".into(),
+			cpu_vendor: cpuid.get_vendor_info()
+				.map_or_else(|| String::from("n/a"), |s| s.as_str().into())
+				.into(),
+			cpu_model: cpuid.get_processor_brand_string()
+				.map_or_else(|| String::from("n/a"), |s| s.as_str().into())
+				.into(),
 			cpu_max_speed_mhz: cpu_freq.max()
 				.expect("could not get CPU max")
 				.get::<frequency::megahertz>(),
