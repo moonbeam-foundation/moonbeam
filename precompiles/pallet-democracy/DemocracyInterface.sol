@@ -173,6 +173,14 @@ interface Democracy {
      * @param target The account whose tokens should be unlocked. This may be any account.
      */
     function unlock(address target) external;
+
+    /**
+     * Register the preimage for an upcoming proposal. This doesn't require the proposal to be
+     * in the dispatch queue but does require a deposit, returned once enacted.
+     *
+     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+     */
+    function note_preimage(bytes memory encoded_proposal) external;
 }
 
 // Function selector reference
@@ -181,6 +189,7 @@ interface Democracy {
 // "a30305e9": "deposit_of(uint256)",
 // "b1fd383f": "finished_referendum_info(uint256)",
 // "0388f282": "lowest_unbaked()",
+// "200881f5": "note_preimage(bytes)",
 // "8b93d11a": "ongoing_referendum_info(uint256)",
 // "7824e7d1": "propose(bytes32,uint256)",
 // "56fdf547": "public_prop_count()",
