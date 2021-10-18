@@ -713,7 +713,8 @@ export const contractSources: { [key: string]: string } = {
         * @dev The token transfer burns/transfers the corresponding amount before sending
         * @param transactor The transactor to be used
         * @param index The index to be used
-        * @param fee_asset The asset in which we want to pay fees. It has to be a reserve of the destination chain
+        * @param fee_asset The asset in which we want to pay fees. 
+        * It has to be a reserve of the destination chain
         * @param amount The amount of tokens we want to transfer
         * @param weight The weight we want to buy in the destination chain
         * @param inner_call The inner call to be executed in the destination chain
@@ -740,7 +741,7 @@ export const contractSources: { [key: string]: string } = {
         function transact_through_derivative(
             uint8 transactor,
             uint16 index,
-            Multilocation memory fee_asset,
+            Multilocation memory fee_asset,<
             uint256 amount,
             uint64 weight,
             bytes memory inner_call
