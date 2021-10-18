@@ -39,7 +39,7 @@ use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-use xtokens_precompiles::{Action as XtokensAction, MultiLocationWrapper};
+use xtokens_precompiles::Action as XtokensAction;
 
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::Bond;
@@ -1337,7 +1337,7 @@ fn xtokens_precompiles_transfer() {
 					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
 						.write(U256::from(500_000_000_000_000u128))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(destination.clone())
 						.write(U256::from(4000000))
 						.build(),
 					None,
@@ -1394,9 +1394,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
-						.write(MultiLocationWrapper::from(MultiLocation::parent()))
+						.write(MultiLocation::parent())
 						.write(U256::from(500_000_000_000_000u128))
-						.write(MultiLocationWrapper::from(destination))
+						.write(destination)
 						.write(U256::from(4000000))
 						.build(),
 					None,

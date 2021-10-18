@@ -556,6 +556,7 @@ impl xcm_transactor::Config for Runtime {
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type BaseXcmWeight = BaseXcmWeight;
 }
 
 // We need to use the encoding from the relay mock runtime
