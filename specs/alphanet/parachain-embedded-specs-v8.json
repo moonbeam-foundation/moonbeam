@@ -12,7 +12,7 @@
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18,
-    "tokenSymbol": "UNIT",
+    "tokenSymbol": "DEV",
     "SS58Prefix": 1287
   },
   "relayChain": "westend_moonbase_relay_testnet",

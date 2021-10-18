@@ -288,11 +288,11 @@ impl Into<MultiLocation> for MultiLocationWrapper {
 
 impl EvmData for MultiLocationWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let num_parents = reader
-			.read::<u8>()
-			.map_err(|_| error("tried to parse array offset out of bounds"))?;
+		let mut inner_reader = reader.read_pointer()?;
 
-		let junctions: JunctionsWrapper = reader.read()?;
+		let num_parents = inner_reader.read()?;
+
+		let junctions: JunctionsWrapper = inner_reader.read()?;
 
 		Ok(MultiLocationWrapper(MultiLocation {
 			parents: num_parents,
@@ -301,7 +301,11 @@ impl EvmData for MultiLocationWrapper {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, U256::from(value.0.parents));
-		EvmData::write(writer, JunctionsWrapper(value.0.interior));
+		let inner_writer = EvmDataWriter::new()
+			.write(value.0.parents)
+			.write(JunctionsWrapper(value.0.interior))
+			.build();
+
+		EvmDataWriter::write_pointer(writer, inner_writer);
 	}
 }

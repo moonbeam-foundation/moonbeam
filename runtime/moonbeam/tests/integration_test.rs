@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -36,7 +36,7 @@ use moonbeam_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::{Bond, NominatorAdded};
+use parachain_staking::Bond;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::Pair;
@@ -610,8 +610,10 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			let public2 = pair2.public();
 
 			// signature is new_account || previous_account
-			let mut message = AccountId::from(DAVE).encode();
+			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
+			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
+			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
 			let signature1 = pair1.sign(&message);
 			let signature2 = pair2.sign(&message);
 

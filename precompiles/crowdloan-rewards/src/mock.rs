@@ -29,7 +29,7 @@ use frame_support::{
 	parameter_types,
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 };
-use frame_system::RawOrigin;
+use frame_system::{EnsureSigned, RawOrigin};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
@@ -249,6 +249,7 @@ impl pallet_crowdloan_rewards::Config for Test {
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;

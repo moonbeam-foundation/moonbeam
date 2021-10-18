@@ -8,6 +8,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.1'
 
 [dependencies]
+fp-self-contained = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10-frontier-extrinsics" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
 account = { path = "../primitives/account", default-features = false }
@@ -15,6 +16,7 @@ account = { path = "../primitives/account", default-features = false }
 [features]
 default = [ "std" ]
 std = [
+	"fp-self-contained/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"account/std",
