@@ -201,6 +201,7 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
+					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
