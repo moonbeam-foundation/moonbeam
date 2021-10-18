@@ -572,7 +572,7 @@
 						<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum</span>
 						<span class="comment">// transactions that preceded the requested transaction.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
-							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">function</span> {
+							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
 								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 									<span class="kw">if</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">transaction</span> {
 										<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
@@ -612,7 +612,7 @@
 
 						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
-							<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">function</span> {
+							<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
 								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">transaction</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 									<span class="kw">let</span> <span class="ident">eth_extrinsic_hash</span> <span class="op">=</span>
 										<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">rlp::encode</span>(<span class="ident">transaction</span>)).<span class="ident">as_slice</span>());
@@ -647,14 +647,14 @@
 					<span class="ident">TxPoolResponse</span> {
 						<span class="ident">ready</span>: <span class="ident">xts_ready</span>
 							.<span class="ident">into_iter</span>()
-							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
 								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
 								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
 							})
 							.<span class="ident">collect</span>(),
 						<span class="ident">future</span>: <span class="ident">xts_future</span>
 							.<span class="ident">into_iter</span>()
-							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
 								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
 								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
 							})
@@ -782,7 +782,7 @@
 				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
 					<span class="ident">xts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
 				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span> {
-					<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+					<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
 						<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
 						<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
 					}).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span><span class="op">&gt;</span>()

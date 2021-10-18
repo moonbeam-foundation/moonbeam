@@ -1069,6 +1069,10 @@
 <span id="1069">1069</span>
 <span id="1070">1070</span>
 <span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1131,9 +1135,10 @@
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">u32_trait</span>::<span class="kw-2">*</span>, <span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
-	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentityLookup</span>},
+	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">Dispatchable</span>, <span class="ident">IdentityLookup</span>, <span class="ident">PostDispatchInfoOf</span>},
 	<span class="ident">transaction_validity</span>::{
 		<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionPriority</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>,
+		<span class="ident">TransactionValidityError</span>,
 	},
 	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
 	<span class="ident">SaturatedConversion</span>,
@@ -1955,7 +1960,7 @@
 		<span class="comment">// Ethereum compatibility.</span>
 		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">50</span>,
 		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">51</span>,
-		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>} <span class="op">=</span> <span class="number">52</span>,
+		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Origin</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">52</span>,
 
 		<span class="comment">// Governance stuff.</span>
 		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>} <span class="op">=</span> <span class="number">60</span>,
@@ -2009,9 +2014,10 @@
 	<span class="ident">pallet_transaction_payment::ChargeTransactionPayment</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 );
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UncheckedExtrinsic</span> <span class="op">=</span> <span class="ident">generic::UncheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">Call</span>, <span class="ident">Signature</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UncheckedExtrinsic</span> <span class="op">=</span>
+	<span class="ident">fp_self_contained::UncheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">Call</span>, <span class="ident">Signature</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
 <span class="doccomment">/// Extrinsic type that has already been checked.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CheckedExtrinsic</span> <span class="op">=</span> <span class="ident">generic::CheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Call</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CheckedExtrinsic</span> <span class="op">=</span> <span class="ident">fp_self_contained::CheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Call</span>, <span class="ident">SignedExtra</span>, <span class="ident">H160</span><span class="op">&gt;</span>;
 <span class="doccomment">/// Executive: handles dispatch to the various pallets.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Executive</span> <span class="op">=</span> <span class="ident">frame_executive::Executive</span><span class="op">&lt;</span>
 	<span class="ident">Runtime</span>,
@@ -2040,7 +2046,7 @@
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionValidity</span> {
 			<span class="comment">// Filtered calls should not enter the tx pool as they&#39;ll fail if inserted.</span>
 			<span class="comment">// If this call is not allowed, we return early.</span>
-			<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BaseCallFilter::contains</span>(<span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="ident">function</span>) {
+			<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BaseCallFilter::contains</span>(<span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span>) {
 				<span class="kw">return</span> <span class="ident">InvalidTransaction::Call</span>.<span class="ident">into</span>();
 			}
 
@@ -2065,11 +2071,11 @@
 			<span class="comment">// If this is a pallet ethereum transaction, then its priority is already set</span>
 			<span class="comment">// according to gas price from pallet ethereum. If it is any other kind of transaction,</span>
 			<span class="comment">// we modify its priority.</span>
-			<span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="ident">function</span> {
+			<span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
 				<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
 				<span class="kw">_</span> <span class="kw">if</span> <span class="ident">dispatch_info</span>.<span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DispatchClass::Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
 				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-					<span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">signature</span> {
+					<span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">signature</span> {
 						<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
 						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">signed_extra</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 							<span class="comment">// Yuck, this depends on the index of charge transaction in Signed Extra</span>
@@ -2140,6 +2146,8 @@
 	<span class="ident">BlockExecutor</span> <span class="op">=</span> <span class="ident">pallet_author_inherent::BlockExecutor</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>,
 	<span class="ident">CheckInherents</span> <span class="op">=</span> <span class="ident">CheckInherents</span>,
 );
+
+<span class="macro">runtime_common::impl_self_contained_call!</span>();
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>

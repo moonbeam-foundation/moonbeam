@@ -69,13 +69,13 @@
 
 <span class="kw">use</span> <span class="ident">account::EthereumSignature</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::BlakeTwo256</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime::OpaqueExtrinsic</span> <span class="kw">as</span> <span class="ident">UncheckedExtrinsic</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime::OpaqueExtrinsic</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">generic</span>,
 	<span class="ident">traits</span>::{<span class="ident">IdentifyAccount</span>, <span class="ident">Verify</span>},
 };
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Block</span> <span class="op">=</span> <span class="ident">generic::Block</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">UncheckedExtrinsic</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Block</span> <span class="op">=</span> <span class="ident">generic::Block</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">OpaqueExtrinsic</span><span class="op">&gt;</span>;
 <span class="doccomment">/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">EthereumSignature</span>;
 <span class="doccomment">/// Some way of identifying an account on the chain. We intentionally make it equivalent</span>
