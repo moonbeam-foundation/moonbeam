@@ -135,6 +135,12 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -153,6 +159,7 @@
 
 <span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::westend::WestendEncoder</span>;
 <span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet</span>;
@@ -163,6 +170,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_sha3fips::Sha3FIPS256</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_simple</span>::{<span class="ident">ECRecover</span>, <span class="ident">ECRecoverPublicKey</span>, <span class="ident">Identity</span>, <span class="ident">Ripemd160</span>, <span class="ident">Sha256</span>};
 <span class="kw">use</span> <span class="ident">parachain_staking_precompiles::ParachainStakingWrapper</span>;
+<span class="kw">use</span> <span class="ident">relay_encoder_precompiles::RelayEncoderWrapper</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
@@ -206,7 +214,7 @@
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
 	<span class="doccomment">/// under the precompile.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
-		<span class="macro">sp_std::vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2050</span>, <span class="number">2051</span>]
+		<span class="macro">sp_std::vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2050</span>, <span class="number">2051</span>, <span class="number">2052</span>, <span class="number">2053</span>]
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">hash</span>(<span class="ident">x</span>)))
 	}
@@ -223,6 +231,7 @@
 	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">RelayEncoderWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">WestendEncoder</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
 		<span class="ident">address</span>: <span class="ident">H160</span>,
@@ -260,6 +269,9 @@
 				<span class="prelude-val">Some</span>(<span class="ident">DemocracyWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>))
 			}
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2052</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">XtokensWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2053</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RelayEncoderWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">WestendEncoder</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)
