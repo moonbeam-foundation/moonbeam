@@ -290,6 +290,7 @@ impl Config for Test {
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call>;
 	type LocationInverter = InvertNothing;
+	type BaseXcmWeight = BaseXcmWeight;
 }
 
 pub(crate) struct ExtBuilder {
