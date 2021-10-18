@@ -162,6 +162,22 @@ pub mod pallet {
 		pub state: CollatorStatus,
 	}
 
+	impl<A, B> From<Collator2<A, B>> for CollatorCandidate<A, B> {
+		fn from(other: Collator2<A, B>) -> CollatorCandidate<A, B> {
+			CollatorCandidate {
+				id: other.id,
+				bond: other.bond,
+				delegators: other.nominators,
+				top_delegations: other.top_nominators,
+				bottom_delegations: other.bottom_nominators,
+				total_counted: other.total_counted,
+				total_backing: other.total_backing,
+				request: None,
+				state: other.state,
+			}
+		}
+	}
+
 	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug)]
 	/// Changes allowed by an active collator candidate to their self bond
 	pub enum CandidateBondChange {
@@ -212,7 +228,7 @@ pub mod pallet {
 		pub request: Option<CandidateBondRequest<Balance>>,
 		/// Current status of the collator
 		pub state: CollatorStatus,
-	} // TODO: impl From<Collator2 for CollatorCandidate
+	}
 
 	/// Convey relevant information describing if a delegator was added to the top or bottom
 	/// Delegations added to the top yield a new total
@@ -694,11 +710,15 @@ pub mod pallet {
 				Err(Error::<T>::NominatorNotLeaving.into())
 			}
 		}
-		/// Set nominator status to leaving (prevent any changes until exit or cancellation)
+		/// Set status to leaving
+		fn set_leaving(&mut self, when: RoundIndex) {
+			self.status = DelegatorStatus::Leaving(when);
+		}
+		/// Schedule status to exit
 		pub fn leave<T: Config>(&mut self) -> (RoundIndex, RoundIndex) {
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
-			self.status = DelegatorStatus::Leaving(when);
+			self.set_leaving(when);
 			(now, when)
 		}
 		/// Set nominator status to active
@@ -797,6 +817,25 @@ pub mod pallet {
 			let when = <Round<T>>::get().current + T::NominatorBondDelay::get();
 			self.requests.bond_less::<T>(collator, less, when)?;
 			Ok(when)
+		}
+		/// Temporary function to migrate revocations
+		pub fn hotfix_set_revoke<T: Config>(&mut self, collator: AccountId, when: RoundIndex) {
+			// get nomination amount
+			let mut nomination_amt: Option<Balance> = None;
+			for Bond { owner, amount } in &self.delegations.0 {
+				if owner == &collator {
+					nomination_amt = Some(*amount);
+					break;
+				}
+			}
+			if let Some(amount) = nomination_amt {
+				// add revocation to pending requests
+				if let Err(e) = self.requests.revoke::<T>(collator, amount, when) {
+					log::warn!("Migrate revocation request failed with error: {:?}", e);
+				}
+			} else {
+				log::warn!("Migrate revocation request failed because delegation DNE");
+			}
 		}
 		/// Schedule revocation for the given collator
 		pub fn schedule_revoke<T: Config>(
@@ -1153,6 +1192,35 @@ pub mod pallet {
 		pub status: DelegatorStatus,
 	}
 
+	// #[derive(Clone, Encode, Decode, RuntimeDebug)]
+	// /// Delegator state
+	// pub struct Delegator<AccountId, Balance> {
+	// 	/// Delegator account
+	// 	pub id: AccountId,
+	// 	/// All current delegations
+	// 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
+	// 	/// Total balance locked for this delegator
+	// 	pub total: Balance,
+	// 	/// Requests to change delegations, relevant iff active
+	// 	pub requests: PendingDelegationRequests<AccountId, Balance>,
+	// 	/// Status for this delegator
+	// 	pub status: DelegatorStatus,
+	// }
+
+	/// Temporary function to migrate state
+	pub fn migrate_nominator_to_delegator_state<T: Config>(
+		id: T::AccountId,
+		nominator: Nominator2<T::AccountId, BalanceOf<T>>,
+	) -> Delegator<T::AccountId, BalanceOf<T>> {
+		Delegator {
+			id,
+			delegations: nominator.delegations,
+			total: nominator.total,
+			requests: PendingDelegationRequests::new(),
+			status: nominator.status,
+		}
+	}
+
 	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 	/// The current round index and transition information
 	pub struct RoundInfo<BlockNumber> {
@@ -1229,6 +1297,12 @@ pub mod pallet {
 		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
 		/// [Nominator, Some(ValidatorId) || None => All Nominations, Round To Exit]
 		pub nominator_schedule: Vec<(AccountId, Option<AccountId>, RoundIndex)>,
+	}
+
+	impl<A> ExitQ<A> {
+		pub fn is_non_empty(&self) -> bool {
+			!(self.candidates.0.is_empty() && self.nominators_leaving.0.is_empty())
+		}
 	}
 
 	type RoundIndex = u32;
@@ -1425,8 +1499,62 @@ pub mod pallet {
 		),
 	}
 
+	/// Migration to replace the automatic ExitQueue with a manual exits API.
+	/// This migration may be run more than once without any risk.
+	/// Returns (reads, writes)
+	/// TODO: unit test
+	pub fn remove_exit_queue_migration<T: Config>() -> (u64, u64) {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		let exit_queue = <ExitQueue2<T>>::take();
+		reads += 1u64;
+		let mut delegator_exits: BTreeMap<T::AccountId, RoundIndex> = BTreeMap::new();
+		let mut delegation_revocations: BTreeMap<T::AccountId, (T::AccountId, RoundIndex)> =
+			BTreeMap::new();
+		// migration only necessary if exit_queue is non-empty
+		if exit_queue.is_non_empty() {
+			for (delegator, is_revocation, when) in exit_queue.nominator_schedule {
+				if let Some(revoking_candidate) = is_revocation {
+					delegation_revocations.insert(delegator, (revoking_candidate, when));
+				} else {
+					delegator_exits.insert(delegator, when);
+				}
+			}
+		}
+		// execute candidate migration
+		for (candidate_id, collator_state) in <CollatorState2<T>>::drain() {
+			let candidate_state: CollatorCandidate<T::AccountId, BalanceOf<T>> =
+				collator_state.into();
+			<CandidateState<T>>::insert(candidate_id, candidate_state);
+			reads += 1u64;
+			writes += 1u64;
+		}
+		// execute delegator migration
+		for (delegator_id, nominator_state) in <NominatorState2<T>>::drain() {
+			let mut delegator_state =
+				migrate_nominator_to_delegator_state::<T>(delegator_id.clone(), nominator_state);
+			// add exit if it exists
+			if let Some(when) = delegator_exits.get(&delegator_id) {
+				delegator_state.set_leaving(*when);
+			}
+			// add revocation if exists
+			if let Some((candidate, when)) = delegation_revocations.get(&delegator_id) {
+				delegator_state.hotfix_set_revoke::<T>(candidate.clone(), *when);
+			}
+			<DelegatorState<T>>::insert(delegator_id, delegator_state);
+			reads += 1u64;
+			writes += 1u64;
+		}
+		(reads, writes)
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		// TODO: ExitQueue2 --> individual storage items
+		fn on_runtime_upgrade() -> Weight {
+			let (reads, writes) = remove_exit_queue_migration::<T>();
+			let db_weight = T::DbWeight::get();
+			db_weight.reads(reads) + db_weight.writes(writes) + 10000 // TODO: do 5% of block fullness or maybe more
+		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {

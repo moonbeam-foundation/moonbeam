@@ -407,7 +407,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_candidates(collator_candidate_count);
+		let call =
+			parachain_staking::Call::<Runtime>::schedule_leave_candidates(collator_candidate_count);
 
 		// Return call information
 		Ok((Some(origin).into(), call))

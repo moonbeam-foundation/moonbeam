@@ -286,7 +286,7 @@ pub(crate) fn assert_event_emitted(event: pallet::Event<Test>) {
 			return;
 		}
 	}
-	println!("Event {:?} was not found in events:", events());
+	println!("Event {:?} was not found in events:", event);
 	println!("{:?}", events());
 	// panic
 	assert!(false);
