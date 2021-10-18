@@ -47,8 +47,8 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 pub enum Action {
-	Transfer = "transfer(address, u256, bytes[], u64)",
-	TransferMultiAsset = "transfer_multiasset(bytes[], u256, bytes[], u64)",
+	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 }
 
 /// This trait ensure we can convert AccountIds to CurrencyIds
@@ -75,10 +75,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		match &input.read_selector()? {
-			// Check for accessor methods first. These return results immediately
+		match selector {
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferMultiAsset => Self::transfer_multiasset(input, target_gas, context),
 		}

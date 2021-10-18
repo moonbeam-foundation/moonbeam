@@ -173,6 +173,10 @@ pub struct RunCmd {
 	#[structopt(long, default_value = "300")]
 	pub ethapi_trace_cache_duration: u64,
 
+	/// Size of the LRU cache for block data and their transaction statuses.
+	#[structopt(long, default_value = "3000")]
+	pub eth_log_block_cache: usize,
+
 	/// Maximum number of logs in a query.
 	#[structopt(long, default_value = "10000")]
 	pub max_past_logs: u32,

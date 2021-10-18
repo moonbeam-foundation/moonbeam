@@ -21,7 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, ReferendumInfo, Vote};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
@@ -83,13 +83,9 @@ where
 	) -> Result<PrecompileOutput, ExitError> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		// Parse the function selector
-		// These are the four-byte function selectors calculated from the DemocracyInterface.sol
-		// according to the solidity specification
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		match &input.read_selector()? {
+		match selector {
 			// Storage Accessors
 			Action::PublicPropCount => Self::public_prop_count(target_gas),
 			Action::DepositOf => Self::deposit_of(input, target_gas),

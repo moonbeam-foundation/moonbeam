@@ -395,13 +395,13 @@ impl TransactionConverters {
 	}
 }
 
-impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
+impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 	for TransactionConverters
 {
 	fn convert_transaction(
 		&self,
 		transaction: ethereum_primitives::TransactionV0,
-	) -> moonbeam_core_primitives::UncheckedExtrinsic {
+	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
@@ -527,18 +527,19 @@ where
 			};
 
 			let deps = rpc::FullDeps {
-				client: client.clone(),
-				pool: pool.clone(),
-				graph: pool.pool().clone(),
-				deny_unsafe,
-				is_authority: collator,
-				network: network.clone(),
-				filter_pool: filter_pool.clone(),
-				ethapi_cmd: ethapi_cmd.clone(),
-				command_sink: None,
-				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
+				client: client.clone(),
+				command_sink: None,
+				deny_unsafe,
+				ethapi_cmd: ethapi_cmd.clone(),
+				eth_log_block_cache: rpc_config.eth_log_block_cache,
+				filter_pool: filter_pool.clone(),
+				frontier_backend: frontier_backend.clone(),
+				graph: pool.pool().clone(),
+				pool: pool.clone(),
+				is_authority: collator,
 				max_past_logs,
+				network: network.clone(),
 				transaction_converter,
 			};
 			#[allow(unused_mut)]
@@ -872,18 +873,19 @@ where
 			};
 
 			let deps = rpc::FullDeps {
-				client: client.clone(),
-				pool: pool.clone(),
-				graph: pool.pool().clone(),
-				deny_unsafe,
-				is_authority: collator,
-				network: network.clone(),
-				filter_pool: filter_pool.clone(),
-				ethapi_cmd: ethapi_cmd.clone(),
-				command_sink: command_sink.clone(),
-				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
+				client: client.clone(),
+				command_sink: command_sink.clone(),
+				deny_unsafe,
+				ethapi_cmd: ethapi_cmd.clone(),
+				eth_log_block_cache: rpc_config.eth_log_block_cache,
+				filter_pool: filter_pool.clone(),
+				frontier_backend: frontier_backend.clone(),
+				graph: pool.pool().clone(),
+				pool: pool.clone(),
+				is_authority: collator,
 				max_past_logs,
+				network: network.clone(),
 				transaction_converter,
 			};
 			#[allow(unused_mut)]

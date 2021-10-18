@@ -101,7 +101,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
-							let _ = match &ext.function {
+							let _ = match &ext.0.function {
 								Call::Ethereum(transact(t)) => {
 									if t == transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
@@ -141,7 +141,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
-							match &ext.function {
+							match &ext.0.function {
 								Call::Ethereum(transact(transaction)) => {
 									let eth_extrinsic_hash =
 										H256::from_slice(Keccak256::digest(&rlp::encode(transaction)).as_slice());
@@ -176,14 +176,14 @@ macro_rules! impl_runtime_apis_plus_common {
 					TxPoolResponse {
 						ready: xts_ready
 							.into_iter()
-							.filter_map(|xt| match xt.function {
+							.filter_map(|xt| match xt.0.function {
 								Call::Ethereum(transact(t)) => Some(t),
 								_ => None,
 							})
 							.collect(),
 						future: xts_future
 							.into_iter()
-							.filter_map(|xt| match xt.function {
+							.filter_map(|xt| match xt.0.function {
 								Call::Ethereum(transact(t)) => Some(t),
 								_ => None,
 							})
@@ -311,7 +311,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn extrinsic_filter(
 					xts: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Vec<EthereumTransaction> {
-					xts.into_iter().filter_map(|xt| match xt.function {
+					xts.into_iter().filter_map(|xt| match xt.0.function {
 						Call::Ethereum(transact(t)) => Some(t),
 						_ => None
 					}).collect::<Vec<EthereumTransaction>>()

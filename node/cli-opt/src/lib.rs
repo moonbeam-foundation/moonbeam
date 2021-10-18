@@ -74,5 +74,6 @@ pub struct RpcConfig {
 	pub ethapi_max_permits: u32,
 	pub ethapi_trace_max_count: u32,
 	pub ethapi_trace_cache_duration: u64,
+	pub eth_log_block_cache: usize,
 	pub max_past_logs: u32,
 }
