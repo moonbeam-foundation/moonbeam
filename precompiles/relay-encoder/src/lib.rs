@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to encode relay stake calls via the EVM
+//! Precompile to encode relay staking calls via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
