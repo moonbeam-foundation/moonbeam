@@ -164,7 +164,7 @@ pub mod pallet {
 
 	/// Convey relevant information describing if a nominator was added to the top or bottom
 	/// Nominations added to the top yield a new total
-	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum NominatorAdded<B> {
 		AddedToTop { new_total: B },
 		AddedToBottom,

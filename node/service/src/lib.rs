@@ -391,13 +391,13 @@ impl TransactionConverters {
 	}
 }
 
-impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
+impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 	for TransactionConverters
 {
 	fn convert_transaction(
 		&self,
 		transaction: ethereum_primitives::TransactionV0,
-	) -> moonbeam_core_primitives::UncheckedExtrinsic {
+	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
