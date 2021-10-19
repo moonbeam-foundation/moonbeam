@@ -34,7 +34,7 @@ use sc_service::{
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{marker::PhantomData, sync::Arc};
+use std::{marker::PhantomData, sync::Arc, path::PathBuf};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -86,17 +86,6 @@ where
 			other:
 				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
-
-		let system_info = query_system_info();
-		dbg!(system_info);
-
-		let partition_info = query_partition_info(
-			&cmd.shared_params
-				.base_path
-				.as_ref()
-				.expect("base_path is overridden with working-dir; qed"),
-		);
-		dbg!(partition_info);
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
@@ -235,8 +224,6 @@ where
 			config,
 			telemetry: None,
 		})?;
-
-		log::info!("Perf-test Service Ready");
 
 		network_starter.start_network();
 
@@ -434,7 +421,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(&self, config: Configuration) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, path: &PathBuf, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -461,6 +448,12 @@ impl PerfCmd {
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
 			all_results.append(&mut results);
 		}
+
+		let system_info = query_system_info();
+		dbg!(system_info);
+
+		let partition_info = query_partition_info(path);
+		dbg!(partition_info);
 
 		let table = all_results.with_title();
 		print_stdout(table).expect("failed to print results");
