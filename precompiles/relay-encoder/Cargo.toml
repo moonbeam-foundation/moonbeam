@@ -12,7 +12,7 @@ rustc-hex = { version = "2.0.1", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
 
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
@@ -27,7 +27,7 @@ sp-io = { git = "https://github.com/purestake/substrate", default-features = fal
 sha3 = "0.9"
 pallet-balances = { git="https://github.com/purestake/substrate", branch="moonbeam-polkadot-v0.9.10" }
 pallet-timestamp = { git="https://github.com/purestake/substrate", branch="moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
 derive_more = "0.99"
 serde = "1.0.100"
 hex-literal = "0.3.3"

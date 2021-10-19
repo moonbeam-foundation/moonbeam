@@ -39,6 +39,7 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use cumulus_primitives_core::InboundDownwardMessage;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
@@ -785,6 +786,9 @@ where
 		);
 
 		let client_set_aside_for_cidp = client.clone();
+		let (xcm_sender, xcm_receiver) =
+			futures::channel::mpsc::channel::<InboundDownwardMessage>(100);
+		let xcm_receiver = Arc::new(Mutex::new(xcm_receiver));
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -796,20 +800,34 @@ where
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
+				// This is where we read from the async channel and collect Downward XCM into a Vec
+				// Reminder, the second parameter here is a tuple where you can add extra info
+				// as necessary.
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
 					let author_id = author_id.clone();
+					let channel = xcm_receiver.clone();
 
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+						let downward_messages: Vec<InboundDownwardMessage> = Vec::new();
+
+						// Here I'm just draining the stream into a Vec. I guess there is some method
+						// that might help us with this but for now let's keep it simple.
+						// https://docs.rust-embedded.org/rust-sysfs-gpio/futures/stream/trait.Stream.html#method.collect
+						while let Some(xcm) = channel.next().await {
+							downward_messages.push(xcm);
+						}
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							downward_messages,
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
@@ -917,4 +935,45 @@ where
 
 	network_starter.start_network();
 	Ok(task_manager)
+}
+
+use futures::channel::mpsc::{Receiver, Sender};
+use std::collections::VecDeque;
+pub struct XcmQueue {
+	receiver: Receiver<InboundDownwardMessage>,
+	queue: Mutex<VecDeque<InboundDownwardMessage>>,
+}
+
+impl XcmQueue {
+	/// Create a new instance of the worker and get an async mpsc Sender that can
+	/// be used to queue up messages (probably passed to the RPC layer)
+	fn new() -> (Self, Sender<InboundDownwardMessage>) {
+		let (tx, rx) = futures::channel::mpsc::channel(100);
+		let q = Self {
+			receiver: rx,
+			queue: VecDeque::new(),
+		};
+
+		(q, tx)
+	}
+
+	/// Get all of the messages queued up since the last read.
+	fn get_queued_messages(&mut self) -> Vec<InboundDownwardMessage> {
+		self.queue
+			.lock()
+			.expect("can acquire lock while getting queued messaged")
+			.drain(..)
+			.collect()
+	}
+
+	/// Start the
+	async fn start_worker(&self) {
+		while let Some(xcm) = self.receiver.next().await {
+			self.queue
+				.lock()
+				.expect("can acquire lock while adding message to queue")
+				.push_back(xcm)
+			// Uhhh, I assume it unlocks here?
+		}
+	}
 }

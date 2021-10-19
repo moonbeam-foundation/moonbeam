@@ -17,7 +17,7 @@ sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
@@ -30,8 +30,8 @@ parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", 
 relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
@@ -95,15 +95,15 @@ moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default
 moonbeam-relay-encoder = {path = "../relay-encoder", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
 
-cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
 # xcmp 
 xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
@@ -120,8 +120,8 @@ frame-system-benchmarking = { git = "https://github.com/purestake/substrate", de
 frame-try-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10", optional = true }
 
 [dev-dependencies]
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-mock-xcm" }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
 rlp = "0.5"
 hex = "0.4"

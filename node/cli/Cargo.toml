@@ -18,10 +18,10 @@ sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonb
 frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
 try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", optional = true }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
 
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
 polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
