@@ -142,11 +142,6 @@ where
 
 		let now = Instant::now();
 		context.create_block(true);
-		results.push(TestResults::new(
-			"storage bloat contract creation",
-			now.elapsed(),
-			std::time::Duration::from_micros(19387),
-		));
 
 		// fill our storage contract with bloat
 		let now = Instant::now();

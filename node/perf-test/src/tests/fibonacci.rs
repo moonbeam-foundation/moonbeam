@@ -92,11 +92,6 @@ where
 				Some(alice_nonce),
 			)
 			.expect("EVM create failed while estimating contract address");
-		results.push(TestResults::new(
-			"evm_create fibonacci",
-			now.elapsed(),
-			std::time::Duration::from_micros(790),
-		));
 
 		let fibonacci_address = create_info.value;
 		log::debug!(
@@ -119,11 +114,6 @@ where
 
 		let now = Instant::now();
 		context.create_block(true);
-		results.push(TestResults::new(
-			"create_fibonacci",
-			now.elapsed(),
-			std::time::Duration::from_micros(22780),
-		));
 
 		// TODO: verify txn results
 
