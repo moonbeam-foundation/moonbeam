@@ -123,12 +123,6 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
-	}
-}
-
 impl From<TestAccount> for H160 {
 	fn from(value: TestAccount) -> H160 {
 		match value {
@@ -229,7 +223,6 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	R: xcm_transactor::Config,
 	R: pallet_evm::Config,
-	R::AccountId: From<H160>,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	R::Call: From<xcm_transactor::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
