@@ -980,9 +980,15 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	// To be changed probably with a value we feel comfortable
-	pub UnitWeightCost: Weight = 200_000_000;
+	/// The amount of weight an XCM operation takes. This is safe overestimate.
+	pub UnitWeightCost: Weight = 1_000_000_000;
+	/// Maximum number of instructions in a single XCM fragment. A sanity check against
+	/// weight caculations getting too crazy.
+	pub MaxInstruction: u32 = 100;
 }
+
+/// Xcm Weigher shared between multiple Xcm-related configs.
+pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, InstructionsLimit>;
 
 // Allow paid executions
 pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
@@ -999,7 +1005,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = XcmWeigher;
 	// We use two traders
 	// When we receive the self-reserve asset, we use pallet-transaction-payment
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
@@ -1046,7 +1052,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = ();
 	type XcmReserveTransferFilter = Everything;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = XcmWeigher;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
@@ -1259,7 +1265,7 @@ impl orml_xtokens::Config for Runtime {
 		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = XcmWeigher;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
