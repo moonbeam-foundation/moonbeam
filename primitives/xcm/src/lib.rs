@@ -112,8 +112,9 @@ where
 }
 
 // We need to know how to charge for incoming assets
-// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
-// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
+// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
+// charge for a given asset
+// This trader takes the first assets being received and tries to charge fees for that asset
 pub struct FirstAssetTrader<
 	AssetId: From<AssetType> + Clone,
 	AssetType: From<MultiLocation> + Clone,
@@ -151,6 +152,8 @@ impl<
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
 				let asset_id: AssetId = AssetId::from(asset_type);
+				// If we know how to charge of this asset, we go ahead an charge. Else, return
+				// an error
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
 					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
 					let required = MultiAsset {
@@ -195,6 +198,7 @@ impl<
 		}
 	}
 
+	// Refund weight. We will refund in whatever asset is stored in self.
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
@@ -235,18 +239,22 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
+		// Try the native trader first. If succesful, return
 		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
 			return Ok(assets);
 		}
 
+		// Try the alternative trader second. If succesful, return
 		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
 			return Ok(assets);
 		}
 
+		// If the traders were not able to charge for weight, return
 		Err(XcmError::TooExpensive)
 	}
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		let native = self.native_trader.refund_weight(weight);
+		// Try the native trader first. If succesful, return
 		match native.clone() {
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(amount),
@@ -258,7 +266,7 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 			}
 			_ => {}
 		}
-
+		// Try the alternative trader second. If succesful, return
 		let other = self.other_trader.refund_weight(weight);
 		match other {
 			Some(MultiAsset {
