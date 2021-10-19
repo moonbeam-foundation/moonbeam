@@ -69,6 +69,12 @@ impl From<&str> for Bytes {
 	}
 }
 
+impl Into<Vec<u8>> for Bytes {
+	fn into(self: Self) -> Vec<u8> {
+		self.0
+	}
+}
+
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]
@@ -81,6 +87,29 @@ impl<'a> EvmDataReader<'a> {
 	/// Create a new input parser.
 	pub fn new(input: &'a [u8]) -> Self {
 		Self { input, cursor: 0 }
+	}
+
+	/// Create a new input parser from a selector-initial input.
+	pub fn new_with_selector<T>(input: &'a [u8]) -> EvmResult<(Self, T)>
+	where
+		T: num_enum::TryFromPrimitive<Primitive = u32>,
+	{
+		if input.len() < 4 {
+			return Err(error("tried to parse selector out of bounds"));
+		}
+
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(&input[0..4]);
+		let selector = T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
+			log::trace!(
+				target: "precompile-utils",
+				"Failed to match function selector for {}",
+				type_name::<T>()
+			);
+			error("unknown selector")
+		})?;
+
+		Ok((Self::new(&input[4..]), selector))
 	}
 
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
@@ -111,25 +140,34 @@ impl<'a> EvmDataReader<'a> {
 		Ok(data)
 	}
 
-	/// Parse (4 bytes) selector.
-	/// Returns an error if trying to parse out of bounds.
-	pub fn read_selector<T>(&mut self) -> EvmResult<T>
-	where
-		T: num_enum::TryFromPrimitive<Primitive = u32>,
-	{
-		let mut buffer = [0u8; 4];
-		buffer.copy_from_slice(
-			self.read_raw_bytes(4)
-				.map_err(|_| error("tried to parse selector out of bounds"))?,
-		);
-		T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
-			log::trace!(
-				target: "precompile-utils",
-				"Failed to match function selector for {}",
-				type_name::<T>()
-			);
-			error("unknown selector")
+	/// Reads a pointer, returning a reader targetting the pointed location.
+	pub fn read_pointer(&mut self) -> EvmResult<Self> {
+		let offset: usize = self
+			.read::<U256>()
+			.map_err(|_| error("tried to parse array offset out of bounds"))?
+			.try_into()
+			.map_err(|_| error("array offset is too large"))?;
+
+		if offset >= self.input.len() {
+			return Err(error("pointer points out of bounds"));
+		}
+
+		Ok(Self {
+			input: &self.input[offset..],
+			cursor: 0,
 		})
+	}
+
+	/// Read remaining bytes
+	pub fn read_till_end(&mut self) -> EvmResult<&[u8]> {
+		let range = self.move_cursor(self.input.len() - self.cursor)?;
+
+		let data = self
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse raw bytes out of bounds"))?;
+
+		Ok(data)
 	}
 
 	/// Move the reading cursor with provided length, and return a range from the previous cursor
@@ -158,72 +196,104 @@ impl<'a> EvmDataReader<'a> {
 pub struct EvmDataWriter {
 	pub(crate) data: Vec<u8>,
 	offset_data: Vec<OffsetDatum>,
+	selector: Option<u32>,
 }
 
 #[derive(Clone, Debug)]
 struct OffsetDatum {
+	// Offset location in the container data.
 	offset_position: usize,
+	// Data pointed by the offset that must be inserted at the end of container data.
 	data: Vec<u8>,
-	inner_offset_data: Vec<OffsetDatum>,
+	// Inside of arrays, the offset is not from the start of array data (length), but from the start
+	// of the item. This shift allow to correct this.
+	offset_shift: usize,
 }
 
 impl EvmDataWriter {
-	/// Creates a new empty output builder.
+	/// Creates a new empty output builder (without selector).
 	pub fn new() -> Self {
 		Self {
 			data: vec![],
 			offset_data: vec![],
+			selector: None,
+		}
+	}
+
+	/// Creates a new empty output builder with provided selector.
+	/// Selector will only be appended before the data when calling
+	/// `build` to not mess with the offsets.
+	pub fn new_with_selector(selector: impl Into<u32>) -> Self {
+		Self {
+			data: vec![],
+			offset_data: vec![],
+			selector: Some(selector.into()),
 		}
 	}
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
-		Self::compute_offsets(&mut self.data, self.offset_data);
+		Self::bake_offsets(&mut self.data, self.offset_data);
 
-		self.data
+		if let Some(selector) = self.selector {
+			let mut output = selector.to_be_bytes().to_vec();
+			output.append(&mut self.data);
+			output
+		} else {
+			self.data
+		}
 	}
 
-	/// Build the array into data.
-	fn compute_offsets(output: &mut Vec<u8>, arrays: Vec<OffsetDatum>) {
-		for mut array in arrays {
-			let offset_position = array.offset_position;
+	/// Add offseted data at the end of this writer's data, updating the offsets.
+	fn bake_offsets(output: &mut Vec<u8>, offsets: Vec<OffsetDatum>) {
+		for mut offset_datum in offsets {
+			let offset_position = offset_datum.offset_position;
 			let offset_position_end = offset_position + 32;
 
-			// The offset is the distance between the start of the offset location and the
-			// start of the array length.
-			let free_space_offset = output.len() - offset_position;
+			// The offset is the distance between the start of the data and the
+			// start of the pointed data (start of a struct, length of an array).
+			// Offsets in inner data are relative to the start of their respective "container".
+			// However in arrays the "container" is actually the item itself instead of the whole
+			// array, which is corrected by `offset_shift`.
+			let free_space_offset = output.len() - offset_datum.offset_shift;
 
 			// Override dummy offset to the offset it will be in the final output.
 			U256::from(free_space_offset)
 				.to_big_endian(&mut output[offset_position..offset_position_end]);
 
-			// Build inner arrays if any.
-			Self::compute_offsets(&mut array.data, array.inner_offset_data);
-
 			// Append this data at the end of the current output.
-			output.append(&mut array.data);
+			output.append(&mut offset_datum.data);
 		}
 	}
 
 	/// Write arbitrary bytes.
 	/// Doesn't handle any alignement checks, prefer using `write` instead if possible.
-	pub fn write_raw_bytes(mut self, value: &[u8]) -> Self {
+	fn write_raw_bytes(mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
 		self
-	}
-
-	/// Write a selector.
-	/// The provided type must impl `Into<u32>`.
-	/// Doesn't handle any alignement checks, should be used only when adding the initial
-	/// selector of a Solidity call data.
-	pub fn write_selector<T: Into<u32>>(self, value: T) -> Self {
-		self.write_raw_bytes(&value.into().to_be_bytes())
 	}
 
 	/// Write data of requested type.
 	pub fn write<T: EvmData>(mut self, value: T) -> Self {
 		T::write(&mut self, value);
 		self
+	}
+
+	/// Writes a pointer to given data.
+	/// The data will be appended when calling `build`.
+	/// Initially write a dummy value as offset in this writer's data, which will be replaced by
+	/// the correct offset once the pointed data is appended.
+	///
+	/// Takes `&mut self` since its goal is to be used inside `EvmData` impl and not in chains.
+	pub fn write_pointer(&mut self, data: Vec<u8>) {
+		let offset_position = self.data.len();
+		H256::write(self, H256::repeat_byte(0xff));
+
+		self.offset_data.push(OffsetDatum {
+			offset_position,
+			data,
+			offset_shift: 0,
+		});
 	}
 }
 
@@ -363,18 +433,9 @@ impl EvmData for bool {
 
 impl<T: EvmData> EvmData for Vec<T> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let offset_reference = reader.cursor;
-		let array_offset: usize = reader
-			.read::<U256>()
-			.map_err(|_| error("tried to parse array offset out of bounds"))?
-			.try_into()
-			.map_err(|_| error("array offset is too large"))?;
+		let mut inner_reader = reader.read_pointer()?;
 
-		// We temporarily move the cursor to the offset, we'll set it back afterward.
-		let original_cursor = reader.cursor;
-		reader.cursor = offset_reference + array_offset;
-
-		let array_size: usize = reader
+		let array_size: usize = inner_reader
 			.read::<U256>()
 			.map_err(|_| error("tried to parse array length out of bounds"))?
 			.try_into()
@@ -382,91 +443,76 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 		let mut array = vec![];
 
-		for _ in 0..array_size {
-			array.push(reader.read()?);
-		}
+		let mut item_reader = EvmDataReader {
+			input: inner_reader
+				.input
+				.get(32..)
+				.ok_or_else(|| error("try to read array items out of bound"))?,
+			cursor: 0,
+		};
 
-		// We set back the cursor to its original location.
-		reader.cursor = original_cursor;
+		for _ in 0..array_size {
+			array.push(item_reader.read()?);
+		}
 
 		Ok(array)
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let offset_position = writer.data.len();
-		H256::write(writer, H256::repeat_byte(0xff));
-		// 0xff = When debugging it makes spoting offset values easier.
+		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
 
-		let mut inner_writer = EvmDataWriter::new();
-
-		// Write length.
-		inner_writer = inner_writer.write(U256::from(value.len()));
-
-		// Write elements of array.
 		for inner in value {
-			inner_writer = inner_writer.write(inner);
+			// Any offset in items are relative to the start of the item instead of the
+			// start of the array. However if there is offseted data it must but appended after
+			// all items (offsets) are written. We thus need to rely on `compute_offsets` to do
+			// that, and must store a "shift" to correct the offsets.
+			let shift = inner_writer.data.len();
+			let item_writer = EvmDataWriter::new().write(inner);
+
+			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
+			for mut offset_datum in item_writer.offset_data {
+				offset_datum.offset_shift += 32;
+				offset_datum.offset_position += shift;
+				inner_writer.offset_data.push(offset_datum);
+			}
 		}
 
-		let array = OffsetDatum {
-			offset_position,
-			data: inner_writer.data,
-			inner_offset_data: inner_writer.offset_data,
-		};
-
-		writer.offset_data.push(array);
+		writer.write_pointer(inner_writer.build());
 	}
 }
 
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let offset_reference = reader.cursor;
-		let array_offset: usize = reader
-			.read::<U256>()
-			.map_err(|_| error("tried to parse array offset out of bounds"))?
-			.try_into()
-			.map_err(|_| error("array offset is too large"))?;
-
-		// We temporarily move the cursor to the offset, we'll set it back afterward.
-		let original_cursor = reader.cursor;
-		reader.cursor = offset_reference + array_offset;
+		let mut inner_reader = reader.read_pointer()?;
 
 		// Read bytes/string size.
-		let array_size: usize = reader
+		let array_size: usize = inner_reader
 			.read::<U256>()
 			.map_err(|_| error("tried to parse bytes/string length out of bounds"))?
 			.try_into()
 			.map_err(|_| error("bytes/string length is too large"))?;
 
-		let range = reader.move_cursor(array_size)?;
+		// Get valid range over the bytes data.
+		let range = inner_reader.move_cursor(array_size)?;
 
-		let data = reader
+		let data = inner_reader
 			.input
 			.get(range)
 			.ok_or_else(|| error("tried to parse bytes/string out of bounds"))?;
 
 		let bytes = Self(data.to_owned());
 
-		// We set back the cursor to its original location.
-		reader.cursor = original_cursor;
-
 		Ok(bytes)
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let offset_position = writer.data.len();
-		H256::write(writer, H256::repeat_byte(0xff));
-		// 0xff = When debugging it makes spoting offset values easier.
-
-		let mut inner_writer = EvmDataWriter::new();
-
-		// Write length.
-		inner_writer = inner_writer.write(value.0.len() as u64);
+		let length = value.0.len();
 
 		// Pad the data.
 		// Leave it as is if a multiple of 32, otherwise pad to next
 		// multiple or 32.
-		let chunks = value.0.len() / 32;
-		let padded_size = match value.0.len() % 32 {
+		let chunks = length / 32;
+		let padded_size = match length % 32 {
 			0 => chunks * 32,
 			_ => (chunks + 1) * 32,
 		};
@@ -474,15 +520,11 @@ impl EvmData for Bytes {
 		let mut value = value.0.to_vec();
 		value.resize(padded_size, 0);
 
-		// Write bytes data.
-		inner_writer = inner_writer.write_raw_bytes(&value);
-
-		let array = OffsetDatum {
-			offset_position,
-			data: inner_writer.data,
-			inner_offset_data: inner_writer.offset_data,
-		};
-
-		writer.offset_data.push(array);
+		writer.write_pointer(
+			EvmDataWriter::new()
+				.write(U256::from(length))
+				.write_raw_bytes(&value)
+				.build(),
+		);
 	}
 }

@@ -95,6 +95,8 @@ impl frame_system::Config for Test {
 pub struct MockMigrationManager<'test> {
 	name_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> &'static str>>,
 	migrate_fn_callbacks: Vec<Box<dyn 'test + FnMut(Weight) -> Weight>>,
+	pre_upgrade_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> Result<(), &'static str>>>,
+	post_upgrade_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> Result<(), &'static str>>>,
 }
 
 impl Default for MockMigrationManager<'_> {
@@ -102,6 +104,8 @@ impl Default for MockMigrationManager<'_> {
 		Self {
 			name_fn_callbacks: Default::default(),
 			migrate_fn_callbacks: Default::default(),
+			pre_upgrade_fn_callbacks: Default::default(),
+			post_upgrade_fn_callbacks: Default::default(),
 		}
 	}
 }
@@ -114,6 +118,28 @@ impl<'test> MockMigrationManager<'test> {
 	{
 		self.name_fn_callbacks.push(Box::new(name_fn));
 		self.migrate_fn_callbacks.push(Box::new(migrate_fn));
+		self.pre_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
+		self.post_upgrade_fn_callbacks.push(Box::new(|| Ok(())));
+	}
+	#[cfg(feature = "try-runtime")]
+	pub fn register_callback_with_try_fns<FN, FM, FT1, FT2>(
+		&mut self,
+		name_fn: FN,
+		migrate_fn: FM,
+		pre_upgrade_fn: FT1,
+		post_upgrade_fn: FT2,
+	) where
+		FN: 'test + FnMut() -> &'static str,
+		FM: 'test + FnMut(Weight) -> Weight,
+		FT1: 'test + FnMut() -> Result<(), &'static str>,
+		// no two closures, even if identical, have the same type
+		FT2: 'test + FnMut() -> Result<(), &'static str>,
+	{
+		self.name_fn_callbacks.push(Box::new(name_fn));
+		self.migrate_fn_callbacks.push(Box::new(migrate_fn));
+		self.pre_upgrade_fn_callbacks.push(Box::new(pre_upgrade_fn));
+		self.post_upgrade_fn_callbacks
+			.push(Box::new(post_upgrade_fn));
 	}
 
 	pub(crate) fn invoke_name_fn(&mut self, index: usize) -> &'static str {
@@ -122,6 +148,16 @@ impl<'test> MockMigrationManager<'test> {
 
 	pub(crate) fn invoke_migrate_fn(&mut self, index: usize, available_weight: Weight) -> Weight {
 		self.migrate_fn_callbacks[index](available_weight)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	pub(crate) fn invoke_pre_upgrade(&mut self, index: usize) -> Result<(), &'static str> {
+		self.pre_upgrade_fn_callbacks[index]()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	pub(crate) fn invoke_post_upgrade(&mut self, index: usize) -> Result<(), &'static str> {
+		self.post_upgrade_fn_callbacks[index]()
 	}
 
 	fn generate_migrations_list(&self) -> Vec<Box<dyn Migration>> {
@@ -174,6 +210,22 @@ impl Migration for MockMigration {
 		let mut result: Weight = 0u64.into();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_migrate_fn(self.index, available_weight);
+		});
+		result
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		let mut result: Result<(), &'static str> = Err("closure didn't set result");
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			result = mgr.invoke_pre_upgrade(self.index);
+		});
+		result
+	}
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		let mut result: Result<(), &'static str> = Err("closure didn't set result");
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			result = mgr.invoke_post_upgrade(self.index);
 		});
 		result
 	}
@@ -242,6 +294,15 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 			}
 		})
 		.collect::<Vec<_>>()
+}
+
+#[cfg(feature = "try-runtime")]
+pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
+	Migrations::pre_upgrade().expect("pre-upgrade hook succeeds");
+	let weight = Migrations::on_runtime_upgrade();
+	Migrations::post_upgrade().expect("post-upgrade hook succeeds");
+
+	weight
 }
 
 pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {

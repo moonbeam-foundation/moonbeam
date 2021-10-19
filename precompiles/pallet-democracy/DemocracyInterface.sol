@@ -16,6 +16,7 @@ interface Democracy {
 
     /**
      * Get The total number of public proposals past and present
+     * Selector: 56fdf547
      *
      * @return The total number of public proposals past and present
      */
@@ -23,6 +24,7 @@ interface Democracy {
 
     /**
      * Get details about all public porposals.
+     * Selector:
      * @return (prop index, proposal hash, proposer)
      * TODO This is supposed to be a vec. Let's save this one for later.
      */
@@ -37,6 +39,7 @@ interface Democracy {
 
     /**
      * Get the total amount locked behind a proposal.
+     * Selector: a30305e9
      *
      * @dev Unlike the similarly-named Rust function this one only returns the value, not the
      * complete list of backers.
@@ -47,12 +50,15 @@ interface Democracy {
 
     /**
      * Get the index of the lowest unbaked referendum
+     * Selector: 0388f282
+     *
      * @return The lowest referendum index representing an unbaked referendum.
      */
     function lowest_unbaked() external view returns (uint256);
 
     /**
      * Get the details about an ongoing referendum.
+     * Selector: 8b93d11a
      *
      * @dev This, along with `finished_referendum_info`, wraps the pallet's `referendum_info`
      * function. It is necessary to split it into two here because Solidity only has c-style enums.
@@ -81,6 +87,7 @@ interface Democracy {
 
     /**
      * Get the details about a finished referendum.
+     * Selector: b1fd383f
      *
      * @dev This, along with `ongoing_referendum_info`, wraps the pallet's `referendum_info`
      * function. It is necessary to split it into two here because Solidity only has c-style enums.
@@ -96,6 +103,7 @@ interface Democracy {
 
     /**
      * Make a new proposal
+     * Selector: 7824e7d1
      *
      * @param proposal_hash The hash of the proposal you are making
      * @param value The number of tokens to be locked behind this proposal.
@@ -104,6 +112,7 @@ interface Democracy {
 
     /**
      * Signal agreement with a proposal
+     * Selector: c7a76601
      *
      * @dev No amount is necessary here. Seconds are always for the same amount that the original
      * proposer locked. You may second multiple times.
@@ -118,6 +127,7 @@ interface Democracy {
 
     /**
      * Vote in a referendum.
+     * Selector: 3f3c21cc
      *
      * @param ref_index index of the referendum you want to vote in
      * @param aye `true` is a vote to enact the proposal; `false` is a vote to keep the status quo.
@@ -137,6 +147,7 @@ interface Democracy {
     ) external;
 
     /** Remove a vote for a referendum.
+     * Selector: 2042f50b
      *
      * @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.
      * @param ref_index The index of the referendum you are interested in
@@ -145,6 +156,7 @@ interface Democracy {
 
     /**
      * Delegate voting power to another account.
+     * Selector: 0185921e
      *
      * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
      * time appropriate for the conviction's lock period.
@@ -161,6 +173,7 @@ interface Democracy {
 
     /**
      * Undelegatehe voting power
+     * Selector: cb37b8ea
      *
      * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which
      * the delegation was issued has elapsed.
@@ -169,24 +182,29 @@ interface Democracy {
 
     /**
      * Unlock tokens that have an expired lock.
+     * Selector: 2f6c493c
      *
      * @param target The account whose tokens should be unlocked. This may be any account.
      */
     function unlock(address target) external;
-}
 
-// Function selector reference
-// {
-// "0185921e": "delegate(address,uint256,uint256)",
-// "a30305e9": "deposit_of(uint256)",
-// "b1fd383f": "finished_referendum_info(uint256)",
-// "0388f282": "lowest_unbaked()",
-// "8b93d11a": "ongoing_referendum_info(uint256)",
-// "7824e7d1": "propose(bytes32,uint256)",
-// "56fdf547": "public_prop_count()",
-// "2042f50b": "remove_vote(uint256)",
-// "c7a76601": "second(uint256,uint256)",
-// "3f3c21cc": "standard_vote(uint256,bool,uint256,uint256)",
-// "cb37b8ea": "un_delegate()",
-// "2f6c493c": "unlock(address)"
-// }
+    /**
+     * Register the preimage for an upcoming proposal. This doesn't require the proposal to be
+     * in the dispatch queue but does require a deposit, returned once enacted.
+     * Selector: 200881f5
+     *
+     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+     */
+    function note_preimage(bytes memory encoded_proposal) external;
+
+    /**
+     * Register the preimage for an upcoming proposal. This requires the proposal to be
+     * in the dispatch queue. No deposit is needed. When this call is successful, i.e.
+     * the preimage has not been uploaded before and matches some imminent proposal,
+     * no fee is paid.
+     * Selector: cf205f96
+     *
+     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+     */
+    function note_imminent_preimage(bytes memory encoded_proposal) external;
+}

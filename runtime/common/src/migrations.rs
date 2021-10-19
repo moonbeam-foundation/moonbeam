@@ -16,60 +16,54 @@
 
 //! # Migrations
 
-use frame_support::pallet_prelude::Get;
+use frame_support::{pallet_prelude::Get, traits::OnRuntimeUpgrade, weights::Weight};
+use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
-use sp_std::prelude::*;
+use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
-/*
- * These are left as examples.
-#[allow(non_camel_case_types)]
-pub struct MM_001_AuthorMappingAddDeposit;
-impl Migration for MM_001_AuthorMappingAddDeposit {
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
 	fn friendly_name(&self) -> &str {
-		"AuthorMappingAddDeposit"
+		"MM_Author_Mapping_TwoXToBlake"
 	}
+
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
+		TwoXToBlake::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		TwoXToBlake::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		TwoXToBlake::<T>::post_upgrade()
 	}
 }
 
-#[allow(non_camel_case_types)]
-pub struct MM_002_StakingFixTotalBalance;
-impl Migration for MM_002_StakingFixTotalBalance {
-	fn friendly_name(&self) -> &str {
-		"StakingFixTotalBalance"
-	}
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
-	}
-}
-
-#[allow(non_camel_case_types)]
-pub struct MM_003_StakingUnboundedCollatorNominations;
-impl Migration for MM_003_StakingUnboundedCollatorNominations {
-	fn friendly_name(&self) -> &str {
-		"StakingUnboundedCollatorNominations"
-	}
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		0u64.into()
-	}
-}
-*/
-
-pub struct CommonMigrations;
-impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
+pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Get<Vec<Box<dyn Migration>>> for CommonMigrations<Runtime>
+where
+	Runtime: pallet_author_mapping::Config,
+{
 	fn get() -> Vec<Box<dyn Migration>> {
+		let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
+			0: Default::default(),
+		};
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
+
 		vec![
-			/*
-			Box::new(MM_001_AuthorMappingAddDeposit),
-			Box::new(MM_002_StakingFixTotalBalance),
-			Box::new(MM_003_StakingUnboundedCollatorNominations),
-			*/
+			// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake)
 		]
 	}
 }

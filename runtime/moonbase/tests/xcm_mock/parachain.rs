@@ -451,7 +451,7 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Everything;
+	type XcmExecuteFilter = frame_support::traits::Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	// Do not allow teleports
 	type XcmTeleportFilter = Nothing;

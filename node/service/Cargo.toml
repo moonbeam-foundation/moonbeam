@@ -2,7 +2,7 @@
 name = 'moonbeam-service'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.12.3'
+version = '0.13.2'
 authors = ["PureStake"]
 edition = '2018'
 
@@ -165,7 +165,8 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"moonbeam-native",
-	"moonbeam-runtime/runtime-benchmarks"
+	"moonbeam-runtime/runtime-benchmarks",
+	"ethereum/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",

@@ -1,7 +1,11 @@
 import { ApiPromise } from "@polkadot/api";
 import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { GenericExtrinsic } from "@polkadot/types";
+import { AnyTuple } from "@polkadot/types/types";
+import { Event } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
+const debug = require("debug")("test:substrateEvents");
 
 // DEV LOCAL TESTING
 
@@ -59,12 +63,14 @@ export async function waitOneBlock(api: ApiPromise, numberOfBlocks: number = 1) 
   });
 }
 
-// TODO: use debug
+// Log relay/parachain new blocks and events
 export async function logEvents(api: ApiPromise, name: string) {
   api.derive.chain.subscribeNewHeads(async (header) => {
-    console.log(`--- ${name} BLOCK#${header.number}: author ${header.author}, hash ${header.hash}`);
+    debug(
+      `------------- ${name} BLOCK#${header.number}: author ${header.author}, hash ${header.hash}`
+    );
     (await api.query.system.events.at(header.hash)).forEach((e, i) => {
-      console.log(
+      debug(
         `${name} Event :`,
         i,
         header.hash.toHex(),
@@ -101,7 +107,10 @@ async function lookForExtrinsicAndEvents(api: ApiPromise, extrinsicHash: Uint8Ar
   return { events, extrinsic };
 }
 
-async function tryLookingForEvents(api: ApiPromise, extrinsicHash: Uint8Array) {
+async function tryLookingForEvents(
+  api: ApiPromise,
+  extrinsicHash: Uint8Array
+): Promise<{ extrinsic: GenericExtrinsic<AnyTuple>; events: Event[] }> {
   await waitOneBlock(api);
   let { extrinsic, events } = await lookForExtrinsicAndEvents(api, extrinsicHash);
   if (events.length > 0) {
@@ -121,7 +130,7 @@ export const createBlockWithExtrinsicParachain = async <
   api: ApiPromise,
   sender: AddressOrPair,
   polkadotCall: Call
-) => {
+): Promise<{ extrinsic: GenericExtrinsic<AnyTuple>; events: Event[] }> => {
   console.log("-------------- EXTRINSIC CALL -------------------------------");
   // This should return a Uint8Array
   const extrinsicHash = (await polkadotCall.signAndSend(sender)) as unknown as Uint8Array;

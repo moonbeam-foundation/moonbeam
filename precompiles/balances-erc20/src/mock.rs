@@ -19,10 +19,7 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
@@ -193,6 +190,26 @@ construct_runtime!(
 	}
 );
 
+/// ERC20 metadata for the native token.
+pub struct NativeErc20Metadata;
+
+impl Erc20Metadata for NativeErc20Metadata {
+	/// Returns the name of the token.
+	fn name() -> &'static str {
+		"Mock token"
+	}
+
+	/// Returns the symbol of the token.
+	fn symbol() -> &'static str {
+		"MOCK"
+	}
+
+	/// Returns the decimals places of the token.
+	fn decimals() -> u8 {
+		18
+	}
+}
+
 pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
@@ -212,9 +229,10 @@ where
 		context: &Context,
 	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<R>::execute(
-				input, target_gas, context,
-			)),
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
+				R,
+				NativeErc20Metadata,
+			>::execute(input, target_gas, context)),
 			_ => None,
 		}
 	}
@@ -256,23 +274,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-
-		System::set_block_number(System::block_number() + 1);
-
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
-}
-
-pub(crate) fn events() -> Vec<Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
 }
