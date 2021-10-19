@@ -83,7 +83,7 @@ fn test_transact_through_derivative_errors() {
 					100u64,
 					vec![0u8]
 				),
-				Error::<Test>::NotAllowed
+				Error::<Test>::AssetIsNotReserveInDestination
 			);
 		})
 }

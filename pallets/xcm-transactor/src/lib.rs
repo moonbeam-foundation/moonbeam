@@ -269,7 +269,7 @@ pub mod pallet {
 		/// Transact the call through the sovereign account in a destination chain,
 		/// 'fee_payer' pays for the 'fee'
 		///
-		/// Root callable only
+		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_sovereign(
 				&fee,
@@ -387,7 +387,7 @@ pub mod pallet {
 
 		/// Get the transfer kind.
 		///
-		/// Returns `Err` if `asset` and `dest` combination doesn't make sense,
+		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
 		/// else returns `dest`, parachain or relay chain location.
 		fn transfer_kind(
 			asset: &MultiAsset,
