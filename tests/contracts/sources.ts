@@ -741,7 +741,7 @@ export const contractSources: { [key: string]: string } = {
         function transact_through_derivative(
             uint8 transactor,
             uint16 index,
-            Multilocation memory fee_asset,<
+            Multilocation memory fee_asset,
             uint256 amount,
             uint64 weight,
             bytes memory inner_call

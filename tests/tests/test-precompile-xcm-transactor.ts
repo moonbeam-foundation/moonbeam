@@ -50,7 +50,7 @@ interface SourceLocation {
 }
 const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } };
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
   let sudoAccount, iFace;
   before("Setup genesis account and relay accounts", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -90,7 +90,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
   });
 
-  it("allows to issue transfer xtokens", async function () {
+  it("allows to issue transfer xcm transactor", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
 
