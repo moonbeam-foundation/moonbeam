@@ -32,12 +32,11 @@ pub struct PerfCmd {
 	#[structopt(
 		long = "working-dir",
 		help = "Used for temp blockchain data. Should exist on desired test hardware.",
-		required = true,
+		required = true
 	)]
 	pub working_dir: std::path::PathBuf,
 
 	// TODO: these values were borrowed from the benchmark command. are they needed?
-
 	/// The execution strategy that should be used for perf tests
 	#[structopt(
 		long = "execution",

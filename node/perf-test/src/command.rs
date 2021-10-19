@@ -34,7 +34,7 @@ use sc_service::{
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{marker::PhantomData, sync::Arc, path::PathBuf};
+use std::{marker::PhantomData, path::PathBuf, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},

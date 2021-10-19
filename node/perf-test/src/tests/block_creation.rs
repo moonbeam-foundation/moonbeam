@@ -53,7 +53,6 @@ where
 		let alice = context.get_alice_details();
 		let mut alice_nonce = alice.nonce;
 
-
 		const NUM_EMPTY_BLOCKS: u64 = 2048;
 		println!("Creating {} empty blocks...", NUM_EMPTY_BLOCKS);
 		let now = Instant::now();
