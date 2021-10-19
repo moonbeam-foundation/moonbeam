@@ -23,6 +23,7 @@ use service::{Block, RuntimeApiCollection};
 use sp_api::ConstructRuntimeApi;
 
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
+use serde::{Serialize};
 
 mod block_creation;
 mod fibonacci;
@@ -32,22 +33,22 @@ pub use fibonacci::FibonacciPerfTest;
 pub use storage::StoragePerfTest;
 
 /// struct representing the test results of a single test
-#[derive(Default, Clone, Table)]
+#[derive(Default, Clone, Table, Serialize)]
 pub struct TestResults {
 	#[table(title = "Test Name")]
 	pub test_name: String,
 	#[table(
 		title = "Overall Time",
-		display_fn = "display_duration",
+		display_fn = "display_duration_usecs",
 		justify = "Justify::Right"
 	)]
-	pub overall_duration: Duration,
+	pub overall_duration_usecs: u128,
 	#[table(
 		title = "Reference",
-		display_fn = "display_duration",
+		display_fn = "display_duration_usecs",
 		justify = "Justify::Right"
 	)]
-	pub reference_duration: Duration,
+	pub reference_duration_usecs: u128,
 	#[table(
 		title = "Relative",
 		display_fn = "display_relative",
@@ -57,9 +58,9 @@ pub struct TestResults {
 }
 
 impl TestResults {
-	pub fn new(name: &str, duration: Duration, reference_duration: Duration) -> Self {
-		let ours = duration.as_micros() as f64;
-		let reference = reference_duration.as_micros() as f64;
+	pub fn new(name: &str, duration_usecs: u128, reference_duration_usecs: u128) -> Self {
+		let ours = duration_usecs as f64;
+		let reference = reference_duration_usecs as f64;
 
 		std::assert!(reference > 0f64, "make sure reference is set and > 0");
 		let relative = if ours > reference {
@@ -72,8 +73,8 @@ impl TestResults {
 
 		TestResults {
 			test_name: name.into(),
-			overall_duration: duration,
-			reference_duration,
+			overall_duration_usecs: duration_usecs,
+			reference_duration_usecs,
 			relative,
 		}
 	}
@@ -93,9 +94,9 @@ where
 	) -> Result<Vec<TestResults>, String>;
 }
 
-fn display_duration(duration: &Duration) -> impl std::fmt::Display {
-	let ms = duration.as_millis();
-	let us = duration.as_micros() % 1000;
+fn display_duration_usecs(duration_usecs: &u128) -> impl std::fmt::Display {
+	let ms = duration_usecs / 1000;
+	let us = duration_usecs % 1000;
 	let as_decimal: f64 = ms as f64 + (us as f64 / 1000.0);
 	format!("{:.3} ms", as_decimal)
 }

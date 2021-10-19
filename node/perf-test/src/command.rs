@@ -458,6 +458,9 @@ impl PerfCmd {
 		let table = all_results.with_title();
 		print_stdout(table).expect("failed to print results");
 
+		let as_json = serde_json::to_string_pretty(&all_results).unwrap();
+		println!("AS JSON: {}", as_json);
+
 		Ok(())
 	}
 }

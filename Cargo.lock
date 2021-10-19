@@ -7830,6 +7830,8 @@ dependencies = [
  "sc-rpc",
  "sc-service",
  "sc-transaction-pool",
+ "serde",
+ "serde_json",
  "sha3 0.8.2",
  "sp-api",
  "sp-core",

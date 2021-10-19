@@ -142,8 +142,8 @@ where
 		}
 		results.push(TestResults::new(
 			"fibonacci_calls",
-			now.elapsed(),
-			std::time::Duration::from_micros(9119442),
+			now.elapsed().as_micros(),
+			9119442,
 		));
 
 		Ok(results)
