@@ -29,9 +29,12 @@ use precompile_utils::{
 	RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
-use sp_std::convert::{TryFrom, TryInto};
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	fmt::Debug,
+	marker::PhantomData,
+	vec::Vec,
+};
 
 #[cfg(test)]
 mod mock;
