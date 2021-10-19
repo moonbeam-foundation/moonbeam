@@ -493,6 +493,80 @@
 <span id="493">493</span>
 <span id="494">494</span>
 <span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -520,12 +594,16 @@
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm::Precompile</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>,
+	<span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
-<span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">sp_std</span>::{
+	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
+	<span class="ident">fmt::Debug</span>,
+	<span class="ident">marker::PhantomData</span>,
+	<span class="ident">vec::Vec</span>,
+};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
@@ -553,6 +631,8 @@
 	<span class="ident">Delegate</span> <span class="op">=</span> <span class="string">&quot;delegate(address,uint256,uint256)&quot;</span>,
 	<span class="ident">UnDelegate</span> <span class="op">=</span> <span class="string">&quot;un_delegate()&quot;</span>,
 	<span class="ident">Unlock</span> <span class="op">=</span> <span class="string">&quot;unlock(address)&quot;</span>,
+	<span class="ident">NotePreimage</span> <span class="op">=</span> <span class="string">&quot;note_preimage(bytes)&quot;</span>,
+	<span class="ident">NoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;note_imminent_preimage(bytes)&quot;</span>,
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet democracy.</span>
@@ -596,6 +676,10 @@
 			<span class="ident">Action::Delegate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::UnDelegate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">target_gas</span>, <span class="ident">context</span>),
 			<span class="ident">Action::Unlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::unlock</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::NotePreimage</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::NoteImminentPreimage</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)
+			}
 		}
 	}
 }
@@ -972,6 +1056,70 @@
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::unlock</span>(<span class="ident">target_account</span>);
+
+		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
+			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
+			<span class="ident">call</span>,
+			<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
+		)<span class="question-mark">?</span>;
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">note_preimage</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+
+		<span class="macro">log::trace!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
+			<span class="string">&quot;Noting preimage {:?}&quot;</span>, <span class="ident">encoded_proposal</span>
+		);
+
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_preimage</span>(<span class="ident">encoded_proposal</span>);
+
+		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
+			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
+			<span class="ident">call</span>,
+			<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
+		)<span class="question-mark">?</span>;
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(
+		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+
+		<span class="macro">log::trace!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
+			<span class="string">&quot;Noting imminent preimage {:?}&quot;</span>, <span class="ident">encoded_proposal</span>
+		);
+
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_imminent_preimage</span>(<span class="ident">encoded_proposal</span>);
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
