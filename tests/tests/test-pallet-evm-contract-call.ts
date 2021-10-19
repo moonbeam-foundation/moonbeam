@@ -1,6 +1,7 @@
 import Keyring from "@polkadot/keyring";
 import { expect } from "chai";
 import { ethers } from "ethers";
+import { createBlock } from "typescript";
 
 import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
 import { getCompiled } from "../util/contracts";
@@ -62,11 +63,11 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const contractData = await getCompiled("TestContractIncr");
-    console.log("abi", contractData.contract.abi);
+    // console.log("abi", contractData.contract.abi);
     // const iFace = new ethers.utils.Interface(contractData.contract.abi);
     ({ contract } = await createContract(context.web3, "TestContractIncr"));
-    console.log("abi2", JSON.stringify(contract, null, 2));
-    console.log("abi3", contract.options.jsonInterface);
+    // console.log("abi2", JSON.stringify(contract.options.jsonInterface, null, 2));
+    // console.log("abi3", contract.options.jsonInterface);
     const iFace = new ethers.utils.Interface(contract.options.jsonInterface);
 
     const address = contract.options.address;
@@ -95,9 +96,14 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
       console.log(e.toHuman());
     });
     console.log(Object.keys(contract.methods));
+    // await context.createBlock();
+    // await context.createBlock();
+    // await context.createBlock();
   });
 
   it.only("should succeed with sudo", async function () {
+    console.log(await contract.methods.count().call({ from: ALITH }));
+    // console.log(await contract.methods.count())
     expect(await contract.methods.count().call()).to.eq("1");
     expect(events[5].toHuman().method).to.eq("ExtrinsicSuccess");
   });
