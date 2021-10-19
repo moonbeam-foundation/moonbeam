@@ -2113,7 +2113,7 @@ fn delegator_bond_more_updates_delegator_state() {
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			let state = Stake::delegator_state(&2).expect("just request bonded less so exists");
 			assert_eq!(
-				state.requests.requests.get(&1),
+				state.requests().get(&1),
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
@@ -2239,7 +2239,7 @@ fn delegator_bond_less_updates_delegator_state() {
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
 			let state = Stake::delegator_state(&2).expect("just request bonded less so exists");
 			assert_eq!(
-				state.requests.requests.get(&1),
+				state.requests().get(&1),
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
@@ -3077,7 +3077,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			let state = Stake::delegator_state(&2).unwrap();
 			assert_eq!(
-				state.requests.requests.get(&1),
+				state.requests().get(&1),
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 10,
@@ -3088,7 +3088,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 			assert_eq!(state.requests.less_total, 10);
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
 			let state = Stake::delegator_state(&2).unwrap();
-			assert!(state.requests.requests.get(&1).is_none());
+			assert!(state.requests().get(&1).is_none());
 			assert_eq!(state.requests.less_total, 0);
 		});
 }
@@ -3128,7 +3128,7 @@ fn cancel_delegator_bond_more_updates_delegator_state() {
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			let state = Stake::delegator_state(&2).unwrap();
 			assert_eq!(
-				state.requests.requests.get(&1),
+				state.requests().get(&1),
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
@@ -3139,7 +3139,7 @@ fn cancel_delegator_bond_more_updates_delegator_state() {
 			assert_eq!(state.requests.more_total, 5);
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
 			let state = Stake::delegator_state(&2).unwrap();
-			assert!(state.requests.requests.get(&1).is_none());
+			assert!(state.requests().get(&1).is_none());
 			assert_eq!(state.requests.more_total, 0);
 		});
 }
@@ -3179,7 +3179,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 5));
 			let state = Stake::delegator_state(&2).unwrap();
 			assert_eq!(
-				state.requests.requests.get(&1),
+				state.requests().get(&1),
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
@@ -3190,7 +3190,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 			assert_eq!(state.requests.less_total, 5);
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
 			let state = Stake::delegator_state(&2).unwrap();
-			assert!(state.requests.requests.get(&1).is_none());
+			assert!(state.requests().get(&1).is_none());
 			assert_eq!(state.requests.less_total, 0);
 		});
 }

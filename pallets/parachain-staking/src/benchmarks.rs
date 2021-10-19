@@ -268,7 +268,10 @@ benchmarks! {
 			true,
 			candidate_count,
 		)?;
-		Pallet::<T>::schedule_leave_candidates(RawOrigin::Signed(caller.clone()).into(), candidate_count)?;
+		Pallet::<T>::schedule_leave_candidates(
+			RawOrigin::Signed(caller.clone()).into(),
+			candidate_count
+		)?;
 		candidate_count -= 1u32;
 	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
 	verify {
@@ -851,7 +854,12 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator).is_none()
+			Pallet::<T>::delegator_state(&caller)
+				.unwrap()
+				.requests
+				.requests
+				.get(&collator)
+				.is_none()
 		);
 	}
 
@@ -885,7 +893,12 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator).is_none()
+			Pallet::<T>::delegator_state(&caller)
+				.unwrap()
+				.requests
+				.requests
+				.get(&collator)
+				.is_none()
 		);
 	}
 

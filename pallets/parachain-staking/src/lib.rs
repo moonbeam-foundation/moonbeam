@@ -695,6 +695,9 @@ pub mod pallet {
 				status: DelegatorStatus::Active,
 			}
 		}
+		pub fn requests(&self) -> BTreeMap<AccountId, DelegationRequest<AccountId, Balance>> {
+			self.requests.requests.clone()
+		}
 		pub fn is_active(&self) -> bool {
 			matches!(self.status, DelegatorStatus::Active)
 		}
