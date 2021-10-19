@@ -616,7 +616,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator),
+			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator),
 			Some(&DelegationRequest {
 				collator,
 				amount: bond,
@@ -648,7 +648,7 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			state.requests.requests.get(&collator),
+			state.requests().get(&collator),
 			Some(&DelegationRequest {
 				collator,
 				amount: 5u32.into(),
@@ -680,7 +680,7 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			state.requests.requests.get(&collator),
+			state.requests().get(&collator),
 			Some(&DelegationRequest {
 				collator,
 				amount: 5u32.into(),
@@ -820,7 +820,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests.requests.get(&collator).is_none()
+			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator).is_none()
 		);
 	}
 
@@ -856,8 +856,7 @@ benchmarks! {
 		assert!(
 			Pallet::<T>::delegator_state(&caller)
 				.unwrap()
-				.requests
-				.requests
+				.requests()
 				.get(&collator)
 				.is_none()
 		);
@@ -895,8 +894,7 @@ benchmarks! {
 		assert!(
 			Pallet::<T>::delegator_state(&caller)
 				.unwrap()
-				.requests
-				.requests
+				.requests()
 				.get(&collator)
 				.is_none()
 		);
