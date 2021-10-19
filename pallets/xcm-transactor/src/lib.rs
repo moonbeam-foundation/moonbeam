@@ -153,7 +153,7 @@ pub mod pallet {
 		AssetHasNoReserve,
 		InvalidDest,
 		NotCrossChainTransfer,
-		NotAllowed,
+		AssetIsNotReserveInDestination,
 	}
 
 	#[pallet::event]
@@ -399,7 +399,9 @@ pub mod pallet {
 			ensure!(dest != self_location, Error::<T>::NotCrossChainTransfer);
 
 			let reserve = asset.reserve().ok_or(Error::<T>::AssetHasNoReserve)?;
-			ensure!(reserve == dest, Error::<T>::NotAllowed);
+
+			// We only allow to transact using a reserve asset as fee
+			ensure!(reserve == dest, Error::<T>::AssetIsNotReserveInDestination);
 
 			Ok(dest)
 		}
