@@ -63,7 +63,7 @@ where
 		results.push(TestResults::new(
 			"empty blocks",
 			now.elapsed(),
-			std::time::Duration::from_micros(1), // TODO
+			std::time::Duration::from_micros(17491),
 		));
 
 		println!("Creating blocks with increasing nonce-dependent txns...");
