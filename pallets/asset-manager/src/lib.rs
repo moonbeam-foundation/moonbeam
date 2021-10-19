@@ -61,12 +61,12 @@ pub mod pallet {
 	/// The AssetManagers's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
 
-	// The registrar trait. This instructs how to create an asset
-	// assetId: the assetId of the associated asset
-	// min_balance: the existential deposit
-	// metadata: Other information related to the asset. It can be decimals, name, etc.
+	/// The registrar trait. This instructs how to create an asset
 	pub trait AssetRegistrar<T: Config> {
-		// How to create an asset
+		/// How to create an asset
+		/// asser: the assetId of the associated asset
+		/// min_balance: the existential deposit
+		/// metadata: Other information related to the asset. It can be decimals, name, etc.
 		fn create_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
@@ -76,6 +76,7 @@ pub mod pallet {
 
 	// We implement this trait to be able to get the AssetType
 	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
+		/// asset_id: the assetId for which we want to get the assetType
 		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
 			AssetIdType::<T>::get(asset_id)
 		}
@@ -106,7 +107,7 @@ pub mod pallet {
 		/// The units in which we record balances.
 		type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy + MaxEncodedLen;
 
-		/// The asset Registrator.
+		/// The asset Registrar.
 		type AssetRegistrar: AssetRegistrar<Self>;
 
 		/// Origin that is allowed to create and modify asset information

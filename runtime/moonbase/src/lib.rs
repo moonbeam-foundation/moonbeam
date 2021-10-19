@@ -1098,7 +1098,9 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
-// Our AssetType. For now we only handle Xcm Assets, but in the future we can have many
+// Our AssetType. For now we only handle Xcm Assets, but in the future we can have others. For
+// instance, this registrar could be use to register local assets belonging to another pallet-asset
+// instance in which we allow erc20 tokens to be created in a free manner.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum AssetType {
 	Xcm(MultiLocation),
