@@ -45,8 +45,7 @@ use cumulus_primitives_parachain_inherent::{
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
 
-pub use sc_executor::NativeExecutor;
-use sc_executor::{native_executor_instance, NativeExecutionDispatch};
+use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
@@ -61,42 +60,63 @@ mod client;
 
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
-type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+type FullClient<RuntimeApi, Executor> =
+	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
-#[cfg(feature = "moonbeam-native")]
-native_executor_instance!(
-	pub MoonbeamExecutor,
-	moonbeam_runtime::api::dispatch,
-	moonbeam_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
+pub type HostFunctions = (
+	frame_benchmarking::benchmarking::HostFunctions,
+	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
+
+#[cfg(feature = "moonbeam-native")]
+pub struct MoonbeamExecutor;
+
+#[cfg(feature = "moonbeam-native")]
+impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonbeam_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonbeam_runtime::native_version()
+	}
+}
 
 #[cfg(feature = "moonriver-native")]
-native_executor_instance!(
-	pub MoonriverExecutor,
-	moonriver_runtime::api::dispatch,
-	moonriver_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
-);
+pub struct MoonriverExecutor;
+
+#[cfg(feature = "moonriver-native")]
+impl sc_executor::NativeExecutionDispatch for MoonriverExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonriver_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonriver_runtime::native_version()
+	}
+}
 
 #[cfg(feature = "moonbase-native")]
-native_executor_instance!(
-	pub MoonbaseExecutor,
-	moonbase_runtime::api::dispatch,
-	moonbase_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
-);
+pub struct MoonbaseExecutor;
+
+#[cfg(feature = "moonbase-native")]
+impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonbase_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonbase_runtime::native_version()
+	}
+}
 
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the `Moonbeam` network.
@@ -234,16 +254,16 @@ pub fn new_partial<RuntimeApi, Executor>(
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
-		TFullClient<Block, RuntimeApi, Executor>,
+		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
 				Block,
-				Arc<TFullClient<Block, RuntimeApi, Executor>>,
-				TFullClient<Block, RuntimeApi, Executor>,
+				Arc<FullClient<RuntimeApi, Executor>>,
+				FullClient<RuntimeApi, Executor>,
 			>,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -271,10 +291,17 @@ where
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<Executor>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 
 	let client = Arc::new(client);
@@ -418,7 +445,7 @@ async fn start_node_impl<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
-) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -657,7 +684,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
-) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
