@@ -946,7 +946,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We dont allow teleports.
-	(),
+	Nothing,
 	// We dont track any teleports
 	(),
 >;
