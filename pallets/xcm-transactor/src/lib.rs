@@ -31,6 +31,11 @@
 //! the inner call is executed from the derivative account and not the sovereign
 //! account itself. This derivative account can be funded by external users to
 //! ensure it has enough funds to make the calls
+//!
+//! Index registration happens through DerivativeAddressRegistrationOrigin.
+//! the inner call is executed from the derivative account and not the sovereign
+//! account itself. This derivative account can be funded by external users to
+//! ensure it has enough funds to make the calls
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -94,6 +99,9 @@ pub mod pallet {
 		/// Self chain location.
 		#[pallet::constant]
 		type SelfLocation: Get<MultiLocation>;
+
+		// The origin that is allowed to dispatch calls from the sovereign account directly
+		type SovereignAccountDispatcherOrigin: EnsureOrigin<Self::Origin>;
 
 		// Base XCM weight.
 		///
@@ -278,7 +286,7 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());

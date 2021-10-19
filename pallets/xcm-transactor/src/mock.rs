@@ -285,6 +285,7 @@ impl Config for Test {
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
+	type SovereignAccountDispatcherOrigin = EnsureRoot<u64>;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;

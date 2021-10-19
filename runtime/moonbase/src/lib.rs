@@ -1301,6 +1301,7 @@ impl xcm_transactor::Config for Runtime {
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
