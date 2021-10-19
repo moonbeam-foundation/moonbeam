@@ -983,6 +983,7 @@ parameter_types! {
 // Allow paid executions
 pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
+// Config for the xcm executor. Instructs which operations are allowed
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -1016,10 +1017,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
-parameter_types! {
-	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
-}
-
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation =
 	xcm_primitives::SignedToAccountId20<Origin, AccountId, RelayNetwork>;
@@ -1033,6 +1030,7 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+// Pallet that allows to send custom xcm messages. For now calls to it are not enabled
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
@@ -1051,6 +1049,7 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor;
 }
 
+// The XCMP queue, used to send/receive messages from/to other parachains
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
@@ -1058,6 +1057,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type VersionWrapper = ();
 }
 
+// The DMP queue, used to receive messages from the relay
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
@@ -1098,7 +1098,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
-// Our AssetType. For now we only handle Xcm Assets
+// Our AssetType. For now we only handle Xcm Assets, but in the future we can have many
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum AssetType {
 	Xcm(MultiLocation),
@@ -1109,12 +1109,15 @@ impl Default for AssetType {
 	}
 }
 
+// How to convert from a multilocation to an assetType. Since we only handle xcm, it is directly
+// convertible.
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
 		Self::Xcm(location)
 	}
 }
 
+// How to convert from an assetType to a multilocation.
 impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
@@ -1143,6 +1146,8 @@ impl From<AssetType> for AssetId {
 pub struct AssetRegistrar;
 use frame_support::{pallet_prelude::DispatchResult, transactional};
 
+// Instructs how to create an asset in the AssetManager. We use pallet-assets, creating the asset
+// and registering the metadata associated to it.
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
 	fn create_asset(
@@ -1179,6 +1184,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 }
 
+// The metadata to be used when creating the asset. We record name, symbol, decimals and whether
+// it is frozen
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct AssetRegistrarMetadata {
 	pub name: Vec<u8>,
@@ -1197,13 +1204,16 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
-// Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
+// Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their AssetId.
+// The SelfReserve currency is the one handled by pallet-balances
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
 }
 
+// Necessary for orml_xtokens precompiles. The currency will be indentified by its precompile
+// address, and this trait instructs how to obtain it.
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
@@ -1217,6 +1227,8 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 }
 
 // How to convert from CurrencyId to MultiLocation
+// This is necessary for orml_xtokens, to know which asset to manipulate when referring to a
+// currencyId
 pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
@@ -1235,6 +1247,8 @@ where
 }
 
 parameter_types! {
+	// This is the base weight, to which we will add the unitweightcost
+	// T::BaseXcmWeight + T::Weigher::weight(&msg).
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
