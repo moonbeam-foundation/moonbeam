@@ -64,6 +64,9 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -127,7 +130,10 @@
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
 
-		<span class="macro">vec!</span>[<span class="ident">Box::new</span>(<span class="ident">migration_author_mapping_twox_to_blake</span>)]
+		<span class="macro">vec!</span>[
+			<span class="comment">// completed in runtime 800</span>
+			<span class="comment">// Box::new(migration_author_mapping_twox_to_blake)</span>
+		]
 	}
 }
 </code></pre></div>
