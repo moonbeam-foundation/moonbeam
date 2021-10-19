@@ -352,10 +352,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::vote {
-			ref_index,
-			vote
-		};
+		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -387,9 +384,7 @@ where
 		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", index);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::remove_vote {
-			index
-		};
+		let call = DemocracyCall::<Runtime>::remove_vote { index };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -431,7 +426,9 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::delegate {
-			to, conviction, balance
+			to,
+			conviction,
+			balance,
 		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
