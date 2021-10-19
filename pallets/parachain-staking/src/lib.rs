@@ -1271,7 +1271,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug, Default)]
+	#[derive(Encode, Decode, RuntimeDebug, Default, PartialEq, Eq)]
 	/// Store and process all delayed exits by collators and nominators
 	pub struct ExitQ<AccountId> {
 		/// Candidate exit set
@@ -1282,12 +1282,6 @@ pub mod pallet {
 		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
 		/// [Nominator, Some(ValidatorId) || None => All Nominations, Round To Exit]
 		pub nominator_schedule: Vec<(AccountId, Option<AccountId>, RoundIndex)>,
-	}
-
-	impl<A> ExitQ<A> {
-		pub fn is_non_empty(&self) -> bool {
-			!(self.candidates.0.is_empty() && self.nominators_leaving.0.is_empty())
-		}
 	}
 
 	type RoundIndex = u32;
@@ -1485,9 +1479,8 @@ pub mod pallet {
 	}
 
 	/// Migration to replace the automatic ExitQueue with a manual exits API.
-	/// This migration may be run more than once without any risk.
+	/// This migration is idempotent, it can be run more than once without any risk.
 	/// Returns (reads, writes)
-	/// TODO: unit test
 	pub fn remove_exit_queue_migration<T: Config>() -> (u64, u64) {
 		let (mut reads, mut writes) = (0u64, 0u64);
 		let exit_queue = <ExitQueue2<T>>::take();
@@ -1495,14 +1488,13 @@ pub mod pallet {
 		let mut delegator_exits: BTreeMap<T::AccountId, RoundIndex> = BTreeMap::new();
 		let mut delegation_revocations: BTreeMap<T::AccountId, (T::AccountId, RoundIndex)> =
 			BTreeMap::new();
-		// migration only necessary if exit_queue is non-empty
-		if exit_queue.is_non_empty() {
-			for (delegator, is_revocation, when) in exit_queue.nominator_schedule {
-				if let Some(revoking_candidate) = is_revocation {
-					delegation_revocations.insert(delegator, (revoking_candidate, when));
-				} else {
-					delegator_exits.insert(delegator, when);
-				}
+		// Track scheduled nominator exits and revocations before migrating state
+		// Candidates already track exit info locally so no tracking is necessary
+		for (delegator, is_revocation, when) in exit_queue.nominator_schedule {
+			if let Some(revoking_candidate) = is_revocation {
+				delegation_revocations.insert(delegator, (revoking_candidate, when));
+			} else {
+				delegator_exits.insert(delegator, when);
 			}
 		}
 		// execute candidate migration
@@ -1538,7 +1530,13 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> Weight {
 			let (reads, writes) = remove_exit_queue_migration::<T>();
 			let db_weight = T::DbWeight::get();
-			db_weight.reads(reads) + db_weight.writes(writes) + 10000 // TODO: do 5% of block fullness or maybe more
+			if reads > 1u64 {
+				// 10% of the max block weight as safety margin for computation
+				db_weight.reads(reads) + db_weight.writes(writes) + 50_000_000_000
+			} else {
+				// migration was already executed before
+				db_weight.reads(reads)
+			}
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
@@ -1592,7 +1590,7 @@ pub mod pallet {
 	#[pallet::getter(fn nominator_state2)]
 	/// DEPRECATED in favor of DelegatorState
 	/// Get nominator state associated with an account if account is nominating else None
-	type NominatorState2<T: Config> = StorageMap<
+	pub(crate) type NominatorState2<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1603,7 +1601,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
 	/// Get delegator state associated with an account if account is delegating else None
-	type DelegatorState<T: Config> = StorageMap<
+	pub(crate) type DelegatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -1654,7 +1652,7 @@ pub mod pallet {
 	#[pallet::getter(fn exit_queue2)]
 	/// DEPRECATED, to be removed in future runtime upgrade but necessary for runtime migration
 	/// A queue of collators and nominators awaiting exit
-	type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
+	pub type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]

@@ -257,7 +257,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-/// Prints the diff iff assert_eq fails, should only be used for debugging purposes
+/// Prints the diff iff assert_eq fails
 #[macro_export]
 macro_rules! asserts_eq {
 	($left:expr, $right:expr) => {
