@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Encoder for relay runtimes
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod apis;
-mod impl_self_contained_call;
-pub mod migrations;
+pub mod kusama;
+pub mod polkadot;
+pub mod westend;
