@@ -44,6 +44,7 @@ moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 
 moonbeam-core-primitives = { path = "../../core-primitives" }
+manual-xcm-rpc = { path = "../../client/rpc/manual-xcm" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }

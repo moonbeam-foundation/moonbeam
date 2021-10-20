@@ -20,6 +20,7 @@ pub mod tracing;
 
 use std::{sync::Arc, time::Duration};
 
+use cumulus_primitives_core::{InboundDownwardMessage, InboundHrmpMessage};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
@@ -35,6 +36,7 @@ use fc_rpc::{
 use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -89,6 +91,11 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub max_past_logs: u32,
 	/// Ethereum transaction to Extrinsic converter.
 	pub transaction_converter: TransactionConverters,
+	/// Channels for manual xcm messages (downward, hrmp)
+	pub xcm_senders: Option<(
+		flume::Sender<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>,
+		flume::Sender<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>,
+	)>,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(
@@ -123,6 +130,7 @@ where
 		backend: _,
 		max_past_logs,
 		transaction_converter,
+		xcm_senders,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -209,6 +217,13 @@ where
 			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 		);
 	};
+
+	if let Some((downward_message_channel, hrmp_message_channel)) = xcm_senders {
+		io.extend_with(ManualXcmApi::to_delegate(ManualXcm {
+			downward_message_channel,
+			hrmp_message_channel,
+		}));
+	}
 
 	io
 }

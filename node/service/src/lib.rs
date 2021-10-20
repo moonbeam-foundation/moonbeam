@@ -39,7 +39,7 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use cumulus_primitives_core::InboundDownwardMessage;
+use cumulus_primitives_core::{InboundDownwardMessage, InboundHrmpMessage};
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
@@ -538,6 +538,7 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: None,
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -725,6 +726,7 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
+	let mut xcm_senders = None;
 	let collator = config.role.is_authority();
 
 	if collator {
@@ -794,7 +796,8 @@ where
 		let (downward_xcm_sender, downward_xcm_receiver) =
 			flume::bounded::<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>(100);
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) =
-			flume::bounded::<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>(100);
+			flume::bounded::<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>(100);
+		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
 		// TODO pass the sending halves of the xcm channels to the RPC layer below
 
@@ -894,6 +897,7 @@ where
 		let network = network.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let xcm_senders = xcm_senders.clone(); //TODO necessary?
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
@@ -922,6 +926,7 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: xcm_senders.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
