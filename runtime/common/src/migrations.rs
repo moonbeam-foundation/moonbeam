@@ -61,6 +61,9 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		vec![Box::new(migration_author_mapping_twox_to_blake)]
+		vec![
+			// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake)
+		]
 	}
 }
