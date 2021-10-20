@@ -570,7 +570,6 @@ fn receive_relay_asset_with_trader() {
 	});
 
 	ParaA::execute_with(|| {
-		println!("{:?}", parachain::para_events());
 		// non-free execution, not full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
 	});
