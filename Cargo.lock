@@ -8864,7 +8864,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompile-utils"
 version = "0.1.0"
 dependencies = [
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
