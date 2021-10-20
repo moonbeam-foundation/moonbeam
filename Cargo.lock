@@ -1419,7 +1419,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
