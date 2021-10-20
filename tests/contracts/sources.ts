@@ -411,12 +411,12 @@ export const contractSources: { [key: string]: string } = {
         }
       }
 
-      function calculate_sum(uint num_items) public {
+      function calculate_sum(uint start, uint num_items) public {
         uint256 tmp = 0;
         for (uint i=0; i<num_items; i++) {
-          tmp += bloat[i];
+          tmp += bloat[start+i];
         }
-        sum = tmp;
+        sum += tmp;
       }
     }`,
   Fibonacci: `
