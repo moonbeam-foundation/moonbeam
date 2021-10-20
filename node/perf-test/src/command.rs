@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info},
+	sysinfo::{query_partition_info, query_system_info, SystemInfo, PartitionInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
@@ -42,6 +42,7 @@ use futures::{
 };
 
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
+use serde::Serialize;
 use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
 
@@ -442,24 +443,37 @@ impl PerfCmd {
 			Box::new(StoragePerfTest::new()),
 		];
 
-		let mut all_results: Vec<TestResults> = Default::default();
+		let mut all_test_results: Vec<TestResults> = Default::default();
 
 		for mut test in tests {
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
-			all_results.append(&mut results);
+			all_test_results.append(&mut results);
 		}
 
-		let system_info = query_system_info();
-		dbg!(system_info);
+		let system_info = query_system_info()?;
+		let partition_info = query_partition_info(path)?;
 
-		let partition_info = query_partition_info(path);
-		dbg!(partition_info);
-
-		let table = all_results.with_title();
+		let table = all_test_results.with_title();
 		print_stdout(table).expect("failed to print results");
 
-		let as_json = serde_json::to_string_pretty(&all_results).unwrap();
-		println!("AS JSON: {}", as_json);
+		#[derive(Serialize)]
+		struct AllResults {
+			test_results: Vec<TestResults>,
+			system_info: SystemInfo,
+			partition_info: PartitionInfo,
+		}
+
+		let all_results = AllResults {
+			test_results: all_test_results,
+			system_info,
+			partition_info,
+		};
+
+		println!("ALL TEST RESULTS AS JSON: {}", serde_json::to_string_pretty(&all_results).unwrap());
+
+		// println!("TEST RESULTS AS JSON: {}", serde_json::to_string_pretty(&all_test_results).unwrap();
+		// println!("SYSINFO AS JSON: {}", serde_json::to_string_pretty(&system_info).unwrap());
+		// println!("PARTITION INFO AS JSON: {}", serde_json::to_string_pretty(&partition_info).unwrap());
 
 		Ok(())
 	}

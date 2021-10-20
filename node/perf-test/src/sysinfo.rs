@@ -18,6 +18,7 @@ use heim_common::units::{frequency, information};
 use heim_cpu;
 use heim_memory;
 use psutil::{disk, host};
+use serde::Serialize;
 
 // Utilities for querying system information, namely:
 //
@@ -28,7 +29,7 @@ use psutil::{disk, host};
 // * Disk information
 
 /// Basic system-wide information
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize)]
 pub struct SystemInfo {
 	pub cpu_info: CPUInfo,
 	pub mem_info: MemoryInfo,
@@ -39,7 +40,7 @@ pub struct SystemInfo {
 }
 
 /// Memory info
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize)]
 pub struct MemoryInfo {
 	pub total_memory_mb: u64,
 	pub available_memory_mb: u64,
@@ -47,7 +48,7 @@ pub struct MemoryInfo {
 }
 
 /// CPU info
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize)]
 pub struct CPUInfo {
 	pub cpu_vendor: String,
 	pub cpu_model: String,
@@ -58,7 +59,7 @@ pub struct CPUInfo {
 }
 
 /// Information about a partition
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize)]
 pub struct PartitionInfo {
 	pub mount_point: String,
 	pub device_file: String,
