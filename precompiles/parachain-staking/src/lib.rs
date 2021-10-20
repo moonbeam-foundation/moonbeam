@@ -112,7 +112,8 @@ where
 			Action::GoOnline => Self::go_online(context)?,
 			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
 			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
-			Action::Nominate => Self::nominate(input, context)?,
+			// TODO: deprecated
+			Action::Nominate => Self::delegate(input, context)?,
 			Action::LeaveNominators => Self::leave_delegators(input, context)?,
 			Action::RevokeNomination => Self::revoke_nomination(input, context)?,
 			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
@@ -493,7 +494,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn nominate(
+	fn delegate(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -512,7 +513,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominate(
+		let call = parachain_staking::Call::<Runtime>::delegate(
 			collator,
 			amount,
 			collator_nomination_count,

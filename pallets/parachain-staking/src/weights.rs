@@ -64,7 +64,7 @@ pub trait WeightInfo {
 	fn go_online() -> Weight;
 	fn candidate_bond_more() -> Weight;
 	fn candidate_bond_less() -> Weight;
-	fn nominate(x: u32, y: u32) -> Weight;
+	fn delegate(x: u32, y: u32) -> Weight;
 	fn leave_delegators(x: u32) -> Weight;
 	fn revoke_nomination() -> Weight;
 	fn nominator_bond_more() -> Weight;
@@ -145,7 +145,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(8 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-	fn nominate(x: u32, y: u32) -> Weight {
+	fn delegate(x: u32, y: u32) -> Weight {
 		(71_656_000 as Weight)
 			// Standard Error: 1_000
 			.saturating_add((1_049_000 as Weight).saturating_mul(x as Weight))
@@ -266,7 +266,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
-	fn nominate(x: u32, y: u32) -> Weight {
+	fn delegate(x: u32, y: u32) -> Weight {
 		(71_656_000 as Weight)
 			// Standard Error: 1_000
 			.saturating_add((1_049_000 as Weight).saturating_mul(x as Weight))

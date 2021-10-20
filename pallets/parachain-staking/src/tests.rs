@@ -1529,13 +1529,13 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 // NOMINATE
 
 #[test]
-fn nominate_event_emits_correctly() {
+fn delegate_event_emits_correctly() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
 			assert_last_event(MetaEvent::Stake(Event::Nomination(
 				2,
 				10,
@@ -1546,7 +1546,7 @@ fn nominate_event_emits_correctly() {
 }
 
 #[test]
-fn nominate_reserves_balance() {
+fn delegate_reserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -1554,22 +1554,22 @@ fn nominate_reserves_balance() {
 		.execute_with(|| {
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
 			assert_eq!(Balances::reserved_balance(&2), 10);
 			assert_eq!(Balances::free_balance(&2), 0);
 		});
 }
 
 #[test]
-fn nominate_updates_nominator_state() {
+fn delegate_updates_nominator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
 			assert!(Stake::delegator_state(2).is_none());
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
-			let nominator_state = Stake::delegator_state(2).expect("just nominated => exists");
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
+			let nominator_state = Stake::delegator_state(2).expect("just delegated => exists");
 			assert_eq!(nominator_state.total, 10);
 			assert_eq!(
 				nominator_state.delegations.0[0],
@@ -1582,7 +1582,7 @@ fn nominate_updates_nominator_state() {
 }
 
 #[test]
-fn nominate_updates_collator_state() {
+fn delegate_updates_collator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -1592,8 +1592,8 @@ fn nominate_updates_collator_state() {
 			assert_eq!(candidate_state.total_backing, 30);
 			assert_eq!(candidate_state.total_counted, 30);
 			assert!(candidate_state.top_delegations.is_empty());
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
-			let candidate_state = Stake::candidate_state(1).expect("just nominated => exists");
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
+			let candidate_state = Stake::candidate_state(1).expect("just delegated => exists");
 			assert_eq!(candidate_state.total_backing, 40);
 			assert_eq!(candidate_state.total_counted, 40);
 			assert_eq!(
@@ -1607,18 +1607,18 @@ fn nominate_updates_collator_state() {
 }
 
 #[test]
-fn can_nominate_immediately_after_other_join_candidates() {
+fn can_delegate_immediately_after_other_join_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::join_candidates(Origin::signed(1), 20, 0));
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 20, 0, 0));
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 20, 0, 0));
 		});
 }
 
 #[test]
-fn can_nominate_if_revoking() {
+fn can_delegate_if_revoking() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 30), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -1626,12 +1626,12 @@ fn can_nominate_if_revoking() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
-			assert_ok!(Stake::nominate(Origin::signed(2), 4, 10, 0, 2));
+			assert_ok!(Stake::delegate(Origin::signed(2), 4, 10, 0, 2));
 		});
 }
 
 #[test]
-fn cannot_nominate_if_leaving() {
+fn cannot_delegate_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20)])
 		.with_candidates(vec![(1, 20)])
@@ -1640,28 +1640,28 @@ fn cannot_nominate_if_leaving() {
 		.execute_with(|| {
 			assert_ok!(Stake::leave_delegators(Origin::signed(2), 1));
 			assert_noop!(
-				Stake::nominate(Origin::signed(2), 1, 10, 0, 0),
+				Stake::delegate(Origin::signed(2), 1, 10, 0, 0),
 				Error::<Test>::CannotActBecauseLeaving
 			);
 		});
 }
 
 #[test]
-fn cannot_nominate_if_candidate() {
+fn cannot_delegate_if_candidate() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20)])
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::nominate(Origin::signed(2), 1, 10, 0, 0),
+				Stake::delegate(Origin::signed(2), 1, 10, 0, 0),
 				Error::<Test>::CandidateExists
 			);
 		});
 }
 
 #[test]
-fn cannot_nominate_if_already_nominated() {
+fn cannot_delegate_if_already_delegated() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 30)])
 		.with_candidates(vec![(1, 20)])
@@ -1669,14 +1669,14 @@ fn cannot_nominate_if_already_nominated() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::nominate(Origin::signed(2), 1, 10, 1, 1),
+				Stake::delegate(Origin::signed(2), 1, 10, 1, 1),
 				Error::<Test>::AlreadyNominatedCollator
 			);
 		});
 }
 
 #[test]
-fn cannot_nominate_more_than_max_delegations() {
+fn cannot_delegate_more_than_max_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 50), (3, 20), (4, 20), (5, 20), (6, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
@@ -1684,14 +1684,14 @@ fn cannot_nominate_more_than_max_delegations() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::nominate(Origin::signed(2), 6, 10, 0, 4),
+				Stake::delegate(Origin::signed(2), 6, 10, 0, 4),
 				Error::<Test>::ExceedMaxCollatorsPerNom,
 			);
 		});
 }
 
 #[test]
-fn sufficient_nominate_weight_hint_succeeds() {
+fn sufficient_delegate_weight_hint_succeeds() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 20),
@@ -1711,19 +1711,19 @@ fn sufficient_nominate_weight_hint_succeeds() {
 		.execute_with(|| {
 			let mut count = 4u32;
 			for i in 7..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				assert_ok!(Stake::delegate(Origin::signed(i), 1, 10, count, 0u32));
 				count += 1u32;
 			}
 			let mut count = 0u32;
 			for i in 3..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 2, 10, count, 1u32));
+				assert_ok!(Stake::delegate(Origin::signed(i), 2, 10, count, 1u32));
 				count += 1u32;
 			}
 		});
 }
 
 #[test]
-fn insufficient_nominate_weight_hint_fails() {
+fn insufficient_delegate_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 20),
@@ -1744,20 +1744,20 @@ fn insufficient_nominate_weight_hint_fails() {
 			let mut count = 3u32;
 			for i in 7..11 {
 				assert_noop!(
-					Stake::nominate(Origin::signed(i), 1, 10, count, 0u32),
+					Stake::delegate(Origin::signed(i), 1, 10, count, 0u32),
 					Error::<Test>::TooLowCollatorNominationCountToNominate
 				);
 			}
 			// to set up for next error test
 			count = 4u32;
 			for i in 7..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				assert_ok!(Stake::delegate(Origin::signed(i), 1, 10, count, 0u32));
 				count += 1u32;
 			}
 			count = 0u32;
 			for i in 3..11 {
 				assert_noop!(
-					Stake::nominate(Origin::signed(i), 2, 10, count, 0u32),
+					Stake::delegate(Origin::signed(i), 2, 10, count, 0u32),
 					Error::<Test>::TooLowNominationCountToNominate
 				);
 				count += 1u32;
@@ -2912,12 +2912,12 @@ fn execute_delegator_bond_less_updates_just_bottom_delegations() {
 		.build()
 		.execute_with(|| {
 			let pre_call_collator_state =
-				Stake::candidate_state(&1).expect("nominated by all so exists");
+				Stake::candidate_state(&1).expect("delegated by all so exists");
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(2), 1, 2));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			let post_call_collator_state =
-				Stake::candidate_state(&1).expect("nominated by all so exists");
+				Stake::candidate_state(&1).expect("delegated by all so exists");
 			let mut not_equal = false;
 			for Bond { owner, amount } in pre_call_collator_state.bottom_delegations {
 				for Bond {
@@ -2976,12 +2976,12 @@ fn execute_delegator_bond_less_does_not_delete_bottom_delegations() {
 		.build()
 		.execute_with(|| {
 			let pre_call_collator_state =
-				Stake::candidate_state(&1).expect("nominated by all so exists");
+				Stake::candidate_state(&1).expect("delegated by all so exists");
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 4));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
 			let post_call_collator_state =
-				Stake::candidate_state(&1).expect("nominated by all so exists");
+				Stake::candidate_state(&1).expect("delegated by all so exists");
 			let mut equal = true;
 			for Bond { owner, amount } in pre_call_collator_state.bottom_delegations {
 				for Bond {
@@ -3222,7 +3222,7 @@ fn nominator_schedule_revocation_total() {
 					.less_total,
 				0
 			);
-			assert_ok!(Stake::nominate(Origin::signed(2), 5, 10, 0, 2));
+			assert_ok!(Stake::delegate(Origin::signed(2), 5, 10, 0, 2));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 3));
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 4));
 			assert_eq!(
@@ -3423,7 +3423,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
@@ -3509,8 +3509,8 @@ fn paid_collator_commission_matches_config() {
 				4, 20u128, 60u128,
 			)));
 			roll_to(9);
-			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(5), 4, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(6), 4, 10, 10, 10));
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates(4, 20, 60),
@@ -3815,9 +3815,9 @@ fn multiple_delegations() {
 				Event::NewRound(5, 2, 5, 140),
 			];
 			assert_eq_events(expected.clone());
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(6), 2, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(6), 3, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(6), 4, 10, 10, 10));
 			roll_to(16);
 			let mut new = vec![
 				Event::Nomination(6, 10, 2, DelegatorAdded::AddedToTop { new_total: 50 }),
@@ -3839,8 +3839,8 @@ fn multiple_delegations() {
 			expected.append(&mut new);
 			assert_eq_events(expected.clone());
 			roll_to(21);
-			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(10), 2, 10, 10, 10),);
+			assert_ok!(Stake::delegate(Origin::signed(7), 2, 80, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(10), 2, 10, 10, 10),);
 			roll_to(26);
 			let mut new2 = vec![
 				Event::CollatorChosen(5, 1, 50),
@@ -4054,7 +4054,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new4);
 			assert_eq_events(expected.clone());
 			set_author(9, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
@@ -4160,22 +4160,22 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert!(collator_state.top_delegations.is_empty());
 			assert!(collator_state.bottom_delegations.is_empty());
 			// 1 nominator => 1 top nominator, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 1usize);
 			assert!(collator_state.bottom_delegations.is_empty());
 			// 2 nominators => 2 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(3), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(3), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 2usize);
 			assert!(collator_state.bottom_delegations.is_empty());
 			// 3 nominators => 3 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(4), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(4), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 3usize);
 			assert!(collator_state.bottom_delegations.is_empty());
 			// 4 nominators => 4 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(5), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(5), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 4usize);
 			assert!(collator_state.bottom_delegations.is_empty());
@@ -4370,7 +4370,7 @@ fn nomination_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 70);
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
 			// Top delegations are full, new highest nomination is made
-			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(7), 1, 15, 10, 10));
 			assert_event_emitted(Event::Nomination(
 				7,
 				15,
@@ -4386,7 +4386,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_backing
 			);
 			// New nomination is added to the bottom
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			assert_event_emitted(Event::Nomination(8, 10, 1, DelegatorAdded::AddedToBottom));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)

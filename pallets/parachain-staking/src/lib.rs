@@ -17,7 +17,7 @@
 //! # Parachain Staking
 //! Minimal staking pallet that implements collator selection by total backed stake.
 //! The main difference between this pallet and `frame/pallet-staking` is that this pallet
-//! uses direct delegation. Nominators choose exactly who they nominate and with what stake.
+//! uses direct delegation. Nominators choose exactly who they delegate and with what stake.
 //! This is different from `frame/pallet-staking` where you approval vote and then run Phragmen.
 //!
 //! ### Rules
@@ -37,9 +37,9 @@
 //! The exit request is stored in the `ExitQueue` and processed `T::LeaveCandidatesDelay` rounds
 //! later to unstake the collator and all of its delegations.
 //!
-//! To join the set of nominators, call `nominate` and pass in an account that is
-//! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can nominate up to
-//! `T::MaxCollatorsPerNominator` collator candidates by calling `nominate`.
+//! To join the set of nominators, call `delegate` and pass in an account that is
+//! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can delegate up to
+//! `T::MaxCollatorsPerNominator` collator candidates by calling `delegate`.
 //!
 //! To revoke a nomination, call `revoke_nomination` with the collator candidate's account.
 //! To leave the set of nominators and revoke all delegations, call `leave_delegators`.
@@ -1346,7 +1346,7 @@ pub mod pallet {
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCollatorCandidateStk: Get<BalanceOf<Self>>;
-		/// Minimum stake for any registered on-chain account to nominate
+		/// Minimum stake for any registered on-chain account to delegate
 		#[pallet::constant]
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
@@ -1756,7 +1756,7 @@ pub mod pallet {
 				} else {
 					0u32
 				};
-				if let Err(error) = <Pallet<T>>::nominate(
+				if let Err(error) = <Pallet<T>>::delegate(
 					T::Origin::from(Some(nominator.clone()).into()),
 					target.clone(),
 					balance,
@@ -2175,14 +2175,14 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(
-			<T as Config>::WeightInfo::nominate(
+			<T as Config>::WeightInfo::delegate(
 				*collator_nominator_count,
 				*nomination_count
 			)
 		)]
 		/// If caller is not a nominator and not a collator, then join the set of nominators
 		/// If caller is a nominator, then makes nomination to change their nomination state
-		pub fn nominate(
+		pub fn delegate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 			amount: BalanceOf<T>,
