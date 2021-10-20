@@ -34,7 +34,7 @@ use sc_service::{
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{marker::PhantomData, path::PathBuf, sync::Arc, fs::File, io::prelude::*};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -422,7 +422,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(&self, path: &PathBuf, config: Configuration) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, path: &PathBuf, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -453,9 +453,6 @@ impl PerfCmd {
 		let system_info = query_system_info()?;
 		let partition_info = query_partition_info(path)?;
 
-		let table = all_test_results.with_title();
-		print_stdout(table).expect("failed to print results");
-
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
@@ -464,16 +461,22 @@ impl PerfCmd {
 		}
 
 		let all_results = AllResults {
-			test_results: all_test_results,
+			test_results: all_test_results.clone(),
 			system_info,
 			partition_info,
 		};
+		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
 
-		println!("ALL TEST RESULTS AS JSON: {}", serde_json::to_string_pretty(&all_results).unwrap());
+		if let Some(target) = &cmd.output_file {
+			let mut file = File::create(target)?;
+			file.write_all(&results_str.into_bytes())?;
+			println!("Results written to {:?}", target);
+		} else {
+			println!("System Information:\n{}", results_str);
+		}
 
-		// println!("TEST RESULTS AS JSON: {}", serde_json::to_string_pretty(&all_test_results).unwrap();
-		// println!("SYSINFO AS JSON: {}", serde_json::to_string_pretty(&system_info).unwrap());
-		// println!("PARTITION INFO AS JSON: {}", serde_json::to_string_pretty(&partition_info).unwrap());
+		let table = all_test_results.with_title();
+		print_stdout(table).expect("failed to print results");
 
 		Ok(())
 	}

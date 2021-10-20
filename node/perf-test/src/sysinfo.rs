@@ -75,7 +75,6 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 		futures::executor::block_on(heim_memory::memory()).expect("Memory must exist; qed");
 
 	let host_info = host::info();
-	dbg!(host_info.clone());
 
 	// TODO: block on multiple futures
 	let cpu_freq = futures::executor::block_on(heim_cpu::frequency()).expect("CPU must exist; qed");

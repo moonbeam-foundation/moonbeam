@@ -20,6 +20,7 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
+use std::path::PathBuf;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use structopt::StructOpt;
 
@@ -34,7 +35,13 @@ pub struct PerfCmd {
 		help = "Used for temp blockchain data. Should exist on desired test hardware.",
 		required = true
 	)]
-	pub working_dir: std::path::PathBuf,
+	pub working_dir: PathBuf,
+
+	#[structopt(
+		long = "output-file",
+		help = "File where results should be printed (STDOUT if omitted).",
+	)]
+	pub output_file: Option<PathBuf>,
 
 	// TODO: these values were borrowed from the benchmark command. are they needed?
 	/// The execution strategy that should be used for perf tests

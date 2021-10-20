@@ -460,6 +460,7 @@ pub fn run() -> Result<()> {
 				return cmd
 					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
 						&working_dir,
+						&cmd,
 						config,
 					);
 				#[cfg(not(feature = "moonbase-native"))]
