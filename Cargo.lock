@@ -6519,7 +6519,7 @@ name = "pallet-democracy-precompiles"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
