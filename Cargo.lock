@@ -6675,7 +6675,7 @@ name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
