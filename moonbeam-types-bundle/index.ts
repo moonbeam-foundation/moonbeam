@@ -60,6 +60,28 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "Result<Vec<TransactionTrace>>",
     },
   },
+  xcm: {
+    injectDownwardMessage: {
+      aliasSection: "xcm", //TODO Is this necessary
+      description: "Inject a downward message - A message that comes from the relay chain.",
+      params: [
+        { name: "sent_at", type: "u32" },
+        { name: "message", type: "Vec<u8>" },
+      ],
+      type: "Result<bool>",
+    },
+    injectHrmpMessage: {
+      aliasSection: "xcm", //TODO Is this necessary
+      description:
+        "Inject an HRMP message - A message that comes from a dedicated channel to a sibling parachain",
+      params: [
+        { name: "channel", type: "u32" },
+        { name: "sent_at", type: "u32" },
+        { name: "message", type: "Vec<u8>" },
+      ],
+      type: "Result<bool>",
+    },
+  },
 };
 
 const TYPES_0_4: RegistryTypes = {
