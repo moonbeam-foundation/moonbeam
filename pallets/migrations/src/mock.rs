@@ -21,7 +21,7 @@ use frame_support::{
 	construct_runtime,
 	pallet_prelude::*,
 	parameter_types,
-	traits::GenesisBuild,
+	traits::{Everything, GenesisBuild},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
@@ -57,7 +57,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = RocksDbWeight;
 	type Origin = Origin;
 	type Index = u64;

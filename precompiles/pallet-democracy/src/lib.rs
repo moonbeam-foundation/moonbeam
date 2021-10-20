@@ -256,7 +256,7 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal_hash = input.read::<H256>()?;
+		let proposal_hash = input.read::<H256>()?.into();
 		let amount = input.read::<BalanceOf<Runtime>>()?;
 
 		log::trace!(
@@ -266,7 +266,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::propose {
-			proposal_hash: proposal_hash.into(),
+			proposal_hash,
 			value: amount,
 		};
 
@@ -379,12 +379,14 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let index = input.read()?;
+		let referendum_index = input.read()?;
 
-		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", index);
+		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", referendum_index);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::remove_vote { index };
+		let call = DemocracyCall::<Runtime>::remove_vote {
+			index: referendum_index,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

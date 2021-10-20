@@ -27,6 +27,7 @@ pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "m
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 serde = "1.0.100"
 derive_more = "0.99"
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]
 default = ["std"]
