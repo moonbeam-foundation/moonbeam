@@ -9,7 +9,6 @@ import {
   ETHAN,
   ALITH,
   MIN_GLMR_NOMINATOR,
-  MIN_GLMR_NOMINATOR_PLUS_ONE,
   GLMR,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
@@ -88,93 +87,6 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Candidate bond more", (context) => {
-  let ethan;
-  before("should succesfully call joinCandidates on ETHAN", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 1)
-      .signAndSend(ethan);
-    await context.createBlock();
-  });
-  it("should succesfully call candidateBondMore on ETHAN", async function () {
-    await context.polkadotApi.tx.parachainStaking
-      .candidateBondMore(MIN_GLMR_STAKING)
-      .signAndSend(ethan);
-    await context.createBlock();
-    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "2.0000 kUNIT"
-    ).to.equal(true, "bond should have increased");
-  });
-});
-
-describeDevMoonbeam("Staking - Candidate bond less", (context) => {
-  let ethan;
-  before("should succesfully call joinCandidates on ETHAN", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 1)
-      .signAndSend(ethan);
-    await context.createBlock();
-    // add more stake
-    await context.polkadotApi.tx.parachainStaking
-      .candidateBondMore(MIN_GLMR_STAKING)
-      .signAndSend(ethan);
-    await context.createBlock();
-    // let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    // expect(
-    //   (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-    //     "2.0000 kUNIT"
-    // ).to.equal(true, "bond should have decreased");
-  });
-  it("should succesfully call candidateBondLess on ETHAN", async function () {
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      ethan,
-      context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_STAKING)
-    );
-    expect(events[3].toHuman().method).to.eq("ExtrinsicSuccess");
-    // let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    // expect(
-    //   (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-    //     "1.0000 kUNIT"
-    // ).to.equal(true, "bond should have decreased");
-  });
-});
-describeDevMoonbeam("Staking - Candidate bond less", (context) => {
-  let ethan;
-  before("should succesfully call joinCandidates on ETHAN", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 1)
-      .signAndSend(ethan);
-    await context.createBlock();
-    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond does not match join candidates expectation");
-  });
-  it("should fail to call candidateBondLess on ETHAN below minimum amount", async function () {
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      ethan,
-      context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_NOMINATOR)
-    );
-    expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
-    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond should have stayed the same");
-  });
-});
-
 describeDevMoonbeam("Staking - Join Delegators", (context) => {
   let ethan;
   before("should succesfully call delegate on ALITH", async function () {
@@ -198,66 +110,9 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     expect(delegatorsAfter.toHuman()["delegations"][0].owner).equal(ALITH);
     expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("5.0000 UNIT");
   });
-  // TODO: bring this test back
-  // it("should succesfully revoke delegation on ALITH", async function () {
-  //   await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
-  //   await context.createBlock();
-
-  //   const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-
-  //   //expect(delegatorsAfter.toHuman()["requests"].toHuman()["requests"].Leaving).equal("3");
-  // });
 });
 
-// TODO: bring back
-// describeDevMoonbeam("Staking - Delegators Bond More", (context) => {
-//   let ethan;
-//   before("should succesfully call delegate on ALITH", async function () {
-//     const keyring = new Keyring({ type: "ethereum" });
-//     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-//     // Delegate
-//     await context.polkadotApi.tx.parachainStaking
-//       .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-//       .signAndSend(ethan);
-//     await context.createBlock();
-//     // Bond More
-//     await context.polkadotApi.tx.parachainStaking
-//       .delegatorBondMore(ALITH, MIN_GLMR_NOMINATOR_PLUS_ONE)
-//       .signAndSend(ethan);
-//     await context.createBlock();
-//   });
-//   it("should succesfully call delegatorBondMore on ALITH", async function () {
-//     // const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-//     // expect(
-//     //   (
-//     //     delegatorsAfter.toHuman() as {
-//     //       delegations: { owner: string; amount: string }[];
-//     //     }
-//     //   ).delegations[0].owner === ALITH
-//     // ).to.equal(true, "delegation didn't go through");
-//     // expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("11.0000 UNIT");
-//   });
-//   it("should succesfully call delegatorBondLess on ALITH", async function () {
-//     // const { events } = await createBlockWithExtrinsic(
-//     //   context,
-//     //   ethan,
-//     //   context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
-//     // );
-//     // expect(events[1].toHuman().method).to.eq("NominationDecreased");
-//     // expect(events[1].toHuman().data[2]).to.eq("5.0000 UNIT");
-//     // const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-//     // expect(
-//     //   (
-//     //     delegatorsAfter.toHuman() as {
-//     //       delegations: { owner: string; amount: string }[];
-//     //     }
-//     //   ).delegations[0].owner === ALITH
-//     // ).to.equal(true, "delegation didnt go through");
-//     // expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("6.0000 UNIT");
-//   });
-// });
-
-describeDevMoonbeam("Staking - Delegators shouldn't bond less than min bond", (context) => {
+describeDevMoonbeam("Staking - Delegators cannot bond less than minimum delegation", (context) => {
   let ethan;
   before("should succesfully call delegate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
@@ -267,17 +122,12 @@ describeDevMoonbeam("Staking - Delegators shouldn't bond less than min bond", (c
       .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
-    // Bond More
-    await context.polkadotApi.tx.parachainStaking
-      .delegatorBondMore(ALITH, MIN_GLMR_NOMINATOR)
-      .signAndSend(ethan);
-    await context.createBlock();
   });
-  it("should fail executing delegatorBondLess under min delegation amount", async function () {
+  it("should fail calling delegatorBondLess under min delegation amount", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
       ethan,
-      context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, MIN_GLMR_NOMINATOR_PLUS_ONE)
+      context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, 1n * GLMR)
     );
     expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
     const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
@@ -288,67 +138,6 @@ describeDevMoonbeam("Staking - Delegators shouldn't bond less than min bond", (c
         }
       ).delegations[0].owner === ALITH
     ).to.equal(true, "delegation didn't go through");
-    expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("10.0000 UNIT");
+    expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("5.0000 UNIT");
   });
 });
-
-describeDevMoonbeam(
-  "Staking - Delegators shouldn't bond less than min bond - only bond less",
-  (context) => {
-    let ethan;
-    before("should succesfully call delegate on ALITH", async function () {
-      const keyring = new Keyring({ type: "ethereum" });
-      ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-      // Delegate
-      await context.polkadotApi.tx.parachainStaking
-        .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-        .signAndSend(ethan);
-      await context.createBlock();
-    });
-    it("should fail calling delegatorBondLess under min delegation amount", async function () {
-      const { events } = await createBlockWithExtrinsic(
-        context,
-        ethan,
-        context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, 1n * GLMR)
-      );
-      expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
-      const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
-        ETHAN
-      );
-      expect(
-        (
-          delegatorsAfter.toHuman() as {
-            delegations: { owner: string; amount: string }[];
-          }
-        ).delegations[0].owner === ALITH
-      ).to.equal(true, "delegation didnt go through");
-      expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("5.0000 UNIT");
-    });
-  }
-);
-
-// // TODO: bring back when we figure out how to get `NominatorState2.revocations`
-// describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
-//   let ethan;
-//   before("should succesfully call delegate on ALITH", async function () {
-//     //delegate
-//     const keyring = new Keyring({ type: "ethereum" });
-//     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-//     await context.polkadotApi.tx.parachainStaking
-//       .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-//       .signAndSend(ethan);
-//     await context.createBlock();
-//   });
-//   it("should succesfully revoke delegation for ALITH", async function () {
-//     await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
-//     await context.createBlock();
-//     const delegatorsAfterRevocation =
-//       await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-//     expect(
-//       (delegatorsAfterRevocation.revocations[0] === ALITH).to.equal(
-//         true,
-//         "revocation didnt go through"
-//       )
-//     );
-//   });
-// });
