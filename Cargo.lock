@@ -5642,6 +5642,7 @@ dependencies = [
  "fc-mapping-sync",
  "fc-rpc",
  "fc-rpc-core",
+ "flume",
  "fp-consensus",
  "fp-rpc",
  "frame-benchmarking",

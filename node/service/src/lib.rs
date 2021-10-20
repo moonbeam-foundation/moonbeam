@@ -786,9 +786,17 @@ where
 		);
 
 		let client_set_aside_for_cidp = client.clone();
-		let (xcm_sender, xcm_receiver) =
-			futures::channel::mpsc::channel::<InboundDownwardMessage>(100);
-		let xcm_receiver = Arc::new(Mutex::new(xcm_receiver));
+		// let (xcm_sender, xcm_receiver) =
+		// 	futures::channel::mpsc::channel::<InboundDownwardMessage>(100);
+		// let xcm_receiver = Arc::new(Mutex::new(xcm_receiver));
+
+		// Create channels for mocked XCM messages.
+		let (downward_xcm_sender, downward_xcm_receiver) =
+			flume::bounded::<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) =
+			flume::bounded::<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>(100);
+
+		// TODO pass the sending halves of the xcm channels to the RPC layer below
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -809,19 +817,32 @@ where
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
 					let author_id = author_id.clone();
-					let channel = xcm_receiver.clone();
+					let channel = downward_xcm_receiver.clone();
 
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let downward_messages: Vec<InboundDownwardMessage> = Vec::new();
+						//TODO maybe we don't need to collect into a Vec here. We could just
+						// leave it as an iterator.
+						let downward_messages: Vec<InboundDownwardMessage> = channel
+							.drain()
+							.map(|(message, response_channel)| {
+								// Acknowledge receipt of the message and send it to be
+								// included in the block
+								//TODO We have the parent block hash and the current block number. We
+								// won't know this block's hash until after it has been created
+								response_channel.send(true).expect("Couldn't send acknowledgement of downward xcm message to RPC layer.");
+								println!("{:?}", message);
+								message
+							})
+							.collect();
 
 						// Here I'm just draining the stream into a Vec. I guess there is some method
 						// that might help us with this but for now let's keep it simple.
 						// https://docs.rust-embedded.org/rust-sysfs-gpio/futures/stream/trait.Stream.html#method.collect
-						while let Some(xcm) = channel.next().await {
-							downward_messages.push(xcm);
-						}
+						// while let Some(xcm) = channel.next().await {
+						// 	downward_messages.push(xcm);
+						// }
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
@@ -937,43 +958,43 @@ where
 	Ok(task_manager)
 }
 
-use futures::channel::mpsc::{Receiver, Sender};
-use std::collections::VecDeque;
-pub struct XcmQueue {
-	receiver: Receiver<InboundDownwardMessage>,
-	queue: Mutex<VecDeque<InboundDownwardMessage>>,
-}
+// use futures::channel::mpsc::{Receiver, Sender};
+// use std::collections::VecDeque;
+// pub struct XcmQueue {
+// 	receiver: Receiver<InboundDownwardMessage>,
+// 	queue: Mutex<VecDeque<InboundDownwardMessage>>,
+// }
 
-impl XcmQueue {
-	/// Create a new instance of the worker and get an async mpsc Sender that can
-	/// be used to queue up messages (probably passed to the RPC layer)
-	fn new() -> (Self, Sender<InboundDownwardMessage>) {
-		let (tx, rx) = futures::channel::mpsc::channel(100);
-		let q = Self {
-			receiver: rx,
-			queue: VecDeque::new(),
-		};
+// impl XcmQueue {
+// 	/// Create a new instance of the worker and get an async mpsc Sender that can
+// 	/// be used to queue up messages (probably passed to the RPC layer)
+// 	fn new() -> (Self, Sender<InboundDownwardMessage>) {
+// 		let (tx, rx) = futures::channel::mpsc::channel(100);
+// 		let q = Self {
+// 			receiver: rx,
+// 			queue: VecDeque::new(),
+// 		};
 
-		(q, tx)
-	}
+// 		(q, tx)
+// 	}
 
-	/// Get all of the messages queued up since the last read.
-	fn get_queued_messages(&mut self) -> Vec<InboundDownwardMessage> {
-		self.queue
-			.lock()
-			.expect("can acquire lock while getting queued messaged")
-			.drain(..)
-			.collect()
-	}
+// 	/// Get all of the messages queued up since the last read.
+// 	fn get_queued_messages(&mut self) -> Vec<InboundDownwardMessage> {
+// 		self.queue
+// 			.lock()
+// 			.expect("can acquire lock while getting queued messaged")
+// 			.drain(..)
+// 			.collect()
+// 	}
 
-	/// Start the
-	async fn start_worker(&self) {
-		while let Some(xcm) = self.receiver.next().await {
-			self.queue
-				.lock()
-				.expect("can acquire lock while adding message to queue")
-				.push_back(xcm)
-			// Uhhh, I assume it unlocks here?
-		}
-	}
-}
+// 	/// Start the
+// 	async fn start_worker(&self) {
+// 		while let Some(xcm) = self.receiver.next().await {
+// 			self.queue
+// 				.lock()
+// 				.expect("can acquire lock while adding message to queue")
+// 				.push_back(xcm)
+// 			// Uhhh, I assume it unlocks here?
+// 		}
+// 	}
+// }
