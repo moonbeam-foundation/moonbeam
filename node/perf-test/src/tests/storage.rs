@@ -112,9 +112,7 @@ where
 
 			let mut bytes = Vec::<u8>::with_capacity(4 + 32 + 32);
 
-			bytes.extend_from_slice(
-				&Keccak256::digest(b"calculate_sum(uint256,uint256)")[0..4],
-			);
+			bytes.extend_from_slice(&Keccak256::digest(b"calculate_sum(uint256,uint256)")[0..4]);
 			bytes.resize(4 + 32 + 32, 0);
 
 			U256::from(start).to_big_endian(&mut bytes[4..36]);
@@ -175,7 +173,7 @@ where
 			let calldata = calculate_bloat_storage_calldata(
 				i * NUM_STORAGE_ITEMS_PER_BLOCK,
 				NUM_STORAGE_ITEMS_PER_BLOCK,
-				0
+				0,
 			);
 
 			let _txn_hash = context
@@ -207,10 +205,8 @@ where
 		let now = Instant::now();
 		for i in 0..NUM_READ_BLOCKS {
 			// now call calculate_sum to force a read of these items which were written
-			let calldata = calculate_calculate_sum_calldata(
-				i * NUM_READS_PER_BLOCK,
-				NUM_READS_PER_BLOCK
-			);
+			let calldata =
+				calculate_calculate_sum_calldata(i * NUM_READS_PER_BLOCK, NUM_READS_PER_BLOCK);
 
 			let _txn_hash = context
 				.evm_call(

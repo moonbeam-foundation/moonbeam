@@ -20,8 +20,8 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
-use std::path::PathBuf;
 use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, Clone, StructOpt)]
@@ -39,7 +39,7 @@ pub struct PerfCmd {
 
 	#[structopt(
 		long = "output-file",
-		help = "File where results should be printed (STDOUT if omitted).",
+		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
 

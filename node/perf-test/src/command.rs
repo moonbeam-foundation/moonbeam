@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info, SystemInfo, PartitionInfo},
+	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
@@ -34,7 +34,7 @@ use sc_service::{
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{marker::PhantomData, path::PathBuf, sync::Arc, fs::File, io::prelude::*};
+use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -422,7 +422,12 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(&self, path: &PathBuf, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(
+		&self,
+		path: &PathBuf,
+		cmd: &PerfCmd,
+		config: Configuration,
+	) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,

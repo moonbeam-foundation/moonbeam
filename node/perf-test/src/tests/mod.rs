@@ -23,7 +23,7 @@ use service::{Block, RuntimeApiCollection};
 use sp_api::ConstructRuntimeApi;
 
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
-use serde::{Serialize};
+use serde::Serialize;
 
 mod block_creation;
 mod fibonacci;
