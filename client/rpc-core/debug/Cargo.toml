@@ -12,11 +12,11 @@ repository = 'https://github.com/PureStake/moonbeam/'
 [dependencies]
 futures = { version = "0.3", features = ["compat"] }
 ethereum-types = "0.12.0"
-jsonrpc-core = "15.0.0"
-jsonrpc-core-client = "14.0.3"
-jsonrpc-derive = "14.0.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-core-types = { path = "../types" }

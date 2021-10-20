@@ -58,7 +58,7 @@ pub mod pallet {
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
 
-	use xcm::v1::prelude::*;
+	use xcm::latest::prelude::*;
 
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
 
@@ -154,6 +154,7 @@ pub mod pallet {
 		InvalidDest,
 		NotCrossChainTransfer,
 		AssetIsNotReserveInDestination,
+		DestinationNotInvertible,
 	}
 
 	#[pallet::event]
@@ -334,26 +335,23 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			call: Vec<u8>,
 		) -> Result<Xcm<T::Call>, DispatchError> {
-			let transact_instructions: Vec<Xcm<()>> = vec![Transact {
+			let transact_instructions: Instruction<()> = Transact {
 				origin_type: origin_kind,
 				require_weight_at_most: dest_weight,
 				call: call.into(),
-			}];
-			let effects: Vec<Order<()>> = vec![Self::buy_execution(
-				asset.clone(),
-				&dest,
-				dest_weight,
-				transact_instructions,
-			)?];
+			};
 
-			Ok(Xcm::WithdrawAsset {
-				assets: vec![asset].into(),
-				effects: vec![Order::InitiateReserveWithdraw {
+			Ok(Xcm(vec![
+				WithdrawAsset(asset.clone().into()),
+				InitiateReserveWithdraw {
 					assets: All.into(),
-					reserve: dest,
-					effects: effects,
-				}],
-			})
+					reserve: dest.clone(),
+					xcm: Xcm(vec![
+						Self::buy_execution(asset.clone(), &dest, dest_weight)?,
+						transact_instructions,
+					]),
+				},
+			]))
 		}
 
 		/// Construct a buy execution xcm order with the provided parameters
@@ -361,18 +359,16 @@ pub mod pallet {
 			asset: MultiAsset,
 			at: &MultiLocation,
 			weight: u64,
-			instructions: Vec<Xcm<()>>,
-		) -> Result<Order<()>, DispatchError> {
-			let inv_at = T::LocationInverter::invert_location(at);
+		) -> Result<Instruction<()>, DispatchError> {
+			let inv_at = T::LocationInverter::invert_location(at)
+				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
 			let fees = asset
 				.reanchored(&inv_at)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
+
 			Ok(BuyExecution {
 				fees,
-				weight: weight,
-				debt: weight,
-				halt_on_error: false,
-				instructions: instructions,
+				weight_limit: WeightLimit::Limited(weight),
 			})
 		}
 

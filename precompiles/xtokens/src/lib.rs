@@ -109,25 +109,25 @@ where
 
 		// Bound check
 		input.expect_arguments(1)?;
-		let weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		// We convert the address into a currency id xtokens understands
-		let to_currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(error("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let to_balance = amount
+		let amount = amount
 			.try_into()
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
-		let call = orml_xtokens::Call::<Runtime>::transfer(
-			to_currency_id,
-			to_balance,
-			Box::new(destination),
-			weight,
-		);
+		let call = orml_xtokens::Call::<Runtime>::transfer {
+			currency_id,
+			amount,
+			dest: Box::new(destination),
+			dest_weight,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -164,21 +164,21 @@ where
 
 		// Bound check
 		input.expect_arguments(1)?;
-		let weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = amount
 			.try_into()
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset(
-			Box::new(MultiAsset {
+		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
+			asset: Box::new(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
 			}),
-			Box::new(destination),
-			weight,
-		);
+			dest: Box::new(destination),
+			dest_weight,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

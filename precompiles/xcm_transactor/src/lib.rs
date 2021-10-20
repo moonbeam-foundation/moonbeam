@@ -32,7 +32,7 @@ use sp_std::{
 	fmt::Debug,
 	marker::PhantomData,
 };
-use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -146,16 +146,16 @@ where
 			.try_into()
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
-		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative(
-			transactor,
+		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
+			dest: transactor,
 			index,
-			MultiAsset {
+			fee: MultiAsset {
 				id: AssetId::Concrete(fee_multilocation),
 				fun: Fungibility::Fungible(to_balance),
 			},
-			weight,
-			inner_call.as_bytes().to_vec(),
-		);
+			dest_weight: weight,
+			inner_call: inner_call.as_bytes().to_vec(),
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
