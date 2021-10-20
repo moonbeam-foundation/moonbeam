@@ -5580,6 +5580,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "evm",
  "evm-tracing-events",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
