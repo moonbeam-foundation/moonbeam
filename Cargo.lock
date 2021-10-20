@@ -4869,6 +4869,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "manual-xcm-rpc"
+version = "0.1.0"
+dependencies = [
+ "futures 0.3.16",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-derive 15.1.0",
+ "polkadot-core-primitives",
+ "tokio 0.2.25",
+]
+
+[[package]]
 name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
