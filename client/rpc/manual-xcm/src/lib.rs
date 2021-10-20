@@ -16,7 +16,7 @@
 use futures::{
 	compat::Compat,
 	future::{BoxFuture, TryFutureExt},
-	FutureExt, SinkExt, StreamExt,
+	FutureExt as _,
 };
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
@@ -24,9 +24,7 @@ use jsonrpc_derive::rpc;
 use polkadot_core_primitives::{
 	BlockNumber as RelayBlockNumber, InboundDownwardMessage, InboundHrmpMessage,
 };
-
-use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
-
+use tokio::sync::oneshot;
 //TODO This was in a separate crate in rpc-core for the ethereum-related RPC endpoints.
 // But I'm starting with it all in one to keep things simple. Are there drawbacks to doing this?
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
@@ -41,8 +39,10 @@ pub trait ManualXcmApi {
 		sent_at: RelayBlockNumber,
 		message: Vec<u8>,
 	) -> Compat<BoxFuture<'static, RpcResult<bool>>>;
-	// For now we return bool which indicates success Maybe we'll think of something better to
-	// return later
+	// For now we return bool which indicates some vague notion of success
+	// In the future it may be nice to return which block hash this message was
+	// injected into. We may need to learn more about how forks are handled to make
+	// sure we don't lose/skip xcm messages in when reorgs happen. I'm not worried about that yet.
 
 	// Inject a horizonal message - A message that comes from a dedicated channel to a sibling
 	// parachain.
@@ -56,7 +56,10 @@ pub trait ManualXcmApi {
 }
 
 pub struct ManualXcm {
-	pub requester: u32, //TODO Do I need any fields?
+	pub downward_message_channel:
+		flume::Sender<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>,
+	pub hrmp_message_channel:
+		flume::Sender<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>,
 }
 
 // impl Debug {
@@ -69,11 +72,26 @@ impl ManualXcmApi for ManualXcm {
 	fn inject_downward_message(
 		&self,
 		sent_at: RelayBlockNumber,
-		message: Vec<u8>,
+		msg: Vec<u8>,
 	) -> Compat<BoxFuture<'static, RpcResult<bool>>> {
-		// let mut requester = self.requester.clone();
+		let downward_message_channel = self.downward_message_channel.clone();
+		async move {
+			let (tx, rx) = oneshot::channel();
+			let message = InboundDownwardMessage { sent_at, msg };
 
-		async move { todo!() }.boxed().compat()
+			// Send the message back to the service where it will be queued up
+			// to be injected in to an upcoming block. Also send a channel on which
+			// the success message can be sent back.
+			downward_message_channel
+				.send_async((message, tx))
+				.await
+				.map_err(|err| internal_err(err))?;
+
+			// Wait for the response that the messages was included successfully
+			rx.await.map_err(|err| internal_err(err))
+		}
+		.boxed()
+		.compat()
 	}
 
 	fn inject_hrmp_message(
@@ -87,6 +105,15 @@ impl ManualXcmApi for ManualXcm {
 		println!("---> Enter");
 
 		async move { todo!() }.boxed().compat()
+	}
+}
+
+// This bit cribbed from frontier.
+pub fn internal_err<T: ToString>(message: T) -> jsonrpc_core::Error {
+	jsonrpc_core::Error {
+		code: jsonrpc_core::ErrorCode::InternalError,
+		message: message.to_string(),
+		data: None,
 	}
 }
 

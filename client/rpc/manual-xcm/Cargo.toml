@@ -9,6 +9,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 tokio = { version = "0.2.21", features = ["sync", "time"] }
+flume = "0.10.9"
 futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "15.0.0"
 jsonrpc-derive = "15.1.0"
