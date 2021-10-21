@@ -76,6 +76,19 @@ fn test_transact_through_derivative_errors() {
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
+
+			// Reserve but info not present, error
+			assert_noop!(
+				XcmTransactor::transact_through_derivative(
+					Origin::signed(1u64),
+					Transactors::Relay,
+					1,
+					MultiLocation::new(1, Junctions::X1(Junction::PalletInstance(1))),
+					100u64,
+					vec![0u8]
+				),
+				Error::<Test>::TransactorInfoNotSet
+			);
 		})
 }
 
