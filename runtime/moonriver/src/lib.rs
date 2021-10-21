@@ -33,7 +33,6 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
 	parameter_types,
-	// signed_extensions::{AdjustPriority, Divide},
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},

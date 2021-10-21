@@ -38,7 +38,6 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime,
 	parameter_types,
-	// signed_extensions::{AdjustPriority, Divide},
 	traits::{
 		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
