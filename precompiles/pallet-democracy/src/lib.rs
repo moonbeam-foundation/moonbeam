@@ -381,7 +381,11 @@ where
 
 		let referendum_index = input.read()?;
 
-		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", referendum_index);
+		log::trace!(
+			target: "democracy-precompile",
+			"Removing vote from referendum {:?}",
+			referendum_index
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::remove_vote {
