@@ -476,9 +476,9 @@
 	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
 	<span class="ident">chain_id</span>: <span class="ident">u64</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GenesisConfig</span> {
-	<span class="comment">// This is supposed the be the simplest bytecode to revert without returning any data.</span>
+	<span class="comment">// This is the simplest bytecode to revert without returning any data.</span>
 	<span class="comment">// We will pre-deploy it under all of our precompiles to ensure they can be called from</span>
-	<span class="comment">// within contracts. TODO We should have a test to ensure this is the right bytecode.</span>
+	<span class="comment">// within contracts.</span>
 	<span class="comment">// (PUSH1 0x00 PUSH1 0x00 REVERT)</span>
 	<span class="kw">let</span> <span class="ident">revert_bytecode</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
