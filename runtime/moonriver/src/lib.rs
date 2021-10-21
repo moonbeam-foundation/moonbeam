@@ -31,8 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
-	construct_runtime,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -276,14 +275,12 @@ where
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
-	// TODO : https://github.com/paritytech/substrate/pull/9834
 	pub OperationalFeeMultiplier: u8 = 5;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
-	// TODO : https://github.com/paritytech/substrate/pull/9834
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
@@ -919,7 +916,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>, // TODO : https://github.com/paritytech/substrate/pull/9834
+	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
