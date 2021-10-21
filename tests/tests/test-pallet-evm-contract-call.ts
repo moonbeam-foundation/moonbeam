@@ -58,20 +58,20 @@ describeDevMoonbeam("Pallet EVM contract call - no sudo", (context) => {
   });
 });
 describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
-  let events, contract;
+  let events, contract, contractAddress;
   before("Send a simple transfer with pallet evm with sudo", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    const contractData = await getCompiled("TestContractIncr");
+    // const contractData = await getCompiled("TestContractIncr");
     // console.log("abi", contractData.contract.abi);
     // const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    ({ contract } = await createContract(context.web3, "TestContractIncr"));
+    ({ contract, contractAddress } = await createContract(context.web3, "TestContractIncr"));
     // console.log("abi2", JSON.stringify(contract.options.jsonInterface, null, 2));
     // console.log("abi3", contract.options.jsonInterface);
     const iFace = new ethers.utils.Interface(contract.options.jsonInterface);
 
     const address = contract.options.address;
-
+    console.log("contractAddress", contractAddress, "address", address);
     const data = iFace.encodeFunctionData(
       // action
       "incr",
