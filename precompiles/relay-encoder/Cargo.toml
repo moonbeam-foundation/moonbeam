@@ -31,6 +31,7 @@ cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus"
 derive_more = "0.99"
 serde = "1.0.100"
 hex-literal = "0.3.3"
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]
 default = ["std"]

@@ -33,6 +33,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]
 default = ["std"]

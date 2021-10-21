@@ -28,6 +28,7 @@ pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "m
 serde = { version = "1.0.100" }
 derive_more = { version = "0.99"}
 sha3 = "0.8"
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]
 default = ["std"]

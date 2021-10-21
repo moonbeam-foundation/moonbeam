@@ -358,7 +358,7 @@ impl xcm_executor::Config for XcmConfig {
 	type ResponseHandler = ();
 	type SubscriptionService = ();
 	type AssetTrap = ();
-	type AssetClaims = ();	
+	type AssetClaims = ();
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]

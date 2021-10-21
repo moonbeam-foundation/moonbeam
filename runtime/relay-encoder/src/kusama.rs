@@ -183,11 +183,11 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::bond(
-			relay_account.clone().into(),
-			100u32.into(),
-			pallet_staking::RewardDestination::Controller,
-		)
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::bond {
+			controller: relay_account.clone().into(),
+			value: 100u32.into(),
+			payee: pallet_staking::RewardDestination::Controller,
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 
@@ -212,8 +212,10 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::bond_extra(100u32.into()).encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::bond_extra {
+			max_additional: 100u32.into(),
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -233,8 +235,10 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::unbond(100u32.into()).encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::unbond {
+			value: 100u32.into(),
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -254,8 +258,10 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::withdraw_unbonded(100u32).encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::withdraw_unbonded {
+			num_slashing_spans: 100u32,
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -280,9 +286,10 @@ mod tests {
 			blocked: true,
 		};
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::validate(validator_prefs.clone())
-				.encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::validate {
+			prefs: validator_prefs.clone(),
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -303,11 +310,10 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::nominate(vec![relay_account
-				.clone()
-				.into()])
-			.encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::nominate {
+			targets: vec![relay_account.clone().into()],
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -329,7 +335,7 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::chill().encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::chill {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -350,9 +356,9 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::set_payee(
-			pallet_staking::RewardDestination::Controller,
-		)
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::set_payee {
+			payee: pallet_staking::RewardDestination::Controller,
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 
@@ -377,9 +383,9 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::set_controller(
-			relay_account.clone().into(),
-		)
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::set_controller {
+			controller: relay_account.clone().into(),
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 
@@ -402,8 +408,10 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected =
-			pallet_staking::Call::<kusama_runtime::Runtime>::rebond(100u32.into()).encode();
+		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::rebond {
+			value: 100u32.into(),
+		}
+		.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
