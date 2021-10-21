@@ -88,15 +88,14 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 2
-    ).to.equal(true, "new candidate should have been added");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length
+    ).to.equal(2, "new candidate should have been added");
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner === ETHAN
-    ).to.equal(true, "new candidate ethan should have been added");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner
+    ).to.equal(ETHAN, "new candidate ethan should have been added");
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
+    ).to.equal("1.0000 kUNIT", "new candidate ethan should have been added (wrong amount)");
 
     expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
   });
@@ -124,9 +123,8 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "2.0000 kUNIT"
-    ).to.equal(true, "bond should have increased");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
+    ).to.equal("2.0000 kUNIT", "bond should have increased");
   });
   it("should succesfully call candidateBondMore on ALITH", async function () {
     const block = await sendPrecompileTx(
@@ -143,9 +141,8 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     expect(receipt.status).to.equal(true);
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount ===
-        "2.0000 kUNIT"
-    ).to.equal(true, "bond should have increased");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount
+    ).to.equal("2.0000 kUNIT", "bond should have increased");
   });
 });
 
@@ -171,9 +168,8 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond should have decreased");
+      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
+    ).to.equal("1.0000 kUNIT", "bond should have decreased");
   });
 });
 
@@ -193,8 +189,8 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner === ALITH
-    ).to.equal(true, "nomination didnt go through");
+      ).nominations[0].owner
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["status"]).equal("Active");
 
     expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
