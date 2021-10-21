@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
@@ -86,6 +86,8 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const MOONRIVER_FACTOR: Balance = 100; // 100 more total supply
+
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
 	pub const MEGAWEI: Balance = 1_000_000;
@@ -95,11 +97,11 @@ pub mod currency {
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR * MOONRIVER_FACTOR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * MOONRIVER_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * GLMR * MOONRIVER_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -351,7 +353,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI).into()
+		(1 * currency::GIGAWEI * currency::MOONRIVER_FACTOR).into()
 	}
 }
 
@@ -405,7 +407,7 @@ impl pallet_scheduler::Config for Runtime {
 parameter_types! {
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const CouncilMotionDuration: BlockNumber = 7 * DAYS;
+	pub const CouncilMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the council at once.
 	pub const CouncilMaxProposals: u32 = 100;
 	/// The maximum number of council members.
@@ -413,7 +415,7 @@ parameter_types! {
 
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const TechCommitteeMotionDuration: BlockNumber = 7 * DAYS;
+	pub const TechCommitteeMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the technical committee at once.
 	pub const TechCommitteeMaxProposals: u32 = 100;
 	/// The maximum number of technical committee members.
@@ -446,20 +448,19 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 }
 
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
-	pub const VotingPeriod: BlockNumber = 5 * DAYS;
-	pub const VoteLockingPeriod: BlockNumber = 1 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
-	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
+	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
+	pub const VotingPeriod: BlockNumber = 14 * DAYS;
+	pub const VoteLockingPeriod: BlockNumber = 7 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 2 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::GLMR;
+	pub const MinimumDeposit: Balance = 4 * currency::GLMR * currency::MOONRIVER_FACTOR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
-	pub const InstantAllowed: bool = false;
+	pub const InstantAllowed: bool = true;
 }
 
-// todo : ensure better origins
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
@@ -518,19 +519,31 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR;
+	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR * currency::MOONRIVER_FACTOR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 = 100;
 }
 
+type TreasuryApproveOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
+>;
+
+type TreasuryRejectOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// Democracy dispatches Root
-	type ApproveOrigin = EnsureRoot<AccountId>;
-	// Democracy dispatches Root
-	type RejectOrigin = EnsureRoot<AccountId>;
+	// At least three-fifths majority of the council is required (or root) to approve a proposal
+	type ApproveOrigin = TreasuryApproveOrigin;
+	// More than half of the council is required (or root) to reject a proposal
+	type RejectOrigin = TreasuryRejectOrigin;
 	type Event = Event;
 	// If spending proposal rejected, transfer proposer bond to treasury
 	type OnSlash = Treasury;
@@ -631,15 +644,15 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	pub const MinBlocksPerRound: u32 = 10;
-	/// Default BlocksPerRound is every hour (300 * 12 second block times)
-	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Default BlocksPerRound is every 4 hours (1200 * 12 second block times)
+	pub const DefaultBlocksPerRound: u32 = 4 * HOURS;
+	/// Collator candidate exits are delayed by 2 rounds
 	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Nominator exits are delayed by 2 rounds
 	pub const LeaveNominatorsDelay: u32 = 2;
-	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
+	/// Nomination revocations are delayed by 2 rounds
 	pub const RevokeNominationDelay: u32 = 2;
-	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	/// Reward payments are delayed by 2 rounds
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
@@ -652,11 +665,11 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::MOONRIVER_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate is 1_000
-	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOGLMR;
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOGLMR * currency::MOONRIVER_FACTOR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::GLMR;
+	pub const MinNominatorStk: u128 = 5 * currency::GLMR * currency::MOONRIVER_FACTOR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -710,7 +723,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
-	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
+	// Todo: Discuss if we enabled from the beginning with Derek
+	type RewardAddressChangeOrigin = EnsureRoot<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
@@ -719,7 +733,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::GLMR;
+	pub const DepositAmount: Balance = 100 * currency::GLMR * currency::MOONRIVER_FACTOR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -848,8 +862,7 @@ impl pallet_migrations::Config for Runtime {
 	>;
 }
 
-/// Call filter expected to be used during Phase 3 of the Moonbeam rollout
-/// At least it was used in Moonriver phase3
+/// Call filter used during Phase 3 of the Moonriver rollout
 pub struct PhaseThreeFilter;
 impl Contains<Call> for PhaseThreeFilter {
 	fn contains(c: &Call) -> bool {
@@ -941,7 +954,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
+	frame_system::CheckWeight<Runtime>, // TODO : https://github.com/paritytech/substrate/pull/9834
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
