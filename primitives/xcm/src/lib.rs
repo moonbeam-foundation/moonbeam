@@ -38,6 +38,9 @@ use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
 
 use parity_scale_codec::{Decode, Encode};
+
+use sp_std::vec::Vec;
+
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
 /// an intermediate generic type AssetType.

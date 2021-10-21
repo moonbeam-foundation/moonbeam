@@ -83,7 +83,8 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
 	transaction_validity::{
-		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
+		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
+		TransactionValidityError,
 	},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
@@ -1303,8 +1304,8 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl xcm_transactor::UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			// Shall we use westend for moonbase? The tests are probably based on rococo
 			// but moonbase-alpha is attached to westend-runtime I think
@@ -1313,7 +1314,7 @@ impl xcm_transactor::UtilityEncodeCall for Transactors {
 	}
 }
 
-impl xcm_transactor::XcmTransact for Transactors {
+impl xcm_primitives::XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
@@ -1334,6 +1335,8 @@ impl xcm_transactor::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type XcmTransactorInfo =
+		xcm_primitives::MultiLocationTransactInfoGetter<AssetId, AssetType, AssetManager>;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
@@ -1433,6 +1436,22 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
+
+/// There are two extensions returning the priority:
+/// 1. The `CheckWeight` extension.
+/// 2. The `TransactionPayment` extension.
+///
+/// The first one gives a significant bump to `Operational` transactions, but for `Normal`
+/// it's within `[0..MAXIMUM_BLOCK_WEIGHT]` range.
+///
+/// The second one roughly represents the amount of fees being paid (and the tip) with
+/// size-adjustment coefficient. I.e. we are interested to maximize `fee/consumed_weight` or
+/// `fee/size_limit`. The returned value is potentially unbounded though.
+///
+/// The idea for the adjustment is scale the priority coming from `CheckWeight` for
+/// `Normal` transactions down to zero, leaving the priority bump for `Operational` and
+/// `Mandatory` though.
+const CHECK_WEIGHT_PRIORITY_DIVISOR: TransactionPriority = MAXIMUM_BLOCK_WEIGHT;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (

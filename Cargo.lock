@@ -5046,7 +5046,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "westend-runtime",
- "xcm-transactor",
+ "xcm-primitives",
 ]
 
 [[package]]

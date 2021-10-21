@@ -438,7 +438,6 @@ pub mod pallet {
 			let self_location = T::SelfLocation::get();
 			ensure!(dest != self_location, Error::<T>::NotCrossChainTransfer);
 
-			println!("{:?}", asset);
 			let reserve = asset.reserve().ok_or(Error::<T>::AssetHasNoReserve)?;
 
 			// We only allow to transact using a reserve asset as fee

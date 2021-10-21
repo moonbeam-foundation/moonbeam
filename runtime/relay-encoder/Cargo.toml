@@ -16,7 +16,7 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", defaul
 pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
-xcm-transactor =  { path = "../../pallets/xcm-transactor", default-features = false }
+xcm-primitives =  { path = "../../primitives/xcm", default-features = false }
 
 [dev-dependencies]
 polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
@@ -37,5 +37,5 @@ std = [
     "sp-runtime/std",
     "parity-scale-codec/std",
     "frame-system/std",
-    "xcm-transactor/std"
+    "xcm-primitives/std"
 ]

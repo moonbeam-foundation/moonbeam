@@ -135,27 +135,18 @@ where
 		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		input.expect_arguments(2)?;
 		// read fee amount
-		let fee_amount: U256 = input.read()?;
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
 		let inner_call = input.read::<Bytes>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let to_balance = fee_amount
-			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
-
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,
 			index,
-			fee: MultiAsset {
-				id: AssetId::Concrete(fee_multilocation),
-				fun: Fungibility::Fungible(to_balance),
-			},
+			fee_location: fee_multilocation,
 			dest_weight: weight.clone(),
 			inner_call: inner_call.as_bytes().to_vec(),
-			dispatch_weight: weight,
 		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(

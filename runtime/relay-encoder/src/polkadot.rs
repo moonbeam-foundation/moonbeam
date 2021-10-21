@@ -71,10 +71,10 @@ pub enum StakeCall {
 
 pub struct PolkadotEncoder;
 
-impl xcm_transactor::UtilityEncodeCall for PolkadotEncoder {
-	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for PolkadotEncoder {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
-			xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 				// If we encode directly we inject the call length,
 				// so we just append the inner call after encoding the outer
@@ -168,9 +168,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_transactor::UtilityEncodeCall::encode_call(
+			xcm_primitives::UtilityEncodeCall::encode_call(
 				PolkadotEncoder,
-				xcm_transactor::UtilityAvailableCalls::AsDerivative(1, call_bytes)
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 			),
 			expected_encoded
 		);
