@@ -752,7 +752,8 @@ fn transact_through_derivative() {
 				fun: Fungibility::Fungible(23)
 			},
 			4000000000,
-			encoded
+			encoded,
+			2000000000
 		));
 	});
 
@@ -897,7 +898,8 @@ fn transact_through_sovereign() {
 				fun: Fungibility::Fungible(23)
 			},
 			4000000000,
-			utility_bytes
+			utility_bytes,
+			2000000000
 		));
 	});
 

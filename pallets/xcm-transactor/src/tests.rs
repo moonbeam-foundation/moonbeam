@@ -59,7 +59,8 @@ fn test_transact_through_derivative_errors() {
 						fun: Fungibility::Fungible(100)
 					},
 					100u64,
-					vec![0u8]
+					vec![0u8],
+					50u64
 				),
 				Error::<Test>::UnclaimedIndex
 			);
@@ -81,7 +82,8 @@ fn test_transact_through_derivative_errors() {
 						fun: Fungibility::Fungible(100)
 					},
 					100u64,
-					vec![0u8]
+					vec![0u8],
+					50u64
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
@@ -107,7 +109,8 @@ fn test_transact_through_derivative_success() {
 					fun: Fungibility::Fungible(100)
 				},
 				100u64,
-				vec![1u8]
+				vec![1u8],
+				50u64
 			));
 			let expected = vec![
 				crate::Event::RegisterdDerivative(1u64, 1),
@@ -141,6 +144,7 @@ fn test_root_can_transact_through_sovereign() {
 					},
 					100u64,
 					vec![1u8],
+					50u64
 				),
 				DispatchError::BadOrigin
 			);
@@ -155,7 +159,8 @@ fn test_root_can_transact_through_sovereign() {
 					fun: Fungibility::Fungible(100)
 				},
 				100u64,
-				vec![1u8]
+				vec![1u8],
+				50u64
 			));
 
 			let expected = vec![crate::Event::TransactedSovereign(

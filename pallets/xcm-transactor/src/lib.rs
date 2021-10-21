@@ -103,6 +103,9 @@ pub mod pallet {
 		// The origin that is allowed to dispatch calls from the sovereign account directly
 		type SovereignAccountDispatcherOrigin: EnsureOrigin<Self::Origin>;
 
+		/// XCM sender.
+		type XcmSender: SendXcm;
+
 		// Base XCM weight.
 		///
 		/// The actually weight for an XCM message is `T::BaseXcmWeight +
@@ -155,6 +158,8 @@ pub mod pallet {
 		NotCrossChainTransfer,
 		AssetIsNotReserveInDestination,
 		DestinationNotInvertible,
+		ErrorSending,
+		DispatchWeightBiggerThanTotalWeight,
 	}
 
 	#[pallet::event]
@@ -204,7 +209,8 @@ pub mod pallet {
 				&index,
 				&dest,
 				dest_weight,
-				inner_call
+				inner_call,
+				dispatch_weight.clone()
 			)
 		)]
 		pub fn transact_through_derivative(
@@ -214,9 +220,17 @@ pub mod pallet {
 			fee: MultiAsset,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
+			dispatch_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
+			// dest_weight accounts for all the weight that needs to be purchased in the dest chain
+			// dispatch weight accounts just for the weight of the transact operation itself
+			// dest_weight should include dispatch_weight
+			ensure!(
+				dispatch_weight < dest_weight,
+				Error::<T>::DispatchWeightBiggerThanTotalWeight
+			);
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
@@ -233,20 +247,21 @@ pub mod pallet {
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
 
-			// Gather the xcm call
-			let mut xcm: Xcm<T::Call> = Self::transact_fee_in_dest_chain_asset(
-				destination.clone(),
-				fee,
-				dest_weight,
-				OriginKind::SovereignAccount,
-				call_bytes.clone(),
-			)?;
+			// does not trigger anything outside moonbeam
+			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
 
-			let weight =
-				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let outcome =
-				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+			let weight = T::Weigher::weight(&mut withdraw_message)
+				.map_err(|()| Error::<T>::UnweighableMessage)?;
 
+			// This execution ensures we withdraw assets from the calling account
+			let outcome = T::XcmExecutor::execute_xcm_in_credit(
+				origin_as_mult,
+				withdraw_message,
+				weight,
+				weight,
+			);
+
+			// Let's check if the execution was succesful
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
 				Outcome::Incomplete(_w, err) => Some(err),
@@ -254,15 +269,27 @@ pub mod pallet {
 			};
 			if let Some(xcm_err) = maybe_xcm_err {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
-			} else {
-				// Deposit event
-				Self::deposit_event(Event::<T>::TransactedDerivative(
-					who.clone(),
-					destination,
-					call_bytes,
-					index,
-				));
 			}
+
+			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
+				destination.clone(),
+				fee,
+				dest_weight,
+				call_bytes.clone(),
+				dispatch_weight,
+			)?;
+
+			// Send to sovereign
+			T::XcmSender::send_xcm(destination.clone(), transact_message)
+				.map_err(|_| Error::<T>::ErrorSending)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::TransactedDerivative(
+				who.clone(),
+				destination,
+				call_bytes,
+				index,
+			));
 
 			Ok(())
 		}
@@ -274,38 +301,49 @@ pub mod pallet {
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_sovereign(
 				&fee,
-				&destination,
+				&dest,
 				dest_weight,
-				call
+				call,
+				dispatch_weight.clone()
 			)
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
-			destination: MultiLocation,
+			dest: MultiLocation,
 			fee_payer: T::AccountId,
 			fee: MultiAsset,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			dispatch_weight: Weight,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
+
+			// dest_weight accounts for all the weight that needs to be purchased in the dest chain
+			// dispatch weight accounts just for the weight of the transact operation itself
+			// dest_weight should include dispatch_weight
+			ensure!(
+				dispatch_weight < dest_weight,
+				Error::<T>::DispatchWeightBiggerThanTotalWeight
+			);
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
 
-			// Gather the xcm call
-			let mut xcm: Xcm<T::Call> = Self::transact_fee_in_dest_chain_asset(
-				destination.clone(),
-				fee,
-				dest_weight,
-				OriginKind::SovereignAccount,
-				call.clone(),
-			)?;
+			// does not trigger anything outside moonbeam
+			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
 
-			let weight =
-				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let outcome =
-				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+			let weight = T::Weigher::weight(&mut withdraw_message)
+				.map_err(|()| Error::<T>::UnweighableMessage)?;
 
+			// This execution ensures we withdraw assets from the calling account
+			let outcome = T::XcmExecutor::execute_xcm_in_credit(
+				origin_as_mult,
+				withdraw_message,
+				weight,
+				weight,
+			);
+
+			// Let's check if the execution was succesful
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
 				Outcome::Incomplete(_w, err) => Some(err),
@@ -313,14 +351,27 @@ pub mod pallet {
 			};
 			if let Some(xcm_err) = maybe_xcm_err {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
-			} else {
-				// Deposit event
-				Self::deposit_event(Event::<T>::TransactedSovereign(
-					fee_payer.clone(),
-					destination,
-					call,
-				));
 			}
+
+			// Gather the xcm call
+			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
+				dest.clone(),
+				fee,
+				dest_weight,
+				call.clone(),
+				dispatch_weight,
+			)?;
+
+			// Send to sovereign
+			T::XcmSender::send_xcm(dest.clone(), transact_message)
+				.map_err(|_| Error::<T>::ErrorSending)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::TransactedSovereign(
+				fee_payer.clone(),
+				dest,
+				call,
+			));
 
 			Ok(())
 		}
@@ -328,28 +379,20 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Construct the transact xcm message with the provided parameters
-		fn transact_fee_in_dest_chain_asset(
+		fn transact_in_dest_chain_asset(
 			dest: MultiLocation,
 			asset: MultiAsset,
 			dest_weight: Weight,
-			origin_kind: OriginKind,
 			call: Vec<u8>,
-		) -> Result<Xcm<T::Call>, DispatchError> {
-			let transact_instructions: Instruction<()> = Transact {
-				origin_type: origin_kind,
-				require_weight_at_most: dest_weight,
-				call: call.into(),
-			};
-
+			dispatch_weight: Weight,
+		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
-				WithdrawAsset(asset.clone().into()),
-				InitiateReserveWithdraw {
-					assets: All.into(),
-					reserve: dest.clone(),
-					xcm: Xcm(vec![
-						Self::buy_execution(asset.clone(), &dest, dest_weight)?,
-						transact_instructions,
-					]),
+				Self::sovereign_withdraw(asset.clone(), &dest)?,
+				Self::buy_execution(asset.clone(), &dest, dest_weight)?,
+				Transact {
+					origin_type: OriginKind::SovereignAccount,
+					require_weight_at_most: dispatch_weight,
+					call: call.clone().into(),
 				},
 			]))
 		}
@@ -370,6 +413,20 @@ pub mod pallet {
 				fees,
 				weight_limit: WeightLimit::Limited(weight),
 			})
+		}
+
+		/// Construct a buy execution xcm order with the provided parameters
+		fn sovereign_withdraw(
+			asset: MultiAsset,
+			at: &MultiLocation,
+		) -> Result<Instruction<()>, DispatchError> {
+			let inv_at = T::LocationInverter::invert_location(at)
+				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
+			let fees = asset
+				.reanchored(&inv_at)
+				.map_err(|_| Error::<T>::CannotReanchor)?;
+
+			Ok(WithdrawAsset(fees.into()))
 		}
 
 		/// Ensure has the `dest` has chain part and none recipient part.
@@ -409,6 +466,7 @@ pub mod pallet {
 			dest: &T::Transactor,
 			weight: &u64,
 			call: &Vec<u8>,
+			transact_weight: Weight,
 		) -> Weight {
 			let call_bytes: Vec<u8> =
 				dest.clone()
@@ -416,14 +474,14 @@ pub mod pallet {
 						index.clone(),
 						call.clone(),
 					));
-			if let Ok(mut msg) = Self::transact_fee_in_dest_chain_asset(
+			if let Ok(msg) = Self::transact_in_dest_chain_asset(
 				dest.clone().destination(),
 				asset.clone(),
 				weight.clone(),
-				OriginKind::SovereignAccount,
 				call_bytes.clone(),
+				transact_weight,
 			) {
-				T::Weigher::weight(&mut msg).map_or(Weight::max_value(), |w| {
+				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
 				})
 			} else {
@@ -437,15 +495,16 @@ pub mod pallet {
 			dest: &MultiLocation,
 			weight: &u64,
 			call: &Vec<u8>,
+			dispatch_weight: Weight,
 		) -> Weight {
-			if let Ok(mut msg) = Self::transact_fee_in_dest_chain_asset(
+			if let Ok(msg) = Self::transact_in_dest_chain_asset(
 				dest.clone(),
 				asset.clone(),
 				weight.clone(),
-				OriginKind::SovereignAccount,
 				call.clone(),
+				dispatch_weight,
 			) {
-				T::Weigher::weight(&mut msg).map_or(Weight::max_value(), |w| {
+				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
 				})
 			} else {

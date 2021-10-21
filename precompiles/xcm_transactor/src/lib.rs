@@ -153,8 +153,9 @@ where
 				id: AssetId::Concrete(fee_multilocation),
 				fun: Fungibility::Fungible(to_balance),
 			},
-			dest_weight: weight,
+			dest_weight: weight.clone(),
 			inner_call: inner_call.as_bytes().to_vec(),
+			dispatch_weight: weight,
 		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(

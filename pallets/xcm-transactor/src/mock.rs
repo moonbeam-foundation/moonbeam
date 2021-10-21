@@ -297,6 +297,7 @@ impl Config for Test {
 	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
+	type XcmSender = DoNothingRouter;
 }
 
 pub(crate) struct ExtBuilder {
