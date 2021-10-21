@@ -36,6 +36,9 @@ use xcm::latest::{
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
+use xcm_primitives::{
+	RemoteTransactInfo, TransactInfo, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+};
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 
@@ -262,7 +265,7 @@ pub enum Transactors {
 	Relay,
 }
 
-impl crate::XcmTransact for Transactors {
+impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
@@ -270,7 +273,7 @@ impl crate::XcmTransact for Transactors {
 	}
 }
 
-impl crate::UtilityEncodeCall for Transactors {
+impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			Transactors::Relay => match call {
@@ -281,6 +284,23 @@ impl crate::UtilityEncodeCall for Transactors {
 					call
 				}
 			},
+		}
+	}
+}
+
+pub struct XcmTransactorInfo;
+
+impl TransactInfo<MultiLocation> for XcmTransactorInfo {
+	fn transactor_info(location: MultiLocation) -> Option<RemoteTransactInfo> {
+		if location == MultiLocation::parent() {
+			Some({
+				RemoteTransactInfo {
+					transact_extra_weight: 0,
+					destination_units_per_second: 1,
+				}
+			})
+		} else {
+			None
 		}
 	}
 }
@@ -298,6 +318,7 @@ impl Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type XcmTransactorInfo = XcmTransactorInfo;
 }
 
 pub(crate) struct ExtBuilder {

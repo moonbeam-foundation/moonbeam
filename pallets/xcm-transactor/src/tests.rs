@@ -18,8 +18,8 @@ use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
-use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation};
-
+use xcm::latest::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()
@@ -54,13 +54,9 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::parent()),
-						fun: Fungibility::Fungible(100)
-					},
+					MultiLocation::parent(),
 					100u64,
-					vec![0u8],
-					50u64
+					vec![0u8]
 				),
 				Error::<Test>::UnclaimedIndex
 			);
@@ -74,16 +70,9 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::new(
-							1,
-							Junctions::X1(Junction::Parachain(1000))
-						)),
-						fun: Fungibility::Fungible(100)
-					},
+					MultiLocation::new(1, Junctions::X1(Junction::Parachain(1000))),
 					100u64,
-					vec![0u8],
-					50u64
+					vec![0u8]
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
@@ -104,13 +93,9 @@ fn test_transact_through_derivative_success() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				MultiAsset {
-					id: AssetId::Concrete(MultiLocation::parent()),
-					fun: Fungibility::Fungible(100)
-				},
+				MultiLocation::parent(),
 				100u64,
-				vec![1u8],
-				50u64
+				vec![1u8]
 			));
 			let expected = vec![
 				crate::Event::RegisterdDerivative(1u64, 1),
@@ -120,6 +105,10 @@ fn test_transact_through_derivative_success() {
 					Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					1,
+					MultiAsset {
+						id: AssetId::Concrete(MultiLocation::parent()),
+						fun: Fungibility::Fungible(100),
+					},
 				),
 			];
 			assert_eq!(events(), expected);

@@ -13347,6 +13347,7 @@ dependencies = [
  "hex",
  "log",
  "parity-scale-codec",
+ "scale-info",
  "serde",
  "sha3 0.8.2",
  "sp-runtime",

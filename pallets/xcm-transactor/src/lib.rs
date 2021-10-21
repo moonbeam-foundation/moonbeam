@@ -61,6 +61,7 @@ pub mod pallet {
 	use xcm::latest::prelude::*;
 
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
+	use xcm_primitives::{TransactInfo, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -80,6 +81,9 @@ pub mod pallet {
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
+
+		// XcmTransactorInfo
+		type XcmTransactorInfo: TransactInfo<MultiLocation>;
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
@@ -114,31 +118,6 @@ pub mod pallet {
 		type BaseXcmWeight: Get<Weight>;
 	}
 
-	// The utility calls that need to be implemented as part of
-	// this pallet
-	#[derive(Debug, PartialEq, Eq)]
-	pub enum UtilityAvailableCalls {
-		AsDerivative(u16, Vec<u8>),
-	}
-
-	// Trait that the ensures we can encode a call with utility functions.
-	// With this trait we ensure that the user cannot control entirely the call
-	// to be performed in the destination chain. It only can control the call inside
-	// the as_derivative extrinsic, and thus, this call can only be dispatched from the
-	// derivative account
-	pub trait UtilityEncodeCall {
-		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
-	}
-
-	// Trait to ensure we can retrieve the destination of a given type
-	// It must implement UtilityEncodeCall
-	// We separate this in two traits to be able to implement UtilityEncodeCall separately
-	// for different runtimes of our choice
-	pub trait XcmTransact: UtilityEncodeCall {
-		/// Encode call from the relay.
-		fn destination(self) -> MultiLocation;
-	}
-
 	// Stores the index to account mapping. These indices are usable as derivative
 	// in the relay chain
 	#[pallet::storage]
@@ -160,12 +139,14 @@ pub mod pallet {
 		DestinationNotInvertible,
 		ErrorSending,
 		DispatchWeightBiggerThanTotalWeight,
+		Overflow,
+		TransactorInfoNotSet,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
+		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16, MultiAsset),
 		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
@@ -203,46 +184,49 @@ pub mod pallet {
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
-		#[pallet::weight(
-			Pallet::<T>::weight_of_transact_through_derivative(
-				&fee,
-				&index,
-				&dest,
-				dest_weight,
-				inner_call,
-				dispatch_weight.clone()
-			)
-		)]
+		#[pallet::weight(0)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
-			fee: MultiAsset,
+			fee_location: MultiLocation,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
-			dispatch_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
-			// dest_weight accounts for all the weight that needs to be purchased in the dest chain
-			// dispatch weight accounts just for the weight of the transact operation itself
-			// dest_weight should include dispatch_weight
-			ensure!(
-				dispatch_weight < dest_weight,
-				Error::<T>::DispatchWeightBiggerThanTotalWeight
-			);
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
 			ensure!(account == who, Error::<T>::NotOwner);
 
-			// Gather the destination
-			let destination = Self::transfer_kind(&fee, &dest.clone().destination())?;
-
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> =
-				dest.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+			let call_bytes: Vec<u8> = dest
+				.clone()
+				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+
+			let dest = dest.clone().destination();
+
+			let transactor_info = T::XcmTransactorInfo::transactor_info(dest.clone())
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+
+			let total_weight = dest_weight
+				.checked_add(transactor_info.transact_extra_weight)
+				.ok_or(Error::<T>::Overflow)?;
+
+			let amount = transactor_info
+				.destination_units_per_second
+				.checked_mul(total_weight as u128)
+				.ok_or(Error::<T>::Overflow)?;
+
+			let fee = MultiAsset {
+				id: Concrete(fee_location),
+				fun: Fungible(amount),
+			};
+
+			// Ensure the asset is a reserve
+			Self::transfer_kind(&fee, &dest)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
@@ -272,23 +256,26 @@ pub mod pallet {
 			}
 
 			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
-				destination.clone(),
-				fee,
-				dest_weight,
+				dest.clone(),
+				fee.clone(),
+				dest_weight
+					.checked_add(transactor_info.transact_extra_weight)
+					.ok_or(Error::<T>::Overflow)?,
 				call_bytes.clone(),
-				dispatch_weight,
+				dest_weight,
 			)?;
 
 			// Send to sovereign
-			T::XcmSender::send_xcm(destination.clone(), transact_message)
+			T::XcmSender::send_xcm(dest.clone(), transact_message)
 				.map_err(|_| Error::<T>::ErrorSending)?;
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative(
 				who.clone(),
-				destination,
+				dest,
 				call_bytes,
 				index,
+				fee,
 			));
 
 			Ok(())

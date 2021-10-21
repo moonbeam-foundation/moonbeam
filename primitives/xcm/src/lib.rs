@@ -32,11 +32,12 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::FilterAssetLocation;
 use xcm_executor::traits::WeightTrader;
 
-use sp_runtime::traits::Zero;
+use sp_runtime::{traits::Zero, RuntimeDebug};
 
 use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
 
+use parity_scale_codec::{Decode, Encode};
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
 /// an intermediate generic type AssetType.
@@ -324,4 +325,65 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 pub trait UnitsToWeightRatio<AssetId> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
+}
+
+/// Stores the information to be able to issue a transact operation in another chain use an
+/// asset as fee payer
+#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+pub struct RemoteTransactInfo {
+	/// Extra weight that transacting a call in a destination chain adds
+	pub transact_extra_weight: Weight,
+	/// Units per second that the destination chain is going to charge for execution
+	pub destination_units_per_second: u128,
+}
+
+// The utility calls that need to be implemented as part of
+// this pallet
+#[derive(Debug, PartialEq, Eq)]
+pub enum UtilityAvailableCalls {
+	AsDerivative(u16, Vec<u8>),
+}
+
+// Trait that the ensures we can encode a call with utility functions.
+// With this trait we ensure that the user cannot control entirely the call
+// to be performed in the destination chain. It only can control the call inside
+// the as_derivative extrinsic, and thus, this call can only be dispatched from the
+// derivative account
+pub trait UtilityEncodeCall {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+}
+
+// Trait to ensure we can retrieve the destination if a given type
+// It must implement UtilityEncodeCall
+// We separate this in two traits to be able to implement UtilityEncodeCall separately
+// for different runtimes of our choice
+pub trait XcmTransact: UtilityEncodeCall {
+	/// Encode call from the relay.
+	fn destination(self) -> MultiLocation;
+}
+
+// Trait to ensure we can retrieve extra_weight and destination_units_per_second from a
+// generic type
+pub trait TransactInfo<Identifier> {
+	/// extra weight for the transact call
+	fn transactor_info(identifier: Identifier) -> Option<RemoteTransactInfo>;
+}
+
+pub struct MultiLocationTransactInfoGetter<
+	AssetId: From<AssetType> + Clone,
+	AssetType: From<MultiLocation> + Clone,
+	AssetIdTransactInfoGetter: TransactInfo<AssetId>,
+>(PhantomData<(AssetId, AssetType, AssetIdTransactInfoGetter)>);
+
+impl<
+		AssetId: From<AssetType> + Clone,
+		AssetType: From<MultiLocation> + Clone,
+		AssetIdTransactInfoGetter: TransactInfo<AssetId>,
+	> TransactInfo<MultiLocation>
+	for MultiLocationTransactInfoGetter<AssetId, AssetType, AssetIdTransactInfoGetter>
+{
+	fn transactor_info(location: MultiLocation) -> Option<RemoteTransactInfo> {
+		let asset_id: AssetId = AssetType::from(location.into()).into();
+		AssetIdTransactInfoGetter::transactor_info(asset_id)
+	}
 }
