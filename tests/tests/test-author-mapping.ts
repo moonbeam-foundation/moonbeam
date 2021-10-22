@@ -259,7 +259,7 @@ describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
 });
 
 describeDevMoonbeam("Author Mapping - registered can rotate", (context) => {
-  it("should succeed in rotating account ids for an author", async function () {
+  it.skip("should succeed in rotating account ids for an author", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
