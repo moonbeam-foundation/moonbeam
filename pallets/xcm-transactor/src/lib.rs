@@ -206,21 +206,28 @@ pub mod pallet {
 				.clone()
 				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
+			// Grab the destination
 			let dest = dest.clone().destination();
 
+			// Grab transact info for the fee loation provided
 			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
+			// Calculate the total weight that we the xcm message is going to spend in the
+			// destination chain
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
 				.ok_or(Error::<T>::Overflow)?;
 
+			// Multiply weight*destination_units_per_second to see how much we should charge for
+			// this weight execution
 			let amount = transactor_info
 				.destination_units_per_second
 				.checked_mul(total_weight as u128)
 				.ok_or(Error::<T>::Overflow)?
 				/ (WEIGHT_PER_SECOND as u128);
 
+			// Construct MultiAsset
 			let fee = MultiAsset {
 				id: Concrete(fee_location),
 				fun: Fungible(amount),
@@ -232,9 +239,11 @@ pub mod pallet {
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
 
-			// does not trigger anything outside moonbeam
+			// Construct the local withdraw message with the previous calculated amount
+			// This message deducts and burns "amount" from the caller when executed
 			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
 
+			// Calculate weight of message
 			let weight = T::Weigher::weight(&mut withdraw_message)
 				.map_err(|()| Error::<T>::UnweighableMessage)?;
 
@@ -256,6 +265,12 @@ pub mod pallet {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
 			}
 
+			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
+			// Transact.
+			// WithdrawAsset: Withdraws "amount" from the sovereign account. This tokens will be
+			// used to pay fees
+			// BuyExecution: Buys "execution power" in the destination chain
+			// Transact: Issues the transaction
 			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
 				dest.clone(),
 				fee.clone(),
@@ -283,7 +298,7 @@ pub mod pallet {
 		}
 
 		/// Transact the call through the sovereign account in a destination chain,
-		/// 'fee_payer' pays for the 'fee'
+		/// 'fee_payer' pays for the fee
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(0)]
@@ -297,19 +312,25 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
+			// Grab transact info for the fee loation provided
 			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
+			// Calculate the total weight that we the xcm message is going to spend in the
+			// destination chain
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
 				.ok_or(Error::<T>::Overflow)?;
 
+			// Multiply weight*destination_units_per_second to see how much we should charge for
+			// this weight execution
 			let amount = transactor_info
 				.destination_units_per_second
 				.checked_mul(total_weight as u128)
 				.ok_or(Error::<T>::Overflow)?
 				/ (WEIGHT_PER_SECOND as u128);
 
+			// Construct MultiAsset
 			let fee = MultiAsset {
 				id: Concrete(fee_location),
 				fun: Fungible(amount),
@@ -321,7 +342,8 @@ pub mod pallet {
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
 
-			// does not trigger anything outside moonbeam
+			// Construct the local withdraw message with the previous calculated amount
+			// This message deducts and burns "amount" from the caller when executed
 			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
 
 			let weight = T::Weigher::weight(&mut withdraw_message)
@@ -345,6 +367,12 @@ pub mod pallet {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
 			}
 
+			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
+			// Transact.
+			// WithdrawAsset: Withdraws "amount" from the sovereign account. This tokens will be
+			// used to pay fees
+			// BuyExecution: Buys "execution power" in the destination chain
+			// Transact: Issues the transaction
 			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
 				dest.clone(),
 				fee.clone(),
