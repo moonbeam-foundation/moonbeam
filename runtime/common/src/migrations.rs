@@ -99,9 +99,9 @@ where
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
 	fn get() -> Vec<Box<dyn Migration>> {
-		let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
-			0: Default::default(),
-		};
+		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
+		// 	0: Default::default(),
+		// };
 
 		let migration_collectives =
 			MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());

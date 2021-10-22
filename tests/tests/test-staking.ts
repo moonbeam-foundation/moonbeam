@@ -130,10 +130,11 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
   //     .signAndSend(ethan);
   //   await context.createBlock();
   //   let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-  //   expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
-  //     "2.0000 kUNIT",
-  //     "bond should have decreased"
-  //   );
+  //   expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to
+  //     .equal(
+  //       "2.0000 kUNIT",
+  //       "bond should have decreased"
+  //     );
   // });
   it.skip("should succesfully call candidateBondLess on ETHAN", async function () {
     const { events } = await createBlockWithExtrinsic(
@@ -161,10 +162,11 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
   //     .signAndSend(ethan);
   //   await context.createBlock();
   //   let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-  //   expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
-  //     "1.0000 kUNIT",
-  //     "bond should have decreased"
-  //   );
+  //   expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to
+  //     .equal(
+  //       "1.0000 kUNIT",
+  //       "bond should have decreased"
+  //     );
   // });
   it.skip("should fail to call candidateBondLess on ETHAN below minimum amount", async function () {
     const { events } = await createBlockWithExtrinsic(

@@ -534,7 +534,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::note_preimage(encoded_proposal);
+		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -566,7 +566,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::note_imminent_preimage(encoded_proposal);
+		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

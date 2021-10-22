@@ -830,7 +830,7 @@ fn note_preimage_works() {
 			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
 			let dummy_bytes = Bytes(dummy_preimage.clone());
 			let proposal_hash =
-				<<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
 				);
 			let expected_deposit =
@@ -842,15 +842,15 @@ fn note_preimage_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
 				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(Origin::root()));
 
 			// Assert that the events are as expected
@@ -875,7 +875,7 @@ fn cannot_note_duplicate_preimage() {
 			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
 			let dummy_bytes = Bytes(dummy_preimage.clone());
 			let proposal_hash =
-				<<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
 				);
 			let expected_deposit =
@@ -887,27 +887,27 @@ fn cannot_note_duplicate_preimage() {
 				.build();
 
 			// First call should go successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input.clone(),
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input: input.clone(),
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(Origin::root()));
 
 			// Second call should fail because that preimage is already noted
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
 				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(Origin::root()));
 
 			// Assert that the events are as expected
@@ -939,15 +939,15 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 				.build();
 
 			// This call should not succeed because
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
 				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(Origin::root()));
 
 			// Assert that the events are as expected
