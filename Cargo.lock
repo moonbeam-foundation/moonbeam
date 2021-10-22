@@ -9481,8 +9481,10 @@ name = "runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "frame-support",
+ "frame-system",
  "log",
  "pallet-author-mapping",
+ "pallet-collective",
  "pallet-migrations",
  "sp-runtime",
  "sp-std",

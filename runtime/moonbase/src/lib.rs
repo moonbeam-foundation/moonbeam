@@ -452,11 +452,11 @@ parameter_types! {
 
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const TechComitteeMotionDuration: BlockNumber = 3 * DAYS;
+	pub const TechCommitteeMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the technical committee at once.
-	pub const TechComitteeMaxProposals: u32 = 100;
+	pub const TechCommitteeMaxProposals: u32 = 100;
 	/// The maximum number of technical committee members.
-	pub const TechComitteeMaxMembers: u32 = 100;
+	pub const TechCommitteeMaxMembers: u32 = 100;
 }
 
 type CouncilInstance = pallet_collective::Instance1;
@@ -477,9 +477,9 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type Origin = Origin;
 	type Event = Event;
 	type Proposal = Call;
-	type MotionDuration = TechComitteeMotionDuration;
-	type MaxProposals = TechComitteeMaxProposals;
-	type MaxMembers = TechComitteeMaxMembers;
+	type MotionDuration = TechCommitteeMotionDuration;
+	type MaxProposals = TechCommitteeMaxProposals;
+	type MaxMembers = TechCommitteeMaxMembers;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
@@ -832,7 +832,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechComitteeCollective(..)
+						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 				)
@@ -841,7 +841,7 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::Democracy(..)
 					| Call::CouncilCollective(..)
-					| Call::TechComitteeCollective(..)
+					| Call::TechCommitteeCollective(..)
 					| Call::Utility(..)
 			),
 			ProxyType::Staking => matches!(
@@ -885,7 +885,11 @@ impl pallet_proxy::Config for Runtime {
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
-	type MigrationsList = runtime_common::migrations::CommonMigrations<Runtime>;
+	type MigrationsList = runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 parameter_types! {
@@ -1348,7 +1352,7 @@ construct_runtime! {
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
-		TechComitteeCollective:
+		TechCommitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 17,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
