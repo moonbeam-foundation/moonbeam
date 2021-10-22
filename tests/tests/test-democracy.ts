@@ -33,7 +33,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
   });
-  it("notePreimage", async function () {
+  it.skip("notePreimage", async function () {
     // notePreimage
     const encodedHash = await notePreimage(
       context,
@@ -62,7 +62,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
       genesisAccount
     );
   });
-  it("propose", async function () {
+  it.skip("propose", async function () {
     // propose
     await context.polkadotApi.tx.democracy
       .propose(encodedHash, PROPOSAL_AMOUNT)
@@ -119,7 +119,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     await context.polkadotApi.tx.democracy.second(0, 1000).signAndSend(alith);
     await context.createBlock();
   });
-  it("second proposal", async function () {
+  it.skip("second proposal", async function () {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
@@ -195,7 +195,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // votingPeriod
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
-  it("vote", async function () {
+  it.skip("vote", async function () {
     this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
@@ -246,7 +246,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
         .method.toHex() || "";
     encodedHash = blake2AsHex(encodedProposal);
   });
-  it("vote", async function () {
+  it.skip("vote", async function () {
     this.timeout(200000);
 
     // propose
