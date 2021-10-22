@@ -184,7 +184,7 @@ pub mod pallet {
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
-		#[pallet::weight(0)]
+		#[pallet::weight(Pallet::<T>::weight_of_transact_through_derivative(&fee_location, index, &dest, dest_weight, inner_call))]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
 			dest: T::Transactor,
@@ -301,7 +301,7 @@ pub mod pallet {
 		/// 'fee_payer' pays for the fee
 		///
 		/// SovereignAccountDispatcherOrigin callable only
-		#[pallet::weight(0)]
+		#[pallet::weight(Pallet::<T>::weight_of_transact_through_sovereign(&fee_location, &dest, dest_weight, call))]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
 			dest: MultiLocation,
@@ -483,12 +483,11 @@ pub mod pallet {
 
 		/// Returns weight of `transact_through_derivative` call.
 		fn weight_of_transact_through_derivative(
-			asset: &MultiAsset,
+			asset: &MultiLocation,
 			index: &u16,
 			dest: &T::Transactor,
 			weight: &u64,
 			call: &Vec<u8>,
-			transact_weight: Weight,
 		) -> Weight {
 			let call_bytes: Vec<u8> =
 				dest.clone()
@@ -496,12 +495,17 @@ pub mod pallet {
 						index.clone(),
 						call.clone(),
 					));
+			// Construct MultiAsset
+			let fee = MultiAsset {
+				id: Concrete(asset.clone()),
+				fun: Fungible(0),
+			};
 			if let Ok(msg) = Self::transact_in_dest_chain_asset(
 				dest.clone().destination(),
-				asset.clone(),
+				fee.clone(),
 				weight.clone(),
 				call_bytes.clone(),
-				transact_weight,
+				weight.clone(),
 			) {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
@@ -513,18 +517,23 @@ pub mod pallet {
 
 		/// Returns weight of `transact_through_sovereign call.
 		fn weight_of_transact_through_sovereign(
-			asset: &MultiAsset,
+			asset: &MultiLocation,
 			dest: &MultiLocation,
 			weight: &u64,
 			call: &Vec<u8>,
-			dispatch_weight: Weight,
 		) -> Weight {
+			// Construct MultiAsset
+			let fee = MultiAsset {
+				id: Concrete(asset.clone()),
+				fun: Fungible(0),
+			};
+
 			if let Ok(msg) = Self::transact_in_dest_chain_asset(
 				dest.clone(),
-				asset.clone(),
+				fee.clone(),
 				weight.clone(),
 				call.clone(),
-				dispatch_weight,
+				weight.clone(),
 			) {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)

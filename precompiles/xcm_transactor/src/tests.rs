@@ -38,7 +38,7 @@ fn test_selector_enum() {
 
 	buffer.copy_from_slice(
 		&Keccak256::digest(
-			b"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)",
+			b"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 		)[0..4],
 	);
 	assert_eq!(
@@ -146,7 +146,6 @@ fn test_transactor() {
 						.write(0u8)
 						.write(0u16)
 						.write(fee_payer_asset)
-						.write(U256::from(500))
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),
@@ -159,7 +158,7 @@ fn test_transactor() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 3000,
+					cost: 4004000,
 					output: vec![],
 					logs: vec![]
 				}))

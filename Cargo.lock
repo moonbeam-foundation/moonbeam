@@ -13427,6 +13427,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "rustc-hex",
+ "scale-info",
  "serde",
  "sha3 0.9.1",
  "sp-core",

@@ -22,23 +22,20 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
-	RuntimeHelper,
+	error, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 
-use sp_core::{H160, U256};
+use sp_core::H160;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
 };
-use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::latest::MultiLocation;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
-
-pub type XBalanceOf<Runtime> = <Runtime as xcm_transactor::Config>::Balance;
 
 pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor;
 
@@ -47,7 +44,7 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
 	TransactThroughDerivative =
-		"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint256,uint64,bytes)",
+		"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -59,7 +56,6 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 {
@@ -86,7 +82,6 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 {

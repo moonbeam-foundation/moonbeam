@@ -35,6 +35,8 @@ pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam
 xcm-primitives = { path = "../../primitives/xcm/"}
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+
 [features]
 default = ["std"]
 std = [

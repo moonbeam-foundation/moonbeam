@@ -32,14 +32,15 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use xcm::v1::{
+use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, PalletInstance, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendXcm, Xcm,
+	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 
+use scale_info::TypeInfo;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets, XcmExecutor,
@@ -84,6 +85,7 @@ construct_runtime!(
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
@@ -226,7 +228,6 @@ where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	R::Call: From<xcm_transactor::Call<R>>,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	XBalanceOf<R>: TryFrom<U256> + Into<U256> + EvmData,
 	TransactorOf<R>: TryFrom<u8>,
 	R::AccountId: Into<H160>,
 {
@@ -293,7 +294,7 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
-	fn send_xcm(_dest: MultiLocation, _msg: Xcm<()>) -> XcmResult {
+	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
 		Ok(())
 	}
 }
@@ -324,8 +325,8 @@ impl WeightTrader for DummyWeightTrader {
 
 pub struct InvertNothing;
 impl InvertLocation for InvertNothing {
-	fn invert_location(_: &MultiLocation) -> MultiLocation {
-		MultiLocation::here()
+	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
+		Ok(MultiLocation::here())
 	}
 }
 
@@ -342,6 +343,10 @@ impl pallet_xcm::Config for Test {
 	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = frame_support::traits::Everything;
 	type XcmReserveTransferFilter = frame_support::traits::Everything;
+	type Origin = Origin;
+	type Call = Call;
+	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
+	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 }
 
 pub struct XcmConfig;
@@ -358,6 +363,8 @@ impl xcm_executor::Config for XcmConfig {
 	type Trader = DummyWeightTrader;
 	type ResponseHandler = ();
 	type SubscriptionService = ();
+	type AssetTrap = PolkadotXcm;
+	type AssetClaims = PolkadotXcm;
 }
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum CurrencyId {
@@ -394,6 +401,8 @@ impl xcm_transactor::Config for Test {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
+	type XcmSender = DoNothingRouter;
+	type XcmTransactorInfo = XcmTransactorInfo;
 }
 
 // We need to use the encoding from the relay mock runtime
@@ -410,7 +419,7 @@ pub enum UtilityCall {
 	AsDerivative(u16),
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum MockTransactors {
 	Relay,
 }
@@ -426,7 +435,7 @@ impl TryFrom<u8> for MockTransactors {
 	}
 }
 
-impl xcm_transactor::XcmTransact for MockTransactors {
+impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
@@ -434,17 +443,42 @@ impl xcm_transactor::XcmTransact for MockTransactors {
 	}
 }
 
-impl xcm_transactor::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			MockTransactors::Relay => match call {
-				xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 					call.append(&mut b.clone());
 					call
 				}
 			},
+		}
+	}
+}
+
+pub struct XcmTransactorInfo;
+
+impl xcm_primitives::TransactInfo<MultiLocation> for XcmTransactorInfo {
+	fn transactor_info(location: MultiLocation) -> Option<xcm_primitives::RemoteTransactInfo> {
+		if location == MultiLocation::parent() {
+			Some({
+				xcm_primitives::RemoteTransactInfo {
+					transact_extra_weight: 0,
+					// 1-1 to weight
+					destination_units_per_second: 1_000_000_000_000,
+				}
+			})
+		} else if location == MultiLocation::new(1, Junctions::X1(Parachain(1000))) {
+			Some({
+				xcm_primitives::RemoteTransactInfo {
+					transact_extra_weight: 0,
+					destination_units_per_second: 1_000_000_000_000,
+				}
+			})
+		} else {
+			None
 		}
 	}
 }
