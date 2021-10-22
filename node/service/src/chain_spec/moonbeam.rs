@@ -174,9 +174,9 @@ pub fn testnet_genesis(
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
-	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts. TODO We should have a test to ensure this is the right bytecode.
+	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 

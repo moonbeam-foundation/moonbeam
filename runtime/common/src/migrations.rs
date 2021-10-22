@@ -110,7 +110,8 @@ where
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
 		vec![
-			Box::new(migration_author_mapping_twox_to_blake),
+			// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake),
 			Box::new(migration_collectives),
 		]
 	}
