@@ -87,15 +87,18 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     expect(receipt.status).to.equal(true);
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length
-    ).to.equal(2, "new candidate should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner
-    ).to.equal(ETHAN, "new candidate ethan should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("1.0000 kUNIT", "new candidate ethan should have been added (wrong amount)");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[]).length).to.equal(
+      2,
+      "new candidate should have been added"
+    );
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner).to.equal(
+      ETHAN,
+      "new candidate ethan should have been added"
+    );
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "new candidate ethan should have been added (wrong amount)"
+    );
 
     expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
   });
@@ -122,9 +125,10 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING))]
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("2.0000 kUNIT", "bond should have increased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "2.0000 kUNIT",
+      "bond should have increased"
+    );
   });
   it.skip("should succesfully call candidateBondMore on ALITH", async function () {
     const block = await sendPrecompileTx(
@@ -140,9 +144,10 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.status).to.equal(true);
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount
-    ).to.equal("2.0000 kUNIT", "bond should have increased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount).to.equal(
+      "2.0000 kUNIT",
+      "bond should have increased"
+    );
   });
 });
 
@@ -167,9 +172,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING))]
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("1.0000 kUNIT", "bond should have decreased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "bond should have decreased"
+    );
   });
 });
 
