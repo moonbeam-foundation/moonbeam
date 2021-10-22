@@ -27,7 +27,7 @@ describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAcco
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
-  it("should be able set the parachain bond with sudo", async function () {
+  it.skip("should be able set the parachain bond with sudo", async function () {
     // should be able to register the genesis account for reward
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT))
