@@ -632,7 +632,7 @@ fn error_when_not_paying_enough() {
 }
 
 #[test]
-fn transact_through_derivative() {
+fn transact_through_derivative_multilocation() {
 	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
@@ -753,7 +753,7 @@ fn transact_through_derivative() {
 	encoded.append(&mut call_bytes);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XcmTransactor::transact_through_derivative(
+		assert_ok!(XcmTransactor::transact_through_derivative_multilocation(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,

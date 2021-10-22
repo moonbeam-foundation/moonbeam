@@ -313,12 +313,42 @@ impl TransactInfo<MultiLocation> for XcmTransactorInfo {
 	}
 }
 
+pub type AssetId = u128;
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
+pub enum CurrencyId {
+	SelfReserve,
+	OtherReserve(AssetId),
+}
+
+pub struct CurrencyIdToMultiLocation;
+
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::SelfReserve => {
+				let multi: MultiLocation = SelfReserve::get();
+				Some(multi)
+			}
+			// To distinguish between relay and others, specially for reserve asset
+			CurrencyId::OtherReserve(asset) => {
+				if asset == 0 {
+					Some(MultiLocation::parent())
+				} else {
+					Some(MultiLocation::new(1, Junctions::X1(Parachain(2))))
+				}
+			}
+		}
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<u64>;
+	type CurrencyId = CurrencyId;
+	type CurrencyIdConvert = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;

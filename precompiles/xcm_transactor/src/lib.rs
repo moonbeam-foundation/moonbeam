@@ -136,7 +136,7 @@ where
 		let inner_call = input.read::<Bytes>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
+		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
 			index,
 			fee_location: fee_multilocation,

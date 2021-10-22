@@ -18,7 +18,7 @@ use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
-use xcm::latest::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation};
+use xcm::latest::{Junction, Junctions, MultiLocation};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
@@ -50,7 +50,7 @@ fn test_transact_through_derivative_errors() {
 		.execute_with(|| {
 			// Non-claimed index so cannot transfer
 			assert_noop!(
-				XcmTransactor::transact_through_derivative(
+				XcmTransactor::transact_through_derivative_multilocation(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
@@ -66,7 +66,7 @@ fn test_transact_through_derivative_errors() {
 
 			// Not using the same fee asset as the destination chain, so error
 			assert_noop!(
-				XcmTransactor::transact_through_derivative(
+				XcmTransactor::transact_through_derivative_multilocation(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
@@ -79,7 +79,7 @@ fn test_transact_through_derivative_errors() {
 
 			// Reserve but info not present, error
 			assert_noop!(
-				XcmTransactor::transact_through_derivative(
+				XcmTransactor::transact_through_derivative_multilocation(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
@@ -89,6 +89,38 @@ fn test_transact_through_derivative_errors() {
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
+		})
+}
+
+#[test]
+fn test_transact_through_derivative_multilocation_success() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+
+			// fee as destination are the same, this time it should work
+			assert_ok!(XcmTransactor::transact_through_derivative_multilocation(
+				Origin::signed(1u64),
+				Transactors::Relay,
+				1,
+				MultiLocation::parent(),
+				100u64,
+				vec![1u8]
+			));
+			let expected = vec![
+				crate::Event::RegisterdDerivative(1u64, 1),
+				crate::Event::TransactedDerivative(
+					1u64,
+					MultiLocation::parent(),
+					Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+					1,
+				),
+			];
+			assert_eq!(events(), expected);
 		})
 }
 
@@ -106,7 +138,7 @@ fn test_transact_through_derivative_success() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				MultiLocation::parent(),
+				CurrencyId::OtherReserve(0),
 				100u64,
 				vec![1u8]
 			));
@@ -118,10 +150,6 @@ fn test_transact_through_derivative_success() {
 					Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					1,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::parent()),
-						fun: Fungibility::Fungible(100),
-					},
 				),
 			];
 			assert_eq!(events(), expected);
@@ -161,10 +189,6 @@ fn test_root_can_transact_through_sovereign() {
 				1u64,
 				MultiLocation::parent(),
 				vec![1u8],
-				MultiAsset {
-					id: AssetId::Concrete(MultiLocation::parent()),
-					fun: Fungibility::Fungible(100),
-				},
 			)];
 			assert_eq!(events(), expected);
 		})

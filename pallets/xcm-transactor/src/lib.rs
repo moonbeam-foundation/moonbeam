@@ -78,6 +78,12 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 
+		/// Currency Id.
+		type CurrencyId: Parameter + Member + Clone;
+
+		/// Convert `T::CurrencyId` to `MultiLocation`.
+		type CurrencyIdConvert: Convert<Self::CurrencyId, Option<MultiLocation>>;
+
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
@@ -141,13 +147,14 @@ pub mod pallet {
 		DispatchWeightBiggerThanTotalWeight,
 		Overflow,
 		TransactorInfoNotSet,
+		NotCrossChainTransferableCurrency,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16, MultiAsset),
-		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>, MultiAsset),
+		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
+		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
 	}
@@ -184,8 +191,8 @@ pub mod pallet {
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
-		#[pallet::weight(Pallet::<T>::weight_of_transact_through_derivative(&fee_location, index, &dest, dest_weight, inner_call))]
-		pub fn transact_through_derivative(
+		#[pallet::weight(Pallet::<T>::weight_of_transact_through_derivative_multilocation(&fee_location, index, &dest, dest_weight, inner_call))]
+		pub fn transact_through_derivative_multilocation(
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
@@ -209,89 +216,66 @@ pub mod pallet {
 			// Grab the destination
 			let dest = dest.clone().destination();
 
-			// Grab transact info for the fee loation provided
-			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
-
-			// Calculate the total weight that we the xcm message is going to spend in the
-			// destination chain
-			let total_weight = dest_weight
-				.checked_add(transactor_info.transact_extra_weight)
-				.ok_or(Error::<T>::Overflow)?;
-
-			// Multiply weight*destination_units_per_second to see how much we should charge for
-			// this weight execution
-			let amount = transactor_info
-				.destination_units_per_second
-				.checked_mul(total_weight as u128)
-				.ok_or(Error::<T>::Overflow)?
-				/ (WEIGHT_PER_SECOND as u128);
-
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(fee_location),
-				fun: Fungible(amount),
-			};
-
-			// Ensure the asset is a reserve
-			Self::transfer_kind(&fee, &dest)?;
-
-			// Convert origin to multilocation
-			let origin_as_mult = T::AccountIdToMultiLocation::convert(who.clone());
-
-			// Construct the local withdraw message with the previous calculated amount
-			// This message deducts and burns "amount" from the caller when executed
-			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
-
-			// Calculate weight of message
-			let weight = T::Weigher::weight(&mut withdraw_message)
-				.map_err(|()| Error::<T>::UnweighableMessage)?;
-
-			// This execution ensures we withdraw assets from the calling account
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(
-				origin_as_mult,
-				withdraw_message,
-				weight,
-				weight,
-			);
-
-			// Let's check if the execution was succesful
-			let maybe_xcm_err: Option<XcmError> = match outcome {
-				Outcome::Complete(_w) => Option::None,
-				Outcome::Incomplete(_w, err) => Some(err),
-				Outcome::Error(err) => Some(err),
-			};
-			if let Some(xcm_err) = maybe_xcm_err {
-				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
-			}
-
-			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
-			// Transact.
-			// WithdrawAsset: Withdraws "amount" from the sovereign account. This tokens will be
-			// used to pay fees
-			// BuyExecution: Buys "execution power" in the destination chain
-			// Transact: Issues the transaction
-			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
+			Self::transact_in_dest_chain_asset(
 				dest.clone(),
-				fee.clone(),
-				dest_weight
-					.checked_add(transactor_info.transact_extra_weight)
-					.ok_or(Error::<T>::Overflow)?,
-				call_bytes.clone(),
+				who.clone(),
+				fee_location,
 				dest_weight,
+				call_bytes.clone(),
 			)?;
-
-			// Send to sovereign
-			T::XcmSender::send_xcm(dest.clone(), transact_message)
-				.map_err(|_| Error::<T>::ErrorSending)?;
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative(
+				who, dest, call_bytes, index,
+			));
+
+			Ok(())
+		}
+
+		/// Transact the inner call through a derivative account in a destination chain,
+		/// using 'fee' to pay for the fees
+		///
+		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
+		/// to be a reserve asset for the destination transactor::multilocation.
+		#[pallet::weight(Pallet::<T>::weight_of_transact_through_derivative(&currency_id, index, &dest, dest_weight, inner_call))]
+		pub fn transact_through_derivative(
+			origin: OriginFor<T>,
+			dest: T::Transactor,
+			index: u16,
+			currency_id: T::CurrencyId,
+			dest_weight: Weight,
+			inner_call: Vec<u8>,
+		) -> DispatchResult {
+			let who = ensure_signed(origin.clone())?;
+
+			let fee_location: MultiLocation = T::CurrencyIdConvert::convert(currency_id.clone())
+				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+
+			// The index exists
+			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
+			// The derivative index is owned by the origin
+			ensure!(account == who, Error::<T>::NotOwner);
+
+			// Encode call bytes
+			// We make sure the inner call is wrapped on a as_derivative dispatchable
+			let call_bytes: Vec<u8> = dest
+				.clone()
+				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+
+			// Grab the destination
+			let dest = dest.clone().destination();
+
+			// Grab the destination
+			Self::transact_in_dest_chain_asset(
+				dest.clone(),
 				who.clone(),
-				dest,
-				call_bytes,
-				index,
-				fee,
+				fee_location,
+				dest_weight,
+				call_bytes.clone(),
+			)?;
+			// Deposit event
+			Self::deposit_event(Event::<T>::TransactedDerivative(
+				who, dest, call_bytes, index,
 			));
 
 			Ok(())
@@ -312,6 +296,30 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
+			// Grab the destination
+			Self::transact_in_dest_chain_asset(
+				dest.clone(),
+				fee_payer.clone(),
+				fee_location,
+				dest_weight,
+				call.clone(),
+			)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::TransactedSovereign(fee_payer, dest, call));
+
+			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		fn transact_in_dest_chain_asset(
+			dest: MultiLocation,
+			fee_payer: T::AccountId,
+			fee_location: MultiLocation,
+			dest_weight: Weight,
+			call: Vec<u8>,
+		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
 			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
@@ -346,6 +354,7 @@ pub mod pallet {
 			// This message deducts and burns "amount" from the caller when executed
 			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
 
+			// Calculate weight of message
 			let weight = T::Weigher::weight(&mut withdraw_message)
 				.map_err(|()| Error::<T>::UnweighableMessage)?;
 
@@ -373,7 +382,7 @@ pub mod pallet {
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
-			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
+			let transact_message: Xcm<()> = Self::transact_message(
 				dest.clone(),
 				fee.clone(),
 				dest_weight
@@ -387,21 +396,10 @@ pub mod pallet {
 			T::XcmSender::send_xcm(dest.clone(), transact_message)
 				.map_err(|_| Error::<T>::ErrorSending)?;
 
-			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedSovereign(
-				fee_payer.clone(),
-				dest,
-				call,
-				fee,
-			));
-
 			Ok(())
 		}
-	}
-
-	impl<T: Config> Pallet<T> {
 		/// Construct the transact xcm message with the provided parameters
-		fn transact_in_dest_chain_asset(
+		fn transact_message(
 			dest: MultiLocation,
 			asset: MultiAsset,
 			dest_weight: Weight,
@@ -482,7 +480,7 @@ pub mod pallet {
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
-		fn weight_of_transact_through_derivative(
+		fn weight_of_transact_through_derivative_multilocation(
 			asset: &MultiLocation,
 			index: &u16,
 			dest: &T::Transactor,
@@ -500,7 +498,7 @@ pub mod pallet {
 				id: Concrete(asset.clone()),
 				fun: Fungible(0),
 			};
-			if let Ok(msg) = Self::transact_in_dest_chain_asset(
+			if let Ok(msg) = Self::transact_message(
 				dest.clone().destination(),
 				fee.clone(),
 				weight.clone(),
@@ -510,6 +508,23 @@ pub mod pallet {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
 				})
+			} else {
+				0
+			}
+		}
+
+		/// Returns weight of `transact_through_derivative` call.
+		fn weight_of_transact_through_derivative(
+			currency_id: &T::CurrencyId,
+			index: &u16,
+			dest: &T::Transactor,
+			weight: &u64,
+			call: &Vec<u8>,
+		) -> Weight {
+			if let Some(id) = T::CurrencyIdConvert::convert(currency_id.clone()) {
+				Self::weight_of_transact_through_derivative_multilocation(
+					&id, &index, &dest, &weight, call,
+				)
 			} else {
 				0
 			}
@@ -528,7 +543,7 @@ pub mod pallet {
 				fun: Fungible(0),
 			};
 
-			if let Ok(msg) = Self::transact_in_dest_chain_asset(
+			if let Ok(msg) = Self::transact_message(
 				dest.clone(),
 				fee.clone(),
 				weight.clone(),
