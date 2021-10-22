@@ -644,9 +644,6 @@ fn transact_through_derivative() {
 		decimals: 12,
 	};
 
-	// This time we are gonna put a rather high number of units per second
-	// we know later we will divide by 1e12
-	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
@@ -775,7 +772,6 @@ fn transact_through_derivative() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign() {
 	MockNet::reset();
@@ -789,9 +785,6 @@ fn transact_through_sovereign() {
 		decimals: 12,
 	};
 
-	// This time we are gonna put a rather high number of units per second
-	// we know later we will divide by 1e12
-	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
@@ -802,7 +795,17 @@ fn transact_through_sovereign() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
-			1_000_000u128
+			1u128
+		));
+
+		assert_ok!(AssetManager::set_asset_transact_info(
+			parachain::Origin::root(),
+			source_id,
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			3000,
+			// This means we need around 3 tokens + whatever we put as weight for the
+			// transact call
+			1_000_000_000u128
 		));
 	});
 
@@ -816,14 +819,14 @@ fn transact_through_sovereign() {
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(dest.clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new((Here, 4000103).into()),
 			0,
 		));
 	});
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000103);
 	});
 
 	// Register address
@@ -836,7 +839,6 @@ fn transact_through_sovereign() {
 	});
 
 	// Send to registered address
-
 	let registered_address = derivative_account_id(para_a_account(), 0);
 	let dest = MultiLocation {
 		parents: 1,
@@ -859,14 +861,15 @@ fn transact_through_sovereign() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 23);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003);
 	});
 
 	// What we will do now is transfer this relay tokens from the derived account to the sovereign
 	// again
 	Relay::execute_with(|| {
 		// free execution,x	 full amount received
-		assert!(RelayBalances::free_balance(&para_a_account()) == 23);
+		assert!(RelayBalances::free_balance(&para_a_account()) == 4000003);
+		0
 	});
 
 	// We send the xcm transact operation to parent
@@ -903,13 +906,9 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			dest,
 			PARAALICE.into(),
-			MultiAsset {
-				id: XcmAssetId::Concrete(MultiLocation::parent()),
-				fun: Fungibility::Fungible(23)
-			},
+			MultiLocation::parent(),
 			4000000000,
 			utility_bytes,
-			2000000000
 		));
 	});
 

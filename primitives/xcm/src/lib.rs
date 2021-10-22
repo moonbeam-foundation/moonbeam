@@ -323,7 +323,7 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;
 }
 
-// Defines the trait to obtain the units per second of a give assetId
+// Defines the trait to obtain the units per second of a give assetId for local execution
 // This parameter will be used to charge for fees upon assetId deposit
 pub trait UnitsToWeightRatio<AssetId> {
 	// Get units per second from asset type
@@ -331,12 +331,12 @@ pub trait UnitsToWeightRatio<AssetId> {
 }
 
 /// Stores the information to be able to issue a transact operation in another chain use an
-/// asset as fee payer
+/// asset as fee payer.
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 pub struct RemoteTransactInfo {
 	/// Extra weight that transacting a call in a destination chain adds
 	pub transact_extra_weight: Weight,
-	/// Units per second that the destination chain is going to charge for execution
+	/// Upper bound of units per second that  the destination chain is going to charge for execution
 	pub destination_units_per_second: u128,
 }
 
