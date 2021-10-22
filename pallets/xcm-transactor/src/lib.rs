@@ -147,7 +147,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16, MultiAsset),
-		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
+		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>, MultiAsset),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
 	}
@@ -286,33 +286,37 @@ pub mod pallet {
 		/// 'fee_payer' pays for the 'fee'
 		///
 		/// SovereignAccountDispatcherOrigin callable only
-		#[pallet::weight(
-			Pallet::<T>::weight_of_transact_through_sovereign(
-				&fee,
-				&dest,
-				dest_weight,
-				call,
-				dispatch_weight.clone()
-			)
-		)]
+		#[pallet::weight(0)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
-			fee: MultiAsset,
+			fee_location: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
-			dispatch_weight: Weight,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
-			// dest_weight accounts for all the weight that needs to be purchased in the dest chain
-			// dispatch weight accounts just for the weight of the transact operation itself
-			// dest_weight should include dispatch_weight
-			ensure!(
-				dispatch_weight < dest_weight,
-				Error::<T>::DispatchWeightBiggerThanTotalWeight
-			);
+			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+
+			let total_weight = dest_weight
+				.checked_add(transactor_info.transact_extra_weight)
+				.ok_or(Error::<T>::Overflow)?;
+
+			let amount = transactor_info
+				.destination_units_per_second
+				.checked_mul(total_weight as u128)
+				.ok_or(Error::<T>::Overflow)?
+				/ (WEIGHT_PER_SECOND as u128);
+
+			let fee = MultiAsset {
+				id: Concrete(fee_location),
+				fun: Fungible(amount),
+			};
+
+			// Ensure the asset is a reserve
+			Self::transfer_kind(&fee, &dest)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
@@ -341,13 +345,14 @@ pub mod pallet {
 				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
 			}
 
-			// Gather the xcm call
 			let transact_message: Xcm<()> = Self::transact_in_dest_chain_asset(
 				dest.clone(),
-				fee,
-				dest_weight,
+				fee.clone(),
+				dest_weight
+					.checked_add(transactor_info.transact_extra_weight)
+					.ok_or(Error::<T>::Overflow)?,
 				call.clone(),
-				dispatch_weight,
+				dest_weight,
 			)?;
 
 			// Send to sovereign
@@ -359,6 +364,7 @@ pub mod pallet {
 				fee_payer.clone(),
 				dest,
 				call,
+				fee,
 			));
 
 			Ok(())

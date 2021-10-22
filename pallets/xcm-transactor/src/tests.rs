@@ -140,13 +140,9 @@ fn test_root_can_transact_through_sovereign() {
 					Origin::signed(1),
 					MultiLocation::parent(),
 					1u64,
-					MultiAsset {
-						id: AssetId::Concrete(MultiLocation::parent()),
-						fun: Fungibility::Fungible(100)
-					},
+					MultiLocation::parent(),
 					100u64,
 					vec![1u8],
-					50u64
 				),
 				DispatchError::BadOrigin
 			);
@@ -156,19 +152,19 @@ fn test_root_can_transact_through_sovereign() {
 				Origin::root(),
 				MultiLocation::parent(),
 				1u64,
-				MultiAsset {
-					id: AssetId::Concrete(MultiLocation::parent()),
-					fun: Fungibility::Fungible(100)
-				},
+				MultiLocation::parent(),
 				100u64,
-				vec![1u8],
-				50u64
+				vec![1u8]
 			));
 
 			let expected = vec![crate::Event::TransactedSovereign(
 				1u64,
 				MultiLocation::parent(),
 				vec![1u8],
+				MultiAsset {
+					id: AssetId::Concrete(MultiLocation::parent()),
+					fun: Fungibility::Fungible(100),
+				},
 			)];
 			assert_eq!(events(), expected);
 		})

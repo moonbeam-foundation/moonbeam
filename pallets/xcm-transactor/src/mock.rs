@@ -296,14 +296,15 @@ impl TransactInfo<MultiLocation> for XcmTransactorInfo {
 			Some({
 				RemoteTransactInfo {
 					transact_extra_weight: 0,
-					destination_units_per_second: 1,
+					// 1-1 to weight
+					destination_units_per_second: 1_000_000_000_000,
 				}
 			})
 		} else if location == MultiLocation::new(1, Junctions::X1(Parachain(1000))) {
 			Some({
 				RemoteTransactInfo {
 					transact_extra_weight: 0,
-					destination_units_per_second: 1,
+					destination_units_per_second: 1_000_000_000_000,
 				}
 			})
 		} else {
