@@ -44,7 +44,7 @@ pub trait ManualXcmApi {
 	// injected into. We may need to learn more about how forks are handled to make
 	// sure we don't lose/skip xcm messages in when reorgs happen. I'm not worried about that yet.
 
-	// Inject a horizonal message - A message that comes from a dedicated channel to a sibling
+	// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
 	// parachain.
 	#[rpc(name = "xcm_injectHrmpMessage")]
 	fn inject_hrmp_message(
