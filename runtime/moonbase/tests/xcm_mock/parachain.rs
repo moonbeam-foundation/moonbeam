@@ -567,6 +567,8 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
+	type XcmTransactorInfo =
+		xcm_primitives::MultiLocationTransactInfoGetter<AssetId, AssetType, AssetManager>;
 }
 
 // We need to use the encoding from the relay mock runtime
@@ -588,7 +590,7 @@ pub enum MockTransactors {
 	Relay,
 }
 
-impl xcm_transactor::XcmTransact for MockTransactors {
+impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
@@ -596,11 +598,11 @@ impl xcm_transactor::XcmTransact for MockTransactors {
 	}
 }
 
-impl xcm_transactor::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_transactor::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			MockTransactors::Relay => match call {
-				xcm_transactor::UtilityAvailableCalls::AsDerivative(a, b) => {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 					call.append(&mut b.clone());

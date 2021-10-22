@@ -50,7 +50,7 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::dispatch::fmt::Debug;
+	use frame_support::weights::constants::WEIGHT_PER_SECOND;
 
 	use frame_support::pallet_prelude::*;
 	use frame_system::{ensure_signed, pallet_prelude::*};
@@ -218,7 +218,8 @@ pub mod pallet {
 			let amount = transactor_info
 				.destination_units_per_second
 				.checked_mul(total_weight as u128)
-				.ok_or(Error::<T>::Overflow)?;
+				.ok_or(Error::<T>::Overflow)?
+				/ (WEIGHT_PER_SECOND as u128);
 
 			let fee = MultiAsset {
 				id: Concrete(fee_location),
