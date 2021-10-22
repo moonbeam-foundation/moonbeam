@@ -17,6 +17,7 @@ const assetMetadata = {
 const sourceLocation = { XCM: { X1: "Parent" } };
 
 describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should be able to register an asset and set unit per sec", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");

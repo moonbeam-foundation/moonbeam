@@ -56,7 +56,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
     );
 
     expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[0])).to.be.true;
-    expect(Object.keys(events[0].toHuman().data[0])[0] === "Ok").to.be.true;
+    expect(Object.keys(events[0].toHuman().data[0])[0]).to.equal("Ok");
     expect(context.polkadotApi.events.treasury.Deposit.is(events[1])).to.be.true;
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[2])).to.be.true;
 

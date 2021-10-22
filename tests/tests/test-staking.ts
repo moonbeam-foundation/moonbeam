@@ -35,6 +35,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     expect(collator.toHuman()["state"]).equal("Active");
   });
 
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should have inflation matching specs", async function () {
     const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
     // {
@@ -66,6 +67,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call joinCandidates on ETHAN", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
@@ -92,6 +94,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
 describeDevMoonbeam("Staking - Candidate bond more", (context) => {
   let ethan;
+  // TODO : Skipped due to formatting issues with new metadata.
+
   // before("should succesfully call joinCandidates on ETHAN", async function () {
   //   const keyring = new Keyring({ type: "ethereum" });
   //   ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
@@ -115,7 +119,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
 
 describeDevMoonbeam("Staking - Candidate bond less", (context) => {
   let ethan;
-  // before is failing
+  // TODO : Skipped due to formatting issues with new metadata.
 
   // before("should succesfully call joinCandidates on ETHAN", async function () {
   //   const keyring = new Keyring({ type: "ethereum" });
@@ -152,7 +156,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 });
 describeDevMoonbeam("Staking - Candidate bond less", (context) => {
   let ethan;
-  // before is failing
+  // TODO : Skipped due to formatting issues with new metadata.
 
   // before("should succesfully call joinCandidates on ETHAN", async function () {
   //   const keyring = new Keyring({ type: "ethereum" });
@@ -231,6 +235,8 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call nominatorBondMore on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
@@ -242,6 +248,8 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
     ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call nominatorBondLess on ALITH", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
@@ -278,6 +286,8 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
       .signAndSend(ethan);
     await context.createBlock();
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should fail calling nominatorBondLess under min nomination amount", async function () {
     const { events } = await createBlockWithExtrinsic(
       context,
@@ -310,6 +320,8 @@ describeDevMoonbeam(
         .signAndSend(ethan);
       await context.createBlock();
     });
+
+    // TODO : Skipped due to formatting issues with new metadata.
     it.skip("should fail calling nominatorBondLess under min nomination amount", async function () {
       const { events } = await createBlockWithExtrinsic(
         context,

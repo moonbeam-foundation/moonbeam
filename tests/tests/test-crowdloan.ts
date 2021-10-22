@@ -791,6 +791,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     toAssociateAccount = await keyring.addFromUri(seed2, null, "ethereum");
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should be able to change reward address with relay keys", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(

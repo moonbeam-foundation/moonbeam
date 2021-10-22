@@ -72,6 +72,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call joinCandidates on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -114,6 +115,8 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call candidateBondMore on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -130,6 +133,8 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       "bond should have increased"
     );
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call candidateBondMore on ALITH", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -161,6 +166,8 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call candidateBondLess on ETHAN", async function () {
     await sendPrecompileTx(
       context,
@@ -188,6 +195,8 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       "0x0",
     ]);
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succesfully call nominate on ALITH", async function () {
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(

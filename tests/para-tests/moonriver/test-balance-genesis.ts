@@ -6,6 +6,7 @@ import { describeParachain } from "../../util/setup-para-tests";
 const MOONRIVER_SUDO_ACCOUNT = "0xb728c13034c3b6c6447f399d25b097216a0081ea";
 
 describeParachain("Balance genesis", { chain: "moonriver-local" }, (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should be accessible through web3", async function () {
     expect(
       (await context.polkadotApiParaone.query.system.account(ALITH)).data.free.toHuman()

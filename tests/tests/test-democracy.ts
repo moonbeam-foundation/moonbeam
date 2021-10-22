@@ -33,6 +33,8 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("notePreimage", async function () {
     // notePreimage
     const encodedHash = await notePreimage(
@@ -62,6 +64,8 @@ describeDevMoonbeam("Democracy - propose", (context) => {
       genesisAccount
     );
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("propose", async function () {
     // propose
     await context.polkadotApi.tx.democracy
@@ -119,6 +123,8 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     await context.polkadotApi.tx.democracy.second(0, 1000).signAndSend(alith);
     await context.createBlock();
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("second proposal", async function () {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
@@ -195,6 +201,8 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // votingPeriod
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("vote", async function () {
     this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
@@ -246,6 +254,8 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
         .method.toHex() || "";
     encodedHash = blake2AsHex(encodedProposal);
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("vote", async function () {
     this.timeout(200000);
 

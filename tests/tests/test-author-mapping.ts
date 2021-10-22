@@ -28,6 +28,7 @@ async function getMappingInfo(
 }
 
 describeDevMoonbeam("Author Mapping - simple association", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should match genesis state", async function () {
     expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
     expect((await getMappingInfo(context, aliceAuthorId)).deposit).to.eq("100.0000 UNIT");
@@ -39,6 +40,8 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
       "1.1000 kUNIT"
     );
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succeed in adding an association", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -69,6 +72,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
 });
 
 describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should fail in adding an association for a second time", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
@@ -155,6 +159,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
 });
 
 describeDevMoonbeam("Author Mapping - double registration", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succeed in adding an association for bob", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -170,6 +175,8 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
       "1.2000 kUNIT"
     );
   });
+
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should associate with charlie, although already associated with bob", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -190,6 +197,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
 });
 
 describeDevMoonbeam("Author Mapping - registered author can clear (de register)", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succeed in clearing an association", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -236,6 +244,7 @@ describeDevMoonbeam("Author Mapping - unregistered author cannot clear associati
 });
 
 describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should not succeed in clearing an association for a non-author", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -259,6 +268,7 @@ describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
 });
 
 describeDevMoonbeam("Author Mapping - registered can rotate", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should succeed in rotating account ids for an author", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -296,6 +306,7 @@ describeDevMoonbeam("Author Mapping - unregistered cannot rotate", (context) => 
 });
 
 describeDevMoonbeam("Author Mapping - non-author cannot rotate", (context) => {
+  // TODO : Skipped due to formatting issues with new metadata.
   it.skip("should fail rotating account ids if not an author", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
