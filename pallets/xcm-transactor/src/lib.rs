@@ -187,7 +187,7 @@ pub mod pallet {
 		}
 
 		/// Transact the inner call through a derivative account in a destination chain,
-		/// using 'fee' to pay for the fees
+		/// using 'fee_location' to pay for the fees. This fee_location is given as a multilocation
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
@@ -233,7 +233,7 @@ pub mod pallet {
 		}
 
 		/// Transact the inner call through a derivative account in a destination chain,
-		/// using 'fee' to pay for the fees
+		/// using 'currency_id' to pay for the fees.
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.

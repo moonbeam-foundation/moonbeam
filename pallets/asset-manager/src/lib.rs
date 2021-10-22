@@ -132,8 +132,9 @@ pub mod pallet {
 	#[pallet::getter(fn asset_id_units_per_second)]
 	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
 
-	// Stores the units per second. Not all assets might contain units per second, hence the
-	// different storage
+	// Stores the transact info of an assetId. This defines how much extra weight we need to
+	// add when we want to transact in the destination chain and how we convert weight to units
+	// in the destination chain
 	#[pallet::storage]
 	#[pallet::getter(fn asset_transact_info)]
 	pub type AssetTransactInfo<T: Config> =
@@ -185,7 +186,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the amount of units we are charging per execution second for a given AssetId
+		/// Change the transact info of an AssetId
 		#[pallet::weight(0)]
 		pub fn set_asset_transact_info(
 			origin: OriginFor<T>,
