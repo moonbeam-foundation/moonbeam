@@ -151,13 +151,13 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_utility::Call::<polkadot_runtime::Runtime>::as_derivative(
-			1,
-			polkadot_runtime::Call::Staking(
-				pallet_staking::Call::<polkadot_runtime::Runtime>::chill(),
-			)
+		let mut expected = pallet_utility::Call::<polkadot_runtime::Runtime>::as_derivative {
+			index: 1,
+			call: polkadot_runtime::Call::Staking(pallet_staking::Call::<
+				polkadot_runtime::Runtime,
+			>::chill {})
 			.into(),
-		)
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 

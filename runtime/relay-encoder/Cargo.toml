@@ -25,6 +25,7 @@ westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moo
 rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 
 [features]
 default = ["std"]

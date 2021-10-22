@@ -5039,6 +5039,7 @@ dependencies = [
  "kusama-runtime",
  "pallet-proxy",
  "pallet-staking",
+ "pallet-utility",
  "parity-scale-codec",
  "polkadot-runtime",
  "relay-encoder-precompiles",

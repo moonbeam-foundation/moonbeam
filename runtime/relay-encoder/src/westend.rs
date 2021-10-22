@@ -150,13 +150,13 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_utility::Call::<westend_runtime::Runtime>::as_derivative(
-			1,
-			westend_runtime::Call::Staking(
-				pallet_staking::Call::<westend_runtime::Runtime>::chill(),
+		let mut expected = pallet_utility::Call::<westend_runtime::Runtime>::as_derivative {
+			index: 1,
+			call: westend_runtime::Call::Staking(
+				pallet_staking::Call::<westend_runtime::Runtime>::chill {},
 			)
 			.into(),
-		)
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 

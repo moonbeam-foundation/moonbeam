@@ -149,11 +149,13 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_utility::Call::<kusama_runtime::Runtime>::as_derivative(
-			1,
-			kusama_runtime::Call::Staking(pallet_staking::Call::<kusama_runtime::Runtime>::chill())
-				.into(),
-		)
+		let mut expected = pallet_utility::Call::<kusama_runtime::Runtime>::as_derivative {
+			index: 1,
+			call: kusama_runtime::Call::Staking(
+				pallet_staking::Call::<kusama_runtime::Runtime>::chill {},
+			)
+			.into(),
+		}
 		.encode();
 		expected_encoded.append(&mut expected);
 
