@@ -32,7 +32,9 @@ use sp_std::{
 	fmt::Debug,
 	marker::PhantomData,
 };
-use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm_primitives::AccountIdToCurrencyId;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -47,13 +49,6 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-}
-
-/// This trait ensure we can convert AccountIds to CurrencyIds
-/// We will require Runtime to have this trait implemented
-pub trait AccountIdToCurrencyId<Account, CurrencyId> {
-	// Get assetId from account
-	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }
 
 /// A precompile to wrap the functionality from xtokens

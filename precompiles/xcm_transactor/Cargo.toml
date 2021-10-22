@@ -21,6 +21,7 @@ precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm/",  default-features = false}
 
 [dev-dependencies]
 sha3 = "0.9"
@@ -48,4 +49,5 @@ std = [
     "precompile-utils/std",
     "pallet-evm/std",
     "xcm-transactor/std",
+    "xcm-primitives/std",
 ]

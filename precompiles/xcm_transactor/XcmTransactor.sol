@@ -30,10 +30,28 @@ pragma solidity >=0.8.0;
          * @param weight The weight we want to buy in the destination chain
          * @param inner_call The inner call to be executed in the destination chain
          */
-        function transact_through_derivative(
+        function transact_through_derivative_multilocation(
             uint8 transactor,
             uint16 index,
             Multilocation memory fee_asset,
+            uint64 weight,
+            bytes memory inner_call
+        ) external;
+
+        /** Transfer a token through XCM based on its currencyId
+         *
+         * @dev The token transfer burns/transfers the corresponding amount before sending
+         * Selector 93a8f668
+         * @param transactor The transactor to be used
+         * @param index The index to be used
+         * @param currency_id The address of the ERC20 of the asset we want to use to pay for fees
+         * @param weight The weight we want to buy in the destination chain
+         * @param inner_call The inner call to be executed in the destination chain
+         */
+        function transact_through_derivative(
+            uint8 transactor,
+            uint16 index,
+            address currency_id,
             uint64 weight,
             bytes memory inner_call
         ) external;

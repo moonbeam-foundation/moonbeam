@@ -34,7 +34,7 @@ use sp_runtime::{
 };
 use xcm::latest::{
 	Error as XcmError,
-	Junction::{AccountKey20, PalletInstance, Parachain},
+	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 
@@ -230,6 +230,7 @@ where
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	TransactorOf<R>: TryFrom<u8>,
 	R::AccountId: Into<H160>,
+	R: AccountIdToCurrencyId<R::AccountId, CurrencyIdOf<R>>,
 {
 	fn execute(
 		address: H160,
@@ -366,7 +367,7 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
 }
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -395,7 +396,9 @@ impl xcm_transactor::Config for Test {
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type CurrencyIdConvert = CurrencyIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
@@ -479,6 +482,53 @@ impl xcm_primitives::TransactInfo<MultiLocation> for XcmTransactorInfo {
 			})
 		} else {
 			None
+		}
+	}
+}
+
+impl Into<Option<CurrencyId>> for TestAccount {
+	fn into(self) -> Option<CurrencyId> {
+		match self {
+			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
+			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
+			_ => None,
+		}
+	}
+}
+
+// Implement the trait, where we convert AccountId to AssetID
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Test {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
+		match account {
+			TestAccount::AssetId(asset_id) => Some(CurrencyId::OtherReserve(asset_id)),
+			TestAccount::SelfReserve => Some(CurrencyId::SelfReserve),
+			_ => None,
+		}
+	}
+}
+
+pub struct CurrencyIdToMultiLocation;
+
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::SelfReserve => {
+				let multi: MultiLocation = SelfReserve::get();
+				Some(multi)
+			}
+			// To distinguish between relay and others, specially for reserve asset
+			CurrencyId::OtherReserve(asset) => {
+				if asset == 0 {
+					Some(MultiLocation::parent())
+				} else {
+					Some(MultiLocation::new(
+						1,
+						Junctions::X2(Parachain(2), GeneralIndex(asset)),
+					))
+				}
+			}
 		}
 	}
 }

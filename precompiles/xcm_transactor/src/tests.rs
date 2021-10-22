@@ -38,8 +38,16 @@ fn test_selector_enum() {
 
 	buffer.copy_from_slice(
 		&Keccak256::digest(
-			b"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+			b"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 		)[0..4],
+	);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::TransactThroughDerivativeMultiLocation,
+	);
+
+	buffer.copy_from_slice(
+		&Keccak256::digest(b"transact_through_derivative(uint8,uint16,address,uint64,bytes)")[0..4],
 	);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
@@ -125,7 +133,7 @@ fn take_index_for_account() {
 }
 
 #[test]
-fn test_transactor() {
+fn test_transactor_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -142,10 +150,51 @@ fn test_transactor() {
 			assert_eq!(
 				Precompiles::execute(
 					Precompile.into(),
+					&EvmDataWriter::new_with_selector(
+						Action::TransactThroughDerivativeMultiLocation
+					)
+					.write(0u8)
+					.write(0u16)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.build(),
+					None,
+					&evm::Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 4004000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		});
+}
+
+#[test]
+fn test_transactor() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			assert_eq!(
+				Precompiles::execute(
+					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
 						.write(0u8)
 						.write(0u16)
-						.write(fee_payer_asset)
+						.write(Address(AssetId(0).into()))
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),

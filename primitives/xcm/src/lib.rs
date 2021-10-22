@@ -390,3 +390,10 @@ impl<
 		AssetIdTransactInfoGetter::transactor_info(asset_id)
 	}
 }
+
+/// This trait ensure we can convert AccountIds to CurrencyIds
+/// We will require Runtime to have this trait implemented
+pub trait AccountIdToCurrencyId<Account, CurrencyId> {
+	// Get assetId from account
+	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
+}

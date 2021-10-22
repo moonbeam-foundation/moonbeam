@@ -32,6 +32,7 @@ use sp_std::{
 	marker::PhantomData,
 };
 use xcm::latest::MultiLocation;
+use xcm_primitives::AccountIdToCurrencyId;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -39,12 +40,15 @@ mod tests;
 
 pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor;
 
+pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
+
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
-	TransactThroughDerivative =
-		"transact_through_derivative(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	TransactThroughDerivativeMultiLocation =
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -58,6 +62,7 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -69,6 +74,9 @@ where
 		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::IndexToAccount => Self::account_index(input, target_gas),
+			Action::TransactThroughDerivativeMultiLocation => {
+				Self::transact_through_derivative_multilocation(input, target_gas, context)
+			}
 			Action::TransactThroughDerivative => {
 				Self::transact_through_derivative(input, target_gas, context)
 			}
@@ -84,6 +92,7 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn account_index(
 		mut input: EvmDataReader,
@@ -109,7 +118,7 @@ where
 		})
 	}
 
-	fn transact_through_derivative(
+	fn transact_through_derivative_multilocation(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
@@ -140,6 +149,61 @@ where
 			dest: transactor,
 			index,
 			fee_location: fee_multilocation,
+			dest_weight: weight.clone(),
+			inner_call: inner_call.as_bytes().to_vec(),
+		};
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn transact_through_derivative(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(2)?;
+		let transactor: TransactorOf<Runtime> = input
+			.read::<u8>()?
+			.try_into()
+			.map_err(|_| error("Non-existent transactor"))?;
+		let index: u16 = input.read::<u16>()?;
+
+		// read currencyId
+		let to_address: H160 = input.read::<Address>()?.into();
+
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		// We convert the address into a currency id xtokens understands
+		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(error("cannot convert into currency id"))?;
+		input.expect_arguments(2)?;
+		// read fee amount
+		let weight: u64 = input.read::<u64>()?;
+
+		// inner call
+		let inner_call = input.read::<Bytes>()?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
+			dest: transactor,
+			index,
+			currency_id,
 			dest_weight: weight.clone(),
 			inner_call: inner_call.as_bytes().to_vec(),
 		};
