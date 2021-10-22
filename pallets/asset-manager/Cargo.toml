@@ -32,5 +32,6 @@ std = [
 	"frame-support/std",
 	"xcm/std",
 	"frame-system/std",
-	"xcm-primitives/std"
+	"xcm-primitives/std",
+	"scale-info/std",
 ]

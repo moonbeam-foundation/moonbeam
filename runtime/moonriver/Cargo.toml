@@ -168,6 +168,7 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-treasury/std",
 	"evm/std",
+	"scale-info/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

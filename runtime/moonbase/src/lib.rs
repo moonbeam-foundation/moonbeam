@@ -36,9 +36,7 @@ use xtokens_precompiles::AccountIdToCurrencyId;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
-	construct_runtime,
-	parameter_types,
-	// signed_extensions::{AdjustPriority, Divide},
+	construct_runtime, parameter_types,
 	traits::{
 		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
@@ -305,14 +303,12 @@ where
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
-	// TODO : https://github.com/paritytech/substrate/pull/9834
 	pub OperationalFeeMultiplier: u8 = 5;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
-	// TODO : https://github.com/paritytech/substrate/pull/9834
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;

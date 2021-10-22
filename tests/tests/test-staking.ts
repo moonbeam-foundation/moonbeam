@@ -75,16 +75,18 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     await context.createBlock();
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 2
-    ).to.equal(true, "new candidate should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner === ETHAN
-    ).to.equal(true, "new candidate ethan should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[]).length).to.equal(
+      2,
+      "new candidate should have been added"
+    );
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner).to.equal(
+      ETHAN,
+      "new candidate ethan should have been added"
+    );
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "new candidate ethan should have been added (wrong amount)"
+    );
   });
 });
 
@@ -104,10 +106,10 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "2.0000 kUNIT"
-    ).to.equal(true, "bond should have increased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "2.0000 kUNIT",
+      "bond should have increased"
+    );
   });
 });
 
@@ -126,10 +128,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "2.0000 kUNIT"
-    ).to.equal(true, "bond should have decreased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "2.0000 kUNIT",
+      "bond should have decreased"
+    );
   });
   it("should succesfully call candidateBondLess on ETHAN", async function () {
     const { events } = await createBlockWithExtrinsic(
@@ -139,10 +141,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     );
     expect(events[3].toHuman().method).to.eq("ExtrinsicSuccess");
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond should have decreased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "bond should have decreased"
+    );
   });
 });
 describeDevMoonbeam("Staking - Candidate bond less", (context) => {
@@ -155,10 +157,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond should have decreased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "bond should have decreased"
+    );
   });
   it("should fail to call candidateBondLess on ETHAN below minimum amount", async function () {
     const { events } = await createBlockWithExtrinsic(
@@ -168,10 +170,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     );
     expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "bond should have decreased");
+    expect((candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "1.0000 kUNIT",
+      "bond should have decreased"
+    );
   });
 });
 
@@ -192,8 +194,8 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner === ALITH
-    ).to.equal(true, "nomination didnt go through");
+      ).nominations[0].owner
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["status"]).equal("Active");
     expect(nominatorsAfter.toHuman()["nominations"][0].owner).equal(ALITH);
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("5.0000 UNIT");
@@ -230,8 +232,8 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner === ALITH
-    ).to.equal(true, "nomination didnt go through");
+      ).nominations[0].owner
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("11.0000 UNIT");
   });
   it("should succesfully call nominatorBondLess on ALITH", async function () {
@@ -248,8 +250,8 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner === ALITH
-    ).to.equal(true, "nomination didnt go through");
+      ).nominations[0].owner
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("6.0000 UNIT");
   });
 });
@@ -283,8 +285,8 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner === ALITH
-    ).to.equal(true, "nomination didnt go through");
+      ).nominations[0].owner
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("10.0000 UNIT");
   });
 });
@@ -317,8 +319,8 @@ describeDevMoonbeam(
           nominatorsAfter.toHuman() as {
             nominations: { owner: string; amount: string }[];
           }
-        ).nominations[0].owner === ALITH
-      ).to.equal(true, "nomination didnt go through");
+        ).nominations[0].owner
+      ).to.equal(ALITH, "nomination didnt go through");
       expect(nominatorsAfter.toHuman()["nominations"][0].amount).equal("5.0000 UNIT");
     });
   }
