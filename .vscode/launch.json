@@ -49,6 +49,25 @@
       "sourceMap": {
         "/rustc/*": "${dbgconfig:rustc_path}"
       }
+    },
+    {
+      "cwd": "${workspaceFolder}/tests",
+      "args": [
+        "--timeout",
+        "999999",
+        "--colors",
+        "-r",
+        "ts-node/register",
+        "--inspect-brk",
+        "${file}"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Mocha Tests",
+      "program": "${workspaceFolder}/tests/node_modules/mocha/bin/_mocha",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+      "port": 9229
     }
   ]
 }
