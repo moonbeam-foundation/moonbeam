@@ -773,7 +773,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 				)
-			},
+			}
 			ProxyType::Governance => matches!(
 				c,
 				Call::Democracy(..)
@@ -787,13 +787,13 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
-			},
+			}
 			ProxyType::Balances => {
-				matches!(c,Call::Balances(..) | Call::Utility(..))
-			},
+				matches!(c, Call::Balances(..) | Call::Utility(..))
+			}
 			ProxyType::AuthorMapping => {
-				matches!(c,Call::AuthorMapping(..))
-			},
+				matches!(c, Call::AuthorMapping(..))
+			}
 		}
 	}
 
