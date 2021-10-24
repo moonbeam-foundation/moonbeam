@@ -756,6 +756,10 @@ pub enum ProxyType {
 	Staking,
 	/// Allow to veto an announced proxy call.
 	CancelProxy,
+	/// Allow extrinsic related to Balances.
+	Balances,
+	/// Allow extrinsic related to AuthorMapping.
+	AuthorMapping,
 }
 
 impl Default for ProxyType {
@@ -792,6 +796,12 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+			}
+			ProxyType::Balances => {
+				matches!(c, Call::Balances(..) | Call::Utility(..))
+			}
+			ProxyType::AuthorMapping => {
+				matches!(c, Call::AuthorMapping(..))
 			}
 		}
 	}
