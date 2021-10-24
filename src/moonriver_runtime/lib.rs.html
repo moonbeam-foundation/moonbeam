@@ -1062,6 +1062,16 @@
 <span id="1062">1062</span>
 <span id="1063">1063</span>
 <span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1811,6 +1821,10 @@
 	<span class="ident">Staking</span>,
 	<span class="doccomment">/// Allow to veto an announced proxy call.</span>
 	<span class="ident">CancelProxy</span>,
+	<span class="doccomment">/// Allow extrinsic related to Balances.</span>
+	<span class="ident">Balances</span>,
+	<span class="doccomment">/// Allow extrinsic related to AuthorMapping.</span>
+	<span class="ident">AuthorMapping</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
@@ -1847,6 +1861,12 @@
 			),
 			<span class="ident">ProxyType::CancelProxy</span> <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span>(..)))
+			}
+			<span class="ident">ProxyType::Balances</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..))
+			}
+			<span class="ident">ProxyType::AuthorMapping</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..))
 			}
 		}
 	}
