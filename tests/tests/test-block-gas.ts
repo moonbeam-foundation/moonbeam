@@ -40,7 +40,6 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "CheckBlockVariables");
     await context.createBlock({ transactions: [rawTx] });
 
-    //console.log("gaslimit", await contract.methods.gaslimit().call());
     expect((await contract.methods.gaslimit().call()) !== "0").to.eq(true);
   });
 });
