@@ -358,6 +358,14 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -487,11 +495,11 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::bond</span>(
-			<span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-			<span class="number">100u32</span>.<span class="ident">into</span>(),
-			<span class="ident">pallet_staking::RewardDestination::Controller</span>,
-		)
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::bond</span> {
+			<span class="ident">controller</span>: <span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+			<span class="ident">value</span>: <span class="number">100u32</span>.<span class="ident">into</span>(),
+			<span class="ident">payee</span>: <span class="ident">pallet_staking::RewardDestination::Controller</span>,
+		}
 		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
@@ -516,8 +524,10 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::bond_extra</span>(<span class="number">100u32</span>.<span class="ident">into</span>()).<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::bond_extra</span> {
+			<span class="ident">max_additional</span>: <span class="number">100u32</span>.<span class="ident">into</span>(),
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -537,8 +547,10 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::unbond</span>(<span class="number">100u32</span>.<span class="ident">into</span>()).<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::unbond</span> {
+			<span class="ident">value</span>: <span class="number">100u32</span>.<span class="ident">into</span>(),
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -558,8 +570,10 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::withdraw_unbonded</span>(<span class="number">100u32</span>).<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::withdraw_unbonded</span> {
+			<span class="ident">num_slashing_spans</span>: <span class="number">100u32</span>,
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -584,9 +598,10 @@
 			<span class="ident">blocked</span>: <span class="bool-val">true</span>,
 		};
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::validate</span>(<span class="ident">validator_prefs</span>.<span class="ident">clone</span>())
-				.<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::validate</span> {
+			<span class="ident">prefs</span>: <span class="ident">validator_prefs</span>.<span class="ident">clone</span>(),
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -607,11 +622,10 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span>(<span class="macro">vec!</span>[<span class="ident">relay_account</span>
-				.<span class="ident">clone</span>()
-				.<span class="ident">into</span>()])
-			.<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span> {
+			<span class="ident">targets</span>: <span class="macro">vec!</span>[<span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -633,7 +647,7 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::chill</span>().<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::chill</span> {}.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(
@@ -654,9 +668,9 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::set_payee</span>(
-			<span class="ident">pallet_staking::RewardDestination::Controller</span>,
-		)
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::set_payee</span> {
+			<span class="ident">payee</span>: <span class="ident">pallet_staking::RewardDestination::Controller</span>,
+		}
 		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
@@ -681,9 +695,9 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::set_controller</span>(
-			<span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-		)
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::set_controller</span> {
+			<span class="ident">controller</span>: <span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+		}
 		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
@@ -706,8 +720,10 @@
 		.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
 		<span class="ident">expected_encoded</span>.<span class="ident">push</span>(<span class="ident">index</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span>
-			<span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::rebond</span>(<span class="number">100u32</span>.<span class="ident">into</span>()).<span class="ident">encode</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">pallet_staking::Call</span>::<span class="op">&lt;</span><span class="ident">polkadot_runtime::Runtime</span><span class="op">&gt;</span><span class="ident">::rebond</span> {
+			<span class="ident">value</span>: <span class="number">100u32</span>.<span class="ident">into</span>(),
+		}
+		.<span class="ident">encode</span>();
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expected</span>);
 
 		<span class="macro">assert_eq!</span>(

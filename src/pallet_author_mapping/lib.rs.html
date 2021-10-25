@@ -339,7 +339,7 @@
 		<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
 	<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="ident">account</span>: <span class="ident">AccountId</span>,
 		<span class="ident">deposit</span>: <span class="ident">Balance</span>,

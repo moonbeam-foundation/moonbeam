@@ -311,25 +311,25 @@
 
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
 		<span class="comment">// We convert the address into a currency id xtokens understands</span>
-		<span class="kw">let</span> <span class="ident">to_currency_id</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span> <span class="op">=</span>
+		<span class="kw">let</span> <span class="ident">currency_id</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span> <span class="op">=</span>
 			<span class="ident">Runtime::account_to_currency_id</span>(<span class="ident">to_account</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">error</span>(<span class="string">&quot;cannot convert into currency id&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">to_balance</span> <span class="op">=</span> <span class="ident">amount</span>
+		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer</span>(
-			<span class="ident">to_currency_id</span>,
-			<span class="ident">to_balance</span>,
-			<span class="ident">Box::new</span>(<span class="ident">destination</span>),
-			<span class="ident">weight</span>,
-		);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
+			<span class="ident">currency_id</span>,
+			<span class="ident">amount</span>,
+			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">destination</span>),
+			<span class="ident">dest_weight</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -366,21 +366,21 @@
 
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">to_balance</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiasset</span>(
-			<span class="ident">Box::new</span>(<span class="ident">MultiAsset</span> {
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiasset</span> {
+			<span class="ident">asset</span>: <span class="ident">Box::new</span>(<span class="ident">MultiAsset</span> {
 				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset_multilocation</span>),
 				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">to_balance</span>),
 			}),
-			<span class="ident">Box::new</span>(<span class="ident">destination</span>),
-			<span class="ident">weight</span>,
-		);
+			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">destination</span>),
+			<span class="ident">dest_weight</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),

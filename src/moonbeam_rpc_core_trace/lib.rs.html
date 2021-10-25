@@ -70,7 +70,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">ethereum_types::H160</span>;
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">compat::Compat</span>, <span class="ident">future::BoxFuture</span>};
+<span class="kw">use</span> <span class="ident">futures::future::BoxFuture</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing::types::block::TransactionTrace</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types::RequestBlockId</span>;
@@ -84,7 +84,7 @@
 	<span class="kw">fn</span> <span class="ident">filter</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">filter</span>: <span class="ident">FilterRequest</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">jsonrpc_core::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">jsonrpc_core::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>

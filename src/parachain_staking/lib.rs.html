@@ -1970,6 +1970,7 @@
 <span id="1970">1970</span>
 <span id="1971">1971</span>
 <span id="1972">1972</span>
+<span id="1973">1973</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2042,6 +2043,7 @@
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">ReservableCurrency</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+	<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
 	<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 		<span class="ident">traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Saturating</span>, <span class="ident">Zero</span>},
 		<span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">RuntimeDebug</span>,
@@ -2052,7 +2054,7 @@
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">owner</span>: <span class="ident">AccountId</span>,
 		<span class="kw">pub</span> <span class="ident">amount</span>: <span class="ident">Balance</span>,
@@ -2087,7 +2089,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// The activity status of the collator</span>
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CollatorStatus</span> {
 		<span class="doccomment">/// Committed to be online and producing valid blocks (not equivocating)</span>
@@ -2104,7 +2106,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Snapshot of collator state at the start of the round for which they are selected</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">bond</span>: <span class="ident">Balance</span>,
@@ -2112,7 +2114,7 @@
 		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Collator state with commission fee, bonded stake, and nominations</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// The account of this collator</span>
@@ -2135,7 +2137,7 @@
 
 	<span class="doccomment">/// Convey relevant information describing if a nominator was added to the top or bottom</span>
 	<span class="doccomment">/// Nominations added to the top yield a new total</span>
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NominatorAdded</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
 		<span class="ident">AddedToTop</span> { <span class="ident">new_total</span>: <span class="ident">B</span> },
 		<span class="ident">AddedToBottom</span>,
@@ -2430,7 +2432,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NominatorStatus</span> {
 		<span class="doccomment">/// Active with no scheduled exit</span>
 		<span class="ident">Active</span>,
@@ -2438,7 +2440,7 @@
 		<span class="ident">Leaving</span>(<span class="ident">RoundIndex</span>),
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Nominator state</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Nominator2</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// All current nominations</span>
@@ -2557,7 +2559,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// The current round index and transition information</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// Current round index</span>
@@ -2605,7 +2607,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Reserve information { account, percent_of_inflation }</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// Account which receives funds intended for parachain bond</span>
@@ -2622,7 +2624,7 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">Default</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">Default</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Store and process all delayed exits by collators and nominators</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExitQ</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// Candidate exit set</span>

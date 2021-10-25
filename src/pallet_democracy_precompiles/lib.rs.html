@@ -567,6 +567,22 @@
 <span id="567">567</span>
 <span id="568">568</span>
 <span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -835,7 +851,7 @@
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
@@ -844,7 +860,10 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::propose</span>(<span class="ident">proposal_hash</span>.<span class="ident">into</span>(), <span class="ident">amount</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::propose</span> {
+			<span class="ident">proposal_hash</span>,
+			<span class="ident">value</span>: <span class="ident">amount</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -871,16 +890,19 @@
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">seconds_upper_bound</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
-			<span class="string">&quot;Seconding proposal {:?}, with bound {:?}&quot;</span>, <span class="ident">proposal_index</span>, <span class="ident">seconds_upper_bound</span>
+			<span class="string">&quot;Seconding proposal {:?}, with bound {:?}&quot;</span>, <span class="ident">proposal</span>, <span class="ident">seconds_upper_bound</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::second</span>(<span class="ident">proposal_index</span>, <span class="ident">seconds_upper_bound</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::second</span> {
+			<span class="ident">proposal</span>,
+			<span class="ident">seconds_upper_bound</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -914,7 +936,7 @@
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">account_vote</span> <span class="op">=</span> <span class="ident">AccountVote::Standard</span> {
+		<span class="kw">let</span> <span class="ident">vote</span> <span class="op">=</span> <span class="ident">AccountVote::Standard</span> {
 			<span class="ident">vote</span>: <span class="ident">Vote</span> { <span class="ident">aye</span>, <span class="ident">conviction</span> },
 			<span class="ident">balance</span>,
 		};
@@ -925,7 +947,7 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::vote</span>(<span class="ident">ref_index</span>, <span class="ident">account_vote</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::vote</span> { <span class="ident">ref_index</span>, <span class="ident">vote</span> };
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -952,12 +974,18 @@
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">ref_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">referendum_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;Removing vote from referendum {:?}&quot;</span>, <span class="ident">ref_index</span>);
+		<span class="macro">log::trace!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
+			<span class="string">&quot;Removing vote from referendum {:?}&quot;</span>,
+			<span class="ident">referendum_index</span>
+		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_vote</span>(<span class="ident">ref_index</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_vote</span> {
+			<span class="ident">index</span>: <span class="ident">referendum_index</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -984,8 +1012,8 @@
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">3</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
+		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to</span>);
 		<span class="kw">let</span> <span class="ident">conviction</span> <span class="op">=</span> <span class="ident">input</span>
 			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
@@ -994,11 +1022,15 @@
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Delegating vote to {:?} with balance {:?} and {:?}&quot;</span>,
-			<span class="ident">to_account</span>, <span class="ident">conviction</span>, <span class="ident">balance</span>
+			<span class="ident">to</span>, <span class="ident">conviction</span>, <span class="ident">balance</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegate</span>(<span class="ident">to_account</span>, <span class="ident">conviction</span>, <span class="ident">balance</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegate</span> {
+			<span class="ident">to</span>,
+			<span class="ident">conviction</span>,
+			<span class="ident">balance</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -1019,7 +1051,7 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::undelegate</span>();
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::undelegate</span> {};
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -1046,16 +1078,16 @@
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">target_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">target_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">target_address</span>);
+		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">target</span>);
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
-			<span class="string">&quot;Unlocking democracy tokens for {:?}&quot;</span>, <span class="ident">target_account</span>
+			<span class="string">&quot;Unlocking democracy tokens for {:?}&quot;</span>, <span class="ident">target</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::unlock</span>(<span class="ident">target_account</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::unlock</span> { <span class="ident">target</span> };
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -1087,7 +1119,7 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_preimage</span>(<span class="ident">encoded_proposal</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_preimage</span> { <span class="ident">encoded_proposal</span> };
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
@@ -1119,7 +1151,7 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_imminent_preimage</span>(<span class="ident">encoded_proposal</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_imminent_preimage</span> { <span class="ident">encoded_proposal</span> };
 
 		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),

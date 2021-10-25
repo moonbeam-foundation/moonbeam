@@ -918,6 +918,33 @@
 <span id="918">918</span>
 <span id="919">919</span>
 <span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -965,8 +992,7 @@
 <span class="kw">use</span> <span class="ident">nimbus_consensus</span>::{<span class="ident">build_nimbus_consensus</span>, <span class="ident">BuildNimbusConsensusParams</span>};
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sc_executor::NativeExecutor</span>;
-<span class="kw">use</span> <span class="ident">sc_executor</span>::{<span class="ident">native_executor_instance</span>, <span class="ident">NativeExecutionDispatch</span>};
+<span class="kw">use</span> <span class="ident">sc_executor</span>::{<span class="ident">NativeElseWasmExecutor</span>, <span class="ident">NativeExecutionDispatch</span>};
 <span class="kw">use</span> <span class="ident">sc_service</span>::{
 	<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">ServiceError</span>, <span class="ident">ChainSpec</span>, <span class="ident">Configuration</span>, <span class="ident">PartialComponents</span>, <span class="ident">Role</span>, <span class="ident">TFullBackend</span>,
 	<span class="ident">TFullClient</span>, <span class="ident">TaskManager</span>,
@@ -981,42 +1007,63 @@
 
 <span class="kw">use</span> <span class="ident">sc_telemetry</span>::{<span class="ident">Telemetry</span>, <span class="ident">TelemetryWorker</span>, <span class="ident">TelemetryWorkerHandle</span>};
 
-<span class="kw">type</span> <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span> <span class="op">=</span>
+	<span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">NativeElseWasmExecutor</span><span class="op">&lt;</span><span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 <span class="kw">type</span> <span class="ident">FullBackend</span> <span class="op">=</span> <span class="ident">TFullBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>;
 <span class="kw">type</span> <span class="ident">MaybeSelectChain</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">sc_consensus::LongestChain</span><span class="op">&lt;</span><span class="ident">FullBackend</span>, <span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
-<span class="macro">native_executor_instance!</span>(
-	<span class="kw">pub</span> <span class="ident">MoonbeamExecutor</span>,
-	<span class="ident">moonbeam_runtime::api::dispatch</span>,
-	<span class="ident">moonbeam_runtime::native_version</span>,
-	(
-		<span class="ident">frame_benchmarking::benchmarking::HostFunctions</span>,
-		<span class="ident">moonbeam_primitives_ext::moonbeam_ext::HostFunctions</span>
-	),
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">HostFunctions</span> <span class="op">=</span> (
+	<span class="ident">frame_benchmarking::benchmarking::HostFunctions</span>,
+	<span class="ident">moonbeam_primitives_ext::moonbeam_ext::HostFunctions</span>,
 );
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonbeamExecutor</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">sc_executor::NativeExecutionDispatch</span> <span class="kw">for</span> <span class="ident">MoonbeamExecutor</span> {
+	<span class="kw">type</span> <span class="ident">ExtendHostFunctions</span> <span class="op">=</span> <span class="ident">HostFunctions</span>;
+
+	<span class="kw">fn</span> <span class="ident">dispatch</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">moonbeam_runtime::api::dispatch</span>(<span class="ident">method</span>, <span class="ident">data</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">native_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_executor::NativeVersion</span> {
+		<span class="ident">moonbeam_runtime::native_version</span>()
+	}
+}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
-<span class="macro">native_executor_instance!</span>(
-	<span class="kw">pub</span> <span class="ident">MoonriverExecutor</span>,
-	<span class="ident">moonriver_runtime::api::dispatch</span>,
-	<span class="ident">moonriver_runtime::native_version</span>,
-	(
-		<span class="ident">frame_benchmarking::benchmarking::HostFunctions</span>,
-		<span class="ident">moonbeam_primitives_ext::moonbeam_ext::HostFunctions</span>
-	),
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonriverExecutor</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">sc_executor::NativeExecutionDispatch</span> <span class="kw">for</span> <span class="ident">MoonriverExecutor</span> {
+	<span class="kw">type</span> <span class="ident">ExtendHostFunctions</span> <span class="op">=</span> <span class="ident">HostFunctions</span>;
+
+	<span class="kw">fn</span> <span class="ident">dispatch</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">moonriver_runtime::api::dispatch</span>(<span class="ident">method</span>, <span class="ident">data</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">native_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_executor::NativeVersion</span> {
+		<span class="ident">moonriver_runtime::native_version</span>()
+	}
+}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
-<span class="macro">native_executor_instance!</span>(
-	<span class="kw">pub</span> <span class="ident">MoonbaseExecutor</span>,
-	<span class="ident">moonbase_runtime::api::dispatch</span>,
-	<span class="ident">moonbase_runtime::native_version</span>,
-	(
-		<span class="ident">frame_benchmarking::benchmarking::HostFunctions</span>,
-		<span class="ident">moonbeam_primitives_ext::moonbeam_ext::HostFunctions</span>
-	),
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonbaseExecutor</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">sc_executor::NativeExecutionDispatch</span> <span class="kw">for</span> <span class="ident">MoonbaseExecutor</span> {
+	<span class="kw">type</span> <span class="ident">ExtendHostFunctions</span> <span class="op">=</span> <span class="ident">HostFunctions</span>;
+
+	<span class="kw">fn</span> <span class="ident">dispatch</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">moonbase_runtime::api::dispatch</span>(<span class="ident">method</span>, <span class="ident">data</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">native_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_executor::NativeVersion</span> {
+		<span class="ident">moonbase_runtime::native_version</span>()
+	}
+}
 
 <span class="doccomment">/// Can be called for a `Configuration` to check if it is a configuration for</span>
 <span class="doccomment">/// the `Moonbeam` network.</span>
@@ -1154,16 +1201,16 @@
 	<span class="ident">dev_service</span>: <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 	<span class="ident">PartialComponents</span><span class="op">&lt;</span>
-		<span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>,
+		<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>,
 		<span class="ident">FullBackend</span>,
 		<span class="ident">MaybeSelectChain</span>,
-		<span class="ident">sc_consensus::DefaultImportQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">sc_consensus::DefaultImportQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">sc_transaction_pool::FullPool</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		(
 			<span class="ident">FrontierBlockImport</span><span class="op">&lt;</span>
 				<span class="ident">Block</span>,
-				<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-				<span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>,
+				<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>,
 			<span class="op">&gt;</span>,
 			<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
 			<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Telemetry</span><span class="op">&gt;</span>,
@@ -1191,10 +1238,17 @@
 		})
 		.<span class="ident">transpose</span>()<span class="question-mark">?</span>;
 
+	<span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">NativeElseWasmExecutor</span>::<span class="op">&lt;</span><span class="ident">Executor</span><span class="op">&gt;</span><span class="ident">::new</span>(
+		<span class="ident">config</span>.<span class="ident">wasm_method</span>,
+		<span class="ident">config</span>.<span class="ident">default_heap_pages</span>,
+		<span class="ident">config</span>.<span class="ident">max_runtime_instances</span>,
+	);
+
 	<span class="kw">let</span> (<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">keystore_container</span>, <span class="ident">task_manager</span>) <span class="op">=</span>
-		<span class="ident">sc_service::new_full_parts</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="ident">config</span>,
+		<span class="ident">sc_service::new_full_parts</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+			<span class="ident">config</span>,
 			<span class="ident">telemetry</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">telemetry</span>)<span class="op">|</span> <span class="ident">telemetry</span>.<span class="ident">handle</span>()),
+			<span class="ident">executor</span>,
 		)<span class="question-mark">?</span>;
 
 	<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">client</span>);
@@ -1338,7 +1392,7 @@
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v0::Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">RuntimeApi</span>:
 		<span class="ident">ConstructRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1577,7 +1631,7 @@
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v0::Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">RuntimeApi</span>:
 		<span class="ident">ConstructRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,

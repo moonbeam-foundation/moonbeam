@@ -604,6 +604,8 @@
 <span id="604">604</span>
 <span id="605">605</span>
 <span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -978,13 +980,15 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
-			<span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::join_candidates</span>(<span class="ident">amount</span>, <span class="ident">collator_candidate_count</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::join_candidates</span> {
+			<span class="ident">bond</span>,
+			<span class="ident">candidate_count</span>,
+		};
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1002,11 +1006,11 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator_candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_candidates</span>(<span class="ident">collator_candidate_count</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_candidates</span> { <span class="ident">candidate_count</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1023,7 +1027,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span>();
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span> {};
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1040,7 +1044,7 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span>();
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span> {};
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1058,11 +1062,11 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_more</span>(<span class="ident">amount</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_more</span> { <span class="ident">more</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1080,11 +1084,11 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_less</span>(<span class="ident">amount</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_less</span> { <span class="ident">less</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1104,17 +1108,17 @@
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">nominator_nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator_nominator_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">nomination_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span>(
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominate</span> {
 			<span class="ident">collator</span>,
 			<span class="ident">amount</span>,
-			<span class="ident">collator_nomination_count</span>,
-			<span class="ident">nominator_nomination_count</span>,
-		);
+			<span class="ident">collator_nominator_count</span>,
+			<span class="ident">nomination_count</span>,
+		};
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1136,7 +1140,7 @@
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_nominators</span>(<span class="ident">nomination_count</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::leave_nominators</span> { <span class="ident">nomination_count</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1158,7 +1162,7 @@
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::revoke_nomination</span>(<span class="ident">collator</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::revoke_nomination</span> { <span class="ident">collator</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1176,12 +1180,12 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_more</span>(<span class="ident">collator</span>, <span class="ident">amount</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_more</span> { <span class="ident">candidate</span>, <span class="ident">more</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
@@ -1199,12 +1203,12 @@
 	<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_less</span>(<span class="ident">collator</span>, <span class="ident">amount</span>);
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::nominator_bond_less</span> { <span class="ident">candidate</span>, <span class="ident">less</span> };
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))

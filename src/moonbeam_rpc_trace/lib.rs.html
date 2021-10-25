@@ -897,14 +897,6 @@
 <span id="897">897</span>
 <span id="898">898</span>
 <span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -931,29 +923,23 @@
 <span class="doccomment">//! - For each traced block an async task responsible to wait for a permit, spawn a blocking</span>
 <span class="doccomment">//!   task and waiting for the result, then send it to the main `CacheTask`.</span>
 
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">compat::Compat</span>,
-	<span class="ident">future</span>::{<span class="ident">BoxFuture</span>, <span class="ident">TryFutureExt</span>},
-	<span class="ident">select</span>,
-	<span class="ident">stream::FuturesUnordered</span>,
-	<span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>,
-};
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::BoxFuture</span>, <span class="ident">select</span>, <span class="ident">stream::FuturesUnordered</span>, <span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeMap</span>, <span class="ident">future::Future</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
 <span class="kw">use</span> <span class="ident">tokio</span>::{
 	<span class="ident">sync</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>, <span class="ident">Semaphore</span>},
-	<span class="ident">time::delay_for</span>,
+	<span class="ident">time::sleep</span>,
 };
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">instrument</span>, <span class="ident">Instrument</span>};
 
 <span class="kw">use</span> <span class="ident">jsonrpc_core::Result</span>;
 <span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
+<span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
-<span class="kw">use</span> <span class="ident">sp_utils::mpsc::TracingUnboundedSender</span>;
 
 <span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
 <span class="kw">use</span> <span class="ident">fc_rpc::internal_err</span>;
@@ -1153,9 +1139,8 @@
 	<span class="kw">fn</span> <span class="ident">filter</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">filter</span>: <span class="ident">FilterRequest</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">jsonrpc_core::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="comment">// Wraps the async function into futures compatibility layer.</span>
-		<span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">filter</span>(<span class="ident">filter</span>).<span class="ident">boxed</span>().<span class="ident">compat</span>()
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">jsonrpc_core::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">filter</span>(<span class="ident">filter</span>).<span class="ident">boxed</span>()
 	}
 }
 
@@ -1357,16 +1342,15 @@
 	) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>, <span class="ident">CacheRequester</span>) {
 		<span class="comment">// Communication with the outside world :</span>
 		<span class="kw">let</span> (<span class="ident">requester_tx</span>, <span class="kw-2">mut</span> <span class="ident">requester_rx</span>) <span class="op">=</span>
-			<span class="ident">sp_utils::mpsc::tracing_unbounded</span>(<span class="string">&quot;trace-filter-cache&quot;</span>);
+			<span class="ident">sc_utils::mpsc::tracing_unbounded</span>(<span class="string">&quot;trace-filter-cache&quot;</span>);
 
 		<span class="comment">// Task running in the service.</span>
 		<span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
 			<span class="comment">// The following variables are polled by the select! macro, and thus cannot be</span>
 			<span class="comment">// part of Self without introducing borrowing issues.</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">batch_expirations</span> <span class="op">=</span> <span class="ident">FuturesUnordered::new</span>();
-			<span class="kw">let</span> (<span class="ident">blocking_tx</span>, <span class="ident">blocking_rx</span>) <span class="op">=</span>
+			<span class="kw">let</span> (<span class="ident">blocking_tx</span>, <span class="kw-2">mut</span> <span class="ident">blocking_rx</span>) <span class="op">=</span>
 				<span class="ident">mpsc::channel</span>(<span class="ident">blocking_permits</span>.<span class="ident">available_permits</span>() <span class="op">*</span> <span class="number">2</span>);
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocking_rx</span> <span class="op">=</span> <span class="ident">blocking_rx</span>.<span class="ident">fuse</span>();
 
 			<span class="comment">// Contains the inner state of the cache task, excluding the pooled futures/channels.</span>
 			<span class="comment">// Having this object allow to refactor each event into its own function, simplifying</span>
@@ -1396,7 +1380,7 @@
 								<span class="comment">// Cannot be refactored inside `request_stop_batch` because</span>
 								<span class="comment">// it has an unnamable type :C</span>
 								<span class="ident">batch_expirations</span>.<span class="ident">push</span>(<span class="kw">async</span> <span class="kw">move</span> {
-									<span class="ident">delay_for</span>(<span class="ident">cache_duration</span>).<span class="kw">await</span>;
+									<span class="ident">sleep</span>(<span class="ident">cache_duration</span>).<span class="kw">await</span>;
 									<span class="ident">batch_id</span>
 								});
 
@@ -1404,7 +1388,7 @@
 							},
 						}
 					},
-					<span class="ident">message</span> <span class="op">=</span> <span class="ident">blocking_rx</span>.<span class="ident">next</span>() <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="ident">message</span> <span class="op">=</span> <span class="ident">blocking_rx</span>.<span class="ident">recv</span>().<span class="ident">fuse</span>() <span class="op">=</span><span class="op">&gt;</span> {
 						<span class="kw">match</span> <span class="ident">message</span> {
 							<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
 							<span class="prelude-val">Some</span>(<span class="ident">BlockingTaskMessage::Started</span> { <span class="ident">block_hash</span> })
@@ -1457,7 +1441,7 @@
 				<span class="kw">let</span> (<span class="ident">unqueue_sender</span>, <span class="ident">unqueue_receiver</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
 				<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>);
 				<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">backend</span>);
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocking_tx</span> <span class="op">=</span> <span class="ident">blocking_tx</span>.<span class="ident">clone</span>();
+				<span class="kw">let</span> <span class="ident">blocking_tx</span> <span class="op">=</span> <span class="ident">blocking_tx</span>.<span class="ident">clone</span>();
 
 				<span class="comment">// Spawn all block caching asynchronously.</span>
 				<span class="comment">// It will wait to obtain a permit, then spawn a blocking task.</span>

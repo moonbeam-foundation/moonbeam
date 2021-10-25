@@ -782,11 +782,11 @@
 			<span class="comment">// Allowance() should be checked instead of doing this Result matching</span>
 			<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 				<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin::root</span>(),
-				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::force_cancel_approval</span>(
-					<span class="ident">asset_id</span>,
-					<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">caller</span>),
-					<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">spender</span>.<span class="ident">clone</span>()),
-				),
+				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::force_cancel_approval</span> {
+					<span class="ident">id</span>: <span class="ident">asset_id</span>,
+					<span class="ident">owner</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">caller</span>),
+					<span class="ident">delegate</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">spender</span>.<span class="ident">clone</span>()),
+				},
 				<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
 			) {
 				<span class="prelude-val">Ok</span>(<span class="ident">gas_used</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">gas_used</span>),
@@ -807,11 +807,11 @@
 			<span class="comment">// Dispatch call (if enough gas).</span>
 			<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 				<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::approve_transfer</span>(
-					<span class="ident">asset_id</span>,
-					<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">spender</span>),
+				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::approve_transfer</span> {
+					<span class="ident">id</span>: <span class="ident">asset_id</span>,
+					<span class="ident">delegate</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">spender</span>),
 					<span class="ident">amount</span>,
-				),
+				},
 				<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
 			)<span class="question-mark">?</span>;
 			<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
@@ -860,11 +860,11 @@
 			<span class="comment">// Dispatch call (if enough gas).</span>
 			<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 				<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span>(
-					<span class="ident">asset_id</span>,
-					<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
+				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
+					<span class="ident">id</span>: <span class="ident">asset_id</span>,
+					<span class="ident">target</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
 					<span class="ident">amount</span>,
-				),
+				},
 				<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
 			)<span class="question-mark">?</span>;
 			<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
@@ -917,23 +917,23 @@
 				<span class="comment">// Dispatch call (if enough gas).</span>
 				<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 					<span class="prelude-val">Some</span>(<span class="ident">caller</span>).<span class="ident">into</span>(),
-					<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer_approved</span>(
-						<span class="ident">asset_id</span>,
-						<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">from</span>),
-						<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
+					<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer_approved</span> {
+						<span class="ident">id</span>: <span class="ident">asset_id</span>,
+						<span class="ident">owner</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">from</span>),
+						<span class="ident">destination</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
 						<span class="ident">amount</span>,
-					),
+					},
 					<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
 				)
 			} <span class="kw">else</span> {
 				<span class="comment">// Dispatch call (if enough gas).</span>
 				<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 					<span class="prelude-val">Some</span>(<span class="ident">from</span>).<span class="ident">into</span>(),
-					<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span>(
-						<span class="ident">asset_id</span>,
-						<span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
+					<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
+						<span class="ident">id</span>: <span class="ident">asset_id</span>,
+						<span class="ident">target</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
 						<span class="ident">amount</span>,
-					),
+					},
 					<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
 				)
 			}<span class="question-mark">?</span>;
