@@ -147,7 +147,6 @@ describeDevMoonbeam(
 
         let evmResult = context.web3.utils.hexToNumber("0x" + intermediateTx.result.returnValue);
 
-        // console.log(`Matching target ${target} against evm result ${evm_result}`);
         expect(evmResult).to.equal(target);
       }
     });

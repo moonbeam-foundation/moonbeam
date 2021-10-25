@@ -22,7 +22,7 @@ use frame_support::{
 	traits::{Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use xcm::v1::{
+use xcm::latest::{
 	AssetId as xcmAssetId, Error as XcmError, Fungibility,
 	Junction::{AccountKey20, Parachain},
 	Junctions::*,

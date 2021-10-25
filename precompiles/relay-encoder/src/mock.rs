@@ -18,6 +18,7 @@
 use super::*;
 
 use evm::Context;
+use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
@@ -68,6 +69,7 @@ construct_runtime!(
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	scale_info::TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
@@ -109,7 +111,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
