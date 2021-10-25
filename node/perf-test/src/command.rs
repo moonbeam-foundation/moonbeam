@@ -29,9 +29,7 @@ use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_service::{
-	Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool,
-};
+use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool};
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;

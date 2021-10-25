@@ -86,8 +86,12 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 	// TODO: getting info on the boost freq(s) would be very useful
 	let cpu_freq = futures::executor::block_on(heim_cpu::frequency());
 	let (cpu_min, cpu_max) = if let Ok(cpu_freq) = cpu_freq {
-		let min = cpu_freq.min().map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
-		let max = cpu_freq.max().map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
+		let min = cpu_freq
+			.min()
+			.map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
+		let max = cpu_freq
+			.max()
+			.map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
 		(min, max)
 	} else {
 		// don't fail the test if the system doesn't report cpu info for whatever reason. this
