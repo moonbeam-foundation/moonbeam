@@ -723,7 +723,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
-	// Todo: Discuss if we enabled from the beginning with Derek
+
+	// This will get accessible to users in future phases.
 	type RewardAddressChangeOrigin = EnsureRoot<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
