@@ -318,7 +318,7 @@ pub fn run() -> Result<()> {
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				// Remove Frontier offchain db
-				let frontier_database_config = sc_service::DatabaseConfig::RocksDb {
+				let frontier_database_config = sc_service::DatabaseSource::RocksDb {
 					path: frontier_database_dir(&config),
 					cache_size: 0,
 				};
@@ -339,7 +339,7 @@ pub fn run() -> Result<()> {
 				let polkadot_config = SubstrateCli::create_configuration(
 					&polkadot_cli,
 					&polkadot_cli,
-					config.task_executor.clone(),
+					config.tokio_handle.clone(),
 				)
 				.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
@@ -630,9 +630,9 @@ pub fn run() -> Result<()> {
 					_ => panic!("invalid chain spec"),
 				};
 
-				let task_executor = config.task_executor.clone();
+				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
+					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, tokio_handle)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
 				info!("Parachain id: {:?}", id);
@@ -768,9 +768,9 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_cors(is_dev)
 	}
 
-	fn telemetry_external_transport(&self) -> Result<Option<sc_service::config::ExtTransport>> {
-		self.base.base.telemetry_external_transport()
-	}
+	// fn telemetry_external_transport(&self) -> Result<Option<sc_service::config::ExtTransport>> {
+	// 	self.base.base.telemetry_external_transport()
+	// }
 
 	fn default_heap_pages(&self) -> Result<Option<u64>> {
 		self.base.base.default_heap_pages()

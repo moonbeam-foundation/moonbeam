@@ -32,7 +32,6 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	signed_extensions::{AdjustPriority, Divide},
 	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -56,14 +55,14 @@ use pallet_evm::{
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
 	transaction_validity::{
-		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
-		TransactionValidityError,
+		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
@@ -276,11 +275,13 @@ where
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
+	pub OperationalFeeMultiplier: u8 = 5;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
+	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
@@ -392,11 +393,11 @@ parameter_types! {
 
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const TechComitteeMotionDuration: BlockNumber = 3 * DAYS;
+	pub const TechCommitteeMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the technical committee at once.
-	pub const TechComitteeMaxProposals: u32 = 100;
+	pub const TechCommitteeMaxProposals: u32 = 100;
 	/// The maximum number of technical committee members.
-	pub const TechComitteeMaxMembers: u32 = 100;
+	pub const TechCommitteeMaxMembers: u32 = 100;
 }
 
 type CouncilInstance = pallet_collective::Instance1;
@@ -417,9 +418,9 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type Origin = Origin;
 	type Event = Event;
 	type Proposal = Call;
-	type MotionDuration = TechComitteeMotionDuration;
-	type MaxProposals = TechComitteeMaxProposals;
-	type MaxMembers = TechComitteeMaxMembers;
+	type MotionDuration = TechCommitteeMotionDuration;
+	type MaxProposals = TechCommitteeMaxProposals;
+	type MaxMembers = TechCommitteeMaxMembers;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
@@ -427,8 +428,9 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
 	pub const VotingPeriod: BlockNumber = 5 * DAYS;
+	pub const VoteLockingPeriod: BlockNumber = 1 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
-	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
+	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
@@ -444,6 +446,7 @@ impl pallet_democracy::Config for Runtime {
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
 	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	/// A straight majority of the council can decide what their next motion is.
@@ -575,7 +578,7 @@ pub struct TransactionConverter;
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		)
 	}
 }
@@ -586,7 +589,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 		transaction: pallet_ethereum::Transaction,
 	) -> opaque::UncheckedExtrinsic {
 		let extrinsic = UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		);
 		let encoded = extrinsic.encode();
 		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
@@ -735,7 +738,9 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen)]
+#[derive(
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -769,7 +774,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechComitteeCollective(..)
+						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 				)
@@ -778,7 +783,7 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::Democracy(..)
 					| Call::CouncilCollective(..)
-					| Call::TechComitteeCollective(..)
+					| Call::TechCommitteeCollective(..)
 					| Call::Utility(..)
 			),
 			ProxyType::Staking => matches!(
@@ -786,7 +791,10 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
 			ProxyType::CancelProxy => {
-				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+				matches!(
+					c,
+					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+				)
 			}
 			ProxyType::Balances => {
 				matches!(c, Call::Balances(..) | Call::Utility(..))
@@ -824,7 +832,11 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = runtime_common::migrations::CommonMigrations<Runtime>;
+	type MigrationsList = runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
@@ -893,7 +905,7 @@ construct_runtime! {
 		// Council stuff.
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
-		TechComitteeCollective:
+		TechCommitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
 
 		// Treasury stuff.
@@ -911,22 +923,6 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
-/// There are two extensions returning the priority:
-/// 1. The `CheckWeight` extension.
-/// 2. The `TransactionPayment` extension.
-///
-/// The first one gives a significant bump to `Operational` transactions, but for `Normal`
-/// it's within `[0..MAXIMUM_BLOCK_WEIGHT]` range.
-///
-/// The second one roughly represents the amount of fees being paid (and the tip) with
-/// size-adjustment coefficient. I.e. we are interested to maximize `fee/consumed_weight` or
-/// `fee/size_limit`. The returned value is potentially unbounded though.
-///
-/// The idea for the adjustment is scale the priority coming from `CheckWeight` for
-/// `Normal` transactions down to zero, leaving the priority bump for `Operational` and
-/// `Mandatory` though.
-const CHECK_WEIGHT_PRIORITY_DIVISOR: TransactionPriority = MAXIMUM_BLOCK_WEIGHT;
-
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Runtime>,
@@ -934,7 +930,7 @@ pub type SignedExtra = (
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
-	AdjustPriority<frame_system::CheckWeight<Runtime>, Divide, CHECK_WEIGHT_PRIORITY_DIVISOR>,
+	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
@@ -996,7 +992,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
 			// we modify its priority.
 			Ok(match &xt.0.function {
-				Call::Ethereum(transact(_)) => intermediate_valid,
+				Call::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
 					let tip = match xt.0.signature {

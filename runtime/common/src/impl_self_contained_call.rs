@@ -63,7 +63,7 @@ macro_rules! impl_self_contained_call {
 				info: Self::SignedInfo,
 			) -> Option<sp_runtime::DispatchResultWithInfo<PostDispatchInfoOf<Self>>> {
 				match self {
-					call @ Call::Ethereum(pallet_ethereum::Call::transact(_)) => Some(
+					call @ Call::Ethereum(pallet_ethereum::Call::transact { .. }) => Some(
 						call.dispatch(Origin::from(
 							pallet_ethereum::RawOrigin::EthereumTransaction(info)
 						))
@@ -78,7 +78,7 @@ macro_rules! impl_self_contained_call {
 			eth_call: &pallet_ethereum::Call<Runtime>,
 			signed_info: &<Call as fp_self_contained::SelfContainedCall>::SignedInfo
 		) -> TransactionValidity {
-			if let pallet_ethereum::Call::transact(ref eth_tx) = eth_call {
+			if let pallet_ethereum::Call::transact { ref transaction } = eth_call {
 				// Previously, ethereum transactions were contained in an unsigned
 				// extrinsic, we now use a new form of dedicated extrinsic defined by
 				// frontier, but to keep the same behavior as before, we must perform
@@ -87,7 +87,7 @@ macro_rules! impl_self_contained_call {
 				let extra_validation = SignedExtra::validate_unsigned(
 					call,
 					&call.get_dispatch_info(),
-					eth_tx.input.len(),
+					transaction.input.len(),
 				)?;
 				// Then, do the controls defined by the ethereum pallet.
 				use fp_self_contained::SelfContainedCall as _;

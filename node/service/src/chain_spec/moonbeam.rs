@@ -29,7 +29,7 @@ use moonbeam_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
 	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechComitteeCollectiveConfig, WASM_BINARY,
+	SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -235,7 +235,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		tech_comittee_collective: TechComitteeCollectiveConfig {
+		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},

@@ -9,10 +9,12 @@ edition = '2018'
 
 [dependencies]
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.10" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+pallet-collective = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 log = "0.4"
 
 [features]

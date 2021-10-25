@@ -13,11 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use futures::{
-	compat::Compat,
-	future::{BoxFuture, TryFutureExt},
-	FutureExt, SinkExt, StreamExt,
-};
+use futures::{future::BoxFuture, FutureExt, SinkExt, StreamExt};
 use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
@@ -33,13 +29,13 @@ use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
+use sc_utils::mpsc::TracingUnboundedSender;
 use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
-use sp_utils::mpsc::TracingUnboundedSender;
 use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
 
 pub enum RequesterInput {
@@ -73,7 +69,7 @@ impl DebugT for Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>> {
+	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>> {
 		let mut requester = self.requester.clone();
 
 		async move {
@@ -100,14 +96,13 @@ impl DebugT for Debug {
 				})
 		}
 		.boxed()
-		.compat()
 	}
 
 	fn trace_block(
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>> {
+	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
 		let mut requester = self.requester.clone();
 
 		println!("---> Enter {:?}", id);
@@ -136,7 +131,6 @@ impl DebugT for Debug {
 				})
 		}
 		.boxed()
-		.compat()
 	}
 }
 
@@ -162,7 +156,7 @@ where
 		permit_pool: Arc<Semaphore>,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
-			sp_utils::mpsc::tracing_unbounded("debug-requester");
+			sc_utils::mpsc::tracing_unbounded("debug-requester");
 
 		let fut = async move {
 			loop {

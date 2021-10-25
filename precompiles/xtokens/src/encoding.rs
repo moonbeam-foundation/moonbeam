@@ -18,7 +18,6 @@
 
 use evm::ExitError;
 use precompile_utils::{error, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult};
-use sp_core::U256;
 
 use frame_support::ensure;
 use sp_std::vec::Vec;

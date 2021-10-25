@@ -341,7 +341,7 @@ export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
   instances: {
     council: ["councilCollective"],
-    technicalCommittee: ["techComitteeCollective"],
+    technicalCommittee: ["techCommitteeCollective"],
   },
   types: [
     {
