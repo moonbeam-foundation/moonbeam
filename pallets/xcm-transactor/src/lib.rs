@@ -323,7 +323,14 @@ pub mod pallet {
 		/// 'fee_payer' pays for the fee
 		///
 		/// SovereignAccountDispatcherOrigin callable only
-		#[pallet::weight(Pallet::<T>::weight_of_transact_through_sovereign(&fee_location, &dest, dest_weight, call))]
+		#[pallet::weight(
+			Pallet::<T>::weight_of_transact_through_sovereign(
+				&fee_location,
+				&dest,
+				dest_weight,
+				call
+			)
+		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
 			dest: MultiLocation,
