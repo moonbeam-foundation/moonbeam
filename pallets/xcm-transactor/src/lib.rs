@@ -163,6 +163,7 @@ pub mod pallet {
 		Overflow,
 		TransactorInfoNotSet,
 		NotCrossChainTransferableCurrency,
+		XcmExecuteError,
 	}
 
 	#[pallet::event]
@@ -409,9 +410,8 @@ pub mod pallet {
 				Outcome::Incomplete(_w, err) => Some(err),
 				Outcome::Error(err) => Some(err),
 			};
-			if let Some(xcm_err) = maybe_xcm_err {
-				Self::deposit_event(Event::<T>::TransactFailed(xcm_err));
-			}
+
+			ensure!(maybe_xcm_err.is_none(), Error::<T>::XcmExecuteError);
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
