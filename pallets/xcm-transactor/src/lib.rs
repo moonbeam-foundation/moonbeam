@@ -131,7 +131,7 @@ pub mod pallet {
 	pub struct RemoteTransactInfo {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
-		/// Upper bound of units per second that  the destination chain is going to charge for execution
+		/// Upper bound of units per second that the destination chain  charges for execution
 		pub destination_units_per_second: u128,
 	}
 
