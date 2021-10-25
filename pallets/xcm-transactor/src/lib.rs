@@ -20,17 +20,22 @@
 //!
 //! Module to provide transact capabilitise in other chains
 //!
-//! This module the transactions are dispatched from a derivative account
+//! In this pallet we will make distinctions between sovereign
+//! and derivative accounts. The first is the account the parachain controls
+//! in the destination chain, while the latter is an account derived from the
+//! sovereign account itself, e.g., by hashing it with an index. Such distinction
+//! is important since we want to keep the integrity of the sovereign account
+//!
+//! The transactions are dispatched from a derivative account
 //! of the sovereign account
-//! This module only stores the index of the derivative account used, but
-//! not the derivative account itself. The only assumption this trait makes
+//! This pallet only stores the index of the derivative account used, but
+//! not the derivative account itself. The only assumption this pallet makes
 //! is the existence of the pallet_utility pallet in the destination chain
 //! through the XcmTransact trait.
 //!
 //! All calls will be wrapped around utility::as_derivative. This makes sure
 //! the inner call is executed from the derivative account and not the sovereign
-//! account itself. This derivative account can be funded by external users to
-//! ensure it has enough funds to make the calls
+//! account itself.
 //!
 //! Index registration happens through DerivativeAddressRegistrationOrigin.
 //! the inner call is executed from the derivative account and not the sovereign
@@ -115,7 +120,7 @@ pub mod pallet {
 
 		// Base XCM weight.
 		///
-		/// The actually weight for an XCM message is `T::BaseXcmWeight +
+		/// The actual weight for an XCM message is `T::BaseXcmWeight +
 		/// T::Weigher::weight(&msg)`.
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
@@ -131,8 +136,9 @@ pub mod pallet {
 		pub destination_units_per_second: u128,
 	}
 
-	// Stores the index to account mapping. These indices are usable as derivative
-	// in the relay chain
+	// Since we are using pallet-utility for account derivation (through AsDerivative),
+	// we need to provide an index for the account derivation. This storage item stores the index
+	// assigned for a given local account. These indices are usable as derivative in the relay chain
 	#[pallet::storage]
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
@@ -383,7 +389,7 @@ pub mod pallet {
 			};
 
 			// Ensure the asset is a reserve
-			Self::transfer_kind(&fee, &dest)?;
+			Self::transfer_allowed(&fee, &dest)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
@@ -472,7 +478,7 @@ pub mod pallet {
 			})
 		}
 
-		/// Construct a buy execution xcm order with the provided parameters
+		/// Construct a withdraw instruction for the sovereign account
 		fn sovereign_withdraw(
 			asset: MultiAsset,
 			at: &MultiLocation,
@@ -495,11 +501,11 @@ pub mod pallet {
 			}
 		}
 
-		/// Get the transfer kind.
+		/// Check whether the transfer is allowed.
 		///
 		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
 		/// else returns `dest`, parachain or relay chain location.
-		fn transfer_kind(
+		fn transfer_allowed(
 			asset: &MultiAsset,
 			dest: &MultiLocation,
 		) -> Result<MultiLocation, DispatchError> {
