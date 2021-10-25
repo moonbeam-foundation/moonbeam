@@ -127,6 +127,8 @@ where
 
 		// Bound check
 		input.expect_arguments(2)?;
+
+		// Does not need DB read
 		let transactor: TransactorOf<Runtime> = input
 			.read::<u8>()?
 			.try_into()
@@ -144,6 +146,8 @@ where
 		// inner call
 		let inner_call = input.read::<Bytes>()?;
 
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
@@ -188,10 +192,14 @@ where
 		let to_address: H160 = input.read::<Address>()?.into();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
-		// We convert the address into a currency id xtokens understands
+
+		// We convert the address into a currency
+		// This involves a DB read in moonbeam, hence the db Read
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(error("cannot convert into currency id"))?;
+
 		input.expect_arguments(2)?;
 		// read fee amount
 		let weight: u64 = input.read::<u64>()?;
@@ -199,6 +207,8 @@ where
 		// inner call
 		let inner_call = input.read::<Bytes>()?;
 
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,

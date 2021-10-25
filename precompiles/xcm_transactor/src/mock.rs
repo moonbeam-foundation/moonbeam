@@ -19,12 +19,14 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
-	weights::Weight,
+	weights::{RuntimeDbWeight, Weight},
 };
 
 use frame_support::{construct_runtime, parameter_types};
 
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, PrecompileSet,
+};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -168,10 +170,15 @@ parameter_types! {
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
+	pub const MockDbWeight: RuntimeDbWeight = RuntimeDbWeight {
+		read: 1,
+		write: 5,
+	};
 }
+
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = ();
+	type DbWeight = MockDbWeight;
 	type Origin = Origin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
@@ -253,9 +260,21 @@ pub fn precompile_address() -> H160 {
 
 pub type Precompiles = TestPrecompiles<Test>;
 
+/// A mapping function that converts Ethereum gas to Substrate weight
+/// We are mocking this 1-1 to test db read charges too
+pub struct MockGasWeightMapping;
+impl GasWeightMapping for MockGasWeightMapping {
+	fn gas_to_weight(gas: u64) -> Weight {
+		return gas;
+	}
+	fn weight_to_gas(weight: Weight) -> u64 {
+		return weight;
+	}
+}
+
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = MockGasWeightMapping;
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
 	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
 	type AddressMapping = TestAccount;

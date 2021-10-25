@@ -121,7 +121,7 @@ fn take_index_for_account() {
 				output: EvmDataWriter::new()
 					.write(Address(H160::from(Alice)))
 					.build(),
-				cost: Default::default(),
+				cost: 1,
 				logs: Default::default(),
 			}));
 
@@ -225,7 +225,7 @@ fn test_transactor() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 4004000,
+					cost: 4004001,
 					output: vec![],
 					logs: vec![]
 				}))
