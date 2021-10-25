@@ -87,7 +87,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonbase_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbase_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbase_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonbase_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbase_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
@@ -224,7 +224,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Scheduler>(13);
 	is_pallet_index::<moonbase_runtime::Democracy>(14);
 	is_pallet_index::<moonbase_runtime::CouncilCollective>(15);
-	is_pallet_index::<moonbase_runtime::TechComitteeCollective>(16);
+	is_pallet_index::<moonbase_runtime::TechCommitteeCollective>(16);
 	is_pallet_index::<moonbase_runtime::Treasury>(17);
 	is_pallet_index::<moonbase_runtime::AuthorInherent>(18);
 	is_pallet_index::<moonbase_runtime::AuthorFilter>(19);

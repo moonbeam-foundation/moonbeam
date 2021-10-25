@@ -87,15 +87,18 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     expect(receipt.status).to.equal(true);
 
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length
-    ).to.equal(2, "new candidate should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner
-    ).to.equal(ETHAN, "new candidate ethan should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("1.0000 kUNIT", "new candidate ethan should have been added (wrong amount)");
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[]).length).to.equal(
+      2,
+      "new candidate should have been added"
+    );
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].owner).to.equal(
+      ETHAN.toLowerCase(),
+      "new candidate ethan should have been added"
+    );
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "0x000000000000003635c9adc5dea00000",
+      "new candidate ethan should have been added (wrong amount)"
+    );
 
     expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
   });
@@ -111,6 +114,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
+
   it("should succesfully call candidateBondMore on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -122,10 +126,12 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING))]
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("2.0000 kUNIT", "bond should have increased");
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "0x000000000000006c6b935b8bbd400000",
+      "bond should have increased"
+    );
   });
+
   it("should succesfully call candidateBondMore on ALITH", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -140,9 +146,10 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.status).to.equal(true);
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[0].amount
-    ).to.equal("2.0000 kUNIT", "bond should have increased");
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[0].amount).to.equal(
+      "0x000000000000006c6b935b8bbd400000",
+      "bond should have increased"
+    );
   });
 });
 
@@ -156,6 +163,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
+
   it("should succesfully call candidateBondLess on ETHAN", async function () {
     await sendPrecompileTx(
       context,
@@ -167,9 +175,10 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING))]
     );
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount
-    ).to.equal("1.0000 kUNIT", "bond should have decreased");
+    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].amount).to.equal(
+      "0x000000000000003635c9adc5dea00000",
+      "bond should have decreased"
+    );
   });
 });
 
@@ -182,19 +191,23 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       "0x0",
     ]);
   });
+
   it("should succesfully call nominate on ALITH", async function () {
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
+    const nominatorsAfter = (
+      (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
+    ).unwrap();
     expect(
       (
-        nominatorsAfter.toHuman() as {
+        nominatorsAfter.toJSON() as {
           nominations: { owner: string; amount: string }[];
         }
       ).nominations[0].owner
-    ).to.equal(ALITH, "nomination didnt go through");
-    expect(nominatorsAfter.toHuman()["status"]).equal("Active");
+    ).to.equal(ALITH.toLowerCase(), "nomination didnt go through");
+    expect(nominatorsAfter.status.toString()).equal("Active");
 
     expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
   });
+
   it("should succesfully revoke nomination on ALITH", async function () {
     await sendPrecompileTx(
       context,

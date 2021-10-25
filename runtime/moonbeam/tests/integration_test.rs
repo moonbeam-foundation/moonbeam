@@ -79,7 +79,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbeam_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbeam_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbeam_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
@@ -229,7 +229,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
 	// Council
 	is_pallet_index::<moonbeam_runtime::CouncilCollective>(70);
-	is_pallet_index::<moonbeam_runtime::TechComitteeCollective>(71);
+	is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71);
 	// Treasury
 	is_pallet_index::<moonbeam_runtime::Treasury>(80);
 	// Crowdloan

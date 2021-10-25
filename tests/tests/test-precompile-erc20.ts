@@ -112,8 +112,6 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
     const amount = await context.polkadotApi.query.balances.totalIssuance();
     const amount_hex = "0x" + amount.toHex().slice(2).padStart(64, "0");
 
-    console.log({ tx_call });
-
     expect(tx_call.result).equals(amount_hex);
   });
 });
@@ -188,8 +186,6 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
       });
 
       const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-
-      console.log({ receipt });
 
       expect(receipt.logs.length).to.eq(1);
       expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);

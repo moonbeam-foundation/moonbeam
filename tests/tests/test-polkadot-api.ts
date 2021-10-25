@@ -110,7 +110,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(context.polkadotApi.events.balances.Transfer.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.system.NewAccount.is(events[3])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[4])).to.be.true;
-          expect(context.polkadotApi.events.techComitteeCollective.Proposed.is(events[5])).to.be;
+          expect(context.polkadotApi.events.techCommitteeCollective.Proposed.is(events[5])).to.be;
           expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[6])).to.be.true;
           break;
         default:

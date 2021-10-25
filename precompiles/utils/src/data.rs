@@ -70,6 +70,12 @@ impl From<&str> for Bytes {
 	}
 }
 
+impl Into<Vec<u8>> for Bytes {
+	fn into(self: Self) -> Vec<u8> {
+		self.0
+	}
+}
+
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]

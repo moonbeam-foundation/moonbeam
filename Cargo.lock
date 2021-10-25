@@ -6338,7 +6338,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-democracy-precompiles"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "derive_more",
  "evm",
@@ -9486,8 +9486,10 @@ name = "runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "frame-support",
+ "frame-system",
  "log",
  "pallet-author-mapping",
+ "pallet-collective",
  "pallet-migrations",
  "sp-runtime",
  "sp-std",
