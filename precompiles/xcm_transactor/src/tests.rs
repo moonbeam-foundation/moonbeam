@@ -141,6 +141,15 @@ fn test_transactor_multilocation() {
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
 			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
 
@@ -184,6 +193,15 @@ fn test_transactor() {
 		.execute_with(|| {
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
 

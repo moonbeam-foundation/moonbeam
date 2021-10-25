@@ -61,7 +61,7 @@ pub mod pallet {
 	use xcm::latest::prelude::*;
 
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
-	use xcm_primitives::{TransactInfo, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -87,9 +87,6 @@ pub mod pallet {
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
-
-		// XcmTransactorInfo
-		type XcmTransactorInfo: TransactInfo<MultiLocation>;
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
@@ -124,11 +121,29 @@ pub mod pallet {
 		type BaseXcmWeight: Get<Weight>;
 	}
 
+	/// Stores the information to be able to issue a transact operation in another chain use an
+	/// asset as fee payer.
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	pub struct RemoteTransactInfo {
+		/// Extra weight that transacting a call in a destination chain adds
+		pub transact_extra_weight: Weight,
+		/// Upper bound of units per second that  the destination chain is going to charge for execution
+		pub destination_units_per_second: u128,
+	}
+
 	// Stores the index to account mapping. These indices are usable as derivative
 	// in the relay chain
 	#[pallet::storage]
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
+
+	// Stores the transact info of a MULTIlOCAITON. This defines how much extra weight we need to
+	// add when we want to transact in the destination chain and how we convert weight to units
+	// in the destination chain
+	#[pallet::storage]
+	#[pallet::getter(fn transact_info)]
+	pub type TransactInfo<T: Config> =
+		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfo>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -157,6 +172,7 @@ pub mod pallet {
 		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
+		TransactInfoChanged(MultiLocation, RemoteTransactInfo),
 	}
 
 	#[pallet::call]
@@ -310,6 +326,27 @@ pub mod pallet {
 
 			Ok(())
 		}
+
+		/// Change the transact info of a location
+		#[pallet::weight(0)]
+		pub fn set_transact_info(
+			origin: OriginFor<T>,
+			location: MultiLocation,
+			transact_extra_weight: Weight,
+			destination_units_per_second: u128,
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+
+			let remote_info = RemoteTransactInfo {
+				transact_extra_weight,
+				destination_units_per_second,
+			};
+
+			TransactInfo::<T>::insert(&location, &remote_info);
+
+			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
+			Ok(())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -321,8 +358,8 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
-			let transactor_info = T::XcmTransactorInfo::transactor_info(fee_location.clone())
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+			let transactor_info =
+				TransactInfo::<T>::get(&fee_location).ok_or(Error::<T>::TransactorInfoNotSet)?;
 
 			// Calculate the total weight that we the xcm message is going to spend in the
 			// destination chain

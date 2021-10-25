@@ -405,7 +405,6 @@ impl xcm_transactor::Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
-	type XcmTransactorInfo = XcmTransactorInfo;
 }
 
 // We need to use the encoding from the relay mock runtime
@@ -457,31 +456,6 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 					call
 				}
 			},
-		}
-	}
-}
-
-pub struct XcmTransactorInfo;
-
-impl xcm_primitives::TransactInfo<MultiLocation> for XcmTransactorInfo {
-	fn transactor_info(location: MultiLocation) -> Option<xcm_primitives::RemoteTransactInfo> {
-		if location == MultiLocation::parent() {
-			Some({
-				xcm_primitives::RemoteTransactInfo {
-					transact_extra_weight: 0,
-					// 1-1 to weight
-					destination_units_per_second: 1_000_000_000_000,
-				}
-			})
-		} else if location == MultiLocation::new(1, Junctions::X1(Parachain(1000))) {
-			Some({
-				xcm_primitives::RemoteTransactInfo {
-					transact_extra_weight: 0,
-					destination_units_per_second: 1_000_000_000_000,
-				}
-			})
-		} else {
-			None
 		}
 	}
 }

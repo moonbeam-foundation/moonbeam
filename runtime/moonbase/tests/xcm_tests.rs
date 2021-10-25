@@ -23,11 +23,10 @@ use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
-use xcm::v1::{
-	AssetId as XcmAssetId, Fungibility,
+use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
-	MultiAsset, MultiLocation, NetworkId,
+	MultiLocation, NetworkId,
 };
 use xcm_simulator::TestExt;
 
@@ -657,9 +656,10 @@ fn transact_through_derivative_multilocation() {
 			1u128
 		));
 
-		assert_ok!(AssetManager::set_asset_transact_info(
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			source_id,
+			MultiLocation::parent(),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
 			// This means we need around 3 tokens + whatever we put as weight for the
@@ -798,13 +798,12 @@ fn transact_through_sovereign() {
 			1u128
 		));
 
-		assert_ok!(AssetManager::set_asset_transact_info(
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			source_id,
-			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			MultiLocation::parent(),
 			3000,
-			// This means we need around 3 tokens + whatever we put as weight for the
-			// transact call
+			// 1-1 with weight
 			1_000_000_000u128
 		));
 	});

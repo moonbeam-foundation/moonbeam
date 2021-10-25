@@ -45,7 +45,6 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
-	use xcm_primitives::RemoteTransactInfo;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -73,12 +72,6 @@ pub mod pallet {
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetId> for Pallet<T> {
 		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
 			AssetIdUnitsPerSecond::<T>::get(asset_id)
-		}
-	}
-
-	impl<T: Config> xcm_primitives::TransactInfo<T::AssetId> for Pallet<T> {
-		fn transactor_info(asset_id: T::AssetId) -> Option<RemoteTransactInfo> {
-			AssetTransactInfo::<T>::get(asset_id)
 		}
 	}
 
@@ -118,7 +111,6 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
-		TransactInfoChanged(T::AssetId, RemoteTransactInfo),
 	}
 
 	/// Stores the asset TYPE
@@ -131,14 +123,6 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_units_per_second)]
 	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
-
-	// Stores the transact info of an assetId. This defines how much extra weight we need to
-	// add when we want to transact in the destination chain and how we convert weight to units
-	// in the destination chain
-	#[pallet::storage]
-	#[pallet::getter(fn asset_transact_info)]
-	pub type AssetTransactInfo<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, RemoteTransactInfo>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -183,31 +167,6 @@ pub mod pallet {
 			AssetIdUnitsPerSecond::<T>::insert(&asset_id, &units_per_second);
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
-			Ok(())
-		}
-
-		/// Change the transact info of an AssetId
-		#[pallet::weight(0)]
-		pub fn set_asset_transact_info(
-			origin: OriginFor<T>,
-			asset_id: T::AssetId,
-			transact_extra_weight: Weight,
-			destination_units_per_second: u128,
-		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
-
-			let remote_info = RemoteTransactInfo {
-				transact_extra_weight,
-				destination_units_per_second,
-			};
-			ensure!(
-				AssetIdType::<T>::get(&asset_id).is_some(),
-				Error::<T>::AssetDoesNotExist
-			);
-
-			AssetTransactInfo::<T>::insert(&asset_id, &remote_info);
-
-			Self::deposit_event(Event::TransactInfoChanged(asset_id, remote_info));
 			Ok(())
 		}
 	}

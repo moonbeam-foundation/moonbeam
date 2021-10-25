@@ -64,6 +64,15 @@ fn test_transact_through_derivative_errors() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::new(1, Junctions::X1(Junction::Parachain(1000))),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
 			// Not using the same fee asset as the destination chain, so error
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
@@ -101,6 +110,15 @@ fn test_transact_through_derivative_multilocation_success() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative_multilocation(
 				Origin::signed(1u64),
@@ -112,6 +130,13 @@ fn test_transact_through_derivative_multilocation_success() {
 			));
 			let expected = vec![
 				crate::Event::RegisterdDerivative(1u64, 1),
+				crate::Event::TransactInfoChanged(
+					MultiLocation::parent(),
+					RemoteTransactInfo {
+						transact_extra_weight: 0,
+						destination_units_per_second: 1000000000000,
+					},
+				),
 				crate::Event::TransactedDerivative(
 					1u64,
 					MultiLocation::parent(),
@@ -133,6 +158,15 @@ fn test_transact_through_derivative_success() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
 				Origin::signed(1u64),
@@ -144,6 +178,13 @@ fn test_transact_through_derivative_success() {
 			));
 			let expected = vec![
 				crate::Event::RegisterdDerivative(1u64, 1),
+				crate::Event::TransactInfoChanged(
+					MultiLocation::parent(),
+					RemoteTransactInfo {
+						transact_extra_weight: 0,
+						destination_units_per_second: 1000000000000,
+					},
+				),
 				crate::Event::TransactedDerivative(
 					1u64,
 					MultiLocation::parent(),
@@ -175,6 +216,15 @@ fn test_root_can_transact_through_sovereign() {
 				DispatchError::BadOrigin
 			);
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
 				Origin::root(),
@@ -185,11 +235,16 @@ fn test_root_can_transact_through_sovereign() {
 				vec![1u8]
 			));
 
-			let expected = vec![crate::Event::TransactedSovereign(
-				1u64,
-				MultiLocation::parent(),
-				vec![1u8],
-			)];
+			let expected = vec![
+				crate::Event::TransactInfoChanged(
+					MultiLocation::parent(),
+					RemoteTransactInfo {
+						transact_extra_weight: 0,
+						destination_units_per_second: 1000000000000,
+					},
+				),
+				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),
+			];
 			assert_eq!(events(), expected);
 		})
 }

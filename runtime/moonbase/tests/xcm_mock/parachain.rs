@@ -570,8 +570,6 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
-	type XcmTransactorInfo =
-		xcm_primitives::MultiLocationTransactInfoGetter<AssetId, AssetType, AssetManager>;
 }
 
 // We need to use the encoding from the relay mock runtime

@@ -36,9 +36,7 @@ use xcm::latest::{
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
-use xcm_primitives::{
-	RemoteTransactInfo, TransactInfo, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 
@@ -288,31 +286,6 @@ impl UtilityEncodeCall for Transactors {
 	}
 }
 
-pub struct XcmTransactorInfo;
-
-impl TransactInfo<MultiLocation> for XcmTransactorInfo {
-	fn transactor_info(location: MultiLocation) -> Option<RemoteTransactInfo> {
-		if location == MultiLocation::parent() {
-			Some({
-				RemoteTransactInfo {
-					transact_extra_weight: 0,
-					// 1-1 to weight
-					destination_units_per_second: 1_000_000_000_000,
-				}
-			})
-		} else if location == MultiLocation::new(1, Junctions::X1(Parachain(1000))) {
-			Some({
-				RemoteTransactInfo {
-					transact_extra_weight: 0,
-					destination_units_per_second: 1_000_000_000_000,
-				}
-			})
-		} else {
-			None
-		}
-	}
-}
-
 pub type AssetId = u128;
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
@@ -356,7 +329,6 @@ impl Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
-	type XcmTransactorInfo = XcmTransactorInfo;
 }
 
 pub(crate) struct ExtBuilder {
