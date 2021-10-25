@@ -28,8 +28,9 @@ use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
+use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{
-	Configuration, NativeExecutionDispatch, TFullBackend, TFullClient, TaskManager, TransactionPool,
+	Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool,
 };
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
@@ -46,7 +47,8 @@ use serde::Serialize;
 use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
 
-pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+pub type FullClient<RuntimeApi, Executor> =
+	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 pub type FullBackend = TFullBackend<Block>;
 
 pub struct TestContext<RuntimeApi, Executor>
@@ -58,7 +60,7 @@ where
 	Executor: NativeExecutionDispatch + 'static,
 {
 	_task_manager: TaskManager,
-	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
+	client: Arc<FullClient<RuntimeApi, Executor>>,
 	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
 

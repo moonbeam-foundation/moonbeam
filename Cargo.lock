@@ -3215,7 +3215,7 @@ version = "0.1.0-rc.1"
 source = "git+https://github.com/heim-rs/heim?rev=c111eb440eba8698ee0722377f9773ac7dbf6841#c111eb440eba8698ee0722377f9773ac7dbf6841"
 dependencies = [
  "cfg-if 1.0.0",
- "core-foundation 0.9.1",
+ "core-foundation",
  "futures-core",
  "futures-util",
  "lazy_static",
@@ -3233,7 +3233,7 @@ version = "0.1.0-rc.1"
 source = "git+https://github.com/heim-rs/heim?rev=c111eb440eba8698ee0722377f9773ac7dbf6841#c111eb440eba8698ee0722377f9773ac7dbf6841"
 dependencies = [
  "cfg-if 1.0.0",
- "futures 0.3.16",
+ "futures 0.3.17",
  "glob",
  "heim-common",
  "heim-runtime",
@@ -3264,7 +3264,7 @@ name = "heim-runtime"
 version = "0.1.0-rc.1"
 source = "git+https://github.com/heim-rs/heim?rev=c111eb440eba8698ee0722377f9773ac7dbf6841#c111eb440eba8698ee0722377f9773ac7dbf6841"
 dependencies = [
- "futures 0.3.16",
+ "futures 0.3.17",
  "futures-timer 3.0.2",
  "once_cell",
  "smol",
@@ -5979,6 +5979,17 @@ dependencies = [
 
 [[package]]
 name = "num-rational"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
+dependencies = [
+ "autocfg 1.0.1",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
@@ -7608,7 +7619,7 @@ dependencies = [
  "fc-consensus",
  "fp-evm",
  "fp-rpc",
- "futures 0.3.16",
+ "futures 0.3.17",
  "heim",
  "heim-common",
  "heim-cpu",
@@ -11226,12 +11237,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
 
 [[package]]
-name = "snap"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45456094d1983e2ee2a18fdfebce3189fa451699d0502cb8e3b49dba5ba41451"
-
-[[package]]
 name = "smol"
 version = "1.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11248,6 +11253,12 @@ dependencies = [
  "futures-lite",
  "once_cell",
 ]
+
+[[package]]
+name = "snap"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45456094d1983e2ee2a18fdfebce3189fa451699d0502cb8e3b49dba5ba41451"
 
 [[package]]
 name = "snow"
