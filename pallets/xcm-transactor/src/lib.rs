@@ -288,7 +288,6 @@ pub mod pallet {
 			// Grab the destination
 			let dest = dest.clone().destination();
 
-			// Grab the destination
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
 				who.clone(),
@@ -368,7 +367,7 @@ pub mod pallet {
 			let transactor_info =
 				TransactInfo::<T>::get(&fee_location).ok_or(Error::<T>::TransactorInfoNotSet)?;
 
-			// Calculate the total weight that we the xcm message is going to spend in the
+			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
@@ -421,7 +420,7 @@ pub mod pallet {
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
-			// WithdrawAsset: Withdraws "amount" from the sovereign account. This tokens will be
+			// WithdrawAsset: Withdraws "amount" from the sovereign account. These tokens will be
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
@@ -490,7 +489,7 @@ pub mod pallet {
 			Ok(WithdrawAsset(fees.into()))
 		}
 
-		/// Ensure has the `dest` has chain part and none recipient part.
+		/// Ensure `dest` has chain part and none recipient part.
 		fn ensure_valid_dest(dest: &MultiLocation) -> Result<MultiLocation, DispatchError> {
 			if let (Some(dest), None) = (dest.chain_part(), dest.non_chain_part()) {
 				Ok(dest)
