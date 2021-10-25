@@ -52,8 +52,8 @@ pub struct MemoryInfo {
 pub struct CPUInfo {
 	pub cpu_vendor: String,
 	pub cpu_model: String,
-	pub cpu_max_speed_mhz: u64,
 	pub cpu_base_speed_mhz: u64,
+	pub cpu_min_speed_mhz: u64,
 	pub num_physical_cores: u64,
 	pub num_threads: u64, // TODO: be more technically correct?
 }
@@ -71,13 +71,30 @@ pub struct PartitionInfo {
 pub fn query_system_info() -> Result<SystemInfo, String> {
 	use raw_cpuid::CpuId;
 
-	let memory_info =
-		futures::executor::block_on(heim_memory::memory()).expect("Memory must exist; qed");
+	let memory_info = futures::executor::block_on(heim_memory::memory());
+	let (mem_total, mem_available) = if let Ok(memory_info) = memory_info {
+		let total = memory_info.total().get::<information::megabyte>();
+		let available = memory_info.available().get::<information::megabyte>();
+		(total, available)
+	} else {
+		// don't fail the test if the system doesn't report memory info for whatever reason
+		(0u64, 0u64)
+	};
 
 	let host_info = host::info();
 
-	// TODO: block on multiple futures
-	let cpu_freq = futures::executor::block_on(heim_cpu::frequency()).expect("CPU must exist; qed");
+	// TODO: getting info on the boost freq(s) would be very useful
+	let cpu_freq = futures::executor::block_on(heim_cpu::frequency());
+	let (cpu_min, cpu_max) = if let Ok(cpu_freq) = cpu_freq {
+		let min = cpu_freq.min().map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
+		let max = cpu_freq.max().map_or_else(|| 0u64, |freq| freq.get::<frequency::megahertz>());
+		(min, max)
+	} else {
+		// don't fail the test if the system doesn't report cpu info for whatever reason. this
+		// appears to be the case in some virtualization environments.
+		// TODO: see if we can work around this
+		(0u64, 0u64)
+	};
 
 	let cpu_logical_cores = num_cpus::get() as u64;
 	let cpu_physical_cores = num_cpus::get_physical() as u64;
@@ -94,20 +111,14 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 				.get_processor_brand_string()
 				.map_or_else(|| String::from("n/a"), |s| s.as_str().into())
 				.into(),
-			cpu_max_speed_mhz: cpu_freq
-				.max()
-				.expect("could not get CPU max")
-				.get::<frequency::megahertz>(),
-			cpu_base_speed_mhz: cpu_freq
-				.min() // TODO: we want base, not min
-				.expect("could not get CPU min")
-				.get::<frequency::megahertz>(),
+			cpu_base_speed_mhz: cpu_max,
+			cpu_min_speed_mhz: cpu_min,
 			num_physical_cores: cpu_physical_cores,
 			num_threads: cpu_logical_cores,
 		},
 		mem_info: MemoryInfo {
-			total_memory_mb: memory_info.total().get::<information::megabyte>(),
-			available_memory_mb: memory_info.available().get::<information::megabyte>(),
+			total_memory_mb: mem_total,
+			available_memory_mb: mem_available,
 		},
 		kernel_version: host_info.release().into(),
 		distro_name: host_info.version().into(),
