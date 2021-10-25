@@ -20,13 +20,67 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160, H256};
 
 #[cfg(feature = "std")]
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+//TODO Maybe this should be upstreamed into Frontier (And renamed accordingly) so that it can
+// be used in palletEVM as well.
+
+/// The account type to be used in Moonbeam. It is a wrapper for 20 fixed bytes. We prefer to use
+/// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
+/// the introduction of the `scale-info` crate this benefit extends even to non-Rust tools like
+/// Polkadot JS.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Eq,
+	PartialEq,
+	Clone,
+	Encode,
+	Decode,
+	sp_core::RuntimeDebug,
+	TypeInfo,
+	MaxEncodedLen,
+	Default,
+	PartialOrd,
+	Ord,
+)]
+pub struct MoonbeamAccount(pub [u8; 20]);
+
+#[cfg(feature = "std")]
+impl std::fmt::Display for MoonbeamAccount {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:?}", self.0)
+	}
+}
+
+impl From<[u8; 20]> for MoonbeamAccount {
+	fn from(bytes: [u8; 20]) -> Self {
+		Self(bytes)
+	}
+}
+
+impl Into<[u8; 20]> for MoonbeamAccount {
+	fn into(self: Self) -> [u8; 20] {
+		self.0
+	}
+}
+
+impl From<H160> for MoonbeamAccount {
+	fn from(h160: H160) -> Self {
+		Self(h160.0)
+	}
+}
+
+impl Into<H160> for MoonbeamAccount {
+	fn into(self: Self) -> H160 {
+		H160(self.0)
+	}
+}
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo)]
@@ -40,13 +94,20 @@ impl From<ecdsa::Signature> for EthereumSignature {
 
 impl sp_runtime::traits::Verify for EthereumSignature {
 	type Signer = EthereumSigner;
-	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &H160) -> bool {
+	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
+		&self,
+		mut msg: L,
+		signer: &MoonbeamAccount,
+	) -> bool {
 		let mut m = [0u8; 32];
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
 				// TODO This conversion could use a comment. Why H256 first, then H160?
-				H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) == *signer
+				// TODO actually, there is probably just a better way to go from Keccak digest.
+				MoonbeamAccount(
+					H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())).0,
+				) == *signer
 			}
 			Err(sp_io::EcdsaVerifyError::BadRS) => {
 				log::error!(target: "evm", "Error recovering: Incorrect value of R or S");
@@ -64,15 +125,15 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 	}
 }
 
-/// Public key for an Ethereum / H160 compatible account
+/// Public key for an Ethereum / Moonbeam compatible account
 #[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner([u8; 20]);
 
 impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
-	type AccountId = H160;
-	fn into_account(self) -> H160 {
-		self.0.into()
+	type AccountId = MoonbeamAccount;
+	fn into_account(self) -> MoonbeamAccount {
+		MoonbeamAccount(self.0)
 	}
 }
 

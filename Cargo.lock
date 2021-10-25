@@ -9485,7 +9485,9 @@ dependencies = [
  "log",
  "pallet-author-mapping",
  "pallet-collective",
+ "pallet-evm",
  "pallet-migrations",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]
