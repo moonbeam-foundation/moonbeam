@@ -166,7 +166,8 @@ pub mod pallet {
 		DestinationNotInvertible,
 		ErrorSending,
 		DispatchWeightBiggerThanTotalWeight,
-		Overflow,
+		WeightOverflow,
+		AmountOverflow,
 		TransactorInfoNotSet,
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
@@ -372,14 +373,14 @@ pub mod pallet {
 			// destination chain
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
-				.ok_or(Error::<T>::Overflow)?;
+				.ok_or(Error::<T>::WeightOverflow)?;
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
 			let amount = transactor_info
 				.destination_units_per_second
 				.checked_mul(total_weight as u128)
-				.ok_or(Error::<T>::Overflow)?
+				.ok_or(Error::<T>::AmountOverflow)?
 				/ (WEIGHT_PER_SECOND as u128);
 
 			// Construct MultiAsset
@@ -428,9 +429,7 @@ pub mod pallet {
 			let transact_message: Xcm<()> = Self::transact_message(
 				dest.clone(),
 				fee.clone(),
-				dest_weight
-					.checked_add(transactor_info.transact_extra_weight)
-					.ok_or(Error::<T>::Overflow)?,
+				total_weight,
 				call.clone(),
 				dest_weight,
 			)?;
