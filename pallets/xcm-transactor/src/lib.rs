@@ -38,8 +38,7 @@
 //! account itself.
 //!
 //! Index registration happens through DerivativeAddressRegistrationOrigin.
-//! the inner call is executed from the derivative account and not the sovereign
-//! account itself. This derivative account can be funded by external users to
+//! This derivative account can be funded by external users to
 //! ensure it has enough funds to make the calls
 
 #![cfg_attr(not(feature = "std"), no_std)]
