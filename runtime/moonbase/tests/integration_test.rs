@@ -1373,7 +1373,7 @@ fn xtokens_precompiles_transfer() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 84000,
+					cost: 12000,
 					output: vec![],
 					logs: vec![]
 				}))
@@ -1432,7 +1432,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 84000,
+					cost: 12000,
 					output: vec![],
 					logs: vec![]
 				}))
