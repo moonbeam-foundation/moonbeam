@@ -18,7 +18,7 @@
 //!
 //! ## Overview
 //!
-//! Module to provide transact capabilitise in other chains
+//! Module to provide transact capabilities on other chains
 //!
 //! In this pallet we will make distinctions between sovereign
 //! and derivative accounts. The first is the account the parachain controls
