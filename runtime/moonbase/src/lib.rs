@@ -1003,6 +1003,7 @@ parameter_types! {
 	/// We should increase this to a value close to what polkadot charges
 	/// We are charging less to make it work with current reserve_transfer_assets issue
 	/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000
+	/// https://github.com/paritytech/polkadot/pull/4144
 	pub UnitWeightCost: Weight = 100_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
