@@ -1102,14 +1102,38 @@ mod tests {
 	fn currency_constants_are_correct() {
 		assert_eq!(MOONRIVER_FACTOR, 100);
 
+		// txn fees
 		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(1 * MILLIGLMR));
+		assert_eq!(OperationalFeeMultiplier::get(), 5_u8);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(10 * MILLIGLMR));
 		assert_eq!(FixedGasPrice::min_gas_price(), (100 * GIGAWEI).into());
+
+		// democracy minimums
 		assert_eq!(MinimumDeposit::get(), Balance::from(400 * GLMR));
+		assert_eq!(PreimageByteDeposit::get(), Balance::from(10 * MILLIGLMR));
 		assert_eq!(ProposalBondMinimum::get(), Balance::from(100 * GLMR));
 
+		// pallet_identity deposits
+		assert_eq!(BasicDeposit::get(), Balance::from(100 * GLMR + 2580 * MILLIGLMR));
+		assert_eq!(FieldDeposit::get(), Balance::from(660 * MILLIGLMR));
+		assert_eq!(SubAccountDeposit::get(), Balance::from(100 * GLMR + 530 * MILLIGLMR));
+
+		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinNominatorStk::get(), Balance::from(500 * GLMR));
+
+		// crowdloan min reward
+		assert_eq!(MinimumReward::get(), Balance::from(0u128));
+
+		// deposit for AuthorMapping
+		assert_eq!(DepositAmount::get(), Balance::from(10 * KILOGLMR));
+
+		// proxy deposits
+		assert_eq!(ProxyDepositBase::get(), Balance::from(100 * GLMR + 80 * MILLIGLMR));
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
+		assert_eq!(AnnouncementDepositBase::get(), Balance::from(100 * GLMR + 80 * MILLIGLMR));
+		assert_eq!(AnnouncementDepositFactor::get(), Balance::from(560 * MILLIGLMR));
+
 	}
 }
