@@ -945,6 +945,10 @@
 <span id="945">945</span>
 <span id="946">946</span>
 <span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -980,8 +984,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonriver_runtime</span>;
 <span class="kw">use</span> <span class="ident">sc_service::BasePath</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeMap</span>, <span class="ident">sync::Mutex</span>, <span class="ident">time::Duration</span>};
-<span class="kw">mod</span> <span class="ident">rpc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+	<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>},
+	<span class="ident">sync::Mutex</span>,
+	<span class="ident">time::Duration</span>,
+};
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">rpc</span>;
 <span class="kw">use</span> <span class="ident">cumulus_client_network::build_block_announce_validator</span>;
 <span class="kw">use</span> <span class="ident">cumulus_client_service</span>::{
 	<span class="ident">prepare_node_config</span>, <span class="ident">start_collator</span>, <span class="ident">start_full_node</span>, <span class="ident">StartCollatorParams</span>, <span class="ident">StartFullNodeParams</span>,

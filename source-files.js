@@ -34,6 +34,7 @@ sourcesIndex["pallet_maintenance_mode"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_migrations"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs","weights.rs"]};
 sourcesIndex["parachain_staking_precompiles"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["perf_test"] = {"name":"","dirs":[{"name":"tests","files":["block_creation.rs","fibonacci.rs","mod.rs","storage.rs"]}],"files":["command.rs","lib.rs","sysinfo.rs","txn_signer.rs"]};
 sourcesIndex["precompile_utils"] = {"name":"","files":["data.rs","lib.rs"]};
 sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["relay_encoder_precompiles"] = {"name":"","files":["lib.rs"]};

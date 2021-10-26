@@ -264,6 +264,10 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -286,6 +290,7 @@
 <span class="doccomment">//! It is built using structopt and inherits behavior from Substrate&#39;s sc_cli crate.</span>
 
 <span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">account_key::GenerateAccountKey</span>, <span class="ident">EthApi</span>, <span class="ident">Sealing</span>};
+<span class="kw">use</span> <span class="ident">perf_test::PerfCmd</span>;
 <span class="kw">use</span> <span class="ident">sc_cli</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CliError</span>, <span class="ident">SubstrateCli</span>};
 <span class="kw">use</span> <span class="ident">service::chain_spec</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
@@ -322,6 +327,9 @@
 
 	<span class="doccomment">/// Revert the chain to a previous state.</span>
 	<span class="ident">Revert</span>(<span class="ident">sc_cli::RevertCmd</span>),
+
+	<span class="doccomment">/// Run hardware performance tests.</span>
+	<span class="ident">PerfTest</span>(<span class="ident">PerfCmd</span>),
 
 	<span class="doccomment">/// The custom benchmark subcommmand benchmarking runtime pallets.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;benchmark&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;Benchmark runtime pallets.&quot;</span>)]</span>
