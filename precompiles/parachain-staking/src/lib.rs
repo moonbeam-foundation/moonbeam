@@ -381,13 +381,15 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_candidate_count = input.read()?;
+		let bond: BalanceOf<Runtime> = input.read()?;
+		let candidate_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			parachain_staking::Call::<Runtime>::join_candidates(amount, collator_candidate_count);
+		let call = parachain_staking::Call::<Runtime>::join_candidates {
+			bond,
+			candidate_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -405,12 +407,13 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let collator_candidate_count = input.read()?;
+		let candidate_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			parachain_staking::Call::<Runtime>::schedule_leave_candidates(collator_candidate_count);
+		let call = parachain_staking::Call::<Runtime>::schedule_leave_candidates {
+			collator_candidate_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -427,7 +430,7 @@ where
 	> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_offline();
+		let call = parachain_staking::Call::<Runtime>::go_offline {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -444,7 +447,7 @@ where
 	> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_online();
+		let call = parachain_staking::Call::<Runtime>::go_online {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -462,11 +465,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_more(amount);
+		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -484,11 +487,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_less(amount);
+		let call = parachain_staking::Call::<Runtime>::candidate_bond_less { less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -508,17 +511,17 @@ where
 		input.expect_arguments(4)?;
 		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_nomination_count = input.read()?;
-		let nominator_nomination_count = input.read()?;
+		let collator_nominator_count = input.read()?;
+		let nomination_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegate(
+		let call = parachain_staking::Call::<Runtime>::delegate {
 			collator,
 			amount,
-			collator_nomination_count,
-			nominator_nomination_count,
-		);
+			collator_nominator_count,
+			nomination_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -540,7 +543,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_delegators(nomination_count);
+		let call = parachain_staking::Call::<Runtime>::leave_delegators { nomination_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -563,7 +566,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::revoke_delegation(collator);
+		let call = parachain_staking::Call::<Runtime>::revoke_delegation { collator };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -581,12 +584,12 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_more(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { collator, amount };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -604,12 +607,12 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_less(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_less { collator, less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))

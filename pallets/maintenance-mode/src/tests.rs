@@ -23,7 +23,7 @@ use sp_runtime::DispatchError;
 #[test]
 fn can_remark_during_normal_operation() {
 	ExtBuilder::default().build().execute_with(|| {
-		let call: OuterCall = frame_system::Call::remark(vec![]).into();
+		let call: OuterCall = frame_system::Call::remark { remark: vec![] }.into();
 		assert_ok!(call.dispatch(Origin::signed(1)));
 	})
 }
@@ -34,7 +34,7 @@ fn cannot_remark_during_maintenance_mode() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: OuterCall = frame_system::Call::remark(vec![]).into();
+			let call: OuterCall = frame_system::Call::remark { remark: vec![] }.into();
 			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
 		})
 }
@@ -42,7 +42,7 @@ fn cannot_remark_during_maintenance_mode() {
 #[test]
 fn can_enter_maintenance_mode() {
 	ExtBuilder::default().build().execute_with(|| {
-		let call: OuterCall = Call::enter_maintenance_mode().into();
+		let call: OuterCall = Call::enter_maintenance_mode {}.into();
 		assert_ok!(call.dispatch(Origin::root()));
 
 		assert_eq!(events(), vec![Event::EnteredMaintenanceMode,]);
@@ -55,7 +55,7 @@ fn cannot_enter_maintenance_mode_from_wrong_origin() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: OuterCall = Call::enter_maintenance_mode().into();
+			let call: OuterCall = Call::enter_maintenance_mode {}.into();
 			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
 		})
 }
@@ -66,7 +66,7 @@ fn cannot_enter_maintenance_mode_when_already_in_it() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: OuterCall = Call::enter_maintenance_mode().into();
+			let call: OuterCall = Call::enter_maintenance_mode {}.into();
 			assert_noop!(
 				call.dispatch(Origin::root()),
 				Error::<Test>::AlreadyInMaintenanceMode
@@ -80,7 +80,7 @@ fn can_resume_normal_operation() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: OuterCall = Call::resume_normal_operation().into();
+			let call: OuterCall = Call::resume_normal_operation {}.into();
 			assert_ok!(call.dispatch(Origin::root()));
 
 			assert_eq!(events(), vec![Event::NormalOperationResumed,]);
@@ -93,7 +93,7 @@ fn cannot_resume_normal_operation_from_wrong_origin() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			let call: OuterCall = Call::resume_normal_operation().into();
+			let call: OuterCall = Call::resume_normal_operation {}.into();
 			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
 		})
 }
@@ -101,7 +101,7 @@ fn cannot_resume_normal_operation_from_wrong_origin() {
 #[test]
 fn cannot_resume_normal_operation_while_already_operating_normally() {
 	ExtBuilder::default().build().execute_with(|| {
-		let call: OuterCall = Call::resume_normal_operation().into();
+		let call: OuterCall = Call::resume_normal_operation {}.into();
 		assert_noop!(
 			call.dispatch(Origin::root()),
 			Error::<Test>::NotInMaintenanceMode

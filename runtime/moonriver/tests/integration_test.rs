@@ -77,7 +77,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonriver_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonriver_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonriver_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonriver_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
@@ -215,7 +215,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Democracy>(61);
 	// Council
 	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
-	is_pallet_index::<moonriver_runtime::TechComitteeCollective>(71);
+	is_pallet_index::<moonriver_runtime::TechCommitteeCollective>(71);
 	// Treasury
 	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
@@ -326,15 +326,15 @@ fn transfer_through_evm_to_stake() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(BOB),
-				AccountId::from(CHARLIE),
-				Vec::new(),
-				(1_000 * MOVR).into(),
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(BOB),
+				target: AccountId::from(CHARLIE),
+				input: vec![],
+				value: (1_000 * MOVR).into(),
 				gas_limit,
 				gas_price,
-				None
-			))
+				nonce: None
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
@@ -478,30 +478,34 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			// This matches the previous vesting
 			let end_block = init_block + 48 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MOVR);
 			// 30 percent initial payout
@@ -509,15 +513,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
-			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
-				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-						[4u8; 32].into(),
-						Some(AccountId::from(ALICE)),
-						432000
-					)])
-				)
-			]))
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch {
+				calls: vec![Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::<
+					Runtime,
+				>::initialize_reward_vec {
+					rewards: vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)]
+				})]
+			})
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
@@ -605,27 +607,33 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			// Batch calls always succeed. We just need to check the inner event
 			assert_ok!(
 				// two relay accounts pointing at the same reward account
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							public1.into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
-					),
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							public2.into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
-					),
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+					calls: vec![
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+								rewards: vec![(
+									public1.into(),
+									Some(AccountId::from(CHARLIE)),
+									1_500_000 * MOVR
+								)]
+							}
+						),
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+								rewards: vec![(
+									public2.into(),
+									Some(AccountId::from(CHARLIE)),
+									1_500_000 * MOVR
+								)]
+							}
+						),
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+								lease_ending_block: end_block
+							}
 						)
-					)
-				]))
+					]
+				})
 				.dispatch(root_origin())
 			);
 			// 30 percent initial payout
@@ -687,30 +695,34 @@ fn claim_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			assert!(CrowdloanRewards::initialized());
 
@@ -730,15 +742,15 @@ fn claim_via_precompile() {
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(CHARLIE),
-				crowdloan_precompile_address,
-				call_data,
-				U256::zero(), // No value sent in EVM
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(CHARLIE),
+				target: crowdloan_precompile_address,
+				input: call_data,
+				value: U256::zero(), // No value sent in EVM
 				gas_limit,
 				gas_price,
-				None, // Use the next nonce
-			))
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			let vesting_period = 4 * WEEKS as u128;
@@ -778,30 +790,34 @@ fn is_contributor_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -896,30 +912,34 @@ fn reward_info_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -986,30 +1006,34 @@ fn update_reward_address_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * MOVR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * MOVR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -1023,15 +1047,15 @@ fn update_reward_address_via_precompile() {
 				.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
 			call_data[16..36].copy_from_slice(&ALICE);
 
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(CHARLIE),
-				crowdloan_precompile_address,
-				call_data,
-				U256::zero(), // No value sent in EVM
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(CHARLIE),
+				target: crowdloan_precompile_address,
+				input: call_data,
+				value: U256::zero(), // No value sent in EVM
 				gas_limit,
 				gas_price,
-				None, // Use the next nonce
-			))
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());

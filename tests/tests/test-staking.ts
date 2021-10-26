@@ -49,9 +49,9 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     // },
     //   round: { min: '0.00%', ideal: '0.00%', max: '0.00%' }
     // }
-    expect(inflationInfo.toHuman()["expect"]["min"]).to.eq("100.0000 kUNIT");
-    expect(inflationInfo.toHuman()["expect"]["ideal"]).to.eq("200.0000 kUNIT");
-    expect(inflationInfo.toHuman()["expect"]["max"]).to.eq("500.0000 kUNIT");
+    expect(inflationInfo["expect"]["min"].toBigInt()).to.eq(100_000n * GLMR);
+    expect(inflationInfo["expect"]["ideal"].toBigInt()).to.eq(200_000n * GLMR);
+    expect(inflationInfo["expect"]["max"].toBigInt()).to.eq(500_000n * GLMR);
     expect(inflationInfo.toHuman()["annual"]["min"]).to.eq("4.00%");
     expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
@@ -73,17 +73,16 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
 
-    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 2
-    ).to.equal(true, "new candidate should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].owner === ETHAN
-    ).to.equal(true, "new candidate ethan should have been added");
-    expect(
-      (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUNIT"
-    ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
+    let candidatesAfter = (await context.polkadotApi.query.parachainStaking.candidatePool()) as any;
+    expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
+    expect(candidatesAfter[1].owner.toHex()).to.equal(
+      ETHAN.toLowerCase(),
+      "new candidate ethan should have been added"
+    );
+    expect(candidatesAfter[1].amount.toBigInt()).to.equal(
+      1000n * GLMR,
+      "new candidate ethan should have been added (wrong amount)"
+    );
   });
 });
 

@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, Precompiles, TestAccount,
+	ParachainStaking, Precompiles, Runtime, TestAccount,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -26,6 +26,18 @@ use parachain_staking::Event as StakingEvent;
 use precompile_utils::{error, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
+
+fn evm_call(source: TestAccount, input: Vec<u8>) -> EvmCall<Runtime> {
+	EvmCall::call {
+		source: source.to_h160(),
+		target: precompile_address(),
+		input,
+		value: U256::zero(), // No value sent in EVM
+		gas_limit: u64::max_value(),
+		gas_price: 0.into(),
+		nonce: None, // Use the next nonce
+	}
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -419,16 +431,7 @@ fn join_candidates_works() {
 			candidate_count.to_big_endian(&mut input_data[36..]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::JoinedCollatorCandidates(TestAccount::Alice, 1000, 1000).into();
@@ -454,16 +457,7 @@ fn leave_candidates_works() {
 			candidate_count.to_big_endian(&mut input_data[4..]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::CollatorScheduledExit(1, TestAccount::Alice, 3).into();
@@ -489,16 +483,7 @@ fn go_online_works() {
 			input_data[0..4].copy_from_slice(&selector);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::CollatorBackOnline(1, TestAccount::Alice).into();
@@ -521,16 +506,7 @@ fn go_offline_works() {
 			input_data[0..4].copy_from_slice(&selector);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::CollatorWentOffline(1, TestAccount::Alice).into();
@@ -555,16 +531,7 @@ fn candidate_bond_more_works() {
 			bond_more_amount.to_big_endian(&mut input_data[4..36]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			// scheduled event now
 			let expected: crate::mock::Event =
@@ -590,16 +557,7 @@ fn candidate_bond_less_works() {
 			bond_less_amount.to_big_endian(&mut input_data[4..36]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Alice.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::CollatorBondLessRequested(TestAccount::Alice, 500, 3).into();
@@ -629,16 +587,7 @@ fn nominate_works() {
 			nomination_count.to_big_endian(&mut input_data[100..]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Bob.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
@@ -671,16 +620,7 @@ fn leave_delegators_works() {
 			nomination_count.to_big_endian(&mut input_data[4..]);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Bob.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::NominatorExitScheduled(1, TestAccount::Bob, 3).into();
@@ -705,16 +645,7 @@ fn revoke_nomination_works() {
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Bob.to_h160(),
-				precompile_address(),
-				input_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event = StakingEvent::NominationRevocationScheduled(
 				1,
@@ -737,23 +668,14 @@ fn nominator_bond_more_works() {
 		.build()
 		.execute_with(|| {
 			// Construct the nominator_bond_more call
-			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_more_call_data[0..4]
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4]
 				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
-			bond_more_call_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 			let bond_more_amount: U256 = 500.into();
-			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
+			bond_more_amount.to_big_endian(&mut input_data[36..68]);
 
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Bob.to_h160(),
-				precompile_address(),
-				bond_more_call_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
 			let expected_event: crate::mock::Event = StakingEvent::NominationIncreaseScheduled(
@@ -777,23 +699,14 @@ fn nominator_bond_less_works() {
 		.build()
 		.execute_with(|| {
 			// Construct the nominator_bond_less call
-			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_less_call_data[0..4]
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4]
 				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
-			bond_less_call_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 			let bond_less_amount: U256 = 500.into();
-			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
+			bond_less_amount.to_big_endian(&mut input_data[36..68]);
 
-			assert_ok!(Call::Evm(EvmCall::call(
-				TestAccount::Bob.to_h160(),
-				precompile_address(),
-				bond_less_call_data,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
 			let expected_event: crate::mock::Event = StakingEvent::NominationDecreaseScheduled(

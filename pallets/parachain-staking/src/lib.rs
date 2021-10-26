@@ -69,6 +69,7 @@ pub mod pallet {
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::{Decode, Encode};
+	use scale_info::TypeInfo;
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Saturating, Zero},
 		Perbill, Percent, RuntimeDebug,
@@ -79,7 +80,7 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct Bond<AccountId, Balance> {
 		pub owner: AccountId,
 		pub amount: Balance,
@@ -114,7 +115,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The activity status of the collator
 	pub enum CollatorStatus {
 		/// Committed to be online and producing valid blocks (not equivocating)
@@ -131,7 +132,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Default, Encode, Decode, RuntimeDebug)]
+	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Snapshot of collator state at the start of the round for which they are selected
 	pub struct CollatorSnapshot<AccountId, Balance> {
 		pub bond: Balance,
@@ -139,7 +140,7 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// DEPRECATED
 	/// Collator state with commission fee, bonded stake, and delegations
 	pub struct Collator2<AccountId, Balance> {
@@ -177,14 +178,14 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Changes allowed by an active collator candidate to their self bond
 	pub enum CandidateBondChange {
 		Increase,
 		Decrease,
 	}
 
-	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Request scheduled to change the collator candidate self-bond
 	pub struct CandidateBondRequest<Balance> {
 		pub amount: Balance,
@@ -206,7 +207,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Collator candidate state with self bond + delegations
 	pub struct CollatorCandidate<AccountId, Balance> {
 		/// The account of this collator
@@ -231,7 +232,7 @@ pub mod pallet {
 
 	/// Convey relevant information describing if a delegator was added to the top or bottom
 	/// Delegations added to the top yield a new total
-	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum DelegatorAdded<B> {
 		AddedToTop { new_total: B },
 		AddedToBottom,
@@ -647,7 +648,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum DelegatorStatus {
 		/// Active with no scheduled exit
 		Active,
@@ -655,7 +656,7 @@ pub mod pallet {
 		Leaving(RoundIndex),
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Delegator state
 	pub struct Delegator<AccountId, Balance> {
 		/// Delegator account
@@ -1042,7 +1043,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Changes requested by the delegator
 	/// - limit of 1 ongoing change per delegation
 	/// - no changes allowed if delegator is leaving
@@ -1052,7 +1053,7 @@ pub mod pallet {
 		Decrease,
 	}
 
-	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct DelegationRequest<AccountId, Balance> {
 		pub collator: AccountId,
 		pub amount: Balance,
@@ -1060,7 +1061,7 @@ pub mod pallet {
 		pub action: DelegationChange,
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Pending requests to mutate delegations for each delegator
 	pub struct PendingDelegationRequests<AccountId, Balance> {
 		/// Number of pending revocations (necessary for determining whether revoke is exit)
@@ -1176,7 +1177,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// DEPRECATED in favor of Delegator
 	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
@@ -1208,7 +1209,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The current round index and transition information
 	pub struct RoundInfo<BlockNumber> {
 		/// Current round index
@@ -1256,7 +1257,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Reserve information { account, percent_of_inflation }
 	pub struct ParachainBondConfig<AccountId> {
 		/// Account which receives funds intended for parachain bond
@@ -1273,7 +1274,8 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug, Default, PartialEq, Eq)]
+	#[derive(Encode, Decode, RuntimeDebug, Default, PartialEq, Eq, TypeInfo)]
+	/// DEPRECATED
 	/// Store and process all delayed exits by collators and nominators
 	pub struct ExitQ<AccountId> {
 		/// Candidate exit set

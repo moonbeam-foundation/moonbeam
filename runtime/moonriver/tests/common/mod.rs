@@ -245,7 +245,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 pub fn set_author(a: NimbusId) {
 	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
 			.dispatch(inherent_origin())
 	);
 }
@@ -270,9 +270,9 @@ pub fn set_parachain_inherent_data() {
 		horizontal_messages: Default::default(),
 	};
 	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
 	)
 	.dispatch(inherent_origin()));
 }
