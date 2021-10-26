@@ -30,6 +30,7 @@ polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = 
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
+perf-test = { path = "../perf-test" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }

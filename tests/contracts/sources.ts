@@ -399,6 +399,43 @@ export const contractSources: { [key: string]: string } = {
               return 1;
           }
       }`,
+  StorageBloater: `
+    pragma solidity >=0.8.0;
+    contract StorageBloater {
+      mapping(uint => uint) public bloat;
+      uint256 sum = 0;
+
+      function bloat_storage(uint start, uint num_items, uint seed) public {
+        for (uint i=0; i<num_items; i++) {
+          bloat[start + i] = start + i * seed;
+        }
+      }
+
+      function calculate_sum(uint start, uint num_items) public {
+        uint256 tmp = 0;
+        for (uint i=0; i<num_items; i++) {
+          tmp += bloat[start+i];
+        }
+        sum += tmp;
+      }
+    }`,
+  Fibonacci: `
+    pragma solidity>= 0.8.0;
+    contract Fibonacci {
+      function fib2(uint n) public returns(uint b) {
+        if (n == 0) {
+          return 0;
+        }
+        uint a = 1;
+        b = 1;
+        for (uint i = 2; i < n; i++) {
+          uint c = a + b;
+          a = b;
+          b = c;
+        }
+        return b;
+      }
+    }`,
   StakingNominationAttaker: `
     pragma solidity >=0.8.0;
     
