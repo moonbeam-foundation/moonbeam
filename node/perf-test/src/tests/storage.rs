@@ -195,7 +195,7 @@ where
 		results.push(TestResults::new(
 			"storage bloating",
 			now.elapsed().as_micros(),
-			43335945,
+			46188450,
 		));
 
 		const NUM_READS_PER_BLOCK: u64 = 5000;
@@ -226,7 +226,7 @@ where
 		results.push(TestResults::new(
 			"storage bloat read",
 			now.elapsed().as_micros(),
-			43335945,
+			908941,
 		));
 
 		Ok(results)

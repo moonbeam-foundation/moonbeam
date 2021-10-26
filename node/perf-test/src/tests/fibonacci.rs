@@ -143,7 +143,7 @@ where
 		results.push(TestResults::new(
 			"fibonacci_calls",
 			now.elapsed().as_micros(),
-			9119442,
+			5476292,
 		));
 
 		Ok(results)

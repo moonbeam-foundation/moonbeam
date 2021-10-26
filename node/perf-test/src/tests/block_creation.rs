@@ -62,7 +62,7 @@ where
 		results.push(TestResults::new(
 			"empty blocks",
 			now.elapsed().as_micros(),
-			17491000,
+			17962999,
 		));
 
 		println!("Creating blocks with increasing nonce-dependent txns...");
@@ -89,7 +89,7 @@ where
 		results.push(TestResults::new(
 			"nonce-dependent blocks",
 			now.elapsed().as_micros(),
-			22317571,
+			23069066,
 		));
 
 		Ok(results)
