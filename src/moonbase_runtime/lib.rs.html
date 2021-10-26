@@ -1536,6 +1536,10 @@
 <span id="1536">1536</span>
 <span id="1537">1537</span>
 <span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2538,7 +2542,11 @@
 
 <span class="macro">parameter_types!</span> {
 	<span class="doccomment">/// The amount of weight an XCM operation takes. This is safe overestimate.</span>
-	<span class="kw">pub</span> <span class="ident">UnitWeightCost</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">1_000_000_000</span>;
+	<span class="doccomment">/// We should increase this to a value close to what polkadot charges</span>
+	<span class="doccomment">/// We are charging less to make it work with current reserve_transfer_assets issue</span>
+	<span class="doccomment">/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000</span>
+	<span class="doccomment">/// https://github.com/paritytech/polkadot/pull/4144</span>
+	<span class="kw">pub</span> <span class="ident">UnitWeightCost</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">100_000_000</span>;
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against</span>
 	<span class="doccomment">/// weight caculations getting too crazy.</span>
 	<span class="kw">pub</span> <span class="ident">MaxInstructions</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
