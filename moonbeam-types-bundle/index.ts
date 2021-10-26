@@ -336,6 +336,57 @@ const TYPES_800_undefined: RegistryTypes = {
   MultiLocation: "MultiLocationV1",
 };
 
+const TYPES_900_undefined: RegistryTypes = {
+  ...TYPES_800_undefined,
+  CandidateBondChange: {
+    _enum: { Increase: "Null", Decrease: "Null" },
+  },
+  CandidateBondRequest: {
+    amount: "Balance",
+    change: "CandidateBondChange",
+    when: "RoundIndex",
+  },
+  DelegatorAdded: {
+    _enum: { AddedToTop: "Balance", AddedToBottom: "Null" },
+  },
+  CollatorCandidate: {
+    id: "AccountId",
+    bond: "Balance",
+    delegators: "Vec<AccountId>",
+    top_delegations: "Vec<Bond>",
+    bottom_delegations: "Vec<Bond>",
+    total_counted: "Balance",
+    total_backing: "Balance",
+    request: "Option<CandidateBondRequest>",
+    state: "CollatorStatus",
+  },
+  DelegatorStatus: {
+    _enum: { Active: "Null", Leaving: "RoundIndex" },
+  },
+  DelegationChange: {
+    _enum: { Revoke: "Null", Increase: "Null", Decrease: "Null" },
+  },
+  DelegationRequest: {
+    collator: "AccountId",
+    amount: "Balance",
+    when: "RoundIndex",
+    action: "DelegationChange",
+  },
+  PendingDelegationRequests: {
+    revocations_count: "u32",
+    requests: "BTreeMap<AccountId, DelegationRequest>",
+    less_total: "Balance",
+    more_total: "Balance",
+  },
+  Delegator: {
+    id: "AccountId",
+    delegations: "Vec<Bond>",
+    total: "Balance",
+    requests: "PendingDelegationRequests",
+    status: "DelegatorStatus",
+  },
+};
+
 export const moonbeamDefinitions = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
@@ -390,7 +441,7 @@ export const moonbeamDefinitions = {
     },
     {
       minmax: [800, undefined],
-      types: TYPES_800_undefined,
+      types: TYPES_900_undefined, // TODO: publish and update
     },
   ],
 } as OverrideBundleDefinition;

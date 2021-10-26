@@ -1,5 +1,10 @@
 # Migration History
 
+## Manual Exits and Patch Lack of Delay for bond\_{more, less}
+
+- [Migration PR `#810`](https://github.com/PureStake/moonbeam/pull/810)
+- [Migration Removal PR `#?`]()
+
 ## Delay nominator exits by changing NominatorState and ExitQueue
 
 - [Migration PR `#610`](https://github.com/PureStake/moonbeam/pull/610)
