@@ -33,6 +33,7 @@ use sp_std::{
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
+use xcm_transactor::RemoteTransactInfo;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -46,6 +47,7 @@ pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
+	TransactInfo = "transact_info((uint8,bytes[]))",
 	TransactThroughDerivativeMultiLocation =
 		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
@@ -74,6 +76,7 @@ where
 		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::IndexToAccount => Self::account_index(input, target_gas),
+			Action::TransactInfo => Self::transact_info(input, target_gas),
 			Action::TransactThroughDerivativeMultiLocation => {
 				Self::transact_through_derivative_multilocation(input, target_gas, context)
 			}
@@ -114,6 +117,31 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Address(account)).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn transact_info(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
+
+		// fetch data from pallet
+		let remote_transact_info: RemoteTransactInfo =
+			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
+				.ok_or(error("Transact Info not set"))?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new()
+				.write(remote_transact_info.transact_extra_weight)
+				.write(remote_transact_info.destination_units_per_second)
+				.build(),
 			logs: Default::default(),
 		})
 	}

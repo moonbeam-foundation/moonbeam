@@ -7,7 +7,7 @@ import { createContract, createTransaction } from "../util/transactions";
 import { ApiPromise } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
-import { createBlockWithExtrinsicParachain } from "../util/substrate-rpc";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import Keyring from "@polkadot/keyring";
 import { createType } from "@polkadot/types";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
@@ -48,10 +48,13 @@ interface SourceLocation {
     interior: any;
   };
 }
-const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } };
+
+const sourceLocationRelay = { parents: 1, interior: "Here" };
+
+const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
 
 describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
-  let sudoAccount, iFace;
+  let sudoAccount, iFace, alith;
   before("Setup genesis account and relay accounts", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -61,11 +64,23 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
+    await context.polkadotApi.tx.sudo
+    .sudo(
+      context.polkadotApi.tx.xcmTransactor.setTransactInfo(
+        sourceLocationRelay,
+        new BN(0),
+        new BN(10000000000000)
+      )
+    )
+    .signAndSend(sudoAccount);
+    await context.createBlock();
+
     const contractData = await getCompiled("XcmTransactorInstance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context.web3, "XcmTransactorInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+    alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
   it("allows to retrieve index through precompiles", async function () {
@@ -90,6 +105,35 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     );
   });
 
+  it("allows to retrieve transactor info through precompiles", async function () {
+    let asset =
+      // Destination as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
+    let data = iFace.encodeFunctionData(
+      // action
+      "transact_info",
+      [asset]
+    );
+    let tx_call = await customWeb3Request(context.web3, "eth_call", [
+      {
+        from: ALITH,
+        value: "0x0",
+        gas: "0x10000",
+        gasPrice: GAS_PRICE,
+        to: ADDRESS_XCM_TRANSACTOR,
+        data: data,
+      },
+    ]);
+
+    expect(tx_call.result).to.equal(
+      "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009184e72a000"
+    );
+  });
+
   it("allows to issue transfer xcm transactor", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
@@ -108,7 +152,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.assetManager.registerAsset(
-          sourceLocationRelay,
+          sourceLocationRelayAssetType,
           relayAssetMetadata,
           new BN(1)
         )
@@ -172,19 +216,15 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
         1,
         [],
       ];
-    // 1000 units as fee
-    let amountTransferred = 1000;
-
     // we dont care, the call wont be executed
     let transact_call = new Uint8Array([0x01]);
     // weight
     let weight = 100;
-
     // Call the precompile
     let data = iFace.encodeFunctionData(
       // action
-      "transact_through_derivative",
-      [transactor, index, asset, amountTransferred, weight, transact_call]
+      "transact_through_derivative_multilocation",
+      [transactor, index, asset, weight, transact_call]
     );
 
     const tx = await createTransaction(context.web3, {
@@ -205,6 +245,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // have changed
     let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH))
       .balance as BN;
+
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
     expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
 

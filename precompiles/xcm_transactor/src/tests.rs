@@ -36,6 +36,11 @@ fn test_selector_enum() {
 		Action::IndexToAccount,
 	);
 
+	buffer.copy_from_slice(&Keccak256::digest(b"transact_info((uint8,bytes[]))")[0..4]);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::TransactInfo,
+	);
 	buffer.copy_from_slice(
 		&Keccak256::digest(
 			b"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
@@ -120,6 +125,49 @@ fn take_index_for_account() {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(Address(H160::from(Alice)))
+					.build(),
+				cost: 1,
+				logs: Default::default(),
+			}));
+
+			assert_eq!(
+				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn take_transact_info() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let input = EvmDataWriter::new_with_selector(Action::TransactInfo)
+				.write(MultiLocation::parent())
+				.build();
+
+			// Assert that errors since no index is assigned
+			assert_eq!(
+				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
+				Some(Err(error("Transact Info not set")))
+			);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				MultiLocation::parent(),
+				0,
+				// 1-1 with weight
+				1_000_000_000_000
+			));
+
+			// Expected result is zero
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(0u64)
+					.write(1_000_000_000_000u128)
 					.build(),
 				cost: 1,
 				logs: Default::default(),

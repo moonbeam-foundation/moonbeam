@@ -21,7 +21,7 @@ use evm::ExitError;
 
 use frame_support::ensure;
 use sp_std::vec::Vec;
-use xcm::v1::{Junction, Junctions, MultiLocation, NetworkId};
+use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
 
 // Function to convert network id to bytes
 // We dont implement EVMData here as these bytes will be appended only
