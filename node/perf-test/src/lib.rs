@@ -43,4 +43,3 @@ pub struct PerfCmd {
 	)]
 	pub output_file: Option<PathBuf>,
 }
-

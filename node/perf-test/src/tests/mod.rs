@@ -104,4 +104,3 @@ fn display_duration_usecs(duration_usecs: &u128) -> impl std::fmt::Display {
 fn display_relative(relative: &f64) -> impl std::fmt::Display {
 	format!("{:.1} %", relative * 100f64)
 }
-
