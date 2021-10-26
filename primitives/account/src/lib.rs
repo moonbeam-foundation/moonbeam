@@ -88,9 +88,11 @@ impl Into<H160> for AccountId20 {
 
 #[cfg(feature = "std")]
 impl std::str::FromStr for AccountId20 {
-	type Err = (); //TODO Maybe use the FromHexError that H160 uses? https://docs.rs/rustc-hex/2.1.0/rustc_hex/enum.FromHexError.html
-	fn from_str(input: &str) -> Result<Self, ()> {
-		H160::from_str(input).map(Into::into).map_err(|_| ())
+	type Err = &'static str;
+	fn from_str(input: &str) -> Result<Self, Self::Err> {
+		H160::from_str(input)
+			.map(Into::into)
+			.map_err(|_| "invalid hex address.")
 	}
 }
 
