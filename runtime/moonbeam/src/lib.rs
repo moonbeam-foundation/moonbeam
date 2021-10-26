@@ -86,7 +86,7 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const MOONRIVER_FACTOR: Balance = 100; // 100 more total supply
+	pub const MOONRIVER_FACTOR: Balance = 100; // 100X Moonriver's supply (1B vs 10M)
 
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
