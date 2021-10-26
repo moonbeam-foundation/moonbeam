@@ -1093,3 +1093,23 @@ cumulus_pallet_parachain_system::register_validate_block!(
 );
 
 runtime_common::impl_self_contained_call!();
+
+#[cfg(test)]
+mod tests {
+	use super::{*, currency::*};
+
+	#[test]
+	fn currency_constants_are_correct() {
+		assert_eq!(MOONRIVER_FACTOR, 100);
+
+		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(1 * MILLIGLMR));
+		assert_eq!(STORAGE_BYTE_FEE, Balance::from(10 * MILLIGLMR));
+		assert_eq!(FixedGasPrice::min_gas_price(), (100 * GIGAWEI).into());
+		assert_eq!(MinimumDeposit::get(), Balance::from(400 * GLMR));
+		assert_eq!(ProposalBondMinimum::get(), Balance::from(100 * GLMR));
+
+		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
+		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(100 * KILOGLMR));
+		assert_eq!(MinNominatorStk::get(), Balance::from(500 * GLMR));
+	}
+}
