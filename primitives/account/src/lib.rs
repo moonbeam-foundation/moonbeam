@@ -29,7 +29,8 @@ use sp_core::{ecdsa, H160, H256};
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 //TODO Maybe this should be upstreamed into Frontier (And renamed accordingly) so that it can
-// be used in palletEVM as well.
+// be used in palletEVM as well. It may also need more traits such as AsRef, AsMut, etc like
+// AccountId32 has.
 
 /// The account type to be used in Moonbeam. It is a wrapper for 20 fixed bytes. We prefer to use
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
