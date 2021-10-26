@@ -456,7 +456,11 @@ impl PerfCmd {
 		}
 
 		let system_info = query_system_info()?;
-		let partition_info = query_partition_info(path)?;
+		let partition_info = query_partition_info(path).unwrap_or_else(|_| {
+			// TODO: this is inconsistent with behavior of query_system_info...
+			eprintln!("query_partition_info() failed, ignoring...");
+			Default::default()
+		});
 
 		#[derive(Serialize)]
 		struct AllResults {

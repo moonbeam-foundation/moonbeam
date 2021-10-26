@@ -132,7 +132,6 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 
 /// query the partition info corresponding to the given path. the path doesn't need to be an
 /// explicit mountpoint; it can be a subdirectory of a mountpoint.
-/// TODO: use std::path::Path or whatever the CLI parameter for --base-path uses
 pub fn query_partition_info(path: &std::path::PathBuf) -> Result<PartitionInfo, String> {
 	use std::{collections::HashMap, path::Path};
 
