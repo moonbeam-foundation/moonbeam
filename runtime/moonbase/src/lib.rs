@@ -80,8 +80,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
 	transaction_validity::{
-		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
-		TransactionValidityError,
+		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
@@ -814,6 +813,10 @@ pub enum ProxyType {
 	Staking,
 	/// Allow to veto an announced proxy call.
 	CancelProxy,
+	/// Allow extrinsic related to Balances.
+	Balances,
+	/// Allow extrinsic related to AuthorMapping.
+	AuthorMapping,
 }
 
 impl Default for ProxyType {
@@ -853,6 +856,12 @@ impl InstanceFilter<Call> for ProxyType {
 					c,
 					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
 				)
+			}
+			ProxyType::Balances => {
+				matches!(c, Call::Balances(..) | Call::Utility(..))
+			}
+			ProxyType::AuthorMapping => {
+				matches!(c, Call::AuthorMapping(..))
 			}
 		}
 	}
@@ -990,7 +999,11 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = 1_000_000_000;
+	/// We should increase this to a value close to what polkadot charges
+	/// We are charging less to make it work with current reserve_transfer_assets issue
+	/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000
+	/// https://github.com/paritytech/polkadot/pull/4144
+	pub UnitWeightCost: Weight = 100_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -1436,22 +1449,6 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
-
-/// There are two extensions returning the priority:
-/// 1. The `CheckWeight` extension.
-/// 2. The `TransactionPayment` extension.
-///
-/// The first one gives a significant bump to `Operational` transactions, but for `Normal`
-/// it's within `[0..MAXIMUM_BLOCK_WEIGHT]` range.
-///
-/// The second one roughly represents the amount of fees being paid (and the tip) with
-/// size-adjustment coefficient. I.e. we are interested to maximize `fee/consumed_weight` or
-/// `fee/size_limit`. The returned value is potentially unbounded though.
-///
-/// The idea for the adjustment is scale the priority coming from `CheckWeight` for
-/// `Normal` transactions down to zero, leaving the priority bump for `Operational` and
-/// `Mandatory` though.
-const CHECK_WEIGHT_PRIORITY_DIVISOR: TransactionPriority = MAXIMUM_BLOCK_WEIGHT;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
