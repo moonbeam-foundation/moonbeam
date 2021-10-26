@@ -26,7 +26,7 @@ pub mod migrations;
 
 /// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
 /// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
-/// that is Into<H160> like MoonbeamAccount for example.
+/// that is Into<H160> like AccountId20 for example.
 pub struct IntoAddressMapping;
 
 impl<T: From<H160>> pallet_evm::AddressMapping<T> for IntoAddressMapping {

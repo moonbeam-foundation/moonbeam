@@ -50,10 +50,10 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	PartialOrd,
 	Ord,
 )]
-pub struct MoonbeamAccount(pub [u8; 20]);
+pub struct AccountId20(pub [u8; 20]);
 
 #[cfg(feature = "std")]
-impl std::fmt::Display for MoonbeamAccount {
+impl std::fmt::Display for AccountId20 {
 	//TODO This is a pretty quck-n-dirty implementation. Perhaps we should add
 	// checksum casing here? I bet there is a crate for that.
 	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
@@ -62,32 +62,32 @@ impl std::fmt::Display for MoonbeamAccount {
 	}
 }
 
-impl From<[u8; 20]> for MoonbeamAccount {
+impl From<[u8; 20]> for AccountId20 {
 	fn from(bytes: [u8; 20]) -> Self {
 		Self(bytes)
 	}
 }
 
-impl Into<[u8; 20]> for MoonbeamAccount {
+impl Into<[u8; 20]> for AccountId20 {
 	fn into(self: Self) -> [u8; 20] {
 		self.0
 	}
 }
 
-impl From<H160> for MoonbeamAccount {
+impl From<H160> for AccountId20 {
 	fn from(h160: H160) -> Self {
 		Self(h160.0)
 	}
 }
 
-impl Into<H160> for MoonbeamAccount {
+impl Into<H160> for AccountId20 {
 	fn into(self: Self) -> H160 {
 		H160(self.0)
 	}
 }
 
 #[cfg(feature = "std")]
-impl std::str::FromStr for MoonbeamAccount {
+impl std::str::FromStr for AccountId20 {
 	type Err = (); //TODO Maybe use the FromHexError that H160 uses? https://docs.rs/rustc-hex/2.1.0/rustc_hex/enum.FromHexError.html
 	fn from_str(input: &str) -> Result<Self, ()> {
 		H160::from_str(input).map(Into::into).map_err(|_| ())
@@ -106,20 +106,15 @@ impl From<ecdsa::Signature> for EthereumSignature {
 
 impl sp_runtime::traits::Verify for EthereumSignature {
 	type Signer = EthereumSigner;
-	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
-		&self,
-		mut msg: L,
-		signer: &MoonbeamAccount,
-	) -> bool {
+	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &AccountId20) -> bool {
 		let mut m = [0u8; 32];
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
 				// TODO This conversion could use a comment. Why H256 first, then H160?
 				// TODO actually, there is probably just a better way to go from Keccak digest.
-				MoonbeamAccount(
-					H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())).0,
-				) == *signer
+				AccountId20(H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())).0)
+					== *signer
 			}
 			Err(sp_io::EcdsaVerifyError::BadRS) => {
 				log::error!(target: "evm", "Error recovering: Incorrect value of R or S");
@@ -143,9 +138,9 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 pub struct EthereumSigner([u8; 20]);
 
 impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
-	type AccountId = MoonbeamAccount;
-	fn into_account(self) -> MoonbeamAccount {
-		MoonbeamAccount(self.0)
+	type AccountId = AccountId20;
+	fn into_account(self) -> AccountId20 {
+		AccountId20(self.0)
 	}
 }
 

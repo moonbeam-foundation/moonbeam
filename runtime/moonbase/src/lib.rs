@@ -33,7 +33,7 @@ use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 use xtokens_precompiles::AccountIdToCurrencyId;
 
-use account::MoonbeamAccount;
+use account::AccountId20;
 
 use sp_runtime::traits::Hash as THash;
 
@@ -414,13 +414,13 @@ use frame_support::traits::FindAuthor;
 //TODO It feels like this shold be able to work for any T: H160, but I tried for
 // embarassingly long and couldn't figure that out.
 
-/// The author inherent provides a MoonbeamAccount, but pallet evm needs an H160.
+/// The author inherent provides a AccountId20, but pallet evm needs an H160.
 /// This simple adapter makes the conversion.
 pub struct FindAuthorAdapter<Inner>(sp_std::marker::PhantomData<Inner>);
 
 impl<Inner> FindAuthor<H160> for FindAuthorAdapter<Inner>
 where
-	Inner: FindAuthor<MoonbeamAccount>,
+	Inner: FindAuthor<AccountId20>,
 {
 	fn find_author<'a, I>(digests: I) -> Option<H160>
 	where
