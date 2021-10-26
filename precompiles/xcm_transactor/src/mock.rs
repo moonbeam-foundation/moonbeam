@@ -417,7 +417,7 @@ impl xcm_transactor::Config for Test {
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = CurrencyIdToMultiLocation;
+	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;

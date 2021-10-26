@@ -321,7 +321,7 @@ impl Config for Test {
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<u64>;
 	type CurrencyId = CurrencyId;
-	type CurrencyIdConvert = CurrencyIdToMultiLocation;
+	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;

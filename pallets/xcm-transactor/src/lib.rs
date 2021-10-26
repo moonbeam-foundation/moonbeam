@@ -20,6 +20,10 @@
 //!
 //! Module to provide transact capabilities on other chains
 //!
+//! For the transaction to successfuly be dispatched in the destination chain, pallet-utility
+//! needs to be installed and at least paid xcm message execution should be allowed (and
+//! WithdrawAsset,BuyExecution and Transact messages allowed) in the destination chain
+//!
 //! In this pallet we will make distinctions between sovereign
 //! and derivative accounts. The first is the account the parachain controls
 //! in the destination chain, while the latter is an account derived from the
@@ -86,7 +90,7 @@ pub mod pallet {
 		type CurrencyId: Parameter + Member + Clone;
 
 		/// Convert `T::CurrencyId` to `MultiLocation`.
-		type CurrencyIdConvert: Convert<Self::CurrencyId, Option<MultiLocation>>;
+		type CurrencyIdToMultiLocation: Convert<Self::CurrencyId, Option<MultiLocation>>;
 
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
@@ -287,8 +291,9 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
-			let fee_location: MultiLocation = T::CurrencyIdConvert::convert(currency_id.clone())
-				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+			let fee_location: MultiLocation =
+				T::CurrencyIdToMultiLocation::convert(currency_id.clone())
+					.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
@@ -584,7 +589,7 @@ pub mod pallet {
 			weight: &u64,
 			call: &Vec<u8>,
 		) -> Weight {
-			if let Some(id) = T::CurrencyIdConvert::convert(currency_id.clone()) {
+			if let Some(id) = T::CurrencyIdToMultiLocation::convert(currency_id.clone()) {
 				Self::weight_of_transact_through_derivative_multilocation(
 					&id, &index, &dest, &weight, call,
 				)
