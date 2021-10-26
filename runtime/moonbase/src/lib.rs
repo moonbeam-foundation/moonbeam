@@ -1541,7 +1541,7 @@ runtime_common::impl_self_contained_call!();
 
 #[cfg(test)]
 mod tests {
-	use super::{*, currency::*};
+	use super::{currency::*, *};
 
 	#[test]
 	fn currency_constants_are_correct() {
@@ -1559,9 +1559,15 @@ mod tests {
 		assert_eq!(ProposalBondMinimum::get(), Balance::from(1 * UNIT));
 
 		// pallet_identity deposits
-		assert_eq!(BasicDeposit::get(), Balance::from(1 * UNIT + 25800 * MICROUNIT));
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(1 * UNIT + 25800 * MICROUNIT)
+		);
 		assert_eq!(FieldDeposit::get(), Balance::from(6600 * MICROUNIT));
-		assert_eq!(SubAccountDeposit::get(), Balance::from(1 * UNIT + 5300 * MICROUNIT));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(1 * UNIT + 5300 * MICROUNIT)
+		);
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOUNIT));
@@ -1575,10 +1581,18 @@ mod tests {
 		assert_eq!(DepositAmount::get(), Balance::from(100 * UNIT));
 
 		// proxy deposits
-		assert_eq!(ProxyDepositBase::get(), Balance::from(1 * UNIT + 800 * MICROUNIT));
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
 		assert_eq!(ProxyDepositFactor::get(), Balance::from(2100 * MICROUNIT));
-		assert_eq!(AnnouncementDepositBase::get(), Balance::from(1 * UNIT + 800 * MICROUNIT));
-		assert_eq!(AnnouncementDepositFactor::get(), Balance::from(5600 * MICROUNIT));
-
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(5600 * MICROUNIT)
+		);
 	}
 }

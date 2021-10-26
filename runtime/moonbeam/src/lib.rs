@@ -1096,7 +1096,7 @@ runtime_common::impl_self_contained_call!();
 
 #[cfg(test)]
 mod tests {
-	use super::{*, currency::*};
+	use super::{currency::*, *};
 
 	#[test]
 	fn currency_constants_are_correct() {
@@ -1114,13 +1114,22 @@ mod tests {
 		assert_eq!(ProposalBondMinimum::get(), Balance::from(100 * GLMR));
 
 		// pallet_identity deposits
-		assert_eq!(BasicDeposit::get(), Balance::from(100 * GLMR + 2580 * MILLIGLMR));
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(100 * GLMR + 2580 * MILLIGLMR)
+		);
 		assert_eq!(FieldDeposit::get(), Balance::from(660 * MILLIGLMR));
-		assert_eq!(SubAccountDeposit::get(), Balance::from(100 * GLMR + 530 * MILLIGLMR));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(100 * GLMR + 530 * MILLIGLMR)
+		);
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
-		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(100 * KILOGLMR));
+		assert_eq!(
+			MinCollatorCandidateStk::get(),
+			Balance::from(100 * KILOGLMR)
+		);
 		assert_eq!(MinNominatorStk::get(), Balance::from(500 * GLMR));
 
 		// crowdloan min reward
@@ -1130,10 +1139,18 @@ mod tests {
 		assert_eq!(DepositAmount::get(), Balance::from(10 * KILOGLMR));
 
 		// proxy deposits
-		assert_eq!(ProxyDepositBase::get(), Balance::from(100 * GLMR + 80 * MILLIGLMR));
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+		);
 		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
-		assert_eq!(AnnouncementDepositBase::get(), Balance::from(100 * GLMR + 80 * MILLIGLMR));
-		assert_eq!(AnnouncementDepositFactor::get(), Balance::from(560 * MILLIGLMR));
-
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(560 * MILLIGLMR)
+		);
 	}
 }

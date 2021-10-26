@@ -1074,7 +1074,7 @@ runtime_common::impl_self_contained_call!();
 
 #[cfg(test)]
 mod tests {
-	use super::{*, currency::*};
+	use super::{currency::*, *};
 
 	#[test]
 	fn currency_constants_are_correct() {
@@ -1092,9 +1092,15 @@ mod tests {
 		assert_eq!(ProposalBondMinimum::get(), Balance::from(1 * MOVR));
 
 		// pallet_identity deposits
-		assert_eq!(BasicDeposit::get(), Balance::from(1 * MOVR + 25800 * MICROMOVR));
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(1 * MOVR + 25800 * MICROMOVR)
+		);
 		assert_eq!(FieldDeposit::get(), Balance::from(6600 * MICROMOVR));
-		assert_eq!(SubAccountDeposit::get(), Balance::from(1 * MOVR + 5300 * MICROMOVR));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(1 * MOVR + 5300 * MICROMOVR)
+		);
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOMOVR));
@@ -1108,10 +1114,18 @@ mod tests {
 		assert_eq!(DepositAmount::get(), Balance::from(100 * MOVR));
 
 		// proxy deposits
-		assert_eq!(ProxyDepositBase::get(), Balance::from(1 * MOVR + 800 * MICROMOVR));
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(1 * MOVR + 800 * MICROMOVR)
+		);
 		assert_eq!(ProxyDepositFactor::get(), Balance::from(2100 * MICROMOVR));
-		assert_eq!(AnnouncementDepositBase::get(), Balance::from(1 * MOVR + 800 * MICROMOVR));
-		assert_eq!(AnnouncementDepositFactor::get(), Balance::from(5600 * MICROMOVR));
-
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(1 * MOVR + 800 * MICROMOVR)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(5600 * MICROMOVR)
+		);
 	}
 }
