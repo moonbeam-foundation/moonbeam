@@ -53,6 +53,9 @@ pub struct MoonbeamAccount(pub [u8; 20]);
 
 #[cfg(feature = "std")]
 impl std::fmt::Display for MoonbeamAccount {
+	//TODO This is a pretty quck-n-dirty implementation. Perhaps we should add
+	// checksum casing here? I bet there is a crate for that.
+	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{:?}", self.0)
 	}
