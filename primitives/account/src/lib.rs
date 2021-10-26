@@ -39,6 +39,7 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 #[derive(
 	Eq,
 	PartialEq,
+	Copy,
 	Clone,
 	Encode,
 	Decode,
@@ -82,6 +83,14 @@ impl From<H160> for MoonbeamAccount {
 impl Into<H160> for MoonbeamAccount {
 	fn into(self: Self) -> H160 {
 		H160(self.0)
+	}
+}
+
+#[cfg(feature = "std")]
+impl std::str::FromStr for MoonbeamAccount {
+	type Err = (); //TODO Maybe use the FromHexError that H160 uses? https://docs.rs/rustc-hex/2.1.0/rustc_hex/enum.FromHexError.html
+	fn from_str(input: &str) -> Result<Self, ()> {
+		H160::from_str(input).map(Into::into).map_err(|_| ())
 	}
 }
 
