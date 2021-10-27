@@ -157,7 +157,7 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
-		input.expect_arguments(2)?;
+		input.expect_arguments(5)?;
 
 		// Does not need DB read
 		let transactor: TransactorOf<Runtime> = input
@@ -170,7 +170,6 @@ where
 		// defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
 		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
-		input.expect_arguments(2)?;
 		// read fee amount
 		let weight: u64 = input.read::<u64>()?;
 
@@ -184,8 +183,8 @@ where
 			dest: transactor,
 			index,
 			fee_location: fee_multilocation,
-			dest_weight: weight.clone(),
-			inner_call: inner_call.as_bytes().to_vec(),
+			dest_weight: weight,
+			inner_call: inner_call.0,
 		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
@@ -212,7 +211,7 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
-		input.expect_arguments(2)?;
+		input.expect_arguments(5)?;
 		let transactor: TransactorOf<Runtime> = input
 			.read::<u8>()?
 			.try_into()
@@ -231,7 +230,6 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(error("cannot convert into currency id"))?;
 
-		input.expect_arguments(2)?;
 		// read fee amount
 		let weight: u64 = input.read::<u64>()?;
 
@@ -245,8 +243,8 @@ where
 			dest: transactor,
 			index,
 			currency_id,
-			dest_weight: weight.clone(),
-			inner_call: inner_call.as_bytes().to_vec(),
+			dest_weight: weight,
+			inner_call: inner_call.0,
 		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
