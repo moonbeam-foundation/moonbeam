@@ -190,6 +190,18 @@ fn verify_pallet_prefixes() {
 			max_size: Some(1),
 		},]
 	);
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
