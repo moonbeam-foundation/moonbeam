@@ -65,7 +65,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
-  it("should succesfully call joinCandidates on ETHAN", async function () {
+  it("should successfully call joinCandidates on ETHAN", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
@@ -88,7 +88,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
 describeDevMoonbeam("Staking - Join Delegators", (context) => {
   let ethan;
-  before("should succesfully call delegate on ALITH", async function () {
+  before("should successfully call delegate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
@@ -96,24 +96,24 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
   });
-  it("should have succesfully called delegate on ALITH", async function () {
-    const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-    expect(
-      (
-        delegatorsAfter.toHuman() as {
-          delegations: { owner: string; amount: string }[];
-        }
-      ).delegations[0].owner === ALITH
-    ).to.equal(true, "delegation didn't go through");
-    expect(delegatorsAfter.toHuman()["status"]).equal("Active");
-    expect(delegatorsAfter.toHuman()["delegations"][0].owner).equal(ALITH);
-    expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("5.0000 UNIT");
+  it("should have successfully delegated stake to ALITH", async function () {
+    const delegatorsAfter = (
+      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
+    ).unwrap();
+    expect(delegatorsAfter.delegations[0].owner.toString()).to.equal(
+      ALITH.toLowerCase(),
+      "new delegation to alith should have been added"
+    );
+    expect(delegatorsAfter.delegations[0].amount.toBigInt()).to.equal(
+      5n * GLMR,
+      "delegation amount to alith should be 5"
+    );
   });
 });
 
 describeDevMoonbeam("Staking - Delegators cannot bond less than minimum delegation", (context) => {
   let ethan;
-  before("should succesfully call delegate on ALITH", async function () {
+  before("should successfully call delegate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     // Delegate
@@ -128,15 +128,17 @@ describeDevMoonbeam("Staking - Delegators cannot bond less than minimum delegati
       ethan,
       context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, 1n * GLMR)
     );
-    expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
-    const delegatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-    expect(
-      (
-        delegatorsAfter.toHuman() as {
-          delegations: { owner: string; amount: string }[];
-        }
-      ).delegations[0].owner === ALITH
-    ).to.equal(true, "delegation didn't go through");
-    expect(delegatorsAfter.toHuman()["delegations"][0].amount).equal("5.0000 UNIT");
+    expect(events[1].method.toString()).to.eq("ExtrinsicFailed");
+    const delegatorsAfter = (
+      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
+    ).unwrap();
+    expect(delegatorsAfter.delegations[0].owner.toString()).to.equal(
+      ALITH.toLowerCase(),
+      "delegation does not exist"
+    );
+    expect(delegatorsAfter.delegations[0].amount.toBigInt()).equal(
+      5n * GLMR,
+      "delegation amount should be 5"
+    );
   });
 });
