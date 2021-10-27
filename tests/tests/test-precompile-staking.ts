@@ -120,9 +120,9 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     expect(
       (
         delegatorsAfter.toJSON() as {
-          nominations: { owner: string; amount: string }[];
+          delegations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner
+      ).delegations[0].owner
     ).to.equal(ALITH.toLowerCase(), "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
 
