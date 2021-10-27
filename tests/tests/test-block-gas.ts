@@ -54,10 +54,10 @@ describeDevMoonbeam("Block Gas - fill block with balance transfers", (context) =
     console.log("maximum number of balance transfers: ", numTransfers);
 
     // precondition: testAccount should have 0 balance
-    expect(await context.web3.eth.getBalance(testAccount, 0)).to.equal('0');
+    expect(await context.web3.eth.getBalance(testAccount, 0)).to.equal("0");
 
     let transactions = [];
-    for (let i=0; i<numTransfers; i++) {
+    for (let i = 0; i < numTransfers; i++) {
       let txn = await createTransfer(context.web3, testAccount, 1, { nonce: i });
       transactions.push(txn);
     }
@@ -67,9 +67,8 @@ describeDevMoonbeam("Block Gas - fill block with balance transfers", (context) =
     let start = Date.now();
     await context.createBlock({ transactions });
     let elapsed = Date.now() - start;
-    console.log("block took: "+ elapsed);
+    console.log("block took: " + elapsed);
 
-    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(""+numTransfers);
-
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal("" + numTransfers);
   });
 });
