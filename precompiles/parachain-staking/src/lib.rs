@@ -48,8 +48,6 @@ enum Action {
 	CandidateCount = "candidate_count()",
 	CollatorNominationCount = "collator_nomination_count(address)",
 	NominatorNominationCount = "nominator_nomination_count(address)",
-	// DEPRECATED
-	IsNominator = "is_delegator(address)",
 	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
@@ -106,7 +104,6 @@ where
 				return Self::nominator_nomination_count(input, target_gas)
 			}
 			// role verifiers
-			Action::IsNominator => return Self::is_delegator(input, target_gas),
 			Action::IsDelegator => return Self::is_delegator(input, target_gas),
 			Action::IsCandidate => return Self::is_candidate(input, target_gas),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
