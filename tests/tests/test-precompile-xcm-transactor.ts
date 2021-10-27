@@ -167,7 +167,10 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     expect(tx_call.result).to.equal(
       "0x0000000000000000000000000000000000000000000000000000000000000000" +
-        "000000000000000000000000000000000000000000000000000009184e72a000"
+        "0000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000000000000000000000000000000000000001"
     );
   });
 
@@ -205,14 +208,13 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // we dont care, the call wont be executed
     let transact_call = new Uint8Array([0x01]);
     // weight
-    let weight = 100;
+    let weight = 1000;
     // Call the precompile
     let data = iFace.encodeFunctionData(
       // action
       "transact_through_derivative_multilocation",
       [transactor, index, asset, weight, transact_call]
     );
-
     const tx = await createTransaction(context.web3, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
@@ -305,7 +307,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // we dont care, the call wont be executed
     let transact_call = new Uint8Array([0x01]);
     // weight
-    let weight = 100;
+    let weight = 1000;
     // Call the precompile
     let data = iFace.encodeFunctionData(
       // action
