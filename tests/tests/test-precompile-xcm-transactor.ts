@@ -102,7 +102,10 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelay,
           new BN(0),
-          new BN(10000000000000)
+          new BN(0),
+          new BN(0),
+          new BN(1),
+          new BN(0),
         )
       )
       .signAndSend(sudoAccount);
@@ -250,14 +253,17 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     await context.createBlock();
 
     await context.polkadotApi.tx.sudo
-      .sudo(
-        context.polkadotApi.tx.xcmTransactor.setTransactInfo(
-          sourceLocationRelay,
-          new BN(0),
-          new BN(10000000000000)
-        )
+    .sudo(
+      context.polkadotApi.tx.xcmTransactor.setTransactInfo(
+        sourceLocationRelay,
+        new BN(0),
+        new BN(0),
+        new BN(0),
+        new BN(1),
+        new BN(0),
       )
-      .signAndSend(sudoAccount);
+    )
+    .signAndSend(sudoAccount);
     await context.createBlock();
 
     const contractData = await getCompiled("XcmTransactorInstance");

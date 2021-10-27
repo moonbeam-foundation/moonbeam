@@ -662,9 +662,10 @@ fn transact_through_derivative_multilocation() {
 			MultiLocation::parent(),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
-			// This means we need around 3 tokens + whatever we put as weight for the
-			// transact call
-			1_000_000_000u128
+			0,
+			0,
+			1,
+			0
 		));
 	});
 
@@ -676,19 +677,19 @@ fn transact_through_derivative_multilocation() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		// 4000000000 transact + 3000 correspond to 4000003 tokens. 100 more for the transfer call
+		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(dest.clone().into()),
-			Box::new((Here, 4000103).into()),
+			Box::new((Here, 4000003100).into()),
 			0,
 		));
 	});
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000103);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003100);
 	});
 
 	// Register address
@@ -724,14 +725,14 @@ fn transact_through_derivative_multilocation() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003000);
 	});
 
 	// What we will do now is transfer this relay tokens from the derived account to the sovereign
 	// again
 	Relay::execute_with(|| {
 		// free execution,x	 full amount received
-		assert!(RelayBalances::free_balance(&para_a_account()) == 4000003);
+		assert!(RelayBalances::free_balance(&para_a_account()) == 4000003000);
 	});
 
 	// Encode the call. Balances transact to para_a_account
@@ -758,7 +759,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::MockTransactors::Relay,
 			0,
 			MultiLocation::parent(),
-			// 4000000000 + 3000 we should have taken out 4000003 tokens from the caller
+			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
 			4000000000,
 			encoded,
 		));
@@ -803,8 +804,10 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			MultiLocation::parent(),
 			3000,
-			// 1-1 with weight
-			1_000_000_000u128
+			0,
+			0,
+			1,
+			0
 		));
 	});
 
@@ -818,14 +821,14 @@ fn transact_through_sovereign() {
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(dest.clone().into()),
-			Box::new((Here, 4000103).into()),
+			Box::new((Here, 4000003100).into()),
 			0,
 		));
 	});
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000103);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003100);
 	});
 
 	// Register address
@@ -860,14 +863,14 @@ fn transact_through_sovereign() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003000);
 	});
 
 	// What we will do now is transfer this relay tokens from the derived account to the sovereign
 	// again
 	Relay::execute_with(|| {
 		// free execution,x	 full amount received
-		assert!(RelayBalances::free_balance(&para_a_account()) == 4000003);
+		assert!(RelayBalances::free_balance(&para_a_account()) == 4000003000);
 		0
 	});
 
@@ -912,7 +915,6 @@ fn transact_through_sovereign() {
 	});
 
 	Relay::execute_with(|| {
-		println!("{:?}", relay_chain::relay_events());
 		// free execution,x	 full amount received
 		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
 

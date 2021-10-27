@@ -74,7 +74,7 @@ decl_test_network! {
 	}
 }
 
-pub const INITIAL_BALANCE: u128 = 1_000_000_000;
+pub const INITIAL_BALANCE: u128 = 10_000_000_000_000_000;
 
 pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	use parachain::{MsgQueue, Runtime, System};

@@ -198,11 +198,3 @@ construct_runtime!(
 		Utility: pallet_utility::{Pallet, Call, Event},
 	}
 );
-
-pub fn relay_events() -> Vec<Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| Some(e))
-		.collect::<Vec<_>>()
-}
