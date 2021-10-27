@@ -238,7 +238,7 @@ pub mod pallet {
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
-			let who = ensure_signed(origin.clone())?;
+			let who = ensure_signed(origin)?;
 
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
@@ -252,7 +252,7 @@ pub mod pallet {
 				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			// Grab the destination
-			let dest = dest.clone().destination();
+			let dest = dest.destination();
 
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
@@ -292,11 +292,10 @@ pub mod pallet {
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
-			let who = ensure_signed(origin.clone())?;
+			let who = ensure_signed(origin)?;
 
-			let fee_location: MultiLocation =
-				T::CurrencyIdToMultiLocation::convert(currency_id.clone())
-					.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+			let fee_location: MultiLocation = T::CurrencyIdToMultiLocation::convert(currency_id)
+				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
@@ -310,7 +309,7 @@ pub mod pallet {
 				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			// Grab the destination
-			let dest = dest.clone().destination();
+			let dest = dest.destination();
 
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
@@ -431,7 +430,7 @@ pub mod pallet {
 			Self::transfer_allowed(&fee, &dest)?;
 
 			// Convert origin to multilocation
-			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer.clone());
+			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
 
 			// Construct the local withdraw message with the previous calculated amount
 			// This message deducts and burns "amount" from the caller when executed
@@ -464,17 +463,11 @@ pub mod pallet {
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
-			let transact_message: Xcm<()> = Self::transact_message(
-				dest.clone(),
-				fee.clone(),
-				total_weight,
-				call.clone(),
-				dest_weight,
-			)?;
+			let transact_message: Xcm<()> =
+				Self::transact_message(dest.clone(), fee, total_weight, call, dest_weight)?;
 
 			// Send to sovereign
-			T::XcmSender::send_xcm(dest.clone(), transact_message)
-				.map_err(|_| Error::<T>::ErrorSending)?;
+			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
 
 			Ok(())
 		}
@@ -488,11 +481,11 @@ pub mod pallet {
 		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
 				Self::sovereign_withdraw(asset.clone(), &dest)?,
-				Self::buy_execution(asset.clone(), &dest, dest_weight)?,
+				Self::buy_execution(asset, &dest, dest_weight)?,
 				Transact {
 					origin_type: OriginKind::SovereignAccount,
 					require_weight_at_most: dispatch_weight,
-					call: call.clone().into(),
+					call: call.into(),
 				},
 			]))
 		}
@@ -565,13 +558,13 @@ pub mod pallet {
 			index: &u16,
 			dest: &T::Transactor,
 			weight: &u64,
-			call: &Vec<u8>,
+			call: &[u8],
 		) -> Weight {
 			let call_bytes: Vec<u8> =
 				dest.clone()
 					.encode_call(UtilityAvailableCalls::AsDerivative(
-						index.clone(),
-						call.clone(),
+						index.to_owned(),
+						call.to_owned(),
 					));
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -582,8 +575,8 @@ pub mod pallet {
 				dest.clone().destination(),
 				fee.clone(),
 				weight.clone(),
-				call_bytes.clone(),
-				weight.clone(),
+				call_bytes,
+				weight.to_owned(),
 			) {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
