@@ -714,7 +714,7 @@ export const contractSources: { [key: string]: string } = {
          */
         function transact_info(
             Multilocation memory multilocation) 
-        external view returns(uint256, uint64);
+        external view  returns(uint64, uint256, uint64, uint64, uint256);
 
         /** Transact through XCM using fee based on its multilocation
          *
@@ -765,7 +765,7 @@ export const contractSources: { [key: string]: string } = {
 
         function transact_info(
             Multilocation memory multilocation
-        ) external view override returns(uint256, uint64) {
+        ) external view override returns(uint64, uint256, uint64, uint64, uint256) {
             // We nominate our target collator with all the tokens provided
             return xcmtransactor.transact_info(multilocation);
         }
