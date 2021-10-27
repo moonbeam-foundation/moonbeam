@@ -62,9 +62,9 @@ pub mod pallet {
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
+	use sp_std::borrow::ToOwned;
 	use sp_std::prelude::*;
 	use xcm::latest::prelude::*;
-
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
