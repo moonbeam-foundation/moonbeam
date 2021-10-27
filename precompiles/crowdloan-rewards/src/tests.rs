@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
-	Precompiles, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
+	Precompiles, Runtime, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
 };
 use crate::{Action, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -26,6 +26,18 @@ use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
+
+fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
+	EvmCall::call {
+		source: Alice.into(),
+		target: precompile_address(),
+		input,
+		value: U256::zero(), // No value sent in EVM
+		gas_limit: u64::max_value(),
+		gas_price: 0.into(),
+		nonce: None, // Use the next nonce
+	}
+}
 
 #[test]
 fn test_selector_enum() {
@@ -99,9 +111,7 @@ fn is_contributor_returns_false() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -133,10 +143,12 @@ fn is_contributor_returns_true() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32], Some(Alice), 50u32.into()),
-				([2u8; 32], Some(Bob), 50u32.into()),
-			]))
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
+				rewards: vec![
+					([1u8; 32], Some(Alice), 50u32.into()),
+					([2u8; 32], Some(Bob), 50u32.into()),
+				]
+			})
 			.dispatch(Origin::root()));
 
 			assert_ok!(Crowdloan::complete_initialization(
@@ -144,9 +156,7 @@ fn is_contributor_returns_true() {
 				init_block + VESTING
 			));
 
-			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -175,10 +185,12 @@ fn claim_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32].into(), Some(Alice), 50u32.into()),
-				([2u8; 32].into(), Some(Bob), 50u32.into()),
-			]))
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
+				rewards: vec![
+					([1u8; 32].into(), Some(Alice), 50u32.into()),
+					([2u8; 32].into(), Some(Bob), 50u32.into()),
+				]
+			})
 			.dispatch(Origin::root()));
 
 			assert_ok!(Crowdloan::complete_initialization(
@@ -188,20 +200,10 @@ fn claim_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"claim()")[0..4];
-			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
+			let input = EvmDataWriter::new_with_selector(Action::Claim).build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice, 25).into();
 			// Assert that the events vector contains the one expected
@@ -221,10 +223,12 @@ fn reward_info_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32].into(), Some(Alice), 50u32.into()),
-				([2u8; 32].into(), Some(Bob), 50u32.into()),
-			]))
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
+				rewards: vec![
+					([1u8; 32].into(), Some(Alice), 50u32.into()),
+					([2u8; 32].into(), Some(Bob), 50u32.into()),
+				]
+			})
 			.dispatch(Origin::root()));
 
 			assert_ok!(Crowdloan::complete_initialization(
@@ -234,9 +238,7 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::RewardInfo)
 				.write(Address(H160::from(Alice)))
 				.build();
 
@@ -268,10 +270,12 @@ fn update_reward_address_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32].into(), Some(Alice), 50u32.into()),
-				([2u8; 32].into(), Some(Bob), 50u32.into()),
-			]))
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
+				rewards: vec![
+					([1u8; 32].into(), Some(Alice), 50u32.into()),
+					([2u8; 32].into(), Some(Bob), 50u32.into()),
+				]
+			})
 			.dispatch(Origin::root()));
 
 			assert_ok!(Crowdloan::complete_initialization(
@@ -281,23 +285,12 @@ fn update_reward_address_works() {
 
 			roll_to(5);
 
-			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
+			let input = EvmDataWriter::new_with_selector(Action::UpdateRewardAddress)
 				.write(Address(H160::from(Charlie)))
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				CrowdloanEvent::RewardAddressUpdated(Alice, Charlie).into();
@@ -316,11 +309,8 @@ fn test_bound_checks_for_address_parsing() {
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(&selector)
-				.write_raw_bytes(&[1u8; 4]) // incomplete data
-				.build();
+			let mut input = Keccak256::digest(b"update_reward_address(address)")[0..4].to_vec();
+			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),

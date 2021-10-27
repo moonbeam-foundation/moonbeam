@@ -33,8 +33,12 @@ pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use sc_service::BasePath;
-use std::{collections::BTreeMap, sync::Mutex, time::Duration};
-mod rpc;
+use std::{
+	collections::{BTreeMap, HashMap},
+	sync::Mutex,
+	time::Duration,
+};
+pub mod rpc;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -45,8 +49,7 @@ use cumulus_primitives_parachain_inherent::{
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
 
-pub use sc_executor::NativeExecutor;
-use sc_executor::{native_executor_instance, NativeExecutionDispatch};
+use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
@@ -61,42 +64,63 @@ mod client;
 
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
-type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+type FullClient<RuntimeApi, Executor> =
+	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
-#[cfg(feature = "moonbeam-native")]
-native_executor_instance!(
-	pub MoonbeamExecutor,
-	moonbeam_runtime::api::dispatch,
-	moonbeam_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
+pub type HostFunctions = (
+	frame_benchmarking::benchmarking::HostFunctions,
+	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
+
+#[cfg(feature = "moonbeam-native")]
+pub struct MoonbeamExecutor;
+
+#[cfg(feature = "moonbeam-native")]
+impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonbeam_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonbeam_runtime::native_version()
+	}
+}
 
 #[cfg(feature = "moonriver-native")]
-native_executor_instance!(
-	pub MoonriverExecutor,
-	moonriver_runtime::api::dispatch,
-	moonriver_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
-);
+pub struct MoonriverExecutor;
+
+#[cfg(feature = "moonriver-native")]
+impl sc_executor::NativeExecutionDispatch for MoonriverExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonriver_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonriver_runtime::native_version()
+	}
+}
 
 #[cfg(feature = "moonbase-native")]
-native_executor_instance!(
-	pub MoonbaseExecutor,
-	moonbase_runtime::api::dispatch,
-	moonbase_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
-);
+pub struct MoonbaseExecutor;
+
+#[cfg(feature = "moonbase-native")]
+impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		moonbase_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		moonbase_runtime::native_version()
+	}
+}
 
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the `Moonbeam` network.
@@ -234,16 +258,16 @@ pub fn new_partial<RuntimeApi, Executor>(
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
-		TFullClient<Block, RuntimeApi, Executor>,
+		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
 				Block,
-				Arc<TFullClient<Block, RuntimeApi, Executor>>,
-				TFullClient<Block, RuntimeApi, Executor>,
+				Arc<FullClient<RuntimeApi, Executor>>,
+				FullClient<RuntimeApi, Executor>,
 			>,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -271,10 +295,17 @@ where
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<Executor>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
-			&config,
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 
 	let client = Arc::new(client);
@@ -391,13 +422,13 @@ impl TransactionConverters {
 	}
 }
 
-impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
+impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 	for TransactionConverters
 {
 	fn convert_transaction(
 		&self,
 		transaction: ethereum_primitives::TransactionV0,
-	) -> moonbeam_core_primitives::UncheckedExtrinsic {
+	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
@@ -418,7 +449,7 @@ async fn start_node_impl<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
-) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -523,18 +554,19 @@ where
 			};
 
 			let deps = rpc::FullDeps {
-				client: client.clone(),
-				pool: pool.clone(),
-				graph: pool.pool().clone(),
-				deny_unsafe,
-				is_authority: collator,
-				network: network.clone(),
-				filter_pool: filter_pool.clone(),
-				ethapi_cmd: ethapi_cmd.clone(),
-				command_sink: None,
-				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
+				client: client.clone(),
+				command_sink: None,
+				deny_unsafe,
+				ethapi_cmd: ethapi_cmd.clone(),
+				eth_log_block_cache: rpc_config.eth_log_block_cache,
+				filter_pool: filter_pool.clone(),
+				frontier_backend: frontier_backend.clone(),
+				graph: pool.pool().clone(),
+				pool: pool.clone(),
+				is_authority: collator,
 				max_past_logs,
+				network: network.clone(),
 				transaction_converter,
 			};
 			#[allow(unused_mut)]
@@ -656,7 +688,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
-) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -868,18 +900,19 @@ where
 			};
 
 			let deps = rpc::FullDeps {
-				client: client.clone(),
-				pool: pool.clone(),
-				graph: pool.pool().clone(),
-				deny_unsafe,
-				is_authority: collator,
-				network: network.clone(),
-				filter_pool: filter_pool.clone(),
-				ethapi_cmd: ethapi_cmd.clone(),
-				command_sink: command_sink.clone(),
-				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
+				client: client.clone(),
+				command_sink: command_sink.clone(),
+				deny_unsafe,
+				ethapi_cmd: ethapi_cmd.clone(),
+				eth_log_block_cache: rpc_config.eth_log_block_cache,
+				filter_pool: filter_pool.clone(),
+				frontier_backend: frontier_backend.clone(),
+				graph: pool.pool().clone(),
+				pool: pool.clone(),
+				is_authority: collator,
 				max_past_logs,
+				network: network.clone(),
 				transaction_converter,
 			};
 			#[allow(unused_mut)]

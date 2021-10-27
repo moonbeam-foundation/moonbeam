@@ -69,7 +69,6 @@ fn receive_relay_asset_from_relay() {
 			Box::new(dest.clone().into()),
 			Box::new((Here, 123).into()),
 			0,
-			123,
 		));
 	});
 
@@ -121,7 +120,6 @@ fn send_relay_asset_to_relay() {
 			Box::new(dest.clone().into()),
 			Box::new((Here, 123).into()),
 			0,
-			123,
 		));
 	});
 
@@ -218,7 +216,6 @@ fn send_relay_asset_to_para_b() {
 			Box::new(dest.clone().into()),
 			Box::new((Here, 123).into()),
 			0,
-			123,
 		));
 	});
 
@@ -382,7 +379,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(dest),
-			800000
+			80
 		));
 	});
 
@@ -417,13 +414,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
 			Box::new(dest),
-			800000
+			80
 		));
 	});
 
+	// The message passed through parachainA so we needed to pay since its the native token
 	ParaC::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 96);
 	});
 }
 
@@ -472,7 +470,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(dest),
-			4000
+			80
 		));
 	});
 
@@ -506,15 +504,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
 			Box::new(dest),
-			4000
+			80
 		));
 	});
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
+		// Weight used is 4
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE
+			INITIAL_BALANCE - 4
 		);
 	});
 }
@@ -545,7 +544,7 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
-			1_000_000u128
+			2500000000000u128
 		));
 	});
 
@@ -555,7 +554,9 @@ fn receive_relay_asset_with_trader() {
 	}
 	.into();
 	// We are sending 100 tokens from relay.
-	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
+	// Amount spent in fees is Units per second * weight / 1_000_000_000_000 (weight per second)
+	// weight is 4 since we are executing 4 instructions with a unitweightcost of 1.
+	// Units per second should be 2_500_000_000_000_000
 	// Therefore with no refund, we should receive 10 tokens less
 	// Native trader fails for this, and we use the asset trader
 	Relay::execute_with(|| {
@@ -565,7 +566,6 @@ fn receive_relay_asset_with_trader() {
 			Box::new(dest.clone().into()),
 			Box::new((Here, 100).into()),
 			0,
-			10_000_000u64,
 		));
 	});
 
@@ -606,7 +606,7 @@ fn error_when_not_paying_enough() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_id,
-			1_000_000u128
+			2500000000000u128
 		));
 	});
 
@@ -620,7 +620,6 @@ fn error_when_not_paying_enough() {
 			Box::new(dest.clone().into()),
 			Box::new((Here, 5).into()),
 			0,
-			10_000_000u64,
 		));
 	});
 

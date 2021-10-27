@@ -163,9 +163,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		match &input.read_selector()? {
+		match selector {
 			Action::TotalSupply => Self::total_supply(input, target_gas),
 			Action::BalanceOf => Self::balance_of(input, target_gas),
 			Action::Allowance => Self::allowance(input, target_gas),
@@ -328,10 +328,10 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer(
-					Runtime::Lookup::unlookup(to),
-					amount,
-				),
+				pallet_balances::Call::<Runtime, Instance>::transfer {
+					dest: Runtime::Lookup::unlookup(to),
+					value: amount,
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -398,10 +398,10 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(from).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer(
-					Runtime::Lookup::unlookup(to),
-					amount,
-				),
+				pallet_balances::Call::<Runtime, Instance>::transfer {
+					dest: Runtime::Lookup::unlookup(to),
+					value: amount,
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
