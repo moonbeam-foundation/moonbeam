@@ -115,7 +115,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
 
   it("should successfully call delegate on ALITH", async function () {
     const delegatorsAfter = (
-      (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
+      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
     ).unwrap();
     expect(
       (
