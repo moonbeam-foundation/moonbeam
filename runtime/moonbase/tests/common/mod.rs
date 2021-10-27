@@ -23,10 +23,11 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNIT, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::UNIT, AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances,
+	Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
+use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
 use sp_core::H160;
@@ -73,10 +74,11 @@ pub fn evm_test_context() -> evm::Context {
 		apparent_value: From::from(0),
 	}
 }
-
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
+	// [asset, Vec<Account, Balance>]
+	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
@@ -91,6 +93,8 @@ pub struct ExtBuilder {
 	chain_id: u64,
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
+	// [assettype, metadata, Vec<Account, Balance>]
+	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
 }
 
 impl Default for ExtBuilder {
@@ -98,6 +102,7 @@ impl Default for ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
 			nominations: vec![],
+			assets: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -122,6 +127,7 @@ impl Default for ExtBuilder {
 			crowdloan_fund: 0,
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
+			xcm_assets: vec![],
 		}
 	}
 }
@@ -144,6 +150,19 @@ impl ExtBuilder {
 
 	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominations = nominations;
+		self
+	}
+
+	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
+		self.assets = assets;
+		self
+	}
+
+	pub fn with_xcm_assets(
+		mut self,
+		xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	) -> Self {
+		self.xcm_assets = xcm_assets;
 		self
 	}
 
@@ -215,9 +234,35 @@ impl ExtBuilder {
 			&mut t,
 		)
 		.unwrap();
-
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+
+		let assets = self.assets.clone();
+		let xcm_assets = self.xcm_assets.clone();
+
+		ext.execute_with(|| {
+			// If any assets specified, we create them here
+			for (asset_id, balances) in assets.clone() {
+				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+				for (account, balance) in balances {
+					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+				}
+			}
+			// If any xcm assets specified, we register them here
+			for (asset_type, metadata, balances) in xcm_assets.clone() {
+				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
+					.unwrap();
+				for (account, balance) in balances {
+					Assets::mint(
+						origin_of(AssetManager::account_id()),
+						asset_type.clone().into(),
+						account,
+						balance,
+					)
+					.unwrap();
+				}
+			}
+			System::set_block_number(1);
+		});
 		ext
 	}
 }
@@ -245,7 +290,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 pub fn set_author(a: NimbusId) {
 	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
 			.dispatch(inherent_origin())
 	);
 }
@@ -270,9 +315,9 @@ pub fn set_parachain_inherent_data() {
 		horizontal_messages: Default::default(),
 	};
 	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
 	)
 	.dispatch(inherent_origin()));
 }

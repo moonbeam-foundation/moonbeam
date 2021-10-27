@@ -37,6 +37,8 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod migrations;
+
 #[pallet]
 pub mod pallet {
 	use crate::WeightInfo;
@@ -49,7 +51,7 @@ pub mod pallet {
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
-	#[derive(Encode, Decode, PartialEq, Eq)]
+	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	pub struct RegistrationInfo<AccountId, Balance> {
 		account: AccountId,
 		deposit: Balance,
@@ -237,9 +239,9 @@ pub mod pallet {
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
 	/// to the AccountIds runtime (including this staking pallet).
-	type MappingWithDeposit<T: Config> = StorageMap<
+	pub type MappingWithDeposit<T: Config> = StorageMap<
 		_,
-		Twox64Concat,
+		Blake2_128Concat,
 		T::AuthorId,
 		RegistrationInfo<T::AccountId, BalanceOf<T>>,
 		OptionQuery,

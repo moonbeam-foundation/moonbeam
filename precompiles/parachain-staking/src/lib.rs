@@ -31,7 +31,6 @@ use pallet_evm::Precompile;
 use precompile_utils::{
 	error, Address, EvmData, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper,
 };
-use sp_core::H160;
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -77,7 +76,6 @@ pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -88,9 +86,10 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+
 		// Return early if storage getter; return (origin, call) if dispatchable
-		let (origin, call) = match &input.read_selector()? {
+		let (origin, call) = match selector {
 			// constants
 			Action::MinNomination => return Self::min_nomination(target_gas),
 			// storage getters
@@ -137,7 +136,6 @@ where
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -216,7 +214,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -256,7 +254,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -299,7 +297,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -322,7 +320,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -345,7 +343,7 @@ where
 
 		// Read input.
 		input.expect_arguments(1)?;
-		let address: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -374,13 +372,15 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_candidate_count = input.read()?;
+		let bond: BalanceOf<Runtime> = input.read()?;
+		let candidate_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			parachain_staking::Call::<Runtime>::join_candidates(amount, collator_candidate_count);
+		let call = parachain_staking::Call::<Runtime>::join_candidates {
+			bond,
+			candidate_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -398,11 +398,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let collator_candidate_count = input.read()?;
+		let candidate_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_candidates(collator_candidate_count);
+		let call = parachain_staking::Call::<Runtime>::leave_candidates { candidate_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -419,7 +419,7 @@ where
 	> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_offline();
+		let call = parachain_staking::Call::<Runtime>::go_offline {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -436,7 +436,7 @@ where
 	> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_online();
+		let call = parachain_staking::Call::<Runtime>::go_online {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -454,11 +454,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_more(amount);
+		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -476,11 +476,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_less(amount);
+		let call = parachain_staking::Call::<Runtime>::candidate_bond_less { less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -498,19 +498,19 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(4)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_nomination_count = input.read()?;
-		let nominator_nomination_count = input.read()?;
+		let collator_nominator_count = input.read()?;
+		let nomination_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominate(
+		let call = parachain_staking::Call::<Runtime>::nominate {
 			collator,
 			amount,
-			collator_nomination_count,
-			nominator_nomination_count,
-		);
+			collator_nominator_count,
+			nomination_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -532,7 +532,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_nominators(nomination_count);
+		let call = parachain_staking::Call::<Runtime>::leave_nominators { nomination_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -550,11 +550,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
+		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::revoke_nomination(collator);
+		let call = parachain_staking::Call::<Runtime>::revoke_nomination { collator };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -572,12 +572,12 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_more(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::nominator_bond_more { candidate, more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -595,12 +595,12 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(2)?;
-		let collator: Runtime::AccountId = input.read::<Address>()?.0.into();
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_less(collator, amount);
+		let call = parachain_staking::Call::<Runtime>::nominator_bond_less { candidate, less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))

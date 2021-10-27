@@ -13,6 +13,7 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     expect(txResults[0].result).to.not.be.null;
+
     const receipt = await context.web3.eth.getTransaction(txResults[0].result);
     expect(receipt.blockHash).to.be.not.null;
   });
@@ -40,7 +41,6 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "CheckBlockVariables");
     await context.createBlock({ transactions: [rawTx] });
 
-    //console.log("gaslimit", await contract.methods.gaslimit().call());
     expect((await contract.methods.gaslimit().call()) !== "0").to.eq(true);
   });
 });

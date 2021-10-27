@@ -15,10 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H160;
-use futures::{compat::Compat, future::BoxFuture};
+use futures::future::BoxFuture;
 use jsonrpc_derive::rpc;
-pub use moonbeam_rpc_primitives_debug::block::TransactionTrace;
-use serde::{de::Error, Deserialize, Deserializer};
+use moonbeam_client_evm_tracing::types::block::TransactionTrace;
+use moonbeam_rpc_core_types::RequestBlockId;
+use serde::Deserialize;
 
 pub use rpc_impl_Trace::gen_server::Trace as TraceServer;
 
@@ -28,7 +29,7 @@ pub trait Trace {
 	fn filter(
 		&self,
 		filter: FilterRequest,
-	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>>;
+	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
@@ -51,33 +52,4 @@ pub struct FilterRequest {
 
 	/// (optional) Integer number of traces to display in a batch.
 	pub count: Option<u32>,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize)]
-#[serde(rename_all = "camelCase", untagged)]
-pub enum RequestBlockId {
-	Number(#[serde(deserialize_with = "deserialize_u32_0x")] u32),
-	Tag(RequestBlockTag),
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum RequestBlockTag {
-	Earliest,
-	Latest,
-	Pending,
-}
-
-fn deserialize_u32_0x<'de, D>(deserializer: D) -> Result<u32, D::Error>
-where
-	D: Deserializer<'de>,
-{
-	let buf = String::deserialize(deserializer)?;
-
-	let parsed = match buf.strip_prefix("0x") {
-		Some(buf) => u32::from_str_radix(&buf, 16),
-		None => u32::from_str_radix(&buf, 10),
-	};
-
-	parsed.map_err(|e| Error::custom(format!("parsing error: {:?} from '{}'", e, buf)))
 }

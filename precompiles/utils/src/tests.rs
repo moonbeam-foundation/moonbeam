@@ -15,12 +15,22 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use hex_literal::hex;
 use sp_core::{H256, U256};
 
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
 
 	U256::from_big_endian(value.as_bytes())
+}
+
+// When debugging it is useful to display data in chunks of 32 bytes.
+#[allow(dead_code)]
+fn display_bytes(bytes: &[u8]) {
+	bytes
+		.chunks_exact(32)
+		.map(|chunk| H256::from_slice(chunk))
+		.for_each(|hash| println!("{:?}", hash));
 }
 
 #[test]
@@ -127,12 +137,10 @@ fn read_selector() {
 	}
 
 	let selector = &Keccak256::digest(b"action1()")[0..4];
-	let mut reader = EvmDataReader::new(selector);
+	let (_, parsed_selector) =
+		EvmDataReader::new_with_selector::<FakeAction>(selector).expect("there is a selector");
 
-	assert_eq!(
-		reader.read_selector::<FakeAction>().unwrap(),
-		FakeAction::Action1
-	)
+	assert_eq!(parsed_selector, FakeAction::Action1)
 }
 
 #[test]
@@ -346,7 +354,7 @@ fn read_address_array_size_too_big() {
 		Address(H160::repeat_byte(0x44)),
 		Address(H160::repeat_byte(0x55)),
 	];
-	let mut writer_output = EvmDataWriter::new().write(array.clone()).build();
+	let mut writer_output = EvmDataWriter::new().write(array).build();
 
 	U256::from(6).to_big_endian(&mut writer_output[0x20..0x40]);
 
@@ -374,21 +382,13 @@ fn write_address_nested_array() {
 	let writer_output = EvmDataWriter::new().write(array.clone()).build();
 	assert_eq!(writer_output.len(), 0x160);
 
-	writer_output
-		.chunks_exact(32)
-		.map(|chunk| H256::from_slice(chunk))
-		.for_each(|hash| println!("{:?}", hash));
-
 	// We can read this "manualy" using simpler functions since arrays are 32-byte aligned.
 	let mut reader = EvmDataReader::new(&writer_output);
 
 	assert_eq!(reader.read::<U256>().expect("read offset"), 0x20.into()); // 0x00
 	assert_eq!(reader.read::<U256>().expect("read size"), 2.into()); // 0x20
-	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x80.into()); // 0x40
-	assert_eq!(
-		reader.read::<U256>().expect("read 2st offset"),
-		0x100.into()
-	); // 0x60
+	assert_eq!(reader.read::<U256>().expect("read 1st offset"), 0x40.into()); // 0x40
+	assert_eq!(reader.read::<U256>().expect("read 2st offset"), 0xc0.into()); // 0x60
 	assert_eq!(reader.read::<U256>().expect("read 1st size"), 3.into()); // 0x80
 	assert_eq!(reader.read::<Address>().expect("read 1-1"), array[0][0]); // 0xA0
 	assert_eq!(reader.read::<Address>().expect("read 1-2"), array[0][1]); // 0xC0
@@ -481,4 +481,261 @@ fn read_multiple_arrays() {
 
 	let parsed: Vec<H256> = reader.read().expect("to correctly parse Vec<H256>");
 	assert_eq!(array2, parsed);
+}
+
+#[test]
+fn read_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+	let writer_output = EvmDataWriter::new().write(Bytes::from(&data[..])).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Bytes = reader.read().expect("to correctly parse Bytes");
+
+	assert_eq!(data, parsed.as_bytes());
+}
+
+#[test]
+fn write_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new().write(Bytes::from(&data[..])).build();
+
+	// We can read this "manualy" using simpler functions.
+	let mut reader = EvmDataReader::new(&writer_output);
+
+	// We pad data to a multiple of 32 bytes.
+	let mut padded = data.to_vec();
+	assert!(data.len() < 0x80);
+	padded.resize(0x80, 0);
+
+	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+}
+
+#[test]
+fn read_string() {
+	let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+	let writer_output = EvmDataWriter::new().write(Bytes::from(data)).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Bytes = reader.read().expect("to correctly parse Bytes");
+
+	assert_eq!(data, parsed.as_str().expect("valid utf8"));
+}
+
+#[test]
+fn write_string() {
+	let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new().write(Bytes::from(data)).build();
+
+	// We can read this "manualy" using simpler functions.
+	let mut reader = EvmDataReader::new(&writer_output);
+
+	// We pad data to next multiple of 32 bytes.
+	let mut padded = data.as_bytes().to_vec();
+	assert!(data.len() < 0x80);
+	padded.resize(0x80, 0);
+
+	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+}
+
+#[test]
+fn write_vec_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new()
+		.write(vec![Bytes::from(&data[..]), Bytes::from(&data[..])])
+		.build();
+
+	writer_output
+		.chunks_exact(32)
+		.map(|chunk| H256::from_slice(chunk))
+		.for_each(|hash| println!("{:?}", hash));
+
+	// We pad data to a multiple of 32 bytes.
+	let mut padded = data.to_vec();
+	assert!(data.len() < 0x80);
+	padded.resize(0x80, 0);
+
+	let mut reader = EvmDataReader::new(&writer_output);
+
+	// Offset of vec
+	assert_eq!(reader.read::<U256>().expect("read offset"), 32.into());
+
+	// Length of vec
+	assert_eq!(reader.read::<U256>().expect("read offset"), 2.into());
+
+	// Relative offset of first bytes object
+	assert_eq!(reader.read::<U256>().expect("read offset"), 0x40.into());
+	// Relative offset of second bytes object
+	assert_eq!(reader.read::<U256>().expect("read offset"), 0xe0.into());
+
+	// Length of first bytes object
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+
+	// First byte objects data
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+
+	// Length of second bytes object
+	assert_eq!(reader.read::<U256>().expect("read size"), data.len().into());
+
+	// Second byte objects data
+	let mut read = |e| reader.read::<H256>().expect(e); // shorthand
+	assert_eq!(read("read part 1"), H256::from_slice(&padded[0x00..0x20]));
+	assert_eq!(read("read part 2"), H256::from_slice(&padded[0x20..0x40]));
+	assert_eq!(read("read part 3"), H256::from_slice(&padded[0x40..0x60]));
+	assert_eq!(read("read part 4"), H256::from_slice(&padded[0x60..0x80]));
+}
+
+#[test]
+fn read_vec_of_bytes() {
+	let data = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\
+	tempor incididunt ut labore et dolore magna aliqua.";
+
+	let writer_output = EvmDataWriter::new()
+		.write(vec![Bytes::from(&data[..]), Bytes::from(&data[..])])
+		.build();
+
+	writer_output
+		.chunks_exact(32)
+		.map(|chunk| H256::from_slice(chunk))
+		.for_each(|hash| println!("{:?}", hash));
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Vec<Bytes> = reader.read().expect("to correctly parse Vec<u8>");
+
+	assert_eq!(vec![Bytes::from(&data[..]), Bytes::from(&data[..])], parsed);
+}
+
+// The following test parses input data generated by web3 from a Solidity contract.
+// This is important to test on external data since all the above tests can only test consistency
+// between `EvmDataReader` and `EvmDataWriter`.
+//
+// It also provides an example on how to impl `EvmData` for Solidity structs.
+//
+// struct MultiLocation {
+// 	   uint8 parents;
+// 	   bytes [] interior;
+// }
+//
+// function transfer(
+//     address currency_address,
+//     uint256 amount,
+//     MultiLocation memory destination,
+//     uint64 weight
+// ) external;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct MultiLocation {
+	parents: u8,
+	interior: Vec<Bytes>,
+}
+
+impl EvmData for MultiLocation {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		// A struct is a pointer to another area of the input that contains the content.
+		let mut inner_reader = reader.read_pointer()?;
+
+		let parents = inner_reader.read()?;
+		let interior = inner_reader.read()?;
+
+		Ok(MultiLocation { parents, interior })
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		writer.write_pointer(
+			EvmDataWriter::new()
+				.write(value.parents)
+				.write(value.interior)
+				.build(),
+		);
+	}
+}
+
+#[crate::generate_function_selector]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+pub enum Action {
+	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+}
+
+#[test]
+fn read_complex_solidity_function() {
+	// Function call data generated by web3.
+	let data = hex!(
+		"b38c60fa
+		0000000000000000000000000000000000000000000000000000000000000080
+		0000000000000000000000000000000000000000000000000000000000000064
+		00000000000000000000000000000000000000000000000000000000000001a0
+		0000000000000000000000000000000000000000000000000000000000000064
+		0000000000000000000000000000000000000000000000000000000000000001
+		0000000000000000000000000000000000000000000000000000000000000040
+		0000000000000000000000000000000000000000000000000000000000000002
+		0000000000000000000000000000000000000000000000000000000000000040
+		0000000000000000000000000000000000000000000000000000000000000080
+		0000000000000000000000000000000000000000000000000000000000000005
+		00000003e8000000000000000000000000000000000000000000000000000000
+		0000000000000000000000000000000000000000000000000000000000000002
+		0403000000000000000000000000000000000000000000000000000000000000
+		0000000000000000000000000000000000000000000000000000000000000001
+		0000000000000000000000000000000000000000000000000000000000000040
+		0000000000000000000000000000000000000000000000000000000000000001
+		0000000000000000000000000000000000000000000000000000000000000020
+		0000000000000000000000000000000000000000000000000000000000000022
+		0101010101010101010101010101010101010101010101010101010101010101
+		0100000000000000000000000000000000000000000000000000000000000000"
+	);
+
+	let (mut reader, selector) =
+		EvmDataReader::new_with_selector::<Action>(&data).expect("to read selector");
+
+	assert_eq!(selector, Action::TransferMultiAsset);
+	// asset
+	assert_eq!(
+		reader.read::<MultiLocation>().unwrap(),
+		MultiLocation {
+			parents: 1,
+			interior: vec![
+				Bytes::from(&hex!("00000003e8")[..]),
+				Bytes::from(&hex!("0403")[..]),
+			],
+		}
+	);
+
+	// amount
+	assert_eq!(reader.read::<U256>().unwrap(), 100u32.into());
+
+	// destination
+	assert_eq!(
+		reader.read::<MultiLocation>().unwrap(),
+		MultiLocation {
+			parents: 1,
+			interior: vec![Bytes::from(
+				&hex!("01010101010101010101010101010101010101010101010101010101010101010100")[..]
+			)],
+		}
+	);
+
+	// weight
+	assert_eq!(reader.read::<U256>().unwrap(), 100u32.into());
 }

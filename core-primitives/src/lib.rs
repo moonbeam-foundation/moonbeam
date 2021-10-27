@@ -18,18 +18,20 @@
 
 use account::EthereumSignature;
 use sp_runtime::traits::BlakeTwo256;
-pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
+pub use sp_runtime::OpaqueExtrinsic;
 use sp_runtime::{
 	generic,
 	traits::{IdentifyAccount, Verify},
 };
 
-pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
 pub type Signature = EthereumSignature;
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+/// AssetId type
+pub type AssetId = u128;
 /// Balance of an account.
 pub type Balance = u128;
 /// An index to a block.

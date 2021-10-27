@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use ethereum_types::H256;
-use futures::{compat::Compat, future::BoxFuture};
+use futures::future::BoxFuture;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
+use moonbeam_client_evm_tracing::types::single;
+use moonbeam_rpc_core_types::RequestBlockId;
 use serde::Deserialize;
 
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
-pub mod types {
-	pub use moonbeam_rpc_primitives_debug::single;
-}
-
-use crate::types::single;
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -44,5 +41,11 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
+	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>>;
+	#[rpc(name = "debug_traceBlockByNumber", alias("debug_traceBlockByHash"))]
+	fn trace_block(
+		&self,
+		id: RequestBlockId,
+		params: Option<TraceParams>,
+	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>;
 }

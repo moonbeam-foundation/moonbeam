@@ -24,7 +24,6 @@ use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAc
 use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -282,7 +281,11 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 fn txpool_runtime_api_extrinsic_filter() {
 	ExtBuilder::default().build().execute_with(|| {
 		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
+			pallet_balances::Call::<Runtime>::transfer {
+				dest: AccountId::from(BOB),
+				value: 1 * MOVR,
+			}
+			.into(),
 		);
 		let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 		let txpool = <Runtime as TxPoolRuntimeApi<moonriver_runtime::Block>>::extrinsic_filter(
@@ -292,60 +295,4 @@ fn txpool_runtime_api_extrinsic_filter() {
 		assert_eq!(txpool.ready.len(), 1);
 		assert_eq!(txpool.future.len(), 1);
 	});
-}
-
-#[test]
-fn debug_runtime_api_trace_transaction() {
-	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-			.expect("internal H160 is valid; qed"),
-	);
-	ExtBuilder::default()
-		.with_balances(vec![
-			(alith, 2_000 * MOVR),
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
-			);
-			let transaction = ethereum_transaction(VALID_ETH_TX);
-			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
-			let header = System::finalize();
-			assert!(Runtime::trace_transaction(
-				&header,
-				vec![non_eth_uxt.clone(), eth_uxt, non_eth_uxt.clone()],
-				&transaction
-			)
-			.is_ok());
-		});
-}
-
-#[test]
-fn debug_runtime_api_trace_block() {
-	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-			.expect("internal H160 is valid; qed"),
-	);
-	ExtBuilder::default()
-		.with_balances(vec![
-			(alith, 2_000 * MOVR),
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
-			);
-			let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
-			let header = System::finalize();
-			assert!(Runtime::trace_block(
-				&header,
-				vec![non_eth_uxt.clone(), eth_uxt.clone(), non_eth_uxt, eth_uxt],
-			)
-			.is_ok());
-		});
 }

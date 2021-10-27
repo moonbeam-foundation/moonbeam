@@ -33,8 +33,13 @@ jobs:
     steps:
       - name: Check git ref
         id: check-git-ref
+        # if PR
+        # else if manual PR
+        # else (push)
         run: |
-          if [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
+          elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
           else 
             echo ::set-output name=git_ref::$GITHUB_REF
@@ -296,6 +301,8 @@ jobs:
       # 3. Counting the number of lines of output
       - name: Check package-lock.json
         run: |
+          # Log npm version to make sure it maches with local version
+          npm -v
           # Make sure git is working, and if not abort early. When git is not working it looks like:
           # $ git diff-index --name-only HEAD
           # fatal: not a git repository (or any of the parent directories): .git
@@ -362,7 +369,9 @@ jobs:
       - name: Build Tracing Node
         run: |
           env
-          cargo build --release -p moonbeam --features evm-tracing
+          cargo moonbase-tracing
+      - name: Unit tests (tracing)
+        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
       - name: Save moonbeam tracing binary
         run: |
           mkdir -p build
@@ -440,6 +449,8 @@ jobs:
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
+          rm -fr dist
+          node_modules/.bin/tsc
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'

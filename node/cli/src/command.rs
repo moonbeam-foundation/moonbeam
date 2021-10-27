@@ -137,6 +137,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+		if let Some(Subcommand::PerfTest(_)) = &self.subcommand {
+			return Ok(Box::new(chain_spec::moonbase::development_chain_spec(
+				None, None,
+			)));
+		}
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
@@ -211,14 +216,39 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 		.ok_or_else(|| "Could not find wasm file in genesis state!".into())
 }
 
+fn validate_trace_environment(cli: &Cli) -> Result<()> {
+	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
+		&& cli
+			.run
+			.base
+			.base
+			.import_params
+			.wasm_runtime_overrides
+			.is_none()
+	{
+		return Err(
+			"`debug` or `trace` namespaces requires `--wasm-runtime-overrides /path/to/overrides`."
+				.into(),
+		);
+	}
+	Ok(())
+}
+
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let cli = Cli::from_args();
-	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
-		&& cfg!(not(feature = "evm-tracing"))
-	{
-		return Err("`--ethapi` only available on `evm-tracing` feature.".into());
+	let mut cli = Cli::from_args();
+	let _ = validate_trace_environment(&cli)?;
+	// Set --execution wasm as default
+	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
+	if execution_strategies.execution.is_none() {
+		cli.run
+			.base
+			.base
+			.import_params
+			.execution_strategies
+			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
 	}
+
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;
@@ -293,7 +323,7 @@ pub fn run() -> Result<()> {
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				// Remove Frontier offchain db
-				let frontier_database_config = sc_service::DatabaseConfig::RocksDb {
+				let frontier_database_config = sc_service::DatabaseSource::RocksDb {
 					path: frontier_database_dir(&config),
 					cache_size: 0,
 				};
@@ -314,7 +344,7 @@ pub fn run() -> Result<()> {
 				let polkadot_config = SubstrateCli::create_configuration(
 					&polkadot_cli,
 					&polkadot_cli,
-					config.task_executor.clone(),
+					config.tokio_handle.clone(),
 				)
 				.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
@@ -409,6 +439,39 @@ pub fn run() -> Result<()> {
 
 			Ok(())
 		}
+		Some(Subcommand::PerfTest(cmd)) => {
+			if let Some(_) = cmd.shared_params.base_path {
+				log::warn!("base_path is overwritten by working_dir in perf-test");
+			}
+
+			let mut working_dir = cmd.working_dir.clone();
+			working_dir.push("perf_test");
+			if working_dir.exists() {
+				eprintln!("test subdir {:?} exists, please remove", working_dir);
+				std::process::exit(1);
+			}
+
+			let mut cmd: perf_test::PerfCmd = cmd.clone();
+			cmd.shared_params.base_path = Some(working_dir.clone());
+
+			let runner = cli.create_runner(&cmd)?;
+			runner.sync_run(|config| {
+				#[cfg(feature = "moonbase-native")]
+				return cmd
+					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					);
+				#[cfg(not(feature = "moonbase-native"))]
+				panic!("perf-test only available for moonbase");
+			})?;
+
+			log::debug!("removing temp perf_test dir {:?}", working_dir);
+			std::fs::remove_dir_all(working_dir)?;
+
+			Ok(())
+		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
@@ -417,7 +480,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonriver_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
 								config,
 							)
 						})
@@ -425,7 +488,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonbeam_runtime::Block, service::MoonbaseExecutor>(
+							cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
 								config,
 							)
 						})
@@ -525,6 +588,7 @@ pub fn run() -> Result<()> {
 					ethapi_max_permits: cli.run.ethapi_max_permits,
 					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+					eth_log_block_cache: cli.run.eth_log_block_cache,
 					max_past_logs: cli.run.max_past_logs,
 				};
 
@@ -547,8 +611,28 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
-						.map_err(Into::into);
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => service::new_dev::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => service::new_dev::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => service::new_dev::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
 				}
 
 				let polkadot_cli = RelayChainCli::new(
@@ -584,9 +668,9 @@ pub fn run() -> Result<()> {
 					_ => panic!("invalid chain spec"),
 				};
 
-				let task_executor = config.task_executor.clone();
+				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
+					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, tokio_handle)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
 				info!("Parachain id: {:?}", id);
@@ -722,9 +806,9 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_cors(is_dev)
 	}
 
-	fn telemetry_external_transport(&self) -> Result<Option<sc_service::config::ExtTransport>> {
-		self.base.base.telemetry_external_transport()
-	}
+	// fn telemetry_external_transport(&self) -> Result<Option<sc_service::config::ExtTransport>> {
+	// 	self.base.base.telemetry_external_transport()
+	// }
 
 	fn default_heap_pages(&self) -> Result<Option<u64>> {
 		self.base.base.default_heap_pages()

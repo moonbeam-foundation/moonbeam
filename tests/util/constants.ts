@@ -9,6 +9,8 @@ export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/rel
 export const SPAWNING_TIME = 20000;
 export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
 
+export const RELAY_CHAIN_NODE_NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie", "One"];
+
 // Test variables
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const TREASURY_ACCOUNT = "0x6d6f646c70632f74727372790000000000000000";
@@ -32,15 +34,17 @@ export const ETHAN_PRIVKEY = "0x7dce9bc8babb68fec1409be38c8e1a52650206a7ed90ff95
 export const ETHAN = "0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB";
 export const RANDOM_ADDRESS = "0x39Cccb8cc2A821eB5cDADc656fF4229398AbA190";
 export const GLMR = 1_000_000_000_000_000_000n;
+export const MILLIGLMR = 1_000_000_000_000_000n;
+export const MICROGLMR = 1_000_000_000_000n;
 export const DEFAULT_GENESIS_BALANCE = 2n ** 80n;
 export const DEFAULT_GENESIS_STAKING = 1_000n * GLMR;
 export const DEFAULT_GENESIS_MAPPING = 100n * GLMR;
-export const MIN_GLMR_STAKING = 1000n * GLMR;
-export const MIN_GLMR_NOMINATOR = 5n * GLMR;
-export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
 export const PROPOSAL_AMOUNT = 1000n * GLMR;
 export const VOTE_AMOUNT = 10n * GLMR;
-
+export const MIN_GLMR_STAKING = 1000n * GLMR;
+export const MIN_GLMR_NOMINATOR = 5n * GLMR;
+export const MIN_GLMR_NOMINATOR_PLUS_ONE = 6n * GLMR;
+export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
 // This is Alice
 export const COLLATOR_ACCOUNT = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";
 export const COLLATOR_ACCOUNT_BALANCE =

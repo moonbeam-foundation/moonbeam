@@ -21,6 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160, H256};
 
@@ -28,7 +29,7 @@ use sp_core::{ecdsa, H160, H256};
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo)]
 pub struct EthereumSignature(ecdsa::Signature);
 
 impl From<ecdsa::Signature> for EthereumSignature {
@@ -83,10 +84,12 @@ impl From<[u8; 20]> for EthereumSigner {
 
 impl From<ecdsa::Public> for EthereumSigner {
 	fn from(x: ecdsa::Public) -> Self {
-		let decompressed =
-			secp256k1::PublicKey::parse_slice(&x.0, Some(secp256k1::PublicKeyFormat::Compressed))
-				.expect("Wrong compressed public key provided")
-				.serialize();
+		let decompressed = libsecp256k1::PublicKey::parse_slice(
+			&x.0,
+			Some(libsecp256k1::PublicKeyFormat::Compressed),
+		)
+		.expect("Wrong compressed public key provided")
+		.serialize();
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&decompressed[1..65]);
 		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
@@ -94,8 +97,8 @@ impl From<ecdsa::Public> for EthereumSigner {
 	}
 }
 
-impl From<secp256k1::PublicKey> for EthereumSigner {
-	fn from(x: secp256k1::PublicKey) -> Self {
+impl From<libsecp256k1::PublicKey> for EthereumSigner {
+	fn from(x: libsecp256k1::PublicKey) -> Self {
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&x.serialize()[1..65]);
 		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));

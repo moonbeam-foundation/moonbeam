@@ -10,10 +10,10 @@ repository = 'https://github.com/PureStake/moonbeam/'
 [dependencies]
 ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
 ethereum-types = "0.12.0"
-jsonrpc-core = "15.0.0"
-jsonrpc-core-client = "14.0.3"
-jsonrpc-derive = "14.0.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-v0.9.9-block-response-length" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
