@@ -24,18 +24,7 @@ export const notePreimage = async <
   const encodedProposal = proposal.method.toHex() || "";
   await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
   await context.createBlock();
-  // return encodedHash
-  return blake2AsHex(encodedProposal);
-};
 
-export const getMethodEncodedHash = async <
-  Call extends SubmittableExtrinsic<ApiType>,
-  ApiType extends ApiTypes
->(
-  proposal: Call
-): Promise<string> => {
-  const encodedProposal = proposal.method.toHex(); //|| "";
-  // return encodedHash
   return blake2AsHex(encodedProposal);
 };
 
