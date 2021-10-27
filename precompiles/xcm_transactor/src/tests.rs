@@ -158,8 +158,10 @@ fn take_transact_info() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// Expected result is zero
@@ -167,7 +169,10 @@ fn take_transact_info() {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(0u64)
-					.write(1_000_000_000_000u128)
+					.write(0u128)
+					.write(0u64)
+					.write(0u64)
+					.write(1u128)
 					.build(),
 				cost: 1,
 				logs: Default::default(),
@@ -194,8 +199,10 @@ fn test_transactor_multilocation() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// we pay with our current self reserve.
@@ -247,8 +254,10 @@ fn test_transactor() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();

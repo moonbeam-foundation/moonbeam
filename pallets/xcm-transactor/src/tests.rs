@@ -69,8 +69,10 @@ fn test_transact_through_derivative_errors() {
 				Origin::root(),
 				MultiLocation::new(1, Junctions::X1(Junction::Parachain(1000))),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// Not using the same fee asset as the destination chain, so error
@@ -115,8 +117,10 @@ fn test_transact_through_derivative_multilocation_success() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// fee as destination are the same, this time it should work
@@ -134,7 +138,10 @@ fn test_transact_through_derivative_multilocation_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfo {
 						transact_extra_weight: 0,
-						destination_units_per_second: 1000000000000,
+						fee_per_byte: 0,
+						base_weight: 0,
+						fee_per_weight: 1,
+						metadata_size: 0,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -163,8 +170,10 @@ fn test_transact_through_derivative_success() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// fee as destination are the same, this time it should work
@@ -182,7 +191,10 @@ fn test_transact_through_derivative_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfo {
 						transact_extra_weight: 0,
-						destination_units_per_second: 1000000000000,
+						fee_per_byte: 0,
+						base_weight: 0,
+						fee_per_weight: 1,
+						metadata_size: 0,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -221,8 +233,10 @@ fn test_root_can_transact_through_sovereign() {
 				Origin::root(),
 				MultiLocation::parent(),
 				0,
-				// 1-1 with weight
-				1_000_000_000_000
+				0,
+				0,
+				1,
+				0
 			));
 
 			// fee as destination are the same, this time it should work
@@ -240,7 +254,10 @@ fn test_root_can_transact_through_sovereign() {
 					MultiLocation::parent(),
 					RemoteTransactInfo {
 						transact_extra_weight: 0,
-						destination_units_per_second: 1000000000000,
+						fee_per_byte: 0,
+						base_weight: 0,
+						fee_per_weight: 1,
+						metadata_size: 0,
 					},
 				),
 				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),

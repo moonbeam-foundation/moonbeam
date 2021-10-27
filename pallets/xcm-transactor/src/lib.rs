@@ -58,14 +58,11 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::weights::constants::WEIGHT_PER_SECOND;
-
 	use frame_support::pallet_prelude::*;
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
-
 	use xcm::latest::prelude::*;
 
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
@@ -135,8 +132,14 @@ pub mod pallet {
 	pub struct RemoteTransactInfo {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
-		/// Upper bound of units per second that the destination chain charges for execution
-		pub destination_units_per_second: u128,
+		/// Fee per call byte
+		pub fee_per_byte: u128,
+		/// Size of the tx metadata of a transaction in the destination chain
+		pub metadata_size: u64,
+		/// Minimum weight the destination chain charges for a transaction
+		pub base_weight: Weight,
+		/// Fee per weight in the destination chain
+		pub fee_per_weight: u128,
 	}
 
 	// Since we are using pallet-utility for account derivation (through AsDerivative),
@@ -367,13 +370,19 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			location: MultiLocation,
 			transact_extra_weight: Weight,
-			destination_units_per_second: u128,
+			fee_per_byte: u128,
+			base_weight: Weight,
+			fee_per_weight: u128,
+			metadata_size: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
 			let remote_info = RemoteTransactInfo {
 				transact_extra_weight,
-				destination_units_per_second,
+				fee_per_byte,
+				base_weight,
+				fee_per_weight,
+				metadata_size,
 			};
 
 			TransactInfo::<T>::insert(&location, &remote_info);
@@ -403,11 +412,14 @@ pub mod pallet {
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = transactor_info
-				.destination_units_per_second
-				.checked_mul(total_weight as u128)
-				.ok_or(Error::<T>::AmountOverflow)?
-				/ (WEIGHT_PER_SECOND as u128);
+			let amount = Self::calculate_fee_per_weight(
+				call.clone(),
+				total_weight,
+				transactor_info.fee_per_byte,
+				transactor_info.base_weight,
+				transactor_info.fee_per_weight,
+				transactor_info.metadata_size,
+			);
 
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -624,6 +636,23 @@ pub mod pallet {
 			} else {
 				0
 			}
+		}
+
+		/// Returns the fee for a given set of parameters
+		pub fn calculate_fee_per_weight(
+			call: Vec<u8>,
+			weight: Weight,
+			fee_per_byte: u128,
+			base_weight: Weight,
+			fee_per_weight: u128,
+			metadata_size: u64,
+		) -> u128 {
+			let tx_byte_fee = (fee_per_byte.saturating_add(metadata_size as u128))
+				.saturating_mul(call.len() as u128);
+			let weight_fee = fee_per_weight.saturating_mul(weight as u128);
+			let base_fee = fee_per_weight.saturating_mul(base_weight as u128);
+
+			return base_fee.saturating_add(weight_fee.saturating_add(tx_byte_fee));
 		}
 	}
 }
