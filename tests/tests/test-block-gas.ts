@@ -64,8 +64,12 @@ describeDevMoonbeam("Block Gas - fill block with balance transfers", (context) =
 
     console.log("num txns pushed: ", transactions.length);
 
+    let start = Date.now();
     await context.createBlock({ transactions });
-    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(numTransfers);
+    let elapsed = Date.now() - start;
+    console.log("block took: "+ elapsed);
+
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(""+numTransfers);
 
   });
 });
