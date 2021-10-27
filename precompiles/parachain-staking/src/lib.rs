@@ -58,6 +58,7 @@ enum Action {
 	CandidateBondLess = "candidate_bond_less(uint256)",
 	CandidateBondMore = "candidate_bond_more(uint256)",
 	Nominate = "nominate(address,uint256,uint256,uint256)",
+	Delegate = "delegate(address,uint256,uint256,uint256)",
 	LeaveNominators = "leave_delegators(uint256)",
 	RevokeNomination = "revoke_nomination(address)",
 	NominatorBondLess = "nominator_bond_less(address,uint256)",
@@ -112,8 +113,9 @@ where
 			Action::GoOnline => Self::go_online(context)?,
 			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
 			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
-			// TODO: deprecated
+			// DEPRECATED
 			Action::Nominate => Self::delegate(input, context)?,
+			Action::Delegate => Self::delegate(input, context)?,
 			Action::LeaveNominators => Self::leave_delegators(input, context)?,
 			Action::RevokeNomination => Self::revoke_nomination(input, context)?,
 			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
@@ -290,14 +292,6 @@ where
 
 	// Role Verifiers
 
-	/// DEPRECATED
-	fn is_nominator(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		Self::is_delegator(input, target_gas)
-	}
-
 	fn is_delegator(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -411,9 +405,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_leave_candidates {
-			collator_candidate_count,
-		};
+		let call =
+			parachain_staking::Call::<Runtime>::schedule_leave_candidates { candidate_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -589,7 +582,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { collator, amount };
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -612,7 +605,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_less { collator, less };
+		let call = parachain_staking::Call::<Runtime>::delegator_bond_less { candidate, less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
