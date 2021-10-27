@@ -265,3 +265,23 @@ fn test_root_can_transact_through_sovereign() {
 			assert_eq!(events(), expected);
 		})
 }
+
+#[test]
+fn test_fee_calculation_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				XcmTransactor::calculate_fee_per_weight(
+					[1u8; 7].to_vec(),
+					578000,
+					100000000,
+					125000000,
+					8,
+					105
+				),
+				12204624000
+			);
+		})
+}

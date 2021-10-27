@@ -647,8 +647,8 @@ pub mod pallet {
 			fee_per_weight: u128,
 			metadata_size: u64,
 		) -> u128 {
-			let tx_byte_fee = (fee_per_byte.saturating_add(metadata_size as u128))
-				.saturating_mul(call.len() as u128);
+			let tx_byte_fee = ((call.len() as u128).saturating_add(metadata_size as u128))
+				.saturating_mul(fee_per_byte);
 			let weight_fee = fee_per_weight.saturating_mul(weight as u128);
 			let base_fee = fee_per_weight.saturating_mul(base_weight as u128);
 
