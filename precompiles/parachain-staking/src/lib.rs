@@ -48,7 +48,9 @@ enum Action {
 	CandidateCount = "candidate_count()",
 	CollatorNominationCount = "collator_nomination_count(address)",
 	NominatorNominationCount = "nominator_nomination_count(address)",
+	// DEPRECATED
 	IsNominator = "is_delegator(address)",
+	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
@@ -57,6 +59,7 @@ enum Action {
 	GoOnline = "go_online()",
 	CandidateBondLess = "candidate_bond_less(uint256)",
 	CandidateBondMore = "candidate_bond_more(uint256)",
+	// DEPRECATED
 	Nominate = "nominate(address,uint256,uint256,uint256)",
 	Delegate = "delegate(address,uint256,uint256,uint256)",
 	LeaveNominators = "leave_delegators(uint256)",
@@ -104,6 +107,7 @@ where
 			}
 			// role verifiers
 			Action::IsNominator => return Self::is_delegator(input, target_gas),
+			Action::IsDelegator => return Self::is_delegator(input, target_gas),
 			Action::IsCandidate => return Self::is_candidate(input, target_gas),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
 			// runtime methods (dispatchables)
