@@ -188,6 +188,12 @@ impl ExtBuilder {
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+
 		GenesisBuild::<Test>::assimilate_storage(
 			&proxy_companion::GenesisConfig {
 				// Here we add the trivial proxy type and default duration.
