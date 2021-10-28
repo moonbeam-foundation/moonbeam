@@ -187,7 +187,9 @@ impl EvmData for Junction {
 				encoded.push(7u8);
 				encoded.as_slice().into()
 			}
-			_ => todo!(),
+			// TODO: The only missing item here is Junciton::Plurality. This is a complex encoded
+			// type that we need to evaluate how to support
+			_ => unreachable!("Junction::Plurality not supported yet"),
 		};
 		EvmData::write(writer, encoded_bytes);
 	}
