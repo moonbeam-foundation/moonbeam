@@ -15,10 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call as OuterCall, ExtBuilder, Origin, Proxy, Test};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, storage::IterableStorageMap};
+use crate::mock::{ExtBuilder, Proxy, Test};
 use pallet_proxy::ProxyDefinition;
-use sp_runtime::DispatchError;
 
 #[test]
 fn empty_genesis_works() {
