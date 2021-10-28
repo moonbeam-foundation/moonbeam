@@ -240,25 +240,29 @@ fn verify_pallet_indices() {
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 2_000 * GLMR),
-			(AccountId::from(CHARLIE), 1_100 * GLMR),
-			(AccountId::from(DAVE), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 200_000 * GLMR),
+			(AccountId::from(CHARLIE), 110_000 * GLMR),
+			(AccountId::from(DAVE), 100_000 * GLMR),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 100_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
 		.with_nominations(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * GLMR),
-			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * GLMR),
+			(
+				AccountId::from(CHARLIE),
+				AccountId::from(ALICE),
+				5_000 * GLMR,
+			),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 5_000 * GLMR),
 		])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
 				parachain_staking::Error::<Runtime>::CandidateExists
@@ -266,7 +270,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
@@ -274,15 +278,15 @@ fn join_collator_candidates() {
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 				2u32
 			));
 			assert_eq!(
 				last_event(),
 				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
-					1_000 * GLMR,
-					3_100 * GLMR
+					100_000 * GLMR,
+					310_000 * GLMR
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
@@ -290,21 +294,21 @@ fn join_collator_candidates() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(ALICE),
-					amount: 1_050 * GLMR
+					amount: 105_000 * GLMR
 				}
 			);
 			assert_eq!(
 				candidates.0[1],
 				Bond {
 					owner: AccountId::from(BOB),
-					amount: 1_050 * GLMR
+					amount: 105_000 * GLMR
 				}
 			);
 			assert_eq!(
 				candidates.0[2],
 				Bond {
 					owner: AccountId::from(DAVE),
-					amount: 1_000 * GLMR
+					amount: 100_000 * GLMR
 				}
 			);
 		});
