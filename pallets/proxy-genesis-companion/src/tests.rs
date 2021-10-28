@@ -15,8 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{Call as OuterCall, ExtBuilder, Origin, Test};
+use crate::mock::{Call as OuterCall, ExtBuilder, Origin, Proxy, Test};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, storage::IterableStorageMap};
+use pallet_proxy::ProxyDefinition;
 use sp_runtime::DispatchError;
 
 #[test]
@@ -28,7 +29,30 @@ fn empty_genesis_works() {
 
 #[test]
 fn non_empty_genesis_works() {
-	ExtBuilder::default().build().execute_with(|| todo!())
+	ExtBuilder::default()
+		// Account 1 delegates to account 2
+		.with_proxies(vec![(1, 2)])
+		// Account 1 is funded to pay the proxy deposit
+		.with_balances(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			// Lookup info that we expect to be stored from genesis
+			let (proxy_defs, deposit) = Proxy::proxies(1);
+
+			// Make sure that Account 100 delegates to Account 101 and nobody else
+			assert_eq!(proxy_defs.len(), 1);
+			assert_eq!(
+				proxy_defs[0],
+				ProxyDefinition {
+					delegate: 2,
+					proxy_type: (),
+					delay: 100
+				}
+			);
+
+			// Make sure that Account 100 has the proper deposit amount reserved
+			assert_eq!(deposit, 2);
+		})
 }
 
 #[test]
