@@ -749,9 +749,11 @@ impl pallet_author_mapping::Config for Runtime {
 
 parameter_types! {
 	// One storage item; key size 32, value size 8; .
-	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
+	// TODO: Restore the real value before phase 2
+	pub const ProxyDepositBase: Balance = 0;//currency::deposit(1, 8);
 	// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
-	pub const ProxyDepositFactor: Balance = currency::deposit(0, 21);
+	// TODO: Restore the real value before phase 2
+	pub const ProxyDepositFactor: Balance = 0;//currency::deposit(0, 21);
 	pub const MaxProxies: u16 = 32;
 	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
 	// Additional storage item size of 56 bytes:
