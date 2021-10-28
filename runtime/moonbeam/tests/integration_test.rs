@@ -403,7 +403,10 @@ fn reward_block_authors() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 100_000 * GLMR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				100_000 * GLMR,
+			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(2400);
@@ -450,7 +453,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 100_000 * GLMR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				100_000 * GLMR,
+			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
