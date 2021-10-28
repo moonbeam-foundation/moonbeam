@@ -16,7 +16,6 @@
 
 //! Unit testing
 use crate::mock::{events, Call as OuterCall, ExtBuilder, Origin, Test};
-use crate::{Call, Error, Event};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use sp_runtime::DispatchError;
 

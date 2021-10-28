@@ -34,8 +34,6 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Contains, EnsureOrigin};
-	use frame_system::pallet_prelude::*;
 
 	/// Pallet for migrations
 	#[pallet::pallet]

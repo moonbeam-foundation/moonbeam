@@ -16,13 +16,13 @@
 
 //! A minimal runtime including the maintenance-mode pallet
 use super::*;
-use crate as pallet_maintenance_mode;
+use crate as proxy_companion;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Everything, GenesisBuild},
+	traits::{Contains, Everything, GenesisBuild, InstanceFilter},
 	weights::Weight,
 };
-use frame_system::EnsureRoot;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -32,6 +32,7 @@ use sp_runtime::{
 
 //TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)
 pub type AccountId = u64;
+pub type Balance = u128;
 pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -45,7 +46,9 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event, Config},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		ProxyGenesisCompanion: proxy_companion::{Pallet, Config<T>},
 	}
 );
 
@@ -57,7 +60,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = MaintenanceMode;
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -72,7 +75,7 @@ impl frame_system::Config for Test {
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = ();
+	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -90,29 +93,116 @@ impl Contains<Call> for MaintenanceCallFilter {
 	}
 }
 
-impl Config for Test {
+parameter_types! {
+	pub const ExistentialDeposit: u128 = 1;
+}
+impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 4];
+	type MaxLocks = ();
+	type Balance = Balance;
 	type Event = Event;
-	type NormalCallFilter = Everything;
-	type MaintenanceCallFilter = MaintenanceCallFilter;
-	type MaintenanceOrigin = EnsureRoot<AccountId>;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const ProxyDepositBase: Balance = 1;
+	pub const ProxyDepositFactor: Balance = 1;
+	pub const MaxProxies: u16 = 32;
+	pub const AnnouncementDepositBase: Balance = 1;
+	pub const AnnouncementDepositFactor: Balance = 1;
+	pub const MaxPending: u16 = 32;
+}
+
+/// The type used to represent the kinds of proxying allowed.
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	scale_info::TypeInfo,
+	serde::Serialize,
+	serde::Deserialize,
+)]
+pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
+	Any,
+	/// Only extrinsics that do not transfer funds.
+	NonTransfer,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::Any => true,
+			&ProxyType::NonTransfer => !matches!(c, Call::Balances(..)),
+		}
+	}
+
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Test {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
+impl Config for Test {
+	type ProxyType = ProxyType;
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
 pub(crate) struct ExtBuilder {
-	maintenance_mode: bool,
+	proxies: Vec<(AccountId, AccountId, ProxyType, BlockNumber)>,
+	//TODO Balances?
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			maintenance_mode: false,
+			proxies: Vec::new(),
 		}
 	}
 }
 
 impl ExtBuilder {
-	pub(crate) fn with_maintenance_mode(mut self, m: bool) -> Self {
-		self.maintenance_mode = m;
+	pub(crate) fn with_genesis_proxies(
+		mut self,
+		proxies: Vec<(AccountId, AccountId, ProxyType, BlockNumber)>,
+	) -> Self {
+		self.proxies = proxies;
 		self
 	}
 
@@ -122,29 +212,15 @@ impl ExtBuilder {
 			.expect("Frame system builds valid default genesis config");
 
 		GenesisBuild::<Test>::assimilate_storage(
-			&pallet_maintenance_mode::GenesisConfig {
-				start_in_maintenance_mode: self.maintenance_mode,
+			&proxy_companion::GenesisConfig {
+				proxies: self.proxies,
 			},
 			&mut t,
 		)
-		.expect("Pallet maintenance mode storage can be assimilated");
+		.expect("Pallet proxy genesis companion storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn events() -> Vec<pallet_maintenance_mode::Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| {
-			if let Event::MaintenanceMode(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>()
 }

@@ -17,6 +17,8 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 [dev-dependencies]
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+serde = "1.0.124"
 
 [features]
 default = ["std"]
