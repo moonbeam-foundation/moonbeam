@@ -381,7 +381,7 @@ fn transfer_through_evm_to_stake() {
 fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			// Alice gets 100 extra tokens for her mapping deposit
+			// Alice gets 10k extra tokens for her mapping deposit
 			(AccountId::from(ALICE), 210_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
@@ -423,12 +423,12 @@ fn reward_block_authors() {
 fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			// Alice gets 100_000 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 20_100_000 * GLMR),
-			(AccountId::from(BOB), 10_000_000 * GLMR),
+			// Alice gets 10k extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 210_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 			(AccountId::from(CHARLIE), 100 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 10_000_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -450,15 +450,12 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			// TODO
-			/*
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				10_090_000 * GLMR, // TODO: why 100900... ?
+				100_000 * GLMR, // TODO: why 100900... ?
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
-			*/
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(2400);
 			// rewards minted and distributed

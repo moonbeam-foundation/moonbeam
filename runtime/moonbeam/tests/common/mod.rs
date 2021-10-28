@@ -174,10 +174,6 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		println!("collators: {:?}", self.collators);
-		println!("nominations: {:?}", self.nominations);
-		println!("inflation: {:?}", self.inflation);
-
 		parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			nominations: self.nominations,

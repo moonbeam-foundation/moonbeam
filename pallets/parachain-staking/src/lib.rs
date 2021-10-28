@@ -1029,7 +1029,10 @@ pub mod pallet {
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
 					T::Currency::free_balance(&candidate) >= balance,
-					"Account does not have enough balance to bond as a candidate."
+					"Account does not have enough balance to bond as a candidate (need: {:?}, has: {:?}.",
+					balance,
+					T::Currency::free_balance(&candidate),
+
 				);
 				candidate_count += 1u32;
 				if let Err(error) = <Pallet<T>>::join_candidates(
