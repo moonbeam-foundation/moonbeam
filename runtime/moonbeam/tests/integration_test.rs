@@ -47,8 +47,8 @@ use sp_runtime::{
 };
 
 #[test]
-fn fast_track_unavailable() {
-	assert!(!<moonbeam_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+fn fast_track_available() {
+	assert!(<moonbeam_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
 }
 
 #[test]
