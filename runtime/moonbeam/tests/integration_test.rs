@@ -29,10 +29,7 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
-use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
-	ParachainStaking, Precompiles, Runtime, System,
-};
+use moonbeam_runtime::{AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System, currency::{GIGAWEI, GLMR}};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
@@ -317,14 +314,14 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 200_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
 				DispatchError::Module {
@@ -333,22 +330,22 @@ fn transfer_through_evm_to_stake() {
 					message: Some("InsufficientBalance")
 				}
 			);
-			// Alice transfer from free balance 2000 GLMR to Bob
+			// Alice transfer from free balance 200_000 GLMR to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				2_000 * GLMR,
+				200_000 * GLMR,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 200_000 * GLMR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
-			// Bob transfers 1000 GLMR to Charlie via EVM
+			let gas_price: U256 = (100 * GIGAWEI).into();
+			// Bob transfers 100_000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
 				source: AccountId::from(BOB),
 				target: AccountId::from(CHARLIE),
 				input: vec![],
-				value: (1_000 * GLMR).into(),
+				value: (100_000 * GLMR).into(),
 				gas_limit,
 				gas_price,
 				nonce: None
@@ -356,13 +353,13 @@ fn transfer_through_evm_to_stake() {
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 			);
 
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 				2u32
 			),);
 			let candidates = ParachainStaking::candidate_pool();
@@ -370,7 +367,7 @@ fn transfer_through_evm_to_stake() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * GLMR
+					amount: 100_000 * GLMR
 				}
 			);
 		});
@@ -424,10 +421,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
 			(AccountId::from(ALICE), 2_100 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 			(AccountId::from(CHARLIE), GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -449,7 +446,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 100_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
@@ -475,15 +472,15 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 299_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
-		.with_crowdloan_fund(3_000_000 * GLMR)
+		.with_crowdloan_fund(300_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -503,7 +500,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							rewards: vec![(
 								[4u8; 32].into(),
 								Some(AccountId::from(CHARLIE)),
-								1_500_000 * GLMR
+								150_000_000 * GLMR
 							)]
 						}
 					),
@@ -512,7 +509,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							rewards: vec![(
 								[5u8; 32].into(),
 								Some(AccountId::from(DAVE)),
-								1_500_000 * GLMR
+								150_000_000 * GLMR
 							)]
 						}
 					),
@@ -525,9 +522,9 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			})
 			.dispatch(root_origin()));
 			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 45_000_000 * GLMR);
 			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * GLMR);
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 45_000_000 * GLMR);
 			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -535,7 +532,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				calls: vec![Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::<
 					Runtime,
 				>::initialize_reward_vec {
-					rewards: vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)]
+					rewards: vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 43_200_000)]
 				})]
 			})
 			.dispatch(root_origin()));
@@ -553,28 +550,28 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 4 * WEEKS as u128;
-			let per_block = (1_050_000 * GLMR) / vesting_period;
+			let per_block = (105_000_000 * GLMR) / vesting_period;
 
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				Balances::balance(&AccountId::from(DAVE)),
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_noop!(
 				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
@@ -786,15 +783,15 @@ fn claim_via_precompile() {
 fn is_contributor_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
-		.with_crowdloan_fund(3_000_000 * GLMR)
+		.with_crowdloan_fund(3_000_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -814,7 +811,7 @@ fn is_contributor_via_precompile() {
 							rewards: vec![(
 								[4u8; 32].into(),
 								Some(AccountId::from(CHARLIE)),
-								1_500_000 * GLMR
+								1_500_000_000 * GLMR
 							)]
 						}
 					),
@@ -823,7 +820,7 @@ fn is_contributor_via_precompile() {
 							rewards: vec![(
 								[5u8; 32].into(),
 								Some(AccountId::from(DAVE)),
-								1_500_000 * GLMR
+								1_500_000_000 * GLMR
 							)]
 						}
 					),
@@ -908,10 +905,10 @@ fn is_contributor_via_precompile() {
 fn reward_info_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
