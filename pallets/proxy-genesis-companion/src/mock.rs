@@ -85,14 +85,6 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
-/// During maintenance mode we will not allow any calls.
-pub struct MaintenanceCallFilter;
-impl Contains<Call> for MaintenanceCallFilter {
-	fn contains(_: &Call) -> bool {
-		false
-	}
-}
-
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
@@ -132,35 +124,17 @@ parameter_types! {
 	scale_info::TypeInfo,
 	serde::Serialize,
 	serde::Deserialize,
+	Default,
 )]
-pub enum ProxyType {
-	/// All calls can be proxied. This is the trivial/most permissive filter.
-	Any,
-	/// Only extrinsics that do not transfer funds.
-	NonTransfer,
-}
-
-impl Default for ProxyType {
-	fn default() -> Self {
-		Self::Any
-	}
-}
+pub struct ProxyType;
 
 impl InstanceFilter<Call> for ProxyType {
 	fn filter(&self, c: &Call) -> bool {
-		match self {
-			ProxyType::Any => true,
-			&ProxyType::NonTransfer => !matches!(c, Call::Balances(..)),
-		}
+		true
 	}
 
 	fn is_superset(&self, o: &Self) -> bool {
-		match (self, o) {
-			(x, y) if x == y => true,
-			(ProxyType::Any, _) => true,
-			(_, ProxyType::Any) => false,
-			_ => false,
-		}
+		true
 	}
 }
 
@@ -168,7 +142,7 @@ impl pallet_proxy::Config for Test {
 	type Event = Event;
 	type Call = Call;
 	type Currency = Balances;
-	type ProxyType = ProxyType;
+	type ProxyType = ();
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
@@ -180,12 +154,12 @@ impl pallet_proxy::Config for Test {
 }
 
 impl Config for Test {
-	type ProxyType = ProxyType;
+	type ProxyType = ();
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
 pub(crate) struct ExtBuilder {
-	proxies: Vec<(AccountId, AccountId, ProxyType, BlockNumber)>,
+	proxies: Vec<(AccountId, AccountId)>,
 	//TODO Balances?
 }
 
@@ -198,10 +172,7 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub(crate) fn with_genesis_proxies(
-		mut self,
-		proxies: Vec<(AccountId, AccountId, ProxyType, BlockNumber)>,
-	) -> Self {
+	pub(crate) fn with_genesis_proxies(mut self, proxies: Vec<(AccountId, AccountId)>) -> Self {
 		self.proxies = proxies;
 		self
 	}
@@ -213,7 +184,13 @@ impl ExtBuilder {
 
 		GenesisBuild::<Test>::assimilate_storage(
 			&proxy_companion::GenesisConfig {
-				proxies: self.proxies,
+				// Here we add the trivial proxy type and default duration.
+				// This saves the test writer from having to always specify this.
+				proxies: self
+					.proxies
+					.into_iter()
+					.map(|(a, b)| (a, b, (), 100))
+					.collect(),
 			},
 			&mut t,
 		)
