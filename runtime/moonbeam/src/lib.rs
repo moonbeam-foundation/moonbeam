@@ -1145,9 +1145,14 @@ mod tests {
 		// proxy deposits
 		assert_eq!(
 			ProxyDepositBase::get(),
-			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			// TODO restore real value before phase 2
+			Balance::zero() //Balance::from(100 * GLMR + 80 * MILLIGLMR)
 		);
-		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
+		assert_eq!(
+			ProxyDepositFactor::get(),
+			// TODO restore real value before phase 2
+			Balance::zero() //Balance::from(210 * MILLIGLMR)
+		);
 		assert_eq!(
 			AnnouncementDepositBase::get(),
 			Balance::from(100 * GLMR + 80 * MILLIGLMR)
