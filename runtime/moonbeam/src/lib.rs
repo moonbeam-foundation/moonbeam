@@ -1131,7 +1131,8 @@ mod tests {
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(
 			MinCollatorCandidateStk::get(),
-			Balance::from(100 * KILOGLMR)
+			// TODO restore real value before phase 2
+			Balance::from(10 * KILOGLMR)//Balance::from(100 * KILOGLMR)
 		);
 		assert_eq!(MinNominatorStk::get(), Balance::from(500 * GLMR));
 
