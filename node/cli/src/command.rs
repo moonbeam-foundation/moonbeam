@@ -137,6 +137,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+		if let Some(Subcommand::PerfTest(_)) = &self.subcommand {
+			return Ok(Box::new(chain_spec::moonbase::development_chain_spec(
+				None, None,
+			)));
+		}
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
@@ -431,6 +436,39 @@ pub fn run() -> Result<()> {
 			} else {
 				std::io::stdout().write_all(&output_buf)?;
 			}
+
+			Ok(())
+		}
+		Some(Subcommand::PerfTest(cmd)) => {
+			if let Some(_) = cmd.shared_params.base_path {
+				log::warn!("base_path is overwritten by working_dir in perf-test");
+			}
+
+			let mut working_dir = cmd.working_dir.clone();
+			working_dir.push("perf_test");
+			if working_dir.exists() {
+				eprintln!("test subdir {:?} exists, please remove", working_dir);
+				std::process::exit(1);
+			}
+
+			let mut cmd: perf_test::PerfCmd = cmd.clone();
+			cmd.shared_params.base_path = Some(working_dir.clone());
+
+			let runner = cli.create_runner(&cmd)?;
+			runner.sync_run(|config| {
+				#[cfg(feature = "moonbase-native")]
+				return cmd
+					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					);
+				#[cfg(not(feature = "moonbase-native"))]
+				panic!("perf-test only available for moonbase");
+			})?;
+
+			log::debug!("removing temp perf_test dir {:?}", working_dir);
+			std::fs::remove_dir_all(working_dir)?;
 
 			Ok(())
 		}

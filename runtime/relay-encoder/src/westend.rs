@@ -24,8 +24,19 @@ use sp_std::vec::Vec;
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
+	#[codec(index = 16u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+
 	#[codec(index = 6u8)]
 	Stake(StakeCall),
+}
+
+// Utility call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
 }
 
 #[derive(Encode, Decode)]
@@ -58,6 +69,20 @@ pub enum StakeCall {
 }
 
 pub struct WestendEncoder;
+
+impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match call {
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				// If we encode directly we inject the call length,
+				// so we just append the inner call after encoding the outer
+				call.append(&mut b.clone());
+				call
+			}
+		}
+	}
+}
 
 impl relay_encoder_precompiles::StakeEncodeCall for WestendEncoder {
 	fn encode_call(call: relay_encoder_precompiles::AvailableStakeCalls) -> Vec<u8> {
@@ -115,6 +140,40 @@ mod tests {
 	use frame_support::traits::PalletInfo;
 	use relay_encoder_precompiles::StakeEncodeCall;
 	use sp_runtime::Perbill;
+
+	#[test]
+	fn test_as_derivative() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			westend_runtime::Utility,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let mut expected = pallet_utility::Call::<westend_runtime::Runtime>::as_derivative {
+			index: 1,
+			call: westend_runtime::Call::Staking(
+				pallet_staking::Call::<westend_runtime::Runtime>::chill {},
+			)
+			.into(),
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		let call_bytes = <WestendEncoder as StakeEncodeCall>::encode_call(
+			relay_encoder_precompiles::AvailableStakeCalls::Chill,
+		);
+
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			xcm_primitives::UtilityEncodeCall::encode_call(
+				WestendEncoder,
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
+			),
+			expected_encoded
+		);
+	}
 
 	#[test]
 	fn test_stake_bond() {
