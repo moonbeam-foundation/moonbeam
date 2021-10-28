@@ -125,6 +125,5 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
       ).delegations[0].owner
     ).to.equal(ALITH.toLowerCase(), "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
-    expect(Number((await IsDelegator(context, ETHAN)).result)).to.equal(1);
   });
 });

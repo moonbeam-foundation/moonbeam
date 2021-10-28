@@ -263,7 +263,7 @@ fn is_delegator_false() {
 			logs: Default::default(),
 		}));
 
-		// Assert that Charlie is not a nominator
+		// Assert that Charlie is not a delegator
 		assert_eq!(
 			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 			expected_one_result
@@ -294,7 +294,7 @@ fn is_delegator_true() {
 				logs: Default::default(),
 			}));
 
-			// Assert that Bob is a nominator
+			// Assert that Bob is a delegator
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 				expected_one_result
