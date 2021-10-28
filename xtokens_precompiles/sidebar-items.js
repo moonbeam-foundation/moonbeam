@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Action",""]],"struct":[["MultiLocationWrapper",""],["XtokensWrapper","A precompile to wrap the functionality from xtokens"]],"trait":[["AccountIdToCurrencyId","This trait ensure we can convert AccountIds to CurrencyIds We will require Runtime to have this trait implemented"]],"type":[["CurrencyIdOf",""],["XBalanceOf",""]]});
+initSidebarItems({"enum":[["Action",""]],"struct":[["XtokensWrapper","A precompile to wrap the functionality from xtokens"]],"type":[["CurrencyIdOf",""],["XBalanceOf",""]]});

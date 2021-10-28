@@ -1537,6 +1537,61 @@
 <span id="1537">1537</span>
 <span id="1538">1538</span>
 <span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1570,7 +1625,6 @@
 <span class="kw">use</span> <span class="ident">cumulus_pallet_parachain_system::RelaychainBlockNumberProvider</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion</span>;
-<span class="kw">use</span> <span class="ident">xtokens_precompiles::AccountIdToCurrencyId</span>;
 
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Hash</span> <span class="kw">as</span> <span class="ident">THash</span>;
 
@@ -2779,7 +2833,7 @@
 	<span class="ident">OtherReserve</span>(<span class="ident">AssetId</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+<span class="kw">impl</span> <span class="ident">xcm_primitives::AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">account</span> {
 			<span class="comment">// the self-reserve currency is identified by the pallet-balances address</span>
@@ -2833,6 +2887,60 @@
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
 	<span class="kw">type</span> <span class="ident">BaseXcmWeight</span> <span class="op">=</span> <span class="ident">BaseXcmWeight</span>;
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
+}
+
+<span class="comment">// For now we only allow to transact in the relay, although this might change in the future</span>
+<span class="comment">// Transactors just defines the chains in which we allow transactions to be issued through</span>
+<span class="comment">// xcm</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Transactors</span> {
+	<span class="ident">Relay</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
+	<span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+	<span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+		<span class="kw">match</span> <span class="ident">value</span> {
+			<span class="number">0u8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Transactors::Relay</span>),
+			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
+		}
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">xcm_primitives::UtilityEncodeCall</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
+	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">xcm_primitives::UtilityAvailableCalls</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+		<span class="kw">match</span> <span class="self">self</span> {
+			<span class="comment">// Shall we use westend for moonbase? The tests are probably based on rococo</span>
+			<span class="comment">// but moonbase-alpha is attached to westend-runtime I think</span>
+			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">moonbeam_relay_encoder::westend::WestendEncoder</span>.<span class="ident">encode_call</span>(<span class="ident">call</span>),
+		}
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">xcm_primitives::XcmTransact</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
+	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span> {
+		<span class="kw">match</span> <span class="self">self</span> {
+			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MultiLocation::parent</span>(),
+		}
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">xcm_transactor::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
+	<span class="kw">type</span> <span class="ident">Transactor</span> <span class="op">=</span> <span class="ident">Transactors</span>;
+	<span class="kw">type</span> <span class="ident">DerivativeAddressRegistrationOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">SovereignAccountDispatcherOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">CurrencyId</span> <span class="op">=</span> <span class="ident">CurrencyId</span>;
+	<span class="kw">type</span> <span class="ident">AccountIdToMultiLocation</span> <span class="op">=</span> <span class="ident">xcm_primitives::AccountIdToMultiLocation</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">CurrencyIdToMultiLocation</span> <span class="op">=</span>
+		<span class="ident">CurrencyIdtoMultiLocation</span><span class="op">&lt;</span><span class="ident">xcm_primitives::AsAssetType</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">XcmExecutor</span> <span class="op">=</span> <span class="ident">XcmExecutor</span>;
+	<span class="kw">type</span> <span class="ident">XcmSender</span> <span class="op">=</span> <span class="ident">XcmRouter</span>;
+	<span class="kw">type</span> <span class="ident">SelfLocation</span> <span class="op">=</span> <span class="ident">SelfLocation</span>;
+	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">xcm_builder::FixedWeightBounds</span><span class="op">&lt;</span><span class="ident">UnitWeightCost</span>, <span class="ident">Call</span>, <span class="ident">MaxInstructions</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">BaseXcmWeight</span> <span class="op">=</span> <span class="ident">BaseXcmWeight</span>;
 }
 
 <span class="doccomment">/// Call filter used during Phase 3 of the Moonriver rollout</span>
@@ -2921,6 +3029,8 @@
 		<span class="ident">XTokens</span>: <span class="ident">orml_xtokens</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">30</span>,
 		<span class="ident">AssetManager</span>: <span class="ident">pallet_asset_manager</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">31</span>,
 		<span class="ident">Migrations</span>: <span class="ident">pallet_migrations</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">32</span>,
+		<span class="ident">XcmTransactor</span>: <span class="ident">xcm_transactor</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">33</span>,
+
 	}
 }
 

@@ -325,6 +325,40 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -363,6 +397,8 @@
 
 <span class="kw">use</span> <span class="ident">sp_std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">marker::PhantomData</span>};
+
+<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
 
 <span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID</span>
 <span class="doccomment">/// (must be `TryFrom/TryInto&lt;u128&gt;`) into a MultiLocation Value and Viceversa through</span>
@@ -646,11 +682,43 @@
 	<span class="kw">fn</span> <span class="ident">get_asset_type</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>;
 }
 
-<span class="comment">// Defines the trait to obtain the units per second of a give assetId</span>
+<span class="comment">// Defines the trait to obtain the units per second of a give assetId for local execution</span>
 <span class="comment">// This parameter will be used to charge for fees upon assetId deposit</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
 	<span class="comment">// Get units per second from asset type</span>
 	<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
+}
+
+<span class="comment">// The utility calls that need to be implemented as part of</span>
+<span class="comment">// this pallet</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UtilityAvailableCalls</span> {
+	<span class="ident">AsDerivative</span>(<span class="ident">u16</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+}
+
+<span class="comment">// Trait that the ensures we can encode a call with utility functions.</span>
+<span class="comment">// With this trait we ensure that the user cannot control entirely the call</span>
+<span class="comment">// to be performed in the destination chain. It only can control the call inside</span>
+<span class="comment">// the as_derivative extrinsic, and thus, this call can only be dispatched from the</span>
+<span class="comment">// derivative account</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UtilityEncodeCall</span> {
+	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">UtilityAvailableCalls</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+}
+
+<span class="comment">// Trait to ensure we can retrieve the destination if a given type</span>
+<span class="comment">// It must implement UtilityEncodeCall</span>
+<span class="comment">// We separate this in two traits to be able to implement UtilityEncodeCall separately</span>
+<span class="comment">// for different runtimes of our choice</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">XcmTransact</span>: <span class="ident">UtilityEncodeCall</span> {
+	<span class="doccomment">/// Encode call from the relay.</span>
+	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span>;
+}
+
+<span class="doccomment">/// This trait ensure we can convert AccountIds to CurrencyIds</span>
+<span class="doccomment">/// We will require Runtime to have this trait implemented</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Account</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> {
+	<span class="comment">// Get assetId from account</span>
+	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">Account</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="xcm_primitives" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

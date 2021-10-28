@@ -191,13 +191,6 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -226,15 +219,15 @@
 };
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">sp_std::boxed::Box</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
 	<span class="ident">fmt::Debug</span>,
 	<span class="ident">marker::PhantomData</span>,
 };
-<span class="kw">mod</span> <span class="ident">encoding</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">encoding::MultiLocationWrapper</span>;
-<span class="kw">use</span> <span class="ident">sp_std::boxed::Box</span>;
-<span class="kw">use</span> <span class="ident">xcm::v1</span>::{<span class="ident">AssetId</span>, <span class="ident">Fungibility</span>, <span class="ident">MultiAsset</span>, <span class="ident">MultiLocation</span>};
+<span class="kw">use</span> <span class="ident">xcm::latest</span>::{<span class="ident">AssetId</span>, <span class="ident">Fungibility</span>, <span class="ident">MultiAsset</span>, <span class="ident">MultiLocation</span>};
+<span class="kw">use</span> <span class="ident">xcm_primitives::AccountIdToCurrencyId</span>;
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -249,13 +242,6 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>,
 	<span class="ident">TransferMultiAsset</span> <span class="op">=</span> <span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
-}
-
-<span class="doccomment">/// This trait ensure we can convert AccountIds to CurrencyIds</span>
-<span class="doccomment">/// We will require Runtime to have this trait implemented</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Account</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> {
-	<span class="comment">// Get assetId from account</span>
-	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">Account</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from xtokens</span>
@@ -305,9 +291,9 @@
 		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
-		<span class="comment">// We use the MultiLocationWrapper, which we have instructed how to read</span>
+		<span class="comment">// We use the MultiLocation, which we have instructed how to read</span>
 		<span class="comment">// In the end we are using the encoding</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocationWrapper</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
@@ -356,13 +342,13 @@
 
 		<span class="comment">// asset is defined as a multiLocation. For now we are assuming these are concrete</span>
 		<span class="comment">// fungible assets</span>
-		<span class="kw">let</span> <span class="ident">asset_multilocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocationWrapper</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">asset_multilocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// read destination</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocationWrapper</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Bound check</span>
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;

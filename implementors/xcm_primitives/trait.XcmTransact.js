@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl <a class=\"trait\" href=\"xcm_primitives/trait.XcmTransact.html\" title=\"trait xcm_primitives::XcmTransact\">XcmTransact</a> for <a class=\"enum\" href=\"moonbase_runtime/enum.Transactors.html\" title=\"enum moonbase_runtime::Transactors\">Transactors</a>","synthetic":false,"types":["moonbase_runtime::Transactors"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

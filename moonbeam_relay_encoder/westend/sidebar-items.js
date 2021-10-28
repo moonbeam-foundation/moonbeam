@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["RelayCall",""],["StakeCall",""]],"struct":[["WestendEncoder",""]]});
+initSidebarItems({"enum":[["RelayCall",""],["StakeCall",""],["UtilityCall",""]],"struct":[["WestendEncoder",""]]});
