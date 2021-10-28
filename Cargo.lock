@@ -6999,6 +6999,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-proxy-genesis-companion"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-proxy",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pallet-randomness-collective-flip"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.11#4146f9b52a11d43e5889eeadcb371bf5cabf3ad9"
