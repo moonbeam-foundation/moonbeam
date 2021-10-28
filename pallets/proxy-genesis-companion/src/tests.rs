@@ -56,6 +56,12 @@ fn non_empty_genesis_works() {
 }
 
 #[test]
-fn genesis_proxies_reserve_deposits() {
-	ExtBuilder::default().build().execute_with(|| todo!())
+#[should_panic(
+	expected = "Genesis proxy could not be added: Module { index: 1, error: 2, message: Some(\"InsufficientBalance\") }"
+)]
+fn genesis_fails_if_balance_insufficient() {
+	ExtBuilder::default()
+		.with_proxies(vec![(1, 2)])
+		.build()
+		.execute_with(|| ())
 }
