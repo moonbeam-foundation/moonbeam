@@ -31,6 +31,7 @@ parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", 
 relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
+pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
@@ -191,6 +192,7 @@ std = [
 	"pallet-author-slot-filter/std",
 	"pallet-migrations/std",
 	"pallet-maintenance-mode/std",
+	"pallet-proxy-genesis-companion/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
