@@ -224,14 +224,14 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 #[test]
 fn ethereum_runtime_rpc_api_current_block() {
 	ExtBuilder::default()
-		.with_collators(vec![(AccountId::from(ALICE), 100__000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
-			(AccountId::from(ALICE), 200__000 * GLMR),
-			(AccountId::from(BOB), 100__000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
