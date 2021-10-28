@@ -15,9 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use crate::data::xcm::{network_id_from_bytes, network_id_to_bytes};
 use hex_literal::hex;
 use sp_core::{H256, U256};
-
+use sp_std::convert::TryInto;
+use xcm::latest::{Junction, Junctions, NetworkId};
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
 
@@ -738,4 +740,149 @@ fn read_complex_solidity_function() {
 
 	// weight
 	assert_eq!(reader.read::<U256>().unwrap(), 100u32.into());
+}
+
+#[test]
+fn junctions_decoder_works() {
+	let writer_output = EvmDataWriter::new()
+		.write(Junctions::X1(Junction::OnlyChild))
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junctions = reader
+		.read::<Junctions>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(parsed, Junctions::X1(Junction::OnlyChild));
+
+	let writer_output = EvmDataWriter::new()
+		.write(Junctions::X2(Junction::OnlyChild, Junction::OnlyChild))
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junctions = reader
+		.read::<Junctions>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(
+		parsed,
+		Junctions::X2(Junction::OnlyChild, Junction::OnlyChild)
+	);
+
+	let writer_output = EvmDataWriter::new()
+		.write(Junctions::X3(
+			Junction::OnlyChild,
+			Junction::OnlyChild,
+			Junction::OnlyChild,
+		))
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junctions = reader
+		.read::<Junctions>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(
+		parsed,
+		Junctions::X3(
+			Junction::OnlyChild,
+			Junction::OnlyChild,
+			Junction::OnlyChild
+		),
+	);
+}
+
+#[test]
+fn junction_decoder_works() {
+	let writer_output = EvmDataWriter::new().write(Junction::Parachain(0)).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junction = reader
+		.read::<Junction>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(parsed, Junction::Parachain(0));
+
+	let writer_output = EvmDataWriter::new()
+		.write(Junction::AccountId32 {
+			network: NetworkId::Any,
+			id: [1u8; 32],
+		})
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junction = reader
+		.read::<Junction>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(
+		parsed,
+		Junction::AccountId32 {
+			network: NetworkId::Any,
+			id: [1u8; 32],
+		}
+	);
+
+	let writer_output = EvmDataWriter::new()
+		.write(Junction::AccountIndex64 {
+			network: NetworkId::Any,
+			index: u64::from_be_bytes([1u8; 8]),
+		})
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junction = reader
+		.read::<Junction>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(
+		parsed,
+		Junction::AccountIndex64 {
+			network: NetworkId::Any,
+			index: u64::from_be_bytes([1u8; 8]),
+		}
+	);
+
+	let writer_output = EvmDataWriter::new()
+		.write(Junction::AccountKey20 {
+			network: NetworkId::Any,
+			key: H160::repeat_byte(0xAA).as_bytes().try_into().unwrap(),
+		})
+		.build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: Junction = reader
+		.read::<Junction>()
+		.expect("to correctly parse Junctions");
+
+	assert_eq!(
+		parsed,
+		Junction::AccountKey20 {
+			network: NetworkId::Any,
+			key: H160::repeat_byte(0xAA).as_bytes().try_into().unwrap(),
+		}
+	);
+}
+
+#[test]
+fn network_id_decoder_works() {
+	assert_eq!(
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Any)),
+		Ok(NetworkId::Any)
+	);
+
+	assert_eq!(
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Named(b"myname".to_vec()))),
+		Ok(NetworkId::Named(b"myname".to_vec()))
+	);
+
+	assert_eq!(
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Kusama)),
+		Ok(NetworkId::Kusama)
+	);
+
+	assert_eq!(
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Polkadot)),
+		Ok(NetworkId::Polkadot)
+	);
 }

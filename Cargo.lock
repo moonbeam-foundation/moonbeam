@@ -5068,6 +5068,8 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
+ "xcm-transactor",
+ "xcm-transactor-precompiles",
  "xtokens-precompiles",
 ]
 
@@ -5196,6 +5198,7 @@ dependencies = [
  "kusama-runtime",
  "pallet-proxy",
  "pallet-staking",
+ "pallet-utility",
  "parity-scale-codec",
  "polkadot-runtime",
  "relay-encoder-precompiles",
@@ -5203,6 +5206,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "westend-runtime",
+ "xcm-primitives",
 ]
 
 [[package]]
@@ -8877,6 +8881,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
+ "xcm",
 ]
 
 [[package]]
@@ -13646,6 +13651,7 @@ dependencies = [
  "hex",
  "log",
  "parity-scale-codec",
+ "scale-info",
  "serde",
  "sha3 0.8.2",
  "sp-runtime",
@@ -13680,6 +13686,63 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
+]
+
+[[package]]
+name = "xcm-transactor"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "polkadot-runtime-common",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "xcm-transactor-precompiles"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+ "xcm-transactor",
 ]
 
 [[package]]
