@@ -667,7 +667,7 @@ parameter_types! {
 	/// Minimum stake required to become a collator
 	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::MOONRIVER_FACTOR;
 	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
-	/// Minimum stake required to be reserved to be a candidate is 1_000
+	/// Minimum stake required to be reserved to be a candidate
 	pub const MinCollatorCandidateStk: u128 = currency::KILOGLMR * currency::MOONRIVER_FACTOR / 10;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::GLMR * currency::MOONRIVER_FACTOR;
