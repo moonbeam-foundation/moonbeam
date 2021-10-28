@@ -450,30 +450,25 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
-				100_000 * GLMR, // TODO: why 100900... ?
-			);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 100_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(2400);
 			// rewards minted and distributed
-			/*
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				108269333328165000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				525841666640825000000,
+				52584166664082500000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				4751500000000000000000,
 			);
-			*/
 		});
 }
 
@@ -481,7 +476,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 299_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
