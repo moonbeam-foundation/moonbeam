@@ -160,18 +160,24 @@ impl Config for Test {
 /// Externality builder for pallet maintenance mode's mock runtime
 pub(crate) struct ExtBuilder {
 	proxies: Vec<(AccountId, AccountId)>,
-	//TODO Balances?
+	balances: Vec<(AccountId, Balance)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			proxies: Vec::new(),
+			balances: Vec::new(),
 		}
 	}
 }
 
 impl ExtBuilder {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
+
 	pub(crate) fn with_genesis_proxies(mut self, proxies: Vec<(AccountId, AccountId)>) -> Self {
 		self.proxies = proxies;
 		self
