@@ -19,7 +19,7 @@ use super::*;
 use crate as proxy_companion;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Everything, GenesisBuild, InstanceFilter},
+	traits::{Everything, GenesisBuild, InstanceFilter},
 	weights::Weight,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -129,11 +129,11 @@ parameter_types! {
 pub struct ProxyType;
 
 impl InstanceFilter<Call> for ProxyType {
-	fn filter(&self, c: &Call) -> bool {
+	fn filter(&self, _c: &Call) -> bool {
 		true
 	}
 
-	fn is_superset(&self, o: &Self) -> bool {
+	fn is_superset(&self, _o: &Self) -> bool {
 		true
 	}
 }
@@ -178,7 +178,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_genesis_proxies(mut self, proxies: Vec<(AccountId, AccountId)>) -> Self {
+	pub(crate) fn with_proxies(mut self, proxies: Vec<(AccountId, AccountId)>) -> Self {
 		self.proxies = proxies;
 		self
 	}
