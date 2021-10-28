@@ -35,7 +35,7 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 
-	/// Pallet for migrations
+	/// Pallet for configuring proxy at genesis
 	#[pallet::pallet]
 	#[pallet::generate_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);

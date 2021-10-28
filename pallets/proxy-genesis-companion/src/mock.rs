@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! A minimal runtime including the maintenance-mode pallet
+//! A minimal runtime including the proxy-genesis-companion pallet
 use super::*;
 use crate as proxy_companion;
 use frame_support::{
