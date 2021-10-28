@@ -1100,6 +1100,7 @@ runtime_common::impl_self_contained_call!();
 #[cfg(test)]
 mod tests {
 	use super::{currency::*, *};
+	use sp_runtime::traits::Zero;
 
 	#[test]
 	fn currency_constants_are_correct() {
