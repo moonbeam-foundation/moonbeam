@@ -29,7 +29,11 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
-use moonbeam_runtime::{AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime, System, currency::{GIGAWEI, GLMR}};
+use moonbeam_runtime::{
+	currency::{GIGAWEI, GLMR},
+	AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
+};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
@@ -446,7 +450,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 100_000 * GLMR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				100_000 * GLMR,
+			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
@@ -522,7 +529,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			})
 			.dispatch(root_origin()));
 			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 45_000_000 * GLMR);
+			assert_eq!(
+				Balances::balance(&AccountId::from(CHARLIE)),
+				45_000_000 * GLMR
+			);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 45_000_000 * GLMR);
 			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
