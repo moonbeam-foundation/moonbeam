@@ -86,7 +86,8 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const MOONRIVER_FACTOR: Balance = 100; // 100X Moonriver's supply (1B vs 10M)
+	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
+	pub const SUPPLY_FACTOR: Balance = 100;
 
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
@@ -97,11 +98,11 @@ pub mod currency {
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR * MOONRIVER_FACTOR;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * MOONRIVER_FACTOR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR * SUPPLY_FACTOR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR * MOONRIVER_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * GLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -353,7 +354,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI * currency::MOONRIVER_FACTOR).into()
+		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
 }
 
@@ -454,7 +455,7 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
 	pub const EnactmentPeriod: BlockNumber = 2 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::GLMR * currency::MOONRIVER_FACTOR;
+	pub const MinimumDeposit: Balance = 4 * currency::GLMR * currency::SUPPLY_FACTOR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
@@ -519,7 +520,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR * currency::MOONRIVER_FACTOR;
+	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR * currency::SUPPLY_FACTOR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 = 100;
@@ -665,12 +666,12 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
-	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::MOONRIVER_FACTOR;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::SUPPLY_FACTOR;
 	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCollatorCandidateStk: u128 = currency::KILOGLMR * currency::MOONRIVER_FACTOR / 10;
+	pub const MinCollatorCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::GLMR * currency::MOONRIVER_FACTOR;
+	pub const MinNominatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -735,7 +736,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::GLMR * currency::MOONRIVER_FACTOR;
+	pub const DepositAmount: Balance = 100 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -867,8 +868,8 @@ impl pallet_migrations::Config for Runtime {
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
-pub struct PhaseThreeFilter;
-impl Contains<Call> for PhaseThreeFilter {
+pub struct MaintenanceFilter;
+impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
@@ -883,7 +884,7 @@ impl Contains<Call> for PhaseThreeFilter {
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = BaseFilter;
-	type MaintenanceCallFilter = PhaseThreeFilter;
+	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 }
@@ -1104,7 +1105,7 @@ mod tests {
 
 	#[test]
 	fn currency_constants_are_correct() {
-		assert_eq!(MOONRIVER_FACTOR, 100);
+		assert_eq!(SUPPLY_FACTOR, 100);
 
 		// txn fees
 		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(1 * MILLIGLMR));
