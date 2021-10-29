@@ -14,6 +14,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-collective = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 log = "0.4"
 
@@ -24,4 +25,5 @@ std = [
 	"sp-std/std",
 	"frame-support/std",
 	"pallet-author-mapping/std",
+	"parachain-staking/std",
 ]
