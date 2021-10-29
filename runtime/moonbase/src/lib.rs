@@ -39,7 +39,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
+		Contains, Everything, FindAuthor, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -412,17 +412,14 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	}
 }
 
-use frame_support::traits::FindAuthor;
-//TODO It feels like this shold be able to work for any T: H160, but I tried for
-// embarassingly long and couldn't figure that out.
+/// The author inherent provides an AccountId, but pallet evm needs an H160.
+/// This simple adapter makes the conversion for any AccountId: Into<H160>
+pub struct FindAuthorAdapter<T, Inner>(sp_std::marker::PhantomData<(T, Inner)>);
 
-/// The author inherent provides a AccountId20, but pallet evm needs an H160.
-/// This simple adapter makes the conversion.
-pub struct FindAuthorAdapter<Inner>(sp_std::marker::PhantomData<Inner>);
-
-impl<Inner> FindAuthor<H160> for FindAuthorAdapter<Inner>
+impl<T, Inner> FindAuthor<H160> for FindAuthorAdapter<T, Inner>
 where
-	Inner: FindAuthor<AccountId20>,
+	T: Into<H160>,
+	Inner: FindAuthor<T>,
 {
 	fn find_author<'a, I>(digests: I) -> Option<H160>
 	where
@@ -446,7 +443,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
-	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
+	type FindAuthor = FindAuthorAdapter<AccountId20, AuthorInherent>;
 }
 
 parameter_types! {
