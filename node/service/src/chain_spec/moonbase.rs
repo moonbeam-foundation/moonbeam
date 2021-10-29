@@ -267,6 +267,7 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
+		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
