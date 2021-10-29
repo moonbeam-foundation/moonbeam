@@ -735,6 +735,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
 	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
 )]
@@ -858,6 +859,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 }
 
+impl pallet_proxy_genesis_companion::Config for Runtime {
+	type ProxyType = ProxyType;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -887,6 +892,7 @@ construct_runtime! {
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
+		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
 		// Sudo was previously index 40
 

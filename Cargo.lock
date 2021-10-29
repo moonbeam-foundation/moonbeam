@@ -5026,6 +5026,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-proxy",
+ "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
@@ -5421,6 +5422,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-proxy",
+ "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
@@ -5618,6 +5620,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-proxy",
+ "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
@@ -7000,6 +7003,22 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-proxy-genesis-companion"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-proxy",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
