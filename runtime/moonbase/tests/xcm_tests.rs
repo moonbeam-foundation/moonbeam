@@ -1002,7 +1002,7 @@ fn test_automatic_versioning() {
 			parents: 0,
 			interior: X1(Parachain(1)),
 		},
-		2,
+		1,
 	)
 	.into();
 

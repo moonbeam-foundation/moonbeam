@@ -222,6 +222,7 @@ parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
 	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000000000);
+	pub safe_xcm_version: u32 = 1;
 }
 
 parameter_types! {
@@ -472,7 +473,8 @@ impl pallet_xcm::Config for Runtime {
 	type Origin = Origin;
 	type Call = Call;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	// We put 1 to upgrade it later
+	type AdvertisedXcmVersion = safe_xcm_version;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
