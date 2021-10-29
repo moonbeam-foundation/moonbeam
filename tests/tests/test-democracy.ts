@@ -166,7 +166,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
   });
 });
 
-describeDevMoonbeam("Democracy - vote on referendum", (context) => {
+describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: string;
   let enactmentPeriod, votingPeriod;
@@ -207,7 +207,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     expect(votingPeriod.toBigInt()).to.equal(36000n);
   });
 
-  it("vote", async function () {
+  it("vote yes", async function () {
     this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
@@ -238,6 +238,74 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     }
     let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toJSON()["account"]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+  });
+});
+
+describeDevMoonbeam("Democracy - vote no on referendum", (context) => {
+  let genesisAccount: KeyringPair, alith: KeyringPair;
+  let encodedHash: string;
+  let enactmentPeriod, votingPeriod;
+
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+    // enactmentPeriod
+    enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
+    // votingPeriod
+    votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
+
+    // notePreimage
+    encodedHash = await notePreimage(
+      context,
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT),
+      genesisAccount
+    );
+    // propose
+    await context.polkadotApi.tx.democracy
+      .propose(encodedHash, PROPOSAL_AMOUNT)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+    // second
+    await context.polkadotApi.tx.democracy.second(0, 1000).signAndSend(alith);
+    await context.createBlock();
+  });
+
+  it("check enactment period", async function () {
+    // enactmentPeriod
+    expect(enactmentPeriod.toBigInt()).to.equal(7200n);
+  });
+
+  it("check voting Period", async function () {
+    // votingPeriod
+    expect(votingPeriod.toBigInt()).to.equal(36000n);
+  });
+
+  it("vote no", async function () {
+    this.timeout(2000000);
+    // let Launchperiod elapse to turn the proposal into a referendum
+    // launchPeriod minus the 3 blocks that already elapsed
+    for (let i = 0; i < 7200 - 3; i++) {
+      await context.createBlock();
+    }
+    // vote
+    await context.polkadotApi.tx.democracy
+      .vote(0, {
+        Standard: { balance: VOTE_AMOUNT, vote: { aye: false, conviction: 1 } },
+      })
+      .signAndSend(alith);
+    await context.createBlock();
+
+    // referendumInfoOf
+    const referendumInfoOf = (
+      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+    ).unwrap() as any;
+    const onGoing = referendumInfoOf.asOngoing;
+
+    expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
+    expect(onGoing.tally.nays.toBigInt()).to.equal(10n * GLMR);
+    expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
   });
 });
 

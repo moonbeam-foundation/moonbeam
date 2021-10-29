@@ -31,7 +31,6 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
-use xtokens_precompiles::AccountIdToCurrencyId;
 
 use sp_runtime::traits::Hash as THash;
 
@@ -511,35 +510,32 @@ impl pallet_democracy::Config for Runtime {
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
-	/// A straight majority of the council can decide what their next motion is.
+	/// To decide what their next motion is.
 	type ExternalOrigin =
 		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
-	/// A majority can have the next scheduled referendum be a straight majority-carries vote.
+	/// To have the next scheduled referendum be a straight majority-carries vote.
 	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
-	/// A unanimous council can have the next scheduled referendum be a straight default-carries
-	/// (NTB) vote.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
 	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilInstance>;
-	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
-	/// be tabled immediately and with a shorter voting/enactment period.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+	/// To allow a shorter voting/enactment period for external proposals.
 	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
-	/// Instant is currently not allowed.
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechCommitteeInstance>;
+	/// To instant fast track.
 	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>;
-	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>;
+	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EnsureOneOf<
 		AccountId,
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 	>;
-	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
-	// Root must agree.
+	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EnsureOneOf<
 		AccountId,
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>,
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>,
 	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
@@ -803,6 +799,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
 	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
 )]
@@ -1003,7 +1000,11 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = 1_000_000_000;
+	/// We should increase this to a value close to what polkadot charges
+	/// We are charging less to make it work with current reserve_transfer_assets issue
+	/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000
+	/// https://github.com/paritytech/polkadot/pull/4144
+	pub UnitWeightCost: Weight = 100_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -1242,7 +1243,7 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+impl xcm_primitives::AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
@@ -1298,6 +1299,60 @@ impl orml_xtokens::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
+// For now we only allow to transact in the relay, although this might change in the future
+// Transactors just defines the chains in which we allow transactions to be issued through
+// xcm
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum Transactors {
+	Relay,
+}
+
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			// Shall we use westend for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to westend-runtime I think
+			Transactors::Relay => moonbeam_relay_encoder::westend::WestendEncoder.encode_call(call),
+		}
+	}
+}
+
+impl xcm_primitives::XcmTransact for Transactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			Transactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Transactor = Transactors;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdToMultiLocation =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type XcmExecutor = XcmExecutor;
+	type XcmSender = XcmRouter;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type LocationInverter = LocationInverter<Ancestry>;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
@@ -1342,6 +1397,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 }
 
+impl pallet_proxy_genesis_companion::Config for Runtime {
+	type ProxyType = ProxyType;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1384,6 +1443,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
+		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
+
 	}
 }
 

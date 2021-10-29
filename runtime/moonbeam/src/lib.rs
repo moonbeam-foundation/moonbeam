@@ -472,35 +472,32 @@ impl pallet_democracy::Config for Runtime {
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
-	/// A straight majority of the council can decide what their next motion is.
+	/// To decide what their next motion is.
 	type ExternalOrigin =
 		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
-	/// A majority can have the next scheduled referendum be a straight majority-carries vote.
+	/// To have the next scheduled referendum be a straight majority-carries vote.
 	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
-	/// A unanimous council can have the next scheduled referendum be a straight default-carries
-	/// (NTB) vote.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
 	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilInstance>;
-	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
-	/// be tabled immediately and with a shorter voting/enactment period.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+	/// To allow a shorter voting/enactment period for external proposals.
 	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
-	/// Instant is currently not allowed.
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechCommitteeInstance>;
+	/// To instant fast track.
 	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>;
-	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>;
+	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EnsureOneOf<
 		AccountId,
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 	>;
-	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
-	// Root must agree.
+	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EnsureOneOf<
 		AccountId,
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>,
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>,
 	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
@@ -766,6 +763,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
 	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
 )]
@@ -889,6 +887,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 }
 
+impl pallet_proxy_genesis_companion::Config for Runtime {
+	type ProxyType = ProxyType;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -918,6 +920,7 @@ construct_runtime! {
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
+		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
 		// Sudo.
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,

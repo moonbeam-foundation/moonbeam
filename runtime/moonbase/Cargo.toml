@@ -31,6 +31,7 @@ parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", 
 relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
+pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
@@ -45,6 +46,7 @@ pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
+xcm-transactor-precompiles = { path = "../../precompiles/xcm_transactor", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
@@ -115,6 +117,7 @@ pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features =
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+xcm-transactor =  { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11", optional = true }
@@ -191,6 +194,7 @@ std = [
 	"pallet-author-slot-filter/std",
 	"pallet-migrations/std",
 	"pallet-maintenance-mode/std",
+	"pallet-proxy-genesis-companion/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
@@ -211,6 +215,8 @@ std = [
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-assets-erc20/std",
 	"xtokens-precompiles/std",
+	"xcm-transactor/std",
+	"xcm-transactor-precompiles/std",
 	"scale-info/std",
 ]
 

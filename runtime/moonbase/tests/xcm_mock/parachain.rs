@@ -554,6 +554,66 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Transactor = MockTransactors;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdToMultiLocation =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type LocationInverter = LocationInverter<Ancestry>;
+	type XcmSender = XcmRouter;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
+// We need to use the encoding from the relay mock runtime
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl xcm_primitives::XcmTransact for MockTransactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
+	}
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -571,5 +631,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+
 	}
 );
