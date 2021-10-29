@@ -122,6 +122,27 @@ impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
 	}
 }
 
+/// Trivial enum representing runtime variant
+#[derive(Clone)]
+pub enum RuntimeVariant {
+	Moonbeam,
+	Moonriver,
+	Moonbase,
+	Unrecognized,
+}
+
+impl RuntimeVariant {
+	pub fn from_chain_spec(chain_spec: &Box<dyn ChainSpec>) -> Self {
+		match chain_spec {
+			spec if spec.is_moonbeam() => Self::Moonbeam,
+			spec if spec.is_moonriver() => Self::Moonriver,
+			spec if spec.is_moonbase() => Self::Moonbase,
+			_ => Self::Unrecognized,
+		}
+	}
+}
+
+
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the `Moonbeam` network.
 pub trait IdentifyVariant {
@@ -419,6 +440,22 @@ impl TransactionConverters {
 	#[cfg(not(feature = "moonbase-native"))]
 	fn moonbase() -> Self {
 		unimplemented!()
+	}
+	pub fn for_chain_spec(chain_spec: &Box<dyn ChainSpec>) -> Self {
+		match chain_spec {
+			spec if spec.is_moonbeam() => Self::moonbeam(),
+			spec if spec.is_moonriver() => Self::moonriver(),
+			spec if spec.is_moonbase() => Self::moonbase(),
+			_ => panic!("invalid chain spec"),
+		}
+	}
+	pub fn for_runtime_variant(runtime: RuntimeVariant) -> Self {
+		match runtime {
+			RuntimeVariant::Moonbeam => Self::moonbeam(),
+			RuntimeVariant::Moonriver => Self::moonriver(),
+			RuntimeVariant::Moonbase => Self::moonbase(),
+			_ => panic!("invalid chain spec"),
+		}
 	}
 }
 

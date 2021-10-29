@@ -456,6 +456,20 @@ pub fn run() -> Result<()> {
 
 			let runner = cli.create_runner(&cmd)?;
 			runner.sync_run(|config| {
+				#[cfg(feature = "moonbeam-native")]
+				return cmd
+					.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					);
+				#[cfg(feature = "moonriver-native")]
+				return cmd
+					.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					);
 				#[cfg(feature = "moonbase-native")]
 				return cmd
 					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
@@ -464,7 +478,7 @@ pub fn run() -> Result<()> {
 						config,
 					);
 				#[cfg(not(feature = "moonbase-native"))]
-				panic!("perf-test only available for moonbase");
+				panic!("invalid chain spec");
 			})?;
 
 			log::debug!("removing temp perf_test dir {:?}", working_dir);
