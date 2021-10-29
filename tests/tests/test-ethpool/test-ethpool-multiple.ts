@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createContract } from "../util/transactions";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 import { Transaction } from "web3-core";
 
 /*
