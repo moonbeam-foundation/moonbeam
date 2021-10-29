@@ -1598,6 +1598,67 @@
 <span id="1598">1598</span>
 <span id="1599">1599</span>
 <span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1712,6 +1773,9 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">currency</span> {
 	<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Balance</span>;
 
+	<span class="comment">// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SUPPLY_FACTOR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span>;
+
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOWEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MEGAWEI</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000</span>;
@@ -1721,11 +1785,11 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOUNIT</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000_000</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROUNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
-		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
+		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
 	}
 }
 
@@ -1962,7 +2026,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
 	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
-		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span>).<span class="ident">into</span>()
+		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>()
 	}
 }
 
@@ -2090,7 +2154,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">HOURS</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::STORAGE_BYTE_FEE</span>;
@@ -2152,7 +2216,7 @@
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBond</span>: <span class="ident">Permill</span> <span class="op">=</span> <span class="ident">Permill::from_percent</span>(<span class="number">5</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBondMinimum</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBondMinimum</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SpendPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TreasuryId</span>: <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">PalletId</span>(<span class="kw-2">*</span><span class="string">b&quot;pc/trsry&quot;</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxApprovals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
@@ -2299,11 +2363,11 @@
 	<span class="doccomment">/// Default percent of inflation set aside for parachain bond every round</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
 	<span class="doccomment">/// Minimum stake required to become a collator is 1_000</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate is 1_000</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::KILOUNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">parachain_staking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2368,7 +2432,7 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DepositAmount</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::UNIT</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DepositAmount</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 }
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced</span>
 <span class="comment">// entirely by pallet sessions</span>
@@ -3198,6 +3262,64 @@
 );
 
 <span class="macro">runtime_common::impl_self_contained_call!</span>();
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="kw">fn</span> <span class="ident">currency_constants_are_correct</span>() {
+		<span class="macro">assert_eq!</span>(<span class="ident">SUPPLY_FACTOR</span>, <span class="number">1</span>);
+
+		<span class="comment">// txn fees</span>
+		<span class="macro">assert_eq!</span>(<span class="ident">TRANSACTION_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">OperationalFeeMultiplier::get</span>(), <span class="number">5_u8</span>);
+		<span class="macro">assert_eq!</span>(<span class="ident">STORAGE_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">FixedGasPrice::min_gas_price</span>(), (<span class="number">1</span> <span class="op">*</span> <span class="ident">GIGAWEI</span>).<span class="ident">into</span>());
+
+		<span class="comment">// democracy minimums</span>
+		<span class="macro">assert_eq!</span>(<span class="ident">MinimumDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">4</span> <span class="op">*</span> <span class="ident">UNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">PreimageByteDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">ProposalBondMinimum::get</span>(), <span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span>));
+
+		<span class="comment">// pallet_identity deposits</span>
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">BasicDeposit::get</span>(),
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">+</span> <span class="number">25800</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>)
+		);
+		<span class="macro">assert_eq!</span>(<span class="ident">FieldDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">6600</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">SubAccountDeposit::get</span>(),
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">+</span> <span class="number">5300</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>)
+		);
+
+		<span class="comment">// staking minimums</span>
+		<span class="macro">assert_eq!</span>(<span class="ident">MinCollatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">KILOUNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">MinCollatorCandidateStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">KILOUNIT</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">MinNominatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">UNIT</span>));
+
+		<span class="comment">// crowdloan min reward</span>
+		<span class="macro">assert_eq!</span>(<span class="ident">MinimumReward::get</span>(), <span class="ident">Balance::from</span>(<span class="number">0u128</span>));
+
+		<span class="comment">// deposit for AuthorMapping</span>
+		<span class="macro">assert_eq!</span>(<span class="ident">DepositAmount::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">UNIT</span>));
+
+		<span class="comment">// proxy deposits</span>
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">ProxyDepositBase::get</span>(),
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">+</span> <span class="number">800</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>)
+		);
+		<span class="macro">assert_eq!</span>(<span class="ident">ProxyDepositFactor::get</span>(), <span class="ident">Balance::from</span>(<span class="number">2100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">AnnouncementDepositBase::get</span>(),
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">+</span> <span class="number">800</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">AnnouncementDepositFactor::get</span>(),
+			<span class="ident">Balance::from</span>(<span class="number">5600</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>)
+		);
+	}
+}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbase_runtime" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
