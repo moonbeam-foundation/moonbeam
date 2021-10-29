@@ -39,7 +39,8 @@ use xcm::latest::{
 	Junctions, MultiLocation, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
-	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
@@ -209,8 +210,14 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
-pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
-
+pub type Barrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	// Expected responses are OK.
+	AllowKnownQueryResponses<PolkadotXcm>,
+	// Subscriptions for version tracking are OK.
+	AllowSubscriptionsFrom<Everything>,
+);
 parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
@@ -245,7 +252,7 @@ impl Config for XcmConfig {
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	);
 
-	type ResponseHandler = ();
+	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
@@ -635,3 +642,11 @@ construct_runtime!(
 
 	}
 );
+
+pub(crate) fn para_events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| Some(e))
+		.collect::<Vec<_>>()
+}

@@ -18,15 +18,17 @@
 
 mod xcm_mock;
 use frame_support::{assert_ok, traits::PalletInfo};
+use xcm::WrapVersion;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
+use xcm::latest::prelude::QueryResponse;
 use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
-	MultiLocation, NetworkId,
+	MultiLocation, NetworkId, Response, Xcm,
 };
 use xcm_simulator::TestExt;
 
@@ -919,6 +921,94 @@ fn transact_through_sovereign() {
 		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
 
 		assert!(RelayBalances::free_balance(&registered_address) == 0);
+	});
+}
+
+#[test]
+fn test_automatic_versioning() {
+	MockNet::reset();
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	let response = Response::Version(2);
+
+	// This is irrelevant, nothing will be done with this message,
+	// but we need to pass a message as an argument to trigger the storage change
+	let mock_message: Xcm<()> = Xcm(vec![QueryResponse {
+		query_id: 0,
+		response,
+		max_weight: 0,
+	}]);
+	// The router is mocked, and we cannot use WrapVersion in ChildParachainRouter. So we will force
+	// it directly here
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
+
+	Relay::execute_with(|| {
+		// This sets the default version, for not known destinations
+		assert_ok!(RelayChainPalletXcm::force_default_xcm_version(
+			relay_chain::Origin::root(),
+			Some(2)
+		));
+
+		// Wrap version, which sets VersionedStorage
+		assert_ok!(<RelayChainPalletXcm as WrapVersion>::wrap_version(
+			&Parachain(1).into(),
+			mock_message
+		));
+
+		// Transfer assets. Since it is an unknown destionation, it will query for version
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(dest.clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+
+		// Let's advance the relay. This should trigger the subscription message
+		relay_chain::relay_roll_to(2);
+
+		// queries should have been updated
+		assert!(RelayChainPalletXcm::query(0).is_some());
+	});
+
+	let expected: relay_chain::Event = pallet_xcm::Event::SupportedVersionChanged(
+		MultiLocation {
+			parents: 0,
+			interior: X1(Parachain(1)),
+		},
+		2,
+	)
+	.into();
+
+	Relay::execute_with(|| {
+		// Assert that the events vector contains the version change
+		assert!(relay_chain::relay_events().contains(&expected));
 	});
 }
 

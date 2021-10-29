@@ -48,7 +48,8 @@ use frame_support::{
 };
 
 use xcm_builder::{
-	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
@@ -1010,7 +1011,13 @@ parameter_types! {
 pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 
 // Allow paid executions
-pub type XcmBarrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
+pub type XcmBarrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	AllowKnownQueryResponses<PolkadotXcm>,
+	// Subscriptions for version tracking are OK.
+	AllowSubscriptionsFrom<Everything>,
+);
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
@@ -1039,7 +1046,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 		>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
 	>;
-	type ResponseHandler = (); // Don't handle responses for now.
+	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
@@ -1090,7 +1097,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
+	type VersionWrapper = PolkadotXcm;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
