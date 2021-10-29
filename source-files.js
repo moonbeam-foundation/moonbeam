@@ -32,6 +32,7 @@ sourcesIndex["pallet_evm_precompile_assets_erc20"] = {"name":"","files":["lib.rs
 sourcesIndex["pallet_evm_precompile_balances_erc20"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_maintenance_mode"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_migrations"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_proxy_genesis_companion"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs","weights.rs"]};
 sourcesIndex["parachain_staking_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["perf_test"] = {"name":"","dirs":[{"name":"tests","files":["block_creation.rs","fibonacci.rs","mod.rs","storage.rs"]}],"files":["command.rs","lib.rs","sysinfo.rs","txn_signer.rs"]};
