@@ -327,8 +327,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: vec![],
 				value: (1_000 * MOVR).into(),
 				gas_limit,
@@ -743,7 +743,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1048,7 +1048,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
