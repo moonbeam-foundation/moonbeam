@@ -413,15 +413,15 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 }
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
-/// This simple adapter makes the conversion for any AccountId: Into<H160>
-pub struct FindAuthorAdapter<T, Inner>(sp_std::marker::PhantomData<(T, Inner)>);
+/// This simple adapter makes the conversion for any types T, U such that T: Into<U>
+pub struct FindAuthorAdapter<T, U, Inner>(sp_std::marker::PhantomData<(T, U, Inner)>);
 
-impl<T, Inner> FindAuthor<H160> for FindAuthorAdapter<T, Inner>
+impl<T, U, Inner> FindAuthor<U> for FindAuthorAdapter<T, U, Inner>
 where
-	T: Into<H160>,
+	T: Into<U>,
 	Inner: FindAuthor<T>,
 {
-	fn find_author<'a, I>(digests: I) -> Option<H160>
+	fn find_author<'a, I>(digests: I) -> Option<U>
 	where
 		I: 'a + IntoIterator<Item = (sp_runtime::ConsensusEngineId, &'a [u8])>,
 	{
@@ -443,7 +443,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
-	type FindAuthor = FindAuthorAdapter<AccountId20, AuthorInherent>;
+	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
 }
 
 parameter_types! {
