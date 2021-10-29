@@ -118,8 +118,8 @@ pub mod pallet {
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
 
-	// Stores the units per second. Not all assets might contain units per second, hence the
-	// different storage
+	// Stores the units per second for local execution.
+	// Not all assets might contain units per second, hence the different storage
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_units_per_second)]
 	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;

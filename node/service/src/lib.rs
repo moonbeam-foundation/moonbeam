@@ -33,8 +33,12 @@ pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use sc_service::BasePath;
-use std::{collections::BTreeMap, sync::Mutex, time::Duration};
-mod rpc;
+use std::{
+	collections::{BTreeMap, HashMap},
+	sync::Mutex,
+	time::Duration,
+};
+pub mod rpc;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,

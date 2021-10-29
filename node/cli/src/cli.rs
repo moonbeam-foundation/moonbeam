@@ -20,6 +20,7 @@
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use perf_test::PerfCmd;
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
@@ -56,6 +57,9 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+
+	/// Run hardware performance tests.
+	PerfTest(PerfCmd),
 
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
