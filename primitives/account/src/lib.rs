@@ -196,11 +196,16 @@ mod tests {
 		let secret_key =
 			hex::decode("502f97299c472b88754accd412b7c9a6062ef3186fba0c0388365e1edec24875")
 				.unwrap();
-		let expected_hex_account = hex::decode("976f8456e4e2034179b284a23c0e0c8f6d3da50c").unwrap();
+		let mut expected_hex_account = [0u8; 20];
+		hex::decode_to_slice(
+			"976f8456e4e2034179b284a23c0e0c8f6d3da50c",
+			&mut expected_hex_account,
+		)
+		.expect("example data is 20 bytes of valid hex");
 
 		let public_key = ecdsa::Pair::from_seed_slice(&secret_key).unwrap().public();
 		let account: EthereumSigner = public_key.into();
-		let expected_account = H160::from_slice(&expected_hex_account);
+		let expected_account = AccountId20::from(expected_hex_account);
 		assert_eq!(account.into_account(), expected_account);
 	}
 	#[test]
@@ -209,11 +214,16 @@ mod tests {
 		let secret_key =
 			hex::decode("0f02ba4d7f83e59eaa32eae9c3c4d99b68ce76decade21cdab7ecce8f4aef81a")
 				.unwrap();
-		let expected_hex_account = hex::decode("420e9f260b40af7e49440cead3069f8e82a5230f").unwrap();
+		let mut expected_hex_account = [0u8; 20];
+		hex::decode_to_slice(
+			"420e9f260b40af7e49440cead3069f8e82a5230f",
+			&mut expected_hex_account,
+		)
+		.expect("example data is 20 bytes of valid hex");
 
 		let public_key = ecdsa::Pair::from_seed_slice(&secret_key).unwrap().public();
 		let account: EthereumSigner = public_key.into();
-		let expected_account = H160::from_slice(&expected_hex_account);
+		let expected_account = AccountId20::from(expected_hex_account);
 		assert_eq!(account.into_account(), expected_account);
 	}
 }
