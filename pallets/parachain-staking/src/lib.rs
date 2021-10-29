@@ -48,17 +48,17 @@
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
 mod inflation;
+pub mod migrations;
 #[cfg(test)]
 mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
-
 pub mod weights;
-use weights::WeightInfo;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
+use weights::WeightInfo;
 
 pub use pallet::*;
 
@@ -714,7 +714,7 @@ pub mod pallet {
 			}
 		}
 		/// Set status to leaving
-		fn set_leaving(&mut self, when: RoundIndex) {
+		pub(crate) fn set_leaving(&mut self, when: RoundIndex) {
 			self.status = DelegatorStatus::Leaving(when);
 		}
 		/// Schedule status to exit
@@ -1196,7 +1196,7 @@ pub mod pallet {
 	}
 
 	/// Temporary function to migrate state
-	fn migrate_nominator_to_delegator_state<T: Config>(
+	pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
 		id: T::AccountId,
 		nominator: Nominator2<T::AccountId, BalanceOf<T>>,
 	) -> Delegator<T::AccountId, BalanceOf<T>> {
@@ -1288,7 +1288,7 @@ pub mod pallet {
 		pub nominator_schedule: Vec<(AccountId, Option<AccountId>, RoundIndex)>,
 	}
 
-	type RoundIndex = u32;
+	pub(crate) type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -1482,64 +1482,8 @@ pub mod pallet {
 		),
 	}
 
-	/// Migration to replace the automatic ExitQueue with a manual exits API.
-	/// This migration is idempotent, it can be run more than once without any risk.
-	/// Returns (reads, writes)
-	pub fn remove_exit_queue_migration<T: Config>() -> Weight {
-		let exit_queue = <ExitQueue2<T>>::take();
-		let (mut reads, mut writes) = (1u64, 0u64);
-		let mut delegator_exits: BTreeMap<T::AccountId, RoundIndex> = BTreeMap::new();
-		let mut delegation_revocations: BTreeMap<T::AccountId, (T::AccountId, RoundIndex)> =
-			BTreeMap::new();
-		// Track scheduled delegator exits and revocations before migrating state
-		// Candidates already track exit info locally so no tracking is necessary
-		for (delegator, is_revocation, when) in exit_queue.nominator_schedule {
-			if let Some(revoking_candidate) = is_revocation {
-				delegation_revocations.insert(delegator, (revoking_candidate, when));
-			} else {
-				delegator_exits.insert(delegator, when);
-			}
-		}
-		// execute candidate migration
-		for (candidate_id, collator_state) in <CollatorState2<T>>::drain() {
-			let candidate_state: CollatorCandidate<T::AccountId, BalanceOf<T>> =
-				collator_state.into();
-			<CandidateState<T>>::insert(candidate_id, candidate_state);
-			reads += 1u64;
-			writes += 1u64;
-		}
-		// execute delegator migration
-		for (delegator_id, nominator_state) in <NominatorState2<T>>::drain() {
-			let mut delegator_state =
-				migrate_nominator_to_delegator_state::<T>(delegator_id.clone(), nominator_state);
-			// add exit if it exists
-			if let Some(when) = delegator_exits.get(&delegator_id) {
-				delegator_state.set_leaving(*when);
-			}
-			// add revocation if exists
-			if let Some((candidate, when)) = delegation_revocations.get(&delegator_id) {
-				delegator_state.hotfix_set_revoke::<T>(candidate.clone(), *when);
-			}
-			<DelegatorState<T>>::insert(delegator_id, delegator_state);
-			reads += 1u64;
-			writes += 1u64;
-		}
-		let db_weight = T::DbWeight::get();
-		if reads > 1u64 {
-			// 10% of the max block weight as safety margin for computation
-			db_weight.reads(reads) + db_weight.writes(writes) + 50_000_000_000
-		} else {
-			// migration was already executed before
-			db_weight.reads(reads)
-		}
-	}
-
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			// TODO: move to pallet-migrations
-			remove_exit_queue_migration::<T>()
-		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {

@@ -29,6 +29,30 @@ use sp_std::{marker::PhantomData, prelude::*};
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
+/// Staking transition from automatic to manual exits, delay bond_{more, less} requests
+pub struct StakingManualExits<T>(PhantomData<T>);
+impl<T: parachain_staking::Config> Migration for StakingManualExits<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Staking_Manual_Exits"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		parachain_staking::migrations::RemoveExitQueue::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		parachain_staking::migrations::RemoveExitQueue::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		parachain_staking::migrations::RemoveExitQueue::<T>::post_upgrade()
+	}
+}
+
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
 impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
@@ -94,7 +118,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
 	for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config,
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -106,6 +130,8 @@ where
 		let migration_collectives =
 			MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
 
+		let staking_manual_exits = StakingManualExits::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -113,6 +139,7 @@ where
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
 			Box::new(migration_collectives),
+			Box::new(staking_manual_exits),
 		]
 	}
 }

@@ -4456,6 +4456,7 @@ fn nomination_events_convey_correct_position() {
 }
 
 // MIGRATION TESTS
+use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
 fn remove_exit_queue_migration_migrates_leaving_candidates() {
@@ -4491,7 +4492,7 @@ fn remove_exit_queue_migration_migrates_leaving_candidates() {
 				..Default::default()
 			});
 			// execute migration
-			remove_exit_queue_migration::<Test>();
+			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
 			// check expected candidate state reflects previous state
 			for i in 1..6 {
 				assert!(<CollatorState2<Test>>::get(i).is_none());
@@ -4539,7 +4540,7 @@ fn remove_exit_queue_migration_migrates_leaving_delegators() {
 				..Default::default()
 			});
 			// execute migration
-			remove_exit_queue_migration::<Test>();
+			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
 			// check expected delegator state reflects previous state
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
@@ -4591,7 +4592,7 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 				..Default::default()
 			});
 			// execute migration
-			remove_exit_queue_migration::<Test>();
+			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
 			// check expected delegator state reflects previous state
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
