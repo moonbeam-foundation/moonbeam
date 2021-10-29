@@ -112,6 +112,9 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
+	pub const SUPPLY_FACTOR: Balance = 1;
+
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
 	pub const MEGAWEI: Balance = 1_000_000;
@@ -121,11 +124,11 @@ pub mod currency {
 	pub const UNIT: Balance = 1_000_000_000_000_000_000;
 	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT * SUPPLY_FACTOR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * UNIT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -362,7 +365,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI).into()
+		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
 }
 
@@ -490,7 +493,7 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
+	pub const MinimumDeposit: Balance = 4 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
@@ -552,7 +555,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT;
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const MaxApprovals: u32 = 100;
@@ -699,11 +702,11 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate is 1_000
-	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOUNIT;
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::UNIT;
+	pub const MinNominatorStk: u128 = 5 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
 
 impl parachain_staking::Config for Runtime {
@@ -768,7 +771,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::UNIT;
+	pub const DepositAmount: Balance = 100 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -1598,3 +1601,61 @@ cumulus_pallet_parachain_system::register_validate_block!(
 );
 
 runtime_common::impl_self_contained_call!();
+
+#[cfg(test)]
+mod tests {
+	use super::{currency::*, *};
+
+	#[test]
+	fn currency_constants_are_correct() {
+		assert_eq!(SUPPLY_FACTOR, 1);
+
+		// txn fees
+		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(10 * MICROUNIT));
+		assert_eq!(OperationalFeeMultiplier::get(), 5_u8);
+		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
+		assert_eq!(FixedGasPrice::min_gas_price(), (1 * GIGAWEI).into());
+
+		// democracy minimums
+		assert_eq!(MinimumDeposit::get(), Balance::from(4 * UNIT));
+		assert_eq!(PreimageByteDeposit::get(), Balance::from(100 * MICROUNIT));
+		assert_eq!(ProposalBondMinimum::get(), Balance::from(1 * UNIT));
+
+		// pallet_identity deposits
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(1 * UNIT + 25800 * MICROUNIT)
+		);
+		assert_eq!(FieldDeposit::get(), Balance::from(6600 * MICROUNIT));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(1 * UNIT + 5300 * MICROUNIT)
+		);
+
+		// staking minimums
+		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOUNIT));
+		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(1 * KILOUNIT));
+		assert_eq!(MinNominatorStk::get(), Balance::from(5 * UNIT));
+
+		// crowdloan min reward
+		assert_eq!(MinimumReward::get(), Balance::from(0u128));
+
+		// deposit for AuthorMapping
+		assert_eq!(DepositAmount::get(), Balance::from(100 * UNIT));
+
+		// proxy deposits
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(2100 * MICROUNIT));
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(5600 * MICROUNIT)
+		);
+	}
+}
