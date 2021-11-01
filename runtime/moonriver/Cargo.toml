@@ -30,6 +30,7 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
@@ -165,6 +166,7 @@ std = [
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 	"pallet-maintenance-mode/std",
+	"pallet-proxy-genesis-companion/std",
 	"pallet-treasury/std",
 	"scale-info/std",
 	"fp-evm/std",

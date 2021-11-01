@@ -17,10 +17,16 @@
 pub mod parachain;
 pub mod relay_chain;
 
+use cumulus_primitives_core::ParaId;
+use polkadot_parachain::primitives::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
+
+pub fn para_a_account() -> AccountId32 {
+	ParaId::from(1).into_account()
+}
 
 decl_test_parachain! {
 	pub struct ParaA {
@@ -68,7 +74,7 @@ decl_test_network! {
 	}
 }
 
-pub const INITIAL_BALANCE: u128 = 1_000_000_000;
+pub const INITIAL_BALANCE: u128 = 10_000_000_000_000_000;
 
 pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	use parachain::{MsgQueue, Runtime, System};
@@ -115,3 +121,4 @@ pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
+pub type XcmTransactor = xcm_transactor::Pallet<parachain::Runtime>;
