@@ -42,4 +42,11 @@ pub struct PerfCmd {
 		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
+
+	#[structopt(
+		long = "disable-sysinfo",
+		help = "Do not attempt to query system info.",
+		default-value,
+	)]
+	pub disable_sysinfo: bool,
 }
