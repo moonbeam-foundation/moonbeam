@@ -5502,7 +5502,6 @@ dependencies = [
  "nix 0.17.0",
  "pallet-author-inherent",
  "pallet-ethereum",
- "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -7318,7 +7317,7 @@ name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -9541,7 +9540,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
