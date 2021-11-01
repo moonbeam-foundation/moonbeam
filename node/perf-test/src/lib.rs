@@ -46,7 +46,6 @@ pub struct PerfCmd {
 	#[structopt(
 		long = "disable-sysinfo",
 		help = "Do not attempt to query system info.",
-		default-value = "false",
 	)]
 	pub disable_sysinfo: bool,
 }
