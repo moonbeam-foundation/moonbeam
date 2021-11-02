@@ -925,7 +925,7 @@ fn transact_through_sovereign() {
 }
 
 #[test]
-fn test_automatic_versioning() {
+fn test_automatic_versioning_on_runtime_upgrade() {
 	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
@@ -935,8 +935,9 @@ fn test_automatic_versioning() {
 		symbol: b"Relay".to_vec(),
 		decimals: 12,
 	};
-	// register relay asset in parachain A
+	// register relay asset in parachain A and set XCM version to 1
 	ParaA::execute_with(|| {
+		parachain::XcmVersioner::set_version(1);
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
 			source_location,
@@ -997,18 +998,57 @@ fn test_automatic_versioning() {
 		assert!(RelayChainPalletXcm::query(0).is_some());
 	});
 
-	let expected: relay_chain::Event = pallet_xcm::Event::SupportedVersionChanged(
-		MultiLocation {
-			parents: 0,
-			interior: X1(Parachain(1)),
-		},
-		1,
-	)
-	.into();
+	let expected_supported_version: relay_chain::Event =
+		pallet_xcm::Event::SupportedVersionChanged(
+			MultiLocation {
+				parents: 0,
+				interior: X1(Parachain(1)),
+			},
+			1,
+		)
+		.into();
 
 	Relay::execute_with(|| {
 		// Assert that the events vector contains the version change
-		assert!(relay_chain::relay_events().contains(&expected));
+		assert!(relay_chain::relay_events().contains(&expected_supported_version));
+	});
+
+	let expected_version_notified: parachain::Event = pallet_xcm::Event::VersionChangeNotified(
+		MultiLocation {
+			parents: 1,
+			interior: Here,
+		},
+		2,
+	)
+	.into();
+
+	// ParaA changes version to 2, and calls on_runtime_upgrade. This should notify the targets
+	// of the new version change
+	ParaA::execute_with(|| {
+		// Set version
+		parachain::XcmVersioner::set_version(2);
+		// Do runtime upgrade
+		parachain::on_runtime_upgrade();
+		// Initialize block, to call on_initialize and notify targets
+		parachain::para_roll_to(2);
+		// Expect the event in the parachain
+		assert!(parachain::para_events().contains(&expected_version_notified));
+	});
+
+	// This event should have been seen in the relay
+	let expected_supported_version_2: relay_chain::Event =
+		pallet_xcm::Event::SupportedVersionChanged(
+			MultiLocation {
+				parents: 0,
+				interior: X1(Parachain(1)),
+			},
+			2,
+		)
+		.into();
+
+	Relay::execute_with(|| {
+		// Assert that the events vector contains the new version change
+		assert!(relay_chain::relay_events().contains(&expected_supported_version_2));
 	});
 }
 

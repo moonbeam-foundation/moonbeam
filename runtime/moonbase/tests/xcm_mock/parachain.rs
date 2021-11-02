@@ -29,7 +29,7 @@ use sp_runtime::{
 	traits::{Hash, IdentityLookup},
 };
 use sp_std::{convert::TryFrom, prelude::*};
-use xcm::{latest::prelude::*, VersionedXcm};
+use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
@@ -450,9 +450,57 @@ pub mod mock_msg_queue {
 	}
 }
 
+// Pallet to provide the version, used to test runtime upgrade version changes
+#[frame_support::pallet]
+pub mod mock_version_changer {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+	}
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn current_version)]
+	pub(super) type CurrentVersion<T: Config> = StorageValue<_, XcmVersion, ValueQuery>;
+
+	impl<T: Config> Get<XcmVersion> for Pallet<T> {
+		fn get() -> XcmVersion {
+			Self::current_version()
+		}
+	}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		// XCMP
+		/// Some XCM was executed OK.
+		VersionChanged(XcmVersion),
+	}
+
+	impl<T: Config> Pallet<T> {
+		pub fn set_version(version: XcmVersion) {
+			CurrentVersion::<T>::put(version);
+			Self::deposit_event(Event::VersionChanged(version));
+		}
+	}
+}
+
 impl mock_msg_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
+impl mock_version_changer::Config for Runtime {
+	type Event = Event;
 }
 
 pub type LocalOriginToLocation =
@@ -473,8 +521,8 @@ impl pallet_xcm::Config for Runtime {
 	type Origin = Origin;
 	type Call = Call;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	// We put 1 to upgrade it later
-	type AdvertisedXcmVersion = safe_xcm_version;
+	// We use a custom one to test runtime ugprades
+	type AdvertisedXcmVersion = XcmVersioner;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -635,6 +683,8 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
+		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
+
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
@@ -651,4 +701,21 @@ pub(crate) fn para_events() -> Vec<Event> {
 		.map(|r| r.event)
 		.filter_map(|e| Some(e))
 		.collect::<Vec<_>>()
+}
+
+use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
+pub(crate) fn on_runtime_upgrade() {
+	PolkadotXcm::on_runtime_upgrade();
+}
+
+pub(crate) fn para_roll_to(n: u64) {
+	while System::block_number() < n {
+		PolkadotXcm::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		PolkadotXcm::on_initialize(System::block_number());
+	}
 }
