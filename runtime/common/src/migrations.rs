@@ -116,3 +116,10 @@ where
 		]
 	}
 }
+
+pub fn migrations_names<R: pallet_migrations::Config>() -> Vec<Vec<u8>> {
+	R::MigrationsList::get()
+		.into_iter()
+		.map(|migration| migration.friendly_name().as_bytes().to_vec())
+		.collect()
+}
