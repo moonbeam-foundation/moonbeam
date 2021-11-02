@@ -251,13 +251,13 @@ impl Config for Test {
 
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
-	completed_migrations: Vec<Vec<u8>>,
+
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			completed_migrations: vec![],
+
 		}
 	}
 }
@@ -269,9 +269,7 @@ impl ExtBuilder {
 			.expect("Frame system builds valid default genesis config");
 
 		GenesisBuild::<Test>::assimilate_storage(
-			&pallet_migrations::GenesisConfig {
-				completed_migrations: self.completed_migrations,
-			},
+			&pallet_migrations::GenesisConfig,
 			&mut t,
 		)
 		.expect("Pallet migration's storage can be assimilated");
