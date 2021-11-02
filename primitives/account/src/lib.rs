@@ -59,7 +59,7 @@ impl std::fmt::Display for AccountId20 {
 	// checksum casing here? I bet there is a crate for that.
 	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:?}", self.0)
+		write!(f, "{:?}", sp_core::hexdisplay::HexDisplay::from(&self.0))
 	}
 }
 
