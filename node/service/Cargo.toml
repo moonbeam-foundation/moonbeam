@@ -104,10 +104,10 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulu
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
 
 # Nimbus dependencies
-nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
