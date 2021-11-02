@@ -250,15 +250,11 @@ impl Config for Test {
 }
 
 /// Externality builder for pallet migration's mock runtime
-pub(crate) struct ExtBuilder {
-
-}
+pub(crate) struct ExtBuilder {}
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {
-
-		}
+		ExtBuilder {}
 	}
 }
 
@@ -268,11 +264,8 @@ impl ExtBuilder {
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
-		GenesisBuild::<Test>::assimilate_storage(
-			&pallet_migrations::GenesisConfig,
-			&mut t,
-		)
-		.expect("Pallet migration's storage can be assimilated");
+		GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut t)
+			.expect("Pallet migration's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
