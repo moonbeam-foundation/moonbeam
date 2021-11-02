@@ -255,6 +255,8 @@ jobs:
             false
           fi
       - name: Check with Clippy
+        env:
+          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
         run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
