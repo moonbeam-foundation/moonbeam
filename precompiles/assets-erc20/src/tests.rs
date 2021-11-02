@@ -20,6 +20,7 @@ use std::assert_matches::assert_matches;
 use crate::mock::*;
 use crate::*;
 
+use fp_evm::Context;
 use pallet_evm::PrecompileSet;
 use precompile_utils::{error, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
@@ -48,7 +49,7 @@ fn selector_less_than_four_bytes() {
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -82,7 +83,7 @@ fn no_selector_exists_but_length_is_right() {
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -137,7 +138,7 @@ fn get_total_supply() {
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -179,7 +180,7 @@ fn get_balances_known_user() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -221,7 +222,7 @@ fn get_balances_unknown_user() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -265,7 +266,7 @@ fn approve() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -317,7 +318,7 @@ fn check_allowance_existing() {
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -332,7 +333,7 @@ fn check_allowance_existing() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -377,7 +378,7 @@ fn check_allowance_not_existing() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -421,7 +422,7 @@ fn transfer() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -449,7 +450,7 @@ fn transfer() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
@@ -470,7 +471,7 @@ fn transfer() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -514,7 +515,7 @@ fn transfer_not_enough_founds() {
 						.write(U256::from(50))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -554,7 +555,7 @@ fn transfer_from() {
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -570,7 +571,7 @@ fn transfer_from() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -598,7 +599,7 @@ fn transfer_from() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -619,7 +620,7 @@ fn transfer_from() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
@@ -640,7 +641,7 @@ fn transfer_from() {
 						.write(Address(Account::Charlie.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Charlie.into(),
 						apparent_value: From::from(0),
@@ -685,7 +686,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -718,7 +719,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(300))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -749,7 +750,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -791,7 +792,7 @@ fn transfer_from_above_allowance() {
 					.write(U256::from(300))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -807,7 +808,7 @@ fn transfer_from_above_allowance() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -851,7 +852,7 @@ fn transfer_from_self() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						// Alice sending transferFrom herself, no need for allowance.
 						caller: Account::Alice.into(),
@@ -880,7 +881,7 @@ fn transfer_from_self() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -901,7 +902,7 @@ fn transfer_from_self() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
