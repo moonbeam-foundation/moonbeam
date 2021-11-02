@@ -157,7 +157,7 @@ where
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 
-		let now = Instant::now();
+		let _now = Instant::now();
 		context.create_block(true);
 
 		const NUM_STORAGE_ITEMS: u64 = 50000;
