@@ -5,8 +5,6 @@ name: Build
 # 2. It includes the PR/Commit text in the action item
 # 3. Artifacts are not available between workflows.
 
-# This is only allowing pushes on the moonbeam repo for pull requests.
-####### DO NOT CHANGE THIS !! #######
 on:
   pull_request:
     types: [opened, edited, unassigned, synchronize]
