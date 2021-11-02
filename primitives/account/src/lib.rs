@@ -36,7 +36,7 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
 /// the introduction of the `scale-info` crate this benefit extends even to non-Rust tools like
 /// Polkadot JS.
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+
 #[derive(
 	Eq,
 	PartialEq,
@@ -52,6 +52,8 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	Ord,
 )]
 pub struct AccountId20(pub [u8; 20]);
+#[cfg(feature = "std")]
+impl_serde::impl_fixed_hash_serde!(AccountId20, 20);
 
 #[cfg(feature = "std")]
 impl std::fmt::Display for AccountId20 {

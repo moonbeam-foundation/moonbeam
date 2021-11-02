@@ -12,6 +12,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+impl-serde = { version = "0.3.1", default-features = false }
 parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 log = "0.4"
@@ -43,6 +44,7 @@ std = [
 	"sp-std/std",
 	"full_crypto",
 	"libsecp256k1/std",
+	"impl-serde/std"
 ]
 
 full_crypto = [
