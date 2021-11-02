@@ -260,14 +260,19 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
-			.expect("Frame system builds valid default genesis config");
+		let storage = frame_system::GenesisConfig::default()
+				.build_storage::<Test>()
+				.expect("Frame system builds valid default genesis config");
+	
 
-		GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut t)
-			.expect("Pallet migration's storage can be assimilated");
+		// If we apply the genesis build, it will register in the storage the fact that all the
+		// migrations have already taken place, but we want to test that these migrations
+		// have executed.
+		// GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut storage)
+		//	.expect("Pallet migration's storage can be assimilated");
+			
 
-		let mut ext = sp_io::TestExternalities::new(t);
+		let mut ext = sp_io::TestExternalities::new(storage);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
