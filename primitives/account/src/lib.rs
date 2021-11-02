@@ -36,7 +36,10 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
 /// the introduction of the `scale-info` crate this benefit extends even to non-Rust tools like
 /// Polkadot JS.
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+	feature = "std",
+	derive(impl_serde::serde::Serialize, impl_serde::serde::Deserialize)
+)]
 #[derive(
 	Eq,
 	PartialEq,
