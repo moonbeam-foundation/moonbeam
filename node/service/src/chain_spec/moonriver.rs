@@ -28,8 +28,8 @@ use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
-	MigrationsConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, Runtime,
-	SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
+	TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -245,9 +245,7 @@ pub fn testnet_genesis(
 		},
 		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
-		migrations: MigrationsConfig {
-			completed_migrations: runtime_common::migrations::migrations_names::<Runtime>(),
-		},
+		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 		},

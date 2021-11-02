@@ -5518,7 +5518,6 @@ dependencies = [
  "polkadot-runtime-common",
  "polkadot-service",
  "rand 0.7.3",
- "runtime-common",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",

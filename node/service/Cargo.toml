@@ -30,7 +30,6 @@ tokio = { version = "1.12.0", features = ["macros", "sync"] }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
 # Runtimes
-runtime-common = { path = "../../runtime/common", optional = true }
 moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
 moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
@@ -152,9 +151,9 @@ rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native"
 westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
 kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
 
-moonbase-native = [ "moonbase-runtime", "runtime-common", "westend-native" ]
-moonriver-native = [ "moonriver-runtime", "runtime-common" ]
-moonbeam-native = [ "moonbeam-runtime", "runtime-common" ]
+moonbase-native = [ "moonbase-runtime", "westend-native" ]
+moonriver-native = [ "moonriver-runtime" ]
+moonbeam-native = [ "moonbeam-runtime" ]
 
 moonbase-native-tracing = [ "moonbase-native", "moonbase-runtime/evm-tracing" ]
 
