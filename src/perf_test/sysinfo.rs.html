@@ -179,6 +179,7 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
+<span id="182">182</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -314,7 +315,7 @@
 <span class="doccomment">/// query the partition info corresponding to the given path. the path doesn&#39;t need to be an</span>
 <span class="doccomment">/// explicit mountpoint; it can be a subdirectory of a mountpoint.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query_partition_info</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">std::path::PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PartitionInfo</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-	<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">path::Path</span>};
+	<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 	<span class="kw">let</span> <span class="ident">canon_path</span> <span class="op">=</span> <span class="ident">std::fs::canonicalize</span>(<span class="ident">path</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not deduce canonical path&quot;</span>);
 
@@ -337,6 +338,7 @@
 	<span class="kw">let</span> <span class="ident">partition</span> <span class="op">=</span> <span class="ident">ancestors</span>
 		.<span class="ident">find_map</span>(<span class="op">|</span><span class="ident">dir</span><span class="op">|</span> {
 			<span class="kw">let</span> <span class="ident">dir_str</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="string">&quot;path should be valid UTF-8&quot;</span>);
+			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">irrefutable_let_patterns</span>)]</span>
 			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">partition</span> <span class="op">=</span> <span class="ident">partitions_map</span>.<span class="ident">get</span>(<span class="ident">dir_str</span>) {
 				<span class="ident">partition</span>
 			} <span class="kw">else</span> {

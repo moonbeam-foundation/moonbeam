@@ -102,8 +102,6 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -120,15 +118,13 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::command</span>::{<span class="ident">FullBackend</span>, <span class="ident">FullClient</span>, <span class="ident">TestContext</span>};
 
 <span class="kw">use</span> <span class="ident">sc_service::NativeExecutionDispatch</span>;
 <span class="kw">use</span> <span class="ident">service</span>::{<span class="ident">Block</span>, <span class="ident">RuntimeApiCollection</span>};
 <span class="kw">use</span> <span class="ident">sp_api::ConstructRuntimeApi</span>;
 
-<span class="kw">use</span> <span class="ident">cli_table</span>::{<span class="ident">format::Justify</span>, <span class="ident">print_stdout</span>, <span class="ident">Cell</span>, <span class="ident">Style</span>, <span class="ident">Table</span>};
+<span class="kw">use</span> <span class="ident">cli_table</span>::{<span class="ident">format::Justify</span>, <span class="ident">Table</span>};
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 
 <span class="kw">mod</span> <span class="ident">block_creation</span>;

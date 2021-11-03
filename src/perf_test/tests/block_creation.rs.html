@@ -153,7 +153,7 @@
 		<span class="kw">const</span> <span class="ident">NUM_EMPTY_BLOCKS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">2048</span>;
 		<span class="macro">println!</span>(<span class="string">&quot;Creating {} empty blocks...&quot;</span>, <span class="ident">NUM_EMPTY_BLOCKS</span>);
 		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-		<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">NUM_EMPTY_BLOCKS</span> {
+		<span class="kw">for</span> <span class="ident">_i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">NUM_EMPTY_BLOCKS</span> {
 			<span class="ident">context</span>.<span class="ident">create_block</span>(<span class="bool-val">true</span>);
 		}
 		<span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">TestResults::new</span>(
