@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the migrations pallet
+
 use super::*;
 use crate as pallet_migrations;
 use frame_support::{
@@ -250,27 +251,43 @@ impl Config for Test {
 }
 
 /// Externality builder for pallet migration's mock runtime
-pub(crate) struct ExtBuilder {}
+pub(crate) struct ExtBuilder {
+	uncompleted_migrations: Vec<&'static str>,
+}
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {}
+		ExtBuilder {
+			uncompleted_migrations: Vec::new(),
+		}
 	}
 }
 
 impl ExtBuilder {
+	pub(crate) fn with_uncompleted_migrations(uncompleted_migrations: Vec<&'static str>) -> Self {
+		Self {
+			uncompleted_migrations,
+		}
+	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let storage = frame_system::GenesisConfig::default()
+		let mut storage = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
-		// If we apply the genesis build, it will register in the storage the fact that all the
-		// migrations have already taken place, but we want to test that these migrations
-		// have executed.
-		// GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut storage)
-		//	.expect("Pallet migration's storage can be assimilated");
+		GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut storage)
+			.expect("Pallet migration's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(storage);
+		if !self.uncompleted_migrations.is_empty() {
+			for migration_name in self.uncompleted_migrations {
+				ext.insert(
+					<crate::pallet::MigrationState<Test>>::hashed_key_for(
+						migration_name.as_bytes(),
+					),
+					false.encode(),
+				);
+			}
+		}
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}

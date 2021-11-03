@@ -213,7 +213,8 @@ pub mod pallet {
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+	pub(crate) type MigrationState<T: Config> =
+		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
