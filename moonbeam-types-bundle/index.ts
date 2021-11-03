@@ -350,9 +350,6 @@ const TYPES_900_undefined_deprecated: RegistryTypes = {
     claimed_reward: "Balance",
     contributed_relay_addresses: "Vec<RelayChainAccountId>",
   },
-  ParachainStakingNominatorStatus: {
-    _enum: { Active: "Null", Leaving: "RoundIndex" },
-  },
   ParachainStakingNominator2: {
     nominations: "Vec<Bond>",
     revocations: "Vec<AccountId>",
