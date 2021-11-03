@@ -40,7 +40,7 @@ use futures::{
 	SinkExt, Stream,
 };
 
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
+use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
 use service::{
 	chain_spec, rpc, Block, RuntimeApiCollection, RuntimeVariant, TransactionConverters,
@@ -77,7 +77,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -119,7 +119,7 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 
-		let mut command_sink = None;
+		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
 			command_sink = Some(sink);
@@ -366,7 +366,7 @@ where
 			unchecked_extrinsic,
 		);
 
-		futures::executor::block_on(future);
+		let _ = futures::executor::block_on(future);
 
 		Ok(transaction_hash)
 	}
@@ -386,7 +386,7 @@ where
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
-			sink.send(command).await;
+			let _ = sink.send(command).await;
 			receiver.await
 		};
 

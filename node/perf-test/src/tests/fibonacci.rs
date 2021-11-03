@@ -81,7 +81,7 @@ where
 		// do a create() call (which doesn't persist) to see what our expected contract address
 		// will be. afterward we create a txn and produce a block so it will persist.
 		// TODO: better way to calculate new contract address
-		let now = Instant::now();
+		let _now = Instant::now();
 		let create_info = context
 			.evm_create(
 				alice.address,
@@ -112,7 +112,7 @@ where
 			)
 			.expect("EVM create failed while trying to deploy Fibonacci contract");
 
-		let now = Instant::now();
+		let _now = Instant::now();
 		context.create_block(true);
 
 		// TODO: verify txn results

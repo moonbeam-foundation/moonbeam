@@ -20,7 +20,6 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
-use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use std::path::PathBuf;
 use structopt::StructOpt;
 

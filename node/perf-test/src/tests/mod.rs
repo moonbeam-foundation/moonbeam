@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::time::Duration;
-
 use crate::command::{FullBackend, FullClient, TestContext};
 
 use sc_service::NativeExecutionDispatch;
 use service::{Block, RuntimeApiCollection};
 use sp_api::ConstructRuntimeApi;
 
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
+use cli_table::{format::Justify, Table};
 use serde::Serialize;
 
 mod block_creation;
