@@ -56,7 +56,7 @@ where
 		const NUM_EMPTY_BLOCKS: u64 = 2048;
 		println!("Creating {} empty blocks...", NUM_EMPTY_BLOCKS);
 		let now = Instant::now();
-		for i in 1..NUM_EMPTY_BLOCKS {
+		for _i in 1..NUM_EMPTY_BLOCKS {
 			context.create_block(true);
 		}
 		results.push(TestResults::new(
