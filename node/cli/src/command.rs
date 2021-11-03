@@ -450,31 +450,42 @@ pub fn run() -> Result<()> {
 			cmd.shared_params.base_path = Some(working_dir.clone());
 
 			let runner = cli.create_runner(&cmd)?;
-			runner.sync_run(|config| {
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
 				#[cfg(feature = "moonbeam-native")]
-				return cmd
-					.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-						&working_dir,
-						&cmd,
-						config,
-					);
+				spec if spec.is_moonbeam() => {
+					runner.sync_run(|config| {
+						cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
+								&working_dir,
+								&cmd,
+								config,
+							)
+					})
+				},
 				#[cfg(feature = "moonriver-native")]
-				return cmd
-					.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-						&working_dir,
-						&cmd,
-						config,
-					);
+				spec if spec.is_moonriver() => {
+					runner.sync_run(|config| {
+						cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
+								&working_dir,
+								&cmd,
+								config,
+							)
+					})
+				},
 				#[cfg(feature = "moonbase-native")]
-				return cmd
-					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-						&working_dir,
-						&cmd,
-						config,
-					);
-				#[cfg(not(feature = "moonbase-native"))]
-				panic!("invalid chain spec");
-			})?;
+				spec if spec.is_moonbase() => {
+					runner.sync_run(|config| {
+						cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+								&working_dir,
+								&cmd,
+								config,
+							)
+					})
+				},
+				_ => {
+					panic!("invalid chain spec");
+				}
+			}?;
 
 			log::debug!("removing temp perf_test dir {:?}", working_dir);
 			std::fs::remove_dir_all(working_dir)?;
