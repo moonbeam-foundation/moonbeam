@@ -142,7 +142,6 @@ impl RuntimeVariant {
 	}
 }
 
-
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the `Moonbeam` network.
 pub trait IdentifyVariant {

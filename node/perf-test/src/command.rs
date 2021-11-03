@@ -42,7 +42,9 @@ use futures::{
 
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
 use serde::Serialize;
-use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters, RuntimeVariant};
+use service::{
+	chain_spec, rpc, Block, RuntimeApiCollection, RuntimeVariant, TransactionConverters,
+};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -205,8 +207,9 @@ where
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
-					transaction_converter:
-						TransactionConverters::for_runtime_variant(runtime_variant),
+					transaction_converter: TransactionConverters::for_runtime_variant(
+						runtime_variant,
+					),
 				};
 				#[allow(unused_mut)]
 				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -383,8 +386,8 @@ where
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
-            sink.send(command).await;
-            receiver.await
+			sink.send(command).await;
+			receiver.await
 		};
 
 		log::trace!("waiting for SealNewBlock command to resolve...");
