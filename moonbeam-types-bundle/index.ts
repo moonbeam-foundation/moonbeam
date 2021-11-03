@@ -5,6 +5,7 @@ import {
   DefinitionRpc,
   DefinitionRpcSub,
   RegistryTypes,
+  OverrideVersionedType,
 } from "@polkadot/types/types";
 
 // override types for specific pallets
@@ -318,7 +319,7 @@ const TYPES_600_799: RegistryTypes = {
   MultiLocation: "MultiLocationV0",
 };
 
-const TYPES_800_undefined: RegistryTypes = {
+const TYPES_800_899: RegistryTypes = {
   ...TYPES_600_799,
   JunctionV1: {
     _enum: {
@@ -334,6 +335,48 @@ const TYPES_800_undefined: RegistryTypes = {
     },
   },
   MultiLocation: "MultiLocationV1",
+};
+
+const TYPES_900_undefined_deprecated: RegistryTypes = {
+  ...TYPES_800_899,
+  MoonbaseRuntimeAssetRegistrarMetadata: {
+    name: "Vec<u8>",
+    symbol: "Vec<u8>",
+    decimals: "u8",
+    isFrozen: "bool",
+  },
+  PalletCrowdloanRewardsRewardInfo: {
+    total_reward: "Balance",
+    claimed_reward: "Balance",
+    contributed_relay_addresses: "Vec<RelayChainAccountId>",
+  },
+  ParachainStakingNominatorStatus: {
+    _enum: { Active: "Null", Leaving: "RoundIndex" },
+  },
+  ParachainStakingNominator2: {
+    nominations: "Vec<Bond>",
+    revocations: "Vec<AccountId>",
+    total: "Balance",
+    scheduled_revocations_count: "u32",
+    scheduled_revocations_total: "Balance",
+    status: "NominatorStatus",
+  },
+  ParachainStakingExitQ: {
+    candidates: "Vec<AccountId>",
+    nominators_leaving: "Vec<AccountId>",
+    candidate_schedule: "Vec<(AccountId, RoundIndex)>",
+    nominator_schedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
+  },
+  ParachainStakingCollator2: {
+    id: "AccountId",
+    bond: "Balance",
+    nominators: "Vec<AccountId>",
+    top_nominators: "Vec<Bond>",
+    bottom_nominators: "Vec<Bond>",
+    total_counted: "Balance",
+    total_backing: "Balance",
+    state: "CollatorStatus",
+  },
 };
 
 export const moonbeamDefinitions = {
@@ -389,8 +432,19 @@ export const moonbeamDefinitions = {
       types: TYPES_600_799,
     },
     {
-      minmax: [800, undefined],
-      types: TYPES_800_undefined,
+      minmax: [800, 899],
+      types: TYPES_800_899,
+    },
+  ],
+} as OverrideBundleDefinition;
+
+export const moonbeamDefinitionsDeprecated = {
+  ...moonbeamDefinitions,
+  types: [
+    ...(moonbeamDefinitions.types as OverrideVersionedType[]),
+    {
+      minmax: [900, undefined],
+      types: TYPES_900_undefined_deprecated,
     },
   ],
 } as OverrideBundleDefinition;
@@ -401,5 +455,14 @@ export const typesBundle = {
     moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
+  },
+} as OverrideBundleType;
+
+export const typesBundleDeprecated = {
+  spec: {
+    moonbeam: moonbeamDefinitionsDeprecated,
+    moonbeamDefinitions: moonbeamDefinitionsDeprecated,
+    moonbase: moonbeamDefinitionsDeprecated,
+    moonriver: moonbeamDefinitionsDeprecated,
   },
 } as OverrideBundleType;
