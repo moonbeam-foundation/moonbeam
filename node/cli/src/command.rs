@@ -453,35 +453,29 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 			match chain_spec {
 				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => {
-					runner.sync_run(|config| {
-						cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-								&working_dir,
-								&cmd,
-								config,
-							)
-					})
-				},
+				spec if spec.is_moonbeam() => runner.sync_run(|config| {
+					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					)
+				}),
 				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => {
-					runner.sync_run(|config| {
-						cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-								&working_dir,
-								&cmd,
-								config,
-							)
-					})
-				},
+				spec if spec.is_moonriver() => runner.sync_run(|config| {
+					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					)
+				}),
 				#[cfg(feature = "moonbase-native")]
-				spec if spec.is_moonbase() => {
-					runner.sync_run(|config| {
-						cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-								&working_dir,
-								&cmd,
-								config,
-							)
-					})
-				},
+				spec if spec.is_moonbase() => runner.sync_run(|config| {
+					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					)
+				}),
 				_ => {
 					panic!("invalid chain spec");
 				}
