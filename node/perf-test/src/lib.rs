@@ -42,4 +42,7 @@ pub struct PerfCmd {
 		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
+
+	#[structopt(long, value_name = "CHAIN_SPEC", default_value = "dev")]
+	pub chain: String,
 }

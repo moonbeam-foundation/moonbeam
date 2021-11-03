@@ -370,10 +370,7 @@ where
 
 	/// Author a block through manual sealing
 	pub fn create_block(&self, create_empty: bool) -> CreatedBlock<H256> {
-		// TODO: Joshy's idea: call into propose_with() directly (or similar) rather than go through
-		// manual seal
-
-		log::debug!("Issuing seal command...");
+		log::trace!("Issuing seal command...");
 		let hash = self.client.info().best_hash;
 
 		let mut sink = self.manual_seal_command_sink.clone();
@@ -383,19 +380,17 @@ where
 			let command = EngineCommand::SealNewBlock {
 				create_empty,
 				finalize: true,
-				// TODO: why did I change these (compared to the --dev in crate service)?
-				//       try changing them to be similar to --dev...
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
-			sink.send(command).await;
-			receiver.await
+            sink.send(command).await;
+            receiver.await
 		};
 
 		log::trace!("waiting for SealNewBlock command to resolve...");
 		futures::executor::block_on(future)
+			.expect("block_on failed")
 			.expect("Failed to receive SealNewBlock response")
-			.expect("we have two layers of results, apparently")
 	}
 }
 
