@@ -14,8 +14,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \
 	mkdir /data && \
 	chown -R moonbeam:moonbeam /data && \
-	ln -s /data /moonbeam/.local/share/moonbeam && \
-	rm -rf /usr/bin /usr/sbin
+	ln -s /data /moonbeam/.local/share/moonbeam
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
