@@ -289,6 +289,10 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -504,18 +508,22 @@
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">migration_state</span>)]</span>
 	<span class="doccomment">/// MigrationState tracks the progress of a migration.</span>
 	<span class="doccomment">/// Maps name (Vec&lt;u8&gt;) -&gt; whether or not migration has been completed (bool)</span>
-	<span class="kw">type</span> <span class="ident">MigrationState</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">bool</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">MigrationState</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
+		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">bool</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::genesis_config</span>]</span>
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span> {
-		<span class="kw">pub</span> <span class="ident">completed_migrations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	}
+	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::genesis_build</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">GenesisBuild</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span> {
 		<span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-			<span class="kw">for</span> <span class="ident">migration_name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">completed_migrations</span> {
+			<span class="comment">// When building a new genesis, all listed migrations should be considered as already</span>
+			<span class="comment">// applied, they only make sense for networks that had been launched in the past.</span>
+			<span class="kw">for</span> <span class="ident">migration_name</span> <span class="kw">in</span> <span class="ident">T::MigrationsList::get</span>()
+				.<span class="ident">into_iter</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">migration</span><span class="op">|</span> <span class="ident">migration</span>.<span class="ident">friendly_name</span>().<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>())
+			{
 				<span class="op">&lt;</span><span class="ident">MigrationState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">migration_name</span>, <span class="bool-val">true</span>);
 			}
 		}
