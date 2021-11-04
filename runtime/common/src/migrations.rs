@@ -103,8 +103,8 @@ where
 		// 	0: Default::default(),
 		// };
 
-		let migration_collectives =
-			MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
+		// let migration_collectives =
+		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
