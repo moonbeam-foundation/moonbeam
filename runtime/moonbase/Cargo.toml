@@ -18,7 +18,7 @@ sha3 = { version = "0.8", default-features = false, optional = true }
 
 runtime-common = { path = "../common", default-features = false }
 
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
@@ -32,8 +32,8 @@ relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
@@ -43,6 +43,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }

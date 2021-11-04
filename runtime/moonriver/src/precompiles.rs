@@ -17,6 +17,7 @@
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
@@ -40,7 +41,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049]
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
@@ -72,6 +73,7 @@ where
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
+			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context)),

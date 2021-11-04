@@ -5017,6 +5017,7 @@ dependencies = [
  "pallet-evm",
  "pallet-evm-precompile-assets-erc20",
  "pallet-evm-precompile-balances-erc20",
+ "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
@@ -5413,6 +5414,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
@@ -5611,6 +5613,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
@@ -5805,7 +5808,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.11#e0ef78f83dd9d1167d6fc520598f53cdcac5a1e1"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.11#789318ad7519c9b2a2f9e21c300da47e9c079893"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5836,7 +5839,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.11#e0ef78f83dd9d1167d6fc520598f53cdcac5a1e1"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.11#789318ad7519c9b2a2f9e21c300da47e9c079893"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6207,7 +6210,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.11#e0ef78f83dd9d1167d6fc520598f53cdcac5a1e1"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.11#789318ad7519c9b2a2f9e21c300da47e9c079893"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6245,7 +6248,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.11#e0ef78f83dd9d1167d6fc520598f53cdcac5a1e1"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.11#789318ad7519c9b2a2f9e21c300da47e9c079893"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6700,6 +6703,16 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-blake2"
+version = "2.0.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.11#e296297ceec8a539f5341fc8d8b536037f5b903e"
+dependencies = [
+ "fp-evm",
+ "sp-core",
+ "sp-io",
 ]
 
 [[package]]
@@ -12845,7 +12858,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
