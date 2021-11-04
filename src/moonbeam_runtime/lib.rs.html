@@ -1168,6 +1168,8 @@
 <span id="1168">1168</span>
 <span id="1169">1169</span>
 <span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1218,6 +1220,8 @@
 <span class="kw">use</span> <span class="ident">pallet_balances::NegativeImbalance</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum::Call::transact</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum::Transaction</span> <span class="kw">as</span> <span class="ident">EthereumTransaction</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet_evm::GenesisAccount</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{
 	<span class="ident">Account</span> <span class="kw">as</span> <span class="ident">EVMAccount</span>, <span class="ident">EnsureAddressNever</span>, <span class="ident">EnsureAddressRoot</span>, <span class="ident">FeeCalculator</span>, <span class="ident">GasWeightMapping</span>,
 	<span class="ident">IdentityAddressMapping</span>, <span class="ident">Runner</span>,

@@ -300,7 +300,6 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
-<span id="303">303</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -326,13 +325,12 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">derive_bip44_pairs_from_mnemonic</span>, <span class="ident">get_account_id_from_pair</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">generate_accounts</span>, <span class="ident">get_from_seed</span>, <span class="ident">Extensions</span>};
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
-<span class="kw">use</span> <span class="ident">evm::GenesisAccount</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
 	<span class="ident">currency::GLMR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
-	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">MaintenanceModeConfig</span>,
-	<span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>,
-	<span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
+	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>,
+	<span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;

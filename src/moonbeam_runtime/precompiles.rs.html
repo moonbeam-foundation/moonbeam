@@ -111,7 +111,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
-<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};

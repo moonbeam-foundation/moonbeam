@@ -469,7 +469,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::relay_chain</span>;
-<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
 	<span class="ident">ensure</span>,
@@ -540,7 +540,7 @@
 	<span class="kw">fn</span> <span class="ident">execute</span>(
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-		<span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="ident">evm::Context</span>,
+		<span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
