@@ -1054,7 +1054,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	});
 }
 
-
 #[test]
 fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	MockNet::reset();
@@ -1116,20 +1115,18 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 
 		// queries should have been updated
 		assert!(ParachainPalletXcm::query(0).is_some());
-
 	});
 
-	let expected_supported_version: parachain::Event =
-		pallet_xcm::Event::SupportedVersionChanged(
-			MultiLocation {
-				parents: 1,
-				interior: X1(Parachain(2)),
-			},
-			0,
-		)
-		.into();
+	let expected_supported_version: parachain::Event = pallet_xcm::Event::SupportedVersionChanged(
+		MultiLocation {
+			parents: 1,
+			interior: X1(Parachain(2)),
+		},
+		0,
+	)
+	.into();
 
-		ParaA::execute_with(|| {
+	ParaA::execute_with(|| {
 		// Assert that the events vector contains the version change
 		assert!(parachain::para_events().contains(&expected_supported_version));
 	});
@@ -1204,7 +1201,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// Assert that the events vector contains the new version change
 		assert!(parachain::para_events().contains(&expected_supported_version_2));
 	});
-
 }
 
 use parity_scale_codec::{Decode, Encode};
