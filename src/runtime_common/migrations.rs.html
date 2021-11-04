@@ -116,6 +116,7 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -221,8 +222,8 @@
 		<span class="comment">// 	0: Default::default(),</span>
 		<span class="comment">// };</span>
 
-		<span class="kw">let</span> <span class="ident">migration_collectives</span> <span class="op">=</span>
-			<span class="ident">MigrateCollectivePallets</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let migration_collectives =</span>
+		<span class="comment">//	MigrateCollectivePallets::&lt;Runtime, Council, Tech&gt;(Default::default());</span>
 
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
@@ -230,7 +231,8 @@
 		<span class="macro">vec!</span>[
 			<span class="comment">// completed in runtime 800</span>
 			<span class="comment">// Box::new(migration_author_mapping_twox_to_blake),</span>
-			<span class="ident">Box::new</span>(<span class="ident">migration_collectives</span>),
+			<span class="comment">// completed in runtime 900</span>
+			<span class="comment">// Box::new(migration_collectives),</span>
 		]
 	}
 }
