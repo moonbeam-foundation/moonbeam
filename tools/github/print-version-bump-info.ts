@@ -86,7 +86,11 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
       continue;
     }
     console.log(`\n### ${labelName || "N/A"}\n`);
-    for (const prInfo of prInfoByLabels[labelName]) {
+    // Deduplicate PRs on same label
+    const deduplicatePrsOfLabel = prInfoByLabels[labelName].filter(function (elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    for (const prInfo of deduplicatePrsOfLabel) {
       console.log(prInfo);
     }
   }
