@@ -92,6 +92,8 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -111,6 +113,7 @@
 <span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor::PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_modexp::Modexp</span>;
@@ -135,7 +138,7 @@
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
 	<span class="doccomment">/// under the precompile.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
-		<span class="macro">sp_std::vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>]
+		<span class="macro">sp_std::vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>]
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">hash</span>(<span class="ident">x</span>)))
 	}
@@ -167,6 +170,7 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">6</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Add::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">7</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Mul::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Pairing::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">9</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Blake2F::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1024</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Sha3FIPS256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1025</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Dispatch</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
