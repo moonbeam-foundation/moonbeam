@@ -37,6 +37,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
+pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
