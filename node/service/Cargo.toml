@@ -82,8 +82,7 @@ sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", bra
 frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
 ethereum-primitives = { package = "ethereum", version = "0.9.0", default-features = false, features = ["with-codec"] }
 
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
@@ -166,7 +165,7 @@ runtime-benchmarks = [
 	"moonriver-runtime/runtime-benchmarks",
 	"moonbeam-native",
 	"moonbeam-runtime/runtime-benchmarks",
-	"ethereum/runtime-benchmarks"
+	"pallet-ethereum/runtime-benchmarks"
 ]
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",

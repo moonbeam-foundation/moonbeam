@@ -1419,7 +1419,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -4982,8 +4982,8 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "evm",
  "evm-tracing-events",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -5387,8 +5387,8 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
- "evm",
  "evm-tracing-events",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -5508,7 +5508,6 @@ dependencies = [
  "nix 0.17.0",
  "pallet-author-inherent",
  "pallet-ethereum",
- "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -5585,8 +5584,8 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
- "evm",
  "evm-tracing-events",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6529,7 +6528,7 @@ name = "pallet-democracy-precompiles"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -6659,7 +6658,7 @@ name = "pallet-evm-precompile-assets-erc20"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -6685,7 +6684,7 @@ name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7351,7 +7350,7 @@ name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -8900,7 +8899,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompile-utils"
 version = "0.1.0"
 dependencies = [
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -9575,7 +9574,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -13783,7 +13782,7 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",

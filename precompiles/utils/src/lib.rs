@@ -18,7 +18,7 @@
 
 extern crate alloc;
 
-use evm::ExitError;
+use fp_evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
