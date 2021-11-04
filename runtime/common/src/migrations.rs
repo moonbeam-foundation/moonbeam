@@ -112,7 +112,8 @@ where
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
-			Box::new(migration_collectives),
+			// completed in runtime 900
+			// Box::new(migration_collectives),
 		]
 	}
 }
