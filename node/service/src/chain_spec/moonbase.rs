@@ -64,11 +64,14 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				// Tech comitee members: Alith and Baltathar
 				vec![accounts[0], accounts[1]],
 				// Collator Candidate: Alice -> Alith
-				vec![(
-					accounts[0],
-					get_from_seed::<NimbusId>("Alice"),
-					1_000 * UNIT,
-				)],
+				vec![
+					(
+						accounts[0],
+						get_from_seed::<NimbusId>("Alice"),
+						1_000 * UNIT,
+					),
+					(accounts[1], get_from_seed::<NimbusId>("Bob"), 1_000 * UNIT),
+				],
 				// Nominations
 				vec![],
 				accounts.clone(),
