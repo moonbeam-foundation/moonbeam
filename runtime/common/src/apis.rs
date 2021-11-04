@@ -335,7 +335,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
+			impl nimbus_primitives::NimbusApi<Block, nimbus_primitives::NimbusId> for Runtime {
 				fn can_author(
 					author: nimbus_primitives::NimbusId,
 					slot: u32,
