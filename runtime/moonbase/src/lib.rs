@@ -1384,6 +1384,7 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::transfer_keep_alive { .. } => true,
 				pallet_assets::Call::approve_transfer { .. } => true,
 				pallet_assets::Call::transfer_approved { .. } => true,
+				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
 			},
 			_ => true,
