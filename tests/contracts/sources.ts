@@ -893,7 +893,7 @@ export const contractSources: { [key: string]: string } = {
         return F(rounds, h, m, t, f);
       }
     }`,
-    ERC20Instance: `
+  ERC20Instance: `
     // SPDX-License-Identifier: GPL-3.0-only
     pragma solidity ^0.8.0;
 
