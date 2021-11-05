@@ -267,9 +267,13 @@ pub mod pallet {
 		pub fn is_leaving(&self) -> bool {
 			matches!(self.state, CollatorStatus::Leaving(_))
 		}
-		pub fn can_leave<T: Config>(&self) -> Result<bool, DispatchError> {
+		pub fn can_leave<T: Config>(&self) -> DispatchResult {
 			if let CollatorStatus::Leaving(when) = self.state {
-				Ok(<Round<T>>::get().current >= when)
+				ensure!(
+					<Round<T>>::get().current >= when,
+					Error::<T>::CandidateCannotLeaveYet
+				);
+				Ok(())
 			} else {
 				Err(Error::<T>::CandidateNotLeaving.into())
 			}
@@ -706,9 +710,13 @@ pub mod pallet {
 		}
 		/// Can only leave if the current round is less than or equal to scheduled execution round
 		/// - returns None if not in leaving state
-		pub fn can_leave<T: Config>(&self) -> Result<bool, DispatchError> {
+		pub fn can_leave<T: Config>(&self) -> DispatchResult {
 			if let DelegatorStatus::Leaving(when) = self.status {
-				Ok(<Round<T>>::get().current >= when)
+				ensure!(
+					<Round<T>>::get().current >= when,
+					Error::<T>::DelegatorCannotLeaveYet
+				);
+				Ok(())
 			} else {
 				Err(Error::<T>::DelegatorNotLeaving.into())
 			}
@@ -1950,7 +1958,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let state = <CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.can_leave::<T>()?, Error::<T>::CandidateCannotLeaveYet);
+			state.can_leave::<T>()?;
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);
 				// remove nomination from delegator state
@@ -2206,7 +2214,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			ensure!(state.can_leave::<T>()?, Error::<T>::DelegatorCannotLeaveYet);
+			state.can_leave::<T>()?;
 			for bond in state.delegations.0 {
 				if let Err(error) =
 					Self::delegator_leaves_collator(delegator.clone(), bond.owner.clone())
