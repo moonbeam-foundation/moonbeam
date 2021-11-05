@@ -1515,3 +1515,82 @@ fn ethereum_invalid_transaction() {
 		);
 	});
 }
+
+#[test]
+fn transfer_ed_0_substrate() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * UNIT,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+}
+
+#[test]
+fn transfer_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * UNIT) + (21_000 * 1_000_000_000)) + (1 * WEI),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_000u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI,);
+		});
+}
+
+#[test]
+fn refund_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * UNIT) + (21_777 * 1_000_000_000)),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer that zeroes ALICE
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_777u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// ALICE is refunded
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				777 * 1_000_000_000,
+			);
+		});
+}
