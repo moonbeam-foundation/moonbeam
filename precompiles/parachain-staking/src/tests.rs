@@ -460,7 +460,7 @@ fn leave_candidates_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorScheduledExit(1, TestAccount::Alice, 3).into();
+				StakingEvent::CandidateScheduledExit(1, TestAccount::Alice, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -486,7 +486,7 @@ fn go_online_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorBackOnline(1, TestAccount::Alice).into();
+				StakingEvent::CandidateBackOnline(1, TestAccount::Alice).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -509,7 +509,7 @@ fn go_offline_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorWentOffline(1, TestAccount::Alice).into();
+				StakingEvent::CandidateWentOffline(1, TestAccount::Alice).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -535,7 +535,7 @@ fn candidate_bond_more_works() {
 
 			// scheduled event now
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorBondMoreRequested(TestAccount::Alice, 500, 3).into();
+				StakingEvent::CandidateBondMoreRequested(TestAccount::Alice, 500, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -560,7 +560,7 @@ fn candidate_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CollatorBondLessRequested(TestAccount::Alice, 500, 3).into();
+				StakingEvent::CandidateBondLessRequested(TestAccount::Alice, 500, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -591,7 +591,7 @@ fn nominate_works() {
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Nomination(
+			let expected: crate::mock::Event = StakingEvent::Delegation(
 				TestAccount::Bob,
 				1_000,
 				TestAccount::Alice,
@@ -623,7 +623,7 @@ fn leave_delegators_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::NominatorExitScheduled(1, TestAccount::Bob, 3).into();
+				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -647,7 +647,7 @@ fn revoke_nomination_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::NominationRevocationScheduled(
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
 				1,
 				TestAccount::Bob,
 				TestAccount::Alice,
@@ -678,7 +678,7 @@ fn nominator_bond_more_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::NominationIncreaseScheduled(
+			let expected_event: crate::mock::Event = StakingEvent::DelegationIncreaseScheduled(
 				TestAccount::Bob,
 				TestAccount::Alice,
 				500,
@@ -709,7 +709,7 @@ fn nominator_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::NominationDecreaseScheduled(
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
 				TestAccount::Bob,
 				TestAccount::Alice,
 				500,

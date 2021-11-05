@@ -436,7 +436,7 @@ export const contractSources: { [key: string]: string } = {
         return b;
       }
     }`,
-  StakingNominationAttaker: `
+  StakingDelegationAttaker: `
     pragma solidity >=0.8.0;
     
 
@@ -485,7 +485,7 @@ export const contractSources: { [key: string]: string } = {
         function nominator_bond_less(address candidate, uint256 less) external;
     }
 
-    contract StakingNominationAttaker {
+    contract StakingDelegationAttaker {
         /// The collator (ALITH) that this contract will benefit with nominations
         address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
 

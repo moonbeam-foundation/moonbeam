@@ -45,7 +45,7 @@ interface ParachainStaking {
     /// @return The CandidateCount weight hint
     function candidate_count() external view returns (uint256);
 
-    /// @dev Get the CollatorNominationCount weight hint
+    /// @dev Get the CollatorDelegationCount weight hint
     /// Selector: 0ad6a7be
     /// @param collator The address for which we are querying the nomination count
     /// @return The number of nominations backing the collator
@@ -54,7 +54,7 @@ interface ParachainStaking {
         view
         returns (uint256);
 
-    /// @dev Get the NominatorNominationCount weight hint
+    /// @dev Get the NominatorDelegationCount weight hint
     /// Selector: dae5659b
     /// @param nominator The address for which we are querying the nomination count
     /// @return The number of nominations made by the nominator
@@ -98,19 +98,19 @@ interface ParachainStaking {
     /// Selector: 49df6eb3
     /// @param collator The address of the supported collator candidate
     /// @param amount The amount bonded in support of the collator candidate
-    /// @param collatorNominationCount The number of nominations in support of the candidate
-    /// @param nominatorNominationCount The number of existing nominations by the caller
+    /// @param collatorDelegationCount The number of nominations in support of the candidate
+    /// @param nominatorDelegationCount The number of existing nominations by the caller
     function nominate(
         address collator,
         uint256 amount,
-        uint256 collatorNominationCount,
-        uint256 nominatorNominationCount
+        uint256 collatorDelegationCount,
+        uint256 nominatorDelegationCount
     ) external;
 
     /// @dev Leave the set of nominators and, by implication, revoke all ongoing nominations
     /// Selector: b71d2153
-    /// @param nominatorNominationCount The number of existing nominations to be revoked by caller
-    function leave_delegators(uint256 nominatorNominationCount) external;
+    /// @param nominatorDelegationCount The number of existing nominations to be revoked by caller
+    function leave_delegators(uint256 nominatorDelegationCount) external;
 
     /// @dev Revoke an existing nomination
     /// Selector: 4b65c34b

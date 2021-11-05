@@ -22,7 +22,7 @@ describeDevMoonbeam("Precompiles - test revert attack on state modifier", (conte
     // Check initial balance
     const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
     // Deploy atatck contract
-    const { contract, rawTx } = await createContract(context.web3, "StakingNominationAttaker");
+    const { contract, rawTx } = await createContract(context.web3, "StakingDelegationAttaker");
     await context.createBlock({ transactions: [rawTx] });
 
     // call the payable function, which should revert
@@ -46,7 +46,7 @@ describeDevMoonbeam("Precompiles - test revert attack on state modifier", (conte
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.status).to.eq(false);
 
-    // Nomination shouldn't have passed
+    // Delegation shouldn't have passed
     const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(
       GENESIS_ACCOUNT
     );

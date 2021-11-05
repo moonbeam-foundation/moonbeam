@@ -101,18 +101,18 @@ parameter_types! {
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondDelay: u32 = 2;
-	pub const LeaveNominatorsDelay: u32 = 2;
-	pub const RevokeNominationDelay: u32 = 2;
-	pub const NominatorBondDelay: u32 = 2;
+	pub const LeaveDelegatorsDelay: u32 = 2;
+	pub const RevokeDelegationDelay: u32 = 2;
+	pub const DelegationBondDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxNominatorsPerCollator: u32 = 4;
-	pub const MaxCollatorsPerNominator: u32 = 4;
+	pub const MaxDelegatorsPerCandidate: u32 = 4;
+	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
-	pub const MinNominatorStk: u128 = 5;
-	pub const MinNomination: u128 = 3;
+	pub const MinDelegatorStk: u128 = 5;
+	pub const MinDelegation: u128 = 3;
 }
 impl Config for Test {
 	type Event = Event;
@@ -122,19 +122,19 @@ impl Config for Test {
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
 	type CandidateBondDelay = CandidateBondDelay;
-	type LeaveNominatorsDelay = LeaveNominatorsDelay;
-	type RevokeNominationDelay = RevokeNominationDelay;
-	type NominatorBondDelay = NominatorBondDelay;
+	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
+	type RevokeDelegationDelay = RevokeDelegationDelay;
+	type DelegationBondDelay = DelegationBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
-	type MinNominatorStk = MinNominatorStk;
-	type MinNomination = MinNomination;
+	type MinDelegatorStk = MinDelegatorStk;
+	type MinDelegation = MinDelegation;
 	type WeightInfo = ();
 }
 
@@ -281,15 +281,12 @@ pub(crate) fn assert_eq_events(e: Vec<pallet::Event<Test>>) {
 
 /// Panics if an event is not found in the system log of events
 pub(crate) fn assert_event_emitted(event: pallet::Event<Test>) {
-	for e in events() {
-		if e == event {
-			return;
-		}
-	}
-	println!("Event {:?} was not found in events:", event);
-	println!("{:?}", events());
-	// panic
-	assert!(false);
+	assert!(
+		events().iter().find(|e| *e == &event).is_some(),
+		"Event {:?} was not found in events: \n {:?}",
+		event,
+		events()
+	);
 }
 
 // Same storage changes as EventHandler::note_author impl

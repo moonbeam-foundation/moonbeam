@@ -43,11 +43,11 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 enum Action {
-	MinNomination = "min_nomination()",
+	MinDelegation = "min_nomination()",
 	Points = "points(uint256)",
 	CandidateCount = "candidate_count()",
-	CollatorNominationCount = "collator_nomination_count(address)",
-	NominatorNominationCount = "nominator_nomination_count(address)",
+	CollatorDelegationCount = "collator_nomination_count(address)",
+	NominatorDelegationCount = "nominator_nomination_count(address)",
 	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
@@ -61,7 +61,7 @@ enum Action {
 	Nominate = "nominate(address,uint256,uint256,uint256)",
 	Delegate = "delegate(address,uint256,uint256,uint256)",
 	LeaveNominators = "leave_delegators(uint256)",
-	RevokeNomination = "revoke_nomination(address)",
+	RevokeDelegation = "revoke_nomination(address)",
 	NominatorBondLess = "nominator_bond_less(address,uint256)",
 	NominatorBondMore = "nominator_bond_more(address,uint256)",
 }
@@ -93,14 +93,14 @@ where
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
 			// constants
-			Action::MinNomination => return Self::min_nomination(target_gas),
+			Action::MinDelegation => return Self::min_nomination(target_gas),
 			// storage getters
 			Action::Points => return Self::points(input, target_gas),
 			Action::CandidateCount => return Self::candidate_count(target_gas),
-			Action::CollatorNominationCount => {
+			Action::CollatorDelegationCount => {
 				return Self::collator_nomination_count(input, target_gas)
 			}
-			Action::NominatorNominationCount => {
+			Action::NominatorDelegationCount => {
 				return Self::nominator_nomination_count(input, target_gas)
 			}
 			// role verifiers
@@ -118,7 +118,7 @@ where
 			Action::Nominate => Self::delegate(input, context)?,
 			Action::Delegate => Self::delegate(input, context)?,
 			Action::LeaveNominators => Self::leave_delegators(input, context)?,
-			Action::RevokeNomination => Self::revoke_nomination(input, context)?,
+			Action::RevokeDelegation => Self::revoke_nomination(input, context)?,
 			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
 			Action::NominatorBondMore => Self::nominator_bond_more(input, context)?,
 		};
@@ -152,7 +152,7 @@ where
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinNomination as Get<
+		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinDelegation as Get<
 			BalanceOf<Runtime>,
 		>>::get()
 		.try_into()
