@@ -727,7 +727,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 115329756u64,
+					cost: 114357756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
