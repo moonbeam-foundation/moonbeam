@@ -936,10 +936,13 @@ export const contractSources: { [key: string]: string } = {
     function transfer(address to, uint256 value) external returns (bool);
 
     /**
-     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
-     * Beware that changing an allowance with this method brings the risk that someone may use both the old
-     * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
-     * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+     * @dev Approve the passed address to spend the specified amount of tokens on behalf
+     * of msg.sender.
+     * Beware that changing an allowance with this method brings the risk that someone may
+     * use both the old
+     * and the new allowance by unfortunate transaction ordering. One possible solution to
+     * mitigate this race condition is to first reduce the spender's allowance to 0 and set
+     * the desired value afterwards:
      * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
      * Selector: 095ea7b3
      * @param spender The address which will spend the funds.
@@ -1000,7 +1003,10 @@ export const contractSources: { [key: string]: string } = {
                 return erc20.balanceOf(who);
             }
             
-            function allowance(address owner, address spender) override external view returns (uint256){
+            function allowance(
+                address owner,
+                address spender
+            ) override external view returns (uint256){
                 return erc20.allowance(owner, spender);
             }
 
@@ -1012,7 +1018,11 @@ export const contractSources: { [key: string]: string } = {
                 return erc20.transfer(spender, value);
             }
             
-            function transferFrom(address from, address to, uint256 value) override external returns (bool) {
+            function transferFrom(
+                address from,
+                address to, 
+                int256 value
+            ) override external returns (bool) {
                 return erc20.transferFrom(from,  to, value);
             }
     }`,
