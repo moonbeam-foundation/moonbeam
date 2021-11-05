@@ -132,7 +132,7 @@ impl Config for Test {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type WeightInfo = ();

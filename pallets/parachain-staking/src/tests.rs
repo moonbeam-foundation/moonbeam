@@ -610,7 +610,7 @@ fn cannot_join_candidates_without_min_bond() {
 		.execute_with(|| {
 			assert_noop!(
 				Stake::join_candidates(Origin::signed(1), 9u128, 100u32),
-				Error::<Test>::CollatorBondBelowMin
+				Error::<Test>::CandidateBondBelowMin
 			);
 		});
 }
@@ -735,7 +735,7 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 			for i in 1..6 {
 				assert_noop!(
 					Stake::schedule_leave_candidates(Origin::signed(i), 4u32),
-					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+					Error::<Test>::TooLowCandidateCountToLeaveCandidates
 				);
 			}
 		});
@@ -1092,7 +1092,7 @@ fn cannot_candidate_bond_more_if_request_exists() {
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 5));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 5),
-				Error::<Test>::PendingCollatorRequestAlreadyExists
+				Error::<Test>::PendingCandidateRequestAlreadyExists
 			);
 		});
 }
@@ -1180,7 +1180,7 @@ fn cannot_candidate_bond_less_if_request_exists() {
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 5));
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 5),
-				Error::<Test>::PendingCollatorRequestAlreadyExists
+				Error::<Test>::PendingCandidateRequestAlreadyExists
 			);
 		});
 }
@@ -1204,7 +1204,7 @@ fn cannot_candidate_bond_less_if_new_total_below_min_candidate_stk() {
 		.execute_with(|| {
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 21),
-				Error::<Test>::CollatorBondBelowMin
+				Error::<Test>::CandidateBondBelowMin
 			);
 		});
 }
@@ -1749,7 +1749,7 @@ fn insufficient_delegate_weight_hint_fails() {
 			for i in 7..11 {
 				assert_noop!(
 					Stake::delegate(Origin::signed(i), 1, 10, count, 0u32),
-					Error::<Test>::TooLowCollatorDelegationCountToDelegate
+					Error::<Test>::TooLowCandidateDelegationCountToDelegate
 				);
 			}
 			// to set up for next error test
@@ -2016,7 +2016,7 @@ fn revoke_delegation_event_emits_correctly() {
 			)));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_event_emitted(Event::DelegatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::DelegatorLeftCandidate(2, 1, 10, 30));
 		});
 }
 
@@ -2387,7 +2387,7 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_event_emitted(Event::DelegatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::DelegatorLeftCandidate(2, 1, 10, 30));
 			assert_event_emitted(Event::DelegatorLeft(2, 10));
 		});
 }
@@ -2426,7 +2426,7 @@ fn revoke_delegation_executes_exit_if_last_delegation() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_event_emitted(Event::DelegatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::DelegatorLeftCandidate(2, 1, 10, 30));
 			assert_event_emitted(Event::DelegatorLeft(2, 10));
 		});
 }
@@ -2442,7 +2442,7 @@ fn execute_revoke_delegation_emits_correct_event() {
 			assert_ok!(Stake::revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_event_emitted(Event::DelegatorLeftCollator(2, 1, 10, 30));
+			assert_event_emitted(Event::DelegatorLeftCandidate(2, 1, 10, 30));
 		});
 }
 
@@ -3363,7 +3363,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
-				Event::DelegatorLeftCollator(6, 1, 10, 40),
+				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 				Event::ReservedForParachainBond(11, 17),
 				Event::Rewarded(1, 24),
@@ -4008,7 +4008,7 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
-				Event::DelegatorLeftCollator(6, 1, 10, 40),
+				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 			];
 			expected.append(&mut new2);

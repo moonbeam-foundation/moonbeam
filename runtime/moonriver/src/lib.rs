@@ -652,7 +652,7 @@ parameter_types! {
 	/// Minimum stake required to become a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate is 1_000
-	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOMOVR * currency::SUPPLY_FACTOR;
+	pub const MinCandidateStk: u128 = 1 * currency::KILOMOVR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinDelegatorStk: u128 = 5 * currency::MOVR * currency::SUPPLY_FACTOR;
 }
@@ -674,7 +674,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorCandidateStk;
+	type MinCandidateStk = MinCandidateStk;
 	type MinDelegation = MinDelegatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -1116,7 +1116,7 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOMOVR));
-		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(1 * KILOMOVR));
+		assert_eq!(MinCandidateStk::get(), Balance::from(1 * KILOMOVR));
 		assert_eq!(MinDelegatorStk::get(), Balance::from(5 * MOVR));
 
 		// crowdloan min reward

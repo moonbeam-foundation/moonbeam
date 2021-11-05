@@ -672,7 +672,7 @@ parameter_types! {
 	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::SUPPLY_FACTOR;
 	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCollatorCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
+	pub const MinCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
@@ -694,7 +694,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorCandidateStk;
+	type MinCandidateStk = MinCandidateStk;
 	type MinDelegation = MinDelegatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -1143,7 +1143,7 @@ mod tests {
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(
-			MinCollatorCandidateStk::get(),
+			MinCandidateStk::get(),
 			// TODO restore real value before phase 2
 			Balance::from(10 * KILOGLMR) //Balance::from(100 * KILOGLMR)
 		);
