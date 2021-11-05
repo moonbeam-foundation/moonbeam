@@ -127,8 +127,8 @@ where
 		// 	0: Default::default(),
 		// };
 
-		let migration_collectives =
-			MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
+		// let migration_collectives =
+		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
 
 		let staking_manual_exits = StakingManualExits::<Runtime>(Default::default());
 
@@ -138,7 +138,8 @@ where
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
-			Box::new(migration_collectives),
+			// completed in runtime 900
+			// Box::new(migration_collectives),
 			Box::new(staking_manual_exits),
 		]
 	}
