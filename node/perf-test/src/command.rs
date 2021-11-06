@@ -459,7 +459,7 @@ impl PerfCmd {
 
 		for mut test in tests {
 			if have_filter {
-				if ! enabled_tests.contains(&test.name().as_str()) {
+				if !enabled_tests.contains(&test.name().as_str()) {
 					continue;
 				}
 			}
