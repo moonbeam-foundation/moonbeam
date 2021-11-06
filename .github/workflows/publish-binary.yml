@@ -20,7 +20,8 @@ jobs:
       matrix:
         cpu: ["", "skylake", "icelake-server", "znver3"]
     env:
-      RUSTFLAGS: "-C lto -C codegen-units=1 -C target-cpu=${{ matrix.cpu }}"
+      RUSTFLAGS: "-C codegen-units=1 -C target-cpu=${{ matrix.cpu }}"
+      CARGO_PROFILE_RELEASE_LTO: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -31,12 +32,12 @@ jobs:
       - name: Build Node
         run: cargo build --release --all
       - name: Save parachain binary
-        if: ${{ matrix.cpu == "" }}
+        if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
           cp target/release/moonbeam build/moonbeam
       - name: Save parachain custom binary
-        if: ${{ matrix.cpu == "" }}
+        if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
           cp target/release/moonbeam build/moonbeam-${{matrix.cpu}}
