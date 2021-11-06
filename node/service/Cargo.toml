@@ -2,7 +2,7 @@
 name = 'moonbeam-service'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.14.0'
+version = '0.14.1'
 authors = ["PureStake"]
 edition = '2018'
 
