@@ -2388,13 +2388,11 @@ pub mod pallet {
 				return;
 			}
 			let round_to_payout = next - duration;
-			// TODO: migration to kill storage for all rounds before when this code gets in
-			let total = <Points<T>>::take(round_to_payout);
+			let total = <Points<T>>::get(round_to_payout);
 			if total.is_zero() {
 				return;
 			}
-			// TODO: migration to kill storage for all rounds before when this code gets in
-			let total_staked = <Staked<T>>::take(round_to_payout);
+			let total_staked = <Staked<T>>::get(round_to_payout);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
