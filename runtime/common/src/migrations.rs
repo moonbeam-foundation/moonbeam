@@ -119,7 +119,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
 	for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config,
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
