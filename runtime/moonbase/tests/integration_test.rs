@@ -198,7 +198,10 @@ fn verify_pallet_prefixes() {
 			max_size: Some(1),
 		},]
 	);
+}
 
+#[test]
+fn test_collectives_storage_item_prefixes() {
 	for StorageInfo { pallet_name, .. } in
 		<moonbase_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
 	{
