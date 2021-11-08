@@ -26,6 +26,7 @@ sha3 = { version = "0.9", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
 tiny-bip39 = { version = "0.8", default-features = false }
 tokio = { version = "1.12.0", features = ["macros", "sync"] }
+flume = "0.10.9"
 
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
@@ -44,6 +45,7 @@ moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 
 moonbeam-core-primitives = { path = "../../core-primitives" }
 manual-xcm-rpc = { path = "../../client/rpc/manual-xcm" }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }

@@ -38,7 +38,7 @@ pub trait ManualXcmApi {
 		&self,
 		sent_at: RelayBlockNumber,
 		message: Vec<u8>,
-	) -> Compat<BoxFuture<'static, RpcResult<bool>>>;
+	) -> BoxFuture<'static, RpcResult<bool>>;
 	// For now we return bool which indicates some vague notion of success
 	// In the future it may be nice to return which block hash this message was
 	// injected into. We may need to learn more about how forks are handled to make
@@ -52,7 +52,7 @@ pub trait ManualXcmApi {
 		channel: u32, //TODO I think there is a better type for this?
 		sent_at: RelayBlockNumber,
 		message: Vec<u8>,
-	) -> Compat<BoxFuture<'static, RpcResult<bool>>>;
+	) -> BoxFuture<'static, RpcResult<bool>>;
 }
 
 pub struct ManualXcm {
@@ -73,7 +73,7 @@ impl ManualXcmApi for ManualXcm {
 		&self,
 		sent_at: RelayBlockNumber,
 		msg: Vec<u8>,
-	) -> Compat<BoxFuture<'static, RpcResult<bool>>> {
+	) -> BoxFuture<'static, RpcResult<bool>> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		async move {
 			let (tx, rx) = oneshot::channel();
@@ -91,7 +91,6 @@ impl ManualXcmApi for ManualXcm {
 			rx.await.map_err(|err| internal_err(err))
 		}
 		.boxed()
-		.compat()
 	}
 
 	fn inject_hrmp_message(
@@ -99,12 +98,12 @@ impl ManualXcmApi for ManualXcm {
 		channel: u32, //TODO I think there is a better type for this?
 		sent_at: RelayBlockNumber,
 		message: Vec<u8>,
-	) -> Compat<BoxFuture<'static, RpcResult<bool>>> {
+	) -> BoxFuture<'static, RpcResult<bool>> {
 		// let mut requester = self.requester.clone();
 
 		println!("---> Enter");
 
-		async move { todo!() }.boxed().compat()
+		async move { todo!() }.boxed()
 	}
 }
 

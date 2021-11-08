@@ -19,7 +19,7 @@
 //! about the external world, but can pass the runtime's checks. This is useful in testing
 //! for example, running the --dev service without a relay chain backbone.
 
-use cumulus_primitives_core::PersistedValidationData;
+use cumulus_primitives_core::{InboundDownwardMessage, PersistedValidationData};
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
 use sp_inherents::{InherentData, InherentDataProvider};
 

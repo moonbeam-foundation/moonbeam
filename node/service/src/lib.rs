@@ -867,6 +867,29 @@ where
 							})
 							.collect();
 
+						// Construct a simple downward transfer message to serialize and insert
+						// I believe this should be a `VersionedXcm<T::Call>`.
+						// Since it is generic over a runtime, I may have trouble constructing it here
+						// I could make a helper function in a runtime...
+						// Oh, unless that type info is only necessary for certain kinds of calls, and I
+						// can just put () for now...
+						let downward_transfer_message = xcm::VersionedXcm::<()>::V1(
+							xcm::v1::Xcm::<()>::ReserveAssetDeposited {
+								assets: todo!(),
+								effects: todo!(),
+							}
+						);
+
+						// Here we inject a single hard-coded downward transfer message
+						downward_messages.push(
+							InboundDownwardMessage{
+								//TODO is sent_at supposed to be a realy block number or a para block number?
+								// I think it should be relay chain block number...
+								sent_at: current_para_block,//TODO
+								msg: downward_transfer_message.encode(),
+							}
+						);
+
 						// Here I'm just draining the stream into a Vec. I guess there is some method
 						// that might help us with this but for now let's keep it simple.
 						// https://docs.rust-embedded.org/rust-sysfs-gpio/futures/stream/trait.Stream.html#method.collect

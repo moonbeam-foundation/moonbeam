@@ -8,11 +8,11 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-tokio = { version = "0.2.21", features = ["sync", "time"] }
+tokio = { version = "1.12.0", features = ["sync", "time"] }
 flume = "0.10.9"
 futures = { version = "0.3", features = ["compat"] }
-jsonrpc-core = "15.0.0"
-jsonrpc-derive = "15.1.0"
+jsonrpc-core = "18.0.0"
+jsonrpc-derive = "18.0.0"
 
 
 #cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
