@@ -17,7 +17,7 @@
 //! Encoding of XCM types for solidity
 
 use crate::{error, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult};
-use evm::ExitError;
+use fp_evm::ExitError;
 
 use frame_support::ensure;
 use sp_std::vec::Vec;

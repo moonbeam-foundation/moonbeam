@@ -20,7 +20,6 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
-use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -48,4 +47,11 @@ pub struct PerfCmd {
 		help = "Do not attempt to query system info."
 	)]
 	pub disable_sysinfo: bool,
+
+	// TODO: allow multiple tests (like the -l switch for logging)
+	#[structopt(
+		long = "tests",
+		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
+	)]
+	pub tests: Option<String>,
 }
