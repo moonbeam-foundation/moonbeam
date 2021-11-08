@@ -39,18 +39,27 @@ export function signWith(
   return signature;
 }
 
-describeDevMoonbeam("Balance transfer", (context) => {
+describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-  before("Create block with transfer to test account of 512", async () => {
-    const { block } = await rpcToLocalNode(context.rpcPort, "chain_getBlock");
-    const blockHash = await rpcToLocalNode(context.rpcPort, "chain_getBlockHash");
-    const genesisHash = await rpcToLocalNode(context.rpcPort, "chain_getBlockHash", [0]);
-    const metadataRpc = await rpcToLocalNode(context.rpcPort, "state_getMetadata");
 
-    const { specVersion, transactionVersion, specName } = await rpcToLocalNode(
-      context.rpcPort,
-      "state_getRuntimeVersion"
-    );
+  before("Create block with transfer to test account of 512", async function () {
+    // txwrapper takes more time to initiate :/
+    this.timeout(10000);
+
+    const [
+      { block },
+      blockHash,
+      genesisHash,
+      metadataRpc,
+      { specVersion, transactionVersion, specName },
+    ] = await Promise.all([
+      rpcToLocalNode(context.rpcPort, "chain_getBlock"),
+      rpcToLocalNode(context.rpcPort, "chain_getBlockHash"),
+      rpcToLocalNode(context.rpcPort, "chain_getBlockHash", [0]),
+      rpcToLocalNode(context.rpcPort, "state_getMetadata"),
+      rpcToLocalNode(context.rpcPort, "state_getRuntimeVersion"),
+    ]);
+
     const registry = getRegistry({
       chainName: "Moonriver",
       specName,

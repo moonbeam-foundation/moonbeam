@@ -18,18 +18,14 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, CurrencyId, ExtBuilder, Precompiles,
 	TestAccount::*,
 };
-use orml_xtokens::Event as XtokensEvent;
-
-use crate::encoding::{
-	network_id_from_bytes, network_id_to_bytes, JunctionWrapper, JunctionsWrapper,
-};
-use crate::{Action, MultiLocationWrapper, PrecompileOutput};
+use crate::{Action, PrecompileOutput};
+use fp_evm::Context;
 use num_enum::TryFromPrimitive;
+use orml_xtokens::Event as XtokensEvent;
 use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, EvmDataReader, EvmDataWriter};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
-use sp_core::{H160, U256};
-use sp_std::convert::TryInto;
+use sp_core::U256;
 use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation, NetworkId};
 
 #[test]
@@ -95,169 +91,6 @@ fn no_selector_exists_but_length_is_right() {
 }
 
 #[test]
-fn junctions_decoder_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionsWrapper::from(Junctions::X1(Junction::OnlyChild)))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junctions = reader
-			.read::<JunctionsWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(parsed, Junctions::X1(Junction::OnlyChild));
-
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionsWrapper::from(Junctions::X2(
-				Junction::OnlyChild,
-				Junction::OnlyChild,
-			)))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junctions = reader
-			.read::<JunctionsWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(
-			parsed,
-			Junctions::X2(Junction::OnlyChild, Junction::OnlyChild)
-		);
-
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionsWrapper::from(Junctions::X3(
-				Junction::OnlyChild,
-				Junction::OnlyChild,
-				Junction::OnlyChild,
-			)))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junctions = reader
-			.read::<JunctionsWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(
-			parsed,
-			Junctions::X3(
-				Junction::OnlyChild,
-				Junction::OnlyChild,
-				Junction::OnlyChild
-			),
-		);
-	});
-}
-
-#[test]
-fn junction_decoder_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionWrapper::from(Junction::Parachain(0)))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junction = reader
-			.read::<JunctionWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(parsed, Junction::Parachain(0));
-
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionWrapper::from(Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			}))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junction = reader
-			.read::<JunctionWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(
-			parsed,
-			Junction::AccountId32 {
-				network: NetworkId::Any,
-				id: [1u8; 32],
-			}
-		);
-
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionWrapper::from(Junction::AccountIndex64 {
-				network: NetworkId::Any,
-				index: u64::from_be_bytes([1u8; 8]),
-			}))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junction = reader
-			.read::<JunctionWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(
-			parsed,
-			Junction::AccountIndex64 {
-				network: NetworkId::Any,
-				index: u64::from_be_bytes([1u8; 8]),
-			}
-		);
-
-		let writer_output = EvmDataWriter::new()
-			.write(JunctionWrapper::from(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: H160::from(Alice).as_bytes().try_into().unwrap(),
-			}))
-			.build();
-
-		let mut reader = EvmDataReader::new(&writer_output);
-		let parsed: Junction = reader
-			.read::<JunctionWrapper>()
-			.expect("to correctly parse Junctions")
-			.into();
-
-		assert_eq!(
-			parsed,
-			Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: H160::from(Alice).as_bytes().try_into().unwrap(),
-			}
-		);
-	});
-}
-
-#[test]
-fn network_id_decoder_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(
-			network_id_from_bytes(network_id_to_bytes(NetworkId::Any)),
-			Ok(NetworkId::Any)
-		);
-
-		assert_eq!(
-			network_id_from_bytes(network_id_to_bytes(NetworkId::Named(b"myname".to_vec()))),
-			Ok(NetworkId::Named(b"myname".to_vec()))
-		);
-
-		assert_eq!(
-			network_id_from_bytes(network_id_to_bytes(NetworkId::Kusama)),
-			Ok(NetworkId::Kusama)
-		);
-
-		assert_eq!(
-			network_id_from_bytes(network_id_to_bytes(NetworkId::Polkadot)),
-			Ok(NetworkId::Polkadot)
-		);
-	});
-}
-
-#[test]
 fn transfer_self_reserve_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -276,11 +109,11 @@ fn transfer_self_reserve_works() {
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(SelfReserve.into()))
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(destination.clone())
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -320,11 +153,11 @@ fn transfer_to_reserve_works() {
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(0u128).into()))
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(destination.clone())
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -366,11 +199,11 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(1u128).into()))
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(destination.clone())
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -411,13 +244,13 @@ fn transfer_multi_asset_to_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
-						.write(MultiLocationWrapper::from(asset.clone()))
+						.write(asset.clone())
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination))
+						.write(destination)
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -464,13 +297,13 @@ fn transfer_multi_asset_self_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
-						.write(MultiLocationWrapper::from(self_reserve.clone()))
+						.write(self_reserve.clone())
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination))
+						.write(destination)
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -520,13 +353,13 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
-						.write(MultiLocationWrapper::from(asset_location.clone()))
+						.write(asset_location.clone())
 						.write(U256::from(500))
-						.write(MultiLocationWrapper::from(destination.clone()))
+						.write(destination.clone())
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),

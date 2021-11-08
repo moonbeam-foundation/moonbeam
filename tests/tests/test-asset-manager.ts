@@ -33,9 +33,8 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     // Look for assetId in events
     let assetId: string;
     eventsRegister.forEach((e) => {
-      let ev = e.toHuman();
-      if (ev.section === "assetManager") {
-        assetId = ev.data[0];
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
       }
     });
     assetId = assetId.replace(/,/g, "");
@@ -46,11 +45,11 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       alith,
       parachainOne.tx.sudo.sudo(parachainOne.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
     );
-    expect(events[0].toHuman().method).to.eq("UnitsPerSecondChanged");
-    expect(events[2].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(events[0].method.toString()).to.eq("UnitsPerSecondChanged");
+    expect(events[2].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = await parachainOne.query.assets.asset(assetId);
-    expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
+    const registeredAsset = ((await parachainOne.query.assets.asset(assetId)) as any).unwrap();
+    expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 });

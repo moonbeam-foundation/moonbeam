@@ -51,7 +51,7 @@ pub mod pallet {
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
-	#[derive(Encode, Decode, PartialEq, Eq, Debug)]
+	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	pub struct RegistrationInfo<AccountId, Balance> {
 		account: AccountId,
 		deposit: Balance,

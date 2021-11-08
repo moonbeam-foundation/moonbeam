@@ -1,0 +1,58 @@
+[package]
+name = "perf-test"
+version = "0.1.0"
+description = "Moonbeam Performance Tests"
+authors = ["PureStake"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+structopt = "0.3.8"
+hex = "0.4.3"
+async-io = "1.3"
+futures = { version = "0.3.1", features = ["compat"] }
+libsecp256k1 = { version = "0.5" }
+ethereum = { version = "0.9.0" }
+rlp = { version = "0.5" }
+sha3 = { version = "0.8" }
+cli-table = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+psutil = "3.2.1"
+raw-cpuid = "10.2.0"
+num_cpus = "1.13.0"
+heim = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+heim-cpu = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+heim-common = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+# TODO: heim-host generates a conflict for crate 'platforms'
+# heim-host = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+heim-memory = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+
+# TODO: handle different runtime builds
+moonbase-runtime = { path = "../../runtime/moonbase" }
+
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
+
+service = { package = "moonbeam-service", path = "../service", default-features = false }
+cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }

@@ -15,12 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use evm::{executor::PrecompileOutput, Context, ExitError};
+use fp_evm::{Context, ExitError, PrecompileOutput};
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
+use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
@@ -31,6 +32,7 @@ use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xcm_transactor_precompiles::XcmTransactorWrapper;
 use xtokens_precompiles::XtokensWrapper;
 
 /// ERC20 metadata for the native token.
@@ -71,9 +73,11 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053]
-			.into_iter()
-			.map(|x| R::AddressMapping::into_account_id(hash(x)))
+		sp_std::vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053
+		]
+		.into_iter()
+		.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 
@@ -89,6 +93,7 @@ where
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -106,6 +111,7 @@ where
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
+			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context)),
@@ -127,6 +133,9 @@ where
 			}
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, WestendEncoder>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set

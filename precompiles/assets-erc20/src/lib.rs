@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
@@ -276,7 +276,6 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
@@ -291,48 +290,46 @@ where
 				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
-			let caller: Runtime::AccountId =
-				Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
 			// Dispatch call (if enough gas).
 			// We first cancel any existing approvals
 			// Since we cannot check storage, we need to execute this call without knowing whether
 			// another approval exists already.
-			// But we know that if no approval exists we should get "Unknown"
 			// Allowance() should be checked instead of doing this Result matching
 			let used_gas = match RuntimeHelper::<Runtime>::try_dispatch(
-				<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin::root(),
-				pallet_assets::Call::<Runtime, Instance>::force_cancel_approval(
-					asset_id,
-					Runtime::Lookup::unlookup(caller),
-					Runtime::Lookup::unlookup(spender.clone()),
-				),
+				Some(origin.clone()).into(),
+				pallet_assets::Call::<Runtime, Instance>::cancel_approval {
+					id: asset_id,
+					delegate: Runtime::Lookup::unlookup(spender.clone()),
+				},
 				gasometer.remaining_gas()?,
 			) {
 				Ok(gas_used) => Ok(gas_used),
-				Err(ExitError::Other(e)) => {
-					// One DB read for checking the approval did not exist
-					if e.contains("Unknown") {
-						Ok(RuntimeHelper::<Runtime>::db_read_gas_cost())
-					} else {
-						Err(ExitError::Other(e))
-					}
-				}
+				// ExitError::Other is only returned if the dispatchable fails with an error
+				// We cannot format the error in wasm
+				// In our case, we know that if cancel_approval fails approve_transfer will also
+				// fail in all cases except the one we are interested on: that it does not exist
+				// a previous approval. In this case we still want to continue, so it is safe
+				// to do this
+				// TODO: Once 0.9.12 is here, we should be able to only call cance_approval if
+				// such approval exists.
+				Err(ExitError::Other(_e)) => Ok(2 * RuntimeHelper::<Runtime>::db_read_gas_cost()),
+				// Any other error can be returned
 				Err(e) => Err(e),
 			}?;
 			gasometer.record_cost(used_gas)?;
 
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::approve_transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(spender),
+				pallet_assets::Call::<Runtime, Instance>::approve_transfer {
+					id: asset_id,
+					delegate: Runtime::Lookup::unlookup(spender),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -381,11 +378,11 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(to),
+				pallet_assets::Call::<Runtime, Instance>::transfer {
+					id: asset_id,
+					target: Runtime::Lookup::unlookup(to),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -413,8 +410,6 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
@@ -438,23 +433,23 @@ where
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer_approved(
-						asset_id,
-						Runtime::Lookup::unlookup(from),
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer_approved {
+						id: asset_id,
+						owner: Runtime::Lookup::unlookup(from),
+						destination: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			} else {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(from).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer(
-						asset_id,
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer {
+						id: asset_id,
+						target: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			}?;

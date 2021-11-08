@@ -2,12 +2,12 @@
 name = 'moonbeam-cli-opt'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.13.2'
+version = '0.14.2'
 authors = ["PureStake"]
 edition = '2018'
 
 [dependencies]
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 structopt = "0.3.8"
 tiny-bip39 = "0.8"
 libsecp256k1 = "0.6"

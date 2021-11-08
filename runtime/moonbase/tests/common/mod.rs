@@ -67,8 +67,8 @@ pub fn last_event() -> Event {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),
@@ -290,7 +290,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 pub fn set_author(a: NimbusId) {
 	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
 			.dispatch(inherent_origin())
 	);
 }
@@ -315,9 +315,9 @@ pub fn set_parachain_inherent_data() {
 		horizontal_messages: Default::default(),
 	};
 	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
 	)
 	.dispatch(inherent_origin()));
 }

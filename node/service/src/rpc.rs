@@ -26,7 +26,6 @@ use sp_block_builder::BlockBuilder;
 
 use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::EthApi as EthApiCmd;
-use ethereum::EthereumStorageSchema;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
@@ -39,6 +38,7 @@ use jsonrpc_pubsub::manager::SubscriptionManager;
 use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
+use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
