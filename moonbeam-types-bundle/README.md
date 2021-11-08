@@ -6,7 +6,8 @@ with the app or the api.
 ## ⚠️Warning: Types deprecation⚠️
 
 Following runtime upgrade 900 (include substrate v0.9.11), types are now retrieved from the node, in
-a **camelCase** format.
+a **camelCase** format (which will be included into PolkadotJS too so you don't need to include
+this types bundle)
 
 A **new version** has been released `moonbeam-types-bundle@2.0.0`.  
 
@@ -15,7 +16,7 @@ The default export `typesBundle` has **been removed** in order to avoid confusio
 **2 new typesBundles** are available:
 
 * `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention (Which will be the **default on PolkadotJS SDK**)
-* `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention (This will break at runtime 1000)
+* `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention that isn't camelCase (This will break at runtime 1000)
 
 ### Breaking changes in typesBundlePre900
 
