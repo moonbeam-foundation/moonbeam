@@ -37,7 +37,7 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		}
 		// already paid out at the beginning of current round
 		let first_round_to_kill = current_round - payment_delay;
-		for i in 1..(first_round_to_kill + 1) {
+		for i in 1..=first_round_to_kill {
 			writes += 2u64;
 			<Staked<T>>::remove(i);
 			<Points<T>>::remove(i);
