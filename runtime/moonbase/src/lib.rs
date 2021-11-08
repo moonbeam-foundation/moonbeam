@@ -31,7 +31,6 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
-use xtokens_precompiles::AccountIdToCurrencyId;
 
 use sp_runtime::traits::Hash as THash;
 
@@ -67,6 +66,8 @@ use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
+#[cfg(feature = "std")]
+pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
@@ -113,6 +114,9 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
+	pub const SUPPLY_FACTOR: Balance = 1;
+
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
 	pub const MEGAWEI: Balance = 1_000_000;
@@ -122,11 +126,11 @@ pub mod currency {
 	pub const UNIT: Balance = 1_000_000_000_000_000_000;
 	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT * SUPPLY_FACTOR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * UNIT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -164,7 +168,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0800,
+	spec_version: 0900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -363,7 +367,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI).into()
+		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
 }
 
@@ -491,7 +495,7 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
+	pub const MinimumDeposit: Balance = 4 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
@@ -553,7 +557,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT;
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const MaxApprovals: u32 = 100;
@@ -700,11 +704,11 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate is 1_000
-	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOUNIT;
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::UNIT;
+	pub const MinNominatorStk: u128 = 5 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
 
 impl parachain_staking::Config for Runtime {
@@ -769,7 +773,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::UNIT;
+	pub const DepositAmount: Balance = 100 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -797,6 +801,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
 	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
 )]
@@ -1240,7 +1245,7 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+impl xcm_primitives::AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
@@ -1296,6 +1301,60 @@ impl orml_xtokens::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
+// For now we only allow to transact in the relay, although this might change in the future
+// Transactors just defines the chains in which we allow transactions to be issued through
+// xcm
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum Transactors {
+	Relay,
+}
+
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			// Shall we use westend for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to westend-runtime I think
+			Transactors::Relay => moonbeam_relay_encoder::westend::WestendEncoder.encode_call(call),
+		}
+	}
+}
+
+impl xcm_primitives::XcmTransact for Transactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			Transactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Transactor = Transactors;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdToMultiLocation =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type XcmExecutor = XcmExecutor;
+	type XcmSender = XcmRouter;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type LocationInverter = LocationInverter<Ancestry>;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
@@ -1325,6 +1384,7 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::transfer_keep_alive { .. } => true,
 				pallet_assets::Call::approve_transfer { .. } => true,
 				pallet_assets::Call::transfer_approved { .. } => true,
+				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
 			},
 			_ => true,
@@ -1338,6 +1398,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+}
+
+impl pallet_proxy_genesis_companion::Config for Runtime {
+	type ProxyType = ProxyType;
 }
 
 construct_runtime! {
@@ -1382,6 +1446,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
+		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
+
 	}
 }
 
@@ -1537,3 +1604,61 @@ cumulus_pallet_parachain_system::register_validate_block!(
 );
 
 runtime_common::impl_self_contained_call!();
+
+#[cfg(test)]
+mod tests {
+	use super::{currency::*, *};
+
+	#[test]
+	fn currency_constants_are_correct() {
+		assert_eq!(SUPPLY_FACTOR, 1);
+
+		// txn fees
+		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(10 * MICROUNIT));
+		assert_eq!(OperationalFeeMultiplier::get(), 5_u8);
+		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
+		assert_eq!(FixedGasPrice::min_gas_price(), (1 * GIGAWEI).into());
+
+		// democracy minimums
+		assert_eq!(MinimumDeposit::get(), Balance::from(4 * UNIT));
+		assert_eq!(PreimageByteDeposit::get(), Balance::from(100 * MICROUNIT));
+		assert_eq!(ProposalBondMinimum::get(), Balance::from(1 * UNIT));
+
+		// pallet_identity deposits
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(1 * UNIT + 25800 * MICROUNIT)
+		);
+		assert_eq!(FieldDeposit::get(), Balance::from(6600 * MICROUNIT));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(1 * UNIT + 5300 * MICROUNIT)
+		);
+
+		// staking minimums
+		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOUNIT));
+		assert_eq!(MinCollatorCandidateStk::get(), Balance::from(1 * KILOUNIT));
+		assert_eq!(MinNominatorStk::get(), Balance::from(5 * UNIT));
+
+		// crowdloan min reward
+		assert_eq!(MinimumReward::get(), Balance::from(0u128));
+
+		// deposit for AuthorMapping
+		assert_eq!(DepositAmount::get(), Balance::from(100 * UNIT));
+
+		// proxy deposits
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(2100 * MICROUNIT));
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(1 * UNIT + 800 * MICROUNIT)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(5600 * MICROUNIT)
+		);
+	}
+}
