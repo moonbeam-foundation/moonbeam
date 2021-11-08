@@ -32,7 +32,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 
 /// A moonbeam migration wrapping the similarly named migration in parachain-staking
 pub struct ParachainStakingPurgeStaleStorage<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration for AuthorMappingTwoXToBlake<T> {
+impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Parachain_Staking_PurgeStaleStorage"
 	}
