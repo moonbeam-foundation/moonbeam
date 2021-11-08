@@ -836,6 +836,8 @@ pub mod pallet {
 		),
 		/// Nominator, Collator, Amount Unstaked, New Total Amt Staked for Collator
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Nominator, Collator, Due reward (as per counted nomination for collator)
+		NominatorDueReward(T::AccountId, T::AccountId, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Transferred to account which holds funds reserved for parachain bond
@@ -1732,8 +1734,8 @@ pub mod pallet {
 				));
 			}
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
-					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
+				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
 				}
 			};
 			// only pay out rewards at the end to transfer only total amount due
@@ -1748,26 +1750,31 @@ pub mod pallet {
 			};
 			let collator_fee = <CollatorCommission<T>>::get();
 			let collator_issuance = collator_fee * total_issuance;
-			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
+			for (collator, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
 				let mut amt_due = pct_due * left_issuance;
 				// Take the snapshot of block author and nominations
-				let state = <AtStake<T>>::take(round_to_payout, &val);
+				let state = <AtStake<T>>::take(round_to_payout, &collator);
 				if state.nominators.is_empty() {
 					// solo collator with no nominators
-					mint(amt_due, val.clone());
+					mint(amt_due, collator.clone());
 				} else {
 					// pay collator first; commission + due_portion
-					let val_pct = Perbill::from_rational(state.bond, state.total);
+					let collator_pct = Perbill::from_rational(state.bond, state.total);
 					let commission = pct_due * collator_issuance;
 					amt_due -= commission;
-					let val_due = (val_pct * amt_due) + commission;
-					mint(val_due, val.clone());
+					let collator_reward = (collator_pct * amt_due) + commission;
+					mint(collator_reward, collator.clone());
 					// pay nominators due portion
 					for Bond { owner, amount } in state.nominators {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						increase_due_rewards(due, owner);
+						increase_due_rewards(due, owner.clone());
+						Self::deposit_event(Event::NominatorDueReward(
+							owner.clone(),
+							collator.clone(),
+							due,
+						));
 					}
 				}
 			}
