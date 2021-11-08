@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use evm::{executor::PrecompileOutput, Context, ExitError};
+use fp_evm::{Context, ExitError, PrecompileOutput};
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};

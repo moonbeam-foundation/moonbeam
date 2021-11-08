@@ -450,7 +450,19 @@ impl PerfCmd {
 
 		let mut all_test_results: Vec<TestResults> = Default::default();
 
+		let (have_filter, enabled_tests) = if let Some(filter) = &cmd.tests {
+			let enabled_tests: Vec<&str> = filter.split(',').collect();
+			(true, enabled_tests)
+		} else {
+			(false, Default::default())
+		};
+
 		for mut test in tests {
+			if have_filter {
+				if !enabled_tests.contains(&test.name().as_str()) {
+					continue;
+				}
+			}
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
 			all_test_results.append(&mut results);
 		}

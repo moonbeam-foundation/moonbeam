@@ -67,6 +67,8 @@ use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
+#[cfg(feature = "std")]
+pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
@@ -1389,6 +1391,7 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::transfer_keep_alive { .. } => true,
 				pallet_assets::Call::approve_transfer { .. } => true,
 				pallet_assets::Call::transfer_approved { .. } => true,
+				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
 			},
 			_ => true,
