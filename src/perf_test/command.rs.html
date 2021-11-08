@@ -502,6 +502,11 @@
 <span id="502">502</span>
 <span id="503">503</span>
 <span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -971,18 +976,23 @@
 			<span class="ident">all_test_results</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">results</span>);
 		}
 
-		<span class="kw">let</span> <span class="ident">system_info</span> <span class="op">=</span> <span class="ident">query_system_info</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">partition_info</span> <span class="op">=</span> <span class="ident">query_partition_info</span>(<span class="ident">path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="comment">// TODO: this is inconsistent with behavior of query_system_info...</span>
-			<span class="macro">eprintln!</span>(<span class="string">&quot;query_partition_info() failed, ignoring...&quot;</span>);
-			<span class="ident">Default::default</span>()
-		});
+		<span class="kw">let</span> (<span class="ident">system_info</span>, <span class="ident">partition_info</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">disable_sysinfo</span> {
+			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+		} <span class="kw">else</span> {
+			<span class="kw">let</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">query_system_info</span>()<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">query_partition_info</span>(<span class="ident">path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+				<span class="comment">// TODO: this is inconsistent with behavior of query_system_info...</span>
+				<span class="macro">eprintln!</span>(<span class="string">&quot;query_partition_info() failed, ignoring...&quot;</span>);
+				<span class="ident">Default::default</span>()
+			});
+			(<span class="prelude-val">Some</span>(<span class="ident">sys</span>), <span class="prelude-val">Some</span>(<span class="ident">part</span>))
+		};
 
 		<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>)]</span>
 		<span class="kw">struct</span> <span class="ident">AllResults</span> {
 			<span class="ident">test_results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResults</span><span class="op">&gt;</span>,
-			<span class="ident">system_info</span>: <span class="ident">SystemInfo</span>,
-			<span class="ident">partition_info</span>: <span class="ident">PartitionInfo</span>,
+			<span class="ident">system_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SystemInfo</span><span class="op">&gt;</span>,
+			<span class="ident">partition_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PartitionInfo</span><span class="op">&gt;</span>,
 		}
 
 		<span class="kw">let</span> <span class="ident">all_results</span> <span class="op">=</span> <span class="ident">AllResults</span> {

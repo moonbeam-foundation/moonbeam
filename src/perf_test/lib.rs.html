@@ -49,6 +49,12 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of Substrate.</span>
 
 <span class="comment">// Copyright (C) 2020-2021 Parity Technologies (UK) Ltd.</span>
@@ -92,6 +98,12 @@
 		<span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;File where results should be printed (STDOUT if omitted).&quot;</span>
 	)]</span>
 	<span class="kw">pub</span> <span class="ident">output_file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+
+	<span class="attribute">#[<span class="ident">structopt</span>(
+		<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;disable-sysinfo&quot;</span>,
+		<span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Do not attempt to query system info.&quot;</span>
+	)]</span>
+	<span class="kw">pub</span> <span class="ident">disable_sysinfo</span>: <span class="ident">bool</span>,
 
 	<span class="comment">// TODO: allow multiple tests (like the -l switch for logging)</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(
