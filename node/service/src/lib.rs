@@ -715,7 +715,7 @@ where
 	use async_io::Timer;
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-	use sp_core::H256;
+	use sp_core::{Encode, H256};
 
 	let sc_service::PartialComponents {
 		client,
@@ -875,7 +875,15 @@ where
 						// can just put () for now...
 						let downward_transfer_message = xcm::VersionedXcm::<()>::V1(
 							xcm::v1::Xcm::<()>::ReserveAssetDeposited {
-								assets: todo!(),
+								assets: xcm::v1::MultiAssets::from(vec![xcm::v1::MultiAsset{
+									id: xcm::v1::AssetId::Concrete(
+										xcm::v1::MultiLocation {
+											parents: 0,
+											interior: xcm::v1::Junctions::Here,
+										}
+									),
+									fun: xcm::v1::Fungibility::Fungible(10000000000000),
+								}]),
 								effects: todo!(),
 							}
 						);
