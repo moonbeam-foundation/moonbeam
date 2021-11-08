@@ -133,7 +133,7 @@ pub fn query_system_info() -> Result<SystemInfo, String> {
 /// query the partition info corresponding to the given path. the path doesn't need to be an
 /// explicit mountpoint; it can be a subdirectory of a mountpoint.
 pub fn query_partition_info(path: &std::path::PathBuf) -> Result<PartitionInfo, String> {
-	use std::{collections::HashMap, path::Path};
+	use std::collections::HashMap;
 
 	let canon_path = std::fs::canonicalize(path).expect("Could not deduce canonical path");
 
@@ -156,6 +156,7 @@ pub fn query_partition_info(path: &std::path::PathBuf) -> Result<PartitionInfo, 
 	let partition = ancestors
 		.find_map(|dir| {
 			let dir_str = dir.to_str().expect("path should be valid UTF-8");
+			#[allow(irrefutable_let_patterns)]
 			if let partition = partitions_map.get(dir_str) {
 				partition
 			} else {

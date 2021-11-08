@@ -20,7 +20,6 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
-use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -42,4 +41,11 @@ pub struct PerfCmd {
 		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
+
+	// TODO: allow multiple tests (like the -l switch for logging)
+	#[structopt(
+		long = "tests",
+		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
+	)]
+	pub tests: Option<String>,
 }
