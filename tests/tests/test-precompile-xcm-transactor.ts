@@ -4,12 +4,10 @@ import { customWeb3Request } from "../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../util/contracts";
 import { createContract, createTransaction } from "../util/transactions";
-import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
-import { ApiPromise } from "@polkadot/api";
-import { typesBundle } from "../../moonbeam-types-bundle";
 
 const ADDRESS_XCM_TRANSACTOR = "0x0000000000000000000000000000000000000806";
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
