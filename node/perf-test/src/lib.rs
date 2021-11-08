@@ -44,4 +44,17 @@ pub struct PerfCmd {
 
 	#[structopt(long, value_name = "CHAIN_SPEC", default_value = "dev")]
 	pub chain: String,
+
+	#[structopt(
+		long = "disable-sysinfo",
+		help = "Do not attempt to query system info."
+	)]
+	pub disable_sysinfo: bool,
+
+	// TODO: allow multiple tests (like the -l switch for logging)
+	#[structopt(
+		long = "tests",
+		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
+	)]
+	pub tests: Option<String>,
 }

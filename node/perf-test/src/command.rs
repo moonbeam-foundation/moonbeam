@@ -451,23 +451,40 @@ impl PerfCmd {
 
 		let mut all_test_results: Vec<TestResults> = Default::default();
 
+		let (have_filter, enabled_tests) = if let Some(filter) = &cmd.tests {
+			let enabled_tests: Vec<&str> = filter.split(',').collect();
+			(true, enabled_tests)
+		} else {
+			(false, Default::default())
+		};
+
 		for mut test in tests {
+			if have_filter {
+				if !enabled_tests.contains(&test.name().as_str()) {
+					continue;
+				}
+			}
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
 			all_test_results.append(&mut results);
 		}
 
-		let system_info = query_system_info()?;
-		let partition_info = query_partition_info(path).unwrap_or_else(|_| {
-			// TODO: this is inconsistent with behavior of query_system_info...
-			eprintln!("query_partition_info() failed, ignoring...");
-			Default::default()
-		});
+		let (system_info, partition_info) = if cmd.disable_sysinfo {
+			(None, None)
+		} else {
+			let sys = query_system_info()?;
+			let part = query_partition_info(path).unwrap_or_else(|_| {
+				// TODO: this is inconsistent with behavior of query_system_info...
+				eprintln!("query_partition_info() failed, ignoring...");
+				Default::default()
+			});
+			(Some(sys), Some(part))
+		};
 
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: SystemInfo,
-			partition_info: PartitionInfo,
+			system_info: Option<SystemInfo>,
+			partition_info: Option<PartitionInfo>,
 		}
 
 		let all_results = AllResults {

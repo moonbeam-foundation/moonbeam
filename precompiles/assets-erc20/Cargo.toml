@@ -21,7 +21,7 @@ pallet-assets = { git = "https://github.com/purestake/substrate", default-featur
 pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
-evm = { version = "0.30.1", default-features = false, features = ["with-codec"] }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.11" }
 precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 
@@ -42,10 +42,10 @@ std = [
     "sp-core/std",
     "sp-io/std",
     "sp-runtime/std",
+    "fp-evm/std",
     "frame-support/std",
     "frame-system/std",
     "pallet-evm/std",
     "pallet-assets/std",
-    "evm/std",
     "precompile-utils/std",
 ]

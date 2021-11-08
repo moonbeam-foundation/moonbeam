@@ -3,6 +3,7 @@ on: [push]
 jobs:
   cancel:
     name: "Cancel Previous Build"
+    if: github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
