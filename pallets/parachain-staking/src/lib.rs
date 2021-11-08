@@ -49,12 +49,12 @@
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
 mod inflation;
+pub mod migrations;
 #[cfg(test)]
 mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
-
 pub mod weights;
 use weights::WeightInfo;
 
@@ -916,7 +916,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
+	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
@@ -1704,18 +1704,18 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		fn pay_stakers(next: RoundIndex) {
-			// payout is next - duration rounds ago => next - duration > 0 else return early
+		fn pay_stakers(now: RoundIndex) {
+			// payout is now - duration rounds ago => now - duration > 0 else return early
 			let duration = T::RewardPaymentDelay::get();
-			if next <= duration {
+			if now <= duration {
 				return;
 			}
-			let round_to_payout = next - duration;
-			let total = <Points<T>>::get(round_to_payout);
+			let round_to_payout = now - duration;
+			let total = <Points<T>>::take(round_to_payout);
 			if total.is_zero() {
 				return;
 			}
-			let total_staked = <Staked<T>>::get(round_to_payout);
+			let total_staked = <Staked<T>>::take(round_to_payout);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -1925,7 +1925,7 @@ pub mod pallet {
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
-		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+		fn select_top_candidates(now: RoundIndex) -> (u32, u32, BalanceOf<T>) {
 			let (mut collator_count, mut nomination_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
@@ -1939,8 +1939,8 @@ pub mod pallet {
 				let amount = state.total_counted;
 				total += amount;
 				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
-				<AtStake<T>>::insert(next, account, exposure);
-				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
+				<AtStake<T>>::insert(now, account, exposure);
+				Self::deposit_event(Event::CollatorChosen(now, account.clone(), amount));
 			}
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);

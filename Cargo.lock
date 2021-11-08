@@ -9788,6 +9788,7 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-collective",
  "pallet-migrations",
+ "parachain-staking",
  "sp-runtime",
  "sp-std",
 ]
