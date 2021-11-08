@@ -884,11 +884,28 @@ where
 									),
 									fun: xcm::v1::Fungibility::Fungible(10000000000000),
 								}]),
-								effects: todo!(),
+								effects: vec![
+									// @girazoki I can't figure out how to make a literal `Order` because
+									// the variants are not public
+									xcm::v1::Order::<()>::DepositAsset{
+										assets: xcm::v1:MultiAssetFilter::Wild(xcm::v1::WildMultiAsset::All),
+										max_assets: 100, //Doesn't really matter. We only have 1
+										beneficiary: xcm::v1::MultiLocation {
+											parents: 0,
+											interior: xcm::v1::Junctions::X1(
+												xcm::v1::Junction::AccountKey20{
+													network: xcm::v1::NetworkId::Any,
+													// Alith
+													key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+												}
+											),
+										},
+									}
+								],
 							}
 						);
 
-						// Here we inject a single hard-coded downward transfer message
+						// Here we inject our single hard-coded downward transfer message
 						downward_messages.push(
 							InboundDownwardMessage{
 								//TODO is sent_at supposed to be a realy block number or a para block number?
