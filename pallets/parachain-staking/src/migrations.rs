@@ -32,7 +32,7 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		let db_weight = T::DbWeight::get();
 		let (reads, mut writes) = (3u64, 0u64);
 		if current_round <= payment_delay {
-			// early enough so no storage bloat exists yet (only relevant for chains <=2 rounds old)
+			// early enough so no storage bloat exists yet (only relevant for chains <= payment_delay rounds old)
 			return db_weight.reads(reads);
 		}
 		// already paid out at the beginning of current round
