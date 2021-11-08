@@ -16,4 +16,4 @@ jsonrpc-derive = "15.1.0"
 
 
 #cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "joshy-mock-xcm" }
-polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.10" }
+polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
