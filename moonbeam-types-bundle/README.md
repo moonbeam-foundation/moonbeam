@@ -14,7 +14,7 @@ The default export `typesBundle` has **been removed** in order to avoid confusio
 
 **2 new typesBundles** are available:
 
-* `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention (Which will be the default on PolkadotJS SDK)
+* `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention (Which will be the **default on PolkadotJS SDK**)
 * `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention (This will break at runtime 1000)
 
 ### Breaking changes in typesBundlePre900
