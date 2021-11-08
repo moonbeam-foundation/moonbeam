@@ -2881,7 +2881,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(45, 10, 5, 140),
 			];
 			expected.append(&mut new6);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 172);
 			roll_to(50);
 			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
@@ -2902,7 +2902,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(50, 11, 5, 140),
 			];
 			expected.append(&mut new7);
-			asserts_eq!(events(), expected);
+			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 207);
 		});
 }
