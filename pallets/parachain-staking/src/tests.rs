@@ -2726,6 +2726,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(10, 3, 5, 140),
 				Event::ReservedForParachainBond(11, 15),
 				Event::Rewarded(1, 20),
+				Event::NominatorDueReward(7, 1, 5),
+				Event::NominatorDueReward(10, 1, 5),
+				Event::NominatorDueReward(6, 1, 5),
 				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
@@ -2755,6 +2758,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NominatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 21),
+				Event::NominatorDueReward(7, 1, 5),
+				Event::NominatorDueReward(10, 1, 5),
+				Event::NominatorDueReward(6, 1, 5),
 				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
@@ -2766,6 +2772,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(20, 5, 5, 140),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 22),
+				Event::NominatorDueReward(7, 1, 6),
+				Event::NominatorDueReward(10, 1, 6),
+				Event::NominatorDueReward(6, 1, 6),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -2796,6 +2805,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				),
 				Event::ReservedForParachainBond(11, 29),
 				Event::Rewarded(1, 19),
+				Event::NominatorDueReward(7, 1, 3),
+				Event::NominatorDueReward(10, 1, 3),
+				Event::NominatorDueReward(6, 1, 3),
 				Event::Rewarded(6, 3),
 				Event::Rewarded(7, 3),
 				Event::Rewarded(10, 3),
@@ -2815,6 +2827,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new4 = vec![
 				Event::ReservedForParachainBond(11, 30),
 				Event::Rewarded(1, 21),
+				Event::NominatorDueReward(7, 1, 5),
+				Event::NominatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(8, 1, 40),
@@ -2835,6 +2849,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::Nomination(8, 10, 1, NominatorAdded::AddedToTop { new_total: 50 }),
 				Event::ReservedForParachainBond(11, 32),
 				Event::Rewarded(1, 22),
+				Event::NominatorDueReward(7, 1, 5),
+				Event::NominatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(9, 1, 50),
@@ -2853,6 +2869,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 33),
 				Event::Rewarded(1, 23),
+				Event::NominatorDueReward(7, 1, 5),
+				Event::NominatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(10, 1, 50),
@@ -2863,13 +2881,16 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(45, 10, 5, 140),
 			];
 			expected.append(&mut new6);
-			assert_eq!(events(), expected);
+			asserts_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 172);
 			roll_to(50);
 			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 35),
 				Event::Rewarded(1, 22),
+				Event::NominatorDueReward(7, 1, 4),
+				Event::NominatorDueReward(8, 1, 4),
+				Event::NominatorDueReward(10, 1, 4),
 				Event::Rewarded(7, 4),
 				Event::Rewarded(8, 4),
 				Event::Rewarded(10, 4),
@@ -2881,7 +2902,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(50, 11, 5, 140),
 			];
 			expected.append(&mut new7);
-			assert_eq!(events(), expected);
+			asserts_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 207);
 		});
 }
@@ -2937,6 +2958,8 @@ fn paid_collator_commission_matches_config() {
 				Event::CollatorChosen(4, 4, 40),
 				Event::NewRound(15, 4, 2, 80),
 				Event::Rewarded(4, 18),
+				Event::NominatorDueReward(6, 4, 6),
+				Event::NominatorDueReward(5, 4, 6),
 				Event::Rewarded(5, 6),
 				Event::Rewarded(6, 6),
 				Event::CollatorChosen(5, 1, 40),
@@ -3437,6 +3460,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
 				Event::Rewarded(1, 26),
+				Event::NominatorDueReward(7, 1, 8),
+				Event::NominatorDueReward(10, 1, 8),
+				Event::NominatorDueReward(6, 1, 8),
 				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
@@ -3465,6 +3491,9 @@ fn payouts_follow_nomination_changes() {
 			let mut new2 = vec![
 				Event::NominatorExitScheduled(4, 6, 6),
 				Event::Rewarded(1, 27),
+				Event::NominatorDueReward(7, 1, 8),
+				Event::NominatorDueReward(10, 1, 8),
+				Event::NominatorDueReward(6, 1, 8),
 				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
@@ -3475,6 +3504,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
 				Event::Rewarded(1, 29),
+				Event::NominatorDueReward(7, 1, 9),
+				Event::NominatorDueReward(10, 1, 9),
+				Event::NominatorDueReward(6, 1, 9),
 				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
@@ -3495,6 +3527,9 @@ fn payouts_follow_nomination_changes() {
 			// keep paying 6
 			let mut new3 = vec![
 				Event::Rewarded(1, 30),
+				Event::NominatorDueReward(7, 1, 9),
+				Event::NominatorDueReward(10, 1, 9),
+				Event::NominatorDueReward(6, 1, 9),
 				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
@@ -3512,6 +3547,8 @@ fn payouts_follow_nomination_changes() {
 			// no more paying 6
 			let mut new4 = vec![
 				Event::Rewarded(1, 36),
+				Event::NominatorDueReward(7, 1, 12),
+				Event::NominatorDueReward(10, 1, 12),
 				Event::Rewarded(7, 12),
 				Event::Rewarded(10, 12),
 				Event::CollatorChosen(8, 1, 40),
@@ -3530,6 +3567,8 @@ fn payouts_follow_nomination_changes() {
 			let mut new5 = vec![
 				Event::Nomination(8, 10, 1, NominatorAdded::AddedToTop { new_total: 50 }),
 				Event::Rewarded(1, 38),
+				Event::NominatorDueReward(7, 1, 13),
+				Event::NominatorDueReward(10, 1, 13),
 				Event::Rewarded(7, 13),
 				Event::Rewarded(10, 13),
 				Event::CollatorChosen(9, 1, 50),
@@ -3546,6 +3585,8 @@ fn payouts_follow_nomination_changes() {
 			// new nomination is still not rewarded yet
 			let mut new6 = vec![
 				Event::Rewarded(1, 40),
+				Event::NominatorDueReward(7, 1, 13),
+				Event::NominatorDueReward(10, 1, 13),
 				Event::Rewarded(7, 13),
 				Event::Rewarded(10, 13),
 				Event::CollatorChosen(10, 1, 50),
@@ -3561,6 +3602,9 @@ fn payouts_follow_nomination_changes() {
 			// new nomination is rewarded for first time, 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
 				Event::Rewarded(1, 36),
+				Event::NominatorDueReward(7, 1, 11),
+				Event::NominatorDueReward(8, 1, 11),
+				Event::NominatorDueReward(10, 1, 11),
 				Event::Rewarded(7, 11),
 				Event::Rewarded(8, 11),
 				Event::Rewarded(10, 11),
@@ -3597,9 +3641,13 @@ fn nominations_merged_before_reward_payout() {
 				Event::CollatorChosen(2, 4, 50),
 				Event::NewRound(5, 2, 4, 200),
 				Event::Rewarded(3, 1),
+				Event::NominatorDueReward(5, 3, 1),
 				Event::Rewarded(4, 1),
+				Event::NominatorDueReward(5, 4, 1),
 				Event::Rewarded(1, 1),
+				Event::NominatorDueReward(5, 1, 1),
 				Event::Rewarded(2, 1),
+				Event::NominatorDueReward(5, 2, 1),
 				// ALL REWARDS FOR 5 are merged into one payment + event
 				Event::Rewarded(5, 4),
 				Event::CollatorChosen(3, 1, 50),
