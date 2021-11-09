@@ -20,7 +20,7 @@ use jsonrpc_derive::rpc;
 use polkadot_core_primitives::{
 	BlockNumber as RelayBlockNumber, InboundDownwardMessage, InboundHrmpMessage,
 };
-use tokio::sync::oneshot;
+
 //TODO This was in a separate crate in rpc-core for the ethereum-related RPC endpoints.
 // But I'm starting with it all in one to keep things simple. Are there drawbacks to doing this?
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
@@ -52,10 +52,8 @@ pub trait ManualXcmApi {
 }
 
 pub struct ManualXcm {
-	pub downward_message_channel:
-		flume::Sender<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>,
-	pub hrmp_message_channel:
-		flume::Sender<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>,
+	pub downward_message_channel: flume::Sender<InboundDownwardMessage>,
+	pub hrmp_message_channel: flume::Sender<InboundHrmpMessage>,
 }
 
 impl ManualXcmApi for ManualXcm {
@@ -66,19 +64,17 @@ impl ManualXcmApi for ManualXcm {
 	) -> BoxFuture<'static, RpcResult<bool>> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		async move {
-			let (tx, rx) = oneshot::channel();
 			let message = InboundDownwardMessage { sent_at, msg };
 
 			// Send the message back to the service where it will be queued up
 			// to be injected in to an upcoming block. Also send a channel on which
 			// the success message can be sent back.
 			downward_message_channel
-				.send_async((message, tx))
+				.send_async(message)
 				.await
 				.map_err(|err| internal_err(err))?;
 
-			// Wait for the response that the messages was included successfully
-			rx.await.map_err(|err| internal_err(err))
+			Ok(true) //TODO Can we just use () here instead of bool?
 		}
 		.boxed()
 	}

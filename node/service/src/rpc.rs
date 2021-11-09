@@ -93,8 +93,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(
-		flume::Sender<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>,
-		flume::Sender<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>,
+		flume::Sender<InboundDownwardMessage>,
+		flume::Sender<InboundHrmpMessage>,
 	)>,
 }
 /// Instantiate all Full RPC extensions.

@@ -822,9 +822,8 @@ where
 
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) =
-			flume::bounded::<(InboundDownwardMessage, tokio::sync::oneshot::Sender<bool>)>(100);
-		let (hrmp_xcm_sender, hrmp_xcm_receiver) =
-			flume::bounded::<(InboundHrmpMessage, tokio::sync::oneshot::Sender<bool>)>(100);
+			flume::bounded::<InboundDownwardMessage>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<InboundHrmpMessage>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
 		// TODO pass the sending halves of the xcm channels to the RPC layer below
@@ -857,12 +856,7 @@ where
 						// leave it as an iterator.
 						let mut downward_messages: Vec<InboundDownwardMessage> = channel
 							.drain()
-							.map(|(message, response_channel)| {
-								// Acknowledge receipt of the message and send it to be
-								// included in the block
-								//TODO We have the parent block hash and the current block number. We
-								// won't know this block's hash until after it has been created
-								response_channel.send(true).expect("Couldn't send acknowledgement of downward xcm message to RPC layer.");
+							.map(|message| {
 								println!("{:?}", message);
 								message
 							})
@@ -874,28 +868,35 @@ where
 						// I could make a helper function in a runtime...
 						// Oh, unless that type info is only necessary for certain kinds of calls, and I
 						// can just put () for now...
-						let downward_transfer_message = xcm::VersionedXcm::<()>::V2(
-							Xcm(
-								vec![
-									ReserveAssetDeposited((Parent, 10000000000000).into()),
-									ClearOrigin,
-									BuyExecution { fees: (Parent, 10000000000000).into(), weight_limit: Limited(4_000_000_000) },
-									DepositAsset { assets: All.into(), max_assets: 1, beneficiary: MultiLocation::new(0, X1(AccountKey20 {
+						let downward_transfer_message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+							ReserveAssetDeposited((Parent, 10000000000000).into()),
+							ClearOrigin,
+							BuyExecution {
+								fees: (Parent, 10000000000000).into(),
+								weight_limit: Limited(4_000_000_000),
+							},
+							DepositAsset {
+								assets: All.into(),
+								max_assets: 1,
+								beneficiary: MultiLocation::new(
+									0,
+									X1(AccountKey20 {
 										network: Any,
-										key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
-									})) },
-								]
-							));
-							
+										key: hex_literal::hex!(
+											"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+										),
+									}),
+								),
+							},
+						]));
+
 						// Here we inject our single hard-coded downward transfer message
-						downward_messages.push(
-							InboundDownwardMessage{
-								//TODO is sent_at supposed to be a realy block number or a para block number?
-								// I think it should be relay chain block number...
-								sent_at: current_para_block,//TODO
-								msg: downward_transfer_message.encode(),
-							}
-						);
+						downward_messages.push(InboundDownwardMessage {
+							//TODO is sent_at supposed to be a realy block number or a para block number?
+							// I think it should be relay chain block number...
+							sent_at: current_para_block, //TODO
+							msg: downward_transfer_message.encode(),
+						});
 
 						// Here I'm just draining the stream into a Vec. I guess there is some method
 						// that might help us with this but for now let's keep it simple.
