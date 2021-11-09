@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-cli"
-version = "0.14.0"
+version = "0.14.2"
 authors = ["PureStake"]
 edition = "2018"
 
@@ -21,7 +21,7 @@ try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "mo
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.11" }
 
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }

@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
