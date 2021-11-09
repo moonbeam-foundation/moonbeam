@@ -59,8 +59,15 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
-		let (relay_storage_root, proof) =
-			RelayStateSproofBuilder::default().into_state_root_and_proof();
+		let mut sproof_builder = RelayStateSproofBuilder::default();
+		println!("initial head: {:?}", sproof_builder.dmq_mqc_head);
+		// TODO This hash is copied from the log just to see if this approach works
+		// at all. I'll need to actually build the mcq_chain to do this properly.
+		sproof_builder.dmq_mqc_head = Some(sp_core::H256::from(hex_literal::hex!(
+			"3aa68593568d161595300df95c6164c11c6ce7c2ddd7ae816d8220e9273b555a"
+		)));
+		println!("modified head: {:?}", sproof_builder.dmq_mqc_head);
+		let (relay_storage_root, proof) = sproof_builder.into_state_root_and_proof();
 
 		// Calculate the mocked relay block based on the current para block
 		let relay_parent_number =
