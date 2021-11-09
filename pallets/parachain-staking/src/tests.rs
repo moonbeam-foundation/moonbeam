@@ -3948,3 +3948,36 @@ fn nomination_events_convey_correct_position() {
 			);
 		});
 }
+
+// Migration Unit Test
+#[test]
+fn verify_purge_storage_migration_works() {
+	use crate::{Points, Round, RoundInfo, Staked};
+	use frame_support::traits::OnRuntimeUpgrade;
+	ExtBuilder::default().build().execute_with(|| {
+		// mutate storage similar to if 10 rounds had passed
+		for i in 1..=10 {
+			<Staked<Test>>::insert(i, 100);
+			<Points<Test>>::insert(i, 100);
+		}
+		// set the round information to the 10th round
+		// (we do not use roll_to because the payment logic uses `take` in the code)
+		<Round<Test>>::put(RoundInfo {
+			current: 10,
+			first: 45,
+			length: 5,
+		});
+		// execute the migration
+		crate::migrations::PurgeStaleStorage::<Test>::on_runtime_upgrade();
+		// verify that all inserted items are removed except last 2 rounds
+		for i in 1..=8 {
+			assert_eq!(<Staked<Test>>::get(i), 0);
+			assert_eq!(<Points<Test>>::get(i), 0);
+		}
+		// last 2 rounds are still stored (necessary for future payouts)
+		for i in 9..=10 {
+			assert_eq!(<Staked<Test>>::get(i), 100);
+			assert_eq!(<Points<Test>>::get(i), 100);
+		}
+	});
+}

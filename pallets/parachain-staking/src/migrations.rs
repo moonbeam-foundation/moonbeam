@@ -32,12 +32,13 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		let db_weight = T::DbWeight::get();
 		let (reads, mut writes) = (3u64, 0u64);
 		if current_round <= payment_delay {
-			// early enough so no storage bloat exists yet (only relevant for chains <= payment_delay rounds old)
+			// early enough so no storage bloat exists yet
+			// (only relevant for chains <= payment_delay rounds old)
 			return db_weight.reads(reads);
 		}
 		// already paid out at the beginning of current round
-		let first_round_to_kill = current_round - payment_delay;
-		for i in 1..=first_round_to_kill {
+		let most_recent_round_to_kill = current_round - payment_delay;
+		for i in 1..=most_recent_round_to_kill {
 			writes += 2u64;
 			<Staked<T>>::remove(i);
 			<Points<T>>::remove(i);
@@ -54,7 +55,20 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// trivial migration
+		// expect only the storage items for the last 2 rounds to be stored
+		let staked_count = Staked::<T>::iter().count() as u64;
+		let points_count = Points::<T>::iter().count() as u64;
+		let delay = T::RewardPaymentDelay::get();
+		assert_eq!(
+			staked_count, delay,
+			"Expected {} for `Staked` count, Found: {}",
+			delay, staked_count
+		);
+		assert_eq!(
+			points_count, delay,
+			"Expected {} for `Points` count, Found: {}",
+			delay, staked_count
+		);
 		Ok(())
 	}
 }
