@@ -23,7 +23,7 @@
 use assert_cmd::cargo::cargo_bin;
 use std::{
 	convert::TryInto,
-	process::{Child, Command, ExitStatus},
+	process::{Command},
 	thread,
 	time::Duration,
 };
