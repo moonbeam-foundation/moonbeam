@@ -878,6 +878,7 @@ where
 							Xcm(
 								vec![
 									ReserveAssetDeposited((Parent, 10000000000000).into()),
+									ClearOrigin,
 									BuyExecution { fees: (Parent, 10000000000000).into(), weight_limit: Limited(4_000_000_000) },
 									DepositAsset { assets: All.into(), max_assets: 1, beneficiary: MultiLocation::new(0, X1(AccountKey20 {
 										network: Any,
@@ -885,38 +886,7 @@ where
 									})) },
 								]
 							));
-/* 									fee.clone().into())])
-							xcm::v2::Xcm::<()>::ReserveAssetDeposited {<
-								assets: xcm::v2::MultiAssets::from(vec![xcm::v1::MultiAsset{
-									id: xcm::v2::AssetId::Concrete(
-										xcm::v2::MultiLocation {
-											parents: 1,
-											interior: xcm::v2::Junctions::Here,
-										}
-									),
-									fun: xcm::v2::Fungibility::Fungible(10000000000000),
-								}]),
-								effects: vec![
-									// @girazoki I can't figure out how to make a literal `Order` because
-									// the variants are not public
-									xcm::v1::Order::<()>::DepositAsset{
-										assets: xcm::v1:MultiAssetFilter::Wild(xcm::v1::WildMultiAsset::All),
-										max_assets: 100, //Doesn't really matter. We only have 1
-										beneficiary: xcm::v1::MultiLocation {
-											parents: 0,
-											interior: xcm::v1::Junctions::X1(
-												xcm::v1::Junction::AccountKey20{
-													network: xcm::v1::NetworkId::Any,
-													// Alith
-													key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
-												}
-											),
-										},
-									}
-								],
-							}
-						);*/
-
+							
 						// Here we inject our single hard-coded downward transfer message
 						downward_messages.push(
 							InboundDownwardMessage{
