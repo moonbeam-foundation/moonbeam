@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PurgeStaleStorage","Migration to purge staking storage bloat for `Points` and `AtStake` storage items"]]});
