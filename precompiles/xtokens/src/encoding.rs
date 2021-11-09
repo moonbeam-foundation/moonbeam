@@ -16,7 +16,7 @@
 
 //! Encoding of XCM types for solidity
 
-use evm::ExitError;
+use fp_evm::ExitError;
 use precompile_utils::{error, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult};
 
 use frame_support::ensure;

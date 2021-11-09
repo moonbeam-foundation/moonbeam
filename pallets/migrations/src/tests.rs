@@ -66,9 +66,11 @@ fn mock_migrations_static_hack_works() {
 		// "singleton" is still valid. Interactions with the pallet should occur here since they
 		// will implicitly require MockMigrationManager to be in a valid state.
 		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				crate::mock::roll_until_upgraded(true);
-			});
+			ExtBuilder::with_uncompleted_migrations(vec!["hello, world"])
+				.build()
+				.execute_with(|| {
+					crate::mock::roll_until_upgraded(true);
+				});
 			*ecb_fn_called.lock().unwrap() = true;
 		},
 	);
@@ -134,66 +136,70 @@ fn migration_should_only_be_invoked_once() {
 			);
 		},
 		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				// roll forward until upgraded, should happen before block even increments
-				crate::mock::roll_until_upgraded(true);
+			ExtBuilder::with_uncompleted_migrations(vec!["migration1"])
+				.build()
+				.execute_with(|| {
+					// roll forward until upgraded, should happen before block even increments
+					crate::mock::roll_until_upgraded(true);
 
-				assert_eq!(System::block_number(), 1);
-				assert_eq!(
-					*num_name_fn_calls.lock().unwrap(),
-					1,
-					"migration name needed once"
-				);
-				assert_eq!(
-					*num_step_fn_calls.lock().unwrap(),
-					1,
-					"migration step needed once"
-				);
-				let mut expected = vec![
-					Event::RuntimeUpgradeStarted(),
-					Event::MigrationStarted("migration1".into()),
-					Event::MigrationCompleted("migration1".into(), 1u32.into()),
-					Event::RuntimeUpgradeCompleted(100000001u32.into()), // includes reads/writes
-				];
-				assert_eq!(events(), expected);
+					assert_eq!(System::block_number(), 1);
+					// name_fn is called once during the genesis build,
+					// then once during the runtime upgrade. So that's two times.
+					assert_eq!(
+						*num_name_fn_calls.lock().unwrap(),
+						2,
+						"migration name needed twice"
+					);
+					assert_eq!(
+						*num_step_fn_calls.lock().unwrap(),
+						1,
+						"migration step needed once"
+					);
+					let mut expected = vec![
+						Event::RuntimeUpgradeStarted(),
+						Event::MigrationStarted("migration1".into()),
+						Event::MigrationCompleted("migration1".into(), 1u32.into()),
+						Event::RuntimeUpgradeCompleted(100000001u32.into()), // includes reads/writes
+					];
+					assert_eq!(events(), expected);
 
-				// attempt to roll forward again, block should still not increment, and migration
-				// name fn should be called but pallet_migrations should immediately recognize that
-				// no work needs to be done (and not call step)
-				crate::mock::roll_until_upgraded(true);
+					// attempt to roll forward again, block should still not increment, and migration
+					// name fn should be called but pallet_migrations should immediately recognize that
+					// no work needs to be done (and not call step)
+					crate::mock::roll_until_upgraded(true);
 
-				assert_eq!(System::block_number(), 1);
-				assert_eq!(
-					*num_name_fn_calls.lock().unwrap(),
-					2,
-					"migration name needed twice"
-				);
-				assert_eq!(
-					*num_step_fn_calls.lock().unwrap(),
-					1,
-					"migration step not needed again"
-				);
-				expected.append(&mut vec![
-					Event::RuntimeUpgradeStarted(),
-					Event::RuntimeUpgradeCompleted(100000000u32.into()),
-				]);
-				assert_eq!(events(), expected);
+					assert_eq!(System::block_number(), 1);
+					assert_eq!(
+						*num_name_fn_calls.lock().unwrap(),
+						3,
+						"migration name needed third"
+					);
+					assert_eq!(
+						*num_step_fn_calls.lock().unwrap(),
+						1,
+						"migration step not needed again"
+					);
+					expected.append(&mut vec![
+						Event::RuntimeUpgradeStarted(),
+						Event::RuntimeUpgradeCompleted(100000000u32.into()),
+					]);
+					assert_eq!(events(), expected);
 
-				// roll forward a few blocks
-				crate::mock::roll_to(3, false);
-				assert_eq!(
-					*num_name_fn_calls.lock().unwrap(),
-					2,
-					"migration name not needed again"
-				);
-				assert_eq!(
-					*num_step_fn_calls.lock().unwrap(),
-					1,
-					"migration step not needed again"
-				);
-				// assert that no new events have been emitted
-				assert_eq!(events(), expected);
-			});
+					// roll forward a few blocks
+					crate::mock::roll_to(3, false);
+					assert_eq!(
+						*num_name_fn_calls.lock().unwrap(),
+						3,
+						"migration name not needed again"
+					);
+					assert_eq!(
+						*num_step_fn_calls.lock().unwrap(),
+						1,
+						"migration step not needed again"
+					);
+					// assert that no new events have been emitted
+					assert_eq!(events(), expected);
+				});
 		},
 	);
 }
@@ -254,14 +260,16 @@ fn overweight_migrations_tolerated() {
 			);
 		},
 		&mut || {
-			ExtBuilder::default().build().execute_with(|| {
-				Migrations::on_runtime_upgrade();
+			ExtBuilder::with_uncompleted_migrations(vec!["migration1", "migration2", "migration3"])
+				.build()
+				.execute_with(|| {
+					Migrations::on_runtime_upgrade();
 
-				assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
-				assert_eq!(*num_migration2_calls.lock().unwrap(), 1);
-				assert_eq!(*num_migration3_calls.lock().unwrap(), 1);
-				assert_eq!(Migrations::is_fully_upgraded(), true);
-			});
+					assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
+					assert_eq!(*num_migration2_calls.lock().unwrap(), 1);
+					assert_eq!(*num_migration3_calls.lock().unwrap(), 1);
+					assert_eq!(Migrations::is_fully_upgraded(), true);
+				});
 		},
 	);
 }
