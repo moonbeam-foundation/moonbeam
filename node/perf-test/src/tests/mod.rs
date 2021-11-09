@@ -26,9 +26,11 @@ use serde::Serialize;
 mod block_creation;
 mod fibonacci;
 mod storage;
+mod txpool;
 pub use block_creation::BlockCreationPerfTest;
 pub use fibonacci::FibonacciPerfTest;
 pub use storage::StoragePerfTest;
+pub use txpool::TxPoolPerfTest;
 
 /// struct representing the test results of a single test
 #[derive(Default, Clone, Table, Serialize)]

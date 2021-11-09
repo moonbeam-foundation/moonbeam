@@ -16,7 +16,8 @@
 
 use crate::{
 	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
-	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
+	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TxPoolPerfTest,
+		TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
 };
@@ -30,6 +31,7 @@ use sc_client_api::HeaderBackend;
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool};
+use sc_transaction_pool_api::PoolStatus;
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
@@ -44,6 +46,7 @@ use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
 use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
 use sha3::{Digest, Keccak256};
+use libsecp256k1::{PublicKey, SecretKey};
 
 pub type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
@@ -76,6 +79,7 @@ where
 {
 	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
+
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -238,6 +242,35 @@ where
 		})
 	}
 
+	/// Get the PoolStatus from our tx pool
+	pub fn pool_status(&self) -> PoolStatus {
+		self.pool.status()
+	}
+
+	/// Returns a random account. Its nonce is assumed to be 0.
+	pub fn random_account(&self) -> AccountDetails {
+		use sp_runtime::traits::IdentifyAccount;
+
+		// NOTE: this is NOT a secure/unpredictable RNG and should never be used to generate
+		// a real-world private key!!!
+		let mut rng = rand::thread_rng();
+		let private_key = SecretKey::random(&mut rng);
+
+		let public_key = PublicKey::from_secret_key(&private_key);
+
+		// TODO: primitives/account uses "...serialize()[1..65]" rather than serialize_compressed()
+		let address = H160::from(H256::from_slice(
+				Keccak256::digest(&public_key.serialize_compressed()).as_slice()));
+
+		AccountDetails {
+			address,
+			privkey: H256::from(private_key.serialize()),
+			nonce: 0.into(),
+		}
+	}
+
+	/// Generate AccountDetails for the well-known Alice account, including a correct nonce queried
+	/// from the best block.
 	pub fn get_alice_details(&self) -> AccountDetails {
 		use std::str::FromStr;
 
@@ -446,6 +479,7 @@ impl PerfCmd {
 			Box::new(FibonacciPerfTest::new()),
 			Box::new(BlockCreationPerfTest::new()),
 			Box::new(StoragePerfTest::new()),
+			Box::new(TxPoolPerfTest::new()),
 		];
 
 		let mut all_test_results: Vec<TestResults> = Default::default();

@@ -27,6 +27,7 @@ heim-common = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698
 # TODO: heim-host generates a conflict for crate 'platforms'
 # heim-host = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
 heim-memory = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+rand = "0.7.3"
 
 # TODO: handle different runtime builds
 moonbase-runtime = { path = "../../runtime/moonbase" }
@@ -40,6 +41,7 @@ sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", bra
 sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
@@ -56,3 +58,4 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbe
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
+account = { path = "../../primitives/account", default-features = false }
