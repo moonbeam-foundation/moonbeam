@@ -224,6 +224,7 @@ pub mod pallet {
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_derivative_multilocation(
 				&fee_location,
+				&fee_refund,
 				index,
 				&dest,
 				dest_weight,
@@ -235,6 +236,7 @@ pub mod pallet {
 			dest: T::Transactor,
 			index: u16,
 			fee_location: MultiLocation,
+			fee_refund: MultiLocation,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
@@ -258,6 +260,7 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
+				fee_refund,
 				dest_weight,
 				call_bytes.clone(),
 			)?;
@@ -279,6 +282,7 @@ pub mod pallet {
 			Pallet::<T>::weight_of_transact_through_derivative(
 				&currency_id,
 				index,
+				fee_refund,
 				&dest,
 				dest_weight,
 				inner_call
@@ -287,6 +291,7 @@ pub mod pallet {
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
 			dest: T::Transactor,
+			fee_refund: MultiLocation,
 			index: u16,
 			currency_id: T::CurrencyId,
 			dest_weight: Weight,
@@ -315,6 +320,7 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
+				fee_refund,
 				dest_weight,
 				call_bytes.clone(),
 			)?;
@@ -333,6 +339,7 @@ pub mod pallet {
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_sovereign(
 				&fee_location,
+				fee_refund,
 				&dest,
 				dest_weight,
 				call
@@ -343,6 +350,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
 			fee_location: MultiLocation,
+			fee_refund: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
@@ -353,6 +361,7 @@ pub mod pallet {
 				dest.clone(),
 				fee_payer.clone(),
 				fee_location,
+				fee_refund,
 				dest_weight,
 				call.clone(),
 			)?;
@@ -396,6 +405,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
 			fee_location: MultiLocation,
+			fee_refund: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
@@ -463,8 +473,14 @@ pub mod pallet {
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
-			let transact_message: Xcm<()> =
-				Self::transact_message(dest.clone(), fee, total_weight, call, dest_weight)?;
+			let transact_message: Xcm<()> = Self::transact_message(
+				dest.clone(),
+				fee,
+				fee_refund,
+				total_weight,
+				call,
+				dest_weight,
+			)?;
 
 			// Send to sovereign
 			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
@@ -475,6 +491,7 @@ pub mod pallet {
 		fn transact_message(
 			dest: MultiLocation,
 			asset: MultiAsset,
+			fee_refund: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
 			dispatch_weight: Weight,
@@ -482,6 +499,11 @@ pub mod pallet {
 			Ok(Xcm(vec![
 				Self::sovereign_withdraw(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
+				SetAppendix(Xcm(vec![DepositAsset {
+					assets: All.into(),
+					max_assets: 1,
+					beneficiary: fee_refund,
+				}])),
 				Transact {
 					origin_type: OriginKind::SovereignAccount,
 					require_weight_at_most: dispatch_weight,
@@ -555,6 +577,7 @@ pub mod pallet {
 		/// Returns weight of `transact_through_derivative` call.
 		fn weight_of_transact_through_derivative_multilocation(
 			asset: &MultiLocation,
+			fee_refund: &MultiLocation,
 			index: &u16,
 			dest: &T::Transactor,
 			weight: &u64,
@@ -574,6 +597,7 @@ pub mod pallet {
 			if let Ok(msg) = Self::transact_message(
 				dest.clone().destination(),
 				fee.clone(),
+				fee_refund.clone(),
 				weight.clone(),
 				call_bytes,
 				weight.to_owned(),
@@ -590,13 +614,14 @@ pub mod pallet {
 		fn weight_of_transact_through_derivative(
 			currency_id: &T::CurrencyId,
 			index: &u16,
+			fee_refund: &MultiLocation,
 			dest: &T::Transactor,
 			weight: &u64,
 			call: &Vec<u8>,
 		) -> Weight {
 			if let Some(id) = T::CurrencyIdToMultiLocation::convert(currency_id.clone()) {
 				Self::weight_of_transact_through_derivative_multilocation(
-					&id, &index, &dest, &weight, call,
+					&id, fee_refund, &index, &dest, &weight, call,
 				)
 			} else {
 				0
@@ -607,6 +632,7 @@ pub mod pallet {
 		fn weight_of_transact_through_sovereign(
 			asset: &MultiLocation,
 			dest: &MultiLocation,
+			fee_refund: &MultiLocation,
 			weight: &u64,
 			call: &Vec<u8>,
 		) -> Weight {
@@ -619,6 +645,7 @@ pub mod pallet {
 			if let Ok(msg) = Self::transact_message(
 				dest.clone(),
 				fee.clone(),
+				fee_refund.clone(),
 				weight.clone(),
 				call.clone(),
 				weight.clone(),
