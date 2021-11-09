@@ -56,6 +56,8 @@ where
 {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		let asset_type: AssetType = id.borrow().clone().into();
+		log::info!("XCM is executing. The asset type is");
+		panic!("xcm is executing");
 		Ok(AssetId::from(asset_type))
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
