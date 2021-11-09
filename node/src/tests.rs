@@ -28,8 +28,24 @@ use std::{
 	time::Duration,
 };
 
+/// Wait for the given `child` the given ammount of `secs`.
+///
+/// Returns the `Some(exit status)` or `None` if the process did not finish in the given time.
+pub fn wait_for(child: &mut Child, secs: usize) -> Option<ExitStatus> {
+	for _ in 0..secs {
+		match child.try_wait().unwrap() {
+			Some(status) => return Some(status),
+			None => thread::sleep(Duration::from_secs(1)),
+		}
+	}
+	eprintln!("Took too long to exit. Killing...");
+	let _ = child.kill();
+	child.wait().unwrap();
+
+	None
+}
+
 #[test]
-#[ignore]
 #[cfg(unix)]
 fn purge_chain_purges_relay_and_para() {
 	fn run_node_and_stop() -> tempfile::TempDir {
@@ -57,7 +73,7 @@ fn purge_chain_purges_relay_and_para() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(crate::tests::common::wait_for(&mut cmd, 30)
+		assert!(wait_for(&mut cmd, 30)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
@@ -92,7 +108,6 @@ fn purge_chain_purges_relay_and_para() {
 }
 
 #[test]
-#[ignore]
 #[cfg(unix)]
 fn builds_specs_based_on_mnemonic() {
 	use serde_json::json;
@@ -139,7 +154,6 @@ fn builds_specs_based_on_mnemonic() {
 }
 
 #[test]
-#[ignore]
 #[cfg(unix)]
 fn export_genesis_state() {
 	let output = Command::new(cargo_bin("moonbeam"))
@@ -188,7 +202,7 @@ fn export_current_state() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(crate::tests::common::wait_for(&mut cmd, 60)
+		assert!(wait_for(&mut cmd, 60)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
