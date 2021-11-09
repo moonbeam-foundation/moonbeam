@@ -442,14 +442,6 @@ impl TransactionConverters {
 	fn moonbase() -> Self {
 		unimplemented!()
 	}
-	pub fn for_chain_spec(chain_spec: &Box<dyn ChainSpec>) -> Self {
-		match chain_spec {
-			spec if spec.is_moonbeam() => Self::moonbeam(),
-			spec if spec.is_moonriver() => Self::moonriver(),
-			spec if spec.is_moonbase() => Self::moonbase(),
-			_ => panic!("invalid chain spec"),
-		}
-	}
 	pub fn for_runtime_variant(runtime: RuntimeVariant) -> Self {
 		match runtime {
 			#[cfg(feature = "moonbeam-native")]
