@@ -8,8 +8,6 @@ import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { ALITH, ALITH_PRIV_KEY } from "../../util/constants";
-import { ApiPromise } from "@polkadot/api";
-import { typesBundle } from "../../../moonbeam-types-bundle/dist";
 
 const ADDRESS_XCM_TRANSACTOR = "0x0000000000000000000000000000000000000806";
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
