@@ -202,7 +202,7 @@ fn export_current_state() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(wait_for(&mut cmd, 30)
+		assert!(wait_for(&mut cmd, 60)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
