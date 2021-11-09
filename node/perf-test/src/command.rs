@@ -204,6 +204,7 @@ where
 					transaction_converter: TransactionConverters::Moonbase(
 						moonbase_runtime::TransactionConverter,
 					),
+					xcm_senders: None,
 				};
 				#[allow(unused_mut)]
 				let mut io = rpc::create_full(deps, subscription_task_executor.clone());

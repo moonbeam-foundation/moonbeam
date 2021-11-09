@@ -43,6 +43,7 @@ use cumulus_client_service::{
 use cumulus_primitives_core::{InboundDownwardMessage, InboundHrmpMessage};
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
+use xcm::latest::prelude::*;
 
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{
@@ -854,7 +855,7 @@ where
 
 						//TODO maybe we don't need to collect into a Vec here. We could just
 						// leave it as an iterator.
-						let downward_messages: Vec<InboundDownwardMessage> = channel
+						let mut downward_messages: Vec<InboundDownwardMessage> = channel
 							.drain()
 							.map(|(message, response_channel)| {
 								// Acknowledge receipt of the message and send it to be
@@ -873,16 +874,27 @@ where
 						// I could make a helper function in a runtime...
 						// Oh, unless that type info is only necessary for certain kinds of calls, and I
 						// can just put () for now...
-						let downward_transfer_message = xcm::VersionedXcm::<()>::V1(
-							xcm::v1::Xcm::<()>::ReserveAssetDeposited {
-								assets: xcm::v1::MultiAssets::from(vec![xcm::v1::MultiAsset{
-									id: xcm::v1::AssetId::Concrete(
-										xcm::v1::MultiLocation {
-											parents: 0,
-											interior: xcm::v1::Junctions::Here,
+						let downward_transfer_message = xcm::VersionedXcm::<()>::V2(
+							Xcm(
+								vec![
+									ReserveAssetDeposited((Parent, 10000000000000).into()),
+									BuyExecution { fees: (Parent, 10000000000000).into(), weight_limit: Limited(4_000_000_000) },
+									DepositAsset { assets: All.into(), max_assets: 1, beneficiary: MultiLocation::new(0, X1(AccountKey20 {
+										network: Any,
+										key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
+									})) },
+								]
+							));
+/* 									fee.clone().into())])
+							xcm::v2::Xcm::<()>::ReserveAssetDeposited {<
+								assets: xcm::v2::MultiAssets::from(vec![xcm::v1::MultiAsset{
+									id: xcm::v2::AssetId::Concrete(
+										xcm::v2::MultiLocation {
+											parents: 1,
+											interior: xcm::v2::Junctions::Here,
 										}
 									),
-									fun: xcm::v1::Fungibility::Fungible(10000000000000),
+									fun: xcm::v2::Fungibility::Fungible(10000000000000),
 								}]),
 								effects: vec![
 									// @girazoki I can't figure out how to make a literal `Order` because
@@ -903,7 +915,7 @@ where
 									}
 								],
 							}
-						);
+						);*/
 
 						// Here we inject our single hard-coded downward transfer message
 						downward_messages.push(
