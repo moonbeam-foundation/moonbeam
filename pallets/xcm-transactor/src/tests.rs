@@ -18,7 +18,7 @@ use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
-use xcm::latest::{Junction, Junctions, MultiLocation};
+use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
@@ -54,6 +54,10 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
+					MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [0u8; 32]
+					})),
 					MultiLocation::parent(),
 					100u64,
 					vec![0u8]
@@ -82,6 +86,10 @@ fn test_transact_through_derivative_errors() {
 					Transactors::Relay,
 					1,
 					MultiLocation::new(1, Junctions::X1(Junction::Parachain(1000))),
+					MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [0u8; 32]
+					})),
 					100u64,
 					vec![0u8]
 				),
@@ -95,6 +103,10 @@ fn test_transact_through_derivative_errors() {
 					Transactors::Relay,
 					1,
 					MultiLocation::new(1, Junctions::X1(Junction::PalletInstance(1))),
+					MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [0u8; 32]
+					})),
 					100u64,
 					vec![0u8]
 				),
@@ -129,6 +141,10 @@ fn test_transact_through_derivative_multilocation_success() {
 				Transactors::Relay,
 				1,
 				MultiLocation::parent(),
+				MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [0u8; 32]
+				})),
 				100u64,
 				vec![1u8]
 			));
@@ -180,6 +196,10 @@ fn test_transact_through_derivative_success() {
 			assert_ok!(XcmTransactor::transact_through_derivative(
 				Origin::signed(1u64),
 				Transactors::Relay,
+				MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [0u8; 32]
+				})),
 				1,
 				CurrencyId::OtherReserve(0),
 				100u64,
@@ -222,6 +242,10 @@ fn test_root_can_transact_through_sovereign() {
 					MultiLocation::parent(),
 					1u64,
 					MultiLocation::parent(),
+					MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [0u8; 32]
+					})),
 					100u64,
 					vec![1u8],
 				),
@@ -245,6 +269,10 @@ fn test_root_can_transact_through_sovereign() {
 				MultiLocation::parent(),
 				1u64,
 				MultiLocation::parent(),
+				MultiLocation::new(1, Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [0u8; 32]
+				})),
 				100u64,
 				vec![1u8]
 			));
