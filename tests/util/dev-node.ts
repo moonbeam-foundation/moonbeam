@@ -47,7 +47,7 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   while (nodeStarted) {
     // Wait 100ms to see if the node is free
     await new Promise((resolve) => {
-      setTimeout(resolve, 100);
+      setTimeout(resolve, 300);
     });
   }
   nodeStarted = true;
