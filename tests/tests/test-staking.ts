@@ -24,14 +24,14 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
   it("should include collator from the specs", async function () {
     const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
-    expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(COLLATOR_ACCOUNT);
+    expect((collators[0] as Buffer).toString("hex")).equal(COLLATOR_ACCOUNT);
   });
 
   it("should have collator state as defined in the specs", async function () {
     const collator = await context.polkadotApi.query.parachainStaking.collatorState2(
       COLLATOR_ACCOUNT
     );
-    expect(collator.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
+    expect(collator.toHuman()["id"]).equal(COLLATOR_ACCOUNT);
     expect(collator.toHuman()["state"]).equal("Active");
   });
 
@@ -77,7 +77,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     let candidatesAfter = (await context.polkadotApi.query.parachainStaking.candidatePool()) as any;
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
     expect(candidatesAfter[1].owner.toHex()).to.equal(
-      ETHAN.toLowerCase(),
+      ETHAN,
       "new candidate ethan should have been added"
     );
     expect(candidatesAfter[1].amount.toBigInt()).to.equal(
@@ -199,11 +199,11 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
     expect(nominatorsAfter.nominations[0].owner.toHex()).to.equal(
-      ALITH.toLowerCase(),
+      ALITH,
       "nomination didnt go through"
     );
     expect(nominatorsAfter.status.toString()).equal("Active");
-    expect(nominatorsAfter.nominations[0].owner.toHex()).equal(ALITH.toLowerCase());
+    expect(nominatorsAfter.nominations[0].owner.toHex()).equal(ALITH);
     expect(nominatorsAfter.nominations[0].amount.toBigInt()).equal(5n * GLMR);
   });
 
@@ -239,7 +239,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
     expect(nominatorsAfter.nominations[0].owner.toString()).to.equal(
-      ALITH.toLowerCase(),
+      ALITH,
       "nomination didnt go through"
     );
     expect(nominatorsAfter.nominations[0].amount.toBigInt()).equal(11n * GLMR);
@@ -257,7 +257,7 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
     expect(nominatorsAfter.nominations[0].owner.toString()).to.equal(
-      ALITH.toLowerCase(),
+      ALITH,
       "nomination didnt go through"
     );
     expect(nominatorsAfter["nominations"][0].amount.toBigInt()).equal(6n * GLMR);
@@ -293,7 +293,7 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
     expect(nominatorsAfter.nominations[0].owner.toString()).to.equal(
-      ALITH.toLowerCase(),
+      ALITH,
       "nomination didnt go through"
     );
     expect(nominatorsAfter.nominations[0].amount.toBigInt()).equal(10n * GLMR);
@@ -326,7 +326,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
       ).unwrap();
       expect(nominatorsAfter.nominations[0].owner.toString()).to.equal(
-        ALITH.toLowerCase(),
+        ALITH,
         "nomination didnt go through"
       );
       expect(nominatorsAfter.nominations[0].amount.toBigInt()).equal(5n * GLMR);

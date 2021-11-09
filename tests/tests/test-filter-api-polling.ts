@@ -77,7 +77,7 @@ describeDevMoonbeam("Filter Block API - Polling", (context) => {
     ]);
 
     expect(poll.result.length).to.be.eq(1);
-    expect(poll.result[0].address.toLowerCase()).to.be.eq(receipt.contractAddress.toLowerCase());
+    expect(poll.result[0].address).to.be.eq(receipt.contractAddress);
     expect(poll.result[0].topics).to.be.deep.eq(receipt.logs[0].topics);
   });
 });
