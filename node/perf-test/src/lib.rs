@@ -51,7 +51,6 @@ pub struct PerfCmd {
 	)]
 	pub disable_sysinfo: bool,
 
-	// TODO: allow multiple tests (like the -l switch for logging)
 	#[structopt(
 		long = "tests",
 		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
