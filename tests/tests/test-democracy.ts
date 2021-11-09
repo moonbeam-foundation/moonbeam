@@ -47,7 +47,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       (await context.polkadotApi.query.democracy.preimages(encodedHash)) as any
     ).unwrap();
     expect(preimageStatus.isAvailable).to.eq(true, "Preimage should be available");
-    expect(preimageStatus.asAvailable.provider.toString()).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect(preimageStatus.asAvailable.provider.toString()).to.equal(GENESIS_ACCOUNT);
     expect(preimageStatus.asAvailable.deposit.toBigInt()).to.equal(2200n * MICROGLMR);
   });
 });
@@ -88,7 +88,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     // encodedHash
     expect((publicProps.toJSON() as any)[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
@@ -132,12 +132,12 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // encodedHash
     expect((publicProps.toJSON() as any)[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
 
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
-    expect((depositOf.toJSON() as any)[0][1]).to.equal(ALITH.toLowerCase());
+    expect((depositOf.toJSON() as any)[0][1]).to.equal(ALITH);
   });
 
   it("check launch period", async function () {
@@ -237,7 +237,7 @@ describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
       await context.createBlock();
     }
     let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toJSON()["account"]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect(parachainBondInfo.toJSON()["account"]).to.equal(GENESIS_ACCOUNT);
   });
 });
 

@@ -92,7 +92,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
       "new candidate should have been added"
     );
     expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].owner).to.equal(
-      ETHAN.toLowerCase(),
+      ETHAN,
       "new candidate ethan should have been added"
     );
     expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].amount).to.equal(
@@ -202,7 +202,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
           nominations: { owner: string; amount: string }[];
         }
       ).nominations[0].owner
-    ).to.equal(ALITH.toLowerCase(), "nomination didnt go through");
+    ).to.equal(ALITH, "nomination didnt go through");
     expect(nominatorsAfter.status.toString()).equal("Active");
 
     expect(Number((await isNominator(context, ETHAN)).result)).to.equal(1);
