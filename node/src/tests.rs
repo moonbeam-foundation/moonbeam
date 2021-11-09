@@ -194,7 +194,7 @@ fn export_current_state() {
 
 		// Let it produce some blocks.
 		// This fails if is not a minimum of 20
-		thread::sleep(Duration::from_secs(20));
+		thread::sleep(Duration::from_secs(40));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
