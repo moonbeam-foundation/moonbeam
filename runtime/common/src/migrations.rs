@@ -24,10 +24,35 @@ use frame_support::{
 };
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
+use parachain_staking::{migrations::PurgeStaleStorage, Config as ParachainStakingConfig};
 use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in parachain-staking
+pub struct ParachainStakingPurgeStaleStorage<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_PurgeStaleStorage"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PurgeStaleStorage::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
@@ -94,7 +119,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
 	for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config,
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -103,8 +128,11 @@ where
 		// 	0: Default::default(),
 		// };
 
-		let migration_collectives =
-			MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
+		// let migration_collectives =
+		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
+
+		let migration_parachain_staking_purge_stale_storage =
+			ParachainStakingPurgeStaleStorage::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -112,7 +140,9 @@ where
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
-			Box::new(migration_collectives),
+			// completed in runtime 900
+			// Box::new(migration_collectives),
+			Box::new(migration_parachain_staking_purge_stale_storage),
 		]
 	}
 }

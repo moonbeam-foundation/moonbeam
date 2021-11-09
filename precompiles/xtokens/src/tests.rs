@@ -18,10 +18,10 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, CurrencyId, ExtBuilder, Precompiles,
 	TestAccount::*,
 };
-use orml_xtokens::Event as XtokensEvent;
-
 use crate::{Action, PrecompileOutput};
+use fp_evm::Context;
 use num_enum::TryFromPrimitive;
+use orml_xtokens::Event as XtokensEvent;
 use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
@@ -113,7 +113,7 @@ fn transfer_self_reserve_works() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -157,7 +157,7 @@ fn transfer_to_reserve_works() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -203,7 +203,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -250,7 +250,7 @@ fn transfer_multi_asset_to_reserve_works() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -303,7 +303,7 @@ fn transfer_multi_asset_self_reserve_works() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
@@ -359,7 +359,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 						.write(U256::from(4000000))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
