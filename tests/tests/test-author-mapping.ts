@@ -26,7 +26,7 @@ async function getMappingInfo(
   const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
-      account: mapping.unwrap().account.toHex(),
+      account: mapping.unwrap().account.toString(),
       deposit: mapping.unwrap().deposit.toBigInt(),
     };
   }

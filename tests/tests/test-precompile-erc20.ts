@@ -55,7 +55,7 @@ async function sendApprove(context, from, fromPrivate, spender, amount) {
   expect(receipt.logs[0].data).to.eq(`0x${amount}`);
   expect(receipt.logs[0].topics.length).to.eq(3);
   expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
-  expect(receipt.logs[0].topics[1]).to.eq(`0x${fromData}`);
+  expect(receipt.logs[0].topics[1]).to.eq(`0x${fromData}`.toLowerCase()); //TODO MOON-1135
   expect(receipt.logs[0].topics[2]).to.eq(`0x${spenderData}`);
 }
 
