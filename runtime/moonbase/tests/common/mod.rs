@@ -23,9 +23,10 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances,
-	Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::{UNIT, WEI},
+	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
+	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
+	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::NimbusId;
