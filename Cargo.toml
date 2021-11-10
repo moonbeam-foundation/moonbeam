@@ -25,3 +25,8 @@ evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
 ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
+
+# Patches for individual cumulus crates that I want to override while working on mock xcm
+[patch."https://github.com/purestake/cumulus"]
+cumulus-primitives-parachain-inherent = { git = "https://github.com/joshorndorff/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
+cumulus-pallet-parachain-system = { git = "https://github.com/joshorndorff/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
