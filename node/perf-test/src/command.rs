@@ -153,6 +153,8 @@ where
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
+							para_id: Default::default(),
+							starting_dmq_mqc_head: Default::default(),
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,

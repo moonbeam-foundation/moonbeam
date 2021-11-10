@@ -47,13 +47,15 @@ use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
 use xcm::latest::prelude::*;
 
+use sc_client_api::StorageProvider;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
 };
-use sp_api::ConstructRuntimeApi;
+use sp_api::{BlockId, ConstructRuntimeApi};
 use sp_blockchain::HeaderBackend;
+use sp_io::hashing::twox_128;
 use std::sync::Arc;
 
 pub use client::*;
@@ -816,9 +818,6 @@ where
 		);
 
 		let client_set_aside_for_cidp = client.clone();
-		// let (xcm_sender, xcm_receiver) =
-		// 	futures::channel::mpsc::channel::<InboundDownwardMessage>(100);
-		// let xcm_receiver = Arc::new(Mutex::new(xcm_receiver));
 
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) =
@@ -846,6 +845,35 @@ where
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
+					// Fetch the starting mcq head from parent block storage
+					// It is not available through a runtime api, so we use the storage provider
+
+					fn storage_prefix_build(
+						module: &[u8],
+						storage: &[u8],
+					) -> sp_storage::StorageKey {
+						sp_storage::StorageKey(
+							[twox_128(module), twox_128(storage)].concat().to_vec(),
+						)
+					}
+
+					// Oh Yuck, and we don't even know for sure where the storage will be
+					// because it depends on the pallet's name in the given runtime.
+					// We might need a runtime api for this
+					let maybe_raw_starting_dmq_mqc_head = client_set_aside_for_cidp
+						.storage(
+							&BlockId::Hash(block),
+							&storage_prefix_build(b"ParachainSystem", b"LastDmqMqcHead"),
+						)
+						.expect("We should be able to read storage from the parent block...");
+
+					let starting_dmq_mqc_head =
+						if let Some(raw_data) = maybe_raw_starting_dmq_mqc_head {
+							parity_scale_codec::Decode::decode(&mut &raw_data.0[..])
+								.expect("Stored data should decode correctly")
+						} else {
+							H256::zero()
+						};
 					let author_id = author_id.clone();
 					let channel = downward_xcm_receiver.clone();
 
@@ -898,14 +926,9 @@ where
 							msg: downward_transfer_message.encode(),
 						});
 
-						// Here I'm just draining the stream into a Vec. I guess there is some method
-						// that might help us with this but for now let's keep it simple.
-						// https://docs.rust-embedded.org/rust-sysfs-gpio/futures/stream/trait.Stream.html#method.collect
-						// while let Some(xcm) = channel.next().await {
-						// 	downward_messages.push(xcm);
-						// }
-
 						let mocked_parachain = MockValidationDataInherentDataProvider {
+							para_id: Default::default(), // This matches the rust chainspecs. Might want to wire it to cli or something?
+							starting_dmq_mqc_head,
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
