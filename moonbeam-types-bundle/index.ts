@@ -432,6 +432,10 @@ export const moonbeamDefinitions = {
       minmax: [800, 899],
       types: TYPES_800_899,
     },
+    {
+      minmax: [900, undefined],
+      types: {},
+    },
   ],
 } as OverrideBundleDefinition;
 
