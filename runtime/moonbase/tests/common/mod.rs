@@ -38,13 +38,13 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 
-// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+// A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
 	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
 	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
 	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
 
-// Gas limit < transaction cost.
+// An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
 	"f86180843b9aca00809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ca00e28ba2dd3c5a\
 	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
