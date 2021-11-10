@@ -18,7 +18,7 @@
 
 mod xcm_mock;
 use frame_support::{assert_ok, traits::PalletInfo};
-use xcm::{WrapVersion, VersionedMultiLocation};
+use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
