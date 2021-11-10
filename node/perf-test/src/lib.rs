@@ -42,6 +42,12 @@ pub struct PerfCmd {
 	)]
 	pub output_file: Option<PathBuf>,
 
+	#[structopt(
+		long = "disable-sysinfo",
+		help = "Do not attempt to query system info."
+	)]
+	pub disable_sysinfo: bool,
+
 	// TODO: allow multiple tests (like the -l switch for logging)
 	#[structopt(
 		long = "tests",
