@@ -984,7 +984,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 			mock_message
 		));
 
-		// Transfer assets. Since it is an unknown destionation, it will query for version
+		// Transfer assets. Since it is an unknown destination, it will query for version
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
