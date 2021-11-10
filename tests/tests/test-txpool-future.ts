@@ -33,7 +33,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
       blockNumber: null,
-      from: GENESIS_ACCOUNT,
+      from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0x100000",
       gasPrice: "0x3b9aca00",
       hash: txHash,

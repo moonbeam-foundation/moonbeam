@@ -43,7 +43,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
       blockNumber: null,
-      from: GENESIS_ACCOUNT,
+      from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0x100000",
       gasPrice: "0x3b9aca00",
       hash: txHash,
@@ -77,26 +77,26 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
   it("should appear in the txpool inspection", async function () {
     const contractAddress = testContract.options.address;
     const inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
-    const data = inspect.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(1)];
+    const data = inspect.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(1)];
 
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      contractAddress.toString() + ": 0 wei + 12000000 gas x 1000000000 wei"
+      contractAddress.toLowerCase() + ": 0 wei + 12000000 gas x 1000000000 wei"
     );
   });
 
   it("should appear in the txpool content", async function () {
     const content = await customWeb3Request(context.web3, "txpool_content", []);
-    const data = content.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(1)];
+    const data = content.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(1)];
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
       blockNumber: null,
-      from: GENESIS_ACCOUNT,
+      from: GENESIS_ACCOUNT.toLowerCase(),
       gas: "0xb71b00",
       gasPrice: "0x3b9aca00",
       hash: txHash,
       nonce: context.web3.utils.toHex(1),
-      to: testContract.options.address.toString(),
+      to: testContract.options.address.toLowerCase(),
       value: "0x0",
     });
   });

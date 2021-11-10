@@ -76,7 +76,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
     let candidatesAfter = (await context.polkadotApi.query.parachainStaking.candidatePool()) as any;
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
-    expect(candidatesAfter[1].owner.toHex()).to.equal(
+    expect(candidatesAfter[1].owner.toString()).to.equal(
       ETHAN,
       "new candidate ethan should have been added"
     );
@@ -198,12 +198,12 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     const nominatorsAfter = (
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
-    expect(nominatorsAfter.nominations[0].owner.toHex()).to.equal(
+    expect(nominatorsAfter.nominations[0].owner.toString()).to.equal(
       ALITH,
       "nomination didnt go through"
     );
     expect(nominatorsAfter.status.toString()).equal("Active");
-    expect(nominatorsAfter.nominations[0].owner.toHex()).equal(ALITH);
+    expect(nominatorsAfter.nominations[0].owner.toString()).equal(ALITH);
     expect(nominatorsAfter.nominations[0].amount.toBigInt()).equal(5n * GLMR);
   });
 
