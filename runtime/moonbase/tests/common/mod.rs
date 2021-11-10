@@ -95,6 +95,7 @@ pub struct ExtBuilder {
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	safe_xcm_version: Option<u32>,
 }
 
 impl Default for ExtBuilder {
@@ -128,6 +129,7 @@ impl Default for ExtBuilder {
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
+			safe_xcm_version: None,
 		}
 	}
 }
@@ -173,6 +175,11 @@ impl ExtBuilder {
 
 	pub fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
+		self
+	}
+
+	pub fn with_safe_xcm_version(mut self, safe_xcm_version: u32) -> Self {
+		self.safe_xcm_version = Some(safe_xcm_version);
 		self
 	}
 
@@ -231,6 +238,14 @@ impl ExtBuilder {
 
 		<pallet_ethereum::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 			&pallet_ethereum::GenesisConfig {},
+			&mut t,
+		)
+		.unwrap();
+
+		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_xcm::GenesisConfig {
+				safe_xcm_version: self.safe_xcm_version,
+			},
 			&mut t,
 		)
 		.unwrap();
