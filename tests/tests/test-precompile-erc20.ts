@@ -31,8 +31,8 @@ async function getBalance(context, blockHeight, address) {
 }
 
 async function sendApprove(context, from, fromPrivate, spender, amount) {
-  const fromData = from.slice(2).padStart(64, "0");
-  const spenderData = spender.slice(2).padStart(64, "0");
+  const fromData = from.slice(2).padStart(64, "0").toLowerCase(); //TODO MOON-1135
+  const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
   const tx = await createTransaction(context.web3, {
     from: from,
@@ -55,7 +55,7 @@ async function sendApprove(context, from, fromPrivate, spender, amount) {
   expect(receipt.logs[0].data).to.eq(`0x${amount}`);
   expect(receipt.logs[0].topics.length).to.eq(3);
   expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
-  expect(receipt.logs[0].topics[1]).to.eq(`0x${fromData}`.toLowerCase()); //TODO MOON-1135
+  expect(receipt.logs[0].topics[1]).to.eq(`0x${fromData}`);
   expect(receipt.logs[0].topics[2]).to.eq(`0x${spenderData}`);
 }
 
@@ -168,8 +168,8 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
 
     // transferFrom
     {
-      const from = ALITH.slice(2).padStart(64, "0");
-      const to = CHARLETH.slice(2).padStart(64, "0");
+      const from = ALITH.slice(2).padStart(64, "0").toLowerCase(); //TODO MOON-1135;
+      const to = CHARLETH.slice(2).padStart(64, "0").toLowerCase();
 
       const tx = await createTransaction(context.web3, {
         from: BALTATHAR,

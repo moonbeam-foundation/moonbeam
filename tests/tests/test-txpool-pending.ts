@@ -17,7 +17,8 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 
   it("should appear in the txpool inspection", async function () {
     let inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
-    let data = inspect.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(0)];
+    //TODO MOON-1135;
+    let data = inspect.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(0)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
       "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1000000000 wei"
@@ -37,8 +38,8 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 
   it("should appear in the txpool content", async function () {
     let content = await customWeb3Request(context.web3, "txpool_content", []);
-
-    const data = content.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(0)];
+    //TODO MOON-1135;
+    const data = content.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(0)];
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
       blockNumber: null,
