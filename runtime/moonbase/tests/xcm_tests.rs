@@ -18,7 +18,7 @@
 
 mod xcm_mock;
 use frame_support::{assert_ok, traits::PalletInfo};
-use xcm::WrapVersion;
+use xcm::{WrapVersion, VersionedMultiLocation};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
@@ -69,7 +69,7 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -120,7 +120,7 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -150,7 +150,7 @@ fn send_relay_asset_to_relay() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			123,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			40000
 		));
 	});
@@ -216,7 +216,7 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -244,7 +244,7 @@ fn send_relay_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			40000
 		));
 	});
@@ -305,7 +305,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			800000
 		));
 	});
@@ -381,7 +381,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			80
 		));
 	});
@@ -416,7 +416,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			80
 		));
 	});
@@ -472,7 +472,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			80
 		));
 	});
@@ -506,7 +506,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			80
 		));
 	});
@@ -566,7 +566,7 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 100).into()),
 			0,
 		));
@@ -620,7 +620,7 @@ fn error_when_not_paying_enough() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 5).into()),
 			0,
 		));
@@ -683,7 +683,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
 			0,
 		));
@@ -720,7 +720,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			40000
 		));
 	});
@@ -822,7 +822,7 @@ fn transact_through_sovereign() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
 			0,
 		));
@@ -858,7 +858,7 @@ fn transact_through_sovereign() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			40000
 		));
 	});
@@ -988,7 +988,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
-			Box::new(dest.clone().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1148,7 +1148,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(dest),
+			Box::new(VersionedMultiLocation::V1(dest)),
 			80
 		));
 		// free execution, full amount received
