@@ -1662,6 +1662,13 @@
 <span id="1662">1662</span>
 <span id="1663">1663</span>
 <span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1712,7 +1719,8 @@
 };
 
 <span class="kw">use</span> <span class="ident">xcm_builder</span>::{
-	<span class="ident">AccountKey20Aliases</span>, <span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>,
+	<span class="ident">AccountKey20Aliases</span>, <span class="ident">AllowKnownQueryResponses</span>, <span class="ident">AllowSubscriptionsFrom</span>,
+	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>,
 	<span class="ident">CurrencyAdapter</span> <span class="kw">as</span> <span class="ident">XcmCurrencyAdapter</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>, <span class="ident">FungiblesAdapter</span>,
 	<span class="ident">IsConcrete</span>, <span class="ident">LocationInverter</span>, <span class="ident">ParentAsSuperuser</span>, <span class="ident">ParentIsDefault</span>, <span class="ident">RelayChainAsNative</span>,
 	<span class="ident">SiblingParachainAsNative</span>, <span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>,
@@ -2680,7 +2688,13 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmWeigher</span> <span class="op">=</span> <span class="ident">FixedWeightBounds</span><span class="op">&lt;</span><span class="ident">UnitWeightCost</span>, <span class="ident">Call</span>, <span class="ident">MaxInstructions</span><span class="op">&gt;</span>;
 
 <span class="comment">// Allow paid executions</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmBarrier</span> <span class="op">=</span> (<span class="ident">TakeWeightCredit</span>, <span class="ident">AllowTopLevelPaidExecutionFrom</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmBarrier</span> <span class="op">=</span> (
+	<span class="ident">TakeWeightCredit</span>,
+	<span class="ident">AllowTopLevelPaidExecutionFrom</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
+	<span class="ident">AllowKnownQueryResponses</span><span class="op">&lt;</span><span class="ident">PolkadotXcm</span><span class="op">&gt;</span>,
+	<span class="comment">// Subscriptions for version tracking are OK.</span>
+	<span class="ident">AllowSubscriptionsFrom</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
+);
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmExecutorConfig</span>;
 <span class="kw">impl</span> <span class="ident">xcm_executor::Config</span> <span class="kw">for</span> <span class="ident">XcmExecutorConfig</span> {
@@ -2709,7 +2723,7 @@
 		<span class="op">&gt;</span>,
 		<span class="ident">xcm_primitives::FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, ()<span class="op">&gt;</span>,
 	<span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> (); <span class="comment">// Don&#39;t handle responses for now.</span>
+	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetClaims</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -2729,7 +2743,7 @@
 <span class="doccomment">/// queues.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmRouter</span> <span class="op">=</span> (
 	<span class="comment">// Two routers - use UMP to communicate with the relay chain:</span>
-	<span class="ident">cumulus_primitives_utility::ParentAsUmp</span><span class="op">&lt;</span><span class="ident">ParachainSystem</span>, ()<span class="op">&gt;</span>,
+	<span class="ident">cumulus_primitives_utility::ParentAsUmp</span><span class="op">&lt;</span><span class="ident">ParachainSystem</span>, <span class="ident">PolkadotXcm</span><span class="op">&gt;</span>,
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.</span>
 	<span class="ident">XcmpQueue</span>,
 );
@@ -2760,7 +2774,7 @@
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">XcmExecutor</span> <span class="op">=</span> <span class="ident">XcmExecutor</span>;
 	<span class="kw">type</span> <span class="ident">ChannelInfo</span> <span class="op">=</span> <span class="ident">ParachainSystem</span>;
-	<span class="kw">type</span> <span class="ident">VersionWrapper</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">VersionWrapper</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">cumulus_pallet_dmp_queue::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -3105,7 +3119,7 @@
 		<span class="ident">CumulusXcm</span>: <span class="ident">cumulus_pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>} <span class="op">=</span> <span class="number">26</span>,
 		<span class="ident">DmpQueue</span>: <span class="ident">cumulus_pallet_dmp_queue</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">27</span>,
 		<span class="comment">// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now</span>
-		<span class="ident">PolkadotXcm</span>: <span class="ident">pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>} <span class="op">=</span> <span class="number">28</span>,
+		<span class="ident">PolkadotXcm</span>: <span class="ident">pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">28</span>,
 		<span class="ident">Assets</span>: <span class="ident">pallet_assets</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">29</span>,
 		<span class="ident">XTokens</span>: <span class="ident">orml_xtokens</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">30</span>,
 		<span class="ident">AssetManager</span>: <span class="ident">pallet_asset_manager</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">31</span>,
