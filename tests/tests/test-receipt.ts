@@ -21,7 +21,7 @@ describeDevMoonbeam("Receipt - Contract", (context) => {
 
     expect(receipt.blockHash).to.be.eq(block.hash);
     expect(receipt.blockNumber).to.be.eq(block.number);
-    expect(receipt.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    expect(receipt.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase()); // web3 rpc returns lowercase
     expect(receipt.logs.length).to.be.eq(1);
     expect(receipt.logs[0].address).to.be.eq(eventContract.options.address);
     expect(receipt.logs[0].blockHash).to.be.eq(block.hash);

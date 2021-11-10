@@ -23,7 +23,7 @@ describeDevMoonbeam("Block 1", (context) => {
   it("should contain block information", async function () {
     const block = await context.web3.eth.getBlock("latest");
     expect(block).to.include({
-      author: COLLATOR_ACCOUNT,
+      author: COLLATOR_ACCOUNT.toLowerCase(), // web3 doesn't checksum
       difficulty: "0",
       extraData: "0x",
       gasLimit: 15000000,

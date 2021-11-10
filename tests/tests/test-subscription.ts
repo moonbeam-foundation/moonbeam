@@ -46,7 +46,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     subscription.unsubscribe();
 
     expect(data).to.include({
-      author: COLLATOR_ACCOUNT,
+      author: COLLATOR_ACCOUNT.toLowerCase(), // web3 doesn't checksum
       difficulty: "0",
       extraData: "0x",
       logsBloom: `0x${"0".repeat(512)}`,

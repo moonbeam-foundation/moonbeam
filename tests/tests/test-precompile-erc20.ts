@@ -31,7 +31,7 @@ async function getBalance(context, blockHeight, address) {
 }
 
 async function sendApprove(context, from, fromPrivate, spender, amount) {
-  const fromData = from.slice(2).padStart(64, "0").toLowerCase();
+  const fromData = from.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
   const tx = await createTransaction(context.web3, {
@@ -168,7 +168,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
 
     // transferFrom
     {
-      const from = ALITH.slice(2).padStart(64, "0").toLowerCase();
+      const from = ALITH.slice(2).padStart(64, "0").toLowerCase(); // web3 rpc returns lowercase
       const to = CHARLETH.slice(2).padStart(64, "0").toLowerCase();
 
       const tx = await createTransaction(context.web3, {

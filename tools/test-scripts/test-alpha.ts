@@ -19,5 +19,8 @@ export default async function test(ACC: string) {
   // console.log("BALANCE API", account.data.miscFrozen.toString());
   // console.log("BALANCE API", account.data.reserved.toString());
   console.log("BALANCE API", account.data.free.toString());
+
+  const block = await web3.eth.getBlock("latest");
+  console.log("block", block);
 }
 test(FAITH);
