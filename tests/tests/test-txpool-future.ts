@@ -18,7 +18,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
 
   it("should appear in the txpool inspection", async function () {
     let inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
-    //TODO MOON-1135;
+    // web3 rpc returns lowercase
     let data = inspect.result.queued[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(1)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
@@ -28,7 +28,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
 
   it("should appear in the txpool content", async function () {
     let content = await customWeb3Request(context.web3, "txpool_content", []);
-    //TODO MOON-1135;
+    // web3 rpc returns lowercase
     const data = content.result.queued[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(1)];
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
