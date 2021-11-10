@@ -258,9 +258,9 @@ where
 
 		let public_key = PublicKey::from_secret_key(&private_key);
 
-		// TODO: primitives/account uses "...serialize()[1..65]" rather than serialize_compressed()
-		let address = H160::from(H256::from_slice(
-				Keccak256::digest(&public_key.serialize_compressed()).as_slice()));
+		let mut m = [0u8; 64];
+		m.copy_from_slice(&public_key.serialize()[1..65]);
+		let address = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
 
 		AccountDetails {
 			address,
@@ -430,7 +430,7 @@ where
 }
 
 /// Struct representing account details, including private key
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AccountDetails {
 	pub address: H160,
 	pub privkey: H256,
