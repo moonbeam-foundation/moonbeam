@@ -37,6 +37,8 @@ pub use pallet::*;
 pub mod mock;
 #[cfg(test)]
 pub mod tests;
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 
 #[pallet]
 pub mod pallet {
@@ -83,7 +85,7 @@ pub mod pallet {
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
-		type AssetRegistrarMetadata: Member + Parameter;
+		type AssetRegistrarMetadata: Member + Parameter + Default;
 
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
