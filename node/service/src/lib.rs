@@ -880,59 +880,13 @@ where
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-						//TODO maybe we don't need to collect into a Vec here. We could just
-						// leave it as an iterator.
-						let mut downward_messages: Vec<InboundDownwardMessage> = channel
-							.drain()
-							.map(|message| {
-								println!("{:?}", message);
-								message
-							})
-							.collect();
-
-						// Construct a simple downward transfer message to serialize and insert
-						// I believe this should be a `VersionedXcm<T::Call>`.
-						// Since it is generic over a runtime, I may have trouble constructing it here
-						// I could make a helper function in a runtime...
-						// Oh, unless that type info is only necessary for certain kinds of calls, and I
-						// can just put () for now...
-						let downward_transfer_message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
-							ReserveAssetDeposited((Parent, 10000000000000).into()),
-							ClearOrigin,
-							BuyExecution {
-								fees: (Parent, 10000000000000).into(),
-								weight_limit: Limited(4_000_000_000),
-							},
-							DepositAsset {
-								assets: All.into(),
-								max_assets: 1,
-								beneficiary: MultiLocation::new(
-									0,
-									X1(AccountKey20 {
-										network: Any,
-										key: hex_literal::hex!(
-											"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-										),
-									}),
-								),
-							},
-						]));
-
-						// Here we inject our single hard-coded downward transfer message
-						downward_messages.push(InboundDownwardMessage {
-							//TODO is sent_at supposed to be a realy block number or a para block number?
-							// I think it should be relay chain block number...
-							sent_at: current_para_block, //TODO
-							msg: downward_transfer_message.encode(),
-						});
-
 						let mocked_parachain = MockValidationDataInherentDataProvider {
-							para_id: Default::default(), // This matches the rust chainspecs. Might want to wire it to cli or something?
+							para_id: Default::default(), // TODO This matches Moonbeam's rust chainspecs. Might want to wire it to cli or something?
 							starting_dmq_mqc_head,
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
-							downward_messages,
+							downward_messages: channel.drain().collect(),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);

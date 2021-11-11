@@ -17,9 +17,11 @@ use futures::{future::BoxFuture, FutureExt as _};
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 
+use parity_scale_codec::Encode;
 use polkadot_core_primitives::{
 	BlockNumber as RelayBlockNumber, InboundDownwardMessage, InboundHrmpMessage,
 };
+use xcm::latest::prelude::*;
 
 //TODO This was in a separate crate in rpc-core for the ethereum-related RPC endpoints.
 // But I'm starting with it all in one to keep things simple. Are there drawbacks to doing this?
@@ -32,7 +34,7 @@ pub trait ManualXcmApi {
 	#[rpc(name = "xcm_injectDownwardMessage")]
 	fn inject_downward_message(
 		&self,
-		sent_at: RelayBlockNumber,
+		// sent_at: RelayBlockNumber,
 		message: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<bool>>;
 	// For now we return bool which indicates some vague notion of success
@@ -59,12 +61,38 @@ pub struct ManualXcm {
 impl ManualXcmApi for ManualXcm {
 	fn inject_downward_message(
 		&self,
-		sent_at: RelayBlockNumber,
+		//TODO probably shouldn't take sent_at as a param. Rather just insert the calculated
+		// relay block in the inherent data provider
+		// sent_at: RelayBlockNumber,
 		msg: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<bool>> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		async move {
-			let message = InboundDownwardMessage { sent_at, msg };
+			// For now we shadow the message passed in and always insert this downward transfer
+			// TODO rename this method insert_encoded or something. Consider a dedicated method
+			// to insert DOT transfers that just takes parameters like beneficiary and amount
+			let msg = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+				ReserveAssetDeposited((Parent, 10000000000000).into()),
+				ClearOrigin,
+				BuyExecution {
+					fees: (Parent, 10000000000000).into(),
+					weight_limit: Limited(4_000_000_000),
+				},
+				DepositAsset {
+					assets: All.into(),
+					max_assets: 1,
+					beneficiary: MultiLocation::new(
+						0,
+						X1(AccountKey20 {
+							network: Any,
+							key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+						}),
+					),
+				},
+			]))
+			.encode();
+
+			let message = InboundDownwardMessage { sent_at: 0, msg };
 
 			// Send the message back to the service where it will be queued up
 			// to be injected in to an upcoming block. Also send a channel on which
