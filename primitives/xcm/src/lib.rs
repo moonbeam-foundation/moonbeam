@@ -56,8 +56,7 @@ where
 {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		let asset_type: AssetType = id.borrow().clone().into();
-		log::info!("XCM is executing. The asset type is");
-		panic!("xcm is executing");
+		log::info!(target: "mock-xcm", "🤞⛓️📨 In Moonbeam xcm primitives. Converting ref");
 		Ok(AssetId::from(asset_type))
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
@@ -143,6 +142,7 @@ impl<
 		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
+		log::info!(target: "mock-xcm", "🤞⛓️📨 In Moonbeam xcm primitives. Buying weight");
 		let first_asset = payment
 			.clone()
 			.fungible_assets_iter()
@@ -154,7 +154,6 @@ impl<
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
-				panic!("Right after asset_type");
 				let asset_id: AssetId = AssetId::from(asset_type);
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
 					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
