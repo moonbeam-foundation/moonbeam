@@ -289,8 +289,6 @@ fn approve() {
 		});
 }
 
-// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
-#[ignore]
 #[test]
 fn check_allowance_existing() {
 	ExtBuilder::default()
@@ -349,8 +347,6 @@ fn check_allowance_existing() {
 		});
 }
 
-// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
-#[ignore]
 #[test]
 fn check_allowance_not_existing() {
 	ExtBuilder::default()

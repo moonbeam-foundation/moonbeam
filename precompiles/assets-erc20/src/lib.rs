@@ -18,19 +18,19 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
-use sp_runtime::traits::Zero;
-
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
 	error, keccak256, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
 	LogsBuilder, RuntimeHelper,
 };
+use sp_runtime::traits::Zero;
 
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData, vec};
@@ -233,12 +233,11 @@ where
 
 	// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
 	fn allowance(
-		mut _input: EvmDataReader,
-		_target_gas: Option<u64>,
-		_context: &Context,
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		Err(error("unimplemented"))
-		/*	let mut gasometer = Gasometer::new(target_gas);
+		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
@@ -258,7 +257,7 @@ where
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
 			// Fetch info.
-			pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, owner, spender).into()
+			pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender).into()
 		};
 
 		// Build output.
@@ -267,7 +266,7 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
-		})*/
+		})
 	}
 
 	fn approve(
@@ -294,33 +293,23 @@ where
 
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
-			// Dispatch call (if enough gas).
-			// We first cancel any existing approvals
-			// Since we cannot check storage, we need to execute this call without knowing whether
-			// another approval exists already.
-			// Allowance() should be checked instead of doing this Result matching
-			let used_gas = match RuntimeHelper::<Runtime>::try_dispatch(
-				Some(origin.clone()).into(),
-				pallet_assets::Call::<Runtime, Instance>::cancel_approval {
-					id: asset_id,
-					delegate: Runtime::Lookup::unlookup(spender.clone()),
-				},
-				gasometer.remaining_gas()?,
-			) {
-				Ok(gas_used) => Ok(gas_used),
-				// ExitError::Other is only returned if the dispatchable fails with an error
-				// We cannot format the error in wasm
-				// In our case, we know that if cancel_approval fails approve_transfer will also
-				// fail in all cases except the one we are interested on: that it does not exist
-				// a previous approval. In this case we still want to continue, so it is safe
-				// to do this
-				// TODO: Once 0.9.12 is here, we should be able to only call cance_approval if
-				// such approval exists.
-				Err(ExitError::Other(_e)) => Ok(2 * RuntimeHelper::<Runtime>::db_read_gas_cost()),
-				// Any other error can be returned
-				Err(e) => Err(e),
-			}?;
-			gasometer.record_cost(used_gas)?;
+			// Allowance read
+			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+			// If previous approval exists, we need to clean it
+			if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &origin, &spender)
+				!= 0u32.into()
+			{
+				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+					Some(origin.clone()).into(),
+					pallet_assets::Call::<Runtime, Instance>::cancel_approval {
+						id: asset_id,
+						delegate: Runtime::Lookup::unlookup(spender.clone()),
+					},
+					gasometer.remaining_gas()?,
+				)?;
+				gasometer.record_cost(used_gas)?;
+			}
 
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
