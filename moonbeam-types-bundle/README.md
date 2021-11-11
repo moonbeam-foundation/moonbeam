@@ -50,13 +50,25 @@ Those types are being changed:
   }
 ```
 
-## How to upgrade your tools/scripts
+## How to upgrade your tools/scripts using moonbeam-types-bundle
 
 Ultimately it is necessary to use the new type naming as the previous one won't be supported, but
-you can import `typesBundleDeprecated` to buy yourself some time. (Upgrade to runtime 900 is 
-planned on Thursday 18th November)
+you can import `typesBundleDeprecated` to buy yourself some time.
 
-### Step 1: Change your import
+* moonbeam-types-bundle v1.x.x will break on runtime upgrade 900
+(planned Thursday 18th November on Mooniver)
+* moonbeam-types-bundle v2.x.x `typesBundleDeprecated` (using previous naming case) 
+will **break on runtime 1000**
+* **moonbeam-types-bundle v2.x.x** `typesBundlePre900` (using new naming case) 
+will be **maintained**.
+
+### Step 1: Install new package
+
+```
+npm install moonbeam-types-bundle@2
+```
+
+### Step 2: Change your import
 
 ```
 import { typesBundlePre900 } from "moonbeam-types-bundle"
@@ -67,7 +79,7 @@ const api = await ApiPromise.create({
 });
 ```
 
-### Step 2: Updates the object property names
+### Step 3: Updates the object property names
 
 Exemple:
 
