@@ -1122,17 +1122,14 @@ fn cannot_candidate_bond_more_if_insufficient_balance() {
 }
 
 #[test]
-fn cannot_candidate_bond_more_if_leaving_candidates() {
+fn can_candidate_bond_more_if_leaving_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50)])
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 30),
-				Error::<Test>::CannotActBecauseLeaving
-			);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
 		});
 }
 
@@ -1210,17 +1207,14 @@ fn cannot_candidate_bond_less_if_new_total_below_min_candidate_stk() {
 }
 
 #[test]
-fn cannot_candidate_bond_less_if_leaving_candidates() {
+fn can_candidate_bond_less_if_leaving_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30)])
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(1), 10),
-				Error::<Test>::CannotActBecauseLeaving
-			);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
 		});
 }
 

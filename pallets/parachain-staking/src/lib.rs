@@ -341,7 +341,6 @@ pub mod pallet {
 			BalanceOf<T>: From<B>,
 			T::AccountId: From<A>,
 		{
-			ensure!(!self.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let request = self
 				.request
 				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
@@ -2078,7 +2077,6 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let when = state.schedule_bond_more::<T>(more)?;
 			<CandidateState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBondMoreRequested(collator, more, when));
@@ -2092,7 +2090,6 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let when = state.schedule_bond_less::<T>(less)?;
 			<CandidateState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBondLessRequested(collator, less, when));
