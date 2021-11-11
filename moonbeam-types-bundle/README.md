@@ -61,7 +61,7 @@ Ultimately it is necessary to use the new type naming as the previous one won't 
 you can import `typesBundleDeprecated` to buy yourself some time.
 
 * moonbeam-types-bundle v1.x.x will break on runtime upgrade 900
-(planned Thursday 18th November 2021 on Mooniver)
+(planned Thursday 18th November 2021 on Moonriver)
 * moonbeam-types-bundle v2.x.x `typesBundleDeprecated` (using previous naming case) 
 will **break on runtime 1000**
 * **moonbeam-types-bundle v2.x.x** `typesBundlePre900` (using new naming case) 
