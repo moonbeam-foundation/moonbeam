@@ -50,7 +50,13 @@ Those types are being changed:
   }
 ```
 
-## Using the new naming convention
+## How to upgrade your tools/scripts
+
+Ultimately it is necessary to use the new type naming as the previous one won't be supported, but
+you can import `typesBundleDeprecated` to buy yourself some time. (Upgrade to runtime 900 is 
+planned on Thursday 18th November)
+
+### Step 1: Change your import
 
 ```
 import { typesBundlePre900 } from "moonbeam-types-bundle"
@@ -61,12 +67,21 @@ const api = await ApiPromise.create({
 });
 ```
 
-### More time to transition
+### Step 2: Updates the object property names
 
-To allow more time for transition, you can use `typesBundleDeprecated` for runtime 900 which will
-keep the same naming convention as before, but will disappear in runtime 1000.
+Exemple:
 
-**This solution is only to have more time to transition to `typesBundlePre900`**
+```
+console.log(collatorState2.unwrap().top_nominators);
+```
+
+becomes:
+
+```
+console.log(collatorState2.unwrap().topNominators);
+```
+
+All changes were listed [previously](#breaking-changes-in-typesbundlepre900)
 
 # Development
 
