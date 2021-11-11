@@ -832,9 +832,6 @@ where
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				// This is where we read from the async channel and collect Downward XCM into a Vec
-				// Reminder, the second parameter here is a tuple where you can add extra info
-				// as necessary.
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
 						.number(block)
@@ -861,6 +858,7 @@ where
 							&storage_prefix_build(b"ParachainSystem", b"LastDmqMqcHead"),
 						)
 						.expect("We should be able to read storage from the parent block...");
+					//TODO should be able to us map_or here.
 
 					let starting_dmq_mqc_head =
 						if let Some(raw_data) = maybe_raw_starting_dmq_mqc_head {
