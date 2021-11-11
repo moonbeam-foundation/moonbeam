@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import Web3 from "web3";
-import { typesBundle } from "../../moonbeam-types-bundle/dist";
+import { typesBundlePre900 } from "../../moonbeam-types-bundle/dist";
 import { FAITH } from "../test-constants";
 const wsProviderUrl = `wss://wss.testnet.moonbeam.network`;
 
@@ -12,7 +12,7 @@ export default async function test(ACC: string) {
   const wsProvider = new WsProvider(wsProviderUrl);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    typesBundle: typesBundle as any,
+    typesBundle: typesBundlePre900 as any,
   });
   const account = await polkadotApi.query.system.account(ACC);
   // console.log("BALANCE API", account.data.feeFrozen.toString());

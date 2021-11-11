@@ -176,17 +176,22 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      balance: balance,
+    });
 
     const assetId = context.polkadotApi.createType(
-      "AssetId",
+      "u128",
       new BN("42259045809535163221576417993425387648")
     );
-    const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+      supply: balance,
+    });
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
-    let beforeAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH))
-      .balance as BN;
+    let beforeAssetBalance = (
+      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+    ).balance as BN;
 
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
@@ -229,8 +234,9 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
-    let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH))
-      .balance as BN;
+    let afterAssetBalance = (
+      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+    ).balance as BN;
 
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
     expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
@@ -279,18 +285,23 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // And we need relay tokens for issuing a transaction to be executed in the relay
 
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      balance: balance,
+    });
 
     const assetId = context.polkadotApi.createType(
-      "AssetId",
+      "u128",
       new BN("42259045809535163221576417993425387648")
     );
-    const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+      supply: balance,
+    });
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
-    let beforeAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH))
-      .balance as BN;
+    let beforeAssetBalance = (
+      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+    ).balance as BN;
 
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
@@ -329,8 +340,9 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
-    let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH))
-      .balance as BN;
+    let afterAssetBalance = (
+      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+    ).balance as BN;
 
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
     expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
