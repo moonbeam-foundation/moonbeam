@@ -191,6 +191,7 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -226,6 +227,7 @@
 	<span class="ident">marker::PhantomData</span>,
 };
 <span class="kw">use</span> <span class="ident">xcm::latest</span>::{<span class="ident">AssetId</span>, <span class="ident">Fungibility</span>, <span class="ident">MultiAsset</span>, <span class="ident">MultiLocation</span>};
+<span class="kw">use</span> <span class="ident">xcm</span>::{<span class="ident">VersionedMultiAsset</span>, <span class="ident">VersionedMultiLocation</span>};
 <span class="kw">use</span> <span class="ident">xcm_primitives::AccountIdToCurrencyId</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -313,7 +315,7 @@
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
 			<span class="ident">currency_id</span>,
 			<span class="ident">amount</span>,
-			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">destination</span>),
+			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
 			<span class="ident">dest_weight</span>,
 		};
 
@@ -360,11 +362,11 @@
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiasset</span> {
-			<span class="ident">asset</span>: <span class="ident">Box::new</span>(<span class="ident">MultiAsset</span> {
+			<span class="ident">asset</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiAsset::V1</span>(<span class="ident">MultiAsset</span> {
 				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset_multilocation</span>),
 				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">to_balance</span>),
-			}),
-			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">destination</span>),
+			})),
+			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
 			<span class="ident">dest_weight</span>,
 		};
 
