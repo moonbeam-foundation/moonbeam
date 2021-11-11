@@ -315,7 +315,7 @@ describeDevMoonbeam(
       await context.createBlock();
     });
 
-    it("should fail calling nominatorBondLess under min nomination amount ABCD", async function () {
+    it("should fail calling nominatorBondLess under min nomination amount", async function () {
       const { events } = await createBlockWithExtrinsic(
         context,
         ethan,
