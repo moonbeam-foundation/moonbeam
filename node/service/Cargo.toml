@@ -27,7 +27,6 @@ tiny-hderive = { version = "0.3.0", default-features = false }
 tiny-bip39 = { version = "0.8", default-features = false }
 tokio = { version = "1.12.0", features = ["macros", "sync"] }
 flume = "0.10.9"
-hex-literal = "0.3.3"
 
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
