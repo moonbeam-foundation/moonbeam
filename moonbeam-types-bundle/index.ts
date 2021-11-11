@@ -62,19 +62,17 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
   },
   xcm: {
     injectDownwardMessage: {
-      aliasSection: "xcm", //TODO Is this necessary
       description: "Inject a downward message from the relay chain.",
       params: [{ name: "message", type: "Vec<u8>" }],
-      type: "Result<bool>",
+      type: "Result<()>",
     },
     injectHrmpMessage: {
-      aliasSection: "xcm", //TODO Is this necessary
       description: "Inject an HRMP message from a dedicated channel from a sibling parachain",
       params: [
         { name: "channel", type: "u32" },
         { name: "message", type: "Vec<u8>" },
       ],
-      type: "Result<bool>",
+      type: "Result<()>",
     },
   },
 };
