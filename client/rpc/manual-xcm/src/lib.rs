@@ -18,9 +18,6 @@ use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 
 use parity_scale_codec::Encode;
-use polkadot_core_primitives::{
-	BlockNumber as RelayBlockNumber, InboundDownwardMessage, InboundHrmpMessage,
-};
 use xcm::latest::prelude::*;
 
 //TODO This was in a separate crate in rpc-core for the ethereum-related RPC endpoints.
@@ -32,15 +29,7 @@ use xcm::latest::prelude::*;
 pub trait ManualXcmApi {
 	// Inject a downward message - A message that comes from the relay chain.
 	#[rpc(name = "xcm_injectDownwardMessage")]
-	fn inject_downward_message(
-		&self,
-		// sent_at: RelayBlockNumber,
-		message: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<bool>>;
-	// For now we return bool which indicates some vague notion of success
-	// In the future it may be nice to return which block hash this message was
-	// injected into. We may need to learn more about how forks are handled to make
-	// sure we don't lose/skip xcm messages in when reorgs happen. I'm not worried about that yet.
+	fn inject_downward_message(&self, message: Vec<u8>) -> BoxFuture<'static, RpcResult<()>>;
 
 	// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
 	// parachain.
@@ -48,24 +37,17 @@ pub trait ManualXcmApi {
 	fn inject_hrmp_message(
 		&self,
 		channel: u32, //TODO I think there is a better type for this?
-		sent_at: RelayBlockNumber,
 		message: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<bool>>;
+	) -> BoxFuture<'static, RpcResult<()>>;
 }
 
 pub struct ManualXcm {
-	pub downward_message_channel: flume::Sender<InboundDownwardMessage>,
-	pub hrmp_message_channel: flume::Sender<InboundHrmpMessage>,
+	pub downward_message_channel: flume::Sender<Vec<u8>>,
+	pub hrmp_message_channel: flume::Sender<Vec<u8>>,
 }
 
 impl ManualXcmApi for ManualXcm {
-	fn inject_downward_message(
-		&self,
-		//TODO probably shouldn't take sent_at as a param. Rather just insert the calculated
-		// relay block in the inherent data provider
-		// sent_at: RelayBlockNumber,
-		msg: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<bool>> {
+	fn inject_downward_message(&self, msg: Vec<u8>) -> BoxFuture<'static, RpcResult<()>> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		async move {
 			// For now we shadow the message passed in and always insert this downward transfer
@@ -92,17 +74,14 @@ impl ManualXcmApi for ManualXcm {
 			]))
 			.encode();
 
-			let message = InboundDownwardMessage { sent_at: 0, msg };
-
-			// Send the message back to the service where it will be queued up
-			// to be injected in to an upcoming block. Also send a channel on which
-			// the success message can be sent back.
+			// Push the message to the shared channel where it will be queued up
+			// to be injected in to an upcoming block.
 			downward_message_channel
-				.send_async(message)
+				.send_async(msg)
 				.await
 				.map_err(|err| internal_err(err))?;
 
-			Ok(true) //TODO Can we just use () here instead of bool?
+			Ok(())
 		}
 		.boxed()
 	}
@@ -110,9 +89,8 @@ impl ManualXcmApi for ManualXcm {
 	fn inject_hrmp_message(
 		&self,
 		_channel: u32, //TODO I think there is a better type for this?
-		_sent_at: RelayBlockNumber,
 		_message: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<bool>> {
+	) -> BoxFuture<'static, RpcResult<()>> {
 		// let mut requester = self.requester.clone();
 
 		println!("---> Enter");

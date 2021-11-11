@@ -39,13 +39,11 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use cumulus_primitives_core::{InboundDownwardMessage, InboundHrmpMessage};
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
-use xcm::latest::prelude::*;
 
 use sc_client_api::StorageProvider;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
@@ -718,7 +716,7 @@ where
 	use async_io::Timer;
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-	use sp_core::{Encode, H256};
+	use sp_core::H256;
 
 	let sc_service::PartialComponents {
 		client,
@@ -820,12 +818,9 @@ where
 		let client_set_aside_for_cidp = client.clone();
 
 		// Create channels for mocked XCM messages.
-		let (downward_xcm_sender, downward_xcm_receiver) =
-			flume::bounded::<InboundDownwardMessage>(100);
-		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<InboundHrmpMessage>(100);
+		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
-
-		// TODO pass the sending halves of the xcm channels to the RPC layer below
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -845,9 +840,9 @@ where
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
+
 					// Fetch the starting mcq head from parent block storage
 					// It is not available through a runtime api, so we use the storage provider
-
 					fn storage_prefix_build(
 						module: &[u8],
 						storage: &[u8],
@@ -998,44 +993,3 @@ where
 	network_starter.start_network();
 	Ok(task_manager)
 }
-
-// use futures::channel::mpsc::{Receiver, Sender};
-// use std::collections::VecDeque;
-// pub struct XcmQueue {
-// 	receiver: Receiver<InboundDownwardMessage>,
-// 	queue: Mutex<VecDeque<InboundDownwardMessage>>,
-// }
-
-// impl XcmQueue {
-// 	/// Create a new instance of the worker and get an async mpsc Sender that can
-// 	/// be used to queue up messages (probably passed to the RPC layer)
-// 	fn new() -> (Self, Sender<InboundDownwardMessage>) {
-// 		let (tx, rx) = futures::channel::mpsc::channel(100);
-// 		let q = Self {
-// 			receiver: rx,
-// 			queue: VecDeque::new(),
-// 		};
-
-// 		(q, tx)
-// 	}
-
-// 	/// Get all of the messages queued up since the last read.
-// 	fn get_queued_messages(&mut self) -> Vec<InboundDownwardMessage> {
-// 		self.queue
-// 			.lock()
-// 			.expect("can acquire lock while getting queued messaged")
-// 			.drain(..)
-// 			.collect()
-// 	}
-
-// 	/// Start the
-// 	async fn start_worker(&self) {
-// 		while let Some(xcm) = self.receiver.next().await {
-// 			self.queue
-// 				.lock()
-// 				.expect("can acquire lock while adding message to queue")
-// 				.push_back(xcm)
-// 			// Uhhh, I assume it unlocks here?
-// 		}
-// 	}
-// }

@@ -20,7 +20,6 @@ pub mod tracing;
 
 use std::{sync::Arc, time::Duration};
 
-use cumulus_primitives_core::{InboundDownwardMessage, InboundHrmpMessage};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
@@ -92,10 +91,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Ethereum transaction to Extrinsic converter.
 	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
-	pub xcm_senders: Option<(
-		flume::Sender<InboundDownwardMessage>,
-		flume::Sender<InboundHrmpMessage>,
-	)>,
+	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<Vec<u8>>)>,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(
