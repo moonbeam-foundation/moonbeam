@@ -218,6 +218,7 @@ std = [
 	"xcm-transactor/std",
 	"xcm-transactor-precompiles/std",
 	"scale-info/std",
+	"pallet-xcm/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
