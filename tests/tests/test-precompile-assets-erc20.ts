@@ -148,10 +148,10 @@ describeDevMoonbeam(
           data: data,
         },
       ]);
-      
+
       let expected = stringToHex("DOT");
-      let offset = numberToHex(32).slice(2).padStart(64,"0");
-      let length = numberToHex(3).slice(2).padStart(64,"0");
+      let offset = numberToHex(32).slice(2).padStart(64, "0");
+      let length = numberToHex(3).slice(2).padStart(64, "0");
       // Bytes are padded at the end
       let expected_hex = expected.slice(2).padEnd(64, "0");
       expect(tx_call.result).equals("0x" + offset + length + expected_hex);
@@ -174,10 +174,10 @@ describeDevMoonbeam(
           data: data,
         },
       ]);
-      
+
       let expected = stringToHex("DOT");
-      let offset = numberToHex(32).slice(2).padStart(64,"0");
-      let length = numberToHex(3).slice(2).padStart(64,"0");
+      let offset = numberToHex(32).slice(2).padStart(64, "0");
+      let length = numberToHex(3).slice(2).padStart(64, "0");
       // Bytes are padded at the end
       let expected_hex = expected.slice(2).padEnd(64, "0");
       expect(tx_call.result).equals("0x" + offset + length + expected_hex);
@@ -200,8 +200,8 @@ describeDevMoonbeam(
           data: data,
         },
       ]);
-      
-      let expected = "0x" + numberToHex(12).slice(2).padStart(64,"0");
+
+      let expected = "0x" + numberToHex(12).slice(2).padStart(64, "0");
       expect(tx_call.result).equals(expected);
     });
 
@@ -317,30 +317,30 @@ describeDevMoonbeam(
       expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
     });
     it("should gather the allowance", async function () {
-        let data = iFace.encodeFunctionData(
-          // action
-          "allowance",
-          [ALITH, BALTATHAR]
-        );
-  
-        const tx_call = await customWeb3Request(context.web3, "eth_call", [
-          {
-            from: GENESIS_ACCOUNT,
-            value: "0x0",
-            gas: "0x10000",
-            gasPrice: GAS_PRICE,
-            to: ADDRESS_ERC20,
-            data: data,
-          },
-        ]);
-        let amount = new BN(1000);
-  
-        let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
-        expect(tx_call.result).equals(amount_hex);
-      });
-    },
-    true
-  );
+      let data = iFace.encodeFunctionData(
+        // action
+        "allowance",
+        [ALITH, BALTATHAR]
+      );
+
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: GENESIS_ACCOUNT,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: ADDRESS_ERC20,
+          data: data,
+        },
+      ]);
+      let amount = new BN(1000);
+
+      let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(amount_hex);
+    });
+  },
+  true
+);
 
 describeDevMoonbeam(
   "Precompiles - Assets-ERC20 Wasm",
