@@ -154,6 +154,7 @@ impl<
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
+				panic!("Right after asset_type");
 				let asset_id: AssetId = AssetId::from(asset_type);
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
 					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
