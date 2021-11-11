@@ -86,7 +86,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      const events: IEvent<AnyTuple>[] = allRecords
+      const events = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
         .map(({ event }) => event);
 

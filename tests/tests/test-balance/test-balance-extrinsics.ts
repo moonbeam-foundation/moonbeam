@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import { Event } from "@polkadot/types/interfaces";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
@@ -21,7 +20,7 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      const events: Event[] = allRecords
+      const events = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
         .map(({ event }) => event);
 
