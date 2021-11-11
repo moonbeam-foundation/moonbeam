@@ -1552,8 +1552,8 @@ fn transfer_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
@@ -1580,8 +1580,8 @@ fn refund_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer that zeroes ALICE
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
