@@ -85,12 +85,14 @@ Exemple:
 
 ```
 console.log(collatorState2.unwrap().top_nominators);
+                                    ^^^^^^^^^^^^^^
 ```
 
 becomes:
 
 ```
 console.log(collatorState2.unwrap().topNominators);
+                                    ^^^^^^^^^^^^^
 ```
 
 All changes were listed [previously](#breaking-changes-in-typesbundlepre900)
