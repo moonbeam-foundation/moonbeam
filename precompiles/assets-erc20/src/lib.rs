@@ -19,6 +19,7 @@
 
 use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
+use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
@@ -27,7 +28,7 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
-	error, keccak256, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	error, keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
 	LogsBuilder, RuntimeHelper,
 };
 use sp_runtime::traits::Zero;
@@ -61,6 +62,9 @@ pub enum Action {
 	Transfer = "transfer(address,uint256)",
 	Approve = "approve(address,uint256)",
 	TransferFrom = "transferFrom(address,address,uint256)",
+	Name = "name()",
+	Symbol = "symbol()",
+	Decimals = "decimals()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -153,6 +157,9 @@ where
 			Action::Approve => Self::approve(input, target_gas, context),
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
+			Action::Name => Self::name(target_gas, context),
+			Action::Symbol => Self::symbol(target_gas, context),
+			Action::Decimals => Self::decimals(target_gas, context),
 		}
 	}
 }
@@ -231,7 +238,6 @@ where
 		})
 	}
 
-	// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
 	fn allowance(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -458,6 +464,70 @@ where
 					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
+		})
+	}
+
+	fn name(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(
+					pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
+						.as_slice()
+						.into(),
+				)
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn symbol(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(
+					pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
+						.as_slice()
+						.into(),
+				)
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn decimals(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<u8>(pallet_assets::Pallet::<Runtime, Instance>::decimals(
+					asset_id,
+				))
+				.build(),
+			logs: Default::default(),
 		})
 	}
 }

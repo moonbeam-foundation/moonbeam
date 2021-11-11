@@ -99,9 +99,12 @@ fn selectors() {
 	assert_eq!(u32::from(Action::BalanceOf), 0x70a08231);
 	assert_eq!(u32::from(Action::TotalSupply), 0x18160ddd);
 	assert_eq!(u32::from(Action::Approve), 0x095ea7b3);
-	//assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
+	assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
 	assert_eq!(u32::from(Action::Transfer), 0xa9059cbb);
 	assert_eq!(u32::from(Action::TransferFrom), 0x23b872dd);
+	assert_eq!(Action::Name as u32, 0x06fdde03);
+	assert_eq!(Action::Symbol as u32, 0x95d89b41);
+	assert_eq!(Action::Decimals as u32, 0x313ce567);
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
@@ -911,5 +914,98 @@ fn transfer_from_self() {
 					logs: Default::default(),
 				}))
 			);
+		});
+}
+
+#[test]
+fn get_metadata() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Name).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new()
+							.write::<Bytes>("TestToken".into())
+							.build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write::<Bytes>("Test".into()).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(12u8).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
 		});
 }
