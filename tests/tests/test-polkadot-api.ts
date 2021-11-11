@@ -86,7 +86,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      const events: IEvent<AnyTuple>[] = allRecords
+      const events = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
         .map(({ event }) => event);
 
@@ -104,7 +104,9 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
         // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
         // system.ExtrinsicSuccess
         case 3:
-          events.map((event, index) => { console.log(`event[${index}].method: ${event.method}`); });
+          events.map((event, index) => {
+            console.log(`event[${index}].method: ${event.method}`);
+          });
           expect(events).to.be.of.length(9);
           expect(context.polkadotApi.events.system.NewAccount.is(events[1])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[2])).to.be.true;

@@ -1,6 +1,7 @@
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { ApiPromise } from "@polkadot/api";
 import { JsonRpcResponse } from "web3-core-helpers";
-import { BlockHash } from "@polkadot/types/interfaces/chain";
+import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
+
 import { ethers } from "ethers";
 import { startMoonbeamDevNode } from "./dev-node";
 import {

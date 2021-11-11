@@ -60,6 +60,7 @@ async function mockAssetBalance(context, assetBalance, assetDetails, sudoAccount
     ...blake2AsU8a(assetId.toU8a(), 128),
     ...assetId.toU8a(),
   ]);
+
   let blake2concatAccount = new Uint8Array([
     ...blake2AsU8a(hexToU8a(ALITH), 128),
     ...hexToU8a(ALITH),
@@ -74,7 +75,6 @@ async function mockAssetBalance(context, assetBalance, assetDetails, sudoAccount
   // Get keys to modify total supply
   let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-
   await context.polkadotApi.tx.sudo
     .sudo(
       context.polkadotApi.tx.system.setStorage([
@@ -109,14 +109,18 @@ describeDevMoonbeam(
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
-      const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
-
+      const balance = new BN("100000000000000");
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
       assetId = context.polkadotApi.createType(
-        "AssetId",
+        "u128",
         new BN("42259045809535163221576417993425387648")
       );
-      const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+        supply: balance,
+      });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
@@ -264,13 +268,17 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
 
       assetId = context.polkadotApi.createType(
-        "AssetId",
+        "u128",
         new BN("42259045809535163221576417993425387648")
       );
-      const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+        supply: balance,
+      });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
@@ -352,13 +360,17 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
 
       assetId = context.polkadotApi.createType(
-        "AssetId",
+        "u128",
         new BN("42259045809535163221576417993425387648")
       );
-      const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+        supply: balance,
+      });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
@@ -454,13 +466,17 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("AssetBalance", { balance: balance });
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
 
       assetId = context.polkadotApi.createType(
-        "AssetId",
+        "u128",
         new BN("42259045809535163221576417993425387648")
       );
-      const assetDetails = context.polkadotApi.createType("AssetDetails", { supply: balance });
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+        supply: balance,
+      });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
