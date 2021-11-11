@@ -32,8 +32,8 @@ Those types are being changed:
   },
   Nominator2: {
     ...
-    scheduledRevocationsCount: "u32", // was claimed_reward
-    scheduledRevocationsTotal: "Balance", // was claimed_reward
+    scheduledRevocationsCount: "u32", // was scheduled_revocations_count
+    scheduledRevocationsTotal: "Balance", // was scheduled_revocations_total
   },
   ExitQ: {
     ...
