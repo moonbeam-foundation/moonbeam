@@ -583,7 +583,7 @@ pub mod pallet {
 						call.to_owned(),
 					));
 
-			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call)
+			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call_bytes)
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
@@ -623,7 +623,7 @@ pub mod pallet {
 				_ => return 0,
 			};
 
-			Self::weight_of_transact(&asset, &dest, weight, call)
+			Self::weight_of_transact(&asset, &dest, weight, call.clone())
 		}
 
 		/// Returns weight of transact message.
@@ -631,7 +631,7 @@ pub mod pallet {
 			asset: &MultiLocation,
 			dest: &MultiLocation,
 			weight: &u64,
-			call: &Vec<u8>,
+			call: Vec<u8>,
 		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
