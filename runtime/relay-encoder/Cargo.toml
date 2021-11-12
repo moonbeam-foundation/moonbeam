@@ -11,21 +11,21 @@ repository = 'https://github.com/PureStake/moonbeam/'
 [dependencies]
 relay-encoder-precompiles = { path = "../../precompiles/relay-encoder/", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features=false, branch = "moonbeam-polkadot-v0.9.12"}
-pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features=false, branch = "elois-sig-para"}
+pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 xcm-primitives =  { path = "../../primitives/xcm", default-features = false }
 
 [dev-dependencies]
-polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
 
 [features]
 default = ["std"]

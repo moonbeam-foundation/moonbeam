@@ -12,7 +12,7 @@ codec = { package = "parity-scale-codec", version = "2.2", default-features = fa
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events" }
 ethereum-types = { version = "0.12.0" }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 hex = { version = "0.4", features = ["serde"]}

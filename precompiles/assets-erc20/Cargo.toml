@@ -10,25 +10,25 @@ log = "0.4"
 slices = "0.2.0"
 
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["max-encoded-len"] }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 
-pallet-assets = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+pallet-assets = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "elois-sig-para" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "elois-sig-para" }
 precompile-utils = { path = "../utils", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", features = ["max-encoded-len"] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
 serde = { version = "1.0.100" }
 derive_more = { version = "0.99"}
 sha3 = "0.8"

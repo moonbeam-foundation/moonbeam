@@ -9,31 +9,31 @@ log = "0.4.8"
 structopt = "0.3.8"
 parity-scale-codec = '2.2'
 
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", optional = true }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", optional = true }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "elois-sig-para" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "elois-sig-para" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "elois-sig-para" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "elois-sig-para" }
 
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "elois-sig-para" }
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
 perf-test = { path = "../perf-test" }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
 
 [features]
 default = ["wasmtime", "westend-native", "moonbase-native", "moonriver-native", "moonbeam-native"]

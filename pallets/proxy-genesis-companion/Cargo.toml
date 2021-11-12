@@ -6,17 +6,17 @@ edition = "2018"
 description = "A simple pallet that expands pallet-proxy with a genesis configuration"
 
 [dependencies]
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
 parity-scale-codec = { version = "2.2", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para" }
 serde = "1.0.124"
 
 [features]
