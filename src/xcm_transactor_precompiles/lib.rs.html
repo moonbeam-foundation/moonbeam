@@ -447,7 +447,7 @@
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">xcm_transactor::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_derivative_multilocation</span> {
 			<span class="ident">dest</span>: <span class="ident">transactor</span>,
 			<span class="ident">index</span>,
-			<span class="ident">fee_location</span>: <span class="ident">fee_multilocation</span>,
+			<span class="ident">fee_location</span>: <span class="ident">xcm::VersionedMultiLocation::V1</span>(<span class="ident">fee_multilocation</span>),
 			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 			<span class="ident">inner_call</span>: <span class="ident">inner_call</span>.<span class="number">0</span>,
 		};

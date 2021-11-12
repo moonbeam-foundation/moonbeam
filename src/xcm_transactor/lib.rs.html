@@ -649,6 +649,29 @@
 <span id="649">649</span>
 <span id="650">650</span>
 <span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -714,8 +737,9 @@
 	<span class="kw">use</span> <span class="ident">orml_traits::location</span>::{<span class="ident">Parse</span>, <span class="ident">Reserve</span>};
 	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Convert</span>};
 	<span class="kw">use</span> <span class="ident">sp_std::borrow::ToOwned</span>;
+	<span class="kw">use</span> <span class="ident">sp_std::convert::TryFrom</span>;
 	<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
+	<span class="kw">use</span> <span class="ident">xcm</span>::{<span class="ident">latest::prelude</span>::<span class="kw-2">*</span>, <span class="ident">VersionedMultiLocation</span>};
 	<span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">InvertLocation</span>, <span class="ident">WeightBounds</span>};
 	<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>};
 
@@ -828,6 +852,7 @@
 		<span class="ident">TransactorInfoNotSet</span>,
 		<span class="ident">NotCrossChainTransferableCurrency</span>,
 		<span class="ident">XcmExecuteError</span>,
+		<span class="ident">BadVersion</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
@@ -885,12 +910,14 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">dest</span>: <span class="ident">T::Transactor</span>,
 			<span class="ident">index</span>: <span class="ident">u16</span>,
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">fee_location</span>: <span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">inner_call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
+			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span>
+				<span class="ident">MultiLocation::try_from</span>(<span class="ident">fee_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
 			<span class="comment">// The index exists</span>
 			<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">IndexToAccount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">index</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::UnclaimedIndex</span>)<span class="question-mark">?</span>;
 			<span class="comment">// The derivative index is owned by the origin</span>
@@ -991,14 +1018,18 @@
 		)]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_sovereign</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">dest</span>: <span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">fee_location</span>: <span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="ident">T::SovereignAccountDispatcherOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
+			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span>
+				<span class="ident">MultiLocation::try_from</span>(<span class="ident">fee_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
+
+			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">MultiLocation::try_from</span>(<span class="ident">dest</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
 			<span class="comment">// Grab the destination</span>
 			<span class="ident"><span class="self">Self</span>::transact_in_dest_chain_asset</span>(
 				<span class="ident">dest</span>.<span class="ident">clone</span>(),
@@ -1018,7 +1049,7 @@
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="number">0</span>)]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_transact_info</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">location</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">location</span>: <span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">fee_per_byte</span>: <span class="ident">u128</span>,
 			<span class="ident">base_weight</span>: <span class="ident">Weight</span>,
@@ -1026,7 +1057,8 @@
 			<span class="ident">metadata_size</span>: <span class="ident">u64</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-
+			<span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span>
+				<span class="ident">MultiLocation::try_from</span>(<span class="ident">location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">remote_info</span> <span class="op">=</span> <span class="ident">RemoteTransactInfo</span> {
 				<span class="ident">transact_extra_weight</span>,
 				<span class="ident">fee_per_byte</span>,
@@ -1205,36 +1237,27 @@
 
 		<span class="doccomment">/// Returns weight of `transact_through_derivative` call.</span>
 		<span class="kw">fn</span> <span class="ident">weight_of_transact_through_derivative_multilocation</span>(
-			<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
+			<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">u16</span>,
 			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">T::Transactor</span>,
 			<span class="ident">weight</span>: <span class="kw-2">&amp;</span><span class="ident">u64</span>,
 			<span class="ident">call</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="comment">// If bad version, return 0</span>
+			<span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">asset</span>) <span class="op">=</span> <span class="ident">MultiLocation::try_from</span>(<span class="ident">asset</span>.<span class="ident">clone</span>()) {
+				<span class="ident">asset</span>
+			} <span class="kw">else</span> {
+				<span class="kw">return</span> <span class="number">0</span>;
+			};
+
 			<span class="kw">let</span> <span class="ident">call_bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span>
 				<span class="ident">dest</span>.<span class="ident">clone</span>()
 					.<span class="ident">encode_call</span>(<span class="ident">UtilityAvailableCalls::AsDerivative</span>(
 						<span class="ident">index</span>.<span class="ident">to_owned</span>(),
 						<span class="ident">call</span>.<span class="ident">to_owned</span>(),
 					));
-			<span class="comment">// Construct MultiAsset</span>
-			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">Concrete</span>(<span class="ident">asset</span>.<span class="ident">clone</span>()),
-				<span class="ident">fun</span>: <span class="ident">Fungible</span>(<span class="number">0</span>),
-			};
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::transact_message</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">destination</span>(),
-				<span class="ident">fee</span>.<span class="ident">clone</span>(),
-				<span class="ident">weight</span>.<span class="ident">clone</span>(),
-				<span class="ident">call_bytes</span>,
-				<span class="ident">weight</span>.<span class="ident">to_owned</span>(),
-			) {
-				<span class="ident">T::Weigher::weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">msg</span>.<span class="ident">into</span>()).<span class="ident">map_or</span>(<span class="ident">Weight::max_value</span>(), <span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-					<span class="ident">T::BaseXcmWeight::get</span>().<span class="ident">saturating_add</span>(<span class="ident">w</span>)
-				})
-			} <span class="kw">else</span> {
-				<span class="number">0</span>
-			}
+
+			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">destination</span>(), <span class="ident">weight</span>, <span class="ident">call_bytes</span>)
 		}
 
 		<span class="doccomment">/// Returns weight of `transact_through_derivative` call.</span>
@@ -1247,7 +1270,11 @@
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <span class="ident">T::CurrencyIdToMultiLocation::convert</span>(<span class="ident">currency_id</span>.<span class="ident">clone</span>()) {
 				<span class="ident"><span class="self">Self</span>::weight_of_transact_through_derivative_multilocation</span>(
-					<span class="kw-2">&amp;</span><span class="ident">id</span>, <span class="kw-2">&amp;</span><span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="kw-2">&amp;</span><span class="ident">weight</span>, <span class="ident">call</span>,
+					<span class="kw-2">&amp;</span><span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">id</span>),
+					<span class="kw-2">&amp;</span><span class="ident">index</span>,
+					<span class="kw-2">&amp;</span><span class="ident">dest</span>,
+					<span class="kw-2">&amp;</span><span class="ident">weight</span>,
+					<span class="ident">call</span>,
 				)
 			} <span class="kw">else</span> {
 				<span class="number">0</span>
@@ -1256,10 +1283,29 @@
 
 		<span class="doccomment">/// Returns weight of `transact_through_sovereign call.</span>
 		<span class="kw">fn</span> <span class="ident">weight_of_transact_through_sovereign</span>(
+			<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">VersionedMultiLocation</span>,
+			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">VersionedMultiLocation</span>,
+			<span class="ident">weight</span>: <span class="kw-2">&amp;</span><span class="ident">u64</span>,
+			<span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="comment">// If asset or dest give errors, return 0</span>
+			<span class="kw">let</span> (<span class="ident">asset</span>, <span class="ident">dest</span>) <span class="op">=</span> <span class="kw">match</span> (
+				<span class="ident">MultiLocation::try_from</span>(<span class="ident">asset</span>.<span class="ident">clone</span>()),
+				<span class="ident">MultiLocation::try_from</span>(<span class="ident">dest</span>.<span class="ident">clone</span>()),
+			) {
+				(<span class="prelude-val">Ok</span>(<span class="ident">asset</span>), <span class="prelude-val">Ok</span>(<span class="ident">dest</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">asset</span>, <span class="ident">dest</span>),
+				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="number">0</span>,
+			};
+
+			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="ident">weight</span>, <span class="ident">call</span>.<span class="ident">clone</span>())
+		}
+
+		<span class="doccomment">/// Returns weight of transact message.</span>
+		<span class="kw">fn</span> <span class="ident">weight_of_transact</span>(
 			<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
 			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
 			<span class="ident">weight</span>: <span class="kw-2">&amp;</span><span class="ident">u64</span>,
-			<span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
 			<span class="comment">// Construct MultiAsset</span>
 			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
