@@ -23,13 +23,12 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
-use evm::GenesisAccount;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
-	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
-	TechComitteeCollectiveConfig, WASM_BINARY,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range,
+	SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -169,9 +168,9 @@ pub fn testnet_genesis(
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
-	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts. TODO We should have a test to ensure this is the right bytecode.
+	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
@@ -229,7 +228,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		tech_comittee_collective: TechComitteeCollectiveConfig {
+		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
@@ -243,6 +242,7 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
+		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {

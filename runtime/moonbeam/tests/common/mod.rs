@@ -23,8 +23,9 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::{GLMR, WEI},
+	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
+	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
@@ -36,17 +37,17 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 
-// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+// A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
-	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
-	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
+	"f8648085174876e8008252089412cb274aad8251c875c0bf6872b67d9983e53fdd01801ba05deb036\
+	17e9c2d82e0f4e897ef8fbb01c91244abfc4bd9c3206bc87f9fc71a01a0719f146637fe2b462ccae80\
+	e462ecefa560635d933257ec117a1f7701b178c93";
 
-// Gas limit < transaction cost.
+// An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
-	"f86180843b9aca00809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ca00e28ba2dd3c5a\
-	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
-	ecec29011f6f5bf0b1a552c55ea348df35f";
+	"f8628085174876e800809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ba011110796057\
+	0e2d49fcc2afbc582e1abd3eeb027242b92abcebcec7cdefab63ea001732f6fac84acdd5b096554230\
+	75003e7f07430652c3d6722e18f50b3d34e29";
 
 pub fn run_to_block(n: u32) {
 	while System::block_number() < n {
@@ -66,8 +67,8 @@ pub fn last_event() -> Event {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),
@@ -245,7 +246,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 pub fn set_author(a: NimbusId) {
 	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
 			.dispatch(inherent_origin())
 	);
 }
@@ -270,9 +271,9 @@ pub fn set_parachain_inherent_data() {
 		horizontal_messages: Default::default(),
 	};
 	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
 	)
 	.dispatch(inherent_origin()));
 }

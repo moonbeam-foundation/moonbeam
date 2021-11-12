@@ -25,7 +25,6 @@ use sp_block_builder::BlockBuilder;
 
 use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::EthApi as EthApiCmd;
-use ethereum::EthereumStorageSchema;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
@@ -37,6 +36,7 @@ use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
+use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -77,6 +77,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
+	/// Size of the LRU cache for block data and their transaction statuses.
+	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -115,6 +117,7 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
+		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
@@ -133,7 +136,10 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let block_data_cache = Arc::new(EthBlockDataCache::new(3000, 3000));
+	let block_data_cache = Arc::new(EthBlockDataCache::new(
+		eth_log_block_cache,
+		eth_log_block_cache,
+	));
 
 	let mut overrides_map = BTreeMap::new();
 	overrides_map.insert(
@@ -159,6 +165,7 @@ where
 		is_authority,
 		max_past_logs,
 		block_data_cache.clone(),
+		fc_rpc::format::Geth,
 	)));
 
 	if let Some(filter_pool) = filter_pool {

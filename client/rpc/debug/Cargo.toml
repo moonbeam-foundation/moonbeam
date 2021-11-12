@@ -8,26 +8,26 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-tokio = { version = "0.2.21", features = ["sync", "time"] }
+tokio = { version = "1.10", features = ["sync", "time"] }
 futures = { version = "0.3", features = ["compat"] }
-jsonrpc-core = "15.0.0"
+jsonrpc-core = "18.0.0"
 
 ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
 ethereum-types = "0.12.0"
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sc-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10", features = ["rpc_binary_search_estimate"] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.10" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", features = ["rpc_binary_search_estimate"] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }

@@ -17,20 +17,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
+use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::OriginTrait;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
-use sp_runtime::traits::Zero;
-
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
 use precompile_utils::{
-	error, keccak256, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	error, keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
 	LogsBuilder, RuntimeHelper,
 };
+use sp_runtime::traits::Zero;
 
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData, vec};
@@ -61,6 +62,9 @@ pub enum Action {
 	Transfer = "transfer(address,uint256)",
 	Approve = "approve(address,uint256)",
 	TransferFrom = "transferFrom(address,address,uint256)",
+	Name = "name()",
+	Symbol = "symbol()",
+	Decimals = "decimals()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -144,15 +148,18 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let mut input = EvmDataReader::new(input);
+		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 
-		match &input.read_selector()? {
+		match selector {
 			Action::TotalSupply => Self::total_supply(input, target_gas, context),
 			Action::BalanceOf => Self::balance_of(input, target_gas, context),
 			Action::Allowance => Self::allowance(input, target_gas, context),
 			Action::Approve => Self::approve(input, target_gas, context),
 			Action::Transfer => Self::transfer(input, target_gas, context),
 			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
+			Action::Name => Self::name(target_gas, context),
+			Action::Symbol => Self::symbol(target_gas, context),
+			Action::Decimals => Self::decimals(target_gas, context),
 		}
 	}
 }
@@ -231,14 +238,12 @@ where
 		})
 	}
 
-	// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
 	fn allowance(
-		mut _input: EvmDataReader,
-		_target_gas: Option<u64>,
-		_context: &Context,
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		Err(error("unimplemented"))
-		/*	let mut gasometer = Gasometer::new(target_gas);
+		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
@@ -258,7 +263,7 @@ where
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
 			// Fetch info.
-			pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, owner, spender).into()
+			pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender).into()
 		};
 
 		// Build output.
@@ -267,7 +272,7 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
-		})*/
+		})
 	}
 
 	fn approve(
@@ -276,7 +281,6 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
@@ -291,48 +295,36 @@ where
 				Runtime::account_to_asset_id(execution_address)
 					.ok_or(error("non-assetId address"))?;
 
-			let caller: Runtime::AccountId =
-				Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
-			// Dispatch call (if enough gas).
-			// We first cancel any existing approvals
-			// Since we cannot check storage, we need to execute this call without knowing whether
-			// another approval exists already.
-			// But we know that if no approval exists we should get "Unknown"
-			// Allowance() should be checked instead of doing this Result matching
-			let used_gas = match RuntimeHelper::<Runtime>::try_dispatch(
-				<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin::root(),
-				pallet_assets::Call::<Runtime, Instance>::force_cancel_approval(
-					asset_id,
-					Runtime::Lookup::unlookup(caller),
-					Runtime::Lookup::unlookup(spender.clone()),
-				),
-				gasometer.remaining_gas()?,
-			) {
-				Ok(gas_used) => Ok(gas_used),
-				Err(ExitError::Other(e)) => {
-					// One DB read for checking the approval did not exist
-					if e.contains("Unknown") {
-						Ok(RuntimeHelper::<Runtime>::db_read_gas_cost())
-					} else {
-						Err(ExitError::Other(e))
-					}
-				}
-				Err(e) => Err(e),
-			}?;
-			gasometer.record_cost(used_gas)?;
+			// Allowance read
+			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			// If previous approval exists, we need to clean it
+			if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &origin, &spender)
+				!= 0u32.into()
+			{
+				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+					Some(origin.clone()).into(),
+					pallet_assets::Call::<Runtime, Instance>::cancel_approval {
+						id: asset_id,
+						delegate: Runtime::Lookup::unlookup(spender.clone()),
+					},
+					gasometer.remaining_gas()?,
+				)?;
+				gasometer.record_cost(used_gas)?;
+			}
 
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::approve_transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(spender),
+				pallet_assets::Call::<Runtime, Instance>::approve_transfer {
+					id: asset_id,
+					delegate: Runtime::Lookup::unlookup(spender),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -381,11 +373,11 @@ where
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::transfer(
-					asset_id,
-					Runtime::Lookup::unlookup(to),
+				pallet_assets::Call::<Runtime, Instance>::transfer {
+					id: asset_id,
+					target: Runtime::Lookup::unlookup(to),
 					amount,
-				),
+				},
 				gasometer.remaining_gas()?,
 			)?;
 			gasometer.record_cost(used_gas)?;
@@ -413,8 +405,6 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
@@ -438,23 +428,23 @@ where
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer_approved(
-						asset_id,
-						Runtime::Lookup::unlookup(from),
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer_approved {
+						id: asset_id,
+						owner: Runtime::Lookup::unlookup(from),
+						destination: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			} else {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(from).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer(
-						asset_id,
-						Runtime::Lookup::unlookup(to),
+					pallet_assets::Call::<Runtime, Instance>::transfer {
+						id: asset_id,
+						target: Runtime::Lookup::unlookup(to),
 						amount,
-					),
+					},
 					gasometer.remaining_gas()?,
 				)
 			}?;
@@ -474,6 +464,70 @@ where
 					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
+		})
+	}
+
+	fn name(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(
+					pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
+						.as_slice()
+						.into(),
+				)
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn symbol(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<Bytes>(
+					pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
+						.as_slice()
+						.into(),
+				)
+				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn decimals(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
+		let asset_id: AssetIdOf<Runtime, Instance> =
+			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: 0,
+			output: EvmDataWriter::new()
+				.write::<u8>(pallet_assets::Pallet::<Runtime, Instance>::decimals(
+					asset_id,
+				))
+				.build(),
+			logs: Default::default(),
 		})
 	}
 }

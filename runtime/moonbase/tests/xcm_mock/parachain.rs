@@ -29,17 +29,18 @@ use sp_runtime::{
 	traits::{Hash, IdentityLookup},
 };
 use sp_std::{convert::TryFrom, prelude::*};
-use xcm::{latest::prelude::*, VersionedXcm};
+use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
-use xcm::v1::{
+use xcm::latest::{
 	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
 	Junction::{PalletInstance, Parachain},
 	Junctions, MultiLocation, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
-	AccountKey20Aliases, AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
@@ -47,6 +48,7 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
+use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -80,7 +82,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = ();
+	type BaseCallFilter = Nothing;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -164,6 +166,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	pub const UnitWeightCost: Weight = 1;
+	pub MaxInstructions: u32 = 100;
 }
 
 // Instructing how incoming xcm assets will be handled
@@ -184,7 +187,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We dont allow teleports.
-	(),
+	Nothing,
 	// We dont track any teleports
 	(),
 >;
@@ -207,12 +210,18 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
-pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
-
+pub type Barrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	// Expected responses are OK.
+	AllowKnownQueryResponses<PolkadotXcm>,
+	// Subscriptions for version tracking are OK.
+	AllowSubscriptionsFrom<Everything>,
+);
 parameter_types! {
-	// This value is high enough to charge for meaningful weights but low enough not to
-	// charge on low destination weights. This serves us to test just the FirstAssetTrader.
-	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000);
+	// We cannot skip the native trader for some specific tests, so we will have to work with
+	// a native trader that charges same number of units as weight
+	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000000000);
 }
 
 parameter_types! {
@@ -227,7 +236,6 @@ parameter_types! {
 		)
 	};
 }
-
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -238,13 +246,16 @@ impl Config for XcmConfig {
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader = xcm_primitives::MultiWeightTraders<
+	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
-	>;
-	type ResponseHandler = ();
+	);
+
+	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
+	type AssetTrap = PolkadotXcm;
+	type AssetClaims = PolkadotXcm;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -253,7 +264,7 @@ impl cumulus_pallet_xcm::Config for Runtime {
 }
 
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -297,7 +308,7 @@ impl orml_xtokens::Config for Runtime {
 		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
@@ -427,7 +438,7 @@ pub mod mock_msg_queue {
 						Self::deposit_event(Event::UnsupportedVersion(id));
 					}
 					Ok(Ok(x)) => {
-						let outcome = T::XcmExecutor::execute_xcm(Parent.into(), x, limit);
+						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit);
 
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}
@@ -438,9 +449,57 @@ pub mod mock_msg_queue {
 	}
 }
 
+// Pallet to provide the version, used to test runtime upgrade version changes
+#[frame_support::pallet]
+pub mod mock_version_changer {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+	}
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn current_version)]
+	pub(super) type CurrentVersion<T: Config> = StorageValue<_, XcmVersion, ValueQuery>;
+
+	impl<T: Config> Get<XcmVersion> for Pallet<T> {
+		fn get() -> XcmVersion {
+			Self::current_version()
+		}
+	}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		// XCMP
+		/// Some XCM was executed OK.
+		VersionChanged(XcmVersion),
+	}
+
+	impl<T: Config> Pallet<T> {
+		pub fn set_version(version: XcmVersion) {
+			CurrentVersion::<T>::put(version);
+			Self::deposit_event(Event::VersionChanged(version));
+		}
+	}
+}
+
 impl mock_msg_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
+impl mock_version_changer::Config for Runtime {
+	type Event = Event;
 }
 
 pub type LocalOriginToLocation =
@@ -451,17 +510,22 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Everything;
+	type XcmExecuteFilter = frame_support::traits::Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	// Do not allow teleports
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
+	type Origin = Origin;
+	type Call = Call;
+	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
+	// We use a custom one to test runtime ugprades
+	type AdvertisedXcmVersion = XcmVersioner;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
 	Xcm(MultiLocation),
 }
@@ -529,7 +593,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub struct AssetMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
@@ -546,6 +610,66 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
 }
 
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Transactor = MockTransactors;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdToMultiLocation =
+		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type LocationInverter = LocationInverter<Ancestry>;
+	type XcmSender = XcmRouter;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
+// We need to use the encoding from the relay mock runtime
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl xcm_primitives::XcmTransact for MockTransactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
+	}
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -558,10 +682,39 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
+		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
+
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+
 	}
 );
+
+pub(crate) fn para_events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| Some(e))
+		.collect::<Vec<_>>()
+}
+
+use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
+pub(crate) fn on_runtime_upgrade() {
+	PolkadotXcm::on_runtime_upgrade();
+}
+
+pub(crate) fn para_roll_to(n: u64) {
+	while System::block_number() < n {
+		PolkadotXcm::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		PolkadotXcm::on_initialize(System::block_number());
+	}
+}

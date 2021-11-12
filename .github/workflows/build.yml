@@ -5,11 +5,8 @@ name: Build
 # 2. It includes the PR/Commit text in the action item
 # 3. Artifacts are not available between workflows.
 
-# This is only allowing pushes on the moonbeam repo for pull requests.
-####### DO NOT CHANGE THIS !! #######
 on:
   pull_request:
-    types: [opened, edited, unassigned, synchronize]
   push:
     branches:
       - master
@@ -152,6 +149,7 @@ jobs:
   prepare-polkadot:
     runs-on: self-hosted
     needs: ["set-tags"]
+    if: github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -181,7 +179,7 @@ jobs:
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: 90e1dc81
-      RUSTFLAGS: "-C opt-level=3"
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -255,6 +253,8 @@ jobs:
             false
           fi
       - name: Check with Clippy
+        env:
+          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
         run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
@@ -301,6 +301,8 @@ jobs:
       # 3. Counting the number of lines of output
       - name: Check package-lock.json
         run: |
+          # Log npm version to make sure it maches with local version
+          npm -v
           # Make sure git is working, and if not abort early. When git is not working it looks like:
           # $ git diff-index --name-only HEAD
           # fatal: not a git repository (or any of the parent directories): .git
@@ -326,7 +328,7 @@ jobs:
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: 90e1dc81
-      RUSTFLAGS: "-C opt-level=3"
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -456,7 +458,7 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -507,7 +509,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2

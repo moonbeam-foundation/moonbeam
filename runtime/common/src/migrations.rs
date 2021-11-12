@@ -16,13 +16,43 @@
 
 //! # Migrations
 
-use frame_support::{pallet_prelude::Get, traits::OnRuntimeUpgrade, weights::Weight};
+use frame_support::{
+	dispatch::GetStorageVersion,
+	pallet_prelude::Get,
+	traits::{OnRuntimeUpgrade, PalletInfoAccess},
+	weights::Weight,
+};
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
+use parachain_staking::{migrations::PurgeStaleStorage, Config as ParachainStakingConfig};
 use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in parachain-staking
+pub struct ParachainStakingPurgeStaleStorage<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_PurgeStaleStorage"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PurgeStaleStorage::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
@@ -48,19 +78,71 @@ impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
 	}
 }
 
-pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
-impl<Runtime> Get<Vec<Box<dyn Migration>>> for CommonMigrations<Runtime>
+const COUNCIL_OLD_PREFIX: &str = "Instance1Collective";
+const TECH_OLD_PREFIX: &str = "Instance2Collective";
+
+pub struct MigrateCollectivePallets<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
+impl<Runtime, Council, Tech> Migration for MigrateCollectivePallets<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config,
+	Runtime: frame_system::Config,
+	Council: GetStorageVersion + PalletInfoAccess,
+	Tech: GetStorageVersion + PalletInfoAccess,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Collective_Pallets_v0.9.11_Prefixes"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_collective::migrations::v4::migrate::<Runtime, Council, _>(COUNCIL_OLD_PREFIX)
+			+ pallet_collective::migrations::v4::migrate::<Runtime, Tech, _>(TECH_OLD_PREFIX)
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_collective::migrations::v4::pre_migrate::<Council, _>(COUNCIL_OLD_PREFIX);
+		pallet_collective::migrations::v4::pre_migrate::<Tech, _>(TECH_OLD_PREFIX);
+		Ok(())
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_collective::migrations::v4::post_migrate::<Council, _>(COUNCIL_OLD_PREFIX);
+		pallet_collective::migrations::v4::post_migrate::<Tech, _>(TECH_OLD_PREFIX);
+		Ok(())
+	}
+}
+
+pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
+
+impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
+	for CommonMigrations<Runtime, Council, Tech>
+where
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
+	Council: GetStorageVersion + PalletInfoAccess + 'static,
+	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
 	fn get() -> Vec<Box<dyn Migration>> {
-		let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
-			0: Default::default(),
-		};
+		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
+		// 	0: Default::default(),
+		// };
+
+		// let migration_collectives =
+		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
+
+		let migration_parachain_staking_purge_stale_storage =
+			ParachainStakingPurgeStaleStorage::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		vec![Box::new(migration_author_mapping_twox_to_blake)]
+		vec![
+			// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake),
+			// completed in runtime 900
+			// Box::new(migration_collectives),
+			Box::new(migration_parachain_staking_purge_stale_storage),
+		]
 	}
 }

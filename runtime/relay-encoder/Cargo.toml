@@ -1,0 +1,42 @@
+
+[package]
+name = "moonbeam-relay-encoder"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+[dependencies]
+relay-encoder-precompiles = { path = "../../precompiles/relay-encoder/", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features=false, branch = "moonbeam-polkadot-v0.9.12"}
+pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+xcm-primitives =  { path = "../../primitives/xcm", default-features = false }
+
+[dev-dependencies]
+polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+
+[features]
+default = ["std"]
+std = [
+    "sp-std/std",
+    "parity-scale-codec/std",
+    "relay-encoder-precompiles/std",
+    "pallet-staking/std",
+    "cumulus-primitives-core/std",
+    "sp-runtime/std",
+    "parity-scale-codec/std",
+    "frame-system/std",
+    "xcm-primitives/std"
+]

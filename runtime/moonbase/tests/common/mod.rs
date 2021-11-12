@@ -23,9 +23,10 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances,
-	Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::{UNIT, WEI},
+	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
+	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
+	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::NimbusId;
@@ -37,13 +38,13 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 
-// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+// A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
 	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
 	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
 	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
 
-// Gas limit < transaction cost.
+// An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
 	"f86180843b9aca00809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ca00e28ba2dd3c5a\
 	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
@@ -67,8 +68,8 @@ pub fn last_event() -> Event {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),
@@ -95,6 +96,7 @@ pub struct ExtBuilder {
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	safe_xcm_version: Option<u32>,
 }
 
 impl Default for ExtBuilder {
@@ -128,6 +130,7 @@ impl Default for ExtBuilder {
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
+			safe_xcm_version: None,
 		}
 	}
 }
@@ -173,6 +176,11 @@ impl ExtBuilder {
 
 	pub fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
+		self
+	}
+
+	pub fn with_safe_xcm_version(mut self, safe_xcm_version: u32) -> Self {
+		self.safe_xcm_version = Some(safe_xcm_version);
 		self
 	}
 
@@ -234,6 +242,14 @@ impl ExtBuilder {
 			&mut t,
 		)
 		.unwrap();
+
+		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_xcm::GenesisConfig {
+				safe_xcm_version: self.safe_xcm_version,
+			},
+			&mut t,
+		)
+		.unwrap();
 		let mut ext = sp_io::TestExternalities::new(t);
 
 		let assets = self.assets.clone();
@@ -290,7 +306,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 pub fn set_author(a: NimbusId) {
 	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
 			.dispatch(inherent_origin())
 	);
 }
@@ -315,9 +331,9 @@ pub fn set_parachain_inherent_data() {
 		horizontal_messages: Default::default(),
 	};
 	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
 	)
 	.dispatch(inherent_origin()));
 }

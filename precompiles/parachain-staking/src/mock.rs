@@ -37,11 +37,11 @@ pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -68,6 +68,7 @@ construct_runtime!(
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	scale_info::TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
@@ -117,7 +118,7 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
@@ -145,7 +146,7 @@ impl frame_system::Config for Test {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
@@ -189,9 +190,9 @@ where
 	}
 }
 
-pub type Precompiles = TestPrecompiles<Test>;
+pub type Precompiles = TestPrecompiles<Runtime>;
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<AccountId>;
@@ -211,7 +212,7 @@ impl pallet_evm::Config for Test {
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -234,7 +235,7 @@ parameter_types! {
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
 }
-impl parachain_staking::Config for Test {
+impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
@@ -323,15 +324,15 @@ impl ExtBuilder {
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		parachain_staking::GenesisConfig::<Test> {
+		parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			nominations: self.nominations,
 			inflation_config: self.inflation,
@@ -347,8 +348,8 @@ impl ExtBuilder {
 
 // Same storage changes as EventHandler::note_author impl
 pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
-	<parachain_staking::Points<Test>>::mutate(round, |p| *p += pts);
-	<parachain_staking::AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+	<parachain_staking::Points<Runtime>>::mutate(round, |p| *p += pts);
+	<parachain_staking::AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
 
 pub(crate) fn events() -> Vec<Event> {
@@ -361,8 +362,8 @@ pub(crate) fn events() -> Vec<Event> {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

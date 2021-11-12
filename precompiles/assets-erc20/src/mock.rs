@@ -22,7 +22,8 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 
 use frame_system::EnsureRoot;
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_runtime::{
@@ -51,6 +52,7 @@ pub type Block = frame_system::mocking::MockBlock<Runtime>;
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	TypeInfo,
 )]
 pub enum Account {
 	Alice,
