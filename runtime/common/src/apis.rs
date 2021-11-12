@@ -26,7 +26,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn execute_block(block: Block) {
-					Executive::execute_block(block)
+					Executive::execute_block_with_para_check(block, 4)
 				}
 
 				fn initialize_block(header: &<Block as BlockT>::Header) {
