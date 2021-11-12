@@ -615,7 +615,7 @@ where
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
 			skip_prediction,
-			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
+			create_inherent_data_providers: move |_, (relay_parent, validation_data)| {
 				let parachain_inherent = ParachainInherentData::create_at_with_client(
 					relay_parent,
 					&relay_chain_client,
@@ -632,9 +632,7 @@ where
 						)
 					})?;
 
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-					Ok((time, parachain_inherent, author))
+					Ok((time, parachain_inherent))
 				}
 			},
 		});
