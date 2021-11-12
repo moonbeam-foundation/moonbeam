@@ -570,10 +570,12 @@ pub mod pallet {
 			call: &[u8],
 		) -> Weight {
 			// If bad version, return 0
-			let asset = MultiLocation::try_from(asset.clone());
-			if asset.is_err() {
+			let asset = if let Ok(asset) = MultiLocation::try_from(asset.clone()) {
+				asset
+			} else {
 				return 0;
-			}
+			};
+
 			let call_bytes: Vec<u8> =
 				dest.clone()
 					.encode_call(UtilityAvailableCalls::AsDerivative(
@@ -582,8 +584,7 @@ pub mod pallet {
 					));
 			// Construct MultiAsset
 			let fee = MultiAsset {
-				// Safe to unwrap here, we have evaluated error before
-				id: Concrete(asset.unwrap()),
+				id: Concrete(asset),
 				fun: Fungible(0),
 			};
 			if let Ok(msg) = Self::transact_message(
@@ -629,20 +630,23 @@ pub mod pallet {
 			weight: &u64,
 			call: &Vec<u8>,
 		) -> Weight {
-			// If bad version, return 0
-			let asset = MultiLocation::try_from(asset.clone());
-			let dest = MultiLocation::try_from(dest.clone());
-			if asset.is_err() || dest.is_err() {
-				return 0;
-			}
+			// If asset or dest give errors, return 0
+			let (asset, dest) = match (
+				MultiLocation::try_from(asset.clone()),
+				MultiLocation::try_from(dest.clone()),
+			) {
+				(Ok(asset), Ok(dest)) => (asset, dest),
+				_ => return 0,
+			};
+
 			// Construct MultiAsset
 			let fee = MultiAsset {
-				id: Concrete(asset.unwrap()),
+				id: Concrete(asset),
 				fun: Fungible(0),
 			};
 
 			if let Ok(msg) = Self::transact_message(
-				dest.unwrap(),
+				dest,
 				fee.clone(),
 				weight.clone(),
 				call.clone(),
