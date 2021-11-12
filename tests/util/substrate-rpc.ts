@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-import { GenericExtrinsic } from "@polkadot/types";
+import { GenericExtrinsic } from "@polkadot/types/extrinsic";
 import { AnyTuple } from "@polkadot/types/types";
 import { Event } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
@@ -107,10 +107,7 @@ async function lookForExtrinsicAndEvents(api: ApiPromise, extrinsicHash: Uint8Ar
   return { events, extrinsic };
 }
 
-async function tryLookingForEvents(
-  api: ApiPromise,
-  extrinsicHash: Uint8Array
-): Promise<{ extrinsic: GenericExtrinsic<AnyTuple>; events: Event[] }> {
+async function tryLookingForEvents(api: ApiPromise, extrinsicHash: Uint8Array) {
   await waitOneBlock(api);
   let { extrinsic, events } = await lookForExtrinsicAndEvents(api, extrinsicHash);
   if (events.length > 0) {

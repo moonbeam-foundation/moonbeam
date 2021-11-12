@@ -86,6 +86,11 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	/// Return a globally unique name for this test. This is used as a filter on the command line
+	/// so a CLI-friendly name is preferred.
+	fn name(&self) -> String;
+
+	/// Run the test
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,

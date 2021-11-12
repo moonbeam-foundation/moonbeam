@@ -22,7 +22,7 @@ use crate::{
 	},
 	Action,
 };
-use evm::executor::PrecompileOutput;
+use fp_evm::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{

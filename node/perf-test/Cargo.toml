@@ -21,12 +21,12 @@ serde_json = "1.0"
 psutil = "3.2.1"
 raw-cpuid = "10.2.0"
 num_cpus = "1.13.0"
-heim = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
-heim-cpu = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
-heim-common = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+heim = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
+heim-cpu = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
+heim-common = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
 # TODO: heim-host generates a conflict for crate 'platforms'
-# heim-host = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
-heim-memory = { git = "https://github.com/heim-rs/heim", rev = "c111eb440eba8698ee0722377f9773ac7dbf6841" }
+# heim-host = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
+heim-memory = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
 
 # TODO: handle different runtime builds
 moonbase-runtime = { path = "../../runtime/moonbase" }
@@ -47,7 +47,7 @@ sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-p
 sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
 sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0911-manual-seal" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0912-preruntime" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.11" }

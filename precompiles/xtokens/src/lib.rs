@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
@@ -33,6 +33,7 @@ use sp_std::{
 	marker::PhantomData,
 };
 use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::{VersionedMultiAsset, VersionedMultiLocation};
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -120,7 +121,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
-			dest: Box::new(destination),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 
@@ -167,11 +168,11 @@ where
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
-			}),
-			dest: Box::new(destination),
+			})),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 

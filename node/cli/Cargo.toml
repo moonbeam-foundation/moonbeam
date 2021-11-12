@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-cli"
-version = "0.14.0"
+version = "0.14.2"
 authors = ["PureStake"]
 edition = "2018"
 
@@ -21,7 +21,7 @@ try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "mo
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.11" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0911-manual-seal" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0912-preruntime" }
 
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
 polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.11" }
@@ -33,7 +33,7 @@ cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features 
 perf-test = { path = "../perf-test" }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 [features]
 default = ["wasmtime", "westend-native", "moonbase-native", "moonriver-native", "moonbeam-native"]

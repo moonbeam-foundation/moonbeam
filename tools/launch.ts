@@ -15,8 +15,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -95,10 +93,10 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.13.2",
   },
-  "moonbase-0.14.0": {
+  "moonbase-0.14.2": {
     relay: "rococo-9111",
     chain: "moonbase-local",
-    docker: "purestake/moonbeam:v0.14.0",
+    docker: "purestake/moonbeam:v0.14.2",
   },
   local: {
     relay: "rococo-9111",
@@ -464,12 +462,14 @@ const launchTemplate = {
 const relayNodeTemplate = [
   {
     name: "alice",
+    flags: ["--log=info,parachain::pvf=trace"],
     port: 0,
     rpcPort: 1,
     wsPort: 2,
   },
   {
     name: "bob",
+    flags: ["--log=info,parachain::pvf=trace"],
     port: 10,
     rpcPort: 11,
     wsPort: 12,
@@ -488,9 +488,10 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
+        "--unsafe-ws-external",
         "--rpc-cors=all",
+        "--rpc-port=56101",
         "--",
         "--execution=wasm",
       ],
@@ -501,9 +502,10 @@ const parachainTemplate = {
       wsPort: 112,
       name: "bob",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
+        "--unsafe-ws-external",
         "--rpc-cors=all",
+        "--rpc-port=56111",
         "--",
         "--execution=wasm",
       ],

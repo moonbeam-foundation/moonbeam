@@ -57,10 +57,10 @@ describeDevMoonbeam("Proxing governance", (context) => {
     const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
     const { events } = await createBlockWithExtrinsic(context, ethan, ext);
 
-    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[0])).to.be.true;
-    expect(events[0].data[0].toString()).to.equal("Ok");
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[1])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[2])).to.be.true;
+    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[1])).to.be.true;
+    expect(events[1].data[0].toString()).to.equal("Ok");
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[3])).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
     let dorothyAccountData = await context.polkadotApi.query.system.account(DOROTHY);
