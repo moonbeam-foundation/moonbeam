@@ -46,7 +46,9 @@ export const execFromTwoThirdsOfCouncil = async <
     charleth,
     context.polkadotApi.tx.councilCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
 
   // Dorothy vote for this proposal and close it
   await Promise.all([
@@ -80,7 +82,9 @@ export const execFromAllMembersOfTechCommittee = async <
     alith,
     context.polkadotApi.tx.techCommitteeCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
 
   // Alith, Baltathar vote for this proposal and close it
   await Promise.all([

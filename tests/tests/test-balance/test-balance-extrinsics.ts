@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import { Event } from "@polkadot/types/interfaces";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
@@ -21,7 +20,7 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      const events: Event[] = allRecords
+      const events = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
         .map(({ event }) => event);
 
@@ -42,13 +41,13 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
         case 3:
           expect(section === "ethereum" && method === "transact").to.be.true;
           expect(events.length === 4);
-          expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
-          expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
+          expect(context.polkadotApi.events.system.NewAccount.is(events[1])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[2])).to.be.true;
           // TODO: what event was inserted here?
-          expect(context.polkadotApi.events.balances.Endowed.is(events[4])).to.be.true; // treasury
-          expect(context.polkadotApi.events.treasury.Deposit.is(events[5])).to.be.true;
-          expect(context.polkadotApi.events.ethereum.Executed.is(events[6])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[7])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[7])).to.be.true; // treasury
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[8])).to.be.true;
+          expect(context.polkadotApi.events.ethereum.Executed.is(events[9])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[10])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);
