@@ -582,24 +582,8 @@ pub mod pallet {
 						index.to_owned(),
 						call.to_owned(),
 					));
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(asset),
-				fun: Fungible(0),
-			};
-			if let Ok(msg) = Self::transact_message(
-				dest.clone().destination(),
-				fee.clone(),
-				weight.clone(),
-				call_bytes,
-				weight.to_owned(),
-			) {
-				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
-					T::BaseXcmWeight::get().saturating_add(w)
-				})
-			} else {
-				0
-			}
+
+			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call)
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
@@ -639,14 +623,24 @@ pub mod pallet {
 				_ => return 0,
 			};
 
+			Self::weight_of_transact(&asset, &dest, weight, call)
+		}
+
+		/// Returns weight of transact message.
+		fn weight_of_transact(
+			asset: &MultiLocation,
+			dest: &MultiLocation,
+			weight: &u64,
+			call: &Vec<u8>,
+		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
-				id: Concrete(asset),
+				id: Concrete(asset.clone()),
 				fun: Fungible(0),
 			};
 
 			if let Ok(msg) = Self::transact_message(
-				dest,
+				dest.clone(),
 				fee.clone(),
 				weight.clone(),
 				call.clone(),
