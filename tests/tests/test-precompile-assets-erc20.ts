@@ -10,7 +10,7 @@ import {
   BALTATHAR_PRIV_KEY,
 } from "../util/constants";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
-import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, bnToHex, u8aToHex, stringToHex, numberToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
 import { getCompiled } from "../util/contracts";
 import { ethers } from "ethers";
@@ -134,6 +134,81 @@ describeDevMoonbeam(
       const address = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
+
+    it("allows to call name", async function () {
+      let data = iFace.encodeFunctionData(
+        // action
+        "name",
+        []
+      );
+
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: GENESIS_ACCOUNT,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: ADDRESS_ERC20,
+          data: data,
+        },
+      ]);
+
+      let expected = stringToHex("DOT");
+      let offset = numberToHex(32).slice(2).padStart(64, "0");
+      let length = numberToHex(3).slice(2).padStart(64, "0");
+      // Bytes are padded at the end
+      let expected_hex = expected.slice(2).padEnd(64, "0");
+      expect(tx_call.result).equals("0x" + offset + length + expected_hex);
+    });
+
+    it("allows to call symbol", async function () {
+      let data = iFace.encodeFunctionData(
+        // action
+        "symbol",
+        []
+      );
+
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: GENESIS_ACCOUNT,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: ADDRESS_ERC20,
+          data: data,
+        },
+      ]);
+
+      let expected = stringToHex("DOT");
+      let offset = numberToHex(32).slice(2).padStart(64, "0");
+      let length = numberToHex(3).slice(2).padStart(64, "0");
+      // Bytes are padded at the end
+      let expected_hex = expected.slice(2).padEnd(64, "0");
+      expect(tx_call.result).equals("0x" + offset + length + expected_hex);
+    });
+
+    it("allows to call decimals", async function () {
+      let data = iFace.encodeFunctionData(
+        // action
+        "decimals",
+        []
+      );
+
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: GENESIS_ACCOUNT,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: ADDRESS_ERC20,
+          data: data,
+        },
+      ]);
+
+      let expected = "0x" + numberToHex(12).slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(expected);
+    });
+
     it("allows to call getBalance", async function () {
       let data = iFace.encodeFunctionData(
         // action
@@ -248,6 +323,28 @@ describeDevMoonbeam(
       )) as any;
 
       expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
+    });
+    it("should gather the allowance", async function () {
+      let data = iFace.encodeFunctionData(
+        // action
+        "allowance",
+        [ALITH, BALTATHAR]
+      );
+
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: GENESIS_ACCOUNT,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: ADDRESS_ERC20,
+          data: data,
+        },
+      ]);
+      let amount = new BN(1000);
+
+      let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(amount_hex);
     });
   },
   true
