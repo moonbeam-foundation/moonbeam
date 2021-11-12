@@ -18,7 +18,7 @@
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
 	BalanceOf, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2,
+	ExitQueue2, NominatorState2, Points, Round, Staked,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,
@@ -135,7 +135,6 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 
 			Self::set_temp_storage(example_nominator, "example_nominator");
 		}
-
 		Ok(())
 	}
 
@@ -176,7 +175,57 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 			let old_candidate_converted: Delegator<_, _> = original_nominator_state.into();
 			assert_eq!(old_candidate_converted, new_candidate_state);
 		}
+		Ok(())
+	}
+}
 
+/// Migration to purge staking storage bloat for `Points` and `AtStake` storage items
+pub struct PurgeStaleStorage<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "PurgeStaleStorage", "running migration to remove storage bloat");
+		let current_round = <Round<T>>::get().current;
+		let payment_delay = T::RewardPaymentDelay::get();
+		let db_weight = T::DbWeight::get();
+		let (reads, mut writes) = (3u64, 0u64);
+		if current_round <= payment_delay {
+			// early enough so no storage bloat exists yet
+			// (only relevant for chains <= payment_delay rounds old)
+			return db_weight.reads(reads);
+		}
+		// already paid out at the beginning of current round
+		let most_recent_round_to_kill = current_round - payment_delay;
+		for i in 1..=most_recent_round_to_kill {
+			writes += 2u64;
+			<Staked<T>>::remove(i);
+			<Points<T>>::remove(i);
+		}
+		// 5% of the max block weight as safety margin for computation
+		db_weight.reads(reads) + db_weight.writes(writes) + 25_000_000_000
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// trivial migration
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// expect only the storage items for the last 2 rounds to be stored
+		let staked_count = Staked::<T>::iter().count() as u64;
+		let points_count = Points::<T>::iter().count() as u64;
+		let delay = T::RewardPaymentDelay::get();
+		assert_eq!(
+			staked_count, delay,
+			"Expected {} for `Staked` count, Found: {}",
+			delay, staked_count
+		);
+		assert_eq!(
+			points_count, delay,
+			"Expected {} for `Points` count, Found: {}",
+			delay, staked_count
+		);
 		Ok(())
 	}
 }

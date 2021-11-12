@@ -1457,7 +1457,9 @@ pub mod pallet {
 		),
 		/// Delegator, Candidate, Amount Unstaked, New Total Amt Staked for Candidate
 		DelegatorLeftCandidate(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Paid the account (delegator || collator) the balance as liquid rewards
+		/// Delegator, Collator, Due reward (as per counted delegation for collator)
+		DelegatorDueReward(T::AccountId, T::AccountId, BalanceOf<T>),
+		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Transferred to account which holds funds reserved for parachain bond
 		ReservedForParachainBond(T::AccountId, BalanceOf<T>),
@@ -1533,7 +1535,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
+	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
@@ -2378,18 +2380,18 @@ pub mod pallet {
 			));
 			Ok(())
 		}
-		fn pay_stakers(next: RoundIndex) {
-			// payout is next - duration rounds ago => next - duration > 0 else return early
+		fn pay_stakers(now: RoundIndex) {
+			// payout is now - duration rounds ago => now - duration > 0 else return early
 			let duration = T::RewardPaymentDelay::get();
-			if next <= duration {
+			if now <= duration {
 				return;
 			}
-			let round_to_payout = next - duration;
-			let total = <Points<T>>::get(round_to_payout);
+			let round_to_payout = now - duration;
+			let total = <Points<T>>::take(round_to_payout);
 			if total.is_zero() {
 				return;
 			}
-			let total_staked = <Staked<T>>::get(round_to_payout);
+			let total_staked = <Staked<T>>::take(round_to_payout);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -2406,8 +2408,8 @@ pub mod pallet {
 				));
 			}
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
-					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
+				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
 				}
 			};
 			// only pay out rewards at the end to transfer only total amount due
@@ -2422,26 +2424,31 @@ pub mod pallet {
 			};
 			let collator_fee = <CollatorCommission<T>>::get();
 			let collator_issuance = collator_fee * total_issuance;
-			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
+			for (collator, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
 				let mut amt_due = pct_due * left_issuance;
 				// Take the snapshot of block author and nominations
-				let state = <AtStake<T>>::take(round_to_payout, &val);
+				let state = <AtStake<T>>::take(round_to_payout, &collator);
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					mint(amt_due, val.clone());
+					mint(amt_due, collator.clone());
 				} else {
 					// pay collator first; commission + due_portion
-					let val_pct = Perbill::from_rational(state.bond, state.total);
+					let collator_pct = Perbill::from_rational(state.bond, state.total);
 					let commission = pct_due * collator_issuance;
 					amt_due -= commission;
-					let val_due = (val_pct * amt_due) + commission;
-					mint(val_due, val.clone());
-					// pay delegators due portion
+					let collator_reward = (collator_pct * amt_due) + commission;
+					mint(collator_reward, collator.clone());
+					// pay nominators due portion
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						increase_due_rewards(due, owner);
+						increase_due_rewards(due, owner.clone());
+						Self::deposit_event(Event::DelegatorDueReward(
+							owner.clone(),
+							collator.clone(),
+							due,
+						));
 					}
 				}
 			}
@@ -2469,7 +2476,7 @@ pub mod pallet {
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
-		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+		fn select_top_candidates(now: RoundIndex) -> (u32, u32, BalanceOf<T>) {
 			let (mut collator_count, mut nomination_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
@@ -2483,8 +2490,8 @@ pub mod pallet {
 				let amount = state.total_counted;
 				total += amount;
 				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
-				<AtStake<T>>::insert(next, account, exposure);
-				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
+				<AtStake<T>>::insert(now, account, exposure);
+				Self::deposit_event(Event::CollatorChosen(now, account.clone(), amount));
 			}
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);

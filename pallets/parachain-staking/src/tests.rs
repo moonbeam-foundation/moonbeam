@@ -3306,6 +3306,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(10, 3, 5, 140),
 				Event::ReservedForParachainBond(11, 15),
 				Event::Rewarded(1, 20),
+				Event::DelegatorDueReward(7, 1, 5),
+				Event::DelegatorDueReward(10, 1, 5),
+				Event::DelegatorDueReward(6, 1, 5),
 				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
@@ -3337,6 +3340,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::DelegatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 21),
+				Event::DelegatorDueReward(7, 1, 5),
+				Event::DelegatorDueReward(10, 1, 5),
+				Event::DelegatorDueReward(6, 1, 5),
 				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
@@ -3348,6 +3354,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(20, 5, 5, 140),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 22),
+				Event::DelegatorDueReward(7, 1, 6),
+				Event::DelegatorDueReward(10, 1, 6),
+				Event::DelegatorDueReward(6, 1, 6),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -3361,6 +3370,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::DelegatorLeft(6, 10),
 				Event::ReservedForParachainBond(11, 17),
 				Event::Rewarded(1, 24),
+				Event::DelegatorDueReward(7, 1, 6),
+				Event::DelegatorDueReward(10, 1, 6),
+				Event::DelegatorDueReward(6, 1, 6),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -3389,6 +3401,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				),
 				Event::ReservedForParachainBond(11, 30),
 				Event::Rewarded(1, 20),
+				Event::DelegatorDueReward(7, 1, 4),
+				Event::DelegatorDueReward(10, 1, 4),
+				Event::DelegatorDueReward(6, 1, 4),
 				Event::Rewarded(6, 4),
 				Event::Rewarded(7, 4),
 				Event::Rewarded(10, 4),
@@ -3408,6 +3423,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new4 = vec![
 				Event::ReservedForParachainBond(11, 32),
 				Event::Rewarded(1, 22),
+				Event::DelegatorDueReward(7, 1, 5),
+				Event::DelegatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(9, 1, 40),
@@ -3428,6 +3445,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::ReservedForParachainBond(11, 33),
 				Event::Rewarded(1, 23),
+				Event::DelegatorDueReward(7, 1, 5),
+				Event::DelegatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(10, 1, 50),
@@ -3447,6 +3466,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 35),
 				Event::Rewarded(1, 24),
+				Event::DelegatorDueReward(7, 1, 5),
+				Event::DelegatorDueReward(10, 1, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
 				Event::CollatorChosen(11, 1, 50),
@@ -3464,6 +3485,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 37),
 				Event::Rewarded(1, 24),
+				Event::DelegatorDueReward(7, 1, 4),
+				Event::DelegatorDueReward(8, 1, 4),
+				Event::DelegatorDueReward(10, 1, 4),
 				Event::Rewarded(7, 4),
 				Event::Rewarded(8, 4),
 				Event::Rewarded(10, 4),
@@ -3530,6 +3554,8 @@ fn paid_collator_commission_matches_config() {
 				Event::CollatorChosen(4, 4, 40),
 				Event::NewRound(15, 4, 2, 80),
 				Event::Rewarded(4, 18),
+				Event::DelegatorDueReward(6, 4, 6),
+				Event::DelegatorDueReward(5, 4, 6),
 				Event::Rewarded(5, 6),
 				Event::Rewarded(6, 6),
 				Event::CollatorChosen(5, 1, 40),
@@ -3953,6 +3979,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
 				Event::Rewarded(1, 26),
+				Event::DelegatorDueReward(7, 1, 8),
+				Event::DelegatorDueReward(10, 1, 8),
+				Event::DelegatorDueReward(6, 1, 8),
 				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
@@ -3983,6 +4012,9 @@ fn payouts_follow_nomination_changes() {
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),
 				Event::Rewarded(1, 27),
+				Event::DelegatorDueReward(7, 1, 8),
+				Event::DelegatorDueReward(10, 1, 8),
+				Event::DelegatorDueReward(6, 1, 8),
 				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
@@ -3993,6 +4025,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
 				Event::Rewarded(1, 29),
+				Event::DelegatorDueReward(7, 1, 9),
+				Event::DelegatorDueReward(10, 1, 9),
+				Event::DelegatorDueReward(6, 1, 9),
 				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
@@ -4013,6 +4048,9 @@ fn payouts_follow_nomination_changes() {
 			// keep paying 6
 			let mut new3 = vec![
 				Event::Rewarded(1, 30),
+				Event::DelegatorDueReward(7, 1, 9),
+				Event::DelegatorDueReward(10, 1, 9),
+				Event::DelegatorDueReward(6, 1, 9),
 				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
@@ -4023,6 +4061,9 @@ fn payouts_follow_nomination_changes() {
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
 				Event::Rewarded(1, 32),
+				Event::DelegatorDueReward(7, 1, 10),
+				Event::DelegatorDueReward(10, 1, 10),
+				Event::DelegatorDueReward(6, 1, 10),
 				Event::Rewarded(6, 10),
 				Event::Rewarded(7, 10),
 				Event::Rewarded(10, 10),
@@ -4040,6 +4081,8 @@ fn payouts_follow_nomination_changes() {
 			// no more paying 6
 			let mut new4 = vec![
 				Event::Rewarded(1, 38),
+				Event::DelegatorDueReward(7, 1, 13),
+				Event::DelegatorDueReward(10, 1, 13),
 				Event::Rewarded(7, 13),
 				Event::Rewarded(10, 13),
 				Event::CollatorChosen(9, 1, 40),
@@ -4058,6 +4101,8 @@ fn payouts_follow_nomination_changes() {
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::Rewarded(1, 40),
+				Event::DelegatorDueReward(7, 1, 13),
+				Event::DelegatorDueReward(10, 1, 13),
 				Event::Rewarded(7, 13),
 				Event::Rewarded(10, 13),
 				Event::CollatorChosen(10, 1, 50),
@@ -4071,9 +4116,11 @@ fn payouts_follow_nomination_changes() {
 			assert_eq_events(expected.clone());
 			set_author(10, 1, 100);
 			roll_to(50);
-			// new nomination is still not rewarded yet
+			// new nomination not rewarded yet
 			let mut new6 = vec![
 				Event::Rewarded(1, 42),
+				Event::DelegatorDueReward(7, 1, 14),
+				Event::DelegatorDueReward(10, 1, 14),
 				Event::Rewarded(7, 14),
 				Event::Rewarded(10, 14),
 				Event::CollatorChosen(11, 1, 50),
@@ -4086,9 +4133,13 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new6);
 			assert_eq_events(expected.clone());
 			roll_to(55);
-			// new nomination is rewarded for first time, 2 rounds after joining (`RewardPaymentDelay` = 2)
+			// new nomination is rewarded for first time
+			// 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
 				Event::Rewarded(1, 39),
+				Event::DelegatorDueReward(7, 1, 12),
+				Event::DelegatorDueReward(8, 1, 12),
+				Event::DelegatorDueReward(10, 1, 12),
 				Event::Rewarded(7, 12),
 				Event::Rewarded(8, 12),
 				Event::Rewarded(10, 12),
@@ -4125,9 +4176,13 @@ fn nominations_merged_before_reward_payout() {
 				Event::CollatorChosen(2, 4, 50),
 				Event::NewRound(5, 2, 4, 200),
 				Event::Rewarded(3, 1),
+				Event::DelegatorDueReward(5, 3, 1),
 				Event::Rewarded(4, 1),
+				Event::DelegatorDueReward(5, 4, 1),
 				Event::Rewarded(1, 1),
+				Event::DelegatorDueReward(5, 1, 1),
 				Event::Rewarded(2, 1),
+				Event::DelegatorDueReward(5, 2, 1),
 				// ALL REWARDS FOR 5 are merged into one payment + event
 				Event::Rewarded(5, 4),
 				Event::CollatorChosen(3, 1, 50),
@@ -4453,7 +4508,7 @@ fn nomination_events_convey_correct_position() {
 		});
 }
 
-// MIGRATION TESTS
+// MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
@@ -4611,4 +4666,35 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 			// exit queue should be empty
 			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
 		});
+}
+
+#[test]
+fn verify_purge_storage_migration_works() {
+	use crate::{Points, Round, RoundInfo, Staked};
+	ExtBuilder::default().build().execute_with(|| {
+		// mutate storage similar to if 10 rounds had passed
+		for i in 1..=10 {
+			<Staked<Test>>::insert(i, 100);
+			<Points<Test>>::insert(i, 100);
+		}
+		// set the round information to the 10th round
+		// (we do not use roll_to because the payment logic uses `take` in the code)
+		<Round<Test>>::put(RoundInfo {
+			current: 10,
+			first: 45,
+			length: 5,
+		});
+		// execute the migration
+		crate::migrations::PurgeStaleStorage::<Test>::on_runtime_upgrade();
+		// verify that all inserted items are removed except last 2 rounds
+		for i in 1..=8 {
+			assert_eq!(<Staked<Test>>::get(i), 0);
+			assert_eq!(<Points<Test>>::get(i), 0);
+		}
+		// last 2 rounds are still stored (necessary for future payouts)
+		for i in 9..=10 {
+			assert_eq!(<Staked<Test>>::get(i), 100);
+			assert_eq!(<Points<Test>>::get(i), 100);
+		}
+	});
 }

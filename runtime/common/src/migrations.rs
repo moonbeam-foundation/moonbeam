@@ -24,32 +24,60 @@ use frame_support::{
 };
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
+use parachain_staking::{
+	migrations::{PurgeStaleStorage, RemoveExitQueue},
+	Config as ParachainStakingConfig,
+};
 use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
 /// Staking transition from automatic to manual exits, delay bond_{more, less} requests
-pub struct StakingManualExits<T>(PhantomData<T>);
-impl<T: parachain_staking::Config> Migration for StakingManualExits<T> {
+pub struct ParachainStakingManualExits<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingManualExits<T> {
 	fn friendly_name(&self) -> &str {
-		"MM_Staking_Manual_Exits"
+		"MM_Parachain_Staking_ManualExits"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		parachain_staking::migrations::RemoveExitQueue::<T>::on_runtime_upgrade()
+		RemoveExitQueue::<T>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		parachain_staking::migrations::RemoveExitQueue::<T>::pre_upgrade()
+		RemoveExitQueue::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		parachain_staking::migrations::RemoveExitQueue::<T>::post_upgrade()
+		RemoveExitQueue::<T>::post_upgrade()
+	}
+}
+
+/// A moonbeam migration wrapping the similarly named migration in parachain-staking
+pub struct ParachainStakingPurgeStaleStorage<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_PurgeStaleStorage"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PurgeStaleStorage::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PurgeStaleStorage::<T>::post_upgrade()
 	}
 }
 
@@ -130,7 +158,10 @@ where
 		// let migration_collectives =
 		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
 
-		let staking_manual_exits = StakingManualExits::<Runtime>(Default::default());
+		let migration_parachain_staking_purge_stale_storage =
+			ParachainStakingPurgeStaleStorage::<Runtime>(Default::default());
+		let migration_parachain_staking_manual_exits =
+			ParachainStakingManualExits::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -140,7 +171,8 @@ where
 			// Box::new(migration_author_mapping_twox_to_blake),
 			// completed in runtime 900
 			// Box::new(migration_collectives),
-			Box::new(staking_manual_exits),
+			Box::new(migration_parachain_staking_purge_stale_storage),
+			Box::new(migration_parachain_staking_manual_exits),
 		]
 	}
 }

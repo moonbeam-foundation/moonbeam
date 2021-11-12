@@ -44,6 +44,10 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	fn name(&self) -> String {
+		"block_creation".into()
+	}
+
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
