@@ -5,6 +5,7 @@ import {
   DefinitionRpc,
   DefinitionRpcSub,
   RegistryTypes,
+  OverrideVersionedType,
 } from "@polkadot/types/types";
 
 // override types for specific pallets
@@ -114,12 +115,12 @@ const TYPES_6_19: RegistryTypes = {
   PoolTransaction: {
     hash: "H256",
     nonce: "U256",
-    block_hash: "Option<H256>",
-    block_number: "Option<U256>",
+    blockHash: "Option<H256>",
+    blockNumber: "Option<U256>",
     from: "H160",
     to: "Option<H160>",
     value: "U256",
-    gas_price: "U256",
+    gasPrice: "U256",
     gas: "U256",
     input: "Bytes",
   },
@@ -170,10 +171,10 @@ const TYPES_19_35: RegistryTypes = {
     total: "Balance",
   },
   SystemInherentData: {
-    validation_data: "PersistedValidationData",
-    relay_chain_state: "StorageProof",
-    downward_messages: "Vec<InboundDownwardMessage>",
-    horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+    validationData: "PersistedValidationData",
+    relayChain_state: "StorageProof",
+    downwardMessages: "Vec<InboundDownwardMessage>",
+    horizontalMessages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
   },
   RoundInfo: {
     current: "RoundIndex",
@@ -191,8 +192,8 @@ const TYPES_37_42: RegistryTypes = {
   AuthorId: "AccountId32",
   RelayChainAccountId: "AccountId32",
   RewardInfo: {
-    total_reward: "Balance",
-    claimed_reward: "Balance",
+    totalReward: "Balance",
+    claimedReward: "Balance",
   },
 };
 
@@ -202,10 +203,10 @@ const TYPES_43_154: RegistryTypes = {
     id: "AccountId",
     bond: "Balance",
     nominators: "Vec<AccountId>",
-    top_nominators: "Vec<Bond>",
-    bottom_nominators: "Vec<Bond>",
-    total_counted: "Balance",
-    total_backing: "Balance",
+    topNominators: "Vec<Bond>",
+    bottomNominators: "Vec<Bond>",
+    totalCounted: "Balance",
+    totalBacking: "Balance",
     state: "CollatorStatus",
   },
   NominatorAdded: {
@@ -242,24 +243,24 @@ const TYPES_200_399: RegistryTypes = {
     nominations: "Vec<Bond>",
     revocations: "Vec<AccountId>",
     total: "Balance",
-    scheduled_revocations_count: "u32",
-    scheduled_revocations_total: "Balance",
+    scheduledRevocationsCount: "u32",
+    scheduledRevocationsTotal: "Balance",
     status: "NominatorStatus",
   },
   ExitQ: {
     candidates: "Vec<AccountId>",
-    nominators_leaving: "Vec<AccountId>",
-    candidate_schedule: "Vec<(AccountId, RoundIndex)>",
-    nominator_schedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
+    nominatorsLeaving: "Vec<AccountId>",
+    candidateSchedule: "Vec<(AccountId, RoundIndex)>",
+    nominatorSchedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
   },
 };
 
 const TYPES_400_599: RegistryTypes = {
   ...TYPES_200_399,
   RewardInfo: {
-    total_reward: "Balance",
-    claimed_reward: "Balance",
-    contributed_relay_addresses: "Vec<RelayChainAccountId>",
+    totalReward: "Balance",
+    claimedReward: "Balance",
+    contributedRelayAddresses: "Vec<RelayChainAccountId>",
   },
 };
 
@@ -312,13 +313,13 @@ const TYPES_600_799: RegistryTypes = {
     name: "Vec<u8>",
     symbol: "Vec<u8>",
     decimals: "u8",
-    is_frozen: "bool",
+    isFrozen: "bool",
   },
   VestingBlockNumber: "u32",
   MultiLocation: "MultiLocationV0",
 };
 
-const TYPES_800_undefined: RegistryTypes = {
+const TYPES_800_899: RegistryTypes = {
   ...TYPES_600_799,
   JunctionV1: {
     _enum: {
@@ -334,6 +335,45 @@ const TYPES_800_undefined: RegistryTypes = {
     },
   },
   MultiLocation: "MultiLocationV1",
+};
+
+const TYPES_900_undefined_deprecated: RegistryTypes = {
+  ...TYPES_800_899,
+  MoonbaseRuntimeAssetRegistrarMetadata: {
+    name: "Vec<u8>",
+    symbol: "Vec<u8>",
+    decimals: "u8",
+    is_frozen: "bool",
+  },
+  PalletCrowdloanRewardsRewardInfo: {
+    total_reward: "Balance",
+    claimed_reward: "Balance",
+    contributed_relay_addresses: "Vec<RelayChainAccountId>",
+  },
+  ParachainStakingNominator2: {
+    nominations: "Vec<Bond>",
+    revocations: "Vec<AccountId>",
+    total: "Balance",
+    scheduled_revocations_count: "u32",
+    scheduled_revocations_total: "Balance",
+    status: "NominatorStatus",
+  },
+  ParachainStakingExitQ: {
+    candidates: "Vec<AccountId>",
+    nominators_leaving: "Vec<AccountId>",
+    candidate_schedule: "Vec<(AccountId, RoundIndex)>",
+    nominator_schedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
+  },
+  ParachainStakingCollator2: {
+    id: "AccountId",
+    bond: "Balance",
+    nominators: "Vec<AccountId>",
+    top_nominators: "Vec<Bond>",
+    bottom_nominators: "Vec<Bond>",
+    total_counted: "Balance",
+    total_backing: "Balance",
+    state: "CollatorStatus",
+  },
 };
 
 export const moonbeamDefinitions = {
@@ -389,17 +429,41 @@ export const moonbeamDefinitions = {
       types: TYPES_600_799,
     },
     {
-      minmax: [800, undefined],
-      types: TYPES_800_undefined,
+      minmax: [800, 899],
+      types: TYPES_800_899,
+    },
+    {
+      minmax: [900, undefined],
+      types: {},
     },
   ],
 } as OverrideBundleDefinition;
 
-export const typesBundle = {
+export const moonbeamDefinitionsDeprecated = {
+  ...moonbeamDefinitions,
+  types: [
+    ...(moonbeamDefinitions.types as OverrideVersionedType[]),
+    {
+      minmax: [900, undefined],
+      types: TYPES_900_undefined_deprecated,
+    },
+  ],
+} as OverrideBundleDefinition;
+
+export const typesBundlePre900 = {
   spec: {
     moonbeam: moonbeamDefinitions,
     moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
+  },
+} as OverrideBundleType;
+
+export const typesBundleDeprecated = {
+  spec: {
+    moonbeam: moonbeamDefinitionsDeprecated,
+    moonbeamDefinitions: moonbeamDefinitionsDeprecated,
+    moonbase: moonbeamDefinitionsDeprecated,
+    moonriver: moonbeamDefinitionsDeprecated,
   },
 } as OverrideBundleType;

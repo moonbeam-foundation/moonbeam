@@ -15,8 +15,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
