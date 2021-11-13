@@ -267,7 +267,7 @@ fn join_collator_candidates() {
 					1_000 * UNIT,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
