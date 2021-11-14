@@ -15,6 +15,7 @@ import Keyring from "@polkadot/keyring";
 import { getCompiled } from "../util/contracts";
 import { ethers } from "ethers";
 import { createContract, createTransaction } from "../util/transactions";
+import { createTransfer } from "../util/transactions";
 
 const sourceLocationRelay = { parents: 1, interior: "Here" };
 
@@ -353,7 +354,7 @@ describeDevMoonbeam(
 describeDevMoonbeam(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let sudoAccount, assetId, iFace, contractInstanceAddress;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -369,7 +370,7 @@ describeDevMoonbeam(
         new BN("42259045809535163221576417993425387648")
       );
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
+          supply: balance,
       });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
@@ -377,7 +378,7 @@ describeDevMoonbeam(
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
       const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
-      const address = contract.options.address;
+      contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
     it("allows to approve transfer and use transferFrom", async function () {
@@ -453,7 +454,7 @@ describeDevMoonbeam(
       expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
-  true
+  false
 );
 
 describeDevMoonbeam(
@@ -521,3 +522,133 @@ describeDevMoonbeam(
   },
   true
 );
+
+describeDevMoonbeam(
+  "Precompiles - Assets-ERC20 Wasm",
+  (context) => {
+    let sudoAccount, assetId, iFace, contractInstanceAddress;
+    before("Setup contract and mock balance", async () => {
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+      // And we need relay tokens for issuing a transaction to be executed in the relay
+      const balance = context.polkadotApi.createType("Balance", 100000000000000);
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
+
+      assetId = context.polkadotApi.createType(
+        "u128",
+        new BN("42259045809535163221576417993425387648")
+      );
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+          supply: balance,
+      });
+
+      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
+
+      const contractData = await getCompiled("ERC20Instance");
+      iFace = new ethers.utils.Interface(contractData.contract.abi);
+      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      contractInstanceAddress = contract.options.address;
+      await context.createBlock({ transactions: [rawTx] });
+    });
+    it("should approve from another contract", async function () {
+
+      // Second, call directly it through a contract
+      let data = iFace.encodeFunctionData(
+        // action
+        "approve_delegate",
+        [BALTATHAR, 1000]
+      );
+
+      const tx = await createTransaction(context.web3, {
+        from: ALITH,
+        privateKey: ALITH_PRIV_KEY,
+        value: "0x0",
+        gas: "0x200000",
+        gasPrice: GAS_PRICE,
+        to: contractInstanceAddress,
+        data: data,
+      });
+
+      const block = await context.createBlock({
+        transactions: [tx],
+      });
+
+      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+
+      expect(receipt.status).to.equal(true);
+      expect(receipt.logs.length).to.eq(1);
+      expect(receipt.logs[0].address).to.eq(contractInstanceAddress);
+      expect(receipt.logs[0].topics.length).to.eq(3);
+      expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
+      let approvals = (await context.polkadotApi.query.assets.approvals(
+        assetId,
+        ALITH,
+        BALTATHAR
+      )) as any;
+
+      expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
+    })
+  });
+
+
+  describeDevMoonbeam(
+    "Precompiles - Assets-ERC20 Wasm",
+    (context) => {
+      let sudoAccount, assetId, iFace, contractInstanceAddress;
+      before("Setup contract and mock balance", async () => {
+        const keyring = new Keyring({ type: "ethereum" });
+        sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+        // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+        // And we need relay tokens for issuing a transaction to be executed in the relay
+        const balance = context.polkadotApi.createType("Balance", 100000000000000);
+        const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+          balance: balance,
+        });
+  
+        assetId = context.polkadotApi.createType(
+          "u128",
+          new BN("42259045809535163221576417993425387648")
+        );
+        const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+            supply: balance,
+        });
+  
+        await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
+  
+        const contractData = await getCompiled("ERC20Instance");
+        iFace = new ethers.utils.Interface(contractData.contract.abi);
+        const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+        contractInstanceAddress = contract.options.address;
+        await context.createBlock({ transactions: [rawTx] });
+      });
+      it.only("should approve from another contract with call", async function () {
+  
+        const testAddress = contractInstanceAddress;
+    await context.createBlock({
+      transactions: [await createTransfer(context.web3, testAddress, 10000)],
+    });
+
+        // Second, call directly it through a contract
+        let data = iFace.encodeFunctionData(
+          // action
+          "approve",
+          [BALTATHAR, 1000]
+        );
+  
+        const tx_call = await customWeb3Request(context.web3, "eth_call", [
+          {
+            from: ALITH,
+            value: "0x0",
+            gas: "0x10000",
+            gasPrice: GAS_PRICE,
+            to: contractInstanceAddress,
+            data: data,
+          },
+        ]);
+
+        console.log(tx_call)
+      })
+    });
