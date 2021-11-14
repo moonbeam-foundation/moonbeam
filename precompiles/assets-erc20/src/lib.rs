@@ -262,7 +262,7 @@ where
 
 		{
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
-			
+
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
 			// Allowance read
@@ -379,35 +379,48 @@ where
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-
-			// If caller is "from", it can spend as much as it wants from its own balance.
-			let used_gas = if caller != from {
+			if caller != from {
+				let used_gas = if caller != from {
+					// Dispatch call (if enough gas).
+					RuntimeHelper::<Runtime>::try_dispatch(
+						Some(caller).into(),
+						pallet_assets::Call::<Runtime, Instance>::transfer_approved {
+							id: asset_id,
+							owner: Runtime::Lookup::unlookup(from),
+							destination: Runtime::Lookup::unlookup(to),
+							amount,
+						},
+						gasometer.remaining_gas()?,
+					)
+				} else {
+					// Dispatch call (if enough gas).
+					RuntimeHelper::<Runtime>::try_dispatch(
+						Some(from).into(),
+						pallet_assets::Call::<Runtime, Instance>::transfer {
+							id: asset_id,
+							target: Runtime::Lookup::unlookup(to),
+							amount,
+						},
+						gasometer.remaining_gas()?,
+					)
+				}?;
+				gasometer.record_cost(used_gas)?;
+			}
+			// caller == from, we use regular transfer
+			else {
 				// Dispatch call (if enough gas).
-				RuntimeHelper::<Runtime>::try_dispatch(
+				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
-					pallet_assets::Call::<Runtime, Instance>::transfer_approved {
-						id: asset_id,
-						owner: Runtime::Lookup::unlookup(from),
-						destination: Runtime::Lookup::unlookup(to),
-						amount,
-					},
-					gasometer.remaining_gas()?,
-				)
-			} else {
-				// Dispatch call (if enough gas).
-				RuntimeHelper::<Runtime>::try_dispatch(
-					Some(from).into(),
 					pallet_assets::Call::<Runtime, Instance>::transfer {
 						id: asset_id,
 						target: Runtime::Lookup::unlookup(to),
 						amount,
 					},
 					gasometer.remaining_gas()?,
-				)
-			}?;
-			gasometer.record_cost(used_gas)?;
+				)?;
+				gasometer.record_cost(used_gas)?;
+			}
 		}
-
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
