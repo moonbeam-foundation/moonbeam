@@ -52,7 +52,6 @@ fn load_spec(
 		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
 		#[cfg(feature = "moonbase-native")]
 		"moonbase-dev" | "dev" | "development" => {
-			println!(" I AM HERE");
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
 		#[cfg(all(feature = "test-spec", feature = "moonbeam-native"))]
