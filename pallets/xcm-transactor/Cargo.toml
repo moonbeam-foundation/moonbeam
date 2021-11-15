@@ -17,10 +17,10 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
@@ -29,7 +29,7 @@ pallet-balances = { git = "https://github.com/purestake/substrate", branch = "mo
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12"}
 parity-scale-codec = { version = "2.1.1"}
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12"}
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 
 [features]
 default = ["std"]

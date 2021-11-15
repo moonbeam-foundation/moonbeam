@@ -10,7 +10,7 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 

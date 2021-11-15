@@ -111,12 +111,12 @@ cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", defau
 cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 # xcmp 
-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 xcm-transactor =  { path = "../../pallets/xcm-transactor", default-features = false }
 
@@ -132,8 +132,8 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 rlp = "0.5"
 hex = "0.4"
 sha3 = "0.9"
-polkadot-runtime-parachains = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-runtime-parachains = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }

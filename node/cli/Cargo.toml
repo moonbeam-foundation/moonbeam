@@ -23,10 +23,10 @@ cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch 
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
 
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }

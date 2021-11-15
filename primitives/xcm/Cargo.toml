@@ -22,9 +22,9 @@ sp-runtime = { git = "https://github.com/purestake/substrate", default-features 
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 
-xcm =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-builder =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-xcm-executor =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+xcm =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-builder =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+xcm-executor =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 
 [features]
 default = ["std"]

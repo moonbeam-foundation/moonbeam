@@ -110,10 +110,10 @@ pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch =
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
 
 # Polkadot dependencies
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
@@ -128,7 +128,7 @@ nix = "0.17"
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }

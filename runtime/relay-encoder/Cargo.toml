@@ -19,10 +19,10 @@ sp-std = { git = "https://github.com/purestake/substrate", default-features = fa
 xcm-primitives =  { path = "../../primitives/xcm", default-features = false }
 
 [dev-dependencies]
-polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
+rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
