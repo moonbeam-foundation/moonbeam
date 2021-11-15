@@ -194,7 +194,7 @@ fn export_current_state() {
 
 		// Let it produce some blocks.
 		// This fails if is not a minimum of 25
-		thread::sleep(Duration::from_secs(25));
+		thread::sleep(Duration::from_secs(35));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -202,7 +202,7 @@ fn export_current_state() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(wait_for(&mut cmd, 35)
+		assert!(wait_for(&mut cmd, 30)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
