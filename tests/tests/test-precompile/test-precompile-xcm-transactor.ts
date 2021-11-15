@@ -80,7 +80,7 @@ const relayAssetMetadata: AssetMetadata = {
   isFrozen: false,
 };
 
-const sourceLocationRelay = { parents: 1, interior: "Here" };
+const sourceLocationRelayVersioned = { v1: { parents: 1, interior: "Here" } };
 
 const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
 
@@ -98,7 +98,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
-          sourceLocationRelay,
+          sourceLocationRelayVersioned,
           new BN(0),
           new BN(0),
           new BN(0),
@@ -261,7 +261,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
-          sourceLocationRelay,
+          sourceLocationRelayVersioned,
           new BN(0),
           new BN(0),
           new BN(0),

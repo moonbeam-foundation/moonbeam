@@ -179,7 +179,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
 
     // Verify that the proposal is submitted
     let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
-    expect(proposalCount.toHuman()).to.equal("1", "new proposal should have been added");
+    expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth submit the proposal to the council (and therefore implicitly votes for)
     const { events: proposalEvents } = await createBlockWithExtrinsic(
@@ -191,7 +191,9 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
         1_000
       )
     );
-    const proposalHash = proposalEvents[0].data[2].toHuman();
+    const proposalHash = proposalEvents
+      .find((e) => e.method.toString() == "Proposed")
+      .data[2].toHex() as string;
 
     // Charleth & Dorothy vote for this proposal and close it
     await context.polkadotApi.tx.councilCollective
@@ -225,7 +227,7 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
 
     // Verify that the proposal is submitted
     let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
-    expect(proposalCount.toHuman()).to.equal("1", "new proposal should have been added");
+    expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth proposed that the council reject the treasury proposal
     // (and therefore implicitly votes for)
@@ -238,7 +240,9 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
         1_000
       )
     );
-    const councilProposalHash = rejectEvents[0].data[2].toHuman();
+    const councilProposalHash = rejectEvents
+      .find((e) => e.method.toString() == "Proposed")
+      .data[2].toHex() as string;
 
     // Charleth & Dorothy vote for against proposal and close it
     await Promise.all([

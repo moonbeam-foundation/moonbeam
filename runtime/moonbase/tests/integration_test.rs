@@ -201,6 +201,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -1228,7 +1243,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 16035u64,
+				cost: 15035u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,

@@ -140,7 +140,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       ethan,
       context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_STAKING)
     );
-    expect(events[3].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(events[5].toHuman().method).to.eq("ExtrinsicSuccess");
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter[1].amount.toBigInt()).to.equal(
       1000n * GLMR,
@@ -173,7 +173,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
       ethan,
       context.polkadotApi.tx.parachainStaking.candidateBondLess(MIN_GLMR_NOMINATOR)
     );
-    expect(events[1].toHuman().method).to.eq("ExtrinsicFailed");
+    expect(events[3].toHuman().method).to.eq("ExtrinsicFailed");
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter[1].amount.toBigInt()).to.equal(
       1000n * GLMR,
@@ -251,8 +251,8 @@ describeDevMoonbeam("Staking - Nominators Bond More", (context) => {
       ethan,
       context.polkadotApi.tx.parachainStaking.nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR)
     );
-    expect(events[1].method.toString()).to.eq("NominationDecreased");
-    expect((events[1].data[2] as any).toBigInt()).to.eq(5n * GLMR);
+    expect(events[2].method.toString()).to.eq("NominationDecreased");
+    expect((events[2].data[2] as any).toBigInt()).to.eq(5n * GLMR);
     const nominatorsAfter = (
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
@@ -288,7 +288,7 @@ describeDevMoonbeam("Staking - Nominators shouldn't bond less than min bond", (c
       ethan,
       context.polkadotApi.tx.parachainStaking.nominatorBondLess(ALITH, MIN_GLMR_NOMINATOR_PLUS_ONE)
     );
-    expect(events[1].method.toString()).to.eq("ExtrinsicFailed");
+    expect(events[3].method.toString()).to.eq("ExtrinsicFailed");
     const nominatorsAfter = (
       (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
     ).unwrap();
@@ -321,7 +321,7 @@ describeDevMoonbeam(
         ethan,
         context.polkadotApi.tx.parachainStaking.nominatorBondLess(ALITH, 1n * GLMR)
       );
-      expect(events[1].method.toString()).to.eq("ExtrinsicFailed");
+      expect(events[3].method.toString()).to.eq("ExtrinsicFailed");
       const nominatorsAfter = (
         (await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN)) as any
       ).unwrap();

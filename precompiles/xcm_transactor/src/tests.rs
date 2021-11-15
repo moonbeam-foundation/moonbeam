@@ -156,7 +156,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				MultiLocation::parent(),
+				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
 				0,
 				0,
@@ -197,7 +197,7 @@ fn test_transactor_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				MultiLocation::parent(),
+				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
 				0,
 				0,
@@ -252,7 +252,7 @@ fn test_transactor() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				MultiLocation::parent(),
+				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
 				0,
 				0,
