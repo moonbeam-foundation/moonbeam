@@ -588,7 +588,7 @@ fn cannot_join_candidates_if_candidate() {
 }
 
 #[test]
-fn cannot_join_candidates_if_nominator() {
+fn cannot_join_candidates_if_delegator() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50), (2, 20)])
 		.with_candidates(vec![(1, 50)])
@@ -1559,7 +1559,7 @@ fn delegate_reserves_balance() {
 }
 
 #[test]
-fn delegate_updates_nominator_state() {
+fn delegate_updates_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -1567,10 +1567,10 @@ fn delegate_updates_nominator_state() {
 		.execute_with(|| {
 			assert!(Stake::delegator_state(2).is_none());
 			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
-			let nominator_state = Stake::delegator_state(2).expect("just delegated => exists");
-			assert_eq!(nominator_state.total, 10);
+			let delegator_state = Stake::delegator_state(2).expect("just delegated => exists");
+			assert_eq!(delegator_state.total, 10);
 			assert_eq!(
-				nominator_state.delegations.0[0],
+				delegator_state.delegations.0[0],
 				Bond {
 					owner: 1,
 					amount: 10
@@ -1795,7 +1795,7 @@ fn cannot_leave_delegators_if_already_leaving() {
 }
 
 #[test]
-fn cannot_leave_delegators_if_not_nominator() {
+fn cannot_leave_delegators_if_not_delegator() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -1891,7 +1891,7 @@ fn execute_leave_delegators_decreases_total_staked() {
 }
 
 #[test]
-fn execute_leave_delegators_removes_nominator_state() {
+fn execute_leave_delegators_removes_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2015,7 +2015,7 @@ fn revoke_delegation_event_emits_correctly() {
 }
 
 #[test]
-fn can_revoke_delegation_if_revoking_another_nomination() {
+fn can_revoke_delegation_if_revoking_another_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 30), (3, 20)])
@@ -2045,7 +2045,7 @@ fn cannot_revoke_if_leaving() {
 }
 
 #[test]
-fn cannot_revoke_delegation_if_not_nominator() {
+fn cannot_revoke_delegation_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			Stake::revoke_delegation(Origin::signed(2), 1),
@@ -2070,9 +2070,9 @@ fn cannot_revoke_delegation_that_dne() {
 }
 
 #[test]
-// See `cannot_execute_revoke_delegation_below_min_nominator_stake` for where the "must be above
+// See `cannot_execute_revoke_delegation_below_min_delegator_stake` for where the "must be above
 // MinDelegatorStk" rule is now enforced.
-fn can_schedule_revoke_delegation_below_min_nominator_stake() {
+fn can_schedule_revoke_delegation_below_min_delegator_stake() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
 		.with_candidates(vec![(1, 20), (3, 20)])
@@ -2155,7 +2155,7 @@ fn cannot_delegator_bond_more_if_revoking() {
 }
 
 #[test]
-fn cannot_delegator_bond_more_if_not_nominator() {
+fn cannot_delegator_bond_more_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			Stake::delegator_bond_more(Origin::signed(2), 1, 5),
@@ -2180,7 +2180,7 @@ fn cannot_delegator_bond_more_if_candidate_dne() {
 }
 
 #[test]
-fn cannot_delegator_bond_more_if_nomination_dne() {
+fn cannot_delegator_bond_more_if_delegation_dne() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10), (3, 30)])
 		.with_candidates(vec![(1, 30), (3, 30)])
@@ -2281,7 +2281,7 @@ fn cannot_delegator_bond_less_if_revoking() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_if_not_nominator() {
+fn cannot_delegator_bond_less_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			Stake::delegator_bond_less(Origin::signed(2), 1, 5),
@@ -2306,7 +2306,7 @@ fn cannot_delegator_bond_less_if_candidate_dne() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_if_nomination_dne() {
+fn cannot_delegator_bond_less_if_delegation_dne() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10), (3, 30)])
 		.with_candidates(vec![(1, 30), (3, 30)])
@@ -2336,7 +2336,7 @@ fn cannot_delegator_bond_less_below_min_collator_stk() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_more_than_total_nomination() {
+fn cannot_delegator_bond_less_more_than_total_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2351,7 +2351,7 @@ fn cannot_delegator_bond_less_more_than_total_nomination() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_below_min_nomination() {
+fn cannot_delegator_bond_less_below_min_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
 		.with_candidates(vec![(1, 30), (3, 30)])
@@ -2371,7 +2371,7 @@ fn cannot_delegator_bond_less_below_min_nomination() {
 
 #[test]
 fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
-	// last nomination is revocation
+	// last delegation is revocation
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2387,7 +2387,7 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 }
 
 #[test]
-fn cannot_execute_revoke_delegation_below_min_nominator_stake() {
+fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
 		.with_candidates(vec![(1, 20), (3, 20)])
@@ -2410,7 +2410,7 @@ fn cannot_execute_revoke_delegation_below_min_nominator_stake() {
 
 #[test]
 fn revoke_delegation_executes_exit_if_last_delegation() {
-	// last nomination is revocation
+	// last delegation is revocation
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2459,7 +2459,7 @@ fn execute_revoke_delegation_unreserves_balance() {
 }
 
 #[test]
-fn execute_revoke_delegation_adds_revocation_to_nominator_state() {
+fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 30), (3, 20)])
@@ -2483,7 +2483,7 @@ fn execute_revoke_delegation_adds_revocation_to_nominator_state() {
 }
 
 #[test]
-fn execute_revoke_delegation_removes_revocation_from_nominator_state_upon_execution() {
+fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execution() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 30), (3, 20)])
@@ -2519,7 +2519,7 @@ fn execute_revoke_delegation_decreases_total_staked() {
 }
 
 #[test]
-fn execute_revoke_delegation_for_last_nomination_removes_nominator_state() {
+fn execute_revoke_delegation_for_last_delegation_removes_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2537,7 +2537,7 @@ fn execute_revoke_delegation_for_last_nomination_removes_nominator_state() {
 }
 
 #[test]
-fn execute_revoke_delegation_removes_nomination_from_candidate_state() {
+fn execute_revoke_delegation_removes_delegation_from_candidate_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -2685,7 +2685,7 @@ fn execute_delegator_bond_more_increases_total_staked() {
 }
 
 #[test]
-fn execute_delegator_bond_more_updates_nominator_state() {
+fn execute_delegator_bond_more_updates_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2836,7 +2836,7 @@ fn execute_delegator_bond_less_decreases_total_staked() {
 }
 
 #[test]
-fn execute_delegator_bond_less_updates_nominator_state() {
+fn execute_delegator_bond_less_updates_delegator_state() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -3196,7 +3196,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 // ~~ PROPERTY-BASED TESTS ~~
 
 #[test]
-fn nominator_schedule_revocation_total() {
+fn delegator_schedule_revocation_total() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20), (5, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20), (5, 20)])
@@ -3296,7 +3296,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
 			roll_to(16);
-			// distribute total issuance to collator 1 and its nominators 6, 7, 19
+			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
 				Event::CollatorChosen(3, 1, 50),
 				Event::CollatorChosen(3, 2, 40),
@@ -3326,13 +3326,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(3, 1, 100);
 			set_author(4, 1, 100);
 			set_author(5, 1, 100);
-			// 1. ensure nominators are paid for 2 rounds after they leave
+			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				Stake::leave_delegators(Origin::signed(66), 10),
 				Error::<Test>::DelegatorDNE
 			);
 			assert_ok!(Stake::leave_delegators(Origin::signed(6), 10));
-			// fast forward to block in which nominator 6 exit executes
+			// fast forward to block in which delegator 6 exit executes
 			roll_to(25);
 			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6));
 			roll_to(30);
@@ -3440,7 +3440,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(8, 1, 100);
 			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
-			// new nomination is not rewarded yet
+			// new delegation is not rewarded yet
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::ReservedForParachainBond(11, 33),
@@ -3462,7 +3462,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(9, 1, 100);
 			set_author(10, 1, 100);
 			roll_to(50);
-			// new nomination is still not rewarded yet
+			// new delegation is still not rewarded yet
 			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 35),
 				Event::Rewarded(1, 24),
@@ -3481,7 +3481,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq_events(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 195);
 			roll_to(55);
-			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
+			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 37),
 				Event::Rewarded(1, 24),
@@ -3548,7 +3548,7 @@ fn paid_collator_commission_matches_config() {
 			set_author(3, 4, 100);
 			roll_to(21);
 			// 20% of 10 is commission + due_portion (4) = 2 + 4 = 6
-			// all nominator payouts are 10-2 = 8 * stake_pct
+			// all delegator payouts are 10-2 = 8 * stake_pct
 			let mut new2 = vec![
 				Event::CollatorChosen(4, 1, 40),
 				Event::CollatorChosen(4, 4, 40),
@@ -3932,7 +3932,7 @@ fn multiple_delegations() {
 }
 
 #[test]
-fn payouts_follow_nomination_changes() {
+fn payouts_follow_delegation_changes() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 100),
@@ -3970,7 +3970,7 @@ fn payouts_follow_nomination_changes() {
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
 			roll_to(16);
-			// distribute total issuance to collator 1 and its nominators 6, 7, 19
+			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
 				Event::CollatorChosen(3, 1, 50),
 				Event::CollatorChosen(3, 2, 40),
@@ -3999,13 +3999,13 @@ fn payouts_follow_nomination_changes() {
 			set_author(4, 1, 100);
 			set_author(5, 1, 100);
 			set_author(6, 1, 100);
-			// 1. ensure nominators are paid for 2 rounds after they leave
+			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				Stake::leave_delegators(Origin::signed(66), 10),
 				Error::<Test>::DelegatorDNE
 			);
 			assert_ok!(Stake::leave_delegators(Origin::signed(6), 10));
-			// fast forward to block in which nominator 6 exit executes
+			// fast forward to block in which delegator 6 exit executes
 			roll_to(25);
 			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6));
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
@@ -4097,7 +4097,7 @@ fn payouts_follow_nomination_changes() {
 			set_author(9, 1, 100);
 			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
-			// new nomination is not rewarded yet
+			// new delegation is not rewarded yet
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::Rewarded(1, 40),
@@ -4116,7 +4116,7 @@ fn payouts_follow_nomination_changes() {
 			assert_eq_events(expected.clone());
 			set_author(10, 1, 100);
 			roll_to(50);
-			// new nomination not rewarded yet
+			// new delegation not rewarded yet
 			let mut new6 = vec![
 				Event::Rewarded(1, 42),
 				Event::DelegatorDueReward(7, 1, 14),
@@ -4133,7 +4133,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new6);
 			assert_eq_events(expected.clone());
 			roll_to(55);
-			// new nomination is rewarded for first time
+			// new delegation is rewarded for first time
 			// 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
 				Event::Rewarded(1, 39),
@@ -4156,7 +4156,7 @@ fn payouts_follow_nomination_changes() {
 }
 
 #[test]
-fn nominations_merged_before_reward_payout() {
+fn delegations_merged_before_reward_payout() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 120)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
@@ -4208,26 +4208,26 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			// no top nominators => no bottom nominators
+			// no top delegators => no bottom delegators
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert!(collator_state.top_delegations.is_empty());
 			assert!(collator_state.bottom_delegations.is_empty());
-			// 1 nominator => 1 top nominator, 0 bottom nominators
+			// 1 delegator => 1 top delegator, 0 bottom delegators
 			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 1usize);
 			assert!(collator_state.bottom_delegations.is_empty());
-			// 2 nominators => 2 top nominators, 0 bottom nominators
+			// 2 delegators => 2 top delegators, 0 bottom delegators
 			assert_ok!(Stake::delegate(Origin::signed(3), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 2usize);
 			assert!(collator_state.bottom_delegations.is_empty());
-			// 3 nominators => 3 top nominators, 0 bottom nominators
+			// 3 delegators => 3 top delegators, 0 bottom delegators
 			assert_ok!(Stake::delegate(Origin::signed(4), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 3usize);
 			assert!(collator_state.bottom_delegations.is_empty());
-			// 4 nominators => 4 top nominators, 0 bottom nominators
+			// 4 delegators => 4 top delegators, 0 bottom delegators
 			assert_ok!(Stake::delegate(Origin::signed(5), 1, 10, 10, 10));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			assert_eq!(collator_state.top_delegations.len(), 4usize);
@@ -4328,7 +4328,7 @@ fn only_top_collators_are_counted() {
 		])
 		.build()
 		.execute_with(|| {
-			// sanity check that 3-10 are nominators immediately
+			// sanity check that 3-10 are delegators immediately
 			for i in 3..11 {
 				assert!(Stake::is_delegator(&i));
 			}
@@ -4400,7 +4400,7 @@ fn only_top_collators_are_counted() {
 }
 
 #[test]
-fn nomination_events_convey_correct_position() {
+fn delegation_events_convey_correct_position() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 100),
@@ -4422,7 +4422,7 @@ fn nomination_events_convey_correct_position() {
 			// 11 + 12 + 13 + 14 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 70);
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
-			// Top delegations are full, new highest nomination is made
+			// Top delegations are full, new highest delegation is made
 			assert_ok!(Stake::delegate(Origin::signed(7), 1, 15, 10, 10));
 			assert_event_emitted(Event::Delegation(
 				7,
@@ -4438,7 +4438,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 11,
 				collator1_state.total_backing
 			);
-			// New nomination is added to the bottom
+			// New delegation is added to the bottom
 			assert_ok!(Stake::delegate(Origin::signed(8), 1, 10, 10, 10));
 			assert_event_emitted(Event::Delegation(8, 10, 1, DelegatorAdded::AddedToBottom));
 			let collator1_state = Stake::candidate_state(1).unwrap();
@@ -4449,7 +4449,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 21,
 				collator1_state.total_backing
 			);
-			// 8 increases nomination to the top
+			// 8 increases delegation to the top
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(8), 1, 3));
 			assert_event_emitted(Event::DelegationIncreaseScheduled(8, 1, 3, 3));
 			roll_to(10);
@@ -4463,7 +4463,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 23,
 				collator1_state.total_backing
 			);
-			// 3 increases nomination but stays in bottom
+			// 3 increases delegation but stays in bottom
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 1));
 			assert_event_emitted(Event::DelegationIncreaseScheduled(3, 1, 1, 5));
 			roll_to(20);
@@ -4477,7 +4477,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 24,
 				collator1_state.total_backing
 			);
-			// 6 decreases nomination but stays in top
+			// 6 decreases delegation but stays in top
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 2));
 			assert_event_emitted(Event::DelegationDecreaseScheduled(6, 1, 2, 7));
 			roll_to(30);
@@ -4491,7 +4491,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 24,
 				collator1_state.total_backing
 			);
-			// 6 decreases nomination and is bumped to bottom
+			// 6 decreases delegation and is bumped to bottom
 			assert_ok!(Stake::delegator_bond_less(Origin::signed(6), 1, 1));
 			assert_event_emitted(Event::DelegationDecreaseScheduled(6, 1, 1, 9));
 			roll_to(40);

@@ -143,7 +143,7 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
+	// [delegator, collator, delegation_amount]
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
@@ -321,7 +321,7 @@ fn geneses() {
 			assert_eq!(Balances::reserved_balance(&2), 200);
 			assert_eq!(Balances::free_balance(&2), 100);
 			assert!(Stake::is_candidate(&2));
-			// nominators
+			// delegators
 			for x in 3..7 {
 				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 0);
@@ -371,7 +371,7 @@ fn geneses() {
 			assert!(Stake::is_candidate(&5));
 			assert_eq!(Balances::free_balance(&5), 90);
 			assert_eq!(Balances::reserved_balance(&5), 10);
-			// nominators
+			// delegators
 			for x in 6..11 {
 				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 90);

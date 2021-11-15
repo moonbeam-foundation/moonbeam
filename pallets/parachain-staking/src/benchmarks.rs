@@ -55,14 +55,14 @@ fn create_funded_user<T: Config>(
 	(user, total)
 }
 
-/// Create a funded nominator.
-fn create_funded_nominator<T: Config>(
+/// Create a funded delegator.
+fn create_funded_delegator<T: Config>(
 	string: &'static str,
 	n: u32,
 	extra: BalanceOf<T>,
 	collator: T::AccountId,
 	min_bond: bool,
-	collator_nominator_count: u32,
+	collator_delegator_count: u32,
 ) -> Result<T::AccountId, &'static str> {
 	let (user, total) = create_funded_user::<T>(string, n, extra);
 	let bond = if min_bond {
@@ -74,8 +74,8 @@ fn create_funded_nominator<T: Config>(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
 		bond,
-		collator_nominator_count,
-		0u32, // first nomination for all calls
+		collator_delegator_count,
+		0u32, // first delegation for all calls
 	)?;
 	Ok(user)
 }
@@ -202,7 +202,7 @@ benchmarks! {
 	}
 
 	// This call schedules the collator's exit and removes them from the candidate pool
-	// -> it retains the self-bond and nominator bonds
+	// -> it retains the self-bond and delegator bonds
 	schedule_leave_candidates {
 		let x in 3..1_000;
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
@@ -443,11 +443,9 @@ benchmarks! {
 	}
 
 	delegate {
-		let max_nominations = <<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-		let max_nominators = <<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get();
 		let x in 3..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 		let y in 2..<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get();
-		// Worst Case is full of nominations before calling `delegate`
+		// Worst Case is full of delegations before calling `delegate`
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		// Initialize MaxDelegationsPerDelegator collator candidates
 		for i in 2..x {
@@ -469,13 +467,13 @@ benchmarks! {
 		};
 		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, extra.into());
 		// Delegation count
-		let mut nom_nom_count = 0u32;
+		let mut del_del_count = 0u32;
 		// Nominate MaxDelegationsPerDelegators collator candidates
 		for col in collators.clone() {
 			Pallet::<T>::delegate(
-				RawOrigin::Signed(caller.clone()).into(), col, bond, 0u32, nom_nom_count
+				RawOrigin::Signed(caller.clone()).into(), col, bond, 0u32, del_del_count
 			)?;
-			nom_nom_count += 1u32;
+			del_del_count += 1u32;
 		}
 		// Last collator to be delegated
 		let collator: T::AccountId = create_funded_collator::<T>(
@@ -486,27 +484,27 @@ benchmarks! {
 			collators.len() as u32 + 1u32,
 		)?;
 		// Worst Case Complexity is insertion into an almost full collator
-		let mut col_nom_count = 0u32;
+		let mut col_del_count = 0u32;
 		for i in 1..y {
 			let seed = USER_SEED + i;
-			let nominator = create_funded_nominator::<T>(
-				"nominator",
+			let _ = create_funded_delegator::<T>(
+				"delegator",
 				seed,
 				0u32.into(),
 				collator.clone(),
 				true,
-				col_nom_count,
+				col_del_count,
 			)?;
-			col_nom_count += 1u32;
+			col_del_count += 1u32;
 		}
-	}: _(RawOrigin::Signed(caller.clone()), collator, bond, col_nom_count, nom_nom_count)
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond, col_del_count, del_del_count)
 	verify {
 		assert!(Pallet::<T>::is_delegator(&caller));
 	}
 
 	leave_delegators {
 		let x in 2..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-		// Worst Case is full of nominations before exit
+		// Worst Case is full of delegations before exit
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		// Initialize MaxDelegationsPerDelegator collator candidates
 		for i in 1..x {
@@ -528,11 +526,10 @@ benchmarks! {
 		} else {
 			0u32.into()
 		};
-		// Fund the nominator
+		// Fund the delegator
 		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, need);
-		let nomination_count = collators.len() as u32;
 		// Delegation count
-		let mut nom_count = 0u32;
+		let mut delegation_count = 0u32;
 		// Nominate MaxDelegationsPerDelegators collator candidates
 		for col in collators {
 			Pallet::<T>::delegate(
@@ -540,11 +537,11 @@ benchmarks! {
 				col,
 				bond,
 				0u32,
-				nom_count
+				delegation_count
 			)?;
-			nom_count += 1u32;
+			delegation_count += 1u32;
 		}
-	}: _(RawOrigin::Signed(caller.clone()), nomination_count)
+	}: _(RawOrigin::Signed(caller.clone()), delegation_count)
 	verify {
 		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_leaving());
 	}
@@ -905,13 +902,13 @@ benchmarks! {
 	active_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
 		let x in 1..28;
-		// NOMINATIONS
+		// DELEGATIONS
 		let y in 0..(<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get() * 28);
-		let max_nominators_per_collator =
+		let max_delegators_per_collator =
 			<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get();
-		let max_nominations = x * max_nominators_per_collator;
+		let max_delegations = x * max_delegators_per_collator;
 		// y should depend on x but cannot directly, we overwrite y here if necessary to bound it
-		let total_nominations: u32 = if max_nominations < y { max_nominations } else { y };
+		let total_delegations: u32 = if max_delegations < y { max_delegations } else { y };
 		// INITIALIZE RUNTIME STATE
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -940,50 +937,50 @@ benchmarks! {
 			T::AccountId,
 			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
 		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
-		// INITIALIZE NOMINATIONS
-		let mut col_nom_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+		// INITIALIZE DELEGATIONS
+		let mut col_del_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 		collators.iter().for_each(|x| {
-			col_nom_count.insert(x.clone(), 0u32);
+			col_del_count.insert(x.clone(), 0u32);
 		});
-		let mut nominators: Vec<T::AccountId> = Vec::new();
-		let mut remaining_nominations = if total_nominations > max_nominators_per_collator {
-			for j in 1..(max_nominators_per_collator + 1) {
+		let mut delegators: Vec<T::AccountId> = Vec::new();
+		let mut remaining_delegations = if total_delegations > max_delegators_per_collator {
+			for j in 1..(max_delegators_per_collator + 1) {
 				let seed = USER_SEED + j;
-				let nominator = create_funded_nominator::<T>(
-					"nominator",
+				let delegator = create_funded_delegator::<T>(
+					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
 					collators[0].clone(),
 					true,
-					nominators.len() as u32,
+					delegators.len() as u32,
 				)?;
-				nominators.push(nominator);
+				delegators.push(delegator);
 			}
-			total_nominations - max_nominators_per_collator
+			total_delegations - max_delegators_per_collator
 		} else {
-			for j in 1..(total_nominations + 1) {
+			for j in 1..(total_delegations + 1) {
 				let seed = USER_SEED + j;
-				let nominator = create_funded_nominator::<T>(
-					"nominator",
+				let delegator = create_funded_delegator::<T>(
+					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
 					collators[0].clone(),
 					true,
-					nominators.len() as u32,
+					delegators.len() as u32,
 				)?;
-				nominators.push(nominator);
+				delegators.push(delegator);
 			}
 			0u32
 		};
-		col_nom_count.insert(collators[0].clone(), nominators.len() as u32);
-		// FILL remaining nominations
-		if remaining_nominations > 0 {
-			for (col, n_count) in col_nom_count.iter_mut() {
-				if n_count < &mut (nominators.len() as u32) {
-					// assumes nominators.len() <= MaxDelegatorsPerCandidate
-					let mut open_spots = nominators.len() as u32 - *n_count;
-					while open_spots > 0 && remaining_nominations > 0 {
-						let caller = nominators[open_spots as usize - 1usize].clone();
+		col_del_count.insert(collators[0].clone(), delegators.len() as u32);
+		// FILL remaining delegations
+		if remaining_delegations > 0 {
+			for (col, n_count) in col_del_count.iter_mut() {
+				if n_count < &mut (delegators.len() as u32) {
+					// assumes delegators.len() <= MaxDelegatorsPerCandidate
+					let mut open_spots = delegators.len() as u32 - *n_count;
+					while open_spots > 0 && remaining_delegations > 0 {
+						let caller = delegators[open_spots as usize - 1usize].clone();
 						if let Ok(_) = Pallet::<T>::delegate(RawOrigin::Signed(
 							caller.clone()).into(),
 							col.clone(),
@@ -992,21 +989,21 @@ benchmarks! {
 							collators.len() as u32, // overestimate
 						) {
 							*n_count += 1;
-							remaining_nominations -= 1;
+							remaining_delegations -= 1;
 						}
 						open_spots -= 1;
 					}
 				}
-				if remaining_nominations == 0 {
+				if remaining_delegations == 0 {
 					break;
 				}
 			}
 		}
-		// STORE starting balances for all nominators
-		let nominator_starting_balances: Vec<(
+		// STORE starting balances for all delegators
+		let delegator_starting_balances: Vec<(
 			T::AccountId,
 			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
-		)> = nominators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
+		)> = delegators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
 		// PREPARE RUN_TO_BLOCK LOOP
 		let before_running_round_index = Pallet::<T>::round().current;
 		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
@@ -1040,7 +1037,7 @@ benchmarks! {
 			assert!(T::Currency::free_balance(&col) > initial);
 		}
 		// Nominators have been paid
-		for (col, initial) in nominator_starting_balances {
+		for (col, initial) in delegator_starting_balances {
 			assert!(T::Currency::free_balance(&col) > initial);
 		}
 		// Round transitions

@@ -1,6 +1,6 @@
 [package]
 name = "parachain-staking"
-version = "2.1.1"
+version = "2.2.0"
 authors = ["PureStake"]
 edition = "2018"
 description = "parachain staking pallet for collator selection and reward distribution"
