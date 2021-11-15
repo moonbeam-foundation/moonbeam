@@ -975,7 +975,7 @@ export const contractSources: { [key: string]: string } = {
      * Selector: 23b872dd
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to bedelega transferred
+     * @param value uint256 the amount of delegated tokens to be transferred
      */
     function transferFrom(address from, address to, uint256 value)
         external returns (bool);
