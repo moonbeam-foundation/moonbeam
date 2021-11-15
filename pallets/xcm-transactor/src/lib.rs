@@ -63,8 +63,9 @@ pub mod pallet {
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
+	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
-	use xcm::latest::prelude::*;
+	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
@@ -177,6 +178,7 @@ pub mod pallet {
 		TransactorInfoNotSet,
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
+		BadVersion,
 	}
 
 	#[pallet::event]
@@ -234,12 +236,14 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
-			fee_location: MultiLocation,
+			fee_location: VersionedMultiLocation,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			let fee_location =
+				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
@@ -340,14 +344,18 @@ pub mod pallet {
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
-			dest: MultiLocation,
+			dest: VersionedMultiLocation,
 			fee_payer: T::AccountId,
-			fee_location: MultiLocation,
+			fee_location: VersionedMultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
+			let fee_location =
+				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
+
+			let dest = MultiLocation::try_from(dest).map_err(|()| Error::<T>::BadVersion)?;
 			// Grab the destination
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
@@ -367,7 +375,7 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
-			location: MultiLocation,
+			location: VersionedMultiLocation,
 			transact_extra_weight: Weight,
 			fee_per_byte: u128,
 			base_weight: Weight,
@@ -375,7 +383,8 @@ pub mod pallet {
 			metadata_size: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-
+			let location =
+				MultiLocation::try_from(location).map_err(|()| Error::<T>::BadVersion)?;
 			let remote_info = RemoteTransactInfo {
 				transact_extra_weight,
 				fee_per_byte,
@@ -554,36 +563,27 @@ pub mod pallet {
 
 		/// Returns weight of `transact_through_derivative` call.
 		fn weight_of_transact_through_derivative_multilocation(
-			asset: &MultiLocation,
+			asset: &VersionedMultiLocation,
 			index: &u16,
 			dest: &T::Transactor,
 			weight: &u64,
 			call: &[u8],
 		) -> Weight {
+			// If bad version, return 0
+			let asset = if let Ok(asset) = MultiLocation::try_from(asset.clone()) {
+				asset
+			} else {
+				return 0;
+			};
+
 			let call_bytes: Vec<u8> =
 				dest.clone()
 					.encode_call(UtilityAvailableCalls::AsDerivative(
 						index.to_owned(),
 						call.to_owned(),
 					));
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(asset.clone()),
-				fun: Fungible(0),
-			};
-			if let Ok(msg) = Self::transact_message(
-				dest.clone().destination(),
-				fee.clone(),
-				weight.clone(),
-				call_bytes,
-				weight.to_owned(),
-			) {
-				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
-					T::BaseXcmWeight::get().saturating_add(w)
-				})
-			} else {
-				0
-			}
+
+			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call_bytes)
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
@@ -596,7 +596,11 @@ pub mod pallet {
 		) -> Weight {
 			if let Some(id) = T::CurrencyIdToMultiLocation::convert(currency_id.clone()) {
 				Self::weight_of_transact_through_derivative_multilocation(
-					&id, &index, &dest, &weight, call,
+					&VersionedMultiLocation::V1(id),
+					&index,
+					&dest,
+					&weight,
+					call,
 				)
 			} else {
 				0
@@ -605,10 +609,29 @@ pub mod pallet {
 
 		/// Returns weight of `transact_through_sovereign call.
 		fn weight_of_transact_through_sovereign(
+			asset: &VersionedMultiLocation,
+			dest: &VersionedMultiLocation,
+			weight: &u64,
+			call: &Vec<u8>,
+		) -> Weight {
+			// If asset or dest give errors, return 0
+			let (asset, dest) = match (
+				MultiLocation::try_from(asset.clone()),
+				MultiLocation::try_from(dest.clone()),
+			) {
+				(Ok(asset), Ok(dest)) => (asset, dest),
+				_ => return 0,
+			};
+
+			Self::weight_of_transact(&asset, &dest, weight, call.clone())
+		}
+
+		/// Returns weight of transact message.
+		fn weight_of_transact(
 			asset: &MultiLocation,
 			dest: &MultiLocation,
 			weight: &u64,
-			call: &Vec<u8>,
+			call: Vec<u8>,
 		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
