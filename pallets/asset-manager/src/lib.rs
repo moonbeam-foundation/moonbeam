@@ -33,13 +33,13 @@
 
 use frame_support::pallet;
 pub use pallet::*;
-pub mod weights;
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
 pub mod tests;
+pub mod weights;
 
 #[pallet]
 pub mod pallet {

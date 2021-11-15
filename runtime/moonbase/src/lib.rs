@@ -1243,6 +1243,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
