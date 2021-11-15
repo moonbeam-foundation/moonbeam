@@ -18,12 +18,28 @@ pallet-collective = { git = "https://github.com/purestake/substrate", default-fe
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 log = "0.4"
 
+# executive
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = [
+	"derive",
+] }
+fp-self-contained = { git = "https://github.com/purestake/frontier", default-features = false, branch = "elois-sig-para" }
+frame-executive = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+sp-tasks = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+sp-tracing = { git = "https://github.com/purestake/substrate", branch = "elois-sig-para", default-features = false }
+
 [features]
 std = [
 	"pallet-migrations/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"frame-support/std",
+	"frame-executive/std",
 	"pallet-author-mapping/std",
 	"parachain-staking/std",
+	# executive
+	"codec/std",
+	"sp-core/std",
+	"sp-tracing/std",
 ]

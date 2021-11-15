@@ -1482,7 +1482,7 @@ pub type UncheckedExtrinsic =
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = fp_self_contained::CheckedExtrinsic<AccountId, Call, SignedExtra, H160>;
 /// Executive: handles dispatch to the various pallets.
-pub type Executive = frame_executive::Executive<
+pub type Executive = runtime_common::executive::MoonbeamExecutive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,

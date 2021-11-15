@@ -17,5 +17,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod apis;
+pub mod executive;
 mod impl_self_contained_call;
 pub mod migrations;

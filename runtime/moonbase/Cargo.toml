@@ -63,7 +63,7 @@ sp-transaction-pool = { git = "https://github.com/purestake/substrate", default-
 sp-inherents = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
-frame-executive = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para", features = ["para-check"] }
+frame-executive = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
 pallet-assets = { git = "https://github.com/purestake/substrate", default-features = false, branch = "elois-sig-para" }
