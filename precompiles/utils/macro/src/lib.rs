@@ -132,6 +132,7 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 
 	(quote! {
 		#(#attrs)*
+		#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 		#[repr(u32)]
 		#vis #enum_token #ident {
 			#(

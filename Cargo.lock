@@ -8921,6 +8921,7 @@ dependencies = [
 name = "precompile-utils-macro"
 version = "0.1.0"
 dependencies = [
+ "num_enum",
  "proc-macro2",
  "quote",
  "sha3 0.8.2",
