@@ -33,6 +33,7 @@
 
 use frame_support::pallet;
 pub use pallet::*;
+pub mod weights;
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
 #[cfg(test)]
@@ -43,6 +44,7 @@ pub mod tests;
 #[pallet]
 pub mod pallet {
 
+	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
@@ -98,6 +100,8 @@ pub mod pallet {
 
 		/// Origin that is allowed to create and modify asset information
 		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -129,7 +133,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::register_asset())]
 		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
@@ -153,7 +157,7 @@ pub mod pallet {
 		}
 
 		/// Change the amount of units we are charging per execution second for a given AssetId
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
