@@ -94,13 +94,11 @@ fn load_spec(
 					.unwrap_or(false)
 			};
 
-			println!("here");
 			if run_cmd.force_moonbase || starts_with("moonbase") {
 				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
 			} else if run_cmd.force_moonriver || starts_with("moonriver") {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)?)
 			} else {
-				println!("using moonbeam");
 				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
 			}
 		}
@@ -609,8 +607,6 @@ pub fn run() -> Result<()> {
 				let dev_service =
 					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service".to_string());
 
-				println!("here");
-
 				if dev_service {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
@@ -634,20 +630,16 @@ pub fn run() -> Result<()> {
 						>(config, author_id, cli.run.sealing, rpc_config)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
-						_ => {
-							println!("here 2");
-							service::new_dev::<
-								service::moonbase_runtime::RuntimeApi,
-								service::MoonbaseExecutor,
-							>(config, author_id, cli.run.sealing, rpc_config)
-							.map_err(Into::into)
-						}
+						_ => service::new_dev::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					};
 				}
 
-				println!("passed the error");
 				let polkadot_cli = RelayChainCli::new(
 					&config,
 					[RelayChainCli::executable_name().to_string()]
@@ -680,7 +672,6 @@ pub fn run() -> Result<()> {
 					#[cfg(not(feature = "moonbase-native"))]
 					_ => panic!("invalid chain spec"),
 				};
-				println!("generating genesis");
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
