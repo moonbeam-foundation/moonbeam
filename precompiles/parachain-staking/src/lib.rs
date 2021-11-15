@@ -505,16 +505,16 @@ where
 		input.expect_arguments(4)?;
 		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_nominator_count = input.read()?;
-		let nomination_count = input.read()?;
+		let collator_delegation_count = input.read()?;
+		let delegation_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::delegate {
 			collator,
 			amount,
-			collator_nominator_count,
-			nomination_count,
+			collator_delegation_count,
+			delegation_count,
 		};
 
 		// Return call information
@@ -533,11 +533,11 @@ where
 	> {
 		// Read input.
 		input.expect_arguments(1)?;
-		let nomination_count = input.read()?;
+		let delegation_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_delegators { nomination_count };
+		let call = parachain_staking::Call::<Runtime>::leave_delegators { delegation_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
