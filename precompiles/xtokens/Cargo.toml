@@ -31,7 +31,7 @@ derive_more = "0.99"
 pallet-balances =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12"}
 pallet-timestamp =  { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12"}
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "notlesh-xcm-vm-no-inline" }

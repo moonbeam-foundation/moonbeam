@@ -29,10 +29,10 @@ pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "m
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 serde = "1.0.100"
 derive_more = "0.99"
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]

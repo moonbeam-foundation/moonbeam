@@ -94,14 +94,14 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polk
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-xcm-vm-no-inline" }
 
 # Nimbus dependencies
 nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "notlesh-xcm-vm-no-inline" }
