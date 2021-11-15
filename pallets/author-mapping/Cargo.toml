@@ -7,7 +7,7 @@ description = "Maps AuthorIds to AccountIds Useful for associating consensus aut
 
 [dependencies]
 log = { version = "0.4", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "notlesh-xcm-vm-no-inline", default-features = false }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false, features=["derive"] }
