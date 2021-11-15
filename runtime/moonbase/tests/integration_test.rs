@@ -201,6 +201,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -1228,7 +1243,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 16035u64,
+				cost: 15035u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1335,6 +1350,7 @@ fn xtokens_precompiles_transfer() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1398,6 +1414,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1514,4 +1531,83 @@ fn ethereum_invalid_transaction() {
 			)
 		);
 	});
+}
+
+#[test]
+fn transfer_ed_0_substrate() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * UNIT,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+}
+
+#[test]
+fn transfer_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * UNIT) + (21_000 * 1_000_000_000)) + (1 * WEI),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_000u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI,);
+		});
+}
+
+#[test]
+fn refund_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * UNIT) + (21_777 * 1_000_000_000)),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer that zeroes ALICE
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_777u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// ALICE is refunded
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				777 * 1_000_000_000,
+			);
+		});
 }

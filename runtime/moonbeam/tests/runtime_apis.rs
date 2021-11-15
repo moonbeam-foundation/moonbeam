@@ -24,6 +24,7 @@ use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAc
 use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
+use frame_support::assert_noop;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -206,12 +207,9 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
-			/*
-			 * TODO: VALID_ETH_TX needs to be updated (probably to include more gas)
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			*/
 			// // Future us: uncomment below.
 			// run_to_block(2);
 			// let statuses =
@@ -274,12 +272,9 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
-			/*
-			 * TODO: VALID_ETH_TX needs to be updated (probably to include more gas)
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			*/
 			// // Future us: uncomment below.
 			// run_to_block(2);
 			// let receipts = Runtime::current_receipts().expect("Receipts result.");

@@ -16,8 +16,7 @@ describeDevMoonbeam("Transaction Cost discards", (context) => {
       ea04dec8017ebddd1e87cc108d1df1ef1bf69ba35606efad4df2dfdbae2a07ac9edffaa0fd7c91fa5688b5e36a\
       1944944bca22b8ff367e4094be21f7d85a3",
     ]);
-    let msg =
-      "submit transaction to pool failed: Pool(InvalidTransaction(InvalidTransaction::Custom(3)))";
+    let msg = "intrinsic gas too low";
     expect(tx.error).to.include({
       message: msg,
     });
