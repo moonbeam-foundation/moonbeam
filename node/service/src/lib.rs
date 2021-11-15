@@ -715,7 +715,6 @@ where
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 	use sp_core::H256;
 
-	println!("1");
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -727,7 +726,6 @@ where
 		other: (block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
 	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
 
-	println!("2");
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -740,7 +738,6 @@ where
 			warp_sync: None,
 		})?;
 
-	println!("3");
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
 			&config,
@@ -750,14 +747,12 @@ where
 		);
 	}
 
-	println!("4");
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
 	let collator = config.role.is_authority();
 
-	println!("5");
 	if collator {
 		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
 		// This could and perhaps should be made more flexible. Here are some options:
@@ -768,7 +763,6 @@ where
 		//    be exported as a helper function from nimbus.
 		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
-		println!("6");
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -776,7 +770,6 @@ where
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
-		println!("7");
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {
@@ -817,9 +810,7 @@ where
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
-		println!("8");
 		let client_set_aside_for_cidp = client.clone();
-		println!("9");
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -854,9 +845,7 @@ where
 				},
 			}),
 		);
-		println!("10");
 	}
-	println!("11");
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
 		client: client.clone(),
@@ -864,7 +853,6 @@ where
 		frontier_backend: frontier_backend.clone(),
 		filter_pool: filter_pool.clone(),
 	});
-	println!("12");
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -884,7 +872,6 @@ where
 				trace: None,
 			}
 		};
-	println!("13");
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -925,7 +912,6 @@ where
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				println!("extending with tracing");
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
 					tracing_requesters.clone(),
@@ -936,7 +922,6 @@ where
 			Ok(io)
 		})
 	};
-	println!("14");
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
@@ -952,7 +937,6 @@ where
 		config,
 		telemetry: None,
 	})?;
-	println!("15");
 
 	log::info!("Development Service Ready");
 
