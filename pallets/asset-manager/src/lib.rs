@@ -33,12 +33,12 @@
 
 use frame_support::pallet;
 pub use pallet::*;
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
 pub mod tests;
-#[cfg(any(test, feature = "runtime-benchmarks"))]
-mod benchmarks;
 
 #[pallet]
 pub mod pallet {
