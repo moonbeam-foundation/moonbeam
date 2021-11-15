@@ -194,6 +194,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
