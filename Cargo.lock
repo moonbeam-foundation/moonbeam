@@ -9787,6 +9787,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "pallet-asset-manager",
  "pallet-author-mapping",
  "pallet-collective",
  "pallet-migrations",

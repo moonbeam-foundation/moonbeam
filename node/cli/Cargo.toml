@@ -44,6 +44,8 @@ moonbase-native = ["service/moonbase-native", "westend-native"]
 moonriver-native = ["service/moonriver-native"]
 moonbeam-native = ["service/moonbeam-native"]
 
+moonbase-runtime-benchmarks = ["service/moonbase-runtime-benchmarks"]
+
 wasmtime = ["sc-cli/wasmtime"]
 runtime-benchmarks = ["service/runtime-benchmarks"]
 try-runtime = [

@@ -167,6 +167,15 @@ runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks"
 ]
+
+
+moonbase-runtime-benchmarks = [
+	"moonbase-native",
+	"moonbase-runtime/runtime-benchmarks",
+	"moonbase-runtime/moonbase-runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks"
+]
+
 try-runtime = [
 	"moonbase-runtime", "moonbase-runtime/try-runtime",
 ]

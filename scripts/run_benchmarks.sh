@@ -9,7 +9,7 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --chain dev \
     --execution=wasm \
     --wasm-execution=compiled \
-    --pallet "pallet_author_mapping" \
+    --pallet "pallet_asset_manager" \
     --extrinsic "*" \
     --steps 32 \
     --repeat 64 \
