@@ -11,6 +11,7 @@ members = [
     'bin/utils/moonkey',
     'pallets/maintenance-mode',
     'precompiles/utils/macro',
+    'client/rpc/finality',
 ]
 exclude = [
     'bin/utils/moonkey'
