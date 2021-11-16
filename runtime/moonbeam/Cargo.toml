@@ -79,7 +79,7 @@ pallet-proxy = { git = "https://github.com/purestake/substrate", default-feature
 pallet-treasury = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 pallet-identity = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 
 moonbeam-evm-tracer = { path = "../evm_tracer", optional = true, default-features = false }
