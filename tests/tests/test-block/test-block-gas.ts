@@ -27,10 +27,7 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     expect(
       ((await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).error as any)
         .message
-    ).to.equal(
-      "submit transaction to pool failed: " +
-        "Pool(InvalidTransaction(InvalidTransaction::ExhaustsResources))"
-    );
+    ).to.equal("gas limit reached");
   });
 });
 
