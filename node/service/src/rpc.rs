@@ -35,6 +35,7 @@ use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -171,7 +172,7 @@ where
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
-			frontier_backend,
+			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
 			overrides.clone(),
@@ -210,6 +211,11 @@ where
 			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 		);
 	};
+
+	io.extend_with(MoonbeamFinalityApi::to_delegate(MoonbeamFinality::new(
+		client.clone(),
+		frontier_backend.clone(),
+	)));
 
 	io
 }

@@ -49,6 +49,36 @@ pub struct MoonbeamFinality<B: Block, C> {
 	_phdata: PhantomData<B>,
 }
 
+impl<B: Block, C> MoonbeamFinality<B, C> {
+	pub fn new(client: Arc<C>, backend: Arc<FrontierBackend<B>>) -> Self {
+		Self {
+			backend,
+			client,
+			_phdata: Default::default(),
+		}
+	}
+}
+
+fn is_substrate_block_hash_finalized<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
+	client: &C,
+	substrate_hash: H256,
+) -> bool {
+	// First check whether the block is in the best chain
+	if !is_canon(client, substrate_hash) {
+		return false;
+	}
+
+	// At this point we know the block in question is in the current best chain.
+	// It's just a question of whether it is in the finalized prefix or not
+	let query_height = client
+		.number(substrate_hash)
+		.expect("Blocks in best chain should have number")
+		.expect("uhhhh");
+	let finalized_height = client.info().finalized_number;
+
+	query_height <= finalized_height
+}
+
 impl<B, C> MoonbeamFinalityApi for MoonbeamFinality<B, C>
 where
 	C: Send + Sync + 'static,
@@ -70,30 +100,24 @@ where
 					None => raw_hash,
 				};
 
-			// Confirm that this block is in the best chain
-			if !is_canon(client.as_ref(), substrate_hash) {
-				return Ok(false);
-			}
-
-			// At this point we know the block in question is in the current best chain.
-			// It's just a question of whether it is in the finalized prefix or not
-			let query_height = client
-				.number(substrate_hash)
-				.expect("Blocks in best chain should have number")
-				.expect("uhhhh");
-			let finalized_height = client.info().finalized_number;
-
-			Ok(query_height <= finalized_height)
+			Ok(is_substrate_block_hash_finalized(
+				client.as_ref(),
+				substrate_hash,
+			))
 		}
 		.boxed()
 	}
 
 	fn is_tx_finalized(&self, tx_hash: H256) -> BoxFuture<'static, RpcResult<bool>> {
+		let client = self.client.clone();
 		async move {
-			// Our goal here is to get a Substrate block, and then follow the same approach as
-			// we did for the block check
+			// First we check whether
+			let substrate_hash = todo!();
 
-			Ok(false)
+			Ok(is_substrate_block_hash_finalized(
+				client.as_ref(),
+				substrate_hash,
+			))
 		}
 		.boxed()
 	}

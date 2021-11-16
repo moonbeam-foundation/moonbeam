@@ -5515,6 +5515,7 @@ dependencies = [
  "moonbase-runtime",
  "moonbeam-cli-opt",
  "moonbeam-core-primitives",
+ "moonbeam-finality-rpc",
  "moonbeam-primitives-ext",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
