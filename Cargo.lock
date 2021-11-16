@@ -5185,10 +5185,16 @@ dependencies = [
 name = "moonbeam-finality-rpc"
 version = "0.1.0"
 dependencies = [
+ "fc-db",
+ "fc-rpc",
  "futures 0.3.17",
  "jsonrpc-core",
  "jsonrpc-derive",
  "parity-scale-codec",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
  "tokio",
 ]
 
