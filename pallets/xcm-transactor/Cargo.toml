@@ -21,7 +21,7 @@ xcm = { git = "https://github.com/purestake/polkadot", default-features = false,
 xcm-executor = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "notlesh-xcm-vm-no-inline" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
