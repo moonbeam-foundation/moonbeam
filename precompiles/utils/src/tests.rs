@@ -133,7 +133,7 @@ fn read_selector() {
 	use sha3::{Digest, Keccak256};
 
 	#[precompile_utils_macro::generate_function_selector]
-	#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+	#[derive(Debug, PartialEq)]
 	enum FakeAction {
 		Action1 = "action1()",
 	}
@@ -676,7 +676,7 @@ impl EvmData for MultiLocation {
 }
 
 #[crate::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 }
