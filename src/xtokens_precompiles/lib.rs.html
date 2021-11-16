@@ -240,7 +240,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
 
 <span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">num_enum::TryFromPrimitive</span>, <span class="ident">num_enum::IntoPrimitive</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>,
 	<span class="ident">TransferMultiAsset</span> <span class="op">=</span> <span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,

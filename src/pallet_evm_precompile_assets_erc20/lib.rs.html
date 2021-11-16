@@ -587,7 +587,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_assets::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::AssetId</span>;
 
 <span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">num_enum::TryFromPrimitive</span>, <span class="ident">num_enum::IntoPrimitive</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">TotalSupply</span> <span class="op">=</span> <span class="string">&quot;totalSupply()&quot;</span>,
 	<span class="ident">BalanceOf</span> <span class="op">=</span> <span class="string">&quot;balanceOf(address)&quot;</span>,

@@ -141,6 +141,7 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -275,6 +276,7 @@
 
 	(<span class="macro">quote!</span> {
 		#(#<span class="ident">attrs</span>)<span class="op">*</span>
+		<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">num_enum::TryFromPrimitive</span>, <span class="ident">num_enum::IntoPrimitive</span>)]</span>
 		<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u32</span>)]</span>
 		#<span class="ident">vis</span> #<span class="ident">enum_token</span> #<span class="ident">ident</span> {
 			#(
