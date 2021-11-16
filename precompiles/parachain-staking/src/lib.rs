@@ -43,27 +43,51 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 enum Action {
-	MinDelegation = "min_nomination()",
+	// DEPRECATED
+	MinNomination = "min_nomination()",
+	MinDelegation = "min_delegation()",
 	Points = "points(uint256)",
 	CandidateCount = "candidate_count()",
-	CollatorDelegationCount = "collator_nomination_count(address)",
-	NominatorDelegationCount = "nominator_nomination_count(address)",
+	// DEPRECATED
+	CollatorNominationCount = "collator_nomination_count(address)",
+	// DEPRECATED
+	NominatorNominationCount = "nominator_nomination_count(address)",
+	CandidateDelegationCount = "candidate_delegation_count(address)",
+	DelegatorDelegationCount = "delegator_delegation_count(address)",
+	// DEPRECATED
+	IsNominator = "is_nominator(address)",
 	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
 	LeaveCandidates = "leave_candidates(uint256)",
+	ExecuteLeaveCandidates = "execute_leave_candidates(address)",
+	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
 	GoOffline = "go_offline()",
 	GoOnline = "go_online()",
 	CandidateBondLess = "candidate_bond_less(uint256)",
 	CandidateBondMore = "candidate_bond_more(uint256)",
+	ExecuteCandidateBondRequest = "execute_candidate_bond_request(address)",
+	CancelCandidateBondRequest = "cancel_candidate_bond_request()",
 	// DEPRECATED
 	Nominate = "nominate(address,uint256,uint256,uint256)",
 	Delegate = "delegate(address,uint256,uint256,uint256)",
-	LeaveNominators = "leave_delegators(uint256)",
-	RevokeDelegation = "revoke_nomination(address)",
+	// DEPRECATED
+	LeaveNominators = "leave_nominators(uint256)",
+	LeaveDelegators = "leave_delegators(uint256)",
+	ExecuteLeaveDelegators = "execute_leave_delegators(address)",
+	CancelLeaveDelegators = "cancel_leave_delegators()",
+	// DEPRECATED
+	RevokeNomination = "revoke_nomination(address)",
+	RevokeDelegation = "revoke_delegation(address)",
+	// DEPRECATED
 	NominatorBondLess = "nominator_bond_less(address,uint256)",
+	// DEPRECATED
 	NominatorBondMore = "nominator_bond_more(address,uint256)",
+	DelegatorBondLess = "delegator_bond_less(address,uint256)",
+	DelegatorBondMore = "delegator_bond_more(address,uint256)",
+	ExecuteDelegationRequest = "execute_delegation_request(address,address)",
+	CancelDelegationRequest = "cancel_delegation_request(address)",
 }
 
 /// A precompile to wrap the functionality from parachain_staking.
@@ -84,7 +108,7 @@ where
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
 	fn execute(
-		input: &[u8], //Reminder this is big-endian
+		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
@@ -92,35 +116,62 @@ where
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
-			// constants
-			Action::MinDelegation => return Self::min_nomination(target_gas),
-			// storage getters
+			// DEPRECATED
+			Action::MinNomination => return Self::min_delegation(target_gas),
+			Action::MinDelegation => return Self::min_delegation(target_gas),
 			Action::Points => return Self::points(input, target_gas),
 			Action::CandidateCount => return Self::candidate_count(target_gas),
-			Action::CollatorDelegationCount => {
-				return Self::collator_nomination_count(input, target_gas)
+			// DEPRECATED
+			Action::CollatorNominationCount => {
+				return Self::candidate_delegation_count(input, target_gas)
 			}
-			Action::NominatorDelegationCount => {
-				return Self::nominator_nomination_count(input, target_gas)
+			// DEPRECATED
+			Action::NominatorNominationCount => {
+				return Self::delegator_delegation_count(input, target_gas)
 			}
-			// role verifiers
+			Action::CandidateDelegationCount => {
+				return Self::candidate_delegation_count(input, target_gas)
+			}
+			Action::DelegatorDelegationCount => {
+				return Self::delegator_delegation_count(input, target_gas)
+			}
+			// DEPRECATED
+			Action::IsNominator => return Self::is_delegator(input, target_gas),
 			Action::IsDelegator => return Self::is_delegator(input, target_gas),
 			Action::IsCandidate => return Self::is_candidate(input, target_gas),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
 			// runtime methods (dispatchables)
 			Action::JoinCandidates => Self::join_candidates(input, context)?,
 			Action::LeaveCandidates => Self::leave_candidates(input, context)?,
+			Action::ExecuteLeaveCandidates => Self::execute_leave_candidates(input, context)?,
+			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(input, context)?,
 			Action::GoOffline => Self::go_offline(context)?,
 			Action::GoOnline => Self::go_online(context)?,
 			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
 			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
+			Action::ExecuteCandidateBondRequest => {
+				Self::execute_candidate_bond_request(input, context)?
+			}
+			Action::CancelCandidateBondRequest => Self::cancel_candidate_bond_request(context)?,
 			// DEPRECATED
 			Action::Nominate => Self::delegate(input, context)?,
 			Action::Delegate => Self::delegate(input, context)?,
+			// DEPRECATED
 			Action::LeaveNominators => Self::leave_delegators(input, context)?,
-			Action::RevokeDelegation => Self::revoke_nomination(input, context)?,
-			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
-			Action::NominatorBondMore => Self::nominator_bond_more(input, context)?,
+			Action::LeaveDelegators => Self::leave_delegators(input, context)?,
+			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(input, context)?,
+			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(context)?,
+			// DEPRECATED
+			Action::RevokeNomination => Self::revoke_delegation(input, context)?,
+			Action::RevokeDelegation => Self::revoke_delegation(input, context)?,
+			// DEPRECATED
+			Action::NominatorBondLess => Self::delegator_bond_less(input, context)?,
+			// DEPRECATED
+			Action::NominatorBondMore => Self::delegator_bond_more(input, context)?,
+			Action::DelegatorBondLess => Self::delegator_bond_less(input, context)?,
+			Action::DelegatorBondMore => Self::delegator_bond_more(input, context)?,
+			Action::ExecuteDelegationRequest => Self::execute_delegation_request(input, context)?,
+			Action::CancelDelegationRequest => Self::cancel_delegation_request(input, context)?,
 		};
 		// Initialize gasometer
 		let mut gasometer = Gasometer::new(target_gas);
@@ -147,7 +198,7 @@ where
 {
 	// Constants
 
-	fn min_nomination(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+	fn min_delegation(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Fetch info.
@@ -166,6 +217,14 @@ where
 			logs: vec![],
 		})
 	}
+
+	// TODO: min_delegation
+
+	// TODO: min_delegator_stk
+
+	// TODO: min_candidate_stk
+
+	// TODO: min_collator_stk
 
 	// Storage Getters
 
@@ -210,7 +269,7 @@ where
 		})
 	}
 
-	fn collator_nomination_count(
+	fn candidate_delegation_count(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
@@ -224,18 +283,18 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
 			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_state(&address) {
-				let collator_nomination_count: u32 = state.delegators.0.len() as u32;
+				let candidate_delegation_count: u32 = state.delegators.0.len() as u32;
 
 				log::trace!(
 					target: "staking-precompile",
 					"Result from pallet is {:?}",
-					collator_nomination_count
+					candidate_delegation_count
 				);
-				collator_nomination_count
+				candidate_delegation_count
 			} else {
 				log::trace!(
 					target: "staking-precompile",
-					"Collator {:?} not found, so nomination count is 0",
+					"Candidate {:?} not found, so delegation count is 0",
 					address
 				);
 				0u32
@@ -250,7 +309,7 @@ where
 		})
 	}
 
-	fn nominator_nomination_count(
+	fn delegator_delegation_count(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
@@ -264,19 +323,19 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
 			if let Some(state) = <parachain_staking::Pallet<Runtime>>::delegator_state(&address) {
-				let nominator_nomination_count: u32 = state.delegations.0.len() as u32;
+				let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
 
 				log::trace!(
 					target: "staking-precompile",
 					"Result from pallet is {:?}",
-					nominator_nomination_count
+					delegator_delegation_count
 				);
 
-				nominator_nomination_count
+				delegator_delegation_count
 			} else {
 				log::trace!(
 					target: "staking-precompile",
-					"Nominator {:?} not found, so nomination count is 0",
+					"Delegator {:?} not found, so delegation count is 0",
 					address
 				);
 				0u32
@@ -413,6 +472,50 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
+	fn execute_leave_candidates(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(1)?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates { candidate };
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn cancel_leave_candidates(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(1)?;
+		let candidate_count = input.read()?;
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
 	fn go_offline(
 		context: &Context,
 	) -> Result<
@@ -491,6 +594,45 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
+	fn execute_candidate_bond_request(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(1)?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::execute_candidate_bond_request { candidate };
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn cancel_candidate_bond_request(
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::cancel_candidate_bond_request {};
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
 	fn delegate(
 		mut input: EvmDataReader,
 		context: &Context,
@@ -505,7 +647,7 @@ where
 		input.expect_arguments(4)?;
 		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
 		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_delegation_count = input.read()?;
+		let candidate_delegation_count = input.read()?;
 		let delegation_count = input.read()?;
 
 		// Build call with origin.
@@ -513,7 +655,7 @@ where
 		let call = parachain_staking::Call::<Runtime>::delegate {
 			collator,
 			amount,
-			collator_delegation_count,
+			candidate_delegation_count,
 			delegation_count,
 		};
 
@@ -543,8 +685,46 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	// TODO: change to revoke_delegation?? don't keep old method?
-	fn revoke_nomination(
+	fn execute_leave_delegators(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(1)?;
+		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators { delegator };
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn cancel_leave_delegators(
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn revoke_delegation(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -566,7 +746,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn nominator_bond_more(
+	fn delegator_bond_more(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -589,7 +769,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn nominator_bond_less(
+	fn delegator_bond_less(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -607,6 +787,54 @@ where
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::delegator_bond_less { candidate, less };
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn execute_delegation_request(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(2)?;
+		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::execute_delegation_request {
+			delegator,
+			candidate,
+		};
+
+		// Return call information
+		Ok((Some(origin).into(), call))
+	}
+
+	fn cancel_delegation_request(
+		mut input: EvmDataReader,
+		context: &Context,
+	) -> Result<
+		(
+			<Runtime::Call as Dispatchable>::Origin,
+			parachain_staking::Call<Runtime>,
+		),
+		ExitError,
+	> {
+		// Read input.
+		input.expect_arguments(1)?;
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
 		// Return call information
 		Ok((Some(origin).into(), call))

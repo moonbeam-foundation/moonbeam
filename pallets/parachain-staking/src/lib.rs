@@ -2122,7 +2122,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(
 			<T as Config>::WeightInfo::delegate(
-				*collator_delegation_count,
+				*candidate_delegation_count,
 				*delegation_count
 			)
 		)]
@@ -2132,7 +2132,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 			amount: BalanceOf<T>,
-			collator_delegation_count: u32,
+			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
@@ -2170,7 +2170,7 @@ pub mod pallet {
 			};
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
-				collator_delegation_count >= state.delegators.0.len() as u32,
+				candidate_delegation_count >= state.delegators.0.len() as u32,
 				Error::<T>::TooLowCandidateDelegationCountToDelegate
 			);
 			let delegator_position = state.add_delegation::<T>(acc.clone(), amount)?;
@@ -2313,11 +2313,11 @@ pub mod pallet {
 		/// Cancel request to change an existing delegation.
 		pub fn cancel_delegation_request(
 			origin: OriginFor<T>,
-			collator: T::AccountId,
+			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			let request = state.cancel_pending_request::<T>(collator)?;
+			let request = state.cancel_pending_request::<T>(candidate)?;
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::CancelledDelegationRequest(delegator, request));
 			Ok(().into())
