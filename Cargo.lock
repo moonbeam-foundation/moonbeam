@@ -6103,7 +6103,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.12#679f1939e7a8a8ce770400a182e91dc43084d69a"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-free-xtoken-extrinsics#f7b4d753eda01cb9a589fe0743a2404e38d5248d"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -6121,7 +6121,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.12#679f1939e7a8a8ce770400a182e91dc43084d69a"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-free-xtoken-extrinsics#f7b4d753eda01cb9a589fe0743a2404e38d5248d"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6135,7 +6135,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.12#679f1939e7a8a8ce770400a182e91dc43084d69a"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-free-xtoken-extrinsics#f7b4d753eda01cb9a589fe0743a2404e38d5248d"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6149,7 +6149,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.12#679f1939e7a8a8ce770400a182e91dc43084d69a"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-free-xtoken-extrinsics#f7b4d753eda01cb9a589fe0743a2404e38d5248d"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
