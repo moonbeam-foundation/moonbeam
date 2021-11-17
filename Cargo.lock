@@ -1701,7 +1701,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/cumulus?branch=moonbeam-polkadot-v0.9.11#fc289826858eaefebdf48700fddfab59c9a4eb1c"
+source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#fc289826858eaefebdf48700fddfab59c9a4eb1c"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1793,7 +1793,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/cumulus?branch=moonbeam-polkadot-v0.9.11#fc289826858eaefebdf48700fddfab59c9a4eb1c"
+source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#fc289826858eaefebdf48700fddfab59c9a4eb1c"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
