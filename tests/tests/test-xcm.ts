@@ -47,13 +47,17 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+      )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = ((await context.polkadotApi.query.assets.asset(assetId)) as any).unwrap();
+    const registeredAsset = (
+      (await context.polkadotApi.query.assets.asset(assetId)) as any
+    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -63,7 +67,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     await customRequest(context.web3, "xcm_injectDownwardMessage", [[]]);
 
     // Create a block in which the XCM will be executed
-    awat createBlock();
+    await createBlock();
 
     // Make sure the state (and events?) has ALITH's to DOT tokens
     expect(context.polkadotApi.query.assets.accout(assetId, alith)).to.eq(10 * glmr);
