@@ -13734,7 +13734,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex",
- "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
