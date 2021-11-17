@@ -69,7 +69,7 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
     injectHrmpMessage: {
       description: "Inject an HRMP message from a dedicated channel from a sibling parachain",
       params: [
-        { name: "channel", type: "u32" },
+        { name: "sender", type: "ParaId" },
         { name: "message", type: "Vec<u8>" },
       ],
       type: "Result<()>",
