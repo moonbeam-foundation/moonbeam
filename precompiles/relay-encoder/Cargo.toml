@@ -1,64 +1,62 @@
 [package]
 name = "relay-encoder-precompiles"
-version = "0.1.0"
-authors = ["PureStake"]
-edition = "2018"
+authors = [ "PureStake" ]
 description = "A Precompile to make relay staking calls encoding accessible to pallet-evm"
+edition = "2018"
+version = "0.1.0"
 
 [dependencies]
 log = "0.4"
-rustc-hex = { version = "2.0.1", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
+rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-staking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = [ "derive" ] }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 [dev-dependencies]
-sha3 = "0.9"
 derive_more = "0.99"
-serde = "1.0.100"
 hex-literal = "0.3.3"
+serde = "1.0.100"
+sha3 = "0.9"
 
 # Substrate
-sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-balances = { git="https://github.com/purestake/substrate", branch="moonbeam-polkadot-v0.9.12" }
-pallet-timestamp = { git="https://github.com/purestake/substrate", branch="moonbeam-polkadot-v0.9.12" }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Cumulus
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
 
-
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
-    "precompile-utils/std",
-    "fp-evm/std",
-    "pallet-evm/std",
-    "frame-support/std",
-    "sp-std/std",
-    "parity-scale-codec/std",
-    "pallet-staking/std",
-    "cumulus-primitives-core/std",
-    "sp-runtime/std",
-    "parity-scale-codec/std",
-    "frame-system/std",
+	"cumulus-primitives-core/std",
+	"fp-evm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-evm/std",
+	"pallet-staking/std",
+	"parity-scale-codec/std",
+	"parity-scale-codec/std",
+	"precompile-utils/std",
+	"sp-runtime/std",
+	"sp-std/std",
 ]
