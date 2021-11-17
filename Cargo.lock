@@ -1701,7 +1701,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#8d1b402645885482d98b18e08442b5b3b1098567"
+source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#e37748a9be16e29a35964905044196344148408e"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1793,7 +1793,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#8d1b402645885482d98b18e08442b5b3b1098567"
+source = "git+https://github.com/joshorndorff/cumulus?branch=joshy-mock-xcm#e37748a9be16e29a35964905044196344148408e"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1809,6 +1809,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-std",
+ "sp-storage",
  "sp-trie",
  "tracing",
 ]

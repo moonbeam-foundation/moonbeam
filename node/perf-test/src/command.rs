@@ -21,7 +21,9 @@ use crate::{
 	PerfCmd,
 };
 
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, MockXcmConfig,
+};
 use ethereum::TransactionAction;
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
@@ -149,16 +151,22 @@ where
 						.expect("Header passed in as parent should be present in backend.");
 					let author_id = author_id.clone();
 
+					let client_for_xcm = client_set_aside_for_cidp.clone();
+
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
-							para_id: Default::default(),
-							starting_dmq_mqc_head: Default::default(),
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
 							downward_messages: Vec::new(), //TODO Do we want XCM messages here?
+							horizontal_messages: Vec::new(),
+							xcm_config: MockXcmConfig::from_standard_storage(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+							),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);

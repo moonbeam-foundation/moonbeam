@@ -41,7 +41,7 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, ParachainInherentData,
+	MockValidationDataInherentDataProvider, MockXcmConfig, ParachainInherentData,
 };
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
@@ -840,45 +840,25 @@ where
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
 
-					// Fetch the starting mcq head from parent block storage
-					// It is not available through a runtime api, so we use the storage provider
-					fn storage_prefix_build(
-						module: &[u8],
-						storage: &[u8],
-					) -> sp_storage::StorageKey {
-						sp_storage::StorageKey(
-							[twox_128(module), twox_128(storage)].concat().to_vec(),
-						)
-					}
-
-					// Oh Yuck, and we don't even know for sure where the storage will be
-					// because it depends on the pallet's name in the given runtime.
-					// We might need a runtime api for this
-					let starting_dmq_mqc_head = client_set_aside_for_cidp
-						.storage(
-							&BlockId::Hash(block),
-							&storage_prefix_build(b"ParachainSystem", b"LastDmqMqcHead"),
-						)
-						.expect("We should be able to read storage from the parent block...")
-						.map_or(H256::zero(), |ref mut raw_data| {
-							Decode::decode(&mut &raw_data.0[..])
-								.expect("Stored data should decode correctly")
-						});
-
 					let author_id = author_id.clone();
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
+					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 
+					let client_for_xcm = client_set_aside_for_cidp.clone();
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
-							// TODO This matches Moonbeam's rust chainspecs. Might want to wire it to cli or something?
-							para_id: Default::default(),
-							starting_dmq_mqc_head,
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							xcm_config: MockXcmConfig::from_standard_storage(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+							),
 							downward_messages: downward_xcm_receiver.drain().collect(),
+							horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
