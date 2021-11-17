@@ -56,7 +56,6 @@ where
 {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		let asset_type: AssetType = id.borrow().clone().into();
-		log::info!(target: "mock-xcm", "🤞⛓️📨 In Moonbeam xcm primitives. Converting ref");
 		Ok(AssetId::from(asset_type))
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
@@ -142,7 +141,6 @@ impl<
 		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
-		log::info!(target: "mock-xcm", "🤞⛓️📨 In Moonbeam xcm primitives. Buying weight");
 		let first_asset = payment
 			.clone()
 			.fungible_assets_iter()
