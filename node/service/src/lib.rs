@@ -904,7 +904,6 @@ where
 		let network = network.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
-		let xcm_senders = xcm_senders.clone(); //TODO necessary?
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
