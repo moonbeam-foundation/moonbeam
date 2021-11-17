@@ -20,8 +20,6 @@ use jsonrpc_derive::rpc;
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 
-//TODO This was in a separate crate in rpc-core for the ethereum-related RPC endpoints.
-// But I'm starting with it all in one to keep things simple. Are there drawbacks to doing this?
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
 /// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
 /// tests.
