@@ -41,7 +41,7 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 >>::Balance;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
+#[derive(Debug, PartialEq)]
 enum Action {
 	MinNomination = "min_nomination()",
 	Points = "points(uint256)",

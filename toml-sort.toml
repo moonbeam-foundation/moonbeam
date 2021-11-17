@@ -4,6 +4,7 @@ keys = [
     "package",
     "bin",
     "lib",
+    "test",
     "dependencies",
     "dev-dependencies",
     "build-dependencies",
