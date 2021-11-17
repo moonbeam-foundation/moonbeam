@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use cumulus_primitives_core::ParaId;
 use futures::{future::BoxFuture, FutureExt as _};
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
@@ -25,52 +26,56 @@ use xcm::latest::prelude::*;
 /// tests.
 #[rpc(server)]
 pub trait ManualXcmApi {
-	// Inject a downward message - A message that comes from the relay chain.
+	/// Inject a downward xcm message - A message that comes from the relay chain.
+	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
+	/// Then a default message (DOT transfer down to ALITH) will be injected
 	#[rpc(name = "xcm_injectDownwardMessage")]
 	fn inject_downward_message(&self, message: Vec<u8>) -> BoxFuture<'static, RpcResult<()>>;
 
-	// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
+	/// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
 	// parachain.
 	#[rpc(name = "xcm_injectHrmpMessage")]
 	fn inject_hrmp_message(
 		&self,
-		channel: u32, //TODO I think there is a better type for this?
+		sender: ParaId,
 		message: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<()>>;
 }
 
 pub struct ManualXcm {
 	pub downward_message_channel: flume::Sender<Vec<u8>>,
-	pub hrmp_message_channel: flume::Sender<Vec<u8>>,
+	pub hrmp_message_channel: flume::Sender<(ParaId, Vec<u8>)>,
 }
 
 impl ManualXcmApi for ManualXcm {
 	fn inject_downward_message(&self, msg: Vec<u8>) -> BoxFuture<'static, RpcResult<()>> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		async move {
-			// For now we shadow the message passed in and always insert this downward transfer
-			// TODO rename this method insert_encoded or something. Consider a dedicated method
-			// to insert DOT transfers that just takes parameters like beneficiary and amount
-			let msg = xcm::VersionedXcm::<()>::V2(Xcm(vec![
-				ReserveAssetDeposited((Parent, 10000000000000).into()),
-				ClearOrigin,
-				BuyExecution {
-					fees: (Parent, 10000000000000).into(),
-					weight_limit: Limited(4_000_000_000),
-				},
-				DepositAsset {
-					assets: All.into(),
-					max_assets: 1,
-					beneficiary: MultiLocation::new(
-						0,
-						X1(AccountKey20 {
-							network: Any,
-							key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
-						}),
-					),
-				},
-			]))
-			.encode();
+			// If no message is supplied, inject a default one.
+			let msg = if msg.is_empty() {
+				xcm::VersionedXcm::<()>::V2(Xcm(vec![
+					ReserveAssetDeposited((Parent, 10000000000000).into()),
+					ClearOrigin,
+					BuyExecution {
+						fees: (Parent, 10000000000000).into(),
+						weight_limit: Limited(4_000_000_000),
+					},
+					DepositAsset {
+						assets: All.into(),
+						max_assets: 1,
+						beneficiary: MultiLocation::new(
+							0,
+							X1(AccountKey20 {
+								network: Any,
+								key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+							}),
+						),
+					},
+				]))
+				.encode()
+			} else {
+				msg
+			};
 
 			// Push the message to the shared channel where it will be queued up
 			// to be injected in to an upcoming block.
@@ -86,14 +91,22 @@ impl ManualXcmApi for ManualXcm {
 
 	fn inject_hrmp_message(
 		&self,
-		_channel: u32, //TODO I think there is a better type for this?
-		_message: Vec<u8>,
+		sender: ParaId,
+		msg: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<()>> {
-		// let mut requester = self.requester.clone();
+		let hrmp_message_channel = self.hrmp_message_channel.clone();
 
-		println!("---> Enter");
+		async move {
+			// Push the message and sender to the shared channel where they will be queued up
+			// to be injected in to an upcoming block.
+			hrmp_message_channel
+				.send_async((sender, msg))
+				.await
+				.map_err(|err| internal_err(err))?;
 
-		async move { todo!() }.boxed()
+			Ok(())
+		}
+		.boxed()
 	}
 }
 

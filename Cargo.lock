@@ -4760,13 +4760,13 @@ dependencies = [
 name = "manual-xcm-rpc"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "flume",
  "futures 0.3.17",
  "hex-literal",
  "jsonrpc-core",
  "jsonrpc-derive",
  "parity-scale-codec",
- "polkadot-core-primitives",
  "tokio",
  "xcm",
 ]
