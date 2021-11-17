@@ -8,7 +8,12 @@ description = "A Precompile to make crowdloan rewards accessible to pallet-evm"
 [dependencies]
 log = "0.4"
 rustc-hex = { version = "2.0.1", default-features = false }
+num_enum = { version = "0.5.3", default-features = false }
 
+# Moonbeam
+precompile-utils = { path = "../utils", default-features = false }
+
+# Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
@@ -16,24 +21,27 @@ sp-core = { git = "https://github.com/purestake/substrate", default-features = f
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-precompile-utils = { path = "../utils", default-features = false }
-num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
 sha3 = "0.9"
+serde = "1.0.100"
+derive_more = "0.99"
+
+# Substrate
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["max-encoded-len"] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-serde = "1.0.100"
-derive_more = "0.99"
+
+# Cumulus
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+
 
 [features]
 default = ["std"]

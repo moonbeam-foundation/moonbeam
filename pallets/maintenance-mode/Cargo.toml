@@ -6,9 +6,11 @@ edition = "2018"
 description = "Puts a FRAME-based runtime into maintenance mode where restricted interactions are allowed."
 
 [dependencies]
+log = "0.4"
+
+# Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-log = "0.4"
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 parity-scale-codec = { version = "2.2", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }

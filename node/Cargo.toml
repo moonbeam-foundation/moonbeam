@@ -13,6 +13,7 @@ path = 'src/main.rs'
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat"] }
+
 moonbeam-cli = { path = "cli", default-features = false }
 moonbeam-service = { path = "service", default-features = false }
 
@@ -23,7 +24,8 @@ assert_cmd = "0.12"
 nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
-# required for benchmarking
+
+# Benchmarking
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
 

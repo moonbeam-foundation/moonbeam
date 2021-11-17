@@ -8,15 +8,19 @@ authors = ["PureStake"]
 edition = '2018'
 
 [dependencies]
+log = "0.4"
+
+# Moonbeam
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
+pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+
+# Substrate
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-collective = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-log = "0.4"
 
 [features]
 std = [
