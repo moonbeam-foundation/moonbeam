@@ -290,7 +290,7 @@ fn nominator_nomination_count_works() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"nominator_nomination_count(address)")[0..4];
 
-			// Construct data to read nominator nomination count
+			// Construct data to read delegator delegation count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
@@ -303,7 +303,7 @@ fn nominator_nomination_count_works() {
 				logs: Default::default(),
 			}));
 
-			// Assert that Charlie has 2 outstanding nominations
+			// Assert that Charlie has 2 outstanding delegations
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 				expected_one_result
@@ -328,7 +328,7 @@ fn delegator_delegation_count_works() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"delegator_delegation_count(address)")[0..4];
 
-			// Construct data to read nominator nomination count
+			// Construct data to read delegator delegation count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
@@ -957,12 +957,12 @@ fn nominate_works() {
 			let mut input_data = Vec::<u8>::from([0u8; 132]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
-			let nomination_amount: U256 = 1_000.into();
-			nomination_amount.to_big_endian(&mut input_data[36..68]);
-			let collator_nominator_count = U256::zero();
-			collator_nominator_count.to_big_endian(&mut input_data[68..100]);
-			let nomination_count = U256::zero();
-			nomination_count.to_big_endian(&mut input_data[100..]);
+			let delegation_amount: U256 = 1_000.into();
+			delegation_amount.to_big_endian(&mut input_data[36..68]);
+			let collator_delegation_count = U256::zero();
+			collator_delegation_count.to_big_endian(&mut input_data[68..100]);
+			let delegation_count = U256::zero();
+			delegation_count.to_big_endian(&mut input_data[100..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
@@ -982,20 +982,58 @@ fn nominate_works() {
 }
 
 #[test]
-fn leave_delegators_works() {
+fn delegate_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"delegate(address,uint256,uint256,uint256)")[0..4];
+
+			// Construct selector for nominate
+			let mut input_data = Vec::<u8>::from([0u8; 132]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let delegation_amount: U256 = 1_000.into();
+			delegation_amount.to_big_endian(&mut input_data[36..68]);
+			let collator_delegation_count = U256::zero();
+			collator_delegation_count.to_big_endian(&mut input_data[68..100]);
+			let delegation_count = U256::zero();
+			delegation_count.to_big_endian(&mut input_data[100..]);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
+
+			let expected: crate::mock::Event = StakingEvent::Delegation(
+				TestAccount::Bob,
+				1_000,
+				TestAccount::Alice,
+				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+// DEPRECATED
+#[test]
+fn leave_nominators_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"leave_delegators(uint256)")[0..4];
+			let selector = &Keccak256::digest(b"leave_nominators(uint256)")[0..4];
 
-			// Construct selector for leave_delegators
+			// Construct data
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&selector);
-			let nomination_count = U256::one();
-			nomination_count.to_big_endian(&mut input_data[4..]);
+			let delegation_count = U256::one();
+			delegation_count.to_big_endian(&mut input_data[4..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
@@ -1007,9 +1045,89 @@ fn leave_delegators_works() {
 		});
 }
 
-// execute
+#[test]
+fn leave_delegators_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"leave_delegators(uint256)")[0..4];
 
-// cancel
+			// Construct data
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			let delegation_count = U256::one();
+			delegation_count.to_big_endian(&mut input_data[4..]);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn execute_leave_delegators_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::leave_delegators(
+				Origin::signed(TestAccount::Bob),
+				1
+			));
+			roll_to(10);
+			let selector = &Keccak256::digest(b"execute_leave_delegators(address)")[0..4];
+
+			// Construct data
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegatorLeft(TestAccount::Bob, 500).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn cancel_leave_delegators_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::leave_delegators(
+				Origin::signed(TestAccount::Bob),
+				1
+			));
+			let selector = &Keccak256::digest(b"cancel_leave_delegators()")[0..4];
+
+			// Construct data
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
+			input_data[0..4].copy_from_slice(&selector);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegatorExitCancelled(TestAccount::Bob).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
 
 // DEPRECATED
 #[test]
@@ -1042,6 +1160,36 @@ fn revoke_nomination_works() {
 		});
 }
 
+#[test]
+fn revoke_delegation_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"revoke_delegation(address)")[0..4];
+
+			// Construct selector for revoke_delegation
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
+				1,
+				TestAccount::Bob,
+				TestAccount::Alice,
+				3,
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
 // DEPRECATED
 #[test]
 fn nominator_bond_more_works() {
@@ -1051,10 +1199,41 @@ fn nominator_bond_more_works() {
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
 		.build()
 		.execute_with(|| {
-			// Construct the nominator_bond_more call
+			// Construct the delegator_bond_more call
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4]
 				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let bond_more_amount: U256 = 500.into();
+			bond_more_amount.to_big_endian(&mut input_data[36..68]);
+
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			// Check for the right events.
+			let expected_event: crate::mock::Event = StakingEvent::DelegationIncreaseScheduled(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				500,
+				3,
+			)
+			.into();
+
+			assert!(events().contains(&expected_event));
+		});
+}
+
+#[test]
+fn delegator_bond_more_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			// Construct the delegator_bond_more call
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"delegator_bond_more(address,uint256)")[0..4]);
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 			let bond_more_amount: U256 = 500.into();
 			bond_more_amount.to_big_endian(&mut input_data[36..68]);
@@ -1083,7 +1262,7 @@ fn nominator_bond_less_works() {
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_500)])
 		.build()
 		.execute_with(|| {
-			// Construct the nominator_bond_less call
+			// Construct the delegator_bond_less call
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4]
 				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
@@ -1106,6 +1285,243 @@ fn nominator_bond_less_works() {
 		});
 }
 
-// execute delegation request
+#[test]
+fn delegator_bond_less_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_500)])
+		.build()
+		.execute_with(|| {
+			// Construct the delegator_bond_less call
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"delegator_bond_less(address,uint256)")[0..4]);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let bond_less_amount: U256 = 500.into();
+			bond_less_amount.to_big_endian(&mut input_data[36..68]);
 
-// cancel delegation request
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			// Check for the right events.
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				500,
+				3,
+			)
+			.into();
+
+			assert!(events().contains(&expected_event));
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::revoke_delegation(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice
+			));
+			roll_to(10);
+			let selector = &Keccak256::digest(b"execute_delegation_request(address,address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
+			input_data[48..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegationRevoked(TestAccount::Bob, TestAccount::Alice, 1_000).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn execute_delegator_bond_more_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegator_bond_more(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice,
+				500
+			));
+			roll_to(10);
+			let selector = &Keccak256::digest(b"execute_delegation_request(address,address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
+			input_data[48..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
+					.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn execute_delegator_bond_less_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegator_bond_less(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice,
+				500
+			));
+			roll_to(10);
+			let selector = &Keccak256::digest(b"execute_delegation_request(address,address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
+			input_data[48..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				StakingEvent::DelegationDecreased(TestAccount::Bob, TestAccount::Alice, 500, true)
+					.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn cancel_revoke_delegation_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::revoke_delegation(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice
+			));
+			let selector = &Keccak256::digest(b"cancel_delegation_request(address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
+				TestAccount::Bob,
+				parachain_staking::DelegationRequest {
+					collator: TestAccount::Alice,
+					amount: 1_000,
+					when: 3,
+					action: parachain_staking::DelegationChange::Revoke,
+				},
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn cancel_delegator_bonded_more_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegator_bond_more(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice,
+				500
+			));
+			let selector = &Keccak256::digest(b"cancel_delegation_request(address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
+				TestAccount::Bob,
+				parachain_staking::DelegationRequest {
+					collator: TestAccount::Alice,
+					amount: 500,
+					when: 3,
+					action: parachain_staking::DelegationChange::Increase,
+				},
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn cancel_delegator_bonded_less_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegator_bond_less(
+				Origin::signed(TestAccount::Bob),
+				TestAccount::Alice,
+				500
+			));
+			let selector = &Keccak256::digest(b"cancel_delegation_request(address)")[0..4];
+
+			// Construct selector
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
+
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
+				TestAccount::Bob,
+				parachain_staking::DelegationRequest {
+					collator: TestAccount::Alice,
+					amount: 500,
+					when: 3,
+					action: parachain_staking::DelegationChange::Decrease,
+				},
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}

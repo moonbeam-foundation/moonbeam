@@ -193,20 +193,6 @@ pub mod pallet {
 		pub when: RoundIndex,
 	}
 
-	impl<B> CandidateBondRequest<B> {
-		pub fn new(
-			change: CandidateBondChange,
-			amount: B,
-			when: RoundIndex,
-		) -> CandidateBondRequest<B> {
-			CandidateBondRequest {
-				amount,
-				change,
-				when,
-			}
-		}
-	}
-
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Collator candidate state with self bond + delegations
 	pub struct CollatorCandidate<AccountId, Balance> {
@@ -299,11 +285,11 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
-			self.request = Some(CandidateBondRequest::new(
-				CandidateBondChange::Increase,
-				more,
+			self.request = Some(CandidateBondRequest {
+				change: CandidateBondChange::Increase,
+				amount: more,
 				when,
-			));
+			});
 			Ok(when)
 		}
 		/// Schedule executable decrease of collator candidate self bond
@@ -327,11 +313,11 @@ pub mod pallet {
 				Error::<T>::CandidateBondBelowMin
 			);
 			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
-			self.request = Some(CandidateBondRequest::new(
-				CandidateBondChange::Decrease,
-				less,
+			self.request = Some(CandidateBondRequest {
+				change: CandidateBondChange::Decrease,
+				amount: less,
 				when,
-			));
+			});
 			Ok(when)
 		}
 		/// Execute pending request to change the collator self bond
