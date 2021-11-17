@@ -33,6 +33,7 @@ use sp_std::{
 	marker::PhantomData,
 };
 use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::{VersionedMultiAsset, VersionedMultiLocation};
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -45,7 +46,7 @@ pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
@@ -120,7 +121,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
-			dest: Box::new(destination),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 
@@ -167,11 +168,11 @@ where
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
-			}),
-			dest: Box::new(destination),
+			})),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 

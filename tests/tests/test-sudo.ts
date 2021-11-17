@@ -30,10 +30,10 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
     //check events
-    expect(events.length === 4);
-    expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
-    expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
+    expect(events.length === 6).to.be.true;
+    expect(context.polkadotApi.events.system.NewAccount.is(events[2])).to.be.true;
+    expect(context.polkadotApi.events.balances.Endowed.is(events[3])).to.be.true;
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5])).to.be.true;
   });
 });

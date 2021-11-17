@@ -28,5 +28,5 @@ ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scal
 
 # Patches for individual cumulus crates that I want to override while working on mock xcm
 [patch."https://github.com/purestake/cumulus"]
-cumulus-primitives-parachain-inherent = { git = "https://github.com/joshorndorff/cumulus", branch = "joshy-mock-xcm" }
-cumulus-pallet-parachain-system = { git = "https://github.com/joshorndorff/cumulus", branch = "joshy-mock-xcm" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/joshorndorff/cumulus", branch = "joshy-mock-xcm-0.9.12" }
+cumulus-pallet-parachain-system = { git = "https://github.com/joshorndorff/cumulus", branch = "joshy-mock-xcm-0.9.12" }

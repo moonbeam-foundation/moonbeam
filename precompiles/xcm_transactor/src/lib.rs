@@ -44,7 +44,7 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
 	TransactInfo = "transact_info((uint8,bytes[]))",
@@ -182,7 +182,7 @@ where
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
 			index,
-			fee_location: fee_multilocation,
+			fee_location: xcm::VersionedMultiLocation::V1(fee_multilocation),
 			dest_weight: weight,
 			inner_call: inner_call.0,
 		};

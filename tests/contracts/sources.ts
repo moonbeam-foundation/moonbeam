@@ -903,6 +903,25 @@ export const contractSources: { [key: string]: string } = {
      * @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts
      */
     interface IERC20 {
+        
+    /**
+     * @dev Returns the name of the token.
+     * Selector: 06fdde03
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the symbol of the token.
+     * Selector: 95d89b41
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the decimals places of the token.
+     * Selector: 313ce567
+     */
+    function decimals() external view returns (uint8);
+    
     /**
      * @dev Total number of tokens in existence
      * Selector: 18160ddd
@@ -956,7 +975,7 @@ export const contractSources: { [key: string]: string } = {
      * Selector: 23b872dd
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to be transferred
+     * @param value uint256 the amount of delegated tokens to be transferred
      */
     function transferFrom(address from, address to, uint256 value)
         external returns (bool);
@@ -991,7 +1010,27 @@ export const contractSources: { [key: string]: string } = {
     contract ERC20Instance is IERC20 {
 
         /// The ierc20 at the known pre-compile address.
-        IERC20 public erc20 = IERC20(0x0000000000000000000000000000000000000802);
+        IERC20 public erc20 = IERC20(0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080);
+        address erc20address = 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080;
+
+            receive() external payable {
+            // React to receiving ether
+            }
+
+            function name() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.name();
+            }
+            
+            function symbol() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.symbol();
+            }
+            
+            function decimals() override external view returns (uint8) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.decimals();
+            }
 
             function totalSupply() override external view returns (uint256){
                 // We nominate our target collator with all the tokens provided
@@ -1014,16 +1053,37 @@ export const contractSources: { [key: string]: string } = {
                 return erc20.transfer(to, value);
             }
             
+            function transfer_delegate(address to, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transfer(address,uint256)", to, value));
+            return result;
+            }
+            
             function approve(address spender, uint256 value) override external returns (bool) {
-                return erc20.transfer(spender, value);
+            return erc20.approve(spender, value);
+            }
+
+            function approve_delegate(address spender, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("approve(address,uint256)", spender, value));
+            return result;
             }
             
             function transferFrom(
                 address from,
-                address to, 
-                int256 value
-            ) override external returns (bool) {
-                return erc20.transferFrom(from,  to, value);
+                address to,
+                uint256 value)
+            override external returns (bool) {
+                return erc20.transferFrom(from, to, value);
+            }
+            
+            function transferFrom_delegate(
+                address from,
+                address to,
+                uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, value));
+            return result;
             }
     }`,
 };

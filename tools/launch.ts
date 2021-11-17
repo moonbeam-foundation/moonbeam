@@ -15,8 +15,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -99,6 +97,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     relay: "rococo-9111",
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.14.2",
+  },
+  "moonbase-0.15.0": {
+    relay: "rococo-9111",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.15.0",
   },
   local: {
     relay: "rococo-9111",

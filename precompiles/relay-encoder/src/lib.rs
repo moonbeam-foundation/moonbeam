@@ -64,7 +64,7 @@ pub trait StakeEncodeCall {
 }
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 enum Action {
 	EncodeBond = "encode_bond(uint256,uint256,bytes)",
 	EncodeBondExtra = "encode_bond_extra(uint256)",

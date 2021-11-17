@@ -194,6 +194,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -1170,4 +1185,83 @@ fn ethereum_invalid_transaction() {
 			)
 		);
 	});
+}
+
+#[test]
+fn transfer_ed_0_substrate() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * GLMR) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * GLMR,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+}
+
+#[test]
+fn transfer_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * GLMR) + (21_000 * (100 * GIGAWEI))) + (1 * WEI),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_000u64,
+				gas_price: U256::from(100 * GIGAWEI),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI,);
+		});
+}
+
+#[test]
+fn refund_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * GLMR) + (21_777 * (100 * GIGAWEI))),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer that zeroes ALICE
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: AccountId::from(ALICE),
+				target: AccountId::from(BOB),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_777u64,
+				gas_price: U256::from(100 * GIGAWEI),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// ALICE is refunded
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				777 * (100 * GIGAWEI),
+			);
+		});
 }
