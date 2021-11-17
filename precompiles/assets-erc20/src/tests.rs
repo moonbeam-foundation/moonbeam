@@ -273,7 +273,7 @@ fn approve() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -429,7 +429,7 @@ fn transfer() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -578,7 +578,7 @@ fn transfer_from() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 107172756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -693,7 +693,7 @@ fn transfer_from_non_incremental_approval() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -726,7 +726,7 @@ fn transfer_from_non_incremental_approval() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 114357756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -860,7 +860,7 @@ fn transfer_from_self() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
