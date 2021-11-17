@@ -1,5 +1,4 @@
 [alias]
-check-moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
 moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
 moonbase-rococo = " build --release -p moonbeam --no-default-features --features moonbase-native,rococo-native"
 moonbase-tracing = " build --release -p moonbeam --features moonbase-native-tracing"
