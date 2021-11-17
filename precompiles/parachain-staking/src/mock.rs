@@ -19,11 +19,11 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild},
+	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use parachain_staking::{InflationInfo, Range};
+use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_io;
@@ -350,10 +350,22 @@ impl ExtBuilder {
 	}
 }
 
-// Same storage changes as EventHandler::note_author impl
+// Sets the same storage changes as EventHandler::note_author impl
 pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
-	<parachain_staking::Points<Runtime>>::mutate(round, |p| *p += pts);
-	<parachain_staking::AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
+	<Points<Runtime>>::mutate(round, |p| *p += pts);
+	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
+}
+
+pub(crate) fn roll_to(n: u64) {
+	while System::block_number() < n {
+		ParachainStaking::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
+	}
 }
 
 pub(crate) fn events() -> Vec<Event> {

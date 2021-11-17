@@ -60,7 +60,9 @@ enum Action {
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
+	// DEPRECATED
 	LeaveCandidates = "leave_candidates(uint256)",
+	ScheduleLeaveCandidates = "schedule_leave_candidates(uint256)",
 	ExecuteLeaveCandidates = "execute_leave_candidates(address)",
 	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
 	GoOffline = "go_offline()",
@@ -142,7 +144,9 @@ where
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
 			// runtime methods (dispatchables)
 			Action::JoinCandidates => Self::join_candidates(input, context)?,
-			Action::LeaveCandidates => Self::leave_candidates(input, context)?,
+			// DEPRECATED
+			Action::LeaveCandidates => Self::schedule_leave_candidates(input, context)?,
+			Action::ScheduleLeaveCandidates => Self::schedule_leave_candidates(input, context)?,
 			Action::ExecuteLeaveCandidates => Self::execute_leave_candidates(input, context)?,
 			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(input, context)?,
 			Action::GoOffline => Self::go_offline(context)?,
@@ -217,14 +221,6 @@ where
 			logs: vec![],
 		})
 	}
-
-	// TODO: min_delegation
-
-	// TODO: min_delegator_stk
-
-	// TODO: min_candidate_stk
-
-	// TODO: min_collator_stk
 
 	// Storage Getters
 
@@ -449,7 +445,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn leave_candidates(
+	fn schedule_leave_candidates(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<

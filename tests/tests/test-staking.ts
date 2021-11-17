@@ -110,35 +110,3 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     );
   });
 });
-
-describeDevMoonbeam("Staking - Delegators cannot bond less than minimum delegation", (context) => {
-  let ethan;
-  before("should successfully call delegate on ALITH", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    // Delegate
-    await context.polkadotApi.tx.parachainStaking
-      .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
-      .signAndSend(ethan);
-    await context.createBlock();
-  });
-  it("should fail calling delegatorBondLess under min delegation amount", async function () {
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      ethan,
-      context.polkadotApi.tx.parachainStaking.delegatorBondLess(ALITH, 1n * GLMR)
-    );
-    expect(events[1].method.toString()).to.eq("ExtrinsicFailed");
-    const delegatorsAfter = (
-      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
-    ).unwrap();
-    expect(delegatorsAfter.delegations[0].owner.toString()).to.equal(
-      ALITH.toLowerCase(),
-      "delegation does not exist"
-    );
-    expect(delegatorsAfter.delegations[0].amount.toBigInt()).equal(
-      5n * GLMR,
-      "delegation amount should be 5"
-    );
-  });
-});
