@@ -6,6 +6,7 @@ import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { createBlock } from "typescript";
+import { customRequest } from "../tests/util";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -59,19 +60,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
   it("Should receive a downward transfer of 10 DOTs to Alith", async function () {
     // Send RPC call to inject XCM message
     // You can provide a message, but if you don't a downward transfer is the default
-    //TODO
-
-    // {
-    //   "jsonrpc":"2.0",
-    //   "id":1,
-    //   "method":"xcm_injectDownwardMessage",
-    //   "params": [[]]
-    // }
+    await customRequest(context.web3, "xcm_injectDownwardMessage", [[]]);
 
     // Create a block in which the XCM will be executed
     awat createBlock();
 
     // Make sure the state (and events?) has ALITH's to DOT tokens
-    expect().to.eq();
+    expect(context.polkadotApi.query.assets.accout(assetId, alith)).to.eq(10 * glmr);
   });
 });
