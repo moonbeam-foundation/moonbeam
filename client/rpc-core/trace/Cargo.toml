@@ -1,11 +1,11 @@
 [package]
 name = "moonbeam-rpc-core-trace"
-authors = [ 'PureStake' ]
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.6.0'
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.6.0"
 
 [dependencies]
 ethereum-types = "0.12.0"

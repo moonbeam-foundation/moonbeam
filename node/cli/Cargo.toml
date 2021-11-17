@@ -6,7 +6,7 @@ version = "0.14.2"
 
 [dependencies]
 log = "0.4.8"
-parity-scale-codec = '2.2'
+parity-scale-codec = "2.2"
 structopt = "0.3.8"
 
 # Moonbeam

@@ -1,11 +1,11 @@
 [package]
 name = "moonbeam-rpc-primitives-txpool"
-authors = [ 'PureStake' ]
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.6.0'
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.6.0"
 
 [dependencies]
 ethereum = { version = "0.9.0", default-features = false, features = [ "with-codec" ] }

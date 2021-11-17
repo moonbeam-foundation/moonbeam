@@ -1,11 +1,11 @@
 [package]
-name = 'runtime-common'
+name = "runtime-common"
 authors = [ "PureStake" ]
-description = 'Common code shared between runtimes'
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.8.0-dev'
+description = "Common code shared between runtimes"
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.8.0-dev"
 
 [dependencies]
 log = "0.4"

@@ -1,11 +1,11 @@
 [package]
 name = "moonbeam-rpc-primitives-debug"
-authors = [ 'PureStake' ]
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.1.0'
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.0"
 
 [dependencies]
 environmental = { version = "1.1.2", default-features = false }

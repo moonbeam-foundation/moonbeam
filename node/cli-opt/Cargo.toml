@@ -1,10 +1,10 @@
 [package]
-name = 'moonbeam-cli-opt'
+name = "moonbeam-cli-opt"
 authors = [ "PureStake" ]
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.14.2'
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.14.2"
 
 [dependencies]
 libsecp256k1 = "0.6"

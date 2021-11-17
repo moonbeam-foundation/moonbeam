@@ -1,11 +1,11 @@
 [package]
-name = 'moonbeam'
+name = "moonbeam"
 authors = [ "PureStake" ]
-description = 'Moonbeam Collator'
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.12.3'
+description = "Moonbeam Collator"
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.12.3"
 
 [[bin]]
 name = 'moonbeam'

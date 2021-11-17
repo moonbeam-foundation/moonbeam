@@ -1,12 +1,12 @@
 [package]
-name = 'moonriver-runtime'
+name = "moonriver-runtime"
 authors = [ "PureStake" ]
 build = "build.rs"
-description = 'Moonriver Runtime'
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.8.4'
+description = "Moonriver Runtime"
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.8.4"
 
 [dependencies]
 log = "0.4"

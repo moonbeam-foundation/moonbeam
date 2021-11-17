@@ -1,10 +1,10 @@
 [package]
 name = "moonkey"
 authors = [ "PureStake" ]
-description = 'Moonbeam Key Tool'
+description = "Moonbeam Key Tool"
 edition = "2018"
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
 version = "0.1.1"
 
 [[bin]]

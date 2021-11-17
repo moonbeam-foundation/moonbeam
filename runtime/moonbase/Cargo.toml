@@ -1,12 +1,12 @@
 [package]
-name = 'moonbase-runtime'
+name = "moonbase-runtime"
 authors = [ "PureStake" ]
 build = "build.rs"
-description = 'Moonbase Runtime'
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.8.4'
+description = "Moonbase Runtime"
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.8.4"
 
 [dependencies]
 log = "0.4"
