@@ -39,6 +39,7 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, ParachainInherentData,
 };
@@ -820,7 +821,7 @@ where
 
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
-		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
 		task_manager.spawn_essential_handle().spawn_blocking(

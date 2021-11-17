@@ -25,6 +25,7 @@ use sp_block_builder::BlockBuilder;
 
 use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::EthApi as EthApiCmd;
+use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
@@ -91,7 +92,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Ethereum transaction to Extrinsic converter.
 	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
-	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<Vec<u8>>)>,
+	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(

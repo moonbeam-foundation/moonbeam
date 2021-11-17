@@ -33,7 +33,13 @@ pub trait ManualXcmApi {
 	fn inject_downward_message(&self, message: Vec<u8>) -> BoxFuture<'static, RpcResult<()>>;
 
 	/// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
-	// parachain.
+	/// parachain.
+	///
+	/// Cumulus Parachain System seems to have a constraint that at most one hrmp message will be
+	/// sent on a channel per block. At least that's what this comment implies:
+	/// https://github.com/paritytech/cumulus/blob/c308c01b/pallets/parachain-system/src/lib.rs#L204
+	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
+	/// constraint. In fact, violating it may be useful for testing.
 	#[rpc(name = "xcm_injectHrmpMessage")]
 	fn inject_hrmp_message(
 		&self,
