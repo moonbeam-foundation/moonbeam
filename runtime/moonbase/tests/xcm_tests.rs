@@ -579,6 +579,71 @@ fn receive_relay_asset_with_trader() {
 }
 
 #[test]
+fn send_para_a_asset_to_para_b_with_trader_and_fee() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		// With these units per second, 80K weight convrets to 1 asset unit
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			12500000u128
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	// we use transfer_with_fee
+	ParaA::execute_with(|| {
+		assert_ok!(XTokens::transfer_with_fee(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			1,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			800000
+		));
+	});
+	ParaA::execute_with(|| {
+		// 100 tokens transferred plus 1 taken from fees
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100 - 1
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+}
+
+#[test]
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
