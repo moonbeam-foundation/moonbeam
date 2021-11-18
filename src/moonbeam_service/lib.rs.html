@@ -980,8 +980,6 @@
 <span id="980">980</span>
 <span id="981">981</span>
 <span id="982">982</span>
-<span id="983">983</span>
-<span id="984">984</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1791,7 +1789,6 @@
 			<span class="ident">prometheus_registry</span>.<span class="ident">as_ref</span>(),
 			<span class="ident">telemetry</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">handle</span>()),
 		);
-
 		<span class="kw">let</span> <span class="ident">commands_stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Unpin</span><span class="op">&gt;</span> <span class="op">=</span>
 			<span class="kw">match</span> <span class="ident">sealing</span> {
 				<span class="ident">cli_opt::Sealing::Instant</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1868,7 +1865,6 @@
 			}),
 		);
 	}
-
 	<span class="ident">rpc::spawn_essential_tasks</span>(<span class="ident">rpc::SpawnTasksParams</span> {
 		<span class="ident">task_manager</span>: <span class="kw-2">&amp;</span><span class="ident">task_manager</span>,
 		<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),

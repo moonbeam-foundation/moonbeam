@@ -844,6 +844,11 @@
 <span id="844">844</span>
 <span id="845">845</span>
 <span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1364,6 +1369,11 @@
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>))]</span>
 					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
 				}
+			} <span class="kw">else</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>) {
+				<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
+				<span class="kw">return</span> <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
+					<span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">service::moonbase_runtime::Block</span>, <span class="ident">service::MoonbaseExecutor</span><span class="op">&gt;</span>(<span class="ident">config</span>)
+				});
 			} <span class="kw">else</span> {
 				<span class="prelude-val">Err</span>(<span class="string">&quot;Benchmarking wasn&#39;t enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`.&quot;</span>

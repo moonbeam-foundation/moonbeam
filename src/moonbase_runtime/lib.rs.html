@@ -1669,6 +1669,7 @@
 <span id="1669">1669</span>
 <span id="1670">1670</span>
 <span id="1671">1671</span>
+<span id="1672">1672</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2898,7 +2899,7 @@
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrarMetadata</span> {
 	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">symbol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
@@ -2914,6 +2915,7 @@
 	<span class="kw">type</span> <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">AssetType</span>;
 	<span class="kw">type</span> <span class="ident">AssetRegistrar</span> <span class="op">=</span> <span class="ident">AssetRegistrar</span>;
 	<span class="kw">type</span> <span class="ident">AssetModifierOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_asset_manager::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.</span>
