@@ -1,24 +1,25 @@
 [package]
-authors = ["PureStake"]
-edition = "2018"
 name = "pallet-ethereum-chain-id"
+authors = [ "PureStake" ]
+edition = "2018"
 version = "1.0.0"
 
 [dependencies]
-parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
-serde = { version = "1.0.101", optional = true, features = ["derive"] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.101", optional = true, features = [ "derive" ] }
 
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
-    "parity-scale-codec/std",
-    "serde",
-    "frame-support/std",
-    "frame-system/std",
-    "scale-info/std",
+	"frame-support/std",
+	"frame-system/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"serde",
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = [ "frame-support/try-runtime" ]
