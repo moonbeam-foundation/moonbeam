@@ -169,8 +169,8 @@ where
 	pub fn try_dispatch<Call>(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
-		target_gas: Option<u64>,
-	) -> EvmResult<u64>
+		gasometer: &mut Gasometer,
+	) -> EvmResult<()>
 	where
 		Runtime::Call: From<Call>,
 	{
@@ -178,7 +178,7 @@ where
 		let dispatch_info = call.get_dispatch_info();
 
 		// Make sure there is enough gas.
-		if let Some(gas_limit) = target_gas {
+		if let Some(gas_limit) = gasometer.remaining_gas()? {
 			let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
 			if required_gas > gas_limit {
 				return Err(PrecompileFailure::Error {
@@ -194,13 +194,17 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|e| error(alloc::format!("Dispatched call failed with error: {:?}", e)))?
+			.map_err(|e| {
+				gasometer.revert(alloc::format!("Dispatched call failed with error: {:?}", e))
+			})?
 			.actual_weight;
 
-		// Return used weight by converting weight to gas.
-		Ok(Runtime::GasWeightMapping::weight_to_gas(
-			used_weight.unwrap_or(dispatch_info.weight),
-		))
+		let used_gas =
+			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(())
 	}
 }
 
@@ -320,6 +324,9 @@ impl Gasometer {
 	/// recorded cost. It is better to **revert** instead of **error** as
 	/// erroring consumes the entire gas limit, and **revert** returns an error
 	/// message to the calling contract.
+	///
+	/// TODO : Record cost of the input based on its size and handle Out of Gas ?
+	/// This might be required if we format revert messages using user data.
 	pub fn revert(&self, output: impl AsRef<[u8]>) -> PrecompileFailure {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
