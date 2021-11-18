@@ -18,7 +18,7 @@
 
 extern crate alloc;
 
-use fp_evm::ExitError;
+use fp_evm::{ExitError, ExitRevert, PrecompileFailure};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
@@ -36,11 +36,16 @@ pub use precompile_utils_macro::{generate_function_selector, keccak256};
 mod tests;
 
 /// Alias for Result returning an EVM precompile error.
-pub type EvmResult<T = ()> = Result<T, ExitError>;
+pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
 /// Return an error with provided (static) text.
-pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> ExitError {
-	ExitError::Other(text.into())
+/// Using the `revert` function of `Gasometer` is prefered as erroring
+/// consumed all the gas limit and the error message is not easily
+/// retrievable.
+pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
+	PrecompileFailure::Error {
+		exit_status: ExitError::Other(text.into()),
+	}
 }
 
 /// Builder for PrecompileOutput.
@@ -176,7 +181,9 @@ where
 		if let Some(gas_limit) = target_gas {
 			let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
 			if required_gas > gas_limit {
-				return Err(ExitError::OutOfGas);
+				return Err(PrecompileFailure::Error {
+					exit_status: ExitError::OutOfGas,
+				});
 			}
 		}
 
@@ -242,10 +249,17 @@ impl Gasometer {
 
 	/// Record cost, and return error if it goes out of gas.
 	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
-		self.used_gas = self.used_gas.checked_add(cost).ok_or(ExitError::OutOfGas)?;
+		self.used_gas = self
+			.used_gas
+			.checked_add(cost)
+			.ok_or(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			})?;
 
 		match self.target_gas {
-			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
+			Some(gas_limit) if self.used_gas > gas_limit => Err(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			}),
 			_ => Ok(()),
 		}
 	}
@@ -262,11 +276,15 @@ impl Gasometer {
 
 		let topic_cost = G_LOGTOPIC
 			.checked_mul(topics as u64)
-			.ok_or(ExitError::OutOfGas)?;
+			.ok_or(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			})?;
 
 		let data_cost = G_LOGDATA
 			.checked_mul(data_len as u64)
-			.ok_or(ExitError::OutOfGas)?;
+			.ok_or(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			})?;
 
 		self.record_cost(G_LOG)?;
 		self.record_cost(topic_cost)?;
@@ -290,11 +308,23 @@ impl Gasometer {
 	pub fn remaining_gas(&self) -> EvmResult<Option<u64>> {
 		Ok(match self.target_gas {
 			None => None,
-			Some(gas_limit) => Some(
-				gas_limit
-					.checked_sub(self.used_gas)
-					.ok_or(ExitError::OutOfGas)?,
-			),
+			Some(gas_limit) => Some(gas_limit.checked_sub(self.used_gas).ok_or(
+				PrecompileFailure::Error {
+					exit_status: ExitError::OutOfGas,
+				},
+			)?),
 		})
+	}
+
+	/// Revert the execution, making the user pay for the the currently
+	/// recorded cost. It is better to **revert** instead of **error** as
+	/// erroring consumes the entire gas limit, and **revert** returns an error
+	/// message to the calling contract.
+	pub fn revert(&self, output: impl AsRef<[u8]>) -> PrecompileFailure {
+		PrecompileFailure::Revert {
+			exit_status: ExitRevert::Reverted,
+			output: output.as_ref().to_owned(),
+			cost: self.used_gas,
+		}
 	}
 }
