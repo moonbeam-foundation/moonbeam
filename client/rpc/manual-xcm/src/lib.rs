@@ -103,7 +103,37 @@ impl ManualXcmApi for ManualXcm {
 		let hrmp_message_channel = self.hrmp_message_channel.clone();
 
 		async move {
-			// Push the message and sender to the shared channel where they will be queued up
+			// If no message is supplied, inject a default one.
+			let msg = if msg.is_empty() {
+				todo!("Must supply a message for HRMP. No default is currently provided");
+			//TODO Make this compile
+			// xcm::VersionedXcm::<()>::V2(Xcm(vec![
+			// 	ReserveAssetDeposited(
+			// 		((Parent, Parachain(sender.into())).into(), 10000000000000).into(),
+			// 	),
+			// 	ClearOrigin,
+			// 	BuyExecution {
+			// 		fees: (Parent, Parachain(sender.into())).into(),
+			// 		weight_limit: Limited(4_000_000_000),
+			// 	},
+			// 	DepositAsset {
+			// 		assets: All.into(),
+			// 		max_assets: 1,
+			// 		beneficiary: MultiLocation::new(
+			// 			0,
+			// 			X1(AccountKey20 {
+			// 				network: Any,
+			// 				key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+			// 			}),
+			// 		),
+			// 	},
+			// ]))
+			// .encode()
+			} else {
+				msg
+			};
+
+			// Push the message to the shared channel where it will be queued up
 			// to be injected in to an upcoming block.
 			hrmp_message_channel
 				.send_async((sender, msg))
