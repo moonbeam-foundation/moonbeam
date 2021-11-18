@@ -400,6 +400,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -407,6 +409,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -426,6 +430,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+
+
 					let whitelist: Vec<TrackedStorageKey> = vec![];
 
 					let mut batches = Vec::<BenchmarkBatch>::new();
@@ -450,6 +458,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						PalletAuthorMappingBench::<Runtime>
 					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						pallet_asset_manager,
+						PalletAssetManagerBench::<Runtime>
+					);
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());
@@ -460,10 +475,18 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			#[cfg(feature = "try-runtime")]
 			impl frame_try_runtime::TryRuntime<Block> for Runtime {
-				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+				fn on_runtime_upgrade() -> (Weight, Weight) {
 					log::info!("try-runtime::on_runtime_upgrade()");
-					let weight = Executive::try_runtime_upgrade()?;
-					Ok((weight, BlockWeights::get().max_block))
+					// NOTE: intentional expect: we don't want to propagate the error backwards,
+					// and want to have a backtrace here. If any of the pre/post migration checks
+					// fail, we shall stop right here and right now.
+					let weight = Executive::try_runtime_upgrade()
+						.expect("runtime upgrade logic *must* be infallible");
+					(weight, BlockWeights::get().max_block)
+				}
+
+				fn execute_block_no_check(block: Block) -> Weight {
+					Executive::execute_block_no_check(block)
 				}
 			}
 		}

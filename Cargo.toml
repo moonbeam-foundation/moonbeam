@@ -1,26 +1,24 @@
 [workspace]
+exclude = [ "bin/utils/moonkey" ]
 members = [
-    'runtime/moonbeam',
-    'runtime/moonriver',
-    'runtime/moonbase',
-    'node',
-    'node/cli',
-    'node/service',
-    'pallets/migrations',
-    'pallets/proxy-genesis-companion',
-    'bin/utils/moonkey',
-    'pallets/maintenance-mode',
-    'precompiles/utils/macro',
+	"bin/utils/moonkey",
+	"node",
+	"node/cli",
+	"node/service",
+	"pallets/maintenance-mode",
+	"pallets/migrations",
+	"pallets/proxy-genesis-companion",
+	"precompiles/utils/macro",
+	"runtime/moonbase",
+	"runtime/moonbeam",
+	"runtime/moonriver",
 ]
-exclude = [
-    'bin/utils/moonkey'
-]
-
-[profile.release]
-panic = 'unwind'
 
 [patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
 ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
+evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+
+[profile.release]
+panic = "unwind"

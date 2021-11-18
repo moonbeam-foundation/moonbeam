@@ -1,19 +1,19 @@
 [package]
 name = "moonbeam-rpc-core-txpool"
-version = '0.6.0'
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.6.0"
 
 [dependencies]
-ethereum = { version = "0.9.0", default-features = false, features = ["with-codec"] }
+ethereum = { version = "0.9.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = "0.12.0"
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
 jsonrpc-derive = "18.0.0"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
