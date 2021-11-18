@@ -23,13 +23,13 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	error, Address, EvmData, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper,
+	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
@@ -85,45 +85,48 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		is_static: bool,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		let gasometer = &mut gasometer;
+
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let input = &mut input;
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
 			// constants
-			Action::MinNomination => return Self::min_nomination(target_gas),
+			Action::MinNomination => return Self::min_nomination(gasometer),
 			// storage getters
-			Action::Points => return Self::points(input, target_gas),
-			Action::CandidateCount => return Self::candidate_count(target_gas),
+			Action::Points => return Self::points(input, gasometer),
+			Action::CandidateCount => return Self::candidate_count(gasometer),
 			Action::CollatorNominationCount => {
-				return Self::collator_nomination_count(input, target_gas)
+				return Self::collator_nomination_count(input, gasometer)
 			}
 			Action::NominatorNominationCount => {
-				return Self::nominator_nomination_count(input, target_gas)
+				return Self::nominator_nomination_count(input, gasometer)
 			}
 			// role verifiers
-			Action::IsNominator => return Self::is_nominator(input, target_gas),
-			Action::IsCandidate => return Self::is_candidate(input, target_gas),
-			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, target_gas),
+			Action::IsNominator => return Self::is_nominator(input, gasometer),
+			Action::IsCandidate => return Self::is_candidate(input, gasometer),
+			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, gasometer),
 			// runtime methods (dispatchables)
-			Action::JoinCandidates => Self::join_candidates(input, context)?,
-			Action::LeaveCandidates => Self::leave_candidates(input, context)?,
+			Action::JoinCandidates => Self::join_candidates(input, gasometer, context)?,
+			Action::LeaveCandidates => Self::leave_candidates(input, gasometer, context)?,
 			Action::GoOffline => Self::go_offline(context)?,
 			Action::GoOnline => Self::go_online(context)?,
-			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
-			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
-			Action::Nominate => Self::nominate(input, context)?,
-			Action::LeaveNominators => Self::leave_nominators(input, context)?,
-			Action::RevokeNomination => Self::revoke_nomination(input, context)?,
-			Action::NominatorBondLess => Self::nominator_bond_less(input, context)?,
-			Action::NominatorBondMore => Self::nominator_bond_more(input, context)?,
+			Action::CandidateBondLess => Self::candidate_bond_less(input, gasometer, context)?,
+			Action::CandidateBondMore => Self::candidate_bond_more(input, gasometer, context)?,
+			Action::Nominate => Self::nominate(input, gasometer, context)?,
+			Action::LeaveNominators => Self::leave_nominators(input, gasometer, context)?,
+			Action::RevokeNomination => Self::revoke_nomination(input, gasometer, context)?,
+			Action::NominatorBondLess => Self::nominator_bond_less(input, gasometer, context)?,
+			Action::NominatorBondMore => Self::nominator_bond_more(input, gasometer, context)?,
 		};
-		// Initialize gasometer
-		let mut gasometer = Gasometer::new(target_gas);
+
 		// Dispatch call (if enough gas).
-		let used_gas =
-			RuntimeHelper::<Runtime>::try_dispatch(origin, call, gasometer.remaining_gas()?)?;
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(origin, call, gasometer)?;
+
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
@@ -143,16 +146,14 @@ where
 {
 	// Constants
 
-	fn min_nomination(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+	fn min_nomination(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinNomination as Get<
 			BalanceOf<Runtime>,
 		>>::get()
 		.try_into()
-		.map_err(|_| error("Amount is too large for provided balance type"))?;
+		.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -165,15 +166,10 @@ where
 
 	// Storage Getters
 
-	fn points(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+	fn points(input: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let round = input.read::<u32>()?;
+		input.expect_arguments(gasometer, 1)?;
+		let round = input.read::<u32>(gasometer)?;
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -188,9 +184,7 @@ where
 		})
 	}
 
-	fn candidate_count(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+	fn candidate_count(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
@@ -207,14 +201,13 @@ where
 	}
 
 	fn collator_nomination_count(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let address = input.read::<Address>(gasometer)?.0;
+		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -247,14 +240,13 @@ where
 	}
 
 	fn nominator_nomination_count(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let address = input.read::<Address>(gasometer)?.0;
+		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -290,14 +282,13 @@ where
 	// Role Verifiers
 
 	fn is_nominator(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let address = input.read::<Address>(gasometer)?.0;
+		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -313,14 +304,13 @@ where
 	}
 
 	fn is_candidate(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let address = input.read::<Address>(gasometer)?.0;
+		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -336,14 +326,13 @@ where
 	}
 
 	fn is_selected_candidate(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let address = input.read::<Address>(gasometer)?.0;
+		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -361,19 +350,17 @@ where
 	// Runtime Methods (dispatchables)
 
 	fn join_candidates(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(2)?;
-		let bond: BalanceOf<Runtime> = input.read()?;
-		let candidate_count = input.read()?;
+		input.expect_arguments(gasometer, 2)?;
+		let bond: BalanceOf<Runtime> = input.read(gasometer)?;
+		let candidate_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -387,18 +374,16 @@ where
 	}
 
 	fn leave_candidates(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let candidate_count = input.read()?;
+		input.expect_arguments(gasometer, 1)?;
+		let candidate_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -410,13 +395,10 @@ where
 
 	fn go_offline(
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::go_offline {};
@@ -427,13 +409,10 @@ where
 
 	fn go_online(
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::go_online {};
@@ -443,18 +422,16 @@ where
 	}
 
 	fn candidate_bond_more(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let more: BalanceOf<Runtime> = input.read()?;
+		input.expect_arguments(gasometer, 1)?;
+		let more: BalanceOf<Runtime> = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -465,18 +442,16 @@ where
 	}
 
 	fn candidate_bond_less(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let less: BalanceOf<Runtime> = input.read()?;
+		input.expect_arguments(gasometer, 1)?;
+		let less: BalanceOf<Runtime> = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -487,21 +462,20 @@ where
 	}
 
 	fn nominate(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(4)?;
-		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let amount: BalanceOf<Runtime> = input.read()?;
-		let collator_nominator_count = input.read()?;
-		let nomination_count = input.read()?;
+		input.expect_arguments(gasometer, 4)?;
+		let collator = input.read::<Address>(gasometer)?.0;
+		let collator = Runtime::AddressMapping::into_account_id(collator);
+		let amount: BalanceOf<Runtime> = input.read(gasometer)?;
+		let collator_nominator_count = input.read(gasometer)?;
+		let nomination_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -517,18 +491,16 @@ where
 	}
 
 	fn leave_nominators(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let nomination_count = input.read()?;
+		input.expect_arguments(gasometer, 1)?;
+		let nomination_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -539,18 +511,17 @@ where
 	}
 
 	fn revoke_nomination(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(1)?;
-		let collator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		input.expect_arguments(gasometer, 1)?;
+		let collator = input.read::<Address>(gasometer)?.0;
+		let collator = Runtime::AddressMapping::into_account_id(collator);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -561,19 +532,18 @@ where
 	}
 
 	fn nominator_bond_more(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(2)?;
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let more: BalanceOf<Runtime> = input.read()?;
+		input.expect_arguments(gasometer, 2)?;
+		let candidate = input.read::<Address>(gasometer)?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		let more: BalanceOf<Runtime> = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -584,19 +554,18 @@ where
 	}
 
 	fn nominator_bond_less(
-		mut input: EvmDataReader,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
-	) -> Result<
-		(
-			<Runtime::Call as Dispatchable>::Origin,
-			parachain_staking::Call<Runtime>,
-		),
-		ExitError,
-	> {
+	) -> EvmResult<(
+		<Runtime::Call as Dispatchable>::Origin,
+		parachain_staking::Call<Runtime>,
+	)> {
 		// Read input.
-		input.expect_arguments(2)?;
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let less: BalanceOf<Runtime> = input.read()?;
+		input.expect_arguments(gasometer, 2)?;
+		let candidate = input.read::<Address>(gasometer)?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		let less: BalanceOf<Runtime> = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
