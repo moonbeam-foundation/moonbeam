@@ -233,8 +233,8 @@ benchmarks! {
 
 	execute_leave_candidates {
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"caller",
-			USER_SEED - 1u32,
+			"unique",
+			USER_SEED,
 			0u32.into(),
 			true,
 			1u32,
