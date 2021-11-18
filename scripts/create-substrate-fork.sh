@@ -1,7 +1,12 @@
 #!/bin/bash
 
-BASE_BRANCH=${2:-"moonbeam-polkadot-v0.9.12"}
+if [[ -z "$1" ]]; then
+  echo "usage: ./scripts/create-substrate-fork.sh <new_branch> [<base_branch>]";
+  exit 1;
+fi
+
 NEW_BRANCH=$1
+BASE_BRANCH=${2:-"moonbeam-polkadot-v0.9.12"}
 
 mkdir -p scripts/tmp
 cd scripts/tmp
@@ -29,4 +34,5 @@ for REPO in ${REPOS[@]}; do
 done
 
 cd ../..
+rm -rf scripts/tmp
 git checkout -b $NEW_BRANCH
