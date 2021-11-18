@@ -80,8 +80,8 @@ enum Action {
 	Delegate = "delegate(address,uint256,uint256,uint256)",
 	// DEPRECATED
 	LeaveNominators = "leave_nominators(uint256)",
-	ScheduleLeaveDelegators = "schedule_leave_delegators(uint256)",
-	ExecuteLeaveDelegators = "execute_leave_delegators(address)",
+	ScheduleLeaveDelegators = "schedule_leave_delegators()",
+	ExecuteLeaveDelegators = "execute_leave_delegators(address,uint256)",
 	CancelLeaveDelegators = "cancel_leave_delegators()",
 	// DEPRECATED
 	RevokeNomination = "revoke_nomination(address)",
@@ -173,8 +173,8 @@ where
 			Action::Nominate => Self::delegate(input, context)?,
 			Action::Delegate => Self::delegate(input, context)?,
 			// DEPRECATED
-			Action::LeaveNominators => Self::schedule_leave_delegators(input, context)?,
-			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(input, context)?,
+			Action::LeaveNominators => Self::schedule_leave_delegators(context)?,
+			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(context)?,
 			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(input, context)?,
 			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(context)?,
 			// DEPRECATED
@@ -676,7 +676,6 @@ where
 	}
 
 	fn schedule_leave_delegators(
-		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
 		(
@@ -685,14 +684,9 @@ where
 		),
 		ExitError,
 	> {
-		// Read input.
-		input.expect_arguments(1)?;
-		let delegation_count = input.read()?;
-
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			parachain_staking::Call::<Runtime>::schedule_leave_delegators { delegation_count };
+		let call = parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -709,12 +703,16 @@ where
 		ExitError,
 	> {
 		// Read input.
-		input.expect_arguments(1)?;
+		input.expect_arguments(2)?;
 		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let delegation_count = input.read()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators { delegator };
+		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators {
+			delegator,
+			delegation_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))

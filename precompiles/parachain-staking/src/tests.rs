@@ -1099,20 +1099,18 @@ fn leave_nominators_works() {
 }
 
 #[test]
-fn leave_delegators_works() {
+fn schedule_leave_delegators_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"schedule_leave_delegators(uint256)")[0..4];
+			let selector = &Keccak256::digest(b"schedule_leave_delegators()")[0..4];
 
 			// Construct data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
 			input_data[0..4].copy_from_slice(&selector);
-			let delegation_count = U256::one();
-			delegation_count.to_big_endian(&mut input_data[4..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
@@ -1132,17 +1130,18 @@ fn execute_leave_delegators_works() {
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				Origin::signed(TestAccount::Bob),
-				1
-			));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				TestAccount::Bob
+			)));
 			roll_to(10);
-			let selector = &Keccak256::digest(b"execute_leave_delegators(address)")[0..4];
+			let selector = &Keccak256::digest(b"execute_leave_delegators(address,uint256)")[0..4];
 
 			// Construct data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
+			let delegation_count = U256::one();
+			delegation_count.to_big_endian(&mut input_data[36..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
@@ -1162,10 +1161,9 @@ fn cancel_leave_delegators_works() {
 		.with_delegations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				Origin::signed(TestAccount::Bob),
-				1
-			));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				TestAccount::Bob
+			)));
 			let selector = &Keccak256::digest(b"cancel_leave_delegators()")[0..4];
 
 			// Construct data

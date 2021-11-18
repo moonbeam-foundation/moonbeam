@@ -1651,7 +1651,7 @@ fn cannot_delegate_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_noop!(
 				Stake::delegate(Origin::signed(2), 3, 10, 0, 1),
 				Error::<Test>::CannotDelegateIfLeaving
@@ -1788,7 +1788,7 @@ fn schedule_leave_delegators_event_emits_correctly() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_last_event!(MetaEvent::Stake(Event::DelegatorExitScheduled(1, 2, 3)));
 		});
 }
@@ -1801,9 +1801,9 @@ fn cannot_schedule_leave_delegators_if_already_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_noop!(
-				Stake::schedule_leave_delegators(Origin::signed(2), 1),
+				Stake::schedule_leave_delegators(Origin::signed(2)),
 				Error::<Test>::DelegatorAlreadyLeaving
 			);
 		});
@@ -1817,40 +1817,9 @@ fn cannot_schedule_leave_delegators_if_not_delegator() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::schedule_leave_delegators(Origin::signed(2), 1),
+				Stake::schedule_leave_delegators(Origin::signed(2)),
 				Error::<Test>::DelegatorDNE
 			);
-		});
-}
-
-#[test]
-fn insufficient_schedule_leave_delegators_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20)])
-		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			for i in 3..7 {
-				assert_noop!(
-					Stake::schedule_leave_delegators(Origin::signed(i), 0u32),
-					Error::<Test>::TooLowDelegationCountToLeaveDelegators
-				);
-			}
-		});
-}
-
-#[test]
-fn sufficient_schedule_leave_delegators_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20)])
-		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			for i in 3..7 {
-				assert_ok!(Stake::schedule_leave_delegators(Origin::signed(i), 1u32),);
-			}
 		});
 }
 
@@ -1864,9 +1833,9 @@ fn execute_leave_delegators_event_emits_correctly() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 1));
 			assert_event_emitted!(Event::DelegatorLeft(2, 10));
 		});
 }
@@ -1881,9 +1850,9 @@ fn execute_leave_delegators_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(Balances::reserved_balance(&2), 10);
 			assert_eq!(Balances::free_balance(&2), 0);
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 1));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
 		});
@@ -1898,9 +1867,9 @@ fn execute_leave_delegators_decreases_total_staked() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Stake::total(), 40);
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 1));
 			assert_eq!(Stake::total(), 30);
 		});
 }
@@ -1914,9 +1883,9 @@ fn execute_leave_delegators_removes_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert!(Stake::delegator_state(2).is_some());
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 1));
 			assert!(Stake::delegator_state(2).is_none());
 		});
 }
@@ -1946,9 +1915,9 @@ fn execute_leave_delegators_removes_delegations_from_collator_state() {
 				Stake::delegator_state(1).unwrap().delegations.0.len(),
 				4usize
 			);
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(1), 10));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(1)));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(1), 1, 10));
 			for i in 2..6 {
 				let candidate_state =
 					Stake::candidate_state(i).expect("initialized in ext builder");
@@ -1967,14 +1936,53 @@ fn cannot_execute_leave_delegators_before_delay() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_noop!(
-				Stake::execute_leave_delegators(Origin::signed(2), 2),
+				Stake::execute_leave_delegators(Origin::signed(2), 2, 1),
 				Error::<Test>::DelegatorCannotLeaveYet
 			);
 			// can execute after delay
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 1));
+		});
+}
+
+#[test]
+fn insufficient_execute_leave_delegators_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_ok!(Stake::schedule_leave_delegators(Origin::signed(i)));
+			}
+			roll_to(10);
+			for i in 3..7 {
+				assert_noop!(
+					Stake::execute_leave_delegators(Origin::signed(i), i, 0),
+					Error::<Test>::TooLowDelegationCountToLeaveDelegators
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_execute_leave_delegators_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_ok!(Stake::schedule_leave_delegators(Origin::signed(i)));
+			}
+			roll_to(10);
+			for i in 3..7 {
+				assert_ok!(Stake::execute_leave_delegators(Origin::signed(i), i, 1));
+			}
 		});
 }
 
@@ -1988,7 +1996,7 @@ fn cancel_leave_delegators_emits_correct_event() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_ok!(Stake::cancel_leave_delegators(Origin::signed(2)));
 			assert_last_event!(MetaEvent::Stake(Event::DelegatorExitCancelled(2)));
 		});
@@ -2002,7 +2010,7 @@ fn cancel_leave_delegators_updates_delegator_state() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_ok!(Stake::cancel_leave_delegators(Origin::signed(2)));
 			let delegator = Stake::delegator_state(&2).expect("just cancelled exit so exists");
 			assert!(delegator.is_active());
@@ -2051,7 +2059,7 @@ fn can_revoke_if_leaving() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(2), 3));
 		});
 }
@@ -2142,7 +2150,7 @@ fn can_delegator_bond_more_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
 		});
 }
@@ -2265,7 +2273,7 @@ fn can_delegator_bond_less_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 1));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			assert_ok!(Stake::schedule_delegator_bond_less(Origin::signed(2), 1, 1));
 		});
 }
@@ -2408,9 +2416,9 @@ fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
 			);
 			// but delegator can cancel the request and request to leave instead:
 			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
 			roll_to(20);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(2), 2, 2));
 		});
 }
 
@@ -3338,13 +3346,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(5, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::schedule_leave_delegators(Origin::signed(66), 10),
+				Stake::schedule_leave_delegators(Origin::signed(66)),
 				Error::<Test>::DelegatorDNE
 			);
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(6), 10));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(6)));
 			// fast forward to block in which delegator 6 exit executes
 			roll_to(25);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6, 10));
 			roll_to(30);
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),
@@ -4011,13 +4019,13 @@ fn payouts_follow_delegation_changes() {
 			set_author(6, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::schedule_leave_delegators(Origin::signed(66), 10),
+				Stake::schedule_leave_delegators(Origin::signed(66)),
 				Error::<Test>::DelegatorDNE
 			);
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(6), 10));
+			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(6)));
 			// fast forward to block in which delegator 6 exit executes
 			roll_to(25);
-			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6));
+			assert_ok!(Stake::execute_leave_delegators(Origin::signed(6), 6, 10));
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),

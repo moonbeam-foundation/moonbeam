@@ -10,7 +10,7 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --execution=wasm \
     --wasm-execution=compiled \
     --pallet "parachain_staking" \
-    --extrinsic "execute_leave_candidates" \
+    --extrinsic "*" \
     --steps 32 \
     --repeat 64 \
     --raw \

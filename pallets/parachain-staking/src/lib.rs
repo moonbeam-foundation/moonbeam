@@ -698,7 +698,11 @@ pub mod pallet {
 		}
 		/// Can only leave if the current round is less than or equal to scheduled execution round
 		/// - returns None if not in leaving state
-		pub fn can_leave<T: Config>(&self) -> DispatchResult {
+		pub fn can_execute_leave<T: Config>(&self, delegation_weight_hint: u32) -> DispatchResult {
+			ensure!(
+				delegation_weight_hint >= (self.delegations.0.len() as u32),
+				Error::<T>::TooLowDelegationCountToLeaveDelegators
+			);
 			if let DelegatorStatus::Leaving(when) = self.status {
 				ensure!(
 					<Round<T>>::get().current >= when,
@@ -714,7 +718,7 @@ pub mod pallet {
 			self.status = DelegatorStatus::Leaving(when);
 		}
 		/// Schedule status to exit
-		pub fn leave<T: Config>(&mut self) -> (RoundIndex, RoundIndex) {
+		pub fn schedule_leave<T: Config>(&mut self) -> (RoundIndex, RoundIndex) {
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveDelegatorsDelay::get();
 			self.set_leaving(when);
@@ -1984,7 +1988,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_candidates(*candidate_count))]
 		/// Cancel open request to leave candidates
 		/// - only callable by collator account
 		/// - result upon successful call is the candidate is active in the candidate pool
@@ -2055,7 +2059,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_more())]
 		/// Request by collator candidate to increase self bond by `more`
 		pub fn schedule_candidate_bond_more(
 			origin: OriginFor<T>,
@@ -2068,7 +2072,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateBondMoreRequested(collator, more, when));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_less())]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_less())]
 		/// Request by collator candidate to decrease self bond by `less`
 		pub fn schedule_candidate_bond_less(
 			origin: OriginFor<T>,
@@ -2081,7 +2085,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateBondLessRequested(collator, less, when));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_candidate_bond_more())]
 		/// Execute pending request to adjust the collator candidate self bond
 		pub fn execute_candidate_bond_request(
 			origin: OriginFor<T>,
@@ -2094,7 +2098,7 @@ pub mod pallet {
 			Self::deposit_event(event);
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_candidate_bond_more())]
 		/// Cancel pending request to adjust the collator candidate self bond
 		pub fn cancel_candidate_bond_request(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
@@ -2172,35 +2176,29 @@ pub mod pallet {
 			Self::deposit_event(Event::Delegation(acc, amount, collator, delegator_position));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
 		/// Request to leave the set of delegators. If successful, the caller is scheduled
 		/// to be allowed to exit. Success forbids future delegator actions until the request is
 		/// invoked or cancelled.
-		pub fn schedule_leave_delegators(
-			origin: OriginFor<T>,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
+		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&acc).ok_or(Error::<T>::DelegatorDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::DelegatorAlreadyLeaving);
-			ensure!(
-				delegation_count >= (state.delegations.0.len() as u32),
-				Error::<T>::TooLowDelegationCountToLeaveDelegators
-			);
-			let (now, when) = state.leave::<T>();
+			let (now, when) = state.schedule_leave::<T>();
 			<DelegatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::DelegatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators(*delegation_count))]
 		/// Execute the right to exit the set of delegators and revoke all ongoing delegations.
 		pub fn execute_leave_delegators(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
+			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			state.can_leave::<T>()?;
+			state.can_execute_leave::<T>(delegation_count)?;
 			for bond in state.delegations.0 {
 				if let Err(error) =
 					Self::delegator_leaves_collator(delegator.clone(), bond.owner.clone())
@@ -2215,7 +2213,7 @@ pub mod pallet {
 			Self::deposit_event(Event::DelegatorLeft(delegator, state.total));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators())]
 		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
 		/// request (thereby resetting the delay upon another `leave_delegators` call).
 		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
@@ -2230,7 +2228,7 @@ pub mod pallet {
 			Self::deposit_event(Event::DelegatorExitCancelled(delegator));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
 		pub fn schedule_revoke_delegation(
@@ -2246,7 +2244,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_more())]
 		/// Request to bond more for delegators wrt a specific collator candidate.
 		pub fn schedule_delegator_bond_more(
 			origin: OriginFor<T>,
@@ -2262,7 +2260,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
 		/// Request bond less for delegators wrt a specific collator candidate.
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
@@ -2278,7 +2276,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_more())]
 		/// Execute pending request to change an existing delegation
 		pub fn execute_delegation_request(
 			origin: OriginFor<T>,
@@ -2290,7 +2288,7 @@ pub mod pallet {
 			state.execute_pending_request::<T>(candidate)?;
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_more())]
 		/// Cancel request to change an existing delegation.
 		pub fn cancel_delegation_request(
 			origin: OriginFor<T>,

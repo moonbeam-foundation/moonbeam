@@ -254,7 +254,7 @@ benchmarks! {
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
 		for i in 2..x {
-			let seed = USER_SEED - i;
+			let seed = USER_SEED + i;
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
@@ -311,7 +311,7 @@ benchmarks! {
 	schedule_candidate_bond_more {
 		let more = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
+			"collator1",
 			USER_SEED,
 			more,
 			true,
@@ -333,7 +333,7 @@ benchmarks! {
 	schedule_candidate_bond_less {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
+			"collator2",
 			USER_SEED,
 			min_candidate_stk,
 			false,
@@ -355,7 +355,7 @@ benchmarks! {
 	execute_candidate_bond_more {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
+			"collator3",
 			USER_SEED,
 			min_candidate_stk,
 			true,
@@ -506,8 +506,30 @@ benchmarks! {
 	}
 
 	schedule_leave_delegators {
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			true,
+			1u32
+		)?;
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::delegate(RawOrigin::Signed(
+			caller.clone()).into(),
+			collator.clone(),
+			bond,
+			0u32,
+			0u32
+		)?;
+	}: _(RawOrigin::Signed(caller.clone()))
+	verify {
+		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_leaving());
+	}
+
+	execute_leave_delegators {
 		let x in 2..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-		// Worst Case is full of delegations before exit
+		// Worst Case is full of delegations before execute exit
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		// Initialize MaxDelegationsPerDelegator collator candidates
 		for i in 1..x {
@@ -533,6 +555,7 @@ benchmarks! {
 		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, need);
 		// Delegation count
 		let mut delegation_count = 0u32;
+		let author = collators[0].clone();
 		// Nominate MaxDelegationsPerDelegators collator candidates
 		for col in collators {
 			Pallet::<T>::delegate(
@@ -544,31 +567,9 @@ benchmarks! {
 			)?;
 			delegation_count += 1u32;
 		}
-	}: _(RawOrigin::Signed(caller.clone()), delegation_count)
-	verify {
-		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_leaving());
-	}
-
-	execute_leave_delegators {
-		let collator: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
-		)?;
-		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
-		roll_to_and_author::<T>(2, collator);
-	}: _(RawOrigin::Signed(caller.clone()), caller.clone())
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into())?;
+		roll_to_and_author::<T>(2, author);
+	}: _(RawOrigin::Signed(caller.clone()), caller.clone(), delegation_count)
 	verify {
 		assert!(Pallet::<T>::delegator_state(&caller).is_none());
 	}
@@ -590,7 +591,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into())?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_active());
