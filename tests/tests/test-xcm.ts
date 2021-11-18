@@ -3,10 +3,13 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import { BN } from "@polkadot/util";
 
-import { ALITH_PRIV_KEY, GLMR } from "../util/constants";
+import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
+
+// Twelve decimal places in the moonbase relay chain's token
+const RELAY_TOKEN = 1_000_000_000_000n;
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -17,15 +20,12 @@ const assetMetadata = {
   isFrozen: false,
 };
 
-//TODO Gorka showed me to think of this as { parents: 1, intherior: here }. Are these the same?
-// const sourceLocation = { XCM: { X1: "Parent" } };
 const sourceLocation = { XCM: { parents: 1, interior: "Here" } };
 
 describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
 
-  //TODO this entire block copied from another test, make sure it is the right params for DOTs
   before("Should Register an asset and set unit per sec", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -39,7 +39,6 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       )
     );
     // Look for assetId in events
-    // let assetId: string;
     eventsRegister.forEach((e) => {
       if (e.section.toString() === "assetManager") {
         assetId = e.data[0].toHex();
@@ -59,11 +58,9 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    // console.log("assetid", assetId);
     const registeredAsset = (
       (await context.polkadotApi.query.assets.asset(assetId)) as any
     ).unwrap();
-    // console.log(1, registeredAsset);
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -74,17 +71,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
-    await context.createBlock();
 
-    console.log("assetid", assetId);
-    const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
-    ).unwrap();
-    console.log(registeredAsset.toHuman());
+    // Make sure the state has ALITH's to DOT tokens
+    let alith_dot_balance = (
+      await context.polkadotApi.query.assets.account(assetId, alith.address)
+    ).balance.toBigInt();
 
-    console.log("alith.address", alith.address);
-
-    // Make sure the state (and events?) has ALITH's to DOT tokens
-    expect(context.polkadotApi.query.assets.account(assetId, alith.address)).to.eq(10n * GLMR);
+    expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
   });
 });
