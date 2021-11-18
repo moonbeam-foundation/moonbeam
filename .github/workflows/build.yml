@@ -130,7 +130,7 @@ jobs:
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -141,8 +141,6 @@ jobs:
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
-      - name: install toml_sort
-        run: cargo install --git https://github.com/PureStake/toml_sort
       - name: Check Cargo.toml files format with toml_sort
         run: find . -name "Cargo.toml" -not -path "*/target/*" -exec toml-sort {} --check \;
 
