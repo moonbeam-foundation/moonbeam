@@ -14,8 +14,6 @@ rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.8", optional = true, default-features = false }
 
-
-
 # Moonbeam
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }

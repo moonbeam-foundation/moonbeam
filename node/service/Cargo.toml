@@ -1,10 +1,10 @@
 [package]
-name = 'moonbeam-service'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.15.0'
-authors = ["PureStake"]
-edition = '2018'
+name = "moonbeam-service"
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.15.0"
 
 [dependencies]
 ansi_term = "0.12.1"
@@ -166,9 +166,9 @@ runtime-benchmarks = [
 
 moonbase-runtime-benchmarks = [
 	"moonbase-native",
-	"moonbase-runtime/runtime-benchmarks",
 	"moonbase-runtime/moonbase-runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks"
+	"moonbase-runtime/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 ]
 
 try-runtime = [
