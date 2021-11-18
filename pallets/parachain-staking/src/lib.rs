@@ -1917,7 +1917,7 @@ pub mod pallet {
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::leave_candidates(*candidate_count))]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_candidates(*candidate_count))]
 		/// Request to leave the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator.
 		pub fn schedule_leave_candidates(
@@ -1939,7 +1939,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_candidates())]
 		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,

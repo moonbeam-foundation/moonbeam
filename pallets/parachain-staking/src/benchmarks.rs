@@ -265,8 +265,8 @@ benchmarks! {
 			candidate_count += 1u32;
 		}
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"caller",
-			USER_SEED,
+			"new_caller",
+			USER_SEED + 100,
 			0u32.into(),
 			true,
 			candidate_count,
