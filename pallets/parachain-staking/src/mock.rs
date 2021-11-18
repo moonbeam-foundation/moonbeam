@@ -257,36 +257,42 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-/// Prints the diff iff assert_eq fails
+/// Assert input equal to the last event emitted
 #[macro_export]
-macro_rules! asserts_eq {
-	($left:expr, $right:expr) => {
-		match (&$left, &$right) {
-			(left_val, right_val) => {
-				similar_asserts::assert_eq!(*left_val, *right_val);
-			}
+macro_rules! assert_last_event {
+	($event:expr) => {
+		match &$event {
+			e => assert_eq!(*e, crate::mock::last_event()),
 		}
 	};
 }
 
-pub(crate) fn assert_last_event(e: Event) {
-	assert_eq!(e, last_event());
-}
-
 /// Compares the system events with passed in events
-/// Prints diff iff assert_eq fails using above macro
-pub(crate) fn assert_eq_events(e: Vec<pallet::Event<Test>>) {
-	asserts_eq!(e, events());
+/// Prints highlighted diff iff assert_eq fails
+#[macro_export]
+macro_rules! assert_eq_events {
+	($events:expr) => {
+		match &$events {
+			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
+		}
+	};
 }
 
 /// Panics if an event is not found in the system log of events
-pub(crate) fn assert_event_emitted(event: pallet::Event<Test>) {
-	assert!(
-		events().iter().find(|e| *e == &event).is_some(),
-		"Event {:?} was not found in events: \n {:?}",
-		event,
-		events()
-	);
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
 }
 
 // Same storage changes as EventHandler::note_author impl
