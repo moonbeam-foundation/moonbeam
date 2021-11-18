@@ -128,6 +128,22 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
+  check-cargo-toml-format:
+    name: "Check Cargo.toml files format"
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Check Cargo.toml files format with toml_sort
+        run: find . -name "Cargo.toml" -not -path "*/target/*" -exec toml-sort {} --check \;
+
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
