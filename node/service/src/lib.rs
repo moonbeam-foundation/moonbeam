@@ -807,7 +807,6 @@ where
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
-
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {
@@ -884,7 +883,6 @@ where
 			}),
 		);
 	}
-
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
 		client: client.clone(),
