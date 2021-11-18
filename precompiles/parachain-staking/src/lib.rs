@@ -67,8 +67,12 @@ enum Action {
 	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
 	GoOffline = "go_offline()",
 	GoOnline = "go_online()",
+	// DEPRECATED
 	CandidateBondLess = "candidate_bond_less(uint256)",
+	ScheduleCandidateBondLess = "schedule_candidate_bond_less(uint256)",
+	// DEPRECATED
 	CandidateBondMore = "candidate_bond_more(uint256)",
+	ScheduleCandidateBondMore = "schedule_candidate_bond_more(uint256)",
 	ExecuteCandidateBondRequest = "execute_candidate_bond_request(address)",
 	CancelCandidateBondRequest = "cancel_candidate_bond_request()",
 	// DEPRECATED
@@ -76,18 +80,18 @@ enum Action {
 	Delegate = "delegate(address,uint256,uint256,uint256)",
 	// DEPRECATED
 	LeaveNominators = "leave_nominators(uint256)",
-	LeaveDelegators = "leave_delegators(uint256)",
+	ScheduleLeaveDelegators = "schedule_leave_delegators(uint256)",
 	ExecuteLeaveDelegators = "execute_leave_delegators(address)",
 	CancelLeaveDelegators = "cancel_leave_delegators()",
 	// DEPRECATED
 	RevokeNomination = "revoke_nomination(address)",
-	RevokeDelegation = "revoke_delegation(address)",
+	ScheduleRevokeDelegation = "schedule_revoke_delegation(address)",
 	// DEPRECATED
 	NominatorBondLess = "nominator_bond_less(address,uint256)",
+	ScheduleDelegatorBondLess = "schedule_delegator_bond_less(address,uint256)",
 	// DEPRECATED
 	NominatorBondMore = "nominator_bond_more(address,uint256)",
-	DelegatorBondLess = "delegator_bond_less(address,uint256)",
-	DelegatorBondMore = "delegator_bond_more(address,uint256)",
+	ScheduleDelegatorBondMore = "schedule_delegator_bond_more(address,uint256)",
 	ExecuteDelegationRequest = "execute_delegation_request(address,address)",
 	CancelDelegationRequest = "cancel_delegation_request(address)",
 }
@@ -151,8 +155,16 @@ where
 			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(input, context)?,
 			Action::GoOffline => Self::go_offline(context)?,
 			Action::GoOnline => Self::go_online(context)?,
-			Action::CandidateBondLess => Self::candidate_bond_less(input, context)?,
-			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
+			// DEPRECATED
+			Action::CandidateBondLess => Self::schedule_candidate_bond_less(input, context)?,
+			Action::ScheduleCandidateBondLess => {
+				Self::schedule_candidate_bond_less(input, context)?
+			}
+			// DEPRECATED
+			Action::CandidateBondMore => Self::schedule_candidate_bond_more(input, context)?,
+			Action::ScheduleCandidateBondMore => {
+				Self::schedule_candidate_bond_more(input, context)?
+			}
 			Action::ExecuteCandidateBondRequest => {
 				Self::execute_candidate_bond_request(input, context)?
 			}
@@ -161,19 +173,23 @@ where
 			Action::Nominate => Self::delegate(input, context)?,
 			Action::Delegate => Self::delegate(input, context)?,
 			// DEPRECATED
-			Action::LeaveNominators => Self::leave_delegators(input, context)?,
-			Action::LeaveDelegators => Self::leave_delegators(input, context)?,
+			Action::LeaveNominators => Self::schedule_leave_delegators(input, context)?,
+			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(input, context)?,
 			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(input, context)?,
 			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(context)?,
 			// DEPRECATED
-			Action::RevokeNomination => Self::revoke_delegation(input, context)?,
-			Action::RevokeDelegation => Self::revoke_delegation(input, context)?,
+			Action::RevokeNomination => Self::schedule_revoke_delegation(input, context)?,
+			Action::ScheduleRevokeDelegation => Self::schedule_revoke_delegation(input, context)?,
 			// DEPRECATED
-			Action::NominatorBondLess => Self::delegator_bond_less(input, context)?,
+			Action::NominatorBondLess => Self::schedule_delegator_bond_less(input, context)?,
+			Action::ScheduleDelegatorBondLess => {
+				Self::schedule_delegator_bond_less(input, context)?
+			}
 			// DEPRECATED
-			Action::NominatorBondMore => Self::delegator_bond_more(input, context)?,
-			Action::DelegatorBondLess => Self::delegator_bond_less(input, context)?,
-			Action::DelegatorBondMore => Self::delegator_bond_more(input, context)?,
+			Action::NominatorBondMore => Self::schedule_delegator_bond_more(input, context)?,
+			Action::ScheduleDelegatorBondMore => {
+				Self::schedule_delegator_bond_more(input, context)?
+			}
 			Action::ExecuteDelegationRequest => Self::execute_delegation_request(input, context)?,
 			Action::CancelDelegationRequest => Self::cancel_delegation_request(input, context)?,
 		};
@@ -546,7 +562,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn candidate_bond_more(
+	fn schedule_candidate_bond_more(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -562,13 +578,13 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
+		let call = parachain_staking::Call::<Runtime>::schedule_candidate_bond_more { more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
 	}
 
-	fn candidate_bond_less(
+	fn schedule_candidate_bond_less(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -584,7 +600,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_less { less };
+		let call = parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -659,7 +675,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn leave_delegators(
+	fn schedule_leave_delegators(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -675,7 +691,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::leave_delegators { delegation_count };
+		let call =
+			parachain_staking::Call::<Runtime>::schedule_leave_delegators { delegation_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -720,7 +737,7 @@ where
 		Ok((Some(origin).into(), call))
 	}
 
-	fn revoke_delegation(
+	fn schedule_revoke_delegation(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -736,13 +753,13 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::revoke_delegation { collator };
+		let call = parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
 	}
 
-	fn delegator_bond_more(
+	fn schedule_delegator_bond_more(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -759,13 +776,14 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
+		let call =
+			parachain_staking::Call::<Runtime>::schedule_delegator_bond_more { candidate, more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
 	}
 
-	fn delegator_bond_less(
+	fn schedule_delegator_bond_less(
 		mut input: EvmDataReader,
 		context: &Context,
 	) -> Result<
@@ -782,7 +800,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_less { candidate, less };
+		let call =
+			parachain_staking::Call::<Runtime>::schedule_delegator_bond_less { candidate, less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))

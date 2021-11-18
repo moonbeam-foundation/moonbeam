@@ -379,7 +379,6 @@ pub mod pallet {
 			CandidateBondRequest<BalanceOf<T>>: From<CandidateBondRequest<B>>,
 			T::AccountId: From<A>,
 		{
-			ensure!(!self.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let request = self
 				.request
 				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
@@ -857,7 +856,6 @@ pub mod pallet {
 			T::AccountId: From<AccountId>,
 			Delegator<T::AccountId, BalanceOf<T>>: From<Delegator<AccountId, Balance>>,
 		{
-			ensure!(self.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let now = <Round<T>>::get().current;
 			let DelegationRequest {
 				amount,
@@ -1008,7 +1006,6 @@ pub mod pallet {
 			&mut self,
 			candidate: AccountId,
 		) -> Result<DelegationRequest<AccountId, Balance>, DispatchError> {
-			ensure!(self.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let order = self
 				.requests
 				.requests
@@ -1295,10 +1292,10 @@ pub mod pallet {
 		/// Default number of blocks per round at genesis
 		#[pallet::constant]
 		type DefaultBlocksPerRound: Get<u32>;
-		/// Number of rounds that collators remain bonded before exit request is executable
+		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
-		/// Number of rounds that collator requests to adjust self-bond must wait to be executable
+		/// Number of rounds that candidate requests to adjust self-bond must wait to be executable
 		#[pallet::constant]
 		type CandidateBondDelay: Get<RoundIndex>;
 		/// Number of rounds that delegators remain bonded before exit request is executable
@@ -1316,19 +1313,19 @@ pub mod pallet {
 		/// Minimum number of selected candidates every round
 		#[pallet::constant]
 		type MinSelectedCandidates: Get<u32>;
-		/// Maximum delegators counted per collator
-		#[pallet::constant] // TODO: fix
+		/// Maximum delegators counted per candidate
+		#[pallet::constant]
 		type MaxDelegatorsPerCandidate: Get<u32>;
-		/// Maximum collators per delegator
+		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
-		/// Default commission due to collators, set at genesis
+		/// Default commission due to collators, is `CollatorCommission` storage value in genesis
 		#[pallet::constant]
 		type DefaultCollatorCommission: Get<Perbill>;
 		/// Default percent of inflation set aside for parachain bond account
 		#[pallet::constant]
 		type DefaultParachainBondReservePercent: Get<Percent>;
-		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
+		/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
 		#[pallet::constant]
 		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
@@ -1362,10 +1359,11 @@ pub mod pallet {
 		DelegatorAlreadyLeaving,
 		DelegatorNotLeaving,
 		DelegatorCannotLeaveYet,
+		CannotDelegateIfLeaving,
 		CandidateAlreadyLeaving,
 		CandidateNotLeaving,
 		CandidateCannotLeaveYet,
-		CannotActBecauseLeaving,
+		CannotGoOnlineIfLeaving,
 		ExceedMaxDelegationsPerDelegator,
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
@@ -2039,7 +2037,7 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
-			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
+			ensure!(!state.is_leaving(), Error::<T>::CannotGoOnlineIfLeaving);
 			state.go_online();
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
@@ -2059,7 +2057,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
 		/// Request by collator candidate to increase self bond by `more`
-		pub fn candidate_bond_more(
+		pub fn schedule_candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
@@ -2072,7 +2070,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_less())]
 		/// Request by collator candidate to decrease self bond by `less`
-		pub fn candidate_bond_less(
+		pub fn schedule_candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
@@ -2123,7 +2121,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&acc) {
-				ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
+				ensure!(state.is_active(), Error::<T>::CannotDelegateIfLeaving);
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),
@@ -2178,7 +2176,7 @@ pub mod pallet {
 		/// Request to leave the set of delegators. If successful, the caller is scheduled
 		/// to be allowed to exit. Success forbids future delegator actions until the request is
 		/// invoked or cancelled.
-		pub fn leave_delegators(
+		pub fn schedule_leave_delegators(
 			origin: OriginFor<T>,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -2235,13 +2233,12 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
-		pub fn revoke_delegation(
+		pub fn schedule_revoke_delegation(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let (now, when) = state.schedule_revoke::<T>(collator.clone())?;
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::DelegationRevocationScheduled(
@@ -2251,14 +2248,13 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Request to bond more for delegators wrt a specific collator candidate.
-		pub fn delegator_bond_more(
+		pub fn schedule_delegator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let when = state.schedule_increase_delegation::<T>(candidate.clone(), more)?;
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::DelegationIncreaseScheduled(
@@ -2268,14 +2264,13 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Request bond less for delegators wrt a specific collator candidate.
-		pub fn delegator_bond_less(
+		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let caller = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&caller).ok_or(Error::<T>::DelegatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let when = state.schedule_decrease_delegation::<T>(candidate.clone(), less)?;
 			<DelegatorState<T>>::insert(&caller, state);
 			Self::deposit_event(Event::DelegationDecreaseScheduled(

@@ -305,7 +305,7 @@ benchmarks! {
 		assert!(Pallet::<T>::candidate_state(&caller).unwrap().is_active());
 	}
 
-	candidate_bond_more {
+	schedule_candidate_bond_more {
 		let more = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
@@ -327,7 +327,7 @@ benchmarks! {
 		);
 	}
 
-	candidate_bond_less {
+	schedule_candidate_bond_less {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
@@ -358,7 +358,7 @@ benchmarks! {
 			true,
 			1u32,
 		)?;
-		Pallet::<T>::candidate_bond_more(
+		Pallet::<T>::schedule_candidate_bond_more(
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk
 		)?;
@@ -382,7 +382,7 @@ benchmarks! {
 			false,
 			1u32,
 		)?;
-		Pallet::<T>::candidate_bond_less(
+		Pallet::<T>::schedule_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk
 		)?;
@@ -405,7 +405,7 @@ benchmarks! {
 			true,
 			1u32,
 		)?;
-		Pallet::<T>::candidate_bond_more(
+		Pallet::<T>::schedule_candidate_bond_more(
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk
 		)?;
@@ -428,7 +428,7 @@ benchmarks! {
 			false,
 			1u32,
 		)?;
-		Pallet::<T>::candidate_bond_less(
+		Pallet::<T>::schedule_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk
 		)?;
@@ -502,7 +502,7 @@ benchmarks! {
 		assert!(Pallet::<T>::is_delegator(&caller));
 	}
 
-	leave_delegators {
+	schedule_leave_delegators {
 		let x in 2..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 		// Worst Case is full of delegations before exit
 		let mut collators: Vec<T::AccountId> = Vec::new();
@@ -563,7 +563,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
 		roll_to_and_author::<T>(2, collator);
 	}: _(RawOrigin::Signed(caller.clone()), caller.clone())
 	verify {
@@ -587,13 +587,13 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_active());
 	}
 
-	revoke_delegation {
+	schedule_revoke_delegation {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -623,7 +623,7 @@ benchmarks! {
 		);
 	}
 
-	delegator_bond_more {
+	schedule_delegator_bond_more {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -655,7 +655,7 @@ benchmarks! {
 		);
 	}
 
-	delegator_bond_less {
+	schedule_delegator_bond_less {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -704,7 +704,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::revoke_delegation(RawOrigin::Signed(
+		Pallet::<T>::schedule_revoke_delegation(RawOrigin::Signed(
 			caller.clone()).into(),
 			collator.clone()
 		)?;
@@ -738,7 +738,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::delegator_bond_more(
+		Pallet::<T>::schedule_delegator_bond_more(
 			RawOrigin::Signed(caller.clone()).into(),
 			collator.clone(),
 			bond
@@ -772,7 +772,7 @@ benchmarks! {
 			0u32
 		)?;
 		let bond_less = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegator_bond_less(
+		Pallet::<T>::schedule_delegator_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			collator.clone(),
 			bond_less
@@ -806,7 +806,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::revoke_delegation(
+		Pallet::<T>::schedule_revoke_delegation(
 			RawOrigin::Signed(caller.clone()).into(),
 			collator.clone()
 		)?;
@@ -838,7 +838,7 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-		Pallet::<T>::delegator_bond_more(
+		Pallet::<T>::schedule_delegator_bond_more(
 			RawOrigin::Signed(caller.clone()).into(),
 			collator.clone(),
 			bond
@@ -876,7 +876,7 @@ benchmarks! {
 			0u32
 		)?;
 		let bond_less = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegator_bond_less(
+		Pallet::<T>::schedule_delegator_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			collator.clone(),
 			bond_less
@@ -1173,16 +1173,16 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_candidate_bond_more() {
+	fn bench_schedule_candidate_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_more());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_candidate_bond_more());
 		});
 	}
 
 	#[test]
-	fn bench_candidate_bond_less() {
+	fn bench_schedule_candidate_bond_less() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_less());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_candidate_bond_less());
 		});
 	}
 
@@ -1222,9 +1222,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_leave_delegators() {
+	fn bench_schedule_leave_delegators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_leave_delegators());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_leave_delegators());
 		});
 	}
 
@@ -1243,23 +1243,23 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_revoke_delegation() {
+	fn bench_schedule_revoke_delegation() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_revoke_delegation());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_revoke_delegation());
 		});
 	}
 
 	#[test]
-	fn bench_delegator_bond_more() {
+	fn bench_schedule_delegator_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_more());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_delegator_bond_more());
 		});
 	}
 
 	#[test]
-	fn bench_delegator_bond_less() {
+	fn bench_schedule_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_less());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_delegator_bond_less());
 		});
 	}
 

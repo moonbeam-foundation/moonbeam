@@ -698,21 +698,21 @@ parameter_types! {
 	pub const DelegationBondDelay: u32 = 2;
 	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
 	pub const RewardPaymentDelay: u32 = 2;
-	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
+	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 100 delegators per collator
+	/// Maximum delegators counted per candidate
 	pub const MaxDelegatorsPerCandidate: u32 = 100;
-	/// Maximum 100 delegations per delegator
+	/// Maximum delegations per delegator
 	pub const MaxDelegationsPerDelegator: u32 = 100;
-	/// Default fixed percent a collator takes off the top of due rewards is 20%
+	/// Default fixed percent a collator takes off the top of due rewards
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to become a collator is 1_000
+	/// Minimum stake required to become a collator
 	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
-	/// Minimum stake required to be reserved to be a candidate is 1_000
+	/// Minimum stake required to be reserved to be a candidate
 	pub const MinCandidateStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
-	/// Minimum stake required to be reserved to be a nominator is 5
+	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
 
