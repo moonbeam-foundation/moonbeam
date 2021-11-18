@@ -18,9 +18,3 @@ exclude = [
 
 [profile.release]
 panic = 'unwind'
-
-[patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
