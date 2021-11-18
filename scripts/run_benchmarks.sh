@@ -10,7 +10,7 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --execution=wasm \
     --wasm-execution=compiled \
     --pallet "pallet_author_mapping" \
-    --extrinsic "*" \
+    --extrinsic "execute_leave_candidates" \
     --steps 32 \
     --repeat 64 \
     --raw \
