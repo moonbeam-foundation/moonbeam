@@ -18,14 +18,14 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -69,15 +69,19 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		is_static: bool,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IsContributor => Self::is_contributor(input, target_gas),
-			Action::RewardInfo => Self::reward_info(input, target_gas),
-			Action::Claim => Self::claim(target_gas, context),
-			Action::UpdateRewardAddress => Self::update_reward_address(input, target_gas, context),
+			Action::IsContributor => Self::is_contributor(&mut input, &mut gasometer),
+			Action::RewardInfo => Self::reward_info(&mut input, &mut gasometer),
+			Action::Claim => Self::claim(&mut gasometer, context),
+			Action::UpdateRewardAddress => {
+				Self::update_reward_address(&mut input, &mut gasometer, context)
+			}
 		}
 	}
 }
@@ -92,17 +96,16 @@ where
 {
 	// The accessors are first. They directly return their result.
 	fn is_contributor(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
-		input.expect_arguments(1)?;
+		input.expect_arguments(gasometer, 1)?;
 
 		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		let contributor: H160 = input.read::<Address>(gasometer)?.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -127,17 +130,16 @@ where
 	}
 
 	fn reward_info(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
-		input.expect_arguments(1)?;
+		input.expect_arguments(gasometer, 1)?;
 
 		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		let contributor: H160 = input.read::<Address>(gasometer)?.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -150,20 +152,19 @@ where
 		// fetch data from pallet
 		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
 
-		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
-			let total_reward: u128 = reward_info
-				.total_reward
-				.try_into()
-				.map_err(|_| error("Amount is too large for provided balance type"))?;
-			let claimed_reward: u128 = reward_info
-				.claimed_reward
-				.try_into()
-				.map_err(|_| error("Amount is too large for provided balance type"))?;
+		let (total, claimed): (U256, U256) =
+			if let Some(reward_info) = reward_info {
+				let total_reward: u128 = reward_info.total_reward.try_into().map_err(|_| {
+					gasometer.revert("Amount is too large for provided balance type")
+				})?;
+				let claimed_reward: u128 = reward_info.claimed_reward.try_into().map_err(|_| {
+					gasometer.revert("Amount is too large for provided balance type")
+				})?;
 
-			(total_reward.into(), claimed_reward.into())
-		} else {
-			(0u128.into(), 0u128.into())
-		};
+				(total_reward.into(), claimed_reward.into())
+			} else {
+				(0u128.into(), 0u128.into())
+			};
 
 		log::trace!(
 			target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}",
@@ -178,19 +179,11 @@ where
 		})
 	}
 
-	fn claim(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-
+	fn claim(gasometer: &mut Gasometer, context: &Context) -> EvmResult<PrecompileOutput> {
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim {};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
@@ -201,22 +194,20 @@ where
 	}
 
 	fn update_reward_address(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
 			"In update_reward_address dispatchable wrapper"
 		);
 
 		// Bound check
-		input.expect_arguments(1)?;
+		input.expect_arguments(gasometer, 1)?;
 
 		// parse the address
-		let new_address: H160 = input.read::<Address>()?.into();
+		let new_address: H160 = input.read::<Address>(gasometer)?.into();
 
 		let new_reward_account = Runtime::AddressMapping::into_account_id(new_address);
 
@@ -226,13 +217,7 @@ where
 		let call =
 			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address { new_reward_account };
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
