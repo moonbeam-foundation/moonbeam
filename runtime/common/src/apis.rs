@@ -475,10 +475,18 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			#[cfg(feature = "try-runtime")]
 			impl frame_try_runtime::TryRuntime<Block> for Runtime {
-				fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+				fn on_runtime_upgrade() -> (Weight, Weight) {
 					log::info!("try-runtime::on_runtime_upgrade()");
-					let weight = Executive::try_runtime_upgrade()?;
-					Ok((weight, BlockWeights::get().max_block))
+					// NOTE: intentional expect: we don't want to propagate the error backwards,
+					// and want to have a backtrace here. If any of the pre/post migration checks
+					// fail, we shall stop right here and right now.
+					let weight = Executive::try_runtime_upgrade()
+						.expect("runtime upgrade logic *must* be infallible");
+					(weight, BlockWeights::get().max_block)
+				}
+
+				fn execute_block_no_check(block: Block) -> Weight {
+					Executive::execute_block_no_check(block)
 				}
 			}
 		}
