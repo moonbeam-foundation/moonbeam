@@ -237,7 +237,7 @@ benchmarks! {
 			USER_SEED,
 			0u32.into(),
 			true,
-			0u32,
+			1u32,
 		)?;
 		Pallet::<T>::schedule_leave_candidates(RawOrigin::Signed(caller.clone()).into(), 1u32)?;
 		roll_to_and_author::<T>(2, caller.clone());
