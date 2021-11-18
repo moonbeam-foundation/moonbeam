@@ -14,6 +14,7 @@ log = "0.4"
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false, optional = true }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
@@ -30,4 +31,5 @@ std = [
 	"parachain-staking/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"pallet-asset-manager/std"
 ]

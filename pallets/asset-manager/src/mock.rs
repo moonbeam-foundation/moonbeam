@@ -144,6 +144,7 @@ impl Config for Test {
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type AssetModifierOrigin = EnsureRoot<u64>;
+	type WeightInfo = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

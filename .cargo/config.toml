@@ -1,5 +1,6 @@
 [alias]
 moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
+moonbase-benchmarks = " build --release -p moonbeam --no-default-features --features moonbase-runtime-benchmarks"
 moonbase-rococo = " build --release -p moonbeam --no-default-features --features moonbase-native,rococo-native"
 moonbase-tracing = " build --release -p moonbeam --features moonbase-native-tracing"
 moonriver = " build --release -p moonbeam --no-default-features --features moonriver-native"

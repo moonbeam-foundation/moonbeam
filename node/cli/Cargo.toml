@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = [ "PureStake" ]
 edition = "2018"
-version = "0.14.2"
+version = "0.15.0"
 
 [dependencies]
 log = "0.4.8"
@@ -48,7 +48,8 @@ moonbase-native = [ "service/moonbase-native", "westend-native" ]
 moonbeam-native = [ "service/moonbeam-native" ]
 moonriver-native = [ "service/moonriver-native" ]
 
-runtime-benchmarks = [ "service/runtime-benchmarks" ]
+moonbase-runtime-benchmarks = ["service/moonbase-runtime-benchmarks"]
+runtime-benchmarks = ["service/runtime-benchmarks"]
 try-runtime = [
 	"service/try-runtime",
 	"try-runtime-cli",
