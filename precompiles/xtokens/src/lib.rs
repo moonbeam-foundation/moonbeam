@@ -100,9 +100,8 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		input.expect_arguments(4)?;
 
-		// Bound check
-		input.expect_arguments(2)?;
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
@@ -110,8 +109,6 @@ where
 		// In the end we are using the encoding
 		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
-		// Bound check
-		input.expect_arguments(1)?;
 		let dest_weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
@@ -154,9 +151,8 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		input.expect_arguments(5)?;
 
-		// Bound check
-		input.expect_arguments(2)?;
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 		let fee: U256 = input.read()?;
@@ -165,8 +161,6 @@ where
 		// In the end we are using the encoding
 		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
-		// Bound check
-		input.expect_arguments(2)?;
 		let dest_weight: u64 = input.read::<u64>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
@@ -217,19 +211,17 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		input.expect_arguments(4)?;
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
 		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		// Bound check
-		input.expect_arguments(1)?;
 		let amount: U256 = input.read()?;
 
 		// read destination
 		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
-		// Bound check
-		input.expect_arguments(1)?;
 		let dest_weight: u64 = input.read::<u64>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -268,20 +260,17 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		input.expect_arguments(5)?;
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
 		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
-		// Bound check
-		input.expect_arguments(2)?;
 		let amount: U256 = input.read()?;
 		let fee: U256 = input.read()?;
 
 		// read destination
 		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
-		// Bound check
-		input.expect_arguments(1)?;
 		let dest_weight: u64 = input.read::<u64>()?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
