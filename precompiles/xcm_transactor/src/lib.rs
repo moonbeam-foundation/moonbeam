@@ -18,11 +18,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use evm::{executor::stack::PrecompileOutput, Context, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 
 use sp_core::H160;
@@ -70,18 +70,22 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		is_static: bool,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		let gasometer = &mut gasometer;
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let input = &mut input;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(input, target_gas),
-			Action::TransactInfo => Self::transact_info(input, target_gas),
+			Action::IndexToAccount => Self::account_index(input, gasometer),
+			Action::TransactInfo => Self::transact_info(input, gasometer),
 			Action::TransactThroughDerivativeMultiLocation => {
-				Self::transact_through_derivative_multilocation(input, target_gas, context)
+				Self::transact_through_derivative_multilocation(input, gasometer, context)
 			}
 			Action::TransactThroughDerivative => {
-				Self::transact_through_derivative(input, target_gas, context)
+				Self::transact_through_derivative(input, gasometer, context)
 			}
 		}
 	}
@@ -98,19 +102,18 @@ where
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn account_index(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Bound check
-		input.expect_arguments(1)?;
-		let index: u16 = input.read::<u16>()?;
+		input.expect_arguments(gasometer, 1)?;
+		let index: u16 = input.read::<u16>(gasometer)?;
 
 		// fetch data from pallet
 		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)
-			.ok_or(error("No index assigned"))?
+			.ok_or(gasometer.revert("No index assigned"))?
 			.into();
 
 		Ok(PrecompileOutput {
@@ -122,18 +125,17 @@ where
 	}
 
 	fn transact_info(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfo =
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
-				.ok_or(error("Transact Info not set"))?;
+				.ok_or(gasometer.revert("Transact Info not set"))?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -150,31 +152,29 @@ where
 	}
 
 	fn transact_through_derivative_multilocation(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-
 		// Bound check
-		input.expect_arguments(5)?;
+		input.expect_arguments(gasometer, 5)?;
 
 		// Does not need DB read
 		let transactor: TransactorOf<Runtime> = input
-			.read::<u8>()?
+			.read::<u8>(gasometer)?
 			.try_into()
-			.map_err(|_| error("Non-existent transactor"))?;
-		let index: u16 = input.read::<u16>()?;
+			.map_err(|_| gasometer.revert("Non-existent transactor"))?;
+		let index: u16 = input.read::<u16>(gasometer)?;
 
 		// read fee location
 		// defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		let fee_multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 		// read fee amount
-		let weight: u64 = input.read::<u64>()?;
+		let weight: u64 = input.read::<u64>(gasometer)?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<Bytes>(gasometer)?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -187,13 +187,7 @@ where
 			inner_call: inner_call.0,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -204,22 +198,20 @@ where
 	}
 
 	fn transact_through_derivative(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-
 		// Bound check
-		input.expect_arguments(5)?;
+		input.expect_arguments(gasometer, 5)?;
 		let transactor: TransactorOf<Runtime> = input
-			.read::<u8>()?
+			.read::<u8>(gasometer)?
 			.try_into()
-			.map_err(|_| error("Non-existent transactor"))?;
-		let index: u16 = input.read::<u16>()?;
+			.map_err(|_| gasometer.revert("Non-existent transactor"))?;
+		let index: u16 = input.read::<u16>(gasometer)?;
 
 		// read currencyId
-		let to_address: H160 = input.read::<Address>()?.into();
+		let to_address: H160 = input.read::<Address>(gasometer)?.into();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -228,13 +220,13 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
-				.ok_or(error("cannot convert into currency id"))?;
+				.ok_or(gasometer.revert("cannot convert into currency id"))?;
 
 		// read fee amount
-		let weight: u64 = input.read::<u64>()?;
+		let weight: u64 = input.read::<u64>(gasometer)?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<Bytes>(gasometer)?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -247,13 +239,7 @@ where
 			inner_call: inner_call.0,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
