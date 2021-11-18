@@ -32,8 +32,6 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::FilterAssetLocation;
 use xcm_executor::traits::WeightTrader;
 
-use sp_runtime::traits::Zero;
-
 use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
 
