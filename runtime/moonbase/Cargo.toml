@@ -245,7 +245,9 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-asset-manager/runtime-benchmarks",
 ]
+moonbase-runtime-benchmarks = []
 try-runtime = [
 	"frame-try-runtime",
 	"frame-executive/try-runtime",

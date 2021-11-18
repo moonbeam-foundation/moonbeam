@@ -17,6 +17,8 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.12" }
 
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false, optional = true }
+
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
@@ -34,4 +36,8 @@ std = [
 	"frame-system/std",
 	"xcm-primitives/std",
 	"scale-info/std",
+]
+
+runtime-benchmarks = [
+    "frame-benchmarking",
 ]

@@ -6179,6 +6179,7 @@ dependencies = [
 name = "pallet-asset-manager"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-balances",
@@ -9787,6 +9788,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "pallet-asset-manager",
  "pallet-author-mapping",
  "pallet-collective",
  "pallet-migrations",
