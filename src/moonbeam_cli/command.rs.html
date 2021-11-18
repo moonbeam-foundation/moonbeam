@@ -1390,7 +1390,7 @@
 					<span class="ident">runner</span>.<span class="ident">async_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
 						<span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">prometheus_config</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cfg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">registry</span>);
 						<span class="kw">let</span> <span class="ident">task_manager</span> <span class="op">=</span>
-							<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
+							<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">tokio_handle</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
 								.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 									<span class="ident">sc_cli::Error::Service</span>(<span class="ident">sc_service::Error::Prometheus</span>(<span class="ident">e</span>))
 								})<span class="question-mark">?</span>;
@@ -1405,7 +1405,7 @@
 				<span class="ident">spec</span> <span class="kw">if</span> <span class="ident">spec</span>.<span class="ident">is_moonbeam</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">runner</span>.<span class="ident">async_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
 					<span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">prometheus_config</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cfg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">registry</span>);
 					<span class="kw">let</span> <span class="ident">task_manager</span> <span class="op">=</span>
-						<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
+						<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">tokio_handle</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
 							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 								<span class="ident">sc_cli::Error::Service</span>(<span class="ident">sc_service::Error::Prometheus</span>(<span class="ident">e</span>))
 							})<span class="question-mark">?</span>;
@@ -1424,7 +1424,7 @@
 						<span class="comment">// manager to do `async_run`.</span>
 						<span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">prometheus_config</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cfg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">registry</span>);
 						<span class="kw">let</span> <span class="ident">task_manager</span> <span class="op">=</span>
-							<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
+							<span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">tokio_handle</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
 								.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 									<span class="ident">sc_cli::Error::Service</span>(<span class="ident">sc_service::Error::Prometheus</span>(<span class="ident">e</span>))
 								})<span class="question-mark">?</span>;
