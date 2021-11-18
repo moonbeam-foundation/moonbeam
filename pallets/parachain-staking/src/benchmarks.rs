@@ -232,34 +232,18 @@ benchmarks! {
 	}
 
 	execute_leave_candidates {
-		println!("Z");
-		let mut candidate_count = 1u32;
-		for i in 2..5 {
-			let seed = USER_SEED - i;
-			let collator = create_funded_collator::<T>(
-				"collator",
-				seed,
-				0u32.into(),
-				true,
-				candidate_count
-			)?;
-			candidate_count += 1u32;
-		}
-		println!("ZZ");
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"caller",
-			USER_SEED,
+			"unique_caller",
+			USER_SEED - 100,
 			0u32.into(),
 			true,
-			candidate_count,
+			1u32,
 		)?;
-		println!("ZZZ");
 		Pallet::<T>::schedule_leave_candidates(
 			RawOrigin::Signed(caller.clone()).into(),
-			candidate_count
+			2u32
 		)?;
 		roll_to_and_author::<T>(2, caller.clone());
-		println!("ZZZZ");
 	}: _(RawOrigin::Signed(caller.clone()), caller.clone())
 	verify {
 		assert!(Pallet::<T>::candidate_state(&caller).is_none());
