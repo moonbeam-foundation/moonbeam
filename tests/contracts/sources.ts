@@ -975,7 +975,7 @@ export const contractSources: { [key: string]: string } = {
      * Selector: 23b872dd
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to be transferred
+     * @param value uint256 the amount of delegated tokens to be transferred
      */
     function transferFrom(address from, address to, uint256 value)
         external returns (bool);
@@ -1009,55 +1009,81 @@ export const contractSources: { [key: string]: string } = {
 
     contract ERC20Instance is IERC20 {
 
-      /// The ierc20 at the known pre-compile address.
-      IERC20 public erc20 = IERC20(0x0000000000000000000000000000000000000802);
-      
-          function name() override external view returns (string memory) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.name();
-          }
-          
-          function symbol() override external view returns (string memory) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.symbol();
-          }
-          
-          function decimals() override external view returns (uint8) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.decimals();
-          }
+        /// The ierc20 at the known pre-compile address.
+        IERC20 public erc20 = IERC20(0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080);
+        address erc20address = 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080;
 
-          function totalSupply() override external view returns (uint256){
-              // We nominate our target collator with all the tokens provided
-              return erc20.totalSupply();
-          }
-          
-          function balanceOf(address who) override external view returns (uint256){
-              // We nominate our target collator with all the tokens provided
-              return erc20.balanceOf(who);
-          }
-          
-          function allowance(
-              address owner,
-              address spender
-          ) override external view returns (uint256){
-              return erc20.allowance(owner, spender);
-          }
+            receive() external payable {
+            // React to receiving ether
+            }
 
-          function transfer(address to, uint256 value) override external returns (bool) {
-              return erc20.transfer(to, value);
-          }
-          
-          function approve(address spender, uint256 value) override external returns (bool) {
-              return erc20.approve(spender, value);
-          }
-          
-          function transferFrom(
-              address from,
-              address to,
-              uint256 value)
-          override external returns (bool) {
-              return erc20.transferFrom(from, to, value);
-          }
-  }`,
+            function name() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.name();
+            }
+            
+            function symbol() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.symbol();
+            }
+            
+            function decimals() override external view returns (uint8) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.decimals();
+            }
+
+            function totalSupply() override external view returns (uint256){
+                // We nominate our target collator with all the tokens provided
+                return erc20.totalSupply();
+            }
+            
+            function balanceOf(address who) override external view returns (uint256){
+                // We nominate our target collator with all the tokens provided
+                return erc20.balanceOf(who);
+            }
+            
+            function allowance(
+                address owner,
+                address spender
+            ) override external view returns (uint256){
+                return erc20.allowance(owner, spender);
+            }
+
+            function transfer(address to, uint256 value) override external returns (bool) {
+                return erc20.transfer(to, value);
+            }
+            
+            function transfer_delegate(address to, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transfer(address,uint256)", to, value));
+            return result;
+            }
+            
+            function approve(address spender, uint256 value) override external returns (bool) {
+            return erc20.approve(spender, value);
+            }
+
+            function approve_delegate(address spender, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("approve(address,uint256)", spender, value));
+            return result;
+            }
+            
+            function transferFrom(
+                address from,
+                address to,
+                uint256 value)
+            override external returns (bool) {
+                return erc20.transferFrom(from, to, value);
+            }
+            
+            function transferFrom_delegate(
+                address from,
+                address to,
+                uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, value));
+            return result;
+            }
+    }`,
 };

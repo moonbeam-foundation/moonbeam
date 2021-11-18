@@ -201,6 +201,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -1155,7 +1170,7 @@ fn asset_erc20_precompiles_transfer() {
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 25084u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
@@ -1227,7 +1242,7 @@ fn asset_erc20_precompiles_approve() {
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 15035u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
@@ -1260,7 +1275,7 @@ fn asset_erc20_precompiles_approve() {
 			// Expected result for transfer_from
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 31042u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(

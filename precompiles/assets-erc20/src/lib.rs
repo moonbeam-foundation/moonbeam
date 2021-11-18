@@ -26,9 +26,9 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
-use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm::{AddressMapping, PrecompileSet};
 use precompile_utils::{
-	error, keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
 	LogsBuilder, RuntimeHelper,
 };
 use sp_runtime::traits::Zero;
@@ -54,7 +54,7 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	TotalSupply = "totalSupply()",
 	BalanceOf = "balanceOf(address)",
@@ -98,9 +98,13 @@ pub struct Erc20AssetsPrecompileSet<Runtime, Instance: 'static = ()>(
 impl<Runtime, Instance> PrecompileSet for Erc20AssetsPrecompileSet<Runtime, Instance>
 where
 	Instance: 'static,
-	Erc20AssetsPrecompile<Runtime, Instance>: Precompile,
-	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
+	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
 		address: H160,
@@ -119,52 +123,34 @@ where
 			// The other options is to check the asset existence in pallet-asset-manager, but
 			// this makes the precompiles dependent on such a pallet, which is not ideal
 			if !pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero() {
-				return Some(
-					<Erc20AssetsPrecompile<Runtime, Instance> as Precompile>::execute(
-						input, target_gas, context,
-					),
-				);
+				let result = {
+					let (input, selector) = match EvmDataReader::new_with_selector(input) {
+						Ok((input, selector)) => (input, selector),
+						Err(e) => return Some(Err(e)),
+					};
+
+					match selector {
+						Action::TotalSupply => Self::total_supply(asset_id, input, target_gas),
+						Action::BalanceOf => Self::balance_of(asset_id, input, target_gas),
+						Action::Allowance => Self::allowance(asset_id, input, target_gas),
+						Action::Approve => Self::approve(asset_id, input, target_gas, context),
+						Action::Transfer => Self::transfer(asset_id, input, target_gas, context),
+						Action::TransferFrom => {
+							Self::transfer_from(asset_id, input, target_gas, context)
+						}
+						Action::Name => Self::name(asset_id, target_gas),
+						Action::Symbol => Self::symbol(asset_id, target_gas),
+						Action::Decimals => Self::decimals(asset_id, target_gas),
+					}
+				};
+				return Some(result);
 			}
 		}
 		None
 	}
 }
 
-pub struct Erc20AssetsPrecompile<Runtime, Instance: 'static = ()>(PhantomData<(Runtime, Instance)>);
-
-impl<Runtime, Instance> Precompile for Erc20AssetsPrecompile<Runtime, Instance>
-where
-	Instance: 'static,
-	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
-{
-	fn execute(
-		input: &[u8], //Reminder this is big-endian
-		target_gas: Option<u64>,
-		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
-
-		match selector {
-			Action::TotalSupply => Self::total_supply(input, target_gas, context),
-			Action::BalanceOf => Self::balance_of(input, target_gas, context),
-			Action::Allowance => Self::allowance(input, target_gas, context),
-			Action::Approve => Self::approve(input, target_gas, context),
-			Action::Transfer => Self::transfer(input, target_gas, context),
-			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
-			Action::Name => Self::name(target_gas, context),
-			Action::Symbol => Self::symbol(target_gas, context),
-			Action::Decimals => Self::decimals(target_gas, context),
-		}
-	}
-}
-
-impl<Runtime, Instance> Erc20AssetsPrecompile<Runtime, Instance>
+impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -176,20 +162,15 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn total_supply(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		input: EvmDataReader,
 		target_gas: Option<u64>,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-
 		// Parse input.
 		input.expect_arguments(0)?;
-
-		let asset_id: AssetIdOf<Runtime, Instance> =
-			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
 
 		// Fetch info.
 		let amount: U256 =
@@ -205,9 +186,9 @@ where
 	}
 
 	fn balance_of(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -219,12 +200,6 @@ where
 
 		// Fetch info.
 		let amount: U256 = {
-			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-
-			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::account_to_asset_id(execution_address)
-					.ok_or(error("non-assetId address"))?;
-
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &owner).into()
 		};
@@ -239,9 +214,9 @@ where
 	}
 
 	fn allowance(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -254,11 +229,6 @@ where
 
 		// Fetch info.
 		let amount: U256 = {
-			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::account_to_asset_id(execution_address)
-					.ok_or(error("non-assetId address"))?;
-
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
@@ -276,6 +246,7 @@ where
 	}
 
 	fn approve(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
@@ -290,11 +261,6 @@ where
 		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
 
 		{
-			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::account_to_asset_id(execution_address)
-					.ok_or(error("non-assetId address"))?;
-
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
@@ -316,7 +282,6 @@ where
 				)?;
 				gasometer.record_cost(used_gas)?;
 			}
-
 			// Dispatch call (if enough gas).
 			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
@@ -329,12 +294,11 @@ where
 			)?;
 			gasometer.record_cost(used_gas)?;
 		}
-
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_APPROVAL,
@@ -347,6 +311,7 @@ where
 	}
 
 	fn transfer(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
@@ -362,11 +327,6 @@ where
 
 		// Build call with origin.
 		{
-			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::account_to_asset_id(execution_address)
-					.ok_or(error("non-assetId address"))?;
-
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
@@ -387,7 +347,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_TRANSFER,
@@ -400,6 +360,7 @@ where
 	}
 
 	fn transfer_from(
+		asset_id: AssetIdOf<Runtime, Instance>,
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
@@ -414,16 +375,10 @@ where
 		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
 
 		{
-			let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-			let asset_id: AssetIdOf<Runtime, Instance> =
-				Runtime::account_to_asset_id(execution_address)
-					.ok_or(error("non-assetId address"))?;
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-
-			// If caller is "from", it can spend as much as it wants from its own balance.
 			let used_gas = if caller != from {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
@@ -450,12 +405,11 @@ where
 			}?;
 			gasometer.record_cost(used_gas)?;
 		}
-
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: vec![],
+			output: EvmDataWriter::new().write(true).build(),
 			logs: LogsBuilder::new(context.address)
 				.log3(
 					SELECTOR_LOG_TRANSFER,
@@ -467,13 +421,12 @@ where
 		})
 	}
 
-	fn name(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+	fn name(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-		let asset_id: AssetIdOf<Runtime, Instance> =
-			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
-
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -489,13 +442,12 @@ where
 		})
 	}
 
-	fn symbol(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+	fn symbol(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-		let asset_id: AssetIdOf<Runtime, Instance> =
-			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
-
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -511,12 +463,12 @@ where
 		})
 	}
 
-	fn decimals(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+	fn decimals(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let execution_address = Runtime::AddressMapping::into_account_id(context.address);
-		let asset_id: AssetIdOf<Runtime, Instance> =
-			Runtime::account_to_asset_id(execution_address).ok_or(error("non-assetId address"))?;
 
 		// Build output.
 		Ok(PrecompileOutput {

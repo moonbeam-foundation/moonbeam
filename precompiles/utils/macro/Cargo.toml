@@ -17,3 +17,4 @@ quote = "1.0"
 proc-macro2 = "1.0"
 sha3 = "0.8"
 syn = { version = "1.0", features = ["full", "fold", "extra-traits", "visit"] }
+num_enum = { version = "0.5.3", default-features = false }
