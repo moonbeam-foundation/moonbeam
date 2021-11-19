@@ -739,6 +739,7 @@ pub fn new_dev<RuntimeApi, Executor>(
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
+	instant_finality: bool,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -818,7 +819,7 @@ where
 							.import_notification_stream()
 							.map(|_| EngineCommand::SealNewBlock {
 								create_empty: false,
-								finalize: false,
+								finalize: instant_finality,
 								parent_hash: None,
 								sender: None,
 							}),
@@ -826,6 +827,10 @@ where
 				}
 				cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
+					if instant_finality {
+						log::warn!("You have specified --instant-finality but it will be ignored in manual seal mode.")
+					}
+
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
@@ -834,7 +839,7 @@ where
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,
-						finalize: false,
+						finalize: instant_finality,
 						parent_hash: None,
 						sender: None,
 					},
