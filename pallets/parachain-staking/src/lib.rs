@@ -190,7 +190,7 @@ pub mod pallet {
 	pub struct CandidateBondRequest<Balance> {
 		pub amount: Balance,
 		pub change: CandidateBondChange,
-		pub when: RoundIndex,
+		pub when_executable: RoundIndex,
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -284,13 +284,13 @@ pub mod pallet {
 				T::Currency::can_reserve(&candidate_id, more.into()),
 				Error::<T>::InsufficientBalance
 			);
-			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
+			let when_executable = <Round<T>>::get().current + T::CandidateBondDelay::get();
 			self.request = Some(CandidateBondRequest {
 				change: CandidateBondChange::Increase,
 				amount: more,
-				when,
+				when_executable,
 			});
-			Ok(when)
+			Ok(when_executable)
 		}
 		/// Schedule executable decrease of collator candidate self bond
 		/// Returns the round at which the collator can execute the pending request
@@ -312,13 +312,13 @@ pub mod pallet {
 				self.bond - less >= T::MinCandidateStk::get().into(),
 				Error::<T>::CandidateBondBelowMin
 			);
-			let when = <Round<T>>::get().current + T::CandidateBondDelay::get();
+			let when_executable = <Round<T>>::get().current + T::CandidateBondDelay::get();
 			self.request = Some(CandidateBondRequest {
 				change: CandidateBondChange::Decrease,
 				amount: less,
-				when,
+				when_executable,
 			});
-			Ok(when)
+			Ok(when_executable)
 		}
 		/// Execute pending request to change the collator self bond
 		/// Returns the event to be emitted
@@ -331,7 +331,7 @@ pub mod pallet {
 				.request
 				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
 			ensure!(
-				request.when <= <Round<T>>::get().current,
+				request.when_executable <= <Round<T>>::get().current,
 				Error::<T>::PendingCandidateRequestNotDueYet
 			);
 			let caller: T::AccountId = self.id.clone().into();
@@ -864,14 +864,17 @@ pub mod pallet {
 			let DelegationRequest {
 				amount,
 				action,
-				when,
+				when_executable,
 				..
 			} = self
 				.requests
 				.requests
 				.remove(&candidate)
 				.ok_or(Error::<T>::PendingDelegationRequestDNE)?;
-			ensure!(when <= now, Error::<T>::PendingDelegationRequestNotDueYet);
+			ensure!(
+				when_executable <= now,
+				Error::<T>::PendingDelegationRequestNotDueYet
+			);
 			let (balance_amt, candidate_id, delegator_id): (
 				BalanceOf<T>,
 				T::AccountId,
@@ -1045,7 +1048,7 @@ pub mod pallet {
 	pub struct DelegationRequest<AccountId, Balance> {
 		pub collator: AccountId,
 		pub amount: Balance,
-		pub when: RoundIndex,
+		pub when_executable: RoundIndex,
 		pub action: DelegationChange,
 	}
 
@@ -1094,7 +1097,7 @@ pub mod pallet {
 			&mut self,
 			collator: A,
 			amount: B,
-			when: RoundIndex,
+			when_executable: RoundIndex,
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
@@ -1105,7 +1108,7 @@ pub mod pallet {
 				DelegationRequest {
 					collator,
 					amount,
-					when,
+					when_executable,
 					action: DelegationChange::Increase,
 				},
 			);
@@ -1119,7 +1122,7 @@ pub mod pallet {
 			&mut self,
 			collator: A,
 			amount: B,
-			when: RoundIndex,
+			when_executable: RoundIndex,
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
@@ -1130,7 +1133,7 @@ pub mod pallet {
 				DelegationRequest {
 					collator,
 					amount,
-					when,
+					when_executable,
 					action: DelegationChange::Decrease,
 				},
 			);
@@ -1144,7 +1147,7 @@ pub mod pallet {
 			&mut self,
 			collator: A,
 			amount: B,
-			when: RoundIndex,
+			when_executable: RoundIndex,
 		) -> DispatchResult {
 			ensure!(
 				self.requests.get(&collator).is_none(),
@@ -1155,7 +1158,7 @@ pub mod pallet {
 				DelegationRequest {
 					collator,
 					amount,
-					when,
+					when_executable,
 					action: DelegationChange::Revoke,
 				},
 			);

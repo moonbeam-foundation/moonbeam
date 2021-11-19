@@ -325,7 +325,7 @@ benchmarks! {
 			Some(CandidateBondRequest {
 				amount: more,
 				change: CandidateBondChange::Increase,
-				when: 3,
+				when_executable: 3,
 			})
 		);
 	}
@@ -347,7 +347,7 @@ benchmarks! {
 			Some(CandidateBondRequest {
 				amount: min_candidate_stk,
 				change: CandidateBondChange::Decrease,
-				when: 3,
+				when_executable: 3,
 			})
 		);
 	}
@@ -621,7 +621,7 @@ benchmarks! {
 			Some(&DelegationRequest {
 				collator,
 				amount: bond,
-				when: 3,
+				when_executable: 3,
 				action: DelegationChange::Revoke
 			})
 		);
@@ -653,7 +653,7 @@ benchmarks! {
 			Some(&DelegationRequest {
 				collator,
 				amount: 5u32.into(),
-				when: 3,
+				when_executable: 3,
 				action: DelegationChange::Increase
 			})
 		);
@@ -685,7 +685,7 @@ benchmarks! {
 			Some(&DelegationRequest {
 				collator,
 				amount: 5u32.into(),
-				when: 3,
+				when_executable: 3,
 				action: DelegationChange::Decrease
 			})
 		);

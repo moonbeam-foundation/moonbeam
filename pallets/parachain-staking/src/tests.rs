@@ -1091,7 +1091,7 @@ fn schedule_candidate_bond_more_updates_candidate_state() {
 				Some(CandidateBondRequest {
 					amount: 30,
 					change: CandidateBondChange::Increase,
-					when: 3,
+					when_executable: 3,
 				})
 			);
 		});
@@ -1455,7 +1455,7 @@ fn cancel_candidate_bond_more_emits_event() {
 				CandidateBondRequest {
 					amount: 10,
 					change: CandidateBondChange::Increase,
-					when: 3,
+					when_executable: 3,
 				},
 			)));
 		});
@@ -1505,7 +1505,7 @@ fn cancel_candidate_bond_less_emits_event() {
 				CandidateBondRequest {
 					amount: 10,
 					change: CandidateBondChange::Decrease,
-					when: 3,
+					when_executable: 3,
 				},
 			)));
 		});
@@ -2135,7 +2135,7 @@ fn delegator_bond_more_updates_delegator_state() {
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Increase
 				})
 			);
@@ -2258,7 +2258,7 @@ fn delegator_bond_less_updates_delegator_state() {
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Decrease
 				})
 			);
@@ -3075,7 +3075,7 @@ fn cancel_revoke_delegation_emits_correct_event() {
 				DelegationRequest {
 					collator: 1,
 					amount: 10,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Revoke,
 				},
 			)));
@@ -3097,7 +3097,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 10,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Revoke,
 				})
 			);
@@ -3126,7 +3126,7 @@ fn cancel_delegator_bond_more_emits_correct_event() {
 				DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Increase,
 				},
 			)));
@@ -3148,7 +3148,7 @@ fn cancel_delegator_bond_more_updates_delegator_state() {
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Increase,
 				})
 			);
@@ -3177,7 +3177,7 @@ fn cancel_delegator_bond_less_correct_event() {
 				DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Decrease,
 				},
 			)));
@@ -3199,7 +3199,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				Some(&DelegationRequest {
 					collator: 1,
 					amount: 5,
-					when: 3,
+					when_executable: 3,
 					action: DelegationChange::Decrease,
 				})
 			);
@@ -4680,7 +4680,7 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 					Some(&DelegationRequest {
 						collator: 1,
 						amount: 10,
-						when: 3,
+						when_executable: 3,
 						action: DelegationChange::Revoke
 					})
 				);
