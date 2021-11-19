@@ -481,7 +481,7 @@ export const contractSources: { [key: string]: string } = {
         /// Bond more for delegators with respect to a specific collator candidate
         function delegator_bond_more(address candidate, uint256 more) external;
     
-        /// Bond less for nominators with respect to a specific collator candidate
+        /// Bond less for delegators with respect to a specific collator candidate
         function delegator_bond_less(address candidate, uint256 less) external;
     }
 
@@ -493,8 +493,8 @@ export const contractSources: { [key: string]: string } = {
     ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);
 
         /// Take advantage of the EVMs reversion logic and the fact that it doesn't extend to
-        /// Substrate storage to score free nominations for a collator candidate of our choosing
-        function score_a_free_nomination() public payable{
+        /// Substrate storage to score free delegations for a collator candidate of our choosing
+        function score_a_free_delegation() public payable{
             
             // We delegate our target collator with all the tokens provided
             staking.delegate(target, msg.value);

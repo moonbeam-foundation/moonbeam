@@ -1,12 +1,12 @@
 // Moon-808
 // What happens if one calls
-// function score_a_free_nomination() public payable{
+// function score_a_free_delegation() public payable{
 
-//     // We nominate our target collator with all the tokens provided
-//     staking.nominate(target, msg.value);
+//     // We delegate our target collator with all the tokens provided
+//     staking.delegate(target, msg.value);
 //     revert("By reverting this transaction, we return the eth to the caller");
 // }
-// Would the nomination pass in subtrate but get the eth back in the evm?
+// Would the delegation pass in substrate but get the eth back in the evm?
 // We have to make sure that's not possible
 
 import { expect } from "chai";
@@ -36,7 +36,7 @@ describeDevMoonbeam("Precompiles - test revert attack on state modifier", (conte
           context.web3,
           {
             contract,
-            contractCall: contract.methods.score_a_free_nomination(),
+            contractCall: contract.methods.score_a_free_delegation(),
           },
           {
             ...GENESIS_TRANSACTION,
@@ -51,7 +51,7 @@ describeDevMoonbeam("Precompiles - test revert attack on state modifier", (conte
     expect(receipt.status).to.eq(false);
 
     // Delegation shouldn't have passed
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
       GENESIS_ACCOUNT
     );
     expect(nominatorsAfter.toHuman()).to.eq(null);
