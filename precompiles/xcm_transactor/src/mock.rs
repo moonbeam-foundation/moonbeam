@@ -53,12 +53,12 @@ pub type Balance = u128;
 pub type BlockNumber = u64;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -176,7 +176,7 @@ parameter_types! {
 	};
 }
 
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = MockDbWeight;
 	type Origin = Origin;
@@ -204,7 +204,7 @@ impl frame_system::Config for Test {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
@@ -230,27 +230,26 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	R: xcm_transactor::Config,
-	R: pallet_evm::Config,
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<xcm_transactor::Call<R>>,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	TransactorOf<R>: TryFrom<u8>,
-	R::AccountId: Into<H160>,
-	R: AccountIdToCurrencyId<R::AccountId, CurrencyIdOf<R>>,
+	XcmTransactorWrapper<R>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context,
+				input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == precompile_address()
 	}
 }
 
@@ -258,7 +257,9 @@ pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
 
-pub type Precompiles = TestPrecompiles<Test>;
+parameter_types! {
+	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+}
 
 /// A mapping function that converts Ethereum gas to Substrate weight
 /// We are mocking this 1-1 to test db read charges too
@@ -272,7 +273,7 @@ impl GasWeightMapping for MockGasWeightMapping {
 	}
 }
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MockGasWeightMapping;
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
@@ -281,7 +282,8 @@ impl pallet_evm::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesValue = PrecompilesValue;
+	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
@@ -292,7 +294,7 @@ impl pallet_evm::Config for Test {
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -350,7 +352,7 @@ impl InvertLocation for InvertNothing {
 	}
 }
 
-impl pallet_xcm::Config for Test {
+impl pallet_xcm::Config for Runtime {
 	// The config types here are entirely configurable, since the only one that is sorely needed
 	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
 	type Event = Event;
@@ -404,12 +406,12 @@ parameter_types! {
 		1,
 		Junctions::X2(
 			Parachain(ParachainId::get().into()),
-			PalletInstance(<Test as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)).into();
 	pub MaxInstructions: u32 = 100;
 }
 
-impl xcm_transactor::Config for Test {
+impl xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
@@ -490,7 +492,7 @@ impl Into<Option<CurrencyId>> for TestAccount {
 }
 
 // Implement the trait, where we convert AccountId to AssetID
-impl AccountIdToCurrencyId<AccountId, CurrencyId> for Test {
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
@@ -544,10 +546,10 @@ impl ExtBuilder {
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
