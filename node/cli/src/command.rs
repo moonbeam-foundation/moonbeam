@@ -635,23 +635,48 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonriver() => service::new_dev::<
 							service::moonriver_runtime::RuntimeApi,
 							service::MoonriverExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							cli.run.instant_finality,
+						)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => service::new_dev::<
 							service::moonbeam_runtime::RuntimeApi,
 							service::MoonbeamExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							cli.run.instant_finality,
+						)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => service::new_dev::<
 							service::moonbase_runtime::RuntimeApi,
 							service::MoonbaseExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							cli.run.instant_finality,
+						)
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					};
+				}
+
+				if cli.run.instant_finality {
+					log::warn!(
+						"You have specified --instant-finality \
+						but it is ignored in the parachain context.00"
+					);
 				}
 
 				let polkadot_cli = RelayChainCli::new(

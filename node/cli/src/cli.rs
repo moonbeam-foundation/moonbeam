@@ -144,6 +144,11 @@ pub struct RunCmd {
 	#[structopt(long, default_value = "instant")]
 	pub sealing: Sealing,
 
+	/// Whether to instantly finalize blocks in the dev service
+	/// This will have no effect when using manual seal. There finality is also manual.
+	#[structopt(long)]
+	pub instant_finality: bool,
+
 	/// Public authoring identity to be inserted in the author inherent
 	/// This is not currently used, but we may want a way to use it in the dev service.
 	// #[structopt(long)]

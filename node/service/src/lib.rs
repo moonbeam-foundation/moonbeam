@@ -817,7 +817,7 @@ where
 							.pool()
 							.validated_pool()
 							.import_notification_stream()
-							.map(|_| EngineCommand::SealNewBlock {
+							.map(move |_| EngineCommand::SealNewBlock {
 								create_empty: false,
 								finalize: instant_finality,
 								parent_hash: None,
@@ -828,7 +828,7 @@ where
 				cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					if instant_finality {
-						log::warn!("You have specified --instant-finality but it will be ignored in manual seal mode.")
+						log::warn!("You have specified --instant-finality but it is ignored in manual seal mode.");
 					}
 
 					// Keep a reference to the other end of the channel. It goes to the RPC.
@@ -837,7 +837,7 @@ where
 				}
 				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
-					|_| EngineCommand::SealNewBlock {
+					move |_| EngineCommand::SealNewBlock {
 						create_empty: true,
 						finalize: instant_finality,
 						parent_hash: None,
