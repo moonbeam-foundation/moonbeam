@@ -105,30 +105,29 @@ impl ManualXcmApi for ManualXcm {
 		async move {
 			// If no message is supplied, inject a default one.
 			let msg = if msg.is_empty() {
-				todo!("Must supply a message for HRMP. No default is currently provided");
-			//TODO Make this compile
-			// xcm::VersionedXcm::<()>::V2(Xcm(vec![
-			// 	ReserveAssetDeposited(
-			// 		((Parent, Parachain(sender.into())).into(), 10000000000000).into(),
-			// 	),
-			// 	ClearOrigin,
-			// 	BuyExecution {
-			// 		fees: (Parent, Parachain(sender.into())).into(),
-			// 		weight_limit: Limited(4_000_000_000),
-			// 	},
-			// 	DepositAsset {
-			// 		assets: All.into(),
-			// 		max_assets: 1,
-			// 		beneficiary: MultiLocation::new(
-			// 			0,
-			// 			X1(AccountKey20 {
-			// 				network: Any,
-			// 				key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
-			// 			}),
-			// 		),
-			// 	},
-			// ]))
-			// .encode()
+				//TODO Make this compile
+				xcm::VersionedXcm::<()>::V2(Xcm(vec![
+					ReserveAssetDeposited(
+						((Parent, Parachain(sender.into())), 10000000000000).into(),
+					),
+					ClearOrigin,
+					BuyExecution {
+						fees: ((Parent, Parachain(sender.into())), 10000000000000).into(),
+						weight_limit: Limited(4_000_000_000),
+					},
+					DepositAsset {
+						assets: All.into(),
+						max_assets: 1,
+						beneficiary: MultiLocation::new(
+							0,
+							X1(AccountKey20 {
+								network: Any,
+								key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+							}),
+						),
+					},
+				]))
+				.encode()
 			} else {
 				msg
 			};
