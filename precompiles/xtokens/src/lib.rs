@@ -56,6 +56,7 @@ pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
+	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
