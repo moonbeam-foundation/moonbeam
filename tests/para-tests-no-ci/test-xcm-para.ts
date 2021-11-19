@@ -8,7 +8,7 @@ import { createBlockWithExtrinsicParachain, logEvents, waitOneBlock } from "../u
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ApiPromise } from "@polkadot/api";
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
+const palletId = "0x6d6f646c617373746d6e67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
 const HUNDRED_UNITS_PARA = 100_000_000_000_000_000_000n;
 const THOUSAND_UNITS = 1000000000000000;
@@ -98,14 +98,25 @@ describeParachain(
       // registerAsset
       const { events, assetId } = await registerAssetToParachain(parachainOne, alith);
 
-      expect(events[0].toHuman().method).to.eq("UnitsPerSecondChanged");
-      expect(events[2].toHuman().method).to.eq("ExtrinsicSuccess");
+      expect(events[1].toHuman().method).to.eq("UnitsPerSecondChanged");
+      expect(events[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
       // check asset in storage
       const registeredAsset = await parachainOne.query.assets.asset(assetId);
       expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
 
       // RELAYCHAIN
+
+      // Set supported version
+      // Release-v0.9.12 does not have yet automatic versioning
+      await createBlockWithExtrinsicParachain(
+        relayOne,
+        aliceRelay,
+        relayOne.tx.sudo.sudo( relayOne.tx.xcmPallet.forceDefaultXcmVersion(
+          1
+        ))
+      );
+
       // Trigger the transfer
       const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
         relayOne,
@@ -119,17 +130,16 @@ describeParachain(
             },
           },
           {
-            V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
           },
           0,
-          new BN(4000000000)
         )
       );
-      expect(eventsRelay[0].toHuman().method).to.eq("Attempted");
+
+      expect(eventsRelay[3].toHuman().method).to.eq("Attempted");
 
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
-
       // about 1k should have been substracted from AliceRelay
       expect(
         ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
@@ -175,6 +185,16 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     ({ assetId } = await registerAssetToParachain(parachainOne, alith));
 
     // RELAYCHAIN
+    // Set supported version
+    // Release-v0.9.12 does not have yet automatic versioning
+    await createBlockWithExtrinsicParachain(
+      relayOne,
+      aliceRelay,
+      relayOne.tx.sudo.sudo( relayOne.tx.xcmPallet.forceDefaultXcmVersion(
+        1
+      ))
+    );
+
     // Transfer 1000 units to para a baltathar
     await createBlockWithExtrinsicParachain(
       relayOne,
@@ -188,10 +208,9 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
           },
         },
         {
-          V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+          V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
         },
         0,
-        new BN(4000000000)
       )
     );
 
@@ -201,13 +220,13 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     // about 1k should have been substracted from AliceRelay (plus fees)
     expect(
       ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-    ).to.eq("8.9999 kUnit");
+    ).to.eq("8,999,974,801,187,831");
     // // BALTATHAR asset balance should have been increased to 1000*e12
     expect((await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
       "1,000,000,000,000,000"
     );
   });
-  it("should be able to receive an asset in relaychain from parachain", async function () {
+  it.only("should be able to receive an asset in relaychain from parachain", async function () {
     // PARACHAIN A
     // xToken transfer : sending 100 units back to relay
     const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
@@ -217,19 +236,22 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
         { OtherReserve: assetId },
         new BN(HUNDRED_UNITS),
         {
-          parents: new BN(1),
-          interior: { X1: { AccountId32: { network: "Any", id: aliceRelay.addressRaw } } },
+          V1: {
+            parents: new BN(1),
+            interior: { X1: { AccountId32: { network: "Any", id: aliceRelay.addressRaw } } },
+          }
         },
         new BN(4000000000)
       )
     );
-    expect(eventsTransfer[5].toHuman().method).to.eq("ExtrinsicSuccess");
+
+    expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
 
     await waitOneBlock(relayOne, 3);
     // about 100 should have been added to AliceRelay (minus fees)
     expect(
       ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-    ).to.eq("9.0999 kUnit");
+    ).to.eq("9,099,942,801,187,831");
     // Baltathar should have 100 * 10^12 less
     expect(
       (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
