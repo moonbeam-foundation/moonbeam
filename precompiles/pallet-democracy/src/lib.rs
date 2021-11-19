@@ -74,8 +74,8 @@ pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for DemocracyWrapper<Runtime>
 where
-	Runtime: pallet_democracy::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + Debug + EvmData,
+	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug + EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<DemocracyCall<Runtime>>,
