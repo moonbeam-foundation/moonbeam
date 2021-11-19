@@ -74,8 +74,8 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 		}
 		let db_weight = T::DbWeight::get();
 		if reads > 1u64 {
-			// 10% of the max block weight as safety margin for computation
-			db_weight.reads(reads) + db_weight.writes(writes) + 50_000_000_000
+			// 50% of the max block weight as safety margin for computation
+			db_weight.reads(reads) + db_weight.writes(writes) + 250_000_000_000
 		} else {
 			// migration was already executed before
 			db_weight.reads(reads)
