@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::assert_matches::assert_matches;
+use std::{assert_matches::assert_matches, str::from_utf8};
 
 use crate::mock::*;
 use crate::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, PrecompileFailure};
 use pallet_evm::PrecompileSet;
 use precompile_utils::{error, Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -31,7 +35,7 @@ fn selector_less_than_four_bytes() {
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
 		assert_eq!(
-			Precompiles::<Runtime>::execute(
+			precompiles().execute(
 				Account::Precompile.into(),
 				&bogus_selector,
 				None,
@@ -40,6 +44,7 @@ fn selector_less_than_four_bytes() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			),
 			Some(Err(error("tried to parse selector out of bounds")))
 		);
@@ -52,7 +57,7 @@ fn no_selector_exists_but_length_is_right() {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		assert_eq!(
-			Precompiles::<Runtime>::execute(
+			precompiles().execute(
 				Account::Precompile.into(),
 				&bogus_selector,
 				None,
@@ -61,6 +66,7 @@ fn no_selector_exists_but_length_is_right() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			),
 			Some(Err(error("unknown selector")))
 		);
@@ -97,7 +103,7 @@ fn get_total_supply() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
@@ -106,6 +112,7 @@ fn get_total_supply() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -124,7 +131,7 @@ fn get_balances_known_user() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -135,6 +142,7 @@ fn get_balances_known_user() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -153,7 +161,7 @@ fn get_balances_unknown_user() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -164,6 +172,7 @@ fn get_balances_unknown_user() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -182,7 +191,7 @@ fn approve() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
@@ -194,6 +203,7 @@ fn approve() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -218,7 +228,7 @@ fn check_allowance_existing() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			Precompiles::<Runtime>::execute(
+			precompiles().execute(
 				Account::Precompile.into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -230,10 +240,11 @@ fn check_allowance_existing() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
@@ -245,6 +256,7 @@ fn check_allowance_existing() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -263,7 +275,7 @@ fn check_allowance_not_existing() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
@@ -275,6 +287,7 @@ fn check_allowance_not_existing() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -293,7 +306,7 @@ fn transfer() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
@@ -305,6 +318,7 @@ fn transfer() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -322,7 +336,7 @@ fn transfer() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -333,6 +347,7 @@ fn transfer() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -343,7 +358,7 @@ fn transfer() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -354,6 +369,7 @@ fn transfer() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -372,7 +388,7 @@ fn transfer_not_enough_funds() {
 		.build()
 		.execute_with(|| {
 			assert_matches!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
@@ -384,10 +400,11 @@ fn transfer_not_enough_funds() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
-				Some(Err(ExitError::Other(str)))
-					if str.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
-					&& str.contains("InsufficientBalance")
+				Some(Err(PrecompileFailure::Revert { output: str, .. }))
+					if from_utf8(&str).unwrap().contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+					&& from_utf8(&str).unwrap().contains("InsufficientBalance")
 			);
 		});
 }
@@ -398,7 +415,7 @@ fn transfer_from() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			Precompiles::<Runtime>::execute(
+			precompiles().execute(
 				Account::Precompile.into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -410,10 +427,11 @@ fn transfer_from() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -426,6 +444,7 @@ fn transfer_from() {
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -443,7 +462,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -454,6 +473,7 @@ fn transfer_from() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -464,7 +484,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -475,6 +495,7 @@ fn transfer_from() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -485,7 +506,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
@@ -497,6 +518,7 @@ fn transfer_from() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -514,7 +536,7 @@ fn transfer_from_above_allowance() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			Precompiles::<Runtime>::execute(
+			precompiles().execute(
 				Account::Precompile.into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -526,10 +548,11 @@ fn transfer_from_above_allowance() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -542,6 +565,7 @@ fn transfer_from_above_allowance() {
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Err(error("trying to spend more than allowed"))),
 			);
@@ -555,7 +579,7 @@ fn transfer_from_self() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -569,6 +593,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -586,7 +611,7 @@ fn transfer_from_self() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -597,6 +622,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -607,7 +633,7 @@ fn transfer_from_self() {
 			);
 
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -618,6 +644,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -636,7 +663,7 @@ fn get_metadata_name() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Name).build(),
 					None,
@@ -645,6 +672,7 @@ fn get_metadata_name() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -665,7 +693,7 @@ fn get_metadata_symbol() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Symbol).build(),
 					None,
@@ -674,6 +702,7 @@ fn get_metadata_symbol() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -692,7 +721,7 @@ fn get_metadata_decimals() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Precompiles::<Runtime>::execute(
+				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Decimals).build(),
 					None,
@@ -701,6 +730,7 @@ fn get_metadata_decimals() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
