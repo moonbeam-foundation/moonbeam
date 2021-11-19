@@ -254,7 +254,7 @@ benchmarks! {
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
 		for i in 2..x {
-			let seed = USER_SEED + i;
+			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
@@ -265,12 +265,13 @@ benchmarks! {
 			candidate_count += 1u32;
 		}
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"new_caller",
-			USER_SEED + 100,
+			"caller",
+			USER_SEED,
 			0u32.into(),
 			true,
 			candidate_count,
 		)?;
+		candidate_count += 1u32;
 		Pallet::<T>::schedule_leave_candidates(
 			RawOrigin::Signed(caller.clone()).into(),
 			candidate_count

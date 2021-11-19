@@ -766,7 +766,7 @@ fn execute_leave_candidates_emits_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateLeft(1, 10, 0)));
 		});
@@ -780,7 +780,7 @@ fn execute_leave_candidates_callable_by_any_signed() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1));
 		});
 }
@@ -795,7 +795,7 @@ fn execute_leave_candidates_unreserves_balance() {
 			assert_eq!(Balances::reserved_balance(&1), 10);
 			assert_eq!(Balances::free_balance(&1), 0);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_eq!(Balances::reserved_balance(&1), 0);
 			assert_eq!(Balances::free_balance(&1), 10);
@@ -811,7 +811,7 @@ fn execute_leave_candidates_decreases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(Stake::total(), 10);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_eq!(Stake::total(), 0);
 		});
@@ -828,7 +828,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 			// candidate state is not immediately removed
 			let candidate_state = Stake::candidate_state(1).expect("just left => still exists");
 			assert_eq!(candidate_state.bond, 10u128);
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert!(Stake::candidate_state(1).is_none());
 		});
@@ -1155,9 +1155,8 @@ fn cannot_schedule_candidate_bond_more_if_exited_candidates() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			roll_to(4);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::schedule_candidate_bond_more(Origin::signed(1), 30),
@@ -1240,9 +1239,8 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			roll_to(4);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			roll_to(30);
+			roll_to(10);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::schedule_candidate_bond_less(Origin::signed(1), 10),
