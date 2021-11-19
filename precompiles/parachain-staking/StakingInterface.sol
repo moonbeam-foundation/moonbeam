@@ -6,7 +6,7 @@ pragma solidity >=0.8.0;
 /// We follow this same interface including four-byte function selectors, in the precompile that
 /// wraps the pallet
 interface ParachainStaking {
-    /// DEPRECATED
+    /// DEPRECATED, replaced by is_delegator
     /// @dev Check whether the specified address is currently a staking nominator
     /// Selector: 8e5080e7
     /// @param nominator the address that we want to confirm is a nominator
@@ -40,7 +40,7 @@ interface ParachainStaking {
     /// @return The total points awarded to all collators in the round
     function points(uint256 round) external view returns (uint256);
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by min_delegation
     /// @dev Get the minimum nomination amount
     /// Selector: c9f593b2
     /// @return The minimum nomination amount
@@ -56,7 +56,7 @@ interface ParachainStaking {
     /// @return The CandidateCount weight hint
     function candidate_count() external view returns (uint256);
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by candidate_delegation_count
     /// @dev Get the CollatorNominationCount weight hint
     /// Selector: 0ad6a7be
     /// @param collator The address for which we are querying the nomination count
@@ -75,7 +75,7 @@ interface ParachainStaking {
         view
         returns (uint256);
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by delegator_delegation_count
     /// @dev Get the NominatorNominationCount weight hint
     /// Selector: dae5659b
     /// @param nominator The address for which we are querying the nomination count
@@ -100,7 +100,8 @@ interface ParachainStaking {
     /// @param candidateCount The number of candidates in the CandidatePool
     function join_candidates(uint256 amount, uint256 candidateCount) external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_leave_candidates, execute_leave_candidates,
+    /// cancel_leave_candidates
     /// @dev Leave the set of collator candidates
     /// Selector: 72b02a31
     /// @param candidateCount The number of candidates in the CandidatePool
@@ -128,7 +129,8 @@ interface ParachainStaking {
     /// Selector: d2f73ceb
     function go_online() external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_candidate_bond_more, execute_candidate_bond_request,
+    /// cancel_candidate_bond_request
     /// @dev Request to bond more for collator candidates
     /// Selector: c57bd3a8
     /// @param more The additional amount self-bonded
@@ -139,7 +141,8 @@ interface ParachainStaking {
     /// @param more The additional amount self-bonded
     function schedule_candidate_bond_more(uint256 more) external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_candidate_bond_less, execute_candidate_bond_request,
+    /// cancel_candidate_bond_request
     /// @dev Request to bond less for collator candidates
     /// Selector: 289b6ba7
     /// @param less The amount to be subtracted from self-bond and unreserved
@@ -159,7 +162,7 @@ interface ParachainStaking {
     /// Selector: 39ffe013
     function cancel_candidate_bond_request() external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by delegate
     /// @dev Make a nomination in support of a collator candidate
     /// Selector: 49df6eb3
     /// @param collator The address of the supported collator candidate
@@ -186,7 +189,8 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_leave_delegators, execute_leave_delegators,
+    /// cancel_leave_delegators
     /// @dev Request to leave the set of nominators
     /// Selector: b71d2153
     /// @param nominatorNominationCount The number of active nominations to be revoked by caller
@@ -206,7 +210,8 @@ interface ParachainStaking {
     /// Selector: 2a987643
     function cancel_leave_delegators() external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_revoke_delegation, execute_delegation_request,
+    /// cancel_delegation_request
     /// @dev Request to revoke an existing nomination
     /// Selector: 4b65c34b
     /// @param collator The address of the collator candidate which will no longer be supported
@@ -217,7 +222,8 @@ interface ParachainStaking {
     /// @param candidate The address of the collator candidate which will no longer be supported
     function schedule_revoke_delegation(address candidate) external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_delegator_bond_more, execute_delegation_request,
+    /// cancel_delegation_request
     /// @dev Request to bond more for nominators with respect to a specific collator candidate
     /// Selector: 971d44c8
     /// @param candidate The address of the collator candidate for which nomination is increased
@@ -231,7 +237,8 @@ interface ParachainStaking {
     function schedule_delegator_bond_more(address candidate, uint256 more)
         external;
 
-    /// DEPRECATED
+    /// DEPRECATED, replaced by schedule_delegator_bond_less, execute_delegation_request,
+    /// cancel_delegation_request
     /// @dev Request to bond less for nominators with respect to a specific collator candidate
     /// Selector: f6a52569
     /// @param candidate The address of the collator candidate for which nomination is decreased
