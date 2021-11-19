@@ -56,8 +56,8 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		// expect only the storage items for the last 2 rounds to be stored
-		let staked_count = Staked::<T>::iter().count() as u64;
-		let points_count = Points::<T>::iter().count() as u64;
+		let staked_count = Staked::<T>::iter().count() as u32;
+		let points_count = Points::<T>::iter().count() as u32;
 		let delay = T::RewardPaymentDelay::get();
 		assert_eq!(
 			staked_count, delay,
