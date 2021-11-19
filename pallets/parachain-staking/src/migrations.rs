@@ -18,12 +18,13 @@
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
 	BalanceOf, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2, Points, Round, Staked,
+	ExitQueue2, NominatorState2, Points, Round, Staked, Collator2, Delegator, Nominator2,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
+	Twox64Concat,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -83,7 +84,13 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::{storage::migration::storage_iter, traits::OnRuntimeUpgradeHelpersExt};
+		use frame_support::{
+			storage::migration::{
+				storage_iter,
+				storage_key_iter,
+			},
+			traits::OnRuntimeUpgradeHelpersExt,
+		};
 
 		let pallet_prefix: &[u8] = b"ParachainStaking";
 		let collator_state_prefix: &[u8] = b"CollatorState2";
@@ -150,7 +157,7 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 		// Check that our example candidate is converted correctly
 		if new_candidate_count > 0 {
 			let (account, original_collator_state): (
-				T::AuthorId,
+				T::AccountId,
 				Collator2<T::AccountId, BalanceOf<T>>,
 			) = Self::get_temp_storage("example_collator").expect("qed");
 			let new_candidate_state = CandidateState::<T>::get(account).expect("qed");
@@ -167,7 +174,7 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 		// Check that our example nominator is converted correctly
 		if new_delegator_count > 0 {
 			let (account, original_nominator_state): (
-				T::AuthorId,
+				T::AccountId,
 				Nominator2<T::AccountId, BalanceOf<T>>,
 			) = Self::get_temp_storage("example_nominator").expect("qed");
 			let new_candidate_state = DelegatorState::<T>::get(account).expect("qed");
