@@ -105,7 +105,6 @@ impl ManualXcmApi for ManualXcm {
 		async move {
 			// If no message is supplied, inject a default one.
 			let msg = if msg.is_empty() {
-				//TODO Make this compile
 				xcm::VersionedXcm::<()>::V2(Xcm(vec![
 					ReserveAssetDeposited(
 						((Parent, Parachain(sender.into())), 10000000000000).into(),
