@@ -265,7 +265,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 100_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(
 				AccountId::from(CHARLIE),
 				AccountId::from(ALICE),
@@ -289,7 +289,7 @@ fn join_collator_candidates() {
 					100_000 * GLMR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -401,7 +401,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -447,7 +447,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			(AccountId::from(CHARLIE), 100 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
