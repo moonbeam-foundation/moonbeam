@@ -952,7 +952,7 @@ fn cancel_candidate_bond_more_works() {
 				parachain_staking::CandidateBondRequest {
 					amount: 500,
 					change: parachain_staking::CandidateBondChange::Increase,
-					when: 3,
+					when_executable: 3,
 				},
 			)
 			.into();
@@ -987,7 +987,7 @@ fn cancel_candidate_bond_less_works() {
 				parachain_staking::CandidateBondRequest {
 					amount: 200,
 					change: parachain_staking::CandidateBondChange::Decrease,
-					when: 3,
+					when_executable: 3,
 				},
 			)
 			.into();
@@ -1493,7 +1493,7 @@ fn cancel_revoke_delegation_works() {
 				parachain_staking::DelegationRequest {
 					collator: TestAccount::Alice,
 					amount: 1_000,
-					when: 3,
+					when_executable: 3,
 					action: parachain_staking::DelegationChange::Revoke,
 				},
 			)
@@ -1531,7 +1531,7 @@ fn cancel_delegator_bonded_more_works() {
 				parachain_staking::DelegationRequest {
 					collator: TestAccount::Alice,
 					amount: 500,
-					when: 3,
+					when_executable: 3,
 					action: parachain_staking::DelegationChange::Increase,
 				},
 			)
@@ -1569,7 +1569,7 @@ fn cancel_delegator_bonded_less_works() {
 				parachain_staking::DelegationRequest {
 					collator: TestAccount::Alice,
 					amount: 500,
-					when: 3,
+					when_executable: 3,
 					action: parachain_staking::DelegationChange::Decrease,
 				},
 			)
