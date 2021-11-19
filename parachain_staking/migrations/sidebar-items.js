@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PurgeStaleStorage","Migration to purge staking storage bloat for `Points` and `AtStake` storage items"]]});
+initSidebarItems({"struct":[["PurgeStaleStorage","Migration to purge staking storage bloat for `Points` and `AtStake` storage items"],["RemoveExitQueue","Migration to replace the automatic ExitQueue with a manual exits API. This migration is idempotent so it can be run more than once without any risk."]]});

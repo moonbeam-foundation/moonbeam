@@ -357,7 +357,7 @@
 					<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
 					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">MOVR</span>,
 				)],
-				<span class="comment">// Nominations</span>
+				<span class="comment">// Delegations</span>
 				<span class="macro">vec!</span>[],
 				<span class="ident">accounts</span>.<span class="ident">clone</span>(),
 				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">MOVR</span>,
@@ -408,7 +408,7 @@
 						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">MOVR</span>,
 					),
 				],
-				<span class="comment">// Nominations</span>
+				<span class="comment">// Delegations</span>
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[
 					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
@@ -458,7 +458,7 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">testnet_genesis</span>(
 	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
-	<span class="ident">nominations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
+	<span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">endowed_accounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="ident">crowdloan_fund_pot</span>: <span class="ident">Balance</span>,
 	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
@@ -517,7 +517,7 @@
 				.<span class="ident">cloned</span>()
 				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">account</span>, <span class="kw">_</span>, <span class="ident">bond</span>)<span class="op">|</span> (<span class="ident">account</span>, <span class="ident">bond</span>))
 				.<span class="ident">collect</span>(),
-			<span class="ident">nominations</span>,
+			<span class="ident">delegations</span>,
 			<span class="ident">inflation_config</span>: <span class="ident">moonbeam_inflation_config</span>(),
 		},
 		<span class="ident">council_collective</span>: <span class="ident">CouncilCollectiveConfig</span> {
