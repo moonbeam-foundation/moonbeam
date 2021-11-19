@@ -68,7 +68,7 @@ describeDevMoonbeam("Estimate Gas - Supplied estimate is sufficient", (context) 
     });
 
     // attempt a transaction with our estimated gas
-    const { rawTx } = await createContract(context.web3, "Incrementer", { gas: estimate } );
+    const { rawTx } = await createContract(context.web3, "Incrementer", { gas: estimate });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
       txResults[0].result
@@ -76,6 +76,5 @@ describeDevMoonbeam("Estimate Gas - Supplied estimate is sufficient", (context) 
 
     // the transaction should succeed because the estimate should have been sufficient
     expect(receipt.status).to.equal(true);
-
   });
 });
