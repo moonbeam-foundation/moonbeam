@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, Precompiles, Runtime, TestAccount,
+	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -26,6 +26,10 @@ use parachain_staking::Event as StakingEvent;
 use precompile_utils::{error, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
+
+fn precompiles() -> TestPrecompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 fn evm_call(source: TestAccount, input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
@@ -45,17 +49,16 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("tried to parse selector out of bounds")));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				precompile_address(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+			if &output = b"tried to parse selector out of bounds"
 		);
 	});
 }
@@ -65,17 +68,16 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(error("unknown selector")));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				precompile_address(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+			if &output == b"unknown selector"
 		);
 	});
 }
@@ -99,7 +101,13 @@ fn min_nomination_works() {
 
 		// Assert that no props have been opened.
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+			precompiles().execute(
+				precompile_address(),
+				&input_data,
+				None,
+				&evm_test_context(),
+				false
+			),
 			expected_one_result
 		);
 	});
@@ -129,7 +137,13 @@ fn points_zero() {
 
 			// Assert that there are total 0 points in round 1
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -161,7 +175,13 @@ fn points_non_zero() {
 
 			// Assert that there are total 100 points in round 1
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -201,7 +221,13 @@ fn collator_nomination_count_works() {
 
 			// Assert that there 3 nominations for Alice
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -239,7 +265,13 @@ fn nominator_nomination_count_works() {
 
 			// Assert that Charlie has 2 outstanding nominations
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -265,7 +297,13 @@ fn is_nominator_false() {
 
 		// Assert that Charlie is not a nominator
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+			precompiles().execute(
+				precompile_address(),
+				&input_data,
+				None,
+				&evm_test_context(),
+				false
+			),
 			expected_one_result
 		);
 	});
@@ -296,7 +334,13 @@ fn is_nominator_true() {
 
 			// Assert that Bob is a nominator
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -322,7 +366,13 @@ fn is_candidate_false() {
 
 		// Assert that Alice is not a candidate
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+			precompiles().execute(
+				precompile_address(),
+				&input_data,
+				None,
+				&evm_test_context(),
+				false
+			),
 			expected_one_result
 		);
 	});
@@ -352,7 +402,13 @@ fn is_candidate_true() {
 
 			// Assert that Alice is a candidate
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
@@ -378,7 +434,13 @@ fn is_selected_candidate_false() {
 
 		// Assert that Alice is not a selected candidate
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+			precompiles().execute(
+				precompile_address(),
+				&input_data,
+				None,
+				&evm_test_context(),
+				false
+			),
 			expected_one_result
 		);
 	});
@@ -408,7 +470,13 @@ fn is_selected_candidate_true() {
 
 			// Assert that Alice is a selected candidate
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_one_result
 			);
 		});
