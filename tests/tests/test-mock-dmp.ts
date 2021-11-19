@@ -64,7 +64,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it.only("Should receive a downward transfer of 10 DOTs to Alith", async function () {
+  it("Should receive a downward transfer of 10 DOTs to Alith", async function () {
     // Send RPC call to inject XCM message
     // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [[]]);
