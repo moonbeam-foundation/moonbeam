@@ -311,7 +311,7 @@ benchmarks! {
 	schedule_candidate_bond_more {
 		let more = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator1",
+			"collator",
 			USER_SEED,
 			more,
 			true,
@@ -333,7 +333,7 @@ benchmarks! {
 	schedule_candidate_bond_less {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator2",
+			"collator",
 			USER_SEED,
 			min_candidate_stk,
 			false,
@@ -355,7 +355,7 @@ benchmarks! {
 	execute_candidate_bond_more {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator3",
+			"collator",
 			USER_SEED,
 			min_candidate_stk,
 			true,

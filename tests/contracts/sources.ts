@@ -305,7 +305,7 @@ export const contractSources: { [key: string]: string } = {
     interface ParachainStaking {
         // First some simple accessors
     
-        /// Check whether the specified address is currently a staking nominator
+        /// Check whether the specified address is currently a staking delegator
         function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
@@ -316,7 +316,7 @@ export const contractSources: { [key: string]: string } = {
         /// Request to leave the set of candidates. If successful, the account is immediately
         /// removed from the candidate pool to prevent selection as a collator, but unbonding is
         /// executed with a delay of BondDuration rounds.
-        function leave_candidates() external;
+        function schedule_leave_candidates() external;
     
         /// Temporarily leave the set of collator candidates without unbonding
         function go_offline() external;
@@ -330,26 +330,26 @@ export const contractSources: { [key: string]: string } = {
         /// Bond less for collator candidates
         function candidate_bond_less(uint256 less) external;
     
-        /// If caller is not a nominator, then join the set of nominators
-        /// If caller is a nominator, then makes nomination to change their nomination state
-        function nominate(address collator, uint256 amount) external;
+        /// If caller is not a delegator, then join the set of delegators
+        /// If caller is a delegator, then makes delegation to change their delegation state
+        function delegate(address candidate, uint256 amount) external;
     
-        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
+        /// Leave the set of delegators and, by implication, revoke all ongoing delegations
         function leave_delegators() external;
     
-        /// Revoke an existing nomination
-        function revoke_nomination(address collator) external;
+        /// Revoke an existing delegation
+        function revoke_delegation(address candidate) external;
     
-        /// Bond more for nominators with respect to a specific collator candidate
-        function nominator_bond_more(address candidate, uint256 more) external;
+        /// Bond more for delegators with respect to a specific collator candidate
+        function delegator_bond_more(address candidate, uint256 more) external;
     
-        /// Bond less for nominators with respect to a specific nominator candidate
-        function nominator_bond_less(address candidate, uint256 less) external;
+        /// Bond less for delegators with respect to a specific collator candidate
+        function delegator_bond_less(address candidate, uint256 less) external;
     }
 
     /// An even more dead simple example to call the precompile
     contract JoinCandidatesWrapper {
-        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to 
+        /// The ParachainStaking wrapper at the known precompile address. This will be used to 
         /// make all calls to the underlying staking solution
         ParachainStaking public staking;
 
@@ -443,7 +443,7 @@ export const contractSources: { [key: string]: string } = {
     interface ParachainStaking {
         // First some simple accessors
     
-        /// Check whether the specified address is currently a staking nominator
+        /// Check whether the specified address is currently a staking delegator
         function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
@@ -454,7 +454,7 @@ export const contractSources: { [key: string]: string } = {
         /// Request to leave the set of candidates. If successful, the account is immediately
         /// removed from the candidate pool to prevent selection as a collator, but unbonding is
         /// executed with a delay of BondDuration rounds.
-        function leave_candidates() external;
+        function schedule_leave_candidates() external;
     
         /// Temporarily leave the set of collator candidates without unbonding
         function go_offline() external;
@@ -463,41 +463,41 @@ export const contractSources: { [key: string]: string } = {
         function go_online() external;
     
         /// Bond more for collator candidates
-        function candidate_bond_more(uint256 more) external;
+        function schedule_candidate_bond_more(uint256 more) external;
     
         /// Bond less for collator candidates
-        function candidate_bond_less(uint256 less) external;
+        function schedule_candidate_bond_less(uint256 less) external;
     
-        /// If caller is not a nominator, then join the set of nominators
-        /// If caller is a nominator, then makes nomination to change their nomination state
-        function nominate(address collator, uint256 amount) external;
+        /// If caller is not a delegator, then join the set of delegators
+        /// If caller is a delegator, then makes delegation to change their delegation state
+        function delegate(address collator, uint256 amount) external;
     
-        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-        function leave_delegators() external;
+        /// Leave the set of delegators and, by implication, revoke all ongoing delegations
+        function schedule_leave_delegators() external;
     
-        /// Revoke an existing nomination
-        function revoke_nomination(address collator) external;
+        /// Revoke an existing delegation
+        function revoke_delegation(address candidate) external;
     
-        /// Bond more for nominators with respect to a specific collator candidate
-        function nominator_bond_more(address candidate, uint256 more) external;
+        /// Bond more for delegators with respect to a specific collator candidate
+        function delegator_bond_more(address candidate, uint256 more) external;
     
-        /// Bond less for nominators with respect to a specific nominator candidate
-        function nominator_bond_less(address candidate, uint256 less) external;
+        /// Bond less for nominators with respect to a specific collator candidate
+        function delegator_bond_less(address candidate, uint256 less) external;
     }
 
     contract StakingDelegationAttaker {
-        /// The collator (ALITH) that this contract will benefit with nominations
+        /// The collator (ALITH) that this contract will benefit with delegations
         address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
 
         /// The ParachainStaking wrapper at the known pre-compile address.
     ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);
 
         /// Take advantage of the EVMs reversion logic and the fact that it doesn't extend to
-        /// Substrate storage to score free nominations for a collator condidate of our choosing
+        /// Substrate storage to score free nominations for a collator candidate of our choosing
         function score_a_free_nomination() public payable{
             
-            // We nominate our target collator with all the tokens provided
-            staking.nominate(target, msg.value);
+            // We delegate our target collator with all the tokens provided
+            staking.delegate(target, msg.value);
             revert("By reverting this transaction, we return the eth to the caller");
         }
     }`,
