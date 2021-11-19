@@ -17,6 +17,7 @@
 //! Precompile to encode relay staking calls via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
