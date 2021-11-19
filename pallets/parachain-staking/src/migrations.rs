@@ -29,7 +29,6 @@ use sp_std::collections::btree_map::BTreeMap;
 
 /// Migration to replace the automatic ExitQueue with a manual exits API.
 /// This migration is idempotent so it can be run more than once without any risk.
-/// Returns (reads, writes)
 pub struct RemoveExitQueue<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 	fn on_runtime_upgrade() -> Weight {
