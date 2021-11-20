@@ -18,13 +18,16 @@
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
 	BalanceOf, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2, Points, Round, Staked, Collator2, Delegator, Nominator2,
+	ExitQueue2, NominatorState2, Points, Round, Staked,
 };
+#[cfg(feature = "try-runtime")]
+use crate::{Collator2, Delegator, Nominator2};
+#[cfg(feature = "try-runtime")]
+use frame_support::Twox64Concat;
 use frame_support::{
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
-	Twox64Concat,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -85,11 +88,9 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		use frame_support::{
-			storage::migration::{
-				storage_iter,
-				storage_key_iter,
-			},
+			storage::migration::{storage_iter, storage_key_iter},
 			traits::OnRuntimeUpgradeHelpersExt,
+			Twox64Concat,
 		};
 
 		let pallet_prefix: &[u8] = b"ParachainStaking";
