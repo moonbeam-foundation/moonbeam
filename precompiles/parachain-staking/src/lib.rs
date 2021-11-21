@@ -349,7 +349,7 @@ where
 		} else {
 			log::trace!(
 				target: "staking-precompile",
-				"Candidate state for {:?} not found, so delegation amount is 0",
+				"Candidate state for {:?} not found, so delegation is not in top",
 				candidate
 			);
 			false
