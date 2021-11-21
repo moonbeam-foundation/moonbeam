@@ -31,6 +31,7 @@ use pallet_evm::Precompile;
 use precompile_utils::{
 	error, Address, EvmData, EvmDataReader, EvmDataWriter, Gasometer, RuntimeHelper,
 };
+use sp_core::U256;
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -47,6 +48,8 @@ enum Action {
 	MinNomination = "min_nomination()",
 	MinDelegation = "min_delegation()",
 	Points = "points(uint256)",
+	DelegationAmount = "delegation_amount(address,address)",
+	IsInTopDelegations = "is_in_top_delegations(address,address)",
 	CandidateCount = "candidate_count()",
 	// DEPRECATED
 	CollatorNominationCount = "collator_nomination_count(address)",
@@ -108,7 +111,7 @@ pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
+	BalanceOf<Runtime>: Into<U256> + EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -126,6 +129,8 @@ where
 			Action::MinNomination => return Self::min_delegation(target_gas),
 			Action::MinDelegation => return Self::min_delegation(target_gas),
 			Action::Points => return Self::points(input, target_gas),
+			Action::DelegationAmount => return Self::delegation_amount(input, target_gas),
+			Action::IsInTopDelegations => return Self::is_in_top_delegations(input, target_gas),
 			Action::CandidateCount => return Self::candidate_count(target_gas),
 			// DEPRECATED
 			Action::CollatorNominationCount => {
@@ -211,7 +216,7 @@ where
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
+	BalanceOf<Runtime>: Into<U256> + EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -259,6 +264,102 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(points).build(),
+			logs: vec![],
+		})
+	}
+
+	/// Get the delegation amount associated with a delegation
+	/// First argument is candidate, second is delegator
+	fn delegation_amount(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(2)?;
+		// First argument is candidate
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		// Second argument is delegator
+		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let amount: U256 = if let Some(state) =
+			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+		{
+			// get the delegation amount
+			if let Some(parachain_staking::Bond { amount, .. }) = state
+				.delegations
+				.0
+				.into_iter()
+				.find(|b| b.owner == candidate)
+			{
+				amount.into()
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Delegation for {:?} not found, so delegation amount is 0",
+					candidate
+				);
+				U256::zero()
+			}
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Delegator state for {:?} not found, so delegation amount is 0",
+				delegator
+			);
+			U256::zero()
+		};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(amount).build(),
+			logs: vec![],
+		})
+	}
+
+	/// Return if the delegation is in the top delegations and is counted
+	/// First argument is candidate, second is delegator
+	fn is_in_top_delegations(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(2)?;
+		// First argument is candidate
+		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		// Second argument is delegator
+		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result = if let Some(state) =
+			<parachain_staking::Pallet<Runtime>>::candidate_state(&candidate)
+		{
+			state
+				.top_delegations
+				.into_iter()
+				.any(|b| b.owner == delegator)
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate state for {:?} not found, so delegation amount is 0",
+				candidate
+			);
+			false
+		};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(result).build(),
 			logs: vec![],
 		})
 	}

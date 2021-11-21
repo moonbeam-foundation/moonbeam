@@ -191,6 +191,161 @@ fn points_non_zero() {
 		});
 }
 
+#[test]
+fn delegation_amount_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![
+			(TestAccount::Charlie, TestAccount::Alice, 50),
+			(TestAccount::Bogus, TestAccount::Alice, 50),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"delegation_amount(address,address)")[0..4];
+
+			// Construct data to read delegation amount
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[48..68].copy_from_slice(&TestAccount::Bob.to_h160().0);
+
+			// Expected result 3
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::zero()).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that there is 0 delegation amount
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_one_result
+			);
+		});
+}
+
+#[test]
+fn delegation_amount_nonzero() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![
+			(TestAccount::Charlie, TestAccount::Alice, 50),
+			(TestAccount::Bogus, TestAccount::Alice, 50),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"delegation_amount(address,address)")[0..4];
+
+			// Construct data to read delegation amount
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[48..68].copy_from_slice(&TestAccount::Charlie.to_h160().0);
+			// Amount of Charlie's delegation in support of Alice
+			let expected_amt: U256 = 50u32.into();
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(expected_amt).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that there is delegation amount of 50
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn is_in_top_delegations_false() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![
+			(TestAccount::Charlie, TestAccount::Alice, 50),
+			(TestAccount::Bogus, TestAccount::Alice, 50),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"is_in_top_delegations(address,address)")[0..4];
+
+			// Construct data to read whether delegation is in top (counted)
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[48..68].copy_from_slice(&TestAccount::Bob.to_h160().0);
+
+			// Expected result false
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that there is no delegation
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_one_result
+			);
+		});
+}
+
+#[test]
+fn is_in_top_delegations_true() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![
+			(TestAccount::Charlie, TestAccount::Alice, 50),
+			(TestAccount::Bogus, TestAccount::Alice, 50),
+		])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"is_in_top_delegations(address,address)")[0..4];
+
+			// Construct data to read delegation amount
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			input_data[48..68].copy_from_slice(&TestAccount::Charlie.to_h160().0);
+			// Expected result true
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that there is a delegation
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_result
+			);
+		});
+}
+
 // DEPRECATED
 #[test]
 fn collator_nomination_count_works() {
