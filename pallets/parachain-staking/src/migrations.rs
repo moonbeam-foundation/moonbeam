@@ -18,13 +18,16 @@
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
 	BalanceOf, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2, Points, Round, Staked, Collator2, Delegator, Nominator2,
+	ExitQueue2, NominatorState2, Points, Round, Staked,
 };
+#[cfg(feature = "try-runtime")]
+use crate::{Collator2, Delegator, Nominator2};
+#[cfg(feature = "try-runtime")]
+use frame_support::Twox64Concat;
 use frame_support::{
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
-	Twox64Concat,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -85,10 +88,7 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		use frame_support::{
-			storage::migration::{
-				storage_iter,
-				storage_key_iter,
-			},
+			storage::migration::{storage_iter, storage_key_iter},
 			traits::OnRuntimeUpgradeHelpersExt,
 		};
 
@@ -161,7 +161,8 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 				Collator2<T::AccountId, BalanceOf<T>>,
 			) = Self::get_temp_storage("example_collator").expect("qed");
 			let new_candidate_state = CandidateState::<T>::get(account).expect("qed");
-			let old_candidate_converted: CollatorCandidate<_, _> = original_collator_state.into();
+			let old_candidate_converted: CollatorCandidate<T::AccountId, BalanceOf<T>> =
+				original_collator_state.into();
 			assert_eq!(new_candidate_state, old_candidate_converted);
 		}
 
@@ -171,15 +172,16 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 		let new_delegator_count = DelegatorState::<T>::iter().count() as u64;
 		assert_eq!(old_nominator_count, new_delegator_count);
 
-		// Check that our example nominator is converted correctly
+		// Check that our example delegator is converted correctly
 		if new_delegator_count > 0 {
-			let (account, original_nominator_state): (
+			let (account, original_delegator_state): (
 				T::AccountId,
 				Nominator2<T::AccountId, BalanceOf<T>>,
 			) = Self::get_temp_storage("example_nominator").expect("qed");
-			let new_candidate_state = DelegatorState::<T>::get(account).expect("qed");
-			let old_candidate_converted: Delegator<_, _> = original_nominator_state.into();
-			assert_eq!(old_candidate_converted, new_candidate_state);
+			let new_delegator_state = DelegatorState::<T>::get(&account).expect("qed");
+			let old_delegator_converted: Delegator<T::AccountId, BalanceOf<T>> =
+				migrate_nominator_to_delegator_state::<T>(account, original_delegator_state);
+			assert_eq!(old_delegator_converted, new_delegator_state);
 		}
 		Ok(())
 	}
