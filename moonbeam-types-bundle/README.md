@@ -102,6 +102,23 @@ console.log(collatorState2.unwrap().topNominators);
 
 All changes were listed [previously](#breaking-changes-in-typesbundlepre900)
 
+## Support for ethereum encoded (MiXedCaSe) addresses
+
+In runtime 900, addresses are represented in lower case by PolkadotJs SDK (this should be fixed
+in runtime 1000).  
+However it is possible to manually encode the address in Ethereum encoded (MiXedCaSe) format using:
+
+```
+import { ethereumEncode } from "@polkadot/util-crypto";
+
+...
+console.log(address);
+// 0xb5af23c862df4ba2114276594a6ac851674cdf1e
+
+console.log(ethereumEncode(address));
+// 0xB5Af23c862dF4ba2114276594a6AC851674cDf1e
+```
+
 # Development
 
 `typesBundlePre900` is of type OverrideBundleType to associate runtime names with correct definitions
