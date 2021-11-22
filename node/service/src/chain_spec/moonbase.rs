@@ -23,13 +23,13 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
-use evm::GenesisAccount;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
-	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -69,7 +69,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 					get_from_seed::<NimbusId>("Alice"),
 					1_000 * UNIT,
 				)],
-				// Nominations
+				// Delegations
 				vec![],
 				accounts.clone(),
 				3_000_000 * UNIT,
@@ -133,7 +133,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 						1_000 * UNIT,
 					),
 				],
-				// Nominations
+				// Delegations
 				vec![],
 				vec![
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
@@ -186,7 +186,7 @@ pub fn testnet_genesis(
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
@@ -246,7 +246,7 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
-			nominations,
+			delegations,
 			inflation_config: moonbeam_inflation_config(),
 		},
 		council_collective: CouncilCollectiveConfig {
@@ -267,11 +267,14 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
+		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 		},
+		// This should initialize it to whatever we have set in the pallet
+		polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 

@@ -40,9 +40,11 @@ use futures::{
 	SinkExt, Stream,
 };
 
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
+use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
-use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
+use service::{
+	chain_spec, rpc, Block, RuntimeApiCollection, RuntimeVariant, TransactionConverters,
+};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -61,6 +63,7 @@ where
 	client: Arc<FullClient<RuntimeApi, Executor>>,
 	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
+	transaction_converter: TransactionConverters, // TODO: could be generic
 
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
@@ -74,7 +77,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -116,7 +119,7 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 
-		let mut command_sink = None;
+		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
 			command_sink = Some(sink);
@@ -178,6 +181,7 @@ where
 		});
 
 		let command_sink_for_deps = command_sink.clone();
+		let runtime_variant = RuntimeVariant::from_chain_spec(&config.chain_spec);
 
 		let rpc_extensions_builder = {
 			let client = client.clone();
@@ -185,8 +189,10 @@ where
 			let backend = backend.clone();
 			let network = network.clone();
 			let max_past_logs = 1000;
+			let runtime_variant = runtime_variant.clone();
 
 			Box::new(move |deny_unsafe, _| {
+				let runtime_variant = runtime_variant.clone();
 				let deps = rpc::FullDeps {
 					client: client.clone(),
 					pool: pool.clone(),
@@ -201,8 +207,8 @@ where
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
-					transaction_converter: TransactionConverters::Moonbase(
-						moonbase_runtime::TransactionConverter,
+					transaction_converter: TransactionConverters::for_runtime_variant(
+						runtime_variant,
 					),
 				};
 				#[allow(unused_mut)]
@@ -233,6 +239,7 @@ where
 			client: client.clone(),
 			manual_seal_command_sink: command_sink.unwrap(),
 			pool: transaction_pool,
+			transaction_converter: TransactionConverters::for_runtime_variant(runtime_variant),
 			_marker1: Default::default(),
 			_marker2: Default::default(),
 		})
@@ -349,8 +356,7 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let transaction_converter = moonbase_runtime::TransactionConverter;
-		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
+		let unchecked_extrinsic = self.transaction_converter.convert_transaction(signed);
 
 		let hash = self.client.info().best_hash;
 		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
@@ -360,17 +366,14 @@ where
 			unchecked_extrinsic,
 		);
 
-		futures::executor::block_on(future);
+		let _ = futures::executor::block_on(future);
 
 		Ok(transaction_hash)
 	}
 
 	/// Author a block through manual sealing
 	pub fn create_block(&self, create_empty: bool) -> CreatedBlock<H256> {
-		// TODO: Joshy's idea: call into propose_with() directly (or similar) rather than go through
-		// manual seal
-
-		log::debug!("Issuing seal command...");
+		log::trace!("Issuing seal command...");
 		let hash = self.client.info().best_hash;
 
 		let mut sink = self.manual_seal_command_sink.clone();
@@ -380,19 +383,17 @@ where
 			let command = EngineCommand::SealNewBlock {
 				create_empty,
 				finalize: true,
-				// TODO: why did I change these (compared to the --dev in crate service)?
-				//       try changing them to be similar to --dev...
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
-			sink.send(command).await;
+			let _ = sink.send(command).await;
 			receiver.await
 		};
 
 		log::trace!("waiting for SealNewBlock command to resolve...");
 		futures::executor::block_on(future)
+			.expect("block_on failed")
 			.expect("Failed to receive SealNewBlock response")
-			.expect("we have two layers of results, apparently")
 	}
 }
 
@@ -450,23 +451,40 @@ impl PerfCmd {
 
 		let mut all_test_results: Vec<TestResults> = Default::default();
 
+		let (have_filter, enabled_tests) = if let Some(filter) = &cmd.tests {
+			let enabled_tests: Vec<&str> = filter.split(',').collect();
+			(true, enabled_tests)
+		} else {
+			(false, Default::default())
+		};
+
 		for mut test in tests {
+			if have_filter {
+				if !enabled_tests.contains(&test.name().as_str()) {
+					continue;
+				}
+			}
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
 			all_test_results.append(&mut results);
 		}
 
-		let system_info = query_system_info()?;
-		let partition_info = query_partition_info(path).unwrap_or_else(|_| {
-			// TODO: this is inconsistent with behavior of query_system_info...
-			eprintln!("query_partition_info() failed, ignoring...");
-			Default::default()
-		});
+		let (system_info, partition_info) = if cmd.disable_sysinfo {
+			(None, None)
+		} else {
+			let sys = query_system_info()?;
+			let part = query_partition_info(path).unwrap_or_else(|_| {
+				// TODO: this is inconsistent with behavior of query_system_info...
+				eprintln!("query_partition_info() failed, ignoring...");
+				Default::default()
+			});
+			(Some(sys), Some(part))
+		};
 
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: SystemInfo,
-			partition_info: PartitionInfo,
+			system_info: Option<SystemInfo>,
+			partition_info: Option<PartitionInfo>,
 		}
 
 		let all_results = AllResults {

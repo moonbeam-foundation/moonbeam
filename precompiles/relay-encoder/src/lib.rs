@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use cumulus_primitives_core::relay_chain;
-use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
@@ -64,7 +64,7 @@ pub trait StakeEncodeCall {
 }
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 enum Action {
 	EncodeBond = "encode_bond(uint256,uint256,bytes)",
 	EncodeBondExtra = "encode_bond_extra(uint256)",
@@ -90,7 +90,7 @@ where
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
-		_context: &evm::Context,
+		_context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
 		let (input, selector) = EvmDataReader::new_with_selector(input)?;
 

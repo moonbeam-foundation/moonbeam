@@ -20,7 +20,6 @@ pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
-use sc_cli::{ExecutionStrategy, WasmExecutionMethod};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -42,4 +41,19 @@ pub struct PerfCmd {
 		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
+
+	#[structopt(long, value_name = "CHAIN_SPEC", default_value = "dev")]
+	pub chain: String,
+
+	#[structopt(
+		long = "disable-sysinfo",
+		help = "Do not attempt to query system info."
+	)]
+	pub disable_sysinfo: bool,
+
+	#[structopt(
+		long = "tests",
+		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
+	)]
+	pub tests: Option<String>,
 }

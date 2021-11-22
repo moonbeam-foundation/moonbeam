@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
-import { typesBundle } from "../../moonbeam-types-bundle/dist";
+import { typesBundlePre900 } from "../../moonbeam-types-bundle/dist";
 import {
   ALITH,
   GERALD,
@@ -33,7 +33,7 @@ async function test() {
   const wsProvider = new WsProvider(wsProviderUrl);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    typesBundle: typesBundle as any,
+    typesBundle: typesBundlePre900 as any,
   });
 
   // subscribe to all new headers (with extended info)
@@ -229,10 +229,10 @@ async function test() {
     "nomination didnt go through"
   );
 
-  // Revoke Nomination
+  // Revoke Delegation
   await new Promise<void>(async (res) => {
     const unsub = await polkadotApi.tx.parachainStaking
-      .revokeNomination(GERALD) //TODO: when converting to test add .leaveNominators()
+      .revokeDelegation(GERALD) //TODO: when converting to test add .leaveNominators()
       // that should produce the same behavior
       .signAndSend(alith, ({ events = [], status }) => {
         console.log(`Current status is ${status.type}`);

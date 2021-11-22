@@ -20,6 +20,7 @@ use std::assert_matches::assert_matches;
 use crate::mock::*;
 use crate::*;
 
+use fp_evm::Context;
 use pallet_evm::PrecompileSet;
 use precompile_utils::{error, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
@@ -48,7 +49,7 @@ fn selector_less_than_four_bytes() {
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -82,7 +83,7 @@ fn no_selector_exists_but_length_is_right() {
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -98,9 +99,12 @@ fn selectors() {
 	assert_eq!(u32::from(Action::BalanceOf), 0x70a08231);
 	assert_eq!(u32::from(Action::TotalSupply), 0x18160ddd);
 	assert_eq!(u32::from(Action::Approve), 0x095ea7b3);
-	//assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
+	assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
 	assert_eq!(u32::from(Action::Transfer), 0xa9059cbb);
 	assert_eq!(u32::from(Action::TransferFrom), 0x23b872dd);
+	assert_eq!(Action::Name as u32, 0x06fdde03);
+	assert_eq!(Action::Symbol as u32, 0x95d89b41);
+	assert_eq!(Action::Decimals as u32, 0x313ce567);
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
@@ -137,7 +141,7 @@ fn get_total_supply() {
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -179,7 +183,7 @@ fn get_balances_known_user() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -221,7 +225,7 @@ fn get_balances_unknown_user() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -265,7 +269,7 @@ fn approve() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -273,7 +277,7 @@ fn approve() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -288,8 +292,6 @@ fn approve() {
 		});
 }
 
-// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
-#[ignore]
 #[test]
 fn check_allowance_existing() {
 	ExtBuilder::default()
@@ -317,7 +319,7 @@ fn check_allowance_existing() {
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -332,7 +334,7 @@ fn check_allowance_existing() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -348,8 +350,6 @@ fn check_allowance_existing() {
 		});
 }
 
-// This should be added once https://github.com/paritytech/substrate/pull/9757 is merged.
-#[ignore]
 #[test]
 fn check_allowance_not_existing() {
 	ExtBuilder::default()
@@ -377,7 +377,7 @@ fn check_allowance_not_existing() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -421,7 +421,7 @@ fn transfer() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -429,7 +429,7 @@ fn transfer() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -449,7 +449,7 @@ fn transfer() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
@@ -470,7 +470,7 @@ fn transfer() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -514,7 +514,7 @@ fn transfer_not_enough_founds() {
 						.write(U256::from(50))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -554,7 +554,7 @@ fn transfer_from() {
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -570,7 +570,7 @@ fn transfer_from() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -578,7 +578,7 @@ fn transfer_from() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 107172756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -598,7 +598,7 @@ fn transfer_from() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -619,7 +619,7 @@ fn transfer_from() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
@@ -640,7 +640,7 @@ fn transfer_from() {
 						.write(Address(Account::Charlie.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Charlie.into(),
 						apparent_value: From::from(0),
@@ -685,7 +685,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -693,7 +693,7 @@ fn transfer_from_non_incremental_approval() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -718,7 +718,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(300))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -726,8 +726,8 @@ fn transfer_from_non_incremental_approval() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
-					cost: 115329756u64,
+					output: EvmDataWriter::new().write(true).build(),
+					cost: 114357756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -749,7 +749,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -791,7 +791,7 @@ fn transfer_from_above_allowance() {
 					.write(U256::from(300))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::AssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -807,7 +807,7 @@ fn transfer_from_above_allowance() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -851,7 +851,7 @@ fn transfer_from_self() {
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						// Alice sending transferFrom herself, no need for allowance.
 						caller: Account::Alice.into(),
@@ -860,7 +860,7 @@ fn transfer_from_self() {
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
@@ -880,7 +880,7 @@ fn transfer_from_self() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -901,7 +901,7 @@ fn transfer_from_self() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::AssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -914,5 +914,98 @@ fn transfer_from_self() {
 					logs: Default::default(),
 				}))
 			);
+		});
+}
+
+#[test]
+fn get_metadata() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Name).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new()
+							.write::<Bytes>("TestToken".into())
+							.build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write::<Bytes>("Test".into()).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					Erc20AssetsPrecompileSet::<Runtime>::execute(
+						Account::AssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
+						None,
+						&Context {
+							address: Account::AssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(12u8).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
 		});
 }

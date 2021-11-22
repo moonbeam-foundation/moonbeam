@@ -1,32 +1,35 @@
 [package]
 name = "pallet-migrations"
-version = "0.1.0"
-authors = ["PureStake"]
-edition = "2018"
+authors = [ "PureStake" ]
 description = "migrations management pallet"
+edition = "2018"
+version = "0.1.0"
 
 [dependencies]
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
 log = "0.4"
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11", default-features = false }
+
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 [dev-dependencies]
 environmental = "1.1.2"
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.11" }
+
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
 	"frame-support/std",
 	"frame-system/std",
-	"sp-std/std",
-	"sp-runtime/std",
 	"scale-info/std",
+	"sp-runtime/std",
+	"sp-std/std",
 ]
 try-runtime = [
 	"frame-support/try-runtime",

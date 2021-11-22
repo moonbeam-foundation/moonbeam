@@ -48,6 +48,8 @@ use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
+#[cfg(feature = "std")]
+pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	IdentityAddressMapping, Runner,
@@ -86,6 +88,9 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
+	pub const SUPPLY_FACTOR: Balance = 1;
+
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
 	pub const MEGAWEI: Balance = 1_000_000;
@@ -95,11 +100,11 @@ pub mod currency {
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR * SUPPLY_FACTOR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * MOVR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * MOVR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -137,7 +142,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0800,
+	spec_version: 0900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -331,7 +336,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI).into()
+		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
 }
 
@@ -432,7 +437,7 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
+	pub const MinimumDeposit: Balance = 4 * currency::MOVR * currency::SUPPLY_FACTOR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
@@ -446,6 +451,7 @@ impl pallet_democracy::Config for Runtime {
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
 	type VotingPeriod = VotingPeriod;
+
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
@@ -494,7 +500,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::MOVR;
+	pub const ProposalBondMinimum: Balance = 1 * currency::MOVR * currency::SUPPLY_FACTOR;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 = 100;
@@ -623,28 +629,32 @@ parameter_types! {
 	pub const DefaultBlocksPerRound: u32 = 300;
 	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
 	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)
-	pub const LeaveNominatorsDelay: u32 = 2;
-	/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)
-	pub const RevokeNominationDelay: u32 = 2;
+	/// Collator candidate bond increases/decreases are delayed by 2 hours (2 * 300 block_time)
+	pub const CandidateBondDelay: u32 = 2;
+	/// Delegator exits are delayed by 2 hours (2 * 300 * block_time)
+	pub const LeaveDelegatorsDelay: u32 = 2;
+	/// Delegation revocations are delayed by 2 hours (2 * 300 * block_time)
+	pub const RevokeDelegationDelay: u32 = 2;
+	/// Delegation bond increases/decreases are delayed by 2 hours (2 * 300 * block_time)
+	pub const DelegationBondDelay: u32 = 2;
 	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
 	pub const RewardPaymentDelay: u32 = 2;
-	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
+	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 100 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 100;
-	/// Maximum 100 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 100;
-	/// Default fixed percent a collator takes off the top of due rewards is 20%
+	/// Maximum delegators counted per candidate
+	pub const MaxDelegatorsPerCandidate: u32 = 100;
+	/// Maximum delegations per delegator
+	pub const MaxDelegationsPerDelegator: u32 = 100;
+	/// Default fixed percent a collator takes off the top of due rewards
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to become a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
-	/// Minimum stake required to be reserved to be a candidate is 1_000
-	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOMOVR;
-	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
+	/// Minimum stake required to become a collator
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR * currency::SUPPLY_FACTOR;
+	/// Minimum stake required to be reserved to be a candidate
+	pub const MinCandidateStk: u128 = 1 * currency::KILOMOVR * currency::SUPPLY_FACTOR;
+	/// Minimum stake required to be reserved to be a delegator
+	pub const MinDelegatorStk: u128 = 5 * currency::MOVR * currency::SUPPLY_FACTOR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -653,18 +663,20 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type LeaveNominatorsDelay = LeaveNominatorsDelay;
-	type RevokeNominationDelay = RevokeNominationDelay;
+	type CandidateBondDelay = CandidateBondDelay;
+	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
+	type RevokeDelegationDelay = RevokeDelegationDelay;
+	type DelegationBondDelay = DelegationBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorCandidateStk;
-	type MinNomination = MinNominatorStk;
-	type MinNominatorStk = MinNominatorStk;
+	type MinCandidateStk = MinCandidateStk;
+	type MinDelegation = MinDelegatorStk;
+	type MinDelegatorStk = MinDelegatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -707,7 +719,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::MOVR;
+	pub const DepositAmount: Balance = 100 * currency::MOVR * currency::SUPPLY_FACTOR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -735,6 +747,7 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
 	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
 )]
@@ -858,6 +871,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 }
 
+impl pallet_proxy_genesis_companion::Config for Runtime {
+	type ProxyType = ProxyType;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -887,6 +904,7 @@ construct_runtime! {
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
+		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
 		// Sudo was previously index 40
 
@@ -1065,3 +1083,61 @@ cumulus_pallet_parachain_system::register_validate_block!(
 );
 
 runtime_common::impl_self_contained_call!();
+
+#[cfg(test)]
+mod tests {
+	use super::{currency::*, *};
+
+	#[test]
+	fn currency_constants_are_correct() {
+		assert_eq!(SUPPLY_FACTOR, 1);
+
+		// txn fees
+		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(10 * MICROMOVR));
+		assert_eq!(OperationalFeeMultiplier::get(), 5_u8);
+		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
+		assert_eq!(FixedGasPrice::min_gas_price(), (1 * GIGAWEI).into());
+
+		// democracy minimums
+		assert_eq!(MinimumDeposit::get(), Balance::from(4 * MOVR));
+		assert_eq!(PreimageByteDeposit::get(), Balance::from(100 * MICROMOVR));
+		assert_eq!(ProposalBondMinimum::get(), Balance::from(1 * MOVR));
+
+		// pallet_identity deposits
+		assert_eq!(
+			BasicDeposit::get(),
+			Balance::from(1 * MOVR + 25800 * MICROMOVR)
+		);
+		assert_eq!(FieldDeposit::get(), Balance::from(6600 * MICROMOVR));
+		assert_eq!(
+			SubAccountDeposit::get(),
+			Balance::from(1 * MOVR + 5300 * MICROMOVR)
+		);
+
+		// staking minimums
+		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOMOVR));
+		assert_eq!(MinCandidateStk::get(), Balance::from(1 * KILOMOVR));
+		assert_eq!(MinDelegatorStk::get(), Balance::from(5 * MOVR));
+
+		// crowdloan min reward
+		assert_eq!(MinimumReward::get(), Balance::from(0u128));
+
+		// deposit for AuthorMapping
+		assert_eq!(DepositAmount::get(), Balance::from(100 * MOVR));
+
+		// proxy deposits
+		assert_eq!(
+			ProxyDepositBase::get(),
+			Balance::from(1 * MOVR + 800 * MICROMOVR)
+		);
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(2100 * MICROMOVR));
+		assert_eq!(
+			AnnouncementDepositBase::get(),
+			Balance::from(1 * MOVR + 800 * MICROMOVR)
+		);
+		assert_eq!(
+			AnnouncementDepositFactor::get(),
+			Balance::from(5600 * MICROMOVR)
+		);
+	}
+}
