@@ -1,32 +1,34 @@
 [package]
 name = "evm-tracing-events"
-version = '0.1.0'
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.0"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
-ethereum = { version = "0.10.0", default-features = false, features = ["with-codec"] }
-ethereum-types = { version = "0.12.0", default-features = false }
-
 environmental = { version = "1.1.2", default-features = false }
 
-evm = { version = "0.33.0", default-features = false, features = ["with-codec"] }
-evm-runtime = { version = "0.33.0", default-features = false }
+# Substrate
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+
+# Ethereum
+ethereum = { version = "0.10.0", default-features = false, features = [ "with-codec" ] }
+ethereum-types = { version = "0.12.0", default-features = false }
+evm = { version = "0.33.0", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.33.0", default-features = false }
+evm-runtime = { version = "0.33.0", default-features = false }
 
 [features]
-default = ["std"]
-evm-tracing = ["evm/tracing", "evm-runtime/tracing", "evm-gasometer/tracing"]
+default = [ "std" ]
 std = [
 	"codec/std",
-	"ethereum/std",
-	"ethereum-types/std",
 	"environmental/std",
-	"evm/std",
-	"evm-runtime/std",
+	"ethereum-types/std",
+	"ethereum/std",
 	"evm-gasometer/std",
+	"evm-runtime/std",
+	"evm/std",
 ]
+evm-tracing = [ "evm-gasometer/tracing", "evm-runtime/tracing", "evm/tracing" ]

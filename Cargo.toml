@@ -1,20 +1,18 @@
 [workspace]
+exclude = [ "bin/utils/moonkey" ]
 members = [
-    'runtime/moonbeam',
-    'runtime/moonriver',
-    'runtime/moonbase',
-    'node',
-    'node/cli',
-    'node/service',
-    'pallets/migrations',
-    'pallets/proxy-genesis-companion',
-    'bin/utils/moonkey',
-    'pallets/maintenance-mode',
-    'precompiles/utils/macro',
-]
-exclude = [
-    'bin/utils/moonkey'
+	"bin/utils/moonkey",
+	"node",
+	"node/cli",
+	"node/service",
+	"pallets/maintenance-mode",
+	"pallets/migrations",
+	"pallets/proxy-genesis-companion",
+	"precompiles/utils/macro",
+	"runtime/moonbase",
+	"runtime/moonbeam",
+	"runtime/moonriver",
 ]
 
 [profile.release]
-panic = 'unwind'
+panic = "unwind"

@@ -1,23 +1,24 @@
 [package]
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-name = 'moonbeam-core-primitives'
-repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.1.1'
+name = "moonbeam-core-primitives"
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.1"
 
 [dependencies]
-fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false}
+account = { path = "../primitives/account", default-features = false }
+
+fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-account = { path = "../primitives/account", default-features = false }
 
 [features]
 default = [ "std" ]
 std = [
+	"account/std",
 	"fp-self-contained/std",
 	"sp-core/std",
 	"sp-runtime/std",
-	"account/std",
 ]

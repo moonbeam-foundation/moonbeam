@@ -1,45 +1,53 @@
 [package]
 name = "pallet-democracy-precompiles"
-version = "0.2.0"
-authors = ["PureStake"]
-edition = "2018"
+authors = [ "PureStake" ]
 description = "A Precompile to make Substrate's pallet-democracy accessible to pallet-evm"
+edition = "2018"
+version = "0.2.0"
 
 [dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-pallet-democracy = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
+# Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
 
+# Substrate
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+
+
+# Frontier
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+
 [dev-dependencies]
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-serde = "1.0.100"
 derive_more = "0.99"
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+serde = "1.0.100"
+
+# Substrate
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
 
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
-    "codec/std",
-    "frame-support/std",
-    "fp-evm/std",
-    "sp-std/std",
-    "sp-core/std",
-    "sp-io/std",
-    "pallet-evm/std",
-    "pallet-democracy/std",
-    "frame-system/std",
-    "precompile-utils/std",
+	"codec/std",
+	"fp-evm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-democracy/std",
+	"pallet-evm/std",
+	"precompile-utils/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-std/std",
 ]

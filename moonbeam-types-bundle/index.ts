@@ -190,6 +190,17 @@ const TYPES_37_42: RegistryTypes = {
   ...TYPES_36_36,
   AccountId32: "H256",
   AuthorId: "AccountId32",
+  ProxyType: {
+    _enum: [
+      "Any",
+      "NonTransfer",
+      "Governance",
+      "Staking",
+      "CancelProxy",
+      "Balances",
+      "AuthorMapping",
+    ],
+  },
   RelayChainAccountId: "AccountId32",
   RewardInfo: {
     totalReward: "Balance",

@@ -1,41 +1,43 @@
 [package]
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-name = 'xcm-primitives'
-repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.1.0'
+name = "xcm-primitives"
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.0"
 
 [package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
-serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex = { version = "0.4", default-features = false }
+serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.8", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
 
-xcm =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-xcm-builder =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
-xcm-executor =  { git = "https://github.com/purestake/polkadot", default-features = false, branch = "moonbeam-polkadot-v0.9.13" }
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+
+# Polkadot / XCM
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
+	"hex/std",
 	"parity-scale-codec/std",
 	"serde/std",
-	"hex/std",
 	"sha3/std",
-	"sp-std/std",
 	"sp-runtime/std",
+	"sp-std/std",
+	"xcm-builder/std",
 	"xcm/std",
-	"xcm-builder/std"
 ]
-

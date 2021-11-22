@@ -6,7 +6,7 @@ export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
-export const SPAWNING_TIME = 35000;
+export const SPAWNING_TIME = 20000;
 export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
 
 export const RELAY_CHAIN_NODE_NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie", "One"];
@@ -43,7 +43,6 @@ export const PROPOSAL_AMOUNT = 1000n * GLMR;
 export const VOTE_AMOUNT = 10n * GLMR;
 export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_NOMINATOR = 5n * GLMR;
-export const MIN_GLMR_NOMINATOR_PLUS_ONE = 6n * GLMR;
 export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
 // This is Alice
 export const COLLATOR_ACCOUNT = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";
