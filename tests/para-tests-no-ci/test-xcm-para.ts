@@ -7,7 +7,6 @@ import { describeParachain } from "../util/setup-para-tests";
 import { createBlockWithExtrinsicParachain, logEvents, waitOneBlock } from "../util/substrate-rpc";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ApiPromise } from "@polkadot/api";
-import { BigNumber } from "@ethersproject/bignumber";
 
 const palletId = "0x6d6f646c617373746d6e67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
