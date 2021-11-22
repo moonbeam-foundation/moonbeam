@@ -35,4 +35,3 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbe
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", features = [ "rpc_binary_search_estimate" ] }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
-

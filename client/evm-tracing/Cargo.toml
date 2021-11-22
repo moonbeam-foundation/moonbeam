@@ -8,10 +8,10 @@ repository = "https://github.com/PureStake/moonbeam/"
 version = "0.1.0"
 
 [dependencies]
+ethereum-types = { version = "0.12.0" }
+hex = { version = "0.4", features = [ "serde" ] }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = { version = "1.0" }
-hex = { version = "0.4", features = [ "serde" ] }
-ethereum-types = { version = "0.12.0" }
 
 # Moonbeam
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events" }
