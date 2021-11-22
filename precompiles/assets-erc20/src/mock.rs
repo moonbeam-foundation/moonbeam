@@ -188,7 +188,8 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PrecompilesValue: Erc20AssetsPrecompileSet<Runtime> = Erc20AssetsPrecompileSet(PhantomData);
+	pub const PrecompilesValue: Erc20AssetsPrecompileSet<Runtime> =
+		Erc20AssetsPrecompileSet(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {

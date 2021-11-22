@@ -403,7 +403,8 @@ fn transfer_not_enough_funds() {
 					false,
 				),
 				Some(Err(PrecompileFailure::Revert { output: str, .. }))
-					if from_utf8(&str).unwrap().contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+					if from_utf8(&str).unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
 					&& from_utf8(&str).unwrap().contains("InsufficientBalance")
 			);
 		});
