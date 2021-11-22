@@ -49,8 +49,8 @@ export const notePreimagePrecompile = async <
 >(
   context: DevTestContext,
   proposal: Call
-): Promise<string> => {
-  const encodedProposal = proposal.method.toHex() || "";
+): Promise<`0x${string}`> => {
+  const encodedProposal = proposal.method.toHex()
   console.log("encodedProposal", encodedProposal);
   // await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
   await sendPrecompileTx(
@@ -84,23 +84,22 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
   });
-  //   it("notePreimage", async function () {
-  //     // notePreimage
-  //     const encodedHash = await notePreimage(
-  //       context,
-  //       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT),
-  //       genesisAccount
-  //     );
-
-  //     const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
-  //     expect((preimageStatus.toHuman() as any).Available.provider).to.equal(GENESIS_ACCOUNT);
-  //     expect((preimageStatus.toHuman() as any).Available.deposit).to.equal("2.2000 mUNIT");
-  //   });
+    it.only("notePreimage", async function () {
+      // notePreimage
+    const encodedHash = await notePreimagePrecompile(
+      context,
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+    );
+      const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+      console.log("preimageStatus.toHuman()",preimageStatus.toHuman(),(await context.polkadotApi.query.democracy.preimages(null)).toHuman())
+      expect((preimageStatus.toHuman() as any).Available.provider).to.equal(GENESIS_ACCOUNT);
+      expect((preimageStatus.toHuman() as any).Available.deposit).to.equal("2.2000 mUNIT");
+    });
 });
 
 describeDevMoonbeam("Democracy - propose", (context) => {
   let genesisAccount: KeyringPair;
-  let encodedHash: string;
+  let encodedHash: `0x${string}`;
 
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -152,7 +151,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
 
 describeDevMoonbeam("Democracy - second proposal", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
-  let encodedHash: string;
+  let encodedHash:  `0x${string}`;
   let launchPeriod;
 
   before("Setup genesis account for substrate", async () => {
@@ -244,7 +243,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
 
 describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
-  let encodedHash: string;
+  let encodedHash:  `0x${string}`;
   let enactmentPeriod, votingPeriod;
 
   before("Setup genesis account for substrate", async () => {
@@ -294,7 +293,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // votingPeriod
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
-  it.only("vote", async function () {
+  it("vote", async function () {
     this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
