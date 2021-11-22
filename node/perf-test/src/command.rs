@@ -163,8 +163,8 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
-							downward_messages: Vec::new(), //TODO Do we want XCM messages here?
-							horizontal_messages: Vec::new(),
+							raw_downward_messages: Vec::new(),
+							raw_horizontal_messages: Vec::new(),
 							xcm_config: MockXcmConfig::from_standard_storage(
 								&*client_for_xcm,
 								block,

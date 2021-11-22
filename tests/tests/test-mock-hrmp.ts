@@ -12,6 +12,7 @@ import { customWeb3Request } from "../util/providers";
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
+const foreign_para_id = 2000;
 
 const assetMetadata = {
   name: "FOREIGN",
@@ -20,7 +21,7 @@ const assetMetadata = {
   isFrozen: false,
 };
 
-const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: new BN(2000) } } } };
+const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: foreign_para_id } } } };
 
 describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   let assetId: string;
@@ -66,8 +67,8 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
 
   it.only("Should receive a horizontal transfer of 10 FOREIGNs to Alith", async function () {
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
-    await customWeb3Request(context.web3, "xcm_injectHorizontalMessage", [[]]);
+    // You can provide a message, but if you don't a horizontal transfer is the default
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, []]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();

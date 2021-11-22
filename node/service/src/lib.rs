@@ -891,8 +891,8 @@ where
 								block,
 								Default::default(),
 							),
-							downward_messages: downward_xcm_receiver.drain().collect(),
-							horizontal_messages: hrmp_xcm_receiver.drain().collect(),
+							raw_downward_messages: downward_xcm_receiver.drain().collect(),
+							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
