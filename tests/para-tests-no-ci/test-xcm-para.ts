@@ -7,6 +7,7 @@ import { describeParachain } from "../util/setup-para-tests";
 import { createBlockWithExtrinsicParachain, logEvents, waitOneBlock } from "../util/substrate-rpc";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ApiPromise } from "@polkadot/api";
+import { BigNumber } from "@ethersproject/bignumber";
 
 const palletId = "0x6d6f646c617373746d6e67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
@@ -112,11 +113,30 @@ describeParachain(
       await createBlockWithExtrinsicParachain(
         relayOne,
         aliceRelay,
-        relayOne.tx.sudo.sudo( relayOne.tx.xcmPallet.forceDefaultXcmVersion(
-          1
-        ))
+        relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
       );
 
+      let beforeAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
+      // Fees
+      const fee = (
+        await relayOne.tx.xcmPallet
+          .reserveTransferAssets(
+            { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+            {
+              V1: {
+                parents: new BN(0),
+                interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+              },
+            },
+            {
+              V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+            },
+            0
+          )
+          .paymentInfo(aliceRelay)
+      ).partialFee as any;
       // Trigger the transfer
       const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
         relayOne,
@@ -132,23 +152,27 @@ describeParachain(
           {
             V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
           },
-          0,
+          0
         )
       );
 
+      let expectedAfterRelayBalance =
+        BigInt(beforeAliceRelayBalance) - BigInt(fee) - BigInt(THOUSAND_UNITS);
       expect(eventsRelay[3].toHuman().method).to.eq("Attempted");
 
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
       // about 1k should have been substracted from AliceRelay
-      expect(
-        ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-      ).to.eq("8.9999 kUnit");
+      let afterAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
+
+      expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
+
       // Alith asset balance should have been increased to 1000*e12
       expect(
-        (await parachainOne.query.assets.account(assetId, ALITH)).toHuman().balance ===
-          "1,000,000,000,000,000"
-      ).to.eq(true);
+        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+      ).to.eq(BigInt(THOUSAND_UNITS).toString());
     });
   }
 );
@@ -161,7 +185,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     parachainOne: ApiPromise,
     relayOne: ApiPromise,
     assetId: string;
-  before("First send relay chain asset to parachain", async function () {
+  before("First send rela,y chain asset to parachain", async function () {
     keyring = new Keyring({ type: "sr25519" });
 
     // Setup Relaychain
@@ -190,10 +214,32 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     await createBlockWithExtrinsicParachain(
       relayOne,
       aliceRelay,
-      relayOne.tx.sudo.sudo( relayOne.tx.xcmPallet.forceDefaultXcmVersion(
-        1
-      ))
+      relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
     );
+
+    let beforeAliceRelayBalance = ((await relayOne.query.system.account(aliceRelay.address)) as any)
+      .data.free;
+    // Fees
+    const fee = (
+      await relayOne.tx.xcmPallet
+        .reserveTransferAssets(
+          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+          {
+            V1: {
+              parents: new BN(0),
+              interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+            },
+          },
+          {
+            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+          },
+          0
+        )
+        .paymentInfo(aliceRelay)
+    ).partialFee as any;
+
+    let expectedAfterRelayBalance =
+      BigInt(beforeAliceRelayBalance) - BigInt(fee) - BigInt(THOUSAND_UNITS);
 
     // Transfer 1000 units to para a baltathar
     await createBlockWithExtrinsicParachain(
@@ -210,7 +256,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
         {
           V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
         },
-        0,
+        0
       )
     );
 
@@ -218,15 +264,19 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     await waitOneBlock(parachainOne, 2);
 
     // about 1k should have been substracted from AliceRelay (plus fees)
-    expect(
-      ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-    ).to.eq("8,999,974,801,187,831");
+    let afterAliceRelayBalance = ((await relayOne.query.system.account(aliceRelay.address)) as any)
+      .data.free;
+
+    expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
     // // BALTATHAR asset balance should have been increased to 1000*e12
-    expect((await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
-      "1,000,000,000,000,000"
-    );
+    expect(
+      ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+    ).to.eq(BigInt(THOUSAND_UNITS).toString());
   });
-  it.only("should be able to receive an asset in relaychain from parachain", async function () {
+  it("should be able to receive an asset in relaychain from parachain", async function () {
+    // about 1k should have been substracted from AliceRelay (plus fees)
+    let beforeAliceRelayBalance = ((await relayOne.query.system.account(aliceRelay.address)) as any)
+      .data.free;
     // PARACHAIN A
     // xToken transfer : sending 100 units back to relay
     const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
@@ -239,24 +289,29 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
           V1: {
             parents: new BN(1),
             interior: { X1: { AccountId32: { network: "Any", id: aliceRelay.addressRaw } } },
-          }
+          },
         },
         new BN(4000000000)
       )
     );
 
     expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
+    // Constant, but we cannot easily take them
+    // Fees related to WithdrawAsset + ClearOrigin+ BuyExecution + DepositAsset
+    // I think this corresponds to 8 units per weight times 1000000000 pero instruction
+    let fees = BigInt(32000000000);
+
+    let expectedAliceBalance = BigInt(beforeAliceRelayBalance) + BigInt(HUNDRED_UNITS) - fees;
 
     await waitOneBlock(relayOne, 3);
     // about 100 should have been added to AliceRelay (minus fees)
     expect(
-      ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-    ).to.eq("9,099,942,801,187,831");
+      ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toString()
+    ).to.eq(expectedAliceBalance.toString());
     // Baltathar should have 100 * 10^12 less
     expect(
-      (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-        "900,000,000,000,000"
-    ).to.eq(true);
+      ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+    ).to.eq((BigInt(THOUSAND_UNITS) - BigInt(HUNDRED_UNITS)).toString());
   });
 });
 
@@ -304,7 +359,40 @@ describeParachain(
       expect(assetId).to.eq(assetIdB);
 
       // RELAYCHAIN
-      // send 1000 units to Baltathar in para A
+      // Set supported version
+      // Release-v0.9.12 does not have yet automatic versioning
+      await createBlockWithExtrinsicParachain(
+        relayOne,
+        aliceRelay,
+        relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
+      );
+
+      let beforeAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
+      // Fees
+      const fee = (
+        await relayOne.tx.xcmPallet
+          .reserveTransferAssets(
+            { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+            {
+              V1: {
+                parents: new BN(0),
+                interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+              },
+            },
+            {
+              V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+            },
+            0
+          )
+          .paymentInfo(aliceRelay)
+      ).partialFee as any;
+
+      let expectedAfterRelayBalance =
+        BigInt(beforeAliceRelayBalance) - BigInt(fee) - BigInt(THOUSAND_UNITS);
+
+      // Transfer 1000 units to para a baltathar
       await createBlockWithExtrinsicParachain(
         relayOne,
         aliceRelay,
@@ -317,57 +405,64 @@ describeParachain(
             },
           },
           {
-            V0: [{ ConcreteFungible: { id: "Here", amount: new BN(THOUSAND_UNITS) } }],
+            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
           },
-          0,
-          new BN(4000000000)
+          0
         )
       );
 
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
 
+      let afterAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
+
+      expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
+
       expect(
-        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "1,000,000,000,000,000"
-      ).to.eq(true);
+        ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(BigInt(THOUSAND_UNITS).toString());
     });
     it("should be able to receive a non-reserve asset in para b from para a", async function () {
       // PARACHAIN A
       // transfer 100 units to parachain B
-      await createBlockWithExtrinsicParachain(
+      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
         parachainOne,
         baltathar,
         parachainOne.tx.xTokens.transfer(
           { OtherReserve: assetId },
           new BN(HUNDRED_UNITS),
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(2000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
         )
       );
+
       await waitOneBlock(parachainTwo, 3);
 
-      // about 1k should have been substracted from AliceRelay
+      // These are related to the operations in the relay
+      // Constant, but we cannot easily take them
+      // Fees related to WithdrawAsset + ClearOrigin + DepositReserveAsset + ReserveAssetDeposited
+      // I think this corresponds to 8 units per weight times 1000000000 pero instruction
+      let relayFees = BigInt(32000000000);
+      let expectedBaltatharParaTwoBalance = BigInt(HUNDRED_UNITS) - relayFees;
+
       expect(
-        ((await relayOne.query.system.account(aliceRelay.address)) as any).data.free.toHuman()
-      ).to.eq("8.9999 kUnit");
-      // Alith asset balance should have been increased to 1000*e12
+        ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq((BigInt(THOUSAND_UNITS) - BigInt(HUNDRED_UNITS)).toString());
       expect(
-        (await parachainOne.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "900,000,000,000,000"
-      ).to.eq(true);
-      expect(
-        (await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance ===
-          "99,968,000,000,000"
-      ).to.eq(true);
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
 );
@@ -406,7 +501,7 @@ describeParachain(
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
-      const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
+      const palletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
 
@@ -438,21 +533,23 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(2000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
         )
       );
 
-      expect(eventsTransfer[2].toHuman().method).to.eq("XcmpMessageSent");
-      expect(eventsTransfer[3].toHuman().method).to.eq("Transferred");
-      expect(eventsTransfer[7].toHuman().method).to.eq("ExtrinsicSuccess");
+      expect(eventsTransfer[5].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer[6].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer[11].toHuman().method).to.eq("ExtrinsicSuccess");
 
       await waitOneBlock(parachainTwo, 3);
 
@@ -461,9 +558,12 @@ describeParachain(
       const diff =
         Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
       expect(diff < 10000000000000000).to.eq(true);
-      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
-        "100,000,000,000,000,000,000"
-      );
+
+      let expectedBaltatharParaTwoBalance = BigInt(HUNDRED_UNITS_PARA);
+
+      expect(
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
 );
@@ -502,7 +602,7 @@ describeParachain(
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
-      const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
+      const palletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
 
@@ -533,17 +633,20 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(2000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
         )
       );
+
       await waitOneBlock(parachainTwo, 3);
     });
     it("should be able to receive an asset in para b from para a", async function () {
@@ -556,20 +659,23 @@ describeParachain(
           { OtherReserve: assetId },
           HUNDRED_UNITS_PARA,
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(1000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(1000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
         )
       );
-      expect(eventsTransfer[1].toHuman().method).to.eq("XcmpMessageSent");
-      expect(eventsTransfer[2].toHuman().method).to.eq("Transferred");
-      expect(eventsTransfer[6].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      expect(eventsTransfer[2].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer[3].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer[8].toHuman().method).to.eq("ExtrinsicSuccess");
 
       await waitOneBlock(parachainTwo, 3);
 
@@ -577,9 +683,12 @@ describeParachain(
         initialBalance - Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
       // Verify that difference is fees (less than 1% of 10^18)
       expect(diff < 10000000000000000).to.eq(true);
-      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
-        "0"
-      );
+
+      let expectedBaltatharParaTwoBalance = BigInt(0);
+
+      expect(
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
 );
@@ -621,7 +730,7 @@ describeParachain(
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
-      const palletIndex = (metadata.asLatest.toHuman().modules as Array<any>).find((pallet) => {
+      const palletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
 
@@ -657,12 +766,14 @@ describeParachain(
           "SelfReserve",
           HUNDRED_UNITS_PARA,
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(2000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
@@ -680,34 +791,38 @@ describeParachain(
           { OtherReserve: assetId },
           HUNDRED_UNITS_PARA,
           {
-            parents: new BN(1),
-            interior: {
-              X2: [
-                { Parachain: new BN(3000) },
-                { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-              ],
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(3000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
             },
           },
           new BN(4000000000)
         )
       );
 
-      expect(eventsTransfer2[1].toHuman().method).to.eq("XcmpMessageSent");
-      expect(eventsTransfer2[2].toHuman().method).to.eq("Transferred");
-      expect(eventsTransfer2[6].toHuman().method).to.eq("ExtrinsicSuccess");
+      expect(eventsTransfer2[2].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer2[3].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer2[8].toHuman().method).to.eq("ExtrinsicSuccess");
 
       await waitOneBlock(parachainThree, 3);
       // Verify that difference is 100 units plus fees (less than 1% of 10^18)
       const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
+      let expectedBaltatharParaTwoBalance = BigInt(0);
+      let paraAXcmFee = BigInt(400000000);
       const diff =
         Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
       expect(diff < 10000000000000000).to.eq(true);
-      expect((await parachainTwo.query.assets.account(assetId, BALTATHAR)).toHuman().balance).to.eq(
-        "0"
-      );
       expect(
-        (await parachainThree.query.assets.account(assetId, BALTATHAR)).toHuman().balance
-      ).to.eq("99,999,999,996,000,000,000");
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(expectedBaltatharParaTwoBalance.toString());
+      expect(
+        (await parachainThree.query.assets.account(assetId, BALTATHAR)).balance.toString()
+      ).to.eq((BigInt(HUNDRED_UNITS_PARA) - paraAXcmFee).toString());
     });
   }
 );
