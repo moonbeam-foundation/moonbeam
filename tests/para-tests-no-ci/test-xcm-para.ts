@@ -74,6 +74,17 @@ async function registerAssetToParachain(
   return { events, assetId };
 }
 
+async function setDefaultVersionRelay(relayApi: ApiPromise, sudoKeyring: KeyringPair) {
+  // Set supported version
+  // Release-v0.9.12 does not have yet automatic versioning
+  const { events } = await createBlockWithExtrinsicParachain(
+    relayApi,
+    sudoKeyring,
+    relayApi.tx.sudo.sudo(relayApi.tx.xcmPallet.forceDefaultXcmVersion(1))
+  );
+  return { events };
+}
+
 describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
@@ -106,14 +117,8 @@ describeParachain(
       expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
 
       // RELAYCHAIN
-
-      // Set supported version
-      // Release-v0.9.12 does not have yet automatic versioning
-      await createBlockWithExtrinsicParachain(
-        relayOne,
-        aliceRelay,
-        relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
-      );
+      // Sets default xcm version to relay
+      await setDefaultVersionRelay(relayOne, aliceRelay);
 
       let beforeAliceRelayBalance = (
         (await relayOne.query.system.account(aliceRelay.address)) as any
@@ -184,7 +189,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     parachainOne: ApiPromise,
     relayOne: ApiPromise,
     assetId: string;
-  before("First send rela,y chain asset to parachain", async function () {
+  before("First send relay chain asset to parachain", async function () {
     keyring = new Keyring({ type: "sr25519" });
 
     // Setup Relaychain
@@ -208,56 +213,33 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     ({ assetId } = await registerAssetToParachain(parachainOne, alith));
 
     // RELAYCHAIN
-    // Set supported version
-    // Release-v0.9.12 does not have yet automatic versioning
-    await createBlockWithExtrinsicParachain(
-      relayOne,
-      aliceRelay,
-      relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
-    );
+    // Sets default xcm version to relay
+    await setDefaultVersionRelay(relayOne, aliceRelay);
 
     let beforeAliceRelayBalance = ((await relayOne.query.system.account(aliceRelay.address)) as any)
       .data.free;
+
+    let reserveTrasnsferAssetsCall = relayOne.tx.xcmPallet.reserveTransferAssets(
+      { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+      {
+        V1: {
+          parents: new BN(0),
+          interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+        },
+      },
+      {
+        V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+      },
+      0
+    );
     // Fees
-    const fee = (
-      await relayOne.tx.xcmPallet
-        .reserveTransferAssets(
-          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-          {
-            V1: {
-              parents: new BN(0),
-              interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-            },
-          },
-          {
-            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-          },
-          0
-        )
-        .paymentInfo(aliceRelay)
-    ).partialFee as any;
+    const fee = (await reserveTrasnsferAssetsCall.paymentInfo(aliceRelay)).partialFee as any;
 
     let expectedAfterRelayBalance =
       BigInt(beforeAliceRelayBalance) - BigInt(fee) - BigInt(THOUSAND_UNITS);
 
     // Transfer 1000 units to para a baltathar
-    await createBlockWithExtrinsicParachain(
-      relayOne,
-      aliceRelay,
-      relayOne.tx.xcmPallet.reserveTransferAssets(
-        { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-        {
-          V1: {
-            parents: new BN(0),
-            interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-          },
-        },
-        {
-          V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-        },
-        0
-      )
-    );
+    await createBlockWithExtrinsicParachain(relayOne, aliceRelay, reserveTrasnsferAssetsCall);
 
     // Wait for parachain block to have been emited
     await waitOneBlock(parachainOne, 2);
@@ -357,14 +339,8 @@ describeParachain(
       // They should have the same id
       expect(assetId).to.eq(assetIdB);
 
-      // RELAYCHAIN
-      // Set supported version
-      // Release-v0.9.12 does not have yet automatic versioning
-      await createBlockWithExtrinsicParachain(
-        relayOne,
-        aliceRelay,
-        relayOne.tx.sudo.sudo(relayOne.tx.xcmPallet.forceDefaultXcmVersion(1))
-      );
+      // Sets default xcm version to relay
+      await setDefaultVersionRelay(relayOne, aliceRelay);
 
       let beforeAliceRelayBalance = (
         (await relayOne.query.system.account(aliceRelay.address)) as any
