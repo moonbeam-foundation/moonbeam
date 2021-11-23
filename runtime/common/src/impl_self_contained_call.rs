@@ -84,10 +84,15 @@ macro_rules! impl_self_contained_call {
 				// frontier, but to keep the same behavior as before, we must perform
 				// the controls that were performed on the unsigned extrinsic.
 				use sp_runtime::traits::SignedExtension as _;
+				let input = match transaction {
+					pallet_ethereum::Transaction::Legacy(t) => t.input,
+					pallet_ethereum::Transaction::EIP2930(t) => t.input,
+					pallet_ethereum::Transaction::EIP1559(t) => t.input,
+				};
 				let extra_validation = SignedExtra::validate_unsigned(
 					call,
 					&call.get_dispatch_info(),
-					transaction.input.len(),
+					input.len(),
 				)?;
 				// Then, do the controls defined by the ethereum pallet.
 				use fp_self_contained::SelfContainedCall as _;
