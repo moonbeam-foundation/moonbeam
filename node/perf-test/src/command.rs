@@ -358,7 +358,9 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let unchecked_extrinsic = self.transaction_converter.convert_transaction(ethereum::TransactionV2::Legacy(signed));
+		let unchecked_extrinsic = self
+			.transaction_converter
+			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
 
 		let hash = self.client.info().best_hash;
 		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
