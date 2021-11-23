@@ -81,7 +81,6 @@ sp-trie = { git = "https://github.com/purestake/substrate", branch = "moonbeam-p
 substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
 
 # Frontier
-ethereum-primitives = { package = "ethereum", version = "0.9.0", default-features = false, features = [ "with-codec" ] }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }

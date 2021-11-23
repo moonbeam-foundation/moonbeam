@@ -2220,23 +2220,6 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a67be3eaf296ef668733f54c637e84d0ca34eaf194f0077455135981ad464c3"
-dependencies = [
- "bytes 1.0.1",
- "ethereum-types",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec",
- "rlp",
- "rlp-derive",
- "sha3 0.9.1",
- "triehash",
-]
-
-[[package]]
-name = "ethereum"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fb916554a4dba293ea69c69ad5653e21d770a9d0c2496b5fa0a1f5a3946d87"
@@ -2283,7 +2266,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2068bbfe82315b76637b601c73810ec7e92d542bad02f0155182915e832c6357"
 dependencies = [
  "environmental",
- "ethereum 0.10.0",
+ "ethereum",
  "evm-core",
  "evm-gasometer",
  "evm-runtime",
@@ -2338,7 +2321,7 @@ name = "evm-tracing-events"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "evm",
  "evm-gasometer",
@@ -2457,7 +2440,7 @@ name = "fc-rpc"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fc-consensus",
@@ -2502,7 +2485,7 @@ name = "fc-rpc-core"
 version = "1.1.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -2616,7 +2599,7 @@ name = "fp-consensus"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "parity-scale-codec",
  "rlp",
  "sha3 0.8.2",
@@ -2642,7 +2625,7 @@ name = "fp-rpc"
 version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
@@ -2659,7 +2642,7 @@ name = "fp-self-contained"
 version = "1.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "frame-support",
  "parity-scale-codec",
  "parity-util-mem",
@@ -5324,7 +5307,7 @@ dependencies = [
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "fc-rpc-core",
  "jsonrpc-core",
@@ -5347,7 +5330,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "fc-consensus",
  "fc-db",
@@ -5375,7 +5358,7 @@ name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "hex",
  "parity-scale-codec",
@@ -5392,7 +5375,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "parity-scale-codec",
  "sp-api",
  "sp-io",
@@ -5404,7 +5387,7 @@ dependencies = [
 name = "moonbeam-rpc-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "fc-consensus",
  "fc-rpc",
@@ -5554,7 +5537,6 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "ethereum 0.9.0",
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-db",
@@ -6676,7 +6658,7 @@ name = "pallet-ethereum"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.13#c765b12c2c48b8559fd66cf3d1197cdac6cb2bb2"
 dependencies = [
- "ethereum 0.10.0",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fp-consensus",
@@ -7738,7 +7720,7 @@ dependencies = [
  "async-io",
  "cli-table",
  "cumulus-primitives-parachain-inherent",
- "ethereum 0.10.0",
+ "ethereum",
  "fc-consensus",
  "fp-evm",
  "fp-rpc",

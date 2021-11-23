@@ -460,7 +460,7 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::TransactionV0,
+		transaction: pallet_ethereum::Transaction,
 	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
