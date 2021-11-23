@@ -8,7 +8,7 @@ import { createBlockWithExtrinsicParachain, logEvents, waitOneBlock } from "../u
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ApiPromise } from "@polkadot/api";
 
-const palletId = "0x6d6f646c617373746d6e67720000000000000000";
+const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
 const HUNDRED_UNITS_PARA = 100_000_000_000_000_000_000n;
 const THOUSAND_UNITS = 1000000000000000;
@@ -114,7 +114,7 @@ describeParachain(
 
       // check asset in storage
       const registeredAsset = await parachainOne.query.assets.asset(assetId);
-      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
+      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId.toLowerCase());
 
       // RELAYCHAIN
       // Sets default xcm version to relay
@@ -123,41 +123,27 @@ describeParachain(
       let beforeAliceRelayBalance = (
         (await relayOne.query.system.account(aliceRelay.address)) as any
       ).data.free;
+
+      let reserveTrasnsferAssetsCall = relayOne.tx.xcmPallet.reserveTransferAssets(
+        { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+        {
+          V1: {
+            parents: new BN(0),
+            interior: { X1: { AccountKey20: { network: "Any", key: ALITH } } },
+          },
+        },
+        {
+          V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+        },
+        0
+      );
       // Fees
-      const fee = (
-        await relayOne.tx.xcmPallet
-          .reserveTransferAssets(
-            { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-            {
-              V1: {
-                parents: new BN(0),
-                interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-              },
-            },
-            {
-              V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-            },
-            0
-          )
-          .paymentInfo(aliceRelay)
-      ).partialFee as any;
+      const fee = (await reserveTrasnsferAssetsCall.paymentInfo(aliceRelay)).partialFee as any;
       // Trigger the transfer
       const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
         relayOne,
         aliceRelay,
-        relayOne.tx.xcmPallet.reserveTransferAssets(
-          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-          {
-            V1: {
-              parents: new BN(0),
-              interior: { X1: { AccountKey20: { network: "Any", key: ALITH } } },
-            },
-          },
-          {
-            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-          },
-          0
-        )
+        reserveTrasnsferAssetsCall
       );
 
       let expectedAfterRelayBalance =
@@ -345,46 +331,29 @@ describeParachain(
       let beforeAliceRelayBalance = (
         (await relayOne.query.system.account(aliceRelay.address)) as any
       ).data.free;
+
+      let reserveTrasnsferAssetsCall = relayOne.tx.xcmPallet.reserveTransferAssets(
+        { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+        {
+          V1: {
+            parents: new BN(0),
+            interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
+          },
+        },
+        {
+          V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+        },
+        0
+      );
+
       // Fees
-      const fee = (
-        await relayOne.tx.xcmPallet
-          .reserveTransferAssets(
-            { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-            {
-              V1: {
-                parents: new BN(0),
-                interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-              },
-            },
-            {
-              V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-            },
-            0
-          )
-          .paymentInfo(aliceRelay)
-      ).partialFee as any;
+      const fee = (await reserveTrasnsferAssetsCall.paymentInfo(aliceRelay)).partialFee as any;
 
       let expectedAfterRelayBalance =
         BigInt(beforeAliceRelayBalance) - BigInt(fee) - BigInt(THOUSAND_UNITS);
 
       // Transfer 1000 units to para a baltathar
-      await createBlockWithExtrinsicParachain(
-        relayOne,
-        aliceRelay,
-        relayOne.tx.xcmPallet.reserveTransferAssets(
-          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
-          {
-            V1: {
-              parents: new BN(0),
-              interior: { X1: { AccountKey20: { network: "Any", key: BALTATHAR } } },
-            },
-          },
-          {
-            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
-          },
-          0
-        )
-      );
+      await createBlockWithExtrinsicParachain(relayOne, aliceRelay, reserveTrasnsferAssetsCall);
 
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
