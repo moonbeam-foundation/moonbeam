@@ -1413,7 +1413,7 @@ impl cumulus_primitives_core::DmpMessageHandler for MaintenanceDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
+		DmpQueue::handle_dmp_messages(iter, 1)
 	}
 }
 
