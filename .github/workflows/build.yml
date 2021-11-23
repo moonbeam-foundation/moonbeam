@@ -307,6 +307,7 @@ jobs:
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
+          npm run build
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
@@ -422,6 +423,7 @@ jobs:
           chmod uog+x build/moonbeam-tracing
           cd moonbeam-types-bundle
           npm install
+          npm run build
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
@@ -465,6 +467,7 @@ jobs:
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
+          npm run build
           rm -fr dist
           node_modules/.bin/tsc
           cd ../tests
