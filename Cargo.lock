@@ -13827,6 +13827,7 @@ dependencies = [
  "cumulus-primitives-core",
  "derive_more",
  "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",

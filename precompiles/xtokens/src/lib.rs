@@ -17,6 +17,7 @@
 //! Precompile to xtokens runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(assert_matches)]
 
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};

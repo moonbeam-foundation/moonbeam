@@ -21,7 +21,7 @@ use crate::*;
 
 use fp_evm::{Context, PrecompileFailure};
 use pallet_evm::PrecompileSet;
-use precompile_utils::{error, Bytes, EvmDataWriter, LogsBuilder};
+use precompile_utils::{Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -34,7 +34,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		assert_eq!(
+		assert_matches!(
 			precompiles().execute(
 				Account::Precompile.into(),
 				&bogus_selector,
@@ -46,7 +46,8 @@ fn selector_less_than_four_bytes() {
 				},
 				false,
 			),
-			Some(Err(error("tried to parse selector out of bounds")))
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"tried to parse selector out of bounds",
 		);
 	});
 }
@@ -56,7 +57,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		assert_eq!(
+		assert_matches!(
 			precompiles().execute(
 				Account::Precompile.into(),
 				&bogus_selector,
@@ -68,7 +69,8 @@ fn no_selector_exists_but_length_is_right() {
 				},
 				false,
 			),
-			Some(Err(error("unknown selector")))
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"unknown selector",
 		);
 	});
 }
@@ -552,7 +554,7 @@ fn transfer_from_above_allowance() {
 				false,
 			);
 
-			assert_eq!(
+			assert_matches!(
 				precompiles().execute(
 					Account::Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
@@ -568,7 +570,8 @@ fn transfer_from_above_allowance() {
 					},
 					false,
 				),
-				Some(Err(error("trying to spend more than allowed"))),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+					if output == b"trying to spend more than allowed",
 			);
 		});
 }
