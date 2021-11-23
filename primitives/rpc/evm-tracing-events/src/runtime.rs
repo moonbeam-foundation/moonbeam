@@ -16,6 +16,8 @@
 
 extern crate alloc;
 
+use crate::StepEventFilter;
+
 use super::{opcodes_string, Context};
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
@@ -73,8 +75,8 @@ pub enum RuntimeEvent {
 		opcode: Vec<u8>,
 		// We can use ExitReason with `with-codec` feature,
 		position: Result<u64, ExitReason>,
-		stack: Stack,
-		memory: Memory,
+		stack: Option<Stack>,
+		memory: Option<Memory>,
 	},
 	StepResult {
 		result: Result<(), Capture<ExitReason, Trap>>,
@@ -93,8 +95,8 @@ pub enum RuntimeEvent {
 }
 
 #[cfg(feature = "evm-tracing")]
-impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
-	fn from(i: evm_runtime::tracing::Event<'a>) -> Self {
+impl RuntimeEvent {
+	pub fn from_evm_event<'a>(i: evm_runtime::tracing::Event<'a>, filter: StepEventFilter) -> Self {
 		match i {
 			evm_runtime::tracing::Event::Step {
 				context,
@@ -109,8 +111,16 @@ impl<'a> From<evm_runtime::tracing::Event<'a>> for RuntimeEvent {
 					Ok(position) => Ok(*position as u64),
 					Err(e) => Err(e.clone()),
 				},
-				stack: stack.into(),
-				memory: memory.into(),
+				stack: if filter.enable_stack {
+					Some(stack.into())
+				} else {
+					None
+				},
+				memory: if filter.enable_memory {
+					Some(memory.into())
+				} else {
+					None
+				},
 			},
 			evm_runtime::tracing::Event::StepResult {
 				result,
