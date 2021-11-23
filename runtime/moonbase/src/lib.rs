@@ -37,8 +37,8 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
-		PalletInfo as PalletInfoTrait, EqualPrivilegeOnly,
+		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
+		OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},

@@ -32,7 +32,9 @@ use sp_runtime::traits::Block as BlockT;
 use std::collections::HashMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use moonbeam_rpc_primitives_txpool::{TxPoolResponse, TxPoolRuntimeApi, Transaction as TransactionV2};
+use moonbeam_rpc_primitives_txpool::{
+	Transaction as TransactionV2, TxPoolResponse, TxPoolRuntimeApi,
+};
 
 pub struct TxPool<B: BlockT, C, A: ChainApi> {
 	client: Arc<C>,
@@ -86,18 +88,24 @@ where
 		};
 		let ethereum_txns: TxPoolResponse = if api_version == 1 {
 			#[allow(deprecated)]
-			let res = api
-				.extrinsic_filter_before_version_2(&best_block, txs_ready, txs_future)
+			let res = api.extrinsic_filter_before_version_2(&best_block, txs_ready, txs_future)
 				.map_err(|err| {
 					internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
 				})?;
 			TxPoolResponse {
-				ready: res.ready.iter().map(|t| TransactionV2::Legacy(t.clone())).collect(),
-				future: res.future.iter().map(|t| TransactionV2::Legacy(t.clone())).collect(),
+				ready: res
+					.ready
+					.iter()
+					.map(|t| TransactionV2::Legacy(t.clone()))
+					.collect(),
+				future: res
+					.future
+					.iter()
+					.map(|t| TransactionV2::Legacy(t.clone()))
+					.collect(),
 			}
 		} else {
-			api
-				.extrinsic_filter(&best_block, txs_ready, txs_future)
+			api.extrinsic_filter(&best_block, txs_ready, txs_future)
 				.map_err(|err| {
 					internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
 				})?

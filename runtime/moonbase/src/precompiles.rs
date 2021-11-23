@@ -119,42 +119,52 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context, is_static)),
 			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context, is_static)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context, is_static)),
-			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context, is_static)),
-			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(input, target_gas, context, is_static)),
+			a if a == hash(1024) => {
+				Some(Sha3FIPS256::execute(input, target_gas, context, is_static))
+			}
+			a if a == hash(1025) => Some(Dispatch::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(
+				input, target_gas, context, is_static,
+			)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2050) => {
 				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static
+					input, target_gas, context, is_static,
 				))
 			}
-			a if a == hash(2051) => {
-				Some(DemocracyWrapper::<R>::execute(input, target_gas, context, is_static))
-			}
-			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context, is_static)),
+			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, WestendEncoder>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context, is_static)
+				Erc20AssetsPrecompileSet::<R>::execute(
+					address, input, target_gas, context, is_static,
+				)
 			}
 			_ => None,
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses().collect::<sp_std::vec::Vec<R::AccountId>>().contains(
-			&R::AddressMapping::into_account_id(address)
-		)
+		Self::used_addresses()
+			.collect::<sp_std::vec::Vec<R::AccountId>>()
+			.contains(&R::AddressMapping::into_account_id(address))
 	}
 }
 

@@ -82,23 +82,29 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context, is_static)),
 			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context, is_static)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context, is_static)),
-			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context, is_static)),
-			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(input, target_gas, context, is_static)),
+			a if a == hash(1024) => {
+				Some(Sha3FIPS256::execute(input, target_gas, context, is_static))
+			}
+			a if a == hash(1025) => Some(Dispatch::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(
+				input, target_gas, context, is_static,
+			)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context, is_static
+				input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses().collect::<sp_std::vec::Vec<R::AccountId>>().contains(
-			&R::AddressMapping::into_account_id(address)
-		)
+		Self::used_addresses()
+			.collect::<sp_std::vec::Vec<R::AccountId>>()
+			.contains(&R::AddressMapping::into_account_id(address))
 	}
 }
 

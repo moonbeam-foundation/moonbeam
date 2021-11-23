@@ -185,6 +185,9 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
+	pub fn new() -> Self {
+		Self(Default::default())
+	}
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		input: &mut EvmDataReader,

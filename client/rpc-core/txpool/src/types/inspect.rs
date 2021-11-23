@@ -46,15 +46,9 @@ impl Serialize for Summary {
 impl GetT for Summary {
 	fn get(_hash: H256, _from_address: H160, txn: &EthereumTransaction) -> Self {
 		let (action, value, gas_price, gas_limit) = match txn {
-			EthereumTransaction::Legacy(t) => {
-				(t.action, t.value, t.gas_price, t.gas_limit)
-			},
-			EthereumTransaction::EIP2930(t) => {
-				(t.action, t.value, t.gas_price, t.gas_limit)
-			},
-			EthereumTransaction::EIP1559(t) => {
-				(t.action, t.value, t.max_fee_per_gas, t.gas_limit)
-			},
+			EthereumTransaction::Legacy(t) => (t.action, t.value, t.gas_price, t.gas_limit),
+			EthereumTransaction::EIP2930(t) => (t.action, t.value, t.gas_price, t.gas_limit),
+			EthereumTransaction::EIP1559(t) => (t.action, t.value, t.max_fee_per_gas, t.gas_limit),
 		};
 		Self {
 			to: match action {

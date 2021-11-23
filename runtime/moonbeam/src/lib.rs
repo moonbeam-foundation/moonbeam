@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Get, Imbalance, InstanceFilter, OnUnbalanced, EqualPrivilegeOnly},
+	traits::{Contains, EqualPrivilegeOnly, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,

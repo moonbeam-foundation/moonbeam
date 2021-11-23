@@ -66,15 +66,30 @@ where
 impl GetT for Transaction {
 	fn get(hash: H256, from_address: H160, txn: &EthereumTransaction) -> Self {
 		let (nonce, action, value, gas_price, gas_limit, input) = match txn {
-			EthereumTransaction::Legacy(t) => {
-				(t.nonce, t.action, t.value, t.gas_price, t.gas_limit, t.input.clone())
-			},
-			EthereumTransaction::EIP2930(t) => {
-				(t.nonce, t.action, t.value, t.gas_price, t.gas_limit, t.input.clone())
-			},
-			EthereumTransaction::EIP1559(t) => {
-				(t.nonce, t.action, t.value, t.max_fee_per_gas, t.gas_limit, t.input.clone())
-			},
+			EthereumTransaction::Legacy(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.gas_price,
+				t.gas_limit,
+				t.input.clone(),
+			),
+			EthereumTransaction::EIP2930(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.gas_price,
+				t.gas_limit,
+				t.input.clone(),
+			),
+			EthereumTransaction::EIP1559(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.max_fee_per_gas,
+				t.gas_limit,
+				t.input.clone(),
+			),
 		};
 		Self {
 			hash,

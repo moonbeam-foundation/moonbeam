@@ -20,7 +20,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use codec::{Decode, Encode};
-pub use ethereum::{TransactionV2 as Transaction, TransactionV0 as LegacyTransaction};
+pub use ethereum::{TransactionV0 as LegacyTransaction, TransactionV2 as Transaction};
 use sp_runtime::traits::Block as BlockT;
 use sp_std::vec::Vec;
 
