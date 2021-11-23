@@ -23,7 +23,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Block as BlockT},
 	Justifications,
 };
-use sp_storage::{ChildInfo, PrefixedStorageKey, StorageData, StorageKey};
+use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
 /// A set of APIs that polkadot-like runtimes must implement.

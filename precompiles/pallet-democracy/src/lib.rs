@@ -85,7 +85,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		is_static: bool,
+		_is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 

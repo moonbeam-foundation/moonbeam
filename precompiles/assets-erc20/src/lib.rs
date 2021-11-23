@@ -112,7 +112,7 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-		is_static: bool,
+		_is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
 		if let Some(asset_id) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
