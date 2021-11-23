@@ -667,21 +667,25 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 10;
 	/// Default BlocksPerRound is every 4 hours (1200 * 12 second block times)
 	pub const DefaultBlocksPerRound: u32 = 4 * HOURS;
-	/// Collator candidate exits are delayed by 2 rounds
+	/// Collator candidate exit delay (number of rounds)
 	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Nominator exits are delayed by 2 rounds
-	pub const LeaveNominatorsDelay: u32 = 2;
-	/// Nomination revocations are delayed by 2 rounds
-	pub const RevokeNominationDelay: u32 = 2;
-	/// Reward payments are delayed by 2 rounds
+	/// Collator candidate bond increases/decreases delay (number of rounds)
+	pub const CandidateBondDelay: u32 = 2;
+	/// Delegator exit delay (number of rounds)
+	pub const LeaveDelegatorsDelay: u32 = 2;
+	/// Delegation revocations delay (number of rounds)
+	pub const RevokeDelegationDelay: u32 = 2;
+	/// Delegation bond increases/decreases delay (number of rounds)
+	pub const DelegationBondDelay: u32 = 2;
+	/// Reward payments delay (number of rounds)
 	pub const RewardPaymentDelay: u32 = 2;
-	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
+	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 100 nominators per collator
-	pub const MaxNominatorsPerCollator: u32 = 100;
-	/// Maximum 100 collators per nominator
-	pub const MaxCollatorsPerNominator: u32 = 100;
-	/// Default fixed percent a collator takes off the top of due rewards is 20%
+	/// Maximum delegators counted per candidate
+	pub const MaxDelegatorsPerCandidate: u32 = 100;
+	/// Maximum delegations per delegator
+	pub const MaxDelegationsPerDelegator: u32 = 100;
+	/// Default fixed percent a collator takes off the top of due rewards
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
@@ -689,9 +693,9 @@ parameter_types! {
 	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::SUPPLY_FACTOR;
 	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCollatorCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
-	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
+	pub const MinCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
+	/// Minimum stake required to be reserved to be a delegator
+	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -700,18 +704,20 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type LeaveNominatorsDelay = LeaveNominatorsDelay;
-	type RevokeNominationDelay = RevokeNominationDelay;
+	type CandidateBondDelay = CandidateBondDelay;
+	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
+	type RevokeDelegationDelay = RevokeDelegationDelay;
+	type DelegationBondDelay = DelegationBondDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorCandidateStk;
-	type MinNomination = MinNominatorStk;
-	type MinNominatorStk = MinNominatorStk;
+	type MinCandidateStk = MinCandidateStk;
+	type MinDelegation = MinDelegatorStk;
+	type MinDelegatorStk = MinDelegatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1158,11 +1164,11 @@ mod tests {
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(
-			MinCollatorCandidateStk::get(),
+			MinCandidateStk::get(),
 			// TODO restore real value before phase 2
 			Balance::from(10 * KILOGLMR) //Balance::from(100 * KILOGLMR)
 		);
-		assert_eq!(MinNominatorStk::get(), Balance::from(500 * GLMR));
+		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
 
 		// crowdloan min reward
 		assert_eq!(MinimumReward::get(), Balance::from(0u128));

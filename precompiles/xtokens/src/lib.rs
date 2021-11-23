@@ -46,7 +46,7 @@ pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",

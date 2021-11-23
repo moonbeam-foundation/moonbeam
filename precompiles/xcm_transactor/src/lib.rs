@@ -44,7 +44,7 @@ pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor
 pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
 	TransactInfo = "transact_info((uint8,bytes[]))",
