@@ -7,8 +7,8 @@
   "prepublish": "tsc",
   "scripts": {
     "compare": "rm -fr dist && tsc && npx ts-node check.ts",
-    "build": "rm -fr dist && node_modules/.bin/tsc",
-    "publish-package": "tsc && npm publish",
+    "install": "rm -fr dist && node_modules/.bin/tsc",
+    "publish-package": "npm install && npm publish",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "keywords": [
