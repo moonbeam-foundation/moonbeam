@@ -26,6 +26,7 @@ use frame_support::{
 use pallet_evm::{GasWeightMapping, Log};
 use sp_core::{H160, H256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
+use crate::alloc::borrow::ToOwned;
 
 mod data;
 
