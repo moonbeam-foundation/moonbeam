@@ -528,7 +528,6 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: import_queue.clone(),
-			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 			warp_sync: None,
 		})?;
@@ -619,8 +618,6 @@ where
 	let skip_prediction = parachain_config.force_authoring;
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		on_demand: None,
-		remote_blockchain: None,
 		rpc_extensions_builder,
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
@@ -770,7 +767,6 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: None,
 		})?;
@@ -967,8 +963,6 @@ where
 		task_manager: &mut task_manager,
 		transaction_pool,
 		rpc_extensions_builder,
-		on_demand: None,
-		remote_blockchain: None,
 		backend,
 		system_rpc_tx,
 		config,
