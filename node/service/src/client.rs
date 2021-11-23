@@ -352,24 +352,6 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
 		match_client!(self, child_storage_hash(id, child_info, key))
 	}
-
-	fn max_key_changes_range(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-	) -> sp_blockchain::Result<Option<(NumberFor<Block>, BlockId<Block>)>> {
-		match_client!(self, max_key_changes_range(first, last))
-	}
-
-	fn key_changes(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-		storage_key: Option<&PrefixedStorageKey>,
-		key: &StorageKey,
-	) -> sp_blockchain::Result<Vec<(NumberFor<Block>, u32)>> {
-		match_client!(self, key_changes(first, last, storage_key, key))
-	}
 }
 
 impl sp_blockchain::HeaderBackend<Block> for Client {
