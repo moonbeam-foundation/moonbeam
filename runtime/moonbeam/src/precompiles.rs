@@ -39,6 +39,9 @@ impl<R> MoonbeamPrecompiles<R>
 where
 	R: pallet_evm::Config,
 {
+	pub fn new() -> Self {
+		Self(Default::default())
+	}
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
