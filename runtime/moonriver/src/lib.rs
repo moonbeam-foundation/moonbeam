@@ -32,7 +32,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced, EqualPrivilegeOnly},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
@@ -388,6 +388,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 parameter_types! {
