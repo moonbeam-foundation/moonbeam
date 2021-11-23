@@ -29,7 +29,7 @@
     "@polkadot/api": "^6.9.2",
     "@polkadot/keyring": "^7.8.2",
     "@polkadot/types": "^6.9.2",
-    "typescript": "^4.3.5"
+    "typescript": "^4.5.2"
   },
   "devDependencies": {
     "@types/underscore": "^1.11.3",
