@@ -55,10 +55,13 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
+	use cumulus_primitives_core::{
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
+	};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Contains, EnsureOrigin};
 	use frame_system::pallet_prelude::*;
-
+	use sp_std::vec::Vec;
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::generate_storage_info]
@@ -81,6 +84,9 @@ pub mod pallet {
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
 		type MaintenanceOrigin: EnsureOrigin<Self::Origin>;
+
+		type NormalDmpHandler: DmpMessageHandler;
+		type MaintenanceDmpHandler: DmpMessageHandler;
 	}
 
 	#[pallet::event]
@@ -186,6 +192,18 @@ pub mod pallet {
 				T::MaintenanceCallFilter::contains(call)
 			} else {
 				T::NormalCallFilter::contains(call)
+			}
+		}
+	}
+	impl<T: Config> DmpMessageHandler for Pallet<T> {
+		fn handle_dmp_messages(
+			iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+			limit: Weight,
+		) -> Weight {
+			if MaintenanceMode::<T>::get() {
+				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
+			} else {
+				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
 			}
 		}
 	}

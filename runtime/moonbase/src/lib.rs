@@ -672,7 +672,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = DmpQueue;
+	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
@@ -1406,12 +1406,26 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+pub struct MaintenanceDmpHandler;
+impl cumulus_primitives_core::DmpMessageHandler for MaintenanceDmpHandler {
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		limit: Weight,
+	) -> Weight {
+		DmpQueue::handle_dmp_messages(iter, 0)
+	}
+}
+
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
-	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	//type MaintenanceOrigin =
+	//	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type MaintenanceOrigin = EnsureRoot<AccountId>;
+	type NormalDmpHandler = DmpQueue;
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {

@@ -14,6 +14,9 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 parity-scale-codec = { version = "2.2", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 [dev-dependencies]
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
@@ -26,5 +29,7 @@ std = [
 	"frame-system/std",
 	"scale-info/std",
 	"sp-runtime/std",
+	"cumulus-primitives-core/std",
+	"sp-std/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]
