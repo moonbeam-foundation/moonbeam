@@ -39,8 +39,10 @@ fn evm_call(source: TestAccount, input: Vec<u8>) -> EvmCall<Runtime> {
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
-		gas_price: 0.into(),
+		max_fee_per_gas: 0.into(),
+		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
+		access_list: Vec::new(),
 	}
 }
 

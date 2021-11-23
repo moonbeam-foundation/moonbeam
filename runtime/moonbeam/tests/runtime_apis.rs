@@ -151,9 +151,10 @@ fn ethereum_runtime_rpc_api_call() {
 				H160::from(ALICE),  // from
 				H160::from(BOB),    // to
 				Vec::new(),         // data
-				U256::from(1000),   // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
+				U256::from(1000u64),   // value
+				U256::from(100000u64), // gas_limit
+				None,               // max_fee_per_gas
+				None,               // max_priority_fee_per_gas
 				None,               // nonce
 				false,              // estimate
 			);
@@ -171,8 +172,9 @@ fn ethereum_runtime_rpc_api_create() {
 				H160::from(ALICE),  // from
 				vec![0, 1, 1, 0],   // data
 				U256::zero(),       // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
+				U256::from(100000u64), // gas_limit
+				None,               // max_fee_per_gas
+				None,               // max_priority_fee_per_gas
 				None,               // nonce
 				false,              // estimate
 			);

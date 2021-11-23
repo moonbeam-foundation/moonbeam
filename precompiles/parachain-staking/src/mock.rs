@@ -192,7 +192,7 @@ where
 }
 
 parameter_types! {
-	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
 }
 
 impl pallet_evm::Config for Runtime {

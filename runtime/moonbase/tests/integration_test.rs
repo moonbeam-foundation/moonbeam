@@ -360,8 +360,10 @@ fn transfer_through_evm_to_stake() {
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
-				gas_price,
-				nonce: None
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
+				nonce: None,
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
@@ -774,8 +776,10 @@ fn claim_via_precompile() {
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit,
-				gas_price,
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
@@ -865,11 +869,12 @@ fn is_contributor_via_precompile() {
 
 			// Assert precompile reports Bob is not a contributor
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false
 				),
 				expected_false_result
 			);
@@ -892,11 +897,12 @@ fn is_contributor_via_precompile() {
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&charlie_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false,
 				),
 				expected_true_result
 			);
@@ -981,11 +987,12 @@ fn reward_info_via_precompile() {
 
 			// Assert precompile reports Bob is not a contributor
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&charlie_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false,
 				),
 				expected_result
 			);
@@ -1064,8 +1071,10 @@ fn update_reward_address_via_precompile() {
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit,
-				gas_price,
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
@@ -1123,7 +1132,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 
 			// Access totalSupply through precompile. Important that the context is correct
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
 					None,
@@ -1132,13 +1141,14 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
 
 			// Access balanceOf through precompile
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(ALICE.into()))
@@ -1149,6 +1159,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1184,7 +1195,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Transfer tokens from Aice to Bob, 400 unit.
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
 						.write(EvmAddress(BOB.into()))
@@ -1196,6 +1207,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1210,7 +1222,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Make sure BOB has 400 unit
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(BOB.into()))
@@ -1221,6 +1233,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1256,7 +1269,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Aprove Bob for spending 400 unit from Alice
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Approve)
 						.write(EvmAddress(BOB.into()))
@@ -1268,6 +1281,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1289,7 +1303,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
 						.write(EvmAddress(ALICE.into()))
@@ -1302,6 +1316,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1316,7 +1331,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Make sure CHARLIE has 400 unit
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(CHARLIE.into()))
@@ -1327,6 +1342,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: CHARLIE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1372,7 +1388,7 @@ fn xtokens_precompiles_transfer() {
 
 			// We use the address of the asset as an identifier of the asset we want to transferS
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
@@ -1386,6 +1402,7 @@ fn xtokens_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1431,7 +1448,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
@@ -1446,6 +1463,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1572,8 +1590,10 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				gas_price: U256::from(1_000_000_000),
-				nonce: Some(U256::from(0))
+				max_fee_per_gas: U256::from(1_000_000_000),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			// 1 WEI is left in the account
@@ -1600,8 +1620,10 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
-				gas_price: U256::from(1_000_000_000),
-				nonce: Some(U256::from(0))
+				max_fee_per_gas: U256::from(1_000_000_000),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			// ALICE is refunded

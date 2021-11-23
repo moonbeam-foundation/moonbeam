@@ -45,8 +45,10 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
-		gas_price: 0.into(),
+		max_fee_per_gas: 0.into(),
+		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
+		access_list: Vec::new(),
 	}
 }
 
@@ -854,8 +856,10 @@ fn note_preimage_works() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -899,8 +903,10 @@ fn cannot_note_duplicate_preimage() {
 				input: input.clone(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -911,8 +917,10 @@ fn cannot_note_duplicate_preimage() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -951,8 +959,10 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
