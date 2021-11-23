@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["impl_runtime_apis_plus_common",""],["impl_self_contained_call",""]],"mod":[["migrations","Migrations"]]});
+initSidebarItems({"macro":[["impl_runtime_apis_plus_common",""],["impl_self_contained_call",""]],"mod":[["migrations","Migrations"]],"struct":[["IntoAddressMapping","And ipmlementation of Frontier’s AddressMapping trait for Moonbeam Accounts. This is basically identical to Frontier’s own IdentityAddressMapping, but it works for any type that is Into like AccountId20 for example."]]});

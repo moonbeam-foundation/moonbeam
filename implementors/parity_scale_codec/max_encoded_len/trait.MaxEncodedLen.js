@@ -1,4 +1,5 @@
 (function() {var implementors = {};
+implementors["account"] = [{"text":"impl MaxEncodedLen for <a class=\"struct\" href=\"account/struct.AccountId20.html\" title=\"struct account::AccountId20\">AccountId20</a>","synthetic":false,"types":["account::AccountId20"]}];
 implementors["moonbase_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonbase_runtime/enum.ProxyType.html\" title=\"enum moonbase_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonbase_runtime::ProxyType"]}];
 implementors["moonbeam_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonbeam_runtime/enum.ProxyType.html\" title=\"enum moonbeam_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonbeam_runtime::ProxyType"]}];
 implementors["moonriver_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonriver_runtime/enum.ProxyType.html\" title=\"enum moonriver_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonriver_runtime::ProxyType"]}];

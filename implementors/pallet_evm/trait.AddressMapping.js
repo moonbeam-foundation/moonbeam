@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["runtime_common"] = [{"text":"impl&lt;T:&nbsp;<a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.From.html\" title=\"trait core::convert::From\">From</a>&lt;H160&gt;&gt; AddressMapping&lt;T&gt; for <a class=\"struct\" href=\"runtime_common/struct.IntoAddressMapping.html\" title=\"struct runtime_common::IntoAddressMapping\">IntoAddressMapping</a>","synthetic":false,"types":["runtime_common::IntoAddressMapping"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
