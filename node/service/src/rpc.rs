@@ -274,6 +274,7 @@ where
 		EthTask::ethereum_schema_cache_task(
 			Arc::clone(&params.client),
 			Arc::clone(&params.frontier_backend),
+			pallet_ethereum::EthereumStorageSchema::V1,
 		),
 	);
 }
