@@ -226,7 +226,7 @@ pub fn testnet_genesis(
 			accounts: Precompiles::used_addresses()
 				.map(|addr| {
 					(
-						addr,
+						addr.into(),
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),
