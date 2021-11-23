@@ -240,6 +240,7 @@ where
 	// Maps emulated ethereum data to substrate native data.
 	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
+		Some("Frontier"),
 		MappingSyncWorker::new(
 			params.client.import_notification_stream(),
 			Duration::new(6, 0),
@@ -258,6 +259,7 @@ where
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
 		params.task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
+			Some("Frontier"),
 			EthTask::filter_pool_task(
 				Arc::clone(&params.client),
 				filter_pool,
@@ -268,6 +270,7 @@ where
 
 	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-schema-cache-task",
+		Some("Frontier"),
 		EthTask::ethereum_schema_cache_task(
 			Arc::clone(&params.client),
 			Arc::clone(&params.frontier_backend),

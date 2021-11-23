@@ -107,7 +107,7 @@ where
 		params
 			.task_manager
 			.spawn_essential_handle()
-			.spawn("trace-filter-cache", trace_filter_task);
+			.spawn("trace-filter-cache", Some("EthTracing"), trace_filter_task);
 	}
 
 	// `debug` task if enabled. Essential.
@@ -116,7 +116,7 @@ where
 		params
 			.task_manager
 			.spawn_essential_handle()
-			.spawn("ethapi-debug", debug_task);
+			.spawn("ethapi-debug", Some("EthTracing"), debug_task);
 	}
 
 	RpcRequesters {
