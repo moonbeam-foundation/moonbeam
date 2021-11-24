@@ -2764,7 +2764,7 @@
 	<span class="comment">// When we receive the self-reserve asset, we use pallet-transaction-payment</span>
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
-	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">xcm_primitives::MultiWeightTraders</span><span class="op">&lt;</span>
+	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
 		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
 			<span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 			<span class="ident">SelfReserve</span>,
@@ -2773,7 +2773,7 @@
 			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 		<span class="op">&gt;</span>,
 		<span class="ident">xcm_primitives::FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, ()<span class="op">&gt;</span>,
-	<span class="op">&gt;</span>;
+	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
