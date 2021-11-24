@@ -11,17 +11,17 @@ version = "0.1.1"
 targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
-serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-impl-serde = { version = "0.3.1", default-features = false }
-parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
-log = "0.4"
 blake2-rfc = { version = "0.2.18", optional = true, default-features = false }
 hex = { version = "0.4", default-features = false }
+impl-serde = { version = "0.3.1", default-features = false }
 libsecp256k1 = { version = "0.6", default-features = false, features = [ "hmac" ] }
+log = "0.4"
+serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.9", default-features = false }
 
 # Substrate
+parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
@@ -36,6 +36,7 @@ default = [ "std" ]
 std = [
 	"full_crypto",
 	"hex/std",
+	"impl-serde/std",
 	"libsecp256k1/std",
 	"parity-scale-codec/std",
 	"serde/std",
@@ -44,9 +45,6 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"full_crypto",
-	"libsecp256k1/std",
-	"impl-serde/std"
 ]
 
 full_crypto = [
