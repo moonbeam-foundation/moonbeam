@@ -28,6 +28,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use std::assert_matches::assert_matches;
 use xcm::v1::MultiLocation;
+use sp_std::boxed::Box;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
@@ -162,7 +163,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,
@@ -203,7 +204,7 @@ fn test_transactor_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,
@@ -259,7 +260,7 @@ fn test_transactor() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,

@@ -20,6 +20,7 @@ use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
 use xcm::latest::{Junction, Junctions, MultiLocation};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
+use sp_std::boxed::Box;
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()
@@ -54,7 +55,7 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					100u64,
 					vec![0u8]
 				),
@@ -67,10 +68,10 @@ fn test_transact_through_derivative_errors() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::new(
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 					1,
 					Junctions::X1(Junction::Parachain(1000))
-				)),
+				))),
 				0,
 				0,
 				0,
@@ -84,10 +85,10 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 						1,
 						Junctions::X1(Junction::Parachain(1000))
-					)),
+					))),
 					100u64,
 					vec![0u8]
 				),
@@ -100,10 +101,10 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 						1,
 						Junctions::X1(Junction::PalletInstance(1))
-					)),
+					))),
 					100u64,
 					vec![0u8]
 				),
@@ -124,7 +125,7 @@ fn test_transact_through_derivative_multilocation_success() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,
@@ -137,7 +138,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				100u64,
 				vec![1u8]
 			));
@@ -177,7 +178,7 @@ fn test_transact_through_derivative_success() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,
@@ -228,9 +229,9 @@ fn test_root_can_transact_through_sovereign() {
 			assert_noop!(
 				XcmTransactor::transact_through_sovereign(
 					Origin::signed(1),
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					1u64,
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					100u64,
 					vec![1u8],
 				),
@@ -240,7 +241,7 @@ fn test_root_can_transact_through_sovereign() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				0,
 				0,
@@ -251,9 +252,9 @@ fn test_root_can_transact_through_sovereign() {
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				100u64,
 				vec![1u8]
 			));

@@ -31,6 +31,7 @@ use xcm::latest::{
 	MultiLocation, NetworkId, Response, Xcm,
 };
 use xcm_simulator::TestExt;
+use sp_std::boxed::Box;
 
 // Send a relay asset (like DOT) to a parachain A
 #[test]
@@ -661,7 +662,7 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
 			0,
@@ -760,7 +761,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
 			4000000000,
 			encoded,
@@ -804,7 +805,7 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			3000,
 			0,
 			0,
@@ -908,9 +909,9 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(dest),
+			Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			PARAALICE.into(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			4000000000,
 			utility_bytes,
 		));
