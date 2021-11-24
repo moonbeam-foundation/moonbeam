@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { verifyLatestBlockFees } from "../../util/block";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../../util/constants";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -44,5 +45,8 @@ describeDevMoonbeam("Balance transfer", (context) => {
         await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)
       ).data.free.toString()
     );
+  });
+  it.only("should check latest block", async function () {
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(-512));
   });
 });
