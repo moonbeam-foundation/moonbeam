@@ -7,13 +7,13 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
     substrate: "paritytech",
     polkadot: "paritytech",
     cumulus: "paritytech",
-    nimbus: "purestake"
+    nimbus: "purestake",
   };
   const prefixes = {
     substrate: "polkadot-",
     polkadot: "release-",
     cumulus: "polkadot-",
-    nimbus: "moonbeam-polkadot-"
+    nimbus: "moonbeam-polkadot-",
   };
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
