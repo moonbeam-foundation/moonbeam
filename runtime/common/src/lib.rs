@@ -16,6 +16,21 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use sp_core::H160;
+
 mod apis;
 mod impl_self_contained_call;
 pub mod migrations;
+
+//TODO maybe this should be upstreamed into Frontier.
+
+/// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
+/// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
+/// that is Into<H160> like AccountId20 for example.
+pub struct IntoAddressMapping;
+
+impl<T: From<H160>> pallet_evm::AddressMapping<T> for IntoAddressMapping {
+	fn into_account_id(address: H160) -> T {
+		address.into()
+	}
+}

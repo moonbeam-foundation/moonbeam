@@ -355,8 +355,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 UNIT to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
@@ -771,7 +771,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1066,7 +1066,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1119,7 +1119,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
 			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1176,7 +1176,7 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1250,7 +1250,7 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1375,7 +1375,7 @@ fn xtokens_precompiles_transfer() {
 			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
 
 			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id);
+			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id).into();
 
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = MultiLocation::new(
@@ -1585,8 +1585,8 @@ fn transfer_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
@@ -1615,8 +1615,8 @@ fn refund_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer that zeroes ALICE
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
