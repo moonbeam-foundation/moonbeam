@@ -1409,11 +1409,13 @@ impl Contains<Call> for NormalFilter {
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 pub struct MaintenanceDmpHandler;
 impl cumulus_primitives_core::DmpMessageHandler for MaintenanceDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
 	fn handle_dmp_messages(
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 1)
+		DmpQueue::handle_dmp_messages(iter, 0)
 	}
 }
 
@@ -1425,7 +1427,14 @@ impl pallet_maintenance_mode::Config for Runtime {
 	//	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
 	type NormalDmpHandler = DmpQueue;
+
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	// These are the only two pallets that use on_idle
+	// We cant use AllPallets as it would take into account MaintenanceMode too, and thus create
+	// an infinite call loop
+	type NormalOnIdle = (DmpQueue, XcmpQueue);
+	// We dont want anything to be executed onIdle, specially xcm messages
+	type MaintenanceOnIdle = ();
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {

@@ -59,7 +59,7 @@ pub mod pallet {
 		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
 	};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Contains, EnsureOrigin};
+	use frame_support::traits::{Contains, EnsureOrigin, OnIdle};
 	use frame_system::pallet_prelude::*;
 	use sp_std::vec::Vec;
 	/// Pallet for migrations
@@ -84,9 +84,14 @@ pub mod pallet {
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
 		type MaintenanceOrigin: EnsureOrigin<Self::Origin>;
-
+		/// The DMP handler to be used in normal operating mode
 		type NormalDmpHandler: DmpMessageHandler;
+		/// The DMP handler to be used in maintenance mode
 		type MaintenanceDmpHandler: DmpMessageHandler;
+		/// The OnIdle hooks that should be called on maintenance mode
+		type MaintenanceOnIdle: OnIdle<Self::BlockNumber>;
+		/// The OnIdle hooks that should be called on normal mode
+		type NormalOnIdle: OnIdle<Self::BlockNumber>;
 	}
 
 	#[pallet::event]
@@ -204,6 +209,17 @@ pub mod pallet {
 				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
 			} else {
 				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
+			}
+		}
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_idle(now: T::BlockNumber, max_weight: Weight) -> Weight {
+			if MaintenanceMode::<T>::get() {
+				T::MaintenanceOnIdle::on_idle(now, max_weight)
+			} else {
+				T::NormalOnIdle::on_idle(now, max_weight)
 			}
 		}
 	}
