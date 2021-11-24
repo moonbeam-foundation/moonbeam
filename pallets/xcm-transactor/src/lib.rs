@@ -64,6 +64,7 @@ pub mod pallet {
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
 	use sp_std::convert::TryFrom;
+	use sp_std::boxed::Box;
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, WeightBounds};
@@ -236,14 +237,14 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
-			fee_location: VersionedMultiLocation,
+			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let fee_location =
-				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
+				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
@@ -344,18 +345,18 @@ pub mod pallet {
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
-			dest: VersionedMultiLocation,
+			dest: Box<VersionedMultiLocation>,
 			fee_payer: T::AccountId,
-			fee_location: VersionedMultiLocation,
+			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
 			let fee_location =
-				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
+				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			let dest = MultiLocation::try_from(dest).map_err(|()| Error::<T>::BadVersion)?;
+			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 			// Grab the destination
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
@@ -375,7 +376,7 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
-			location: VersionedMultiLocation,
+			location: Box<VersionedMultiLocation>,
 			transact_extra_weight: Weight,
 			fee_per_byte: u128,
 			base_weight: Weight,
@@ -384,7 +385,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let location =
-				MultiLocation::try_from(location).map_err(|()| Error::<T>::BadVersion)?;
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
 			let remote_info = RemoteTransactInfo {
 				transact_extra_weight,
 				fee_per_byte,
