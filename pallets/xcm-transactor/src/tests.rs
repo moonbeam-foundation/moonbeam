@@ -18,9 +18,9 @@ use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
+use sp_std::boxed::Box;
 use xcm::latest::{Junction, Junctions, MultiLocation};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
-use sp_std::boxed::Box;
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()

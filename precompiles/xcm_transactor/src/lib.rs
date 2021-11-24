@@ -28,10 +28,10 @@ use precompile_utils::{
 
 use sp_core::H160;
 use sp_std::{
+	boxed::Box,
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
-	boxed::Box,
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;

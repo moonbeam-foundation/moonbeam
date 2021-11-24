@@ -26,9 +26,9 @@ use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{Address, Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
+use sp_std::boxed::Box;
 use std::assert_matches::assert_matches;
 use xcm::v1::MultiLocation;
-use sp_std::boxed::Box;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()

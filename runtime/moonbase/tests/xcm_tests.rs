@@ -24,6 +24,7 @@ use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
+use sp_std::boxed::Box;
 use xcm::latest::prelude::QueryResponse;
 use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
@@ -31,7 +32,6 @@ use xcm::latest::{
 	MultiLocation, NetworkId, Response, Xcm,
 };
 use xcm_simulator::TestExt;
-use sp_std::boxed::Box;
 
 // Send a relay asset (like DOT) to a parachain A
 #[test]
