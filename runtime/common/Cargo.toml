@@ -22,12 +22,18 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+
+# Frontier
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 [features]
 std = [
 	"frame-support/std",
 	"pallet-asset-manager/std",
 	"pallet-author-mapping/std",
+	"pallet-evm/std",
+	"sp-core/std",
 	"pallet-migrations/std",
 	"parachain-staking/std",
 	"sp-runtime/std",

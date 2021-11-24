@@ -124,9 +124,7 @@ pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<
 		BlakeTwo256::hash_of(&test_message).as_fixed_bytes(),
 	)
 	.ok()?;
-	Some(H160::from(H256::from_slice(
-		Keccak256::digest(&pubkey).as_slice(),
-	)))
+	Some(H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())).into())
 }
 
 /// Function to generate accounts given a mnemonic and a number of child accounts to be generated
