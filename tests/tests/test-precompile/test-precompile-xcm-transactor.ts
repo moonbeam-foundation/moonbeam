@@ -8,6 +8,7 @@ import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { ALITH, ALITH_PRIV_KEY } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XCM_TRANSACTOR = "0x0000000000000000000000000000000000000806";
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
@@ -172,7 +173,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     );
   });
 
-  it("allows to issue transfer xcm transactor", async function () {
+  it.only("allows to issue transfer xcm transactor", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -244,6 +245,8 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(1000));
   });
 });
 
@@ -280,7 +283,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it("allows to issue transfer xcm transactor with currency Id", async function () {
+  it.only("allows to issue transfer xcm transactor with currency Id", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
 
@@ -350,5 +353,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(1000));
   });
 });

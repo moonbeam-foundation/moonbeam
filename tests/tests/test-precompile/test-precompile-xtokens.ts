@@ -11,6 +11,7 @@ import {
   ALITH,
   ALITH_PRIV_KEY,
 } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
@@ -24,7 +25,7 @@ async function getBalance(context, blockHeight, address) {
 }
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  it("allows to issue transfer xtokens", async function () {
+  it.only("allows to issue transfer xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
@@ -93,11 +94,12 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  it("allows to issue transfer_multiasset xtokens", async function () {
+  it.only("allows to issue transfer_multiasset xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
@@ -188,5 +190,6 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });

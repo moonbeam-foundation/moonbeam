@@ -5,6 +5,7 @@ import { BN } from "@polkadot/util";
 import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { verifyLatestBlockFees } from "../util/block";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -17,7 +18,7 @@ const assetMetadata = {
 const sourceLocation = { XCM: { X1: "Parent" } };
 
 describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
-  it("should be able to register an asset and set unit per sec", async function () {
+  it.only("should be able to register an asset and set unit per sec", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
@@ -51,5 +52,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     // check asset in storage
     const registeredAsset = ((await parachainOne.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
+
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });

@@ -46,7 +46,16 @@ describeDevMoonbeam("Balance transfer", (context) => {
       ).data.free.toString()
     );
   });
-  it.only("should check latest block", async function () {
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(-512));
+});
+
+describeDevMoonbeam("Balance transfer - fees", (context) => {
+  const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
+  before("Create block with transfer to test account of 512", async () => {
+    await context.createBlock({
+      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+    });
+  });
+  it.only("should check latest block fees", async function () {
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(512));
   });
 });

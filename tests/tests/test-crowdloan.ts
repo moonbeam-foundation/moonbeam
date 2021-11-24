@@ -16,6 +16,7 @@ import {
   ALITH,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
+import { verifyLatestBlockFees } from "../util/block";
 const relayChainAddress: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
 const relayChainAddress_2: string =
@@ -67,7 +68,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(isPayable).to.equal(null);
   });
 
-  it("should be able to register the genesis account for reward", async function () {
+  it.only("should be able to register the genesis account for reward", async function () {
     // should be able to register the genesis account for reward
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -77,6 +78,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
+
+    await verifyLatestBlockFees(context.polkadotApi, expect, 3_000_000n);
 
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
 

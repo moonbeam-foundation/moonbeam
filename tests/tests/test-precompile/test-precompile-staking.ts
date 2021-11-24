@@ -18,6 +18,7 @@ import { numberToHex, stringToHex } from "@polkadot/util";
 import Web3 from "web3";
 import { customWeb3Request } from "../../util/providers";
 import { callPrecompile, sendPrecompileTx } from "../../util/transactions";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_STAKING = "0x0000000000000000000000000000000000000800";
 
@@ -71,7 +72,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
-  it("should successfully call joinCandidates on ETHAN", async function () {
+  it.only("should successfully call joinCandidates on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
       ADDRESS_STAKING,
@@ -100,6 +101,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     );
 
     expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
+    await verifyLatestBlockFees(context.polkadotApi, expect, MIN_GLMR_STAKING);
   });
 });
 

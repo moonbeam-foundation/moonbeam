@@ -239,15 +239,22 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin);
 
+              console.log("origin", origin);
+
               console.log("txFees.toString()", txFees.toString());
               console.log(
-                "(toBalance.data.free.toBigInt() - fromBalance.data.free.toBigInt()).toString()",
-                (toBalance.data.free.toBigInt() - fromBalance.data.free.toBigInt()).toString()
+                "fromBalance.data.free.toBigInt() - toBalance.data.free.toBigInt() - expectedBalanceDiff",
+                (
+                  fromBalance.data.free.toBigInt() -
+                  toBalance.data.free.toBigInt() -
+                  expectedBalanceDiff
+                ).toString()
               );
+              console.log("expectedBalanceDiff.toString()", expectedBalanceDiff.toString());
               expect(txFees.toString()).to.eq(
                 (
                   fromBalance.data.free.toBigInt() -
-                  toBalance.data.free.toBigInt() +
+                  toBalance.data.free.toBigInt() -
                   expectedBalanceDiff
                 ).toString()
               );

@@ -10,6 +10,7 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { verifyLatestBlockFees } from "../util/block";
 
 describeDevMoonbeam("Sudo - Only sudo account", (context) => {
   let genesisAccount: KeyringPair;
@@ -35,5 +36,24 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(context.polkadotApi.events.balances.Endowed.is(events[3])).to.be.true;
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
     expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5])).to.be.true;
+  });
+});
+
+describeDevMoonbeam("Sudo - Only sudo account - test gas", (context) => {
+  let genesisAccount: KeyringPair;
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+  });
+  it.only("should NOT be able to call sudo with another account than sudo account", async function () {
+    await createBlockWithExtrinsic(
+      context,
+      genesisAccount,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      )
+    );
+
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });
