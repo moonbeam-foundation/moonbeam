@@ -1067,7 +1067,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// When we receive the self-reserve asset, we use pallet-transaction-payment
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = xcm_primitives::MultiWeightTraders<
+	type Trader = (
 		UsingComponents<
 			IdentityFee<Balance>,
 			SelfReserve,
@@ -1076,7 +1076,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			DealWithFees<Runtime>,
 		>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
-	>;
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;

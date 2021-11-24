@@ -32,8 +32,6 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::FilterAssetLocation;
 use xcm_executor::traits::WeightTrader;
 
-use sp_runtime::traits::Zero;
-
 use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
 
@@ -214,67 +212,6 @@ impl<
 		} else {
 			None
 		}
-	}
-}
-
-// This defines how multiTraders should be implemented
-// The intention is to distinguish between non-self-reserve assets and the reserve asset
-pub struct MultiWeightTraders<NativeTrader, OtherTrader> {
-	native_trader: NativeTrader,
-	other_trader: OtherTrader,
-}
-impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
-	for MultiWeightTraders<NativeTrader, OtherTrader>
-{
-	fn new() -> Self {
-		Self {
-			native_trader: NativeTrader::new(),
-			other_trader: OtherTrader::new(),
-		}
-	}
-	fn buy_weight(
-		&mut self,
-		weight: Weight,
-		payment: xcm_executor::Assets,
-	) -> Result<xcm_executor::Assets, XcmError> {
-		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
-			return Ok(assets);
-		}
-
-		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
-			return Ok(assets);
-		}
-
-		Err(XcmError::TooExpensive)
-	}
-	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
-		let native = self.native_trader.refund_weight(weight);
-		match native.clone() {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		let other = self.other_trader.refund_weight(weight);
-		match other {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		None
 	}
 }
 
