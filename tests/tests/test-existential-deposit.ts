@@ -24,7 +24,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
 });
 
 describeDevMoonbeam("Existential Deposit", (context) => {
-  it.only("should be disabled (no reaped account on 0 balance)", async function () {
+  it.only("should be disabled (no reaped account on tiny balance - 1)", async function () {
     await context.createBlock({
       transactions: [
         await createTransfer(
