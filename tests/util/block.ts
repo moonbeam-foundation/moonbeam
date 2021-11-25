@@ -82,16 +82,16 @@ export function mapExtrinsics(
 
 const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<BlockDetails> => {
   debug(`Querying ${blockHash}`);
-  const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
-  const [{ block }, records, blockTime] = await Promise.all([
+  // const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
+  const [{ block }, records] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
     api.query.system.events.at(blockHash),
-    api.query.timestamp.now.at(blockHash),
+    // api.query.timestamp.now.at(blockHash),
   ]);
 
-  const authorId = block.extrinsics
-    .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
-    .args[0].toString();
+  // const authorId = block.extrinsics
+  //   .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
+  //   .args[0].toString();
 
   // const [fees, authorName] = await Promise.all([
   //   Promise.all(
@@ -104,9 +104,9 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<B
   );
 
   const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
-  const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
-    return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
-  }, 0n);
+  // const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
+  //   return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
+  // }, 0n);
   return {
     block,
     // authorName,
@@ -202,6 +202,7 @@ export const verifyBlockFees = async (
             event.section == "system" &&
             (event.method == "ExtrinsicSuccess" || event.method == "ExtrinsicFailed")
           ) {
+            console.log("event.method", event.method);
             const dispatchInfo =
               event.method == "ExtrinsicSuccess"
                 ? (event.data[0] as DispatchInfo)
@@ -209,16 +210,21 @@ export const verifyBlockFees = async (
 
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
+            // TODO: sudo should not have paysFee
             if (
               dispatchInfo.paysFee.isYes &&
+              extrinsic.method.section !== "sudo" &&
               (!extrinsic.signer.isEmpty || extrinsic.method.section == "ethereum")
             ) {
+              console.log("extrinsic.method.section", extrinsic.method.section);
               if (extrinsic.method.section == "ethereum") {
+                console.log("dispatchInfo.weight.toBigInt()", dispatchInfo.weight.toBigInt());
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
                 // And then multiplying by gasPrice
                 txFees = gasFee * (extrinsic.method.args[0] as any).gasPrice.toBigInt();
               } else {
+                console.log("fee.partialFee.toBigInt();", fee.partialFee.toBigInt());
                 // For a regular substrate tx, we use the partialFee
                 txFees = fee.partialFee.toBigInt();
               }
@@ -282,8 +288,13 @@ export const verifyBlockFees = async (
         }
         // Then search for Deposit event from treasury
         // This is for bug detection when the fees are not matching the expected value
+        // TODO: sudo should not have treasury event
         for (const event of events) {
-          if (event.section == "treasury" && event.method == "Deposit") {
+          if (
+            event.section == "treasury" &&
+            event.method == "Deposit" &&
+            extrinsic.method.section !== "sudo"
+          ) {
             const deposit = (event.data[0] as any).toBigInt();
             // Compare deposit event amont to what should have been sent to deposit (if they don't match, which is not a desired behavior)
             expect(txFees - txBurnt).to.eq(deposit);

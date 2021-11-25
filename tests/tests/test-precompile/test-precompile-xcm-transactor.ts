@@ -246,7 +246,8 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
 
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(1000));
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });
 
@@ -354,6 +355,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
 
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(1000));
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });

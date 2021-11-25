@@ -57,7 +57,11 @@ describeDevMoonbeam("Contract loop error - check fees", (context) => {
     );
 
     await context.createBlock({
-      transactions: [rawTx, infiniteTx],
+      transactions: [rawTx],
+    });
+
+    await context.createBlock({
+      transactions: [infiniteTx],
     });
 
     await verifyLatestBlockFees(context.polkadotApi, expect);
