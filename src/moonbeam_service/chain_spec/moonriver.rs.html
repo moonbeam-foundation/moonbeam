@@ -290,10 +290,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -556,10 +552,8 @@
 			<span class="string">&quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk&quot;</span>.<span class="ident">to_string</span>();
 		<span class="kw">let</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="number">10</span>;
 		<span class="kw">let</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">mnemonic</span>, <span class="ident">accounts</span>);
-		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span>
-			<span class="ident">get_account_id_from_pair</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span>
-			<span class="ident">get_account_id_from_pair</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
 
 		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
 			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>();
@@ -576,10 +570,8 @@
 				.<span class="ident">to_string</span>();
 		<span class="kw">let</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="number">20</span>;
 		<span class="kw">let</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">mnemonic</span>, <span class="ident">accounts</span>);
-		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span>
-			<span class="ident">get_account_id_from_pair</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span>
-			<span class="ident">get_account_id_from_pair</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
 
 		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
 			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;1e56ca71b596f2b784a27a2fdffef053dbdeff83&quot;</span>).<span class="ident">unwrap</span>();

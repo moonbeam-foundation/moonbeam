@@ -149,10 +149,6 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -175,8 +171,6 @@
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">ecdsa</span>, <span class="ident">Pair</span>, <span class="ident">Public</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>};
-<span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">tiny_hderive::bip32::ExtendedPrivKey</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fake_spec</span>;
@@ -265,21 +259,19 @@
 	<span class="ident">childs</span>
 }
 
-<span class="doccomment">/// Helper function to get an AccountId from Key Pair</span>
-<span class="doccomment">/// We need the full decompressed public key to derive an ethereum-style account</span>
-<span class="doccomment">/// Substrate does not provide a method to obtain the full decompressed public key</span>
-<span class="doccomment">/// Therefore, this function uses the secp256k1_ecdsa_recover method to recover the full key</span>
-<span class="doccomment">/// A solution without using the private key would imply solving the secp256k1 curve equation</span>
-<span class="doccomment">/// The latter is currently not possible with current substrate methods</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_account_id_from_pair</span><span class="op">&lt;</span><span class="ident">TPublic</span>: <span class="ident">Public</span><span class="op">&gt;</span>(<span class="ident">pair</span>: <span class="ident">TPublic::Pair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">test_message</span> <span class="op">=</span> [<span class="number">1u8</span>; <span class="number">32</span>];
-	<span class="kw">let</span> <span class="ident">signature</span>: [<span class="ident">u8</span>; <span class="number">65</span>] <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="ident">test_message</span>).<span class="ident">as_ref</span>().<span class="ident">try_into</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
-	<span class="kw">let</span> <span class="ident">pubkey</span> <span class="op">=</span> <span class="ident">sp_io::crypto::secp256k1_ecdsa_recover</span>(
-		<span class="kw-2">&amp;</span><span class="ident">signature</span>,
-		<span class="ident">BlakeTwo256::hash_of</span>(<span class="kw-2">&amp;</span><span class="ident">test_message</span>).<span class="ident">as_fixed_bytes</span>(),
+<span class="doccomment">/// Helper function to get an `AccountId` from an ECDSA Key Pair.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pair</span>: <span class="ident">ecdsa::Pair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
+	<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span> <span class="ident">libsecp256k1::PublicKey::parse_slice</span>(
+		<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">public</span>().<span class="number">0</span>,
+		<span class="prelude-val">Some</span>(<span class="ident">libsecp256k1::PublicKeyFormat::Compressed</span>),
 	)
-	.<span class="ident">ok</span>()<span class="question-mark">?</span>;
-	<span class="prelude-val">Some</span>(<span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">pubkey</span>).<span class="ident">as_slice</span>())).<span class="ident">into</span>())
+	.<span class="ident">ok</span>()<span class="question-mark">?</span>
+	.<span class="ident">serialize</span>();
+
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
+	<span class="ident">m</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">decompressed</span>[<span class="number">1</span>..<span class="number">65</span>]);
+
+	<span class="prelude-val">Some</span>(<span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>).<span class="ident">as_slice</span>())).<span class="ident">into</span>())
 }
 
 <span class="doccomment">/// Function to generate accounts given a mnemonic and a number of child accounts to be generated</span>
@@ -290,7 +282,7 @@
 	<span class="ident">childs</span>
 		.<span class="ident">iter</span>()
 		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">par</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="ident">par</span>.<span class="ident">clone</span>());
+			<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">par</span>.<span class="ident">clone</span>());
 			<span class="macro">debug!</span>(
 				<span class="string">&quot;private_key {} --------&gt; Account {:x?}&quot;</span>,
 				<span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="ident">par</span>.<span class="ident">clone</span>().<span class="ident">seed</span>()),
