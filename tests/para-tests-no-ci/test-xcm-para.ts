@@ -64,25 +64,37 @@ Call extends SubmittableExtrinsic<ApiTypes>,
   const proposalHash = proposalEvents
     .find((e) => e.method.toString() == "Proposed")
     .data[2].toHex() as string;
+  
+  console.log("made it past here")
+  
+  await createBlockWithExtrinsicParachain(
+      parachainApi,
+      key_1,
+      parachainApi.tx.techCommitteeCollective.vote(proposalHash, 0, true)
+      );
+   console.log("made it past here 2")
 
-  // Alith, Baltathar vote for this proposal and close it
-  await Promise.all([
-    parachainApi.tx.techCommitteeCollective.vote(proposalHash, 0, true).signAndSend(key_1),
-    parachainApi.tx.techCommitteeCollective
+  await createBlockWithExtrinsicParachain(
+        parachainApi,
+        key_2,
+        parachainApi.tx.techCommitteeCollective
       .vote(proposalHash, 0, true)
-      .signAndSend(key_2),
-  ]);
+        );
 
-  return await createBlockWithExtrinsicParachain(
+        console.log("made it past here3")
+
+  await createBlockWithExtrinsicParachain(
     parachainApi,
     key_2,
     parachainApi.tx.techCommitteeCollective.close(
       proposalHash,
       0,
-      1_000_000_000,
+      4_000_000_000,
       lengthBound
     )
     );
+    console.log("made it past here4")
+
 }
 
 async function registerAssetToParachain(
@@ -822,6 +834,8 @@ describeParachain(
   { chain: "moonbase-local" },
   (context) => {
     it.only("should enqueue DMP messages in maintenance and then execute when normal", async function () {
+      this.timeout(600000);
+
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
@@ -851,7 +865,7 @@ describeParachain(
 
       // check asset in storage
       const registeredAsset = await parachainOne.query.assets.asset(assetId);
-      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
+      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId.toLowerCase());
 
       // PARACHAIN
       // go into Maintenance
@@ -862,6 +876,12 @@ describeParachain(
         baltathar
       );
       
+      console.log("verifying")
+      // Make sure we are on maintenance
+      expect(
+        await parachainOne.query.maintenanceMode.maintenanceMode() as any
+      ).to.eq(true);
+      console.log("after verifying")
 
       // RELAYCHAIN
       // Trigger the transfer
