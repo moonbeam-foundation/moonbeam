@@ -19,6 +19,7 @@ use std::assert_matches::assert_matches;
 use crate::mock::*;
 use crate::*;
 
+use fp_evm::Context;
 use pallet_evm::PrecompileSet;
 use precompile_utils::{error, Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
@@ -34,7 +35,7 @@ fn selector_less_than_four_bytes() {
 				Account::Precompile.into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::Precompile.into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -55,7 +56,7 @@ fn no_selector_exists_but_length_is_right() {
 				Account::Precompile.into(),
 				&bogus_selector,
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::Precompile.into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -98,11 +99,9 @@ fn get_total_supply() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::TotalSupply)
-						.build(),
+					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -127,12 +126,11 @@ fn get_balances_known_user() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -157,12 +155,11 @@ fn get_balances_unknown_user() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -187,13 +184,12 @@ fn approve() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Approve)
+					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -224,13 +220,12 @@ fn check_allowance_existing() {
 		.execute_with(|| {
 			Precompiles::<Runtime>::execute(
 				Account::Precompile.into(),
-				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
+				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::Precompile.into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -240,13 +235,12 @@ fn check_allowance_existing() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Allowance)
+					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -271,13 +265,12 @@ fn check_allowance_not_existing() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Allowance)
+					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -302,13 +295,12 @@ fn transfer() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Transfer)
+					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -317,7 +309,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 197230756u64, // 1 weight => 1 gas in mock
+					cost: 195953756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -332,12 +324,11 @@ fn transfer() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -354,12 +345,11 @@ fn transfer() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -384,13 +374,12 @@ fn transfer_not_enough_funds() {
 			assert_matches!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Transfer)
+					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(1400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -411,13 +400,12 @@ fn transfer_from() {
 		.execute_with(|| {
 			Precompiles::<Runtime>::execute(
 				Account::Precompile.into(),
-				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
+				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::Precompile.into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -427,14 +415,13 @@ fn transfer_from() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
+					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -443,7 +430,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 197230756u64, // 1 weight => 1 gas in mock
+					cost: 195953756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -458,12 +445,11 @@ fn transfer_from() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -480,12 +466,11 @@ fn transfer_from() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -502,13 +487,12 @@ fn transfer_from() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Allowance)
+					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -532,13 +516,12 @@ fn transfer_from_above_allowance() {
 		.execute_with(|| {
 			Precompiles::<Runtime>::execute(
 				Account::Precompile.into(),
-				&EvmDataWriter::new()
-					.write_selector(Action::Approve)
+				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(300))
 					.build(),
 				None,
-				&evm::Context {
+				&Context {
 					address: Account::Precompile.into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
@@ -548,14 +531,13 @@ fn transfer_from_above_allowance() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
+					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
@@ -575,14 +557,13 @@ fn transfer_from_self() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::TransferFrom)
+					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						// Alice sending transferFrom herself, no need for allowance.
 						caller: Account::Alice.into(),
@@ -592,7 +573,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 197230756u64, // 1 weight => 1 gas in mock
+					cost: 195953756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -607,12 +588,11 @@ fn transfer_from_self() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -629,12 +609,11 @@ fn transfer_from_self() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::BalanceOf)
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -659,9 +638,9 @@ fn get_metadata_name() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new().write_selector(Action::Name).build(),
+					&EvmDataWriter::new_with_selector(Action::Name).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -688,9 +667,9 @@ fn get_metadata_symbol() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new().write_selector(Action::Symbol).build(),
+					&EvmDataWriter::new_with_selector(Action::Symbol).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -715,11 +694,9 @@ fn get_metadata_decimals() {
 			assert_eq!(
 				Precompiles::<Runtime>::execute(
 					Account::Precompile.into(),
-					&EvmDataWriter::new()
-						.write_selector(Action::Decimals)
-						.build(),
+					&EvmDataWriter::new_with_selector(Action::Decimals).build(),
 					None,
-					&evm::Context {
+					&Context {
 						address: Account::Precompile.into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),

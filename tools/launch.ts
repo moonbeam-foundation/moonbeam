@@ -15,8 +15,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundle } from "../moonbeam-types-bundle/dist";
 
 // Description of the network to launch
 type NetworkConfig = {
@@ -95,8 +93,18 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.13.2",
   },
+  "moonbase-0.14.2": {
+    relay: "rococo-9111",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.14.2",
+  },
+  "moonbase-0.15.1": {
+    relay: "rococo-9111",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.15.1",
+  },
   local: {
-    relay: "rococo-9100",
+    relay: "rococo-9111",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -138,6 +146,10 @@ const relays: { [name: string]: NetworkConfig } = {
   },
   "rococo-9004": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
+    chain: "rococo-local",
+  },
+  "rococo-9111": {
+    docker: "purestake/moonbase-relay-testnet:sha-7da182da",
     chain: "rococo-local",
   },
   "westend-9030": {
@@ -432,7 +444,7 @@ const launchTemplate = {
     nodes: [],
     genesis: {
       runtime: {
-        parachainsConfiguration: {
+        configuration: {
           config: {
             validation_upgrade_frequency: 1,
             validation_upgrade_delay: 1,
@@ -455,12 +467,14 @@ const launchTemplate = {
 const relayNodeTemplate = [
   {
     name: "alice",
+    flags: ["--log=info,parachain::pvf=trace"],
     port: 0,
     rpcPort: 1,
     wsPort: 2,
   },
   {
     name: "bob",
+    flags: ["--log=info,parachain::pvf=trace"],
     port: 10,
     rpcPort: 11,
     wsPort: 12,
@@ -479,8 +493,8 @@ const parachainTemplate = {
       wsPort: 102,
       name: "alice",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
+        "--unsafe-ws-external",
         "--rpc-cors=all",
         "--",
         "--execution=wasm",
@@ -492,8 +506,8 @@ const parachainTemplate = {
       wsPort: 112,
       name: "bob",
       flags: [
-        "--log=info,rpc=trace,evm=trace,ethereum=trace",
         "--unsafe-rpc-external",
+        "--unsafe-ws-external",
         "--rpc-cors=all",
         "--",
         "--execution=wasm",

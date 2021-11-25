@@ -7,6 +7,7 @@ import {
   DOROTHY_PRIV_KEY,
   ETHAN,
   ETHAN_PRIVKEY,
+  GLMR,
   VOTE_AMOUNT,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
@@ -39,35 +40,41 @@ describeDevMoonbeam("Proxing governance", (context) => {
   it("should be able to vote on behalf of the delegate account", async function () {
     // Verify that one referundum is triggered
     let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toHuman()).to.equal("1");
+    expect(referendumCount.toBigInt()).to.equal(1n);
 
     // Dorothy add proxy rigth to ethan for governance only
     await context.polkadotApi.tx.proxy.addProxy(ETHAN, "Governance", 0).signAndSend(dorothy);
     await context.createBlock();
 
     // Ethan vote as Dorothy
-    let voteCall = context.polkadotApi.tx.democracy.vote(0, {
+    const voteCall = context.polkadotApi.tx.democracy.vote(0, {
       Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
     });
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      ethan,
-      context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall)
-    );
 
-    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[0])).to.be.true;
-    expect(Object.keys(events[0].toHuman().data[0])[0] === "Ok").to.be.true;
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[1])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[2])).to.be.true;
+    const dorothyPreBalance = (
+      await context.polkadotApi.query.system.account(DOROTHY)
+    ).data.free.toBigInt();
+    const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
+    const { events } = await createBlockWithExtrinsic(context, ethan, ext);
 
-    // Verify that dorothy tokens are used
+    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[1])).to.be.true;
+    expect(events[1].data[0].toString()).to.equal("Ok");
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[3])).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
+
+    // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
     let dorothyAccountData = await context.polkadotApi.query.system.account(DOROTHY);
-    expect((dorothyAccountData.toHuman() as any).data.free).to.equal("1.2089 MUNIT");
+    expect(dorothyAccountData.data.free.toBigInt()).to.equal(dorothyPreBalance);
+    expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
     // Verify that vote is registered
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(proposalHash);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal("10.0000 UNIT");
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.turnout).to.equal("10.0000 UNIT");
+    const referendumInfoOf = (
+      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+    ).unwrap() as any;
+    const onGoing = referendumInfoOf.asOngoing;
+
+    expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);
+    expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
+    expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
   });
 });

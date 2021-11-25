@@ -18,8 +18,9 @@ use super::*;
 use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 
-use frame_support::{construct_runtime, parameter_types, RuntimeDebug};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, RuntimeDebug};
 use frame_system::EnsureRoot;
+use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_runtime::DispatchError;
 use sp_runtime::{
@@ -46,7 +47,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -97,7 +98,17 @@ parameter_types! {
 
 pub type AssetId = u32;
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	MaxEncodedLen,
+	TypeInfo,
 )]
 pub enum MockAssetType {
 	MockAsset(AssetId),
@@ -133,6 +144,7 @@ impl Config for Test {
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type AssetModifierOrigin = EnsureRoot<u64>;
+	type WeightInfo = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

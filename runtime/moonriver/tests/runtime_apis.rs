@@ -94,7 +94,7 @@ fn ethereum_runtime_rpc_api_author() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -196,7 +196,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -227,7 +227,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -259,7 +259,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -281,7 +281,11 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 fn txpool_runtime_api_extrinsic_filter() {
 	ExtBuilder::default().build().execute_with(|| {
 		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
+			pallet_balances::Call::<Runtime>::transfer {
+				dest: AccountId::from(BOB),
+				value: 1 * MOVR,
+			}
+			.into(),
 		);
 		let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 		let txpool = <Runtime as TxPoolRuntimeApi<moonriver_runtime::Block>>::extrinsic_filter(

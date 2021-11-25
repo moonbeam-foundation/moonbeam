@@ -12,7 +12,7 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
   console.log("```");
-  console.log(`$ yarn run print-version-bump-info --from ${previousVersion} --to ${nextVersion}`);
+  console.log(`$ npm run print-version-bump-info --from ${previousVersion} --to ${nextVersion}`);
   console.log("```");
 
   const prInfoByLabels = {};
@@ -86,7 +86,11 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
       continue;
     }
     console.log(`\n### ${labelName || "N/A"}\n`);
-    for (const prInfo of prInfoByLabels[labelName]) {
+    // Deduplicate PRs on same label
+    const deduplicatePrsOfLabel = prInfoByLabels[labelName].filter(function (elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    for (const prInfo of deduplicatePrsOfLabel) {
       console.log(prInfo);
     }
   }

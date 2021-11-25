@@ -1,17 +1,21 @@
- [package]
-name = 'moonbeam-cli-opt'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-version = '0.13.2'
-authors = ["PureStake"]
-edition = '2018'
+[package]
+name = "moonbeam-cli-opt"
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.15.1"
 
 [dependencies]
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-structopt = "0.3.8"
-tiny-bip39 = "0.8"
 libsecp256k1 = "0.6"
 primitive-types = "0.10.0"
 sha3 = "0.9"
+structopt = "0.3.8"
+tiny-bip39 = "0.8"
 tiny-hderive = "0.3.0"
+
+# Moonbeam
 account = { path = "../../primitives/account" }
+
+# Substrate
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }

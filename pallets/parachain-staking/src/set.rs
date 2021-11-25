@@ -16,6 +16,7 @@
 
 /* TODO: use orml_utilities::OrderedSet without leaking substrate v2.0 dependencies*/
 use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_runtime::RuntimeDebug;
@@ -23,7 +24,7 @@ use sp_std::prelude::*;
 
 /// An ordered set backed by `Vec`
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Default, Clone)]
+#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Default, Clone, TypeInfo)]
 pub struct OrderedSet<T>(pub Vec<T>);
 
 impl<T: Ord> OrderedSet<T> {
@@ -61,7 +62,7 @@ impl<T: Ord> OrderedSet<T> {
 	/// Remove an element.
 	/// Return true if removal happened.
 	pub fn remove(&mut self, value: &T) -> bool {
-		match self.0.binary_search(&value) {
+		match self.0.binary_search(value) {
 			Ok(loc) => {
 				self.0.remove(loc);
 				true
@@ -72,7 +73,7 @@ impl<T: Ord> OrderedSet<T> {
 
 	/// Return if the set contains `value`
 	pub fn contains(&self, value: &T) -> bool {
-		self.0.binary_search(&value).is_ok()
+		self.0.binary_search(value).is_ok()
 	}
 
 	/// Clear the set
