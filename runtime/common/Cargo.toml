@@ -33,9 +33,9 @@ std = [
 	"pallet-asset-manager/std",
 	"pallet-author-mapping/std",
 	"pallet-evm/std",
-	"sp-core/std",
 	"pallet-migrations/std",
 	"parachain-staking/std",
+	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]

@@ -12,7 +12,7 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
   console.log("```");
-  console.log(`$ yarn run print-version-bump-info --from ${previousVersion} --to ${nextVersion}`);
+  console.log(`$ npm run print-version-bump-info --from ${previousVersion} --to ${nextVersion}`);
   console.log("```");
 
   const prInfoByLabels = {};
