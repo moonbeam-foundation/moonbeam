@@ -36,7 +36,7 @@ export function signWith(
     })
     .sign(pair);
 
-  return signature;
+  return signature as `0x${string}`; //TODO: fix this when type problem is fixed
 }
 
 describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
