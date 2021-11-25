@@ -212,7 +212,9 @@ impl ExtBuilder {
 		.unwrap();
 
 		<pallet_ethereum::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_ethereum::GenesisConfig {},
+			&pallet_ethereum::GenesisConfig {
+				storage_schema: pallet_ethereum::EthereumStorageSchema::V2,
+			},
 			&mut t,
 		)
 		.unwrap();
