@@ -20,8 +20,6 @@ use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, Pair, Public, H160, H256};
-use sp_runtime::traits::{BlakeTwo256, Hash};
-use std::convert::TryInto;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
 pub mod fake_spec;
