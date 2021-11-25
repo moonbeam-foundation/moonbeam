@@ -20,14 +20,8 @@ const charleth = keyring.addFromUri(CHARLETH_PRIVATE_KEY, null, "ethereum");
 
 /// Sign and sand Substrate transaction then create a block.
 /// Will provide events emited by the transaction to check if they match what is expected.
-async function substrateTransaction(
-  context,
-  sender,
-  polkadotCall
-  // inBlockCallback: (events: Event[]) => void
-): Promise<Event[]> {
+async function substrateTransaction(context, sender, polkadotCall): Promise<Event[]> {
   const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
-  // await inBlockCallback(events);
   return events;
 }
 
