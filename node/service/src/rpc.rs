@@ -29,7 +29,7 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, Web3Api, Web3ApiServer,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride, Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
@@ -147,6 +147,11 @@ where
 		Box::new(SchemaV1Override::new(client.clone()))
 			as Box<dyn StorageOverride<_> + Send + Sync>,
 	);
+	overrides_map.insert(
+		EthereumStorageSchema::V2,
+		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
 
 	let overrides = Arc::new(OverrideHandle {
 		schemas: overrides_map,
@@ -227,7 +232,7 @@ pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
-	C: BlockchainEvents<B>,
+	C: BlockchainEvents<B> + StorageProvider<B, BE>,
 	C: Send + Sync + 'static,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	C::Api: BlockBuilder<B>,
@@ -274,7 +279,6 @@ where
 		EthTask::ethereum_schema_cache_task(
 			Arc::clone(&params.client),
 			Arc::clone(&params.frontier_backend),
-			pallet_ethereum::EthereumStorageSchema::V1,
 		),
 	);
 }
