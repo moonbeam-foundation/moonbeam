@@ -895,8 +895,18 @@ impl pallet_maintenance_mode::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type NormalDmpHandler = ();
 	type MaintenanceDmpHandler = ();
-	type NormalOnIdle = ();
-	type MaintenanceOnIdle = ();
+	type NormalXcmpHandler = ();
+	type MaintenanceXcmpHandler = ();
+	type NormalOnIdle = AllPallets;
+	type MaintenanceOnIdle = AllPallets;
+	type NormalOnInitialize = AllPallets;
+	type MaintenanceOnInitialize = AllPallets;
+	type NormalOnFinalize = AllPallets;
+	type MaintenanceOnFinalize = AllPallets;
+	type NormalOffchainWorker = AllPallets;
+	type MaintenanceOffchainWorker = AllPallets;
+	type NormalOnRuntimeUpgrade = AllPallets;
+	type MaintenanceOnRuntimeUpgrade = AllPallets;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {

@@ -49,6 +49,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::*;
+
 use frame_support::pallet;
 
 pub use pallet::*;
@@ -56,10 +59,12 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use cumulus_primitives_core::{
-		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, XcmpMessageHandler,
 	};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Contains, EnsureOrigin, OnIdle};
+	use frame_support::traits::{
+		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
+	};
 	use frame_system::pallet_prelude::*;
 	use sp_std::vec::Vec;
 	/// Pallet for migrations
@@ -88,10 +93,30 @@ pub mod pallet {
 		type NormalDmpHandler: DmpMessageHandler;
 		/// The DMP handler to be used in maintenance mode
 		type MaintenanceDmpHandler: DmpMessageHandler;
+		/// The XCMP handler to be used in normal operating mode
+		type NormalXcmpHandler: XcmpMessageHandler;
+		/// The XCMP handler to be used in maintenance mode
+		type MaintenanceXcmpHandler: XcmpMessageHandler;
+		/// The OnIdle hooks that should be called on normal operating mode
+		type NormalOnIdle: OnIdle<Self::BlockNumber>;
 		/// The OnIdle hooks that should be called on maintenance mode
 		type MaintenanceOnIdle: OnIdle<Self::BlockNumber>;
-		/// The OnIdle hooks that should be called on normal mode
-		type NormalOnIdle: OnIdle<Self::BlockNumber>;
+		/// The OnInitialize hooks that should be called on normal operating mode
+		type NormalOnInitialize: OnInitialize<Self::BlockNumber>;
+		/// The OnInitialize hooks that should be called on maintenance mode
+		type MaintenanceOnInitialize: OnInitialize<Self::BlockNumber>;
+		/// The OnFinalize hooks that should be called on normal operating mode
+		type NormalOnFinalize: OnFinalize<Self::BlockNumber>;
+		/// The OnFinalize hooks that should be called on maintenance mode
+		type MaintenanceOnFinalize: OnFinalize<Self::BlockNumber>;
+		/// The OffchainWorker hooks that should be called on normal operating mode
+		type NormalOffchainWorker: OffchainWorker<Self::BlockNumber>;
+		/// The OffchainWorker hooks that should be called on maintenance mode
+		type MaintenanceOffchainWorker: OffchainWorker<Self::BlockNumber>;
+		/// The OnRuntimeUpgrade hooks that should be called on normal operating mode
+		type NormalOnRuntimeUpgrade: OnRuntimeUpgrade;
+		/// The OnRuntimeUpgrade hook that should be called on maintenance mode
+		type MaintenanceOnRuntimeUpgrade: OnRuntimeUpgrade;
 	}
 
 	#[pallet::event]
@@ -209,17 +234,6 @@ pub mod pallet {
 				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
 			} else {
 				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
-			}
-		}
-	}
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_idle(now: T::BlockNumber, max_weight: Weight) -> Weight {
-			if MaintenanceMode::<T>::get() {
-				T::MaintenanceOnIdle::on_idle(now, max_weight)
-			} else {
-				T::NormalOnIdle::on_idle(now, max_weight)
 			}
 		}
 	}

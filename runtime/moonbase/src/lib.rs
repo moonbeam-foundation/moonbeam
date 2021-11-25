@@ -1406,16 +1406,30 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+};
 pub struct MaintenanceDmpHandler;
-impl cumulus_primitives_core::DmpMessageHandler for MaintenanceDmpHandler {
+impl DmpMessageHandler for MaintenanceDmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
 	fn handle_dmp_messages(
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		limit: Weight,
+		_limit: Weight,
 	) -> Weight {
 		DmpQueue::handle_dmp_messages(iter, 0)
+	}
+}
+
+pub struct MaintenanceXcmpHandler;
+impl XcmpMessageHandler for MaintenanceXcmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		iter: I,
+		_limit: Weight,
+	) -> Weight {
+		XcmpQueue::handle_xcmp_messages(iter, 0)
 	}
 }
 
@@ -1423,18 +1437,22 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
-	//type MaintenanceOrigin =
-	//	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
-	type MaintenanceOrigin = EnsureRoot<AccountId>;
+	type MaintenanceOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type NormalDmpHandler = DmpQueue;
-
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	// These are the only two pallets that use on_idle
-	// We cant use AllPallets as it would take into account MaintenanceMode too, and thus create
-	// an infinite call loop
-	type NormalOnIdle = (DmpQueue, XcmpQueue);
-	// We dont want anything to be executed onIdle, specially xcm messages
+	type NormalXcmpHandler = XcmpQueue;
+	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
+	type NormalOnIdle = AllPallets;
 	type MaintenanceOnIdle = ();
+	type NormalOnInitialize = AllPallets;
+	type MaintenanceOnInitialize = AllPallets;
+	type NormalOnFinalize = AllPallets;
+	type MaintenanceOnFinalize = AllPallets;
+	type NormalOffchainWorker = AllPallets;
+	type MaintenanceOffchainWorker = AllPallets;
+	type NormalOnRuntimeUpgrade = AllPallets;
+	type MaintenanceOnRuntimeUpgrade = AllPallets;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -1517,7 +1535,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPallets,
+	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
