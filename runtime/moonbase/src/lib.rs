@@ -703,19 +703,19 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	pub const MinBlocksPerRound: u32 = 10;
-	/// Default BlocksPerRound is every hour (300 * 12 second block times)
-	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Blocks per round
+	pub const DefaultBlocksPerRound: u32 = 2 * HOURS;
+	/// Rounds before the collator leaving the candidates request can be executed
 	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Collator candidate bond increases/decreases are delayed by 2 hours (2 * 300 block_time)
+	/// Rounds before candidate bond increase/decrease can be executed
 	pub const CandidateBondDelay: u32 = 2;
-	/// Delegator exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the delegator exit can be executed
 	pub const LeaveDelegatorsDelay: u32 = 2;
-	/// Delegation revocations are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the delegator revocation can be executed
 	pub const RevokeDelegationDelay: u32 = 2;
-	/// Delegation bond increases/decreases are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the delegator bond increase/decrease can be executed
 	pub const DelegationBondDelay: u32 = 2;
-	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the reward is paid
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
@@ -728,9 +728,9 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
+	pub const MinCollatorStk: u128 = 1000 * currency::UNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCandidateStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
+	pub const MinCandidateStk: u128 = 500 * currency::UNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::UNIT * currency::SUPPLY_FACTOR;
 }

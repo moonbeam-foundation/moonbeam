@@ -665,19 +665,19 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	pub const MinBlocksPerRound: u32 = 10;
-	/// Default BlocksPerRound is every 4 hours (1200 * 12 second block times)
-	pub const DefaultBlocksPerRound: u32 = 4 * HOURS;
-	/// Collator candidate exit delay (number of rounds)
-	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Collator candidate bond increases/decreases delay (number of rounds)
-	pub const CandidateBondDelay: u32 = 2;
-	/// Delegator exit delay (number of rounds)
-	pub const LeaveDelegatorsDelay: u32 = 2;
-	/// Delegation revocations delay (number of rounds)
-	pub const RevokeDelegationDelay: u32 = 2;
-	/// Delegation bond increases/decreases delay (number of rounds)
-	pub const DelegationBondDelay: u32 = 2;
-	/// Reward payments delay (number of rounds)
+	/// Blocks per round
+	pub const DefaultBlocksPerRound: u32 = 6 * HOURS;
+	/// Rounds before the collator leaving the candidates request can be executed
+	pub const LeaveCandidatesDelay: u32 = 4 * 7;
+	/// Rounds before candidate bond increase/decrease can be executed
+	pub const CandidateBondDelay: u32 = 4 * 7;
+	/// Rounds before the delegator exit can be executed
+	pub const LeaveDelegatorsDelay: u32 = 4 * 7;
+	/// Rounds before the delegator revocation can be executed
+	pub const RevokeDelegationDelay: u32 = 4 * 7;
+	/// Rounds before the delegator bond increase/decrease can be executed
+	pub const DelegationBondDelay: u32 = 4 * 7;
+	/// Rounds before the reward is paid
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
@@ -690,10 +690,10 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
-	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::SUPPLY_FACTOR;
+	pub const MinCollatorStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
+	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR / 10;
 	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
