@@ -814,7 +814,7 @@ describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
   (context) => {
-    it("should enqueue DMP messages in maintenance and then execute when normal", async function () {
+    it("should enqueue DMP messages in maintenance and execute when normal", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
