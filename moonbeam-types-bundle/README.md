@@ -1,21 +1,31 @@
 # Moonbeam Types Bundle
 
 Exports npm package `moonbeam-types-bundle`, formated as per polkadot-js specification to use
-with the app or the api.
+with the app or the API.
 
 ## ⚠️Warning: Types deprecation⚠️
 
 Following runtime upgrade 900 (include substrate v0.9.11), types are now retrieved from the node, in
 a **camelCase** format
 
-A **new version** has been released `moonbeam-types-bundle@2.0.0`.  
+A **new version** has been released `moonbeam-types-bundle@2.0.0`.
 
-The default export `typesBundle` has **been removed** in order to avoid confusion.  
+The default export `typesBundle` has **been removed** to avoid confusion.  
 
 **2 new typesBundles** are available:
 
 * `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention
 * `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention that isn't camelCase (This will break at runtime 1000)
+
+The following package versions have been tested:
+
+```
+"@polkadot/api": "^6.9.1",
+"moonbeam-types-bundle": "^2.0.1",
+"typescript": "4.3.2"
+```
+
+Running the latest TypeScript version will not work.
 
 ### Breaking changes in typesBundlePre900
 
@@ -52,10 +62,19 @@ Those types are being changed:
 
 ## How to upgrade your tools/scripts using moonbeam-types-bundle
 
-*(If your tool/script is not requesting past blocks, you can simply use the `typesBundleDeprecated` 
+*(If your tool/script is not requesting past blocks, you can use the `typesBundleDeprecated` 
 for now and fully remove it once the network has been upgraded to runtime 900, 
 around Nov 18th 2021)*
 
+The following package versions have been tested:
+
+```
+"@polkadot/api": "^6.9.1",
+"moonbeam-types-bundle": "^2.0.1",
+"typescript": "4.3.2"
+```
+
+Running the latest TypeScript version will not work.
 
 Ultimately it is necessary to use the new type naming as the previous one won't be supported, but
 you can import `typesBundleDeprecated` to buy yourself some time.
@@ -86,21 +105,21 @@ const api = await ApiPromise.create({
 
 ### Step 3: Updates the object property names
 
-Exemple:
+For example:
 
 ```
 console.log(collatorState2.unwrap().top_nominators);
                                     ^^^^^^^^^^^^^^
 ```
 
-becomes:
+Becomes:
 
 ```
 console.log(collatorState2.unwrap().topNominators);
                                     ^^^^^^^^^^^^^
 ```
 
-All changes were listed [previously](#breaking-changes-in-typesbundlepre900)
+All changes were listed [previously](#breaking-changes-in-typesbundlepre900).
 
 ## Support for ethereum encoded (MiXedCaSe) addresses
 
@@ -121,9 +140,9 @@ console.log(ethereumEncode(address));
 
 # Development
 
-`typesBundlePre900` is of type OverrideBundleType to associate runtime names with correct definitions
+`typesBundlePre900` is of type OverrideBundleType to associate runtime names with correct definitions.
 
-`moonbeamDefinitions` is of types OverrideBundleDefinition and returns a different set of type for
+`moonbeamDefinitions` is of types OverrideBundleDefinition and returns a different set of types for
 each runtime version.
 
 ## Print Types

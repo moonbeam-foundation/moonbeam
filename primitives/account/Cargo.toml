@@ -13,6 +13,7 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 [dependencies]
 blake2-rfc = { version = "0.2.18", optional = true, default-features = false }
 hex = { version = "0.4", default-features = false }
+impl-serde = { version = "0.3.1", default-features = false }
 libsecp256k1 = { version = "0.6", default-features = false, features = [ "hmac" ] }
 log = "0.4"
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
@@ -35,6 +36,7 @@ default = [ "std" ]
 std = [
 	"full_crypto",
 	"hex/std",
+	"impl-serde/std",
 	"libsecp256k1/std",
 	"parity-scale-codec/std",
 	"serde/std",
