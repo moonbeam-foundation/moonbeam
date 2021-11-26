@@ -61,12 +61,9 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
         alith,
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0)
       );
-      events.forEach((e) => {
-        console.log(1);
-        console.log(e.toHuman());
-      });
       expect(events[2].method).to.be.eq("ProxyAdded");
-      expect(events[2].data[3]).to.be.eq("Any");
+      console.log("events[2].data", events[2].toHuman().data);
+      expect(events[2].data[2].toString()).to.be.eq("Any"); //ProxyType
       expect(events[7].method).to.be.eq("ExtrinsicSuccess");
 
       const events2 = await substrateTransaction(
@@ -78,19 +75,15 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         )
       );
-      events2.forEach((e) => {
-        console.log(2);
-        console.log(e.toHuman());
-      });
       expect(events2[2].method).to.be.eq("ProxyExecuted");
-      expect(events2[2].data[0]).to.be.eq("'Ok'");
+      expect(events2[2].data[0].toString()).to.be.eq("Ok");
       expect(events2[5].method).to.be.eq("ExtrinsicSuccess");
     });
   });
 });
 
-describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
-  it("should accept removed proxy", async () => {
+describeDevMoonbeam("Pallet proxy - shouldn't accept removed proxy", (context) => {
+  it("shouldn't accept removed proxy", async () => {
     await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
       const events = await substrateTransaction(
         context,

@@ -94,3 +94,6 @@ export const EXTRINSIC_BASE_COST = 125_000_000 / GAS_PER_WEIGHT;
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
 // minus the block initialization (10%) and minus the extrinsic base cost.
 export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - EXTRINSIC_BASE_COST;
+
+// for author mapping
+export const BOB_AUTHOR_ID = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
