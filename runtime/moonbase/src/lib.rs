@@ -1454,7 +1454,7 @@ impl XcmpMessageHandler for MaintenanceXcmpHandler {
 
 // Default implementation already returns 0
 // For some reason using empty tuple () isnt working
-pub struct NoOnIdle;
+pub struct DoNothingOnIdle;
 impl frame_support::traits::OnIdle<BlockNumber> for NoOnIdle {}
 
 impl pallet_maintenance_mode::Config for Runtime {
@@ -1472,7 +1472,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	// For some reason putting an empty tumple does not work (transaction never finishes)
 	// We use an empty onIdle, if on the future we want one of the pallets to execute it
 	// we need to provide it here
-	type MaintenanceOnIdle = NoOnIdle;
+	type MaintenanceOnIdle = DoNothingOnIdle;
 	type NormalOnInitialize = AllPallets;
 	type MaintenanceOnInitialize = AllPallets;
 	type NormalOnFinalize = AllPallets;
