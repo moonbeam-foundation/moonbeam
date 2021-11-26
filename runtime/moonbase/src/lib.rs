@@ -1564,7 +1564,6 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
-	//AllPallets,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
