@@ -1398,6 +1398,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
 			Call::XTokens(_) => false,
+			Call::XcmTransactor(_) => false,
 			_ => true,
 		}
 	}
