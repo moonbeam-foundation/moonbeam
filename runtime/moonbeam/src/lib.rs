@@ -669,7 +669,7 @@ parameter_types! {
 	pub const DefaultBlocksPerRound: u32 = 6 * HOURS;
 	/// Rounds before the collator leaving the candidates request can be executed
 	pub const LeaveCandidatesDelay: u32 = 4 * 7;
-	/// Rounds before candidate bond increase/decrease can be executed
+	/// Rounds before the candidate bond increase/decrease can be executed
 	pub const CandidateBondDelay: u32 = 4 * 7;
 	/// Rounds before the delegator exit can be executed
 	pub const LeaveDelegatorsDelay: u32 = 4 * 7;
