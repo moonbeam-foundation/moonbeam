@@ -974,7 +974,7 @@ describeParachain(
         paraAssetMetadata
       ));
     });
-    it("should enqueue XCMP messages in maintenance and then execute when normal", async function () {
+    it("should enqueue XCMP messages in maintenance and execute when normal", async function () {
       // PARACHAIN B
       // go into Maintenance
       await execFromAllMembersOfTechCommittee(
@@ -1022,8 +1022,8 @@ describeParachain(
       let queuedMessages = ((await parachainTwo.query.xcmpQueue.inboundXcmpStatus()) as any)[0][2]
         .length;
 
-      // Assert the XCMP message arrived and got queued. At least one (probably two due to versioning) should
-      // have arrived
+      // Assert the XCMP message arrived and got queued. At least one (probably two for versioning)
+      // should have arrived
       expect(queuedMessages > 0).to.eq(true);
 
       // Assert it did not get executed
