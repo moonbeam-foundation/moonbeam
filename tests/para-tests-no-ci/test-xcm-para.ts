@@ -974,7 +974,7 @@ describeParachain(
         paraAssetMetadata
       ));
     });
-    it.only("should enqueue XCMP messages in maintenance and then execute when normal", async function () {
+    it("should enqueue XCMP messages in maintenance and then execute when normal", async function () {
       // PARACHAIN B
       // go into Maintenance
       await execFromAllMembersOfTechCommittee(
