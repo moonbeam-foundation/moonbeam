@@ -639,7 +639,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 101);
 	});
 }
 
