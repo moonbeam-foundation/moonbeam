@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import Keyring from "@polkadot/keyring";
 import { Event } from "@polkadot/types/interfaces";
 import {
@@ -7,8 +7,8 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-} from "../util/constants";
-import { createBlockWithExtrinsic, logEvents } from "../util/substrate-rpc";
+} from "../../util/constants";
+import { createBlockWithExtrinsic, logEvents } from "../../util/substrate-rpc";
 const debug = require("debug")("test:proxy");
 
 // In these tests Alith will allow Baltathar to perform calls on her behalf.
@@ -54,13 +54,19 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept unknown proxy", (context) =
 });
 
 describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
-  it("should accept known proxy", async () => {
+  it.only("should accept known proxy", async () => {
     await expectBalanceDifference(context, CHARLETH_ADDRESS, 100, async () => {
       const events = await substrateTransaction(
         context,
         alith,
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0)
       );
+      events.forEach((e) => {
+        console.log(1);
+        console.log(e.toHuman());
+      });
+      expect(events[2].method).to.be.eq("ProxyAdded");
+      expect(events[2].data[3]).to.be.eq("Any");
       expect(events[7].method).to.be.eq("ExtrinsicSuccess");
 
       const events2 = await substrateTransaction(
@@ -72,6 +78,12 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         )
       );
+      events2.forEach((e) => {
+        console.log(2);
+        console.log(e.toHuman());
+      });
+      expect(events2[2].method).to.be.eq("ProxyExecuted");
+      expect(events2[2].data[0]).to.be.eq("'Ok'");
       expect(events2[5].method).to.be.eq("ExtrinsicSuccess");
     });
   });
