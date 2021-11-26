@@ -2530,19 +2530,19 @@
 )]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProxyType</span> {
 	<span class="doccomment">/// All calls can be proxied. This is the trivial/most permissive filter.</span>
-	<span class="ident">Any</span>,
+	<span class="ident">Any</span> <span class="op">=</span> <span class="number">0</span>,
 	<span class="doccomment">/// Only extrinsics that do not transfer funds.</span>
-	<span class="ident">NonTransfer</span>,
+	<span class="ident">NonTransfer</span> <span class="op">=</span> <span class="number">1</span>,
 	<span class="doccomment">/// Only extrinsics related to governance (democracy and collectives).</span>
-	<span class="ident">Governance</span>,
+	<span class="ident">Governance</span> <span class="op">=</span> <span class="number">2</span>,
 	<span class="doccomment">/// Only extrinsics related to staking.</span>
-	<span class="ident">Staking</span>,
+	<span class="ident">Staking</span> <span class="op">=</span> <span class="number">3</span>,
 	<span class="doccomment">/// Allow to veto an announced proxy call.</span>
-	<span class="ident">CancelProxy</span>,
+	<span class="ident">CancelProxy</span> <span class="op">=</span> <span class="number">4</span>,
 	<span class="doccomment">/// Allow extrinsic related to Balances.</span>
-	<span class="ident">Balances</span>,
+	<span class="ident">Balances</span> <span class="op">=</span> <span class="number">5</span>,
 	<span class="doccomment">/// Allow extrinsic related to AuthorMapping.</span>
-	<span class="ident">AuthorMapping</span>,
+	<span class="ident">AuthorMapping</span> <span class="op">=</span> <span class="number">6</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
