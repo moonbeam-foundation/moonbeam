@@ -6103,7 +6103,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#a53243d93f8ebcba6bbc64b254634753af3cbe47"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#7105a7a9cb53dce5a8e952f38bbc8c26bdac7ea6"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -6121,7 +6121,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#a53243d93f8ebcba6bbc64b254634753af3cbe47"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#7105a7a9cb53dce5a8e952f38bbc8c26bdac7ea6"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6135,7 +6135,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#a53243d93f8ebcba6bbc64b254634753af3cbe47"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#7105a7a9cb53dce5a8e952f38bbc8c26bdac7ea6"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6149,7 +6149,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#a53243d93f8ebcba6bbc64b254634753af3cbe47"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-controlled-xtokens-fee#7105a7a9cb53dce5a8e952f38bbc8c26bdac7ea6"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
