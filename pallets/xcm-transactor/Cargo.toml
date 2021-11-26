@@ -23,7 +23,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Polkadot / XCM
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "girazoki-controlled-free-xtoken-extrinsics" }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "girazoki-controlled-xtokens-fee" }
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }

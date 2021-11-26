@@ -110,7 +110,7 @@ pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branc
 parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Polkadot / XCM 
-orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "girazoki-controlled-free-xtoken-extrinsics" }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", default-features = false, branch = "girazoki-controlled-xtokens-fee" }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
