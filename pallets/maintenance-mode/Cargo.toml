@@ -25,11 +25,11 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-primitives-core/std",
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
 	"sp-runtime/std",
-	"cumulus-primitives-core/std",
 	"sp-std/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]
