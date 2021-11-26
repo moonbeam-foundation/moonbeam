@@ -694,7 +694,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type XcmpMessageHandler = XcmpQueue;
+	type XcmpMessageHandler = MaintenanceMode;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -1452,6 +1452,11 @@ impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	}
 }
 
+// Default implementation already returns 0
+// For some reason using empty tuple () isnt working
+pub struct NoOnIdle;
+impl frame_support::traits::OnIdle<BlockNumber> for NoOnIdle {}
+
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
@@ -1463,7 +1468,11 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalXcmpHandler = XcmpQueue;
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	type NormalOnIdle = AllPallets;
-	type MaintenanceOnIdle = ();
+	// There exist only two pallets that use onIdle and these are xcmp and dmp queues
+	// For some reason putting an empty tumple does not work (transaction never finishes)
+	// We use an empty onIdle, if on the future we want one of the pallets to execute it
+	// we need to provide it here
+	type MaintenanceOnIdle = NoOnIdle;
 	type NormalOnInitialize = AllPallets;
 	type MaintenanceOnInitialize = AllPallets;
 	type NormalOnFinalize = AllPallets;
@@ -1555,6 +1564,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
+	//AllPallets,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.

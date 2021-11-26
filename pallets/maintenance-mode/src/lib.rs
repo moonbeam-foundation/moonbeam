@@ -59,7 +59,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use cumulus_primitives_core::{
-		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, XcmpMessageHandler,
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
 	};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -234,6 +234,19 @@ pub mod pallet {
 				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
 			} else {
 				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
+			}
+		}
+	}
+
+	impl<T: Config> XcmpMessageHandler for Pallet<T> {
+		fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+			iter: I,
+			limit: Weight,
+		) -> Weight {
+			if MaintenanceMode::<T>::get() {
+				T::MaintenanceXcmpHandler::handle_xcmp_messages(iter, limit)
+			} else {
+				T::NormalXcmpHandler::handle_xcmp_messages(iter, limit)
 			}
 		}
 	}
