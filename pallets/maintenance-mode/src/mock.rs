@@ -52,7 +52,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event, Config},
-		MockPalletMaintenanceHooks: mock_pallet_maintenance_hooks::{Pallet, Event},
+		MockPalletMaintenanceHooks: mock_pallet_maintenance_hooks::{Pallet, Call, Event},
 	}
 );
 
@@ -162,6 +162,9 @@ pub mod mock_pallet_maintenance_hooks {
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
