@@ -142,7 +142,7 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup show
       - name: Check Cargo.toml files format with toml_sort
-        run: find . -name "Cargo.toml" -not -path "*/target/*" -exec toml-sort {} --check \;
+        run: ./scripts/check-cargo-toml-files-format.sh
 
   check-rust-fmt:
     name: "Check with rustfmt"
