@@ -1137,7 +1137,7 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOMOVR));
-		assert_eq!(MinCandidateStk::get(), Balance::from(1 * KILOMOVR));
+		assert_eq!(MinCandidateStk::get(), Balance::from(500 * MOVR));
 		assert_eq!(MinDelegatorStk::get(), Balance::from(5 * MOVR));
 
 		// crowdloan min reward
