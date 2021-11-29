@@ -33,7 +33,7 @@ use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use account::AccountId20;
-
+use frame_support::traits::tokens::fungibles::Mutate;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -55,7 +55,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit, UsingComponents,
 };
 
 use xcm_executor::traits::JustTry;
@@ -97,11 +97,7 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::v1::{
-	BodyId,
-	Junction::{PalletInstance, Parachain},
-	Junctions, MultiLocation, NetworkId,
-};
+use xcm::latest::prelude::*;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
@@ -573,6 +569,24 @@ impl pallet_democracy::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
 	type MaxProposals = MaxProposals;
+}
+
+pub struct ToTreasury<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
+impl<AssetXConverter> TakeRevenue for ToTreasury<AssetXConverter>
+where
+	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
+{
+	fn take_revenue(revenue: MultiAsset) {
+		if let MultiAsset {
+			id: Concrete(location),
+			fun: Fungible(amount),
+		} = revenue
+		{
+			if let Some(asset_id) = AssetXConverter::convert_ref(location).ok() {
+				Assets::mint_into(asset_id, &Treasury::account_id(), amount);
+			}
+		}
+	}
 }
 
 parameter_types! {
@@ -1075,7 +1089,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
+		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ToTreasury<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;

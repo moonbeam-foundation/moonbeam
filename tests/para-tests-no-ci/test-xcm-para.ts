@@ -89,7 +89,7 @@ describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
   (context) => {
-    it("should be able to receive an asset from relay", async function () {
+    it.only("should be able to receive an asset from relay", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
@@ -114,7 +114,7 @@ describeParachain(
 
       // check asset in storage
       const registeredAsset = await parachainOne.query.assets.asset(assetId);
-      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId.toLowerCase());
+      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
 
       // RELAYCHAIN
       // Sets default xcm version to relay
