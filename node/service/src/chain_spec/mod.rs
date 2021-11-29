@@ -20,8 +20,6 @@ use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, Pair, Public, H160, H256};
-use sp_runtime::traits::{BlakeTwo256, Hash};
-use std::convert::TryInto;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
 pub mod fake_spec;
@@ -110,23 +108,19 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 	childs
 }
 
-/// Helper function to get an AccountId from Key Pair
-/// We need the full decompressed public key to derive an ethereum-style account
-/// Substrate does not provide a method to obtain the full decompressed public key
-/// Therefore, this function uses the secp256k1_ecdsa_recover method to recover the full key
-/// A solution without using the private key would imply solving the secp256k1 curve equation
-/// The latter is currently not possible with current substrate methods
-pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<AccountId> {
-	let test_message = [1u8; 32];
-	let signature: [u8; 65] = pair.sign(&test_message).as_ref().try_into().ok()?;
-	let pubkey = sp_io::crypto::secp256k1_ecdsa_recover(
-		&signature,
-		BlakeTwo256::hash_of(&test_message).as_fixed_bytes(),
+/// Helper function to get an `AccountId` from an ECDSA Key Pair.
+pub fn get_account_id_from_pair(pair: ecdsa::Pair) -> Option<AccountId> {
+	let decompressed = libsecp256k1::PublicKey::parse_slice(
+		&pair.public().0,
+		Some(libsecp256k1::PublicKeyFormat::Compressed),
 	)
-	.ok()?;
-	Some(H160::from(H256::from_slice(
-		Keccak256::digest(&pubkey).as_slice(),
-	)))
+	.ok()?
+	.serialize();
+
+	let mut m = [0u8; 64];
+	m.copy_from_slice(&decompressed[1..65]);
+
+	Some(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).into())
 }
 
 /// Function to generate accounts given a mnemonic and a number of child accounts to be generated
@@ -137,7 +131,7 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 	childs
 		.iter()
 		.map(|par| {
-			let account = get_account_id_from_pair::<ecdsa::Public>(par.clone());
+			let account = get_account_id_from_pair(par.clone());
 			debug!(
 				"private_key {} --------> Account {:x?}",
 				sp_core::hexdisplay::HexDisplay::from(&par.clone().seed()),

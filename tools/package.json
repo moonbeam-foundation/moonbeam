@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "GPL-3.0",
   "dependencies": {
-    "@polkadot/api": "^6.4.2",
+    "@polkadot/api": "^6.6.1",
     "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
     "ethereumjs-wallet": "^1.0.0",

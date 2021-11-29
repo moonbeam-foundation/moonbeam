@@ -207,7 +207,7 @@ pub fn testnet_genesis(
 			accounts: Precompiles::used_addresses()
 				.map(|addr| {
 					(
-						addr,
+						addr.into(),
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),
@@ -266,10 +266,8 @@ mod tests {
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let accounts = 10;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
 			AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
@@ -286,10 +284,8 @@ mod tests {
 				.to_string();
 		let accounts = 20;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
 			AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();
