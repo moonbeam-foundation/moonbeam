@@ -1477,20 +1477,20 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	type NormalXcmpHandler = XcmpQueue;
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
+	type NormalOnRuntimeUpgrade = AllPallets;
+	type MaintenanceOnRuntimeUpgrade = AllPallets;
+	type NormalOnInitialize = AllPallets;
+	type MaintenanceOnInitialize = AllPallets;
 	type NormalOnIdle = AllPallets;
 	// There exist only two pallets that use onIdle and these are xcmp and dmp queues
 	// For some reason putting an empty tumple does not work (transaction never finishes)
 	// We use an empty onIdle, if on the future we want one of the pallets to execute it
 	// we need to provide it here
 	type MaintenanceOnIdle = DoNothingOnIdle;
-	type NormalOnInitialize = AllPallets;
-	type MaintenanceOnInitialize = AllPallets;
 	type NormalOnFinalize = AllPallets;
 	type MaintenanceOnFinalize = AllPallets;
 	type NormalOffchainWorker = AllPallets;
 	type MaintenanceOffchainWorker = AllPallets;
-	type NormalOnRuntimeUpgrade = AllPallets;
-	type MaintenanceOnRuntimeUpgrade = AllPallets;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {

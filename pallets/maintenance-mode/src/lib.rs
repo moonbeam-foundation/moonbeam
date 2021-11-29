@@ -93,14 +93,18 @@ pub mod pallet {
 		type NormalXcmpHandler: XcmpMessageHandler;
 		/// The XCMP handler to be used in maintenance mode
 		type MaintenanceXcmpHandler: XcmpMessageHandler;
-		/// The OnIdle hooks that should be called on normal operating mode
-		type NormalOnIdle: OnIdle<Self::BlockNumber>;
-		/// The OnIdle hooks that should be called on maintenance mode
-		type MaintenanceOnIdle: OnIdle<Self::BlockNumber>;
+		/// The OnRuntimeUpgrade hooks that should be called on normal operating mode
+		type NormalOnRuntimeUpgrade: OnRuntimeUpgrade;
+		/// The OnRuntimeUpgrade hook that should be called on maintenance mode
+		type MaintenanceOnRuntimeUpgrade: OnRuntimeUpgrade;
 		/// The OnInitialize hooks that should be called on normal operating mode
 		type NormalOnInitialize: OnInitialize<Self::BlockNumber>;
 		/// The OnInitialize hooks that should be called on maintenance mode
 		type MaintenanceOnInitialize: OnInitialize<Self::BlockNumber>;
+		/// The OnIdle hooks that should be called on normal operating mode
+		type NormalOnIdle: OnIdle<Self::BlockNumber>;
+		/// The OnIdle hooks that should be called on maintenance mode
+		type MaintenanceOnIdle: OnIdle<Self::BlockNumber>;
 		/// The OnFinalize hooks that should be called on normal operating mode
 		type NormalOnFinalize: OnFinalize<Self::BlockNumber>;
 		/// The OnFinalize hooks that should be called on maintenance mode
@@ -109,10 +113,6 @@ pub mod pallet {
 		type NormalOffchainWorker: OffchainWorker<Self::BlockNumber>;
 		/// The OffchainWorker hooks that should be called on maintenance mode
 		type MaintenanceOffchainWorker: OffchainWorker<Self::BlockNumber>;
-		/// The OnRuntimeUpgrade hooks that should be called on normal operating mode
-		type NormalOnRuntimeUpgrade: OnRuntimeUpgrade;
-		/// The OnRuntimeUpgrade hook that should be called on maintenance mode
-		type MaintenanceOnRuntimeUpgrade: OnRuntimeUpgrade;
 	}
 
 	#[pallet::event]
