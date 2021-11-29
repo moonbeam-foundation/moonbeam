@@ -1501,6 +1501,7 @@ pub mod pallet {
 					total_staked,
 				));
 				T::WeightInfo::active_on_initialize(collator_count, delegation_count)
+			// TODO: here we need an "if else <still have distributions from previous round>"
 			} else {
 				T::WeightInfo::passive_on_initialize()
 			}
@@ -2361,6 +2362,8 @@ pub mod pallet {
 			));
 			Ok(())
 		}
+		// TODO: rename this; split it up so that it does minimum round-end accounting, should set
+		// up distribution storage info
 		fn pay_stakers(now: RoundIndex) {
 			// payout is now - duration rounds ago => now - duration > 0 else return early
 			let duration = T::RewardPaymentDelay::get();
@@ -2388,11 +2391,18 @@ pub mod pallet {
 					imb.peek(),
 				));
 			}
+			/*
+			 *
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
 				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
 					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
 				}
 			};
+			*/
+
+			/*
+			 * TODO: we lose this optimization entirely because we payout per-delegator
+			 *
 			// only pay out rewards at the end to transfer only total amount due
 			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
 			let mut increase_due_rewards = |amt: BalanceOf<T>, to: T::AccountId| {
@@ -2403,8 +2413,16 @@ pub mod pallet {
 					due_rewards.insert(to, amt);
 				}
 			};
-			let collator_fee = <CollatorCommission<T>>::get();
+			*/
+			let collator_fee = <CollatorCommission<T>>::get(); // TODO: this needs to be saved for
+			                                                   // upcoming distributions
 			let collator_issuance = collator_fee * total_issuance;
+
+			// TODO: this gets broken up per round (and also gets simplified since we remove
+			//       duplicated-delegator-rewards optimization)
+			//
+			// TODO: we should be able to avoid this entire loop here; see comments in
+			//       pay_one_collator_reward for details
 			for (collator, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
 				let mut amt_due = pct_due * left_issuance;
@@ -2433,10 +2451,35 @@ pub mod pallet {
 					}
 				}
 			}
+			/*
+			 * TODO: this should be deferred to per-round distribution payments
 			for (delegator, total_due) in due_rewards {
 				mint(total_due, delegator);
 			}
+			*/
 		}
+		/// sketch of what per-round payout fn would look like
+		pub fn pay_one_collator_reward() {
+			// Relevant storage items:
+			// AwardedPts: tally of who has authored for the current round. 
+			//             would need to be duplicated somehow at round end
+			// CollatorCommission: amount of total reward given to collators (e.g. 1 - treasury
+			//                     payout)
+			// AtStake: the map of collators and stakers chosen for the current round.
+			//          currently, this is populated once per round in select_top_candidates and
+			//          then drain()ed at the end of each round in pay_stakers.
+			//
+			//          it is a map of (now, account) -> CollatorSnaphsot.
+			//          StorageDoubleMap documentation:
+			//          https://docs.substrate.io/rustdocs/latest/frame_support/storage/types/struct.StorageDoubleMap.html
+			//          this means it is easy to iterate over the items matching only the first key,
+			//          which is our round index -- this is exactly what we want.
+			//          (see iter_prefix_values())
+			//
+			//          I expect this allows us to (1) avoid iterating over this at all in round-end
+			//          accounting since multiple rounds can safely coexist in the map itself.
+		}
+
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
 		/// a vec of their AccountIds (in the order of selection)
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
