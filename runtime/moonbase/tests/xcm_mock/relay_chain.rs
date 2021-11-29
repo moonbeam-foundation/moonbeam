@@ -103,7 +103,7 @@ parameter_types! {
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	pub const AnyNetwork: NetworkId = NetworkId::Any;
 	pub Ancestry: MultiLocation = Here.into();
-	pub UnitWeightCost: Weight = 1_000;
+	pub UnitWeightCost: Weight = 1_000_000_000;
 }
 
 pub type SovereignAccountOf = (

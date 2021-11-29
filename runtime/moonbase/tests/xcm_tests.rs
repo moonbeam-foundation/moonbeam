@@ -575,6 +575,8 @@ fn receive_relay_asset_with_trader() {
 	ParaA::execute_with(|| {
 		// non-free execution, not full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
+		// Fee should have been received by treasyrt
+		assert_eq!(Assets::balance(source_id, &Treasury::account_id()), 10);
 	});
 }
 

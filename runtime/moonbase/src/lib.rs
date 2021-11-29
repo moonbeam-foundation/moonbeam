@@ -104,6 +104,11 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 mod precompiles;
 use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
+use xcm_primitives::{
+	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+};
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -583,7 +588,8 @@ where
 		} = revenue
 		{
 			if let Some(asset_id) = AssetXConverter::convert_ref(location).ok() {
-				Assets::mint_into(asset_id, &Treasury::account_id(), amount);
+				// Mint fees in treasury
+				let _ = Assets::mint_into(asset_id, &Treasury::account_id(), amount);
 			}
 		}
 	}
@@ -985,7 +991,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
-			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
+			AsAssetType<AssetId, AssetType, AssetManager>,
 			JustTry,
 		>,
 	),
@@ -1072,7 +1078,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
-	type IsReserve = xcm_primitives::MultiNativeAsset;
+	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
@@ -1089,7 +1095,12 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ToTreasury<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>>,
+		FirstAssetTrader<
+			AssetId,
+			AssetType,
+			AssetManager,
+			ToTreasury<AsAssetType<AssetId, AssetType, AssetManager>>,
+		>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -1104,8 +1115,7 @@ parameter_types! {
 }
 
 // Converts a Signed Local Origin into a MultiLocation
-pub type LocalOriginToLocation =
-	xcm_primitives::SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
@@ -1292,7 +1302,7 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl xcm_primitives::AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
@@ -1338,9 +1348,9 @@ impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
 	type CurrencyIdConvert =
-		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -1366,8 +1376,8 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl xcm_primitives::UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			// Shall we use westend for moonbase? The tests are probably based on rococo
 			// but moonbase-alpha is attached to westend-runtime I think
@@ -1376,7 +1386,7 @@ impl xcm_primitives::UtilityEncodeCall for Transactors {
 	}
 }
 
-impl xcm_primitives::XcmTransact for Transactors {
+impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
@@ -1391,9 +1401,9 @@ impl xcm_transactor::Config for Runtime {
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
 	type CurrencyIdToMultiLocation =
-		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;

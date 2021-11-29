@@ -220,14 +220,14 @@ impl<
 		AssetType: From<MultiLocation> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
 		R: TakeRevenue,
-	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R> {
-		fn drop(&mut self) {
-			if let Some((id, amount, _)) = self.1.clone() {
-				R::take_revenue((id, amount).into());
-			}
+	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+{
+	fn drop(&mut self) {
+		if let Some((id, amount, _)) = self.1.clone() {
+			R::take_revenue((id, amount).into());
 		}
 	}
-
+}
 
 pub trait Reserve {
 	/// Returns assets reserve location.
