@@ -1453,11 +1453,13 @@ impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	}
 }
 
-// Default implementation already returns 0
+// return 0
 // For some reason using empty tuple () isnt working
 pub struct DoNothingOnIdle;
 impl frame_support::traits::OnIdle<BlockNumber> for DoNothingOnIdle {
-	0
+	fn on_idle(_n: BlockNumber, _remaining_weight: Weight) -> Weight {
+		0
+	}
 }
 
 impl pallet_maintenance_mode::Config for Runtime {
