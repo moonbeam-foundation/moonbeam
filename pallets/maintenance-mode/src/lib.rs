@@ -100,26 +100,18 @@ pub mod pallet {
 		/// The XCMP handler to be used in maintenance mode
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceXcmpHandler: XcmpMessageHandler;
-		/// The OnRuntimeUpgrade hooks that should be called on normal operating mode
-		type NormalOnRuntimeUpgrade: OnRuntimeUpgrade;
-		/// The OnRuntimeUpgrade hook that should be called on maintenance mode
-		type MaintenanceOnRuntimeUpgrade: OnRuntimeUpgrade;
-		/// The OnInitialize hooks that should be called on normal operating mode
-		type NormalOnInitialize: OnInitialize<Self::BlockNumber>;
-		/// The OnInitialize hooks that should be called on maintenance mode
-		type MaintenanceOnInitialize: OnInitialize<Self::BlockNumber>;
-		/// The OnIdle hooks that should be called on normal operating mode
-		type NormalOnIdle: OnIdle<Self::BlockNumber>;
-		/// The OnIdle hooks that should be called on maintenance mode
-		type MaintenanceOnIdle: OnIdle<Self::BlockNumber>;
-		/// The OnFinalize hooks that should be called on normal operating mode
-		type NormalOnFinalize: OnFinalize<Self::BlockNumber>;
-		/// The OnFinalize hooks that should be called on maintenance mode
-		type MaintenanceOnFinalize: OnFinalize<Self::BlockNumber>;
-		/// The OffchainWorker hooks that should be called on normal operating mode
-		type NormalOffchainWorker: OffchainWorker<Self::BlockNumber>;
-		/// The OffchainWorker hooks that should be called on maintenance mode
-		type MaintenanceOffchainWorker: OffchainWorker<Self::BlockNumber>;
+		/// The executive hooks that will be used in normal operating mode
+		type NormalExecutiveHooks: OnRuntimeUpgrade
+			+ OnInitialize<Self::BlockNumber>
+			+ OnIdle<Self::BlockNumber>
+			+ OnFinalize<Self::BlockNumber>
+			+ OffchainWorker<Self::BlockNumber>;
+		/// The executive hooks that will be used in maintenance mode
+		type MaitenanceExecutiveHooks: OnRuntimeUpgrade
+			+ OnInitialize<Self::BlockNumber>
+			+ OnIdle<Self::BlockNumber>
+			+ OnFinalize<Self::BlockNumber>
+			+ OffchainWorker<Self::BlockNumber>;
 	}
 
 	#[pallet::event]

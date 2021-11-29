@@ -899,16 +899,8 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = ();
 	type NormalXcmpHandler = ();
 	type MaintenanceXcmpHandler = ();
-	type NormalOnRuntimeUpgrade = AllPallets;
-	type MaintenanceOnRuntimeUpgrade = AllPallets;
-	type NormalOnInitialize = AllPallets;
-	type MaintenanceOnInitialize = AllPallets;
-	type NormalOnIdle = AllPallets;
-	type MaintenanceOnIdle = AllPallets;
-	type NormalOnFinalize = AllPallets;
-	type MaintenanceOnFinalize = AllPallets;
-	type NormalOffchainWorker = AllPallets;
-	type MaintenanceOffchainWorker = AllPallets;
+	type NormalExecutiveHooks = AllPallets;
+	type MaitenanceExecutiveHooks = AllPallets;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {

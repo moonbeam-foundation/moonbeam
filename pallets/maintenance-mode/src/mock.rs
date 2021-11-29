@@ -186,7 +186,7 @@ pub mod mock_pallet_maintenance_hooks {
 	}
 }
 
-pub struct MaintenanceHooks(bool);
+pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(_n: BlockNumber) -> Weight {
@@ -290,16 +290,8 @@ impl Config for Test {
 	type NormalXcmpHandler = NormalXcmpHandler;
 	#[cfg(feature = "xcm-support")]
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
-	type NormalOnIdle = NormalHooks;
-	type MaintenanceOnIdle = MaintenanceHooks;
-	type NormalOnInitialize = NormalHooks;
-	type MaintenanceOnInitialize = MaintenanceHooks;
-	type NormalOnFinalize = NormalHooks;
-	type MaintenanceOnFinalize = MaintenanceHooks;
-	type NormalOffchainWorker = NormalHooks;
-	type MaintenanceOffchainWorker = MaintenanceHooks;
-	type NormalOnRuntimeUpgrade = NormalHooks;
-	type MaintenanceOnRuntimeUpgrade = MaintenanceHooks;
+	type NormalExecutiveHooks = NormalHooks;
+	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime

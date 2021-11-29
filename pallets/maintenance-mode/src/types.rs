@@ -33,9 +33,9 @@ where
 {
 	fn on_idle(n: BlockNumberOf<T>, remaining_weight: Weight) -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnIdle::on_idle(n, remaining_weight)
+			T::MaitenanceExecutiveHooks::on_idle(n, remaining_weight)
 		} else {
-			T::NormalOnIdle::on_idle(n, remaining_weight)
+			T::NormalExecutiveHooks::on_idle(n, remaining_weight)
 		}
 	}
 }
@@ -46,9 +46,9 @@ where
 {
 	fn on_initialize(n: BlockNumberOf<T>) -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnInitialize::on_initialize(n)
+			T::MaitenanceExecutiveHooks::on_initialize(n)
 		} else {
-			T::NormalOnInitialize::on_initialize(n)
+			T::NormalExecutiveHooks::on_initialize(n)
 		}
 	}
 }
@@ -59,9 +59,9 @@ where
 {
 	fn on_finalize(n: BlockNumberOf<T>) {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnFinalize::on_finalize(n)
+			T::MaitenanceExecutiveHooks::on_finalize(n)
 		} else {
-			T::NormalOnFinalize::on_finalize(n)
+			T::NormalExecutiveHooks::on_finalize(n)
 		}
 	}
 }
@@ -72,9 +72,9 @@ where
 {
 	fn offchain_worker(n: BlockNumberOf<T>) {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOffchainWorker::offchain_worker(n)
+			T::MaitenanceExecutiveHooks::offchain_worker(n)
 		} else {
-			T::NormalOffchainWorker::offchain_worker(n)
+			T::NormalExecutiveHooks::offchain_worker(n)
 		}
 	}
 }
@@ -85,27 +85,27 @@ where
 {
 	fn on_runtime_upgrade() -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnRuntimeUpgrade::on_runtime_upgrade()
+			T::MaitenanceExecutiveHooks::on_runtime_upgrade()
 		} else {
-			T::NormalOnRuntimeUpgrade::on_runtime_upgrade()
+			T::NormalExecutiveHooks::on_runtime_upgrade()
 		}
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnRuntimeUpgrade::pre_upgrade()
+			T::MaitenanceExecutiveHooks::pre_upgrade()
 		} else {
-			T::NormalOnRuntimeUpgrade::pre_upgrade()
+			T::NormalExecutiveHooks::pre_upgrade()
 		}
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceOnRuntimeUpgrade::post_upgrade()
+			T::MaitenanceExecutiveHooks::post_upgrade()
 		} else {
-			T::NormalOnRuntimeUpgrade::post_upgrade()
+			T::NormalExecutiveHooks::post_upgrade()
 		}
 	}
 }
