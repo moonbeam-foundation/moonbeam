@@ -54,7 +54,9 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-
+	use cumulus_primitives_core::{
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+	};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
