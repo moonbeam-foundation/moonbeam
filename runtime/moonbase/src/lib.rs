@@ -833,19 +833,19 @@ parameter_types! {
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
-	Any,
+	Any = 0,
 	/// Only extrinsics that do not transfer funds.
-	NonTransfer,
+	NonTransfer = 1,
 	/// Only extrinsics related to governance (democracy and collectives).
-	Governance,
+	Governance = 2,
 	/// Only extrinsics related to staking.
-	Staking,
+	Staking = 3,
 	/// Allow to veto an announced proxy call.
-	CancelProxy,
+	CancelProxy = 4,
 	/// Allow extrinsic related to Balances.
-	Balances,
+	Balances = 5,
 	/// Allow extrinsic related to AuthorMapping.
-	AuthorMapping,
+	AuthorMapping = 6,
 }
 
 impl Default for ProxyType {
@@ -1067,7 +1067,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// When we receive the self-reserve asset, we use pallet-transaction-payment
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = xcm_primitives::MultiWeightTraders<
+	type Trader = (
 		UsingComponents<
 			IdentityFee<Balance>,
 			SelfReserve,
@@ -1076,7 +1076,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			DealWithFees<Runtime>,
 		>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
-	>;
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
