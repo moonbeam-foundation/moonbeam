@@ -239,6 +239,7 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {
 			storage_schema: pallet_ethereum::EthereumStorageSchema::V2,
 		},
+		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
