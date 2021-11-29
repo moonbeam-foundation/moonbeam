@@ -32,12 +32,14 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
+use account::AccountId20;
+
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
+		Contains, Everything, FindAuthor, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -71,7 +73,7 @@ use pallet_ethereum::Transaction as EthereumTransaction;
 pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
-	IdentityAddressMapping, Runner,
+	Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
@@ -169,7 +171,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0900,
+	spec_version: 1000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -409,7 +411,24 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		let mut data = [0u8; 20];
 		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
 		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
-		H160::from_slice(&data)
+		AccountId::from(data)
+	}
+}
+
+/// The author inherent provides an AccountId, but pallet evm needs an H160.
+/// This simple adapter makes the conversion for any types T, U such that T: Into<U>
+pub struct FindAuthorAdapter<T, U, Inner>(sp_std::marker::PhantomData<(T, U, Inner)>);
+
+impl<T, U, Inner> FindAuthor<U> for FindAuthorAdapter<T, U, Inner>
+where
+	T: Into<U>,
+	Inner: FindAuthor<T>,
+{
+	fn find_author<'a, I>(digests: I) -> Option<U>
+	where
+		I: 'a + IntoIterator<Item = (sp_runtime::ConsensusEngineId, &'a [u8])>,
+	{
+		Inner::find_author(digests).map(Into::into)
 	}
 }
 
@@ -419,7 +438,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = IdentityAddressMapping;
+	type AddressMapping = runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -427,7 +446,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
-	type FindAuthor = AuthorInherent;
+	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
 }
 
 parameter_types! {
@@ -814,19 +833,19 @@ parameter_types! {
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
-	Any,
+	Any = 0,
 	/// Only extrinsics that do not transfer funds.
-	NonTransfer,
+	NonTransfer = 1,
 	/// Only extrinsics related to governance (democracy and collectives).
-	Governance,
+	Governance = 2,
 	/// Only extrinsics related to staking.
-	Staking,
+	Staking = 3,
 	/// Allow to veto an announced proxy call.
-	CancelProxy,
+	CancelProxy = 4,
 	/// Allow extrinsic related to Balances.
-	Balances,
+	Balances = 5,
 	/// Allow extrinsic related to AuthorMapping.
-	AuthorMapping,
+	AuthorMapping = 6,
 }
 
 impl Default for ProxyType {
@@ -1048,7 +1067,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// When we receive the self-reserve asset, we use pallet-transaction-payment
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = xcm_primitives::MultiWeightTraders<
+	type Trader = (
 		UsingComponents<
 			IdentityFee<Balance>,
 			SelfReserve,
@@ -1057,7 +1076,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			DealWithFees<Runtime>,
 		>,
 		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
-	>;
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -1263,7 +1282,7 @@ impl xcm_primitives::AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
-			a if a == H160::from_low_u64_be(2050) => Some(CurrencyId::SelfReserve),
+			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
 			_ => Runtime::account_to_asset_id(account)
 				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),

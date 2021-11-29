@@ -14,6 +14,6 @@ describeDevMoonbeam("Event - Contract", (context) => {
     expect(receipt.logs.length).to.be.eq(1);
     expect(
       "0x" + receipt.logs[0].topics[1].substring(26, receipt.logs[0].topics[1].length + 1)
-    ).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    ).to.be.eq(GENESIS_ACCOUNT.toLowerCase()); // web3 doesn't checksum
   });
 });

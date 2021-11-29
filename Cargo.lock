@@ -18,6 +18,7 @@ version = "0.1.1"
 dependencies = [
  "blake2-rfc",
  "hex",
+ "impl-serde",
  "libsecp256k1 0.6.0",
  "log",
  "parity-scale-codec",
@@ -5494,6 +5495,7 @@ dependencies = [
  "futures 0.3.17",
  "jsonrpc-core",
  "jsonrpc-pubsub",
+ "libsecp256k1 0.6.0",
  "log",
  "moonbase-runtime",
  "moonbeam-cli-opt",
@@ -9791,8 +9793,10 @@ dependencies = [
  "pallet-asset-manager",
  "pallet-author-mapping",
  "pallet-collective",
+ "pallet-evm",
  "pallet-migrations",
  "parachain-staking",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]

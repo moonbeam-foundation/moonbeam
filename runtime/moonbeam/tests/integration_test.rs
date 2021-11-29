@@ -253,6 +253,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonbeam_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonbeam_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonbeam_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonbeam_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonbeam_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonbeam_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonbeam_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -361,8 +372,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = (100 * GIGAWEI).into();
 			// Bob transfers 100_000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: vec![],
 				value: (100_000 * GLMR).into(),
 				gas_limit,
@@ -785,7 +796,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1091,7 +1102,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1221,8 +1232,8 @@ fn transfer_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
@@ -1249,8 +1260,8 @@ fn refund_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer that zeroes ALICE
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_777u64,
