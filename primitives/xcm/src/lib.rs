@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	traits::{Get, OriginTrait},
+	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use xcm::latest::{
@@ -29,8 +29,7 @@ use xcm::latest::{
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::FilterAssetLocation;
-use xcm_executor::traits::WeightTrader;
+use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
 
 use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
@@ -309,4 +308,22 @@ pub trait XcmTransact: UtilityEncodeCall {
 pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	// Get assetId from account
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
+}
+
+pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
+	PhantomData<(Assets, Matcher, AccountId, ReceiverAccount)>,
+);
+impl<
+		Assets: Mutate<AccountId>,
+		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
+		AccountId: Clone, // can't get away without it since Currency is generic over it.
+		ReceiverAccount: Get<AccountId>,
+	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
+{
+	fn take_revenue(revenue: MultiAsset) {
+		if let Ok((asset_id, amount)) = Matcher::matches_fungibles(&revenue) {
+			let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+			debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+		}
+	}
 }

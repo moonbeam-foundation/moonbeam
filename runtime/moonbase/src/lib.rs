@@ -33,7 +33,6 @@ use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use account::AccountId20;
-use frame_support::traits::tokens::fungibles::Mutate;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -55,7 +54,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit, UsingComponents,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
 
 use xcm_executor::traits::JustTry;
@@ -106,7 +105,8 @@ use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmFeesToAccount, XcmTransact,
 };
 
 #[cfg(any(feature = "std", test))]
@@ -574,25 +574,6 @@ impl pallet_democracy::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
 	type MaxProposals = MaxProposals;
-}
-
-pub struct ToTreasury<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
-impl<AssetXConverter> TakeRevenue for ToTreasury<AssetXConverter>
-where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
-{
-	fn take_revenue(revenue: MultiAsset) {
-		if let MultiAsset {
-			id: Concrete(location),
-			fun: Fungible(amount),
-		} = revenue
-		{
-			if let Some(asset_id) = AssetXConverter::convert_ref(location).ok() {
-				// Mint fees in treasury
-				let _ = Assets::mint_into(asset_id, &Treasury::account_id(), amount);
-			}
-		}
-	}
 }
 
 parameter_types! {
@@ -1070,6 +1051,26 @@ pub type XcmBarrier = (
 	AllowSubscriptionsFrom<Everything>,
 );
 
+parameter_types! {
+	/// Xcm fees will go to the treasury account
+	pub TreasuryAccount:AccountId = Treasury::account_id();
+}
+
+/// This is the struct that will handle the revenue from xcm fees
+pub type XcmFeesToTreasury = XcmFeesToAccount<
+	Assets,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsAssetType<AssetId, AssetType, AssetManager>,
+			JustTry,
+		>,
+	),
+	AccountId,
+	TreasuryAccount,
+>;
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -1095,12 +1096,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		FirstAssetTrader<
-			AssetId,
-			AssetType,
-			AssetManager,
-			ToTreasury<AsAssetType<AssetId, AssetType, AssetManager>>,
-		>,
+		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToTreasury>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;

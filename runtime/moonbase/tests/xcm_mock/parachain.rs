@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{tokens::fungibles::Mutate, Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 	PalletId,
 };
@@ -47,7 +47,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -222,24 +222,25 @@ pub type Barrier = (
 	AllowSubscriptionsFrom<Everything>,
 );
 
-pub struct ToTreasury<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
-impl<AssetXConverter> TakeRevenue for ToTreasury<AssetXConverter>
-where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
-{
-	fn take_revenue(revenue: MultiAsset) {
-		if let MultiAsset {
-			id: Concrete(location),
-			fun: Fungible(amount),
-		} = revenue
-		{
-			if let Some(asset_id) = AssetXConverter::convert_ref(location).ok() {
-				// Mint fees in treasury
-				let _ = Assets::mint_into(asset_id, &Treasury::account_id(), amount);
-			}
-		}
-	}
+parameter_types! {
+	/// Xcm fees will go to the treasury account
+	pub TreasuryAccount:AccountId = Treasury::account_id();
 }
+
+/// This is the struct that will handle the revenue from xcm fees
+pub type XcmFeesToTreasury = xcm_primitives::XcmFeesToAccount<
+	Assets,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
+			JustTry,
+		>,
+	),
+	AccountId,
+	TreasuryAccount,
+>;
 
 parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
@@ -272,12 +273,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<
-			AssetId,
-			AssetType,
-			AssetManager,
-			ToTreasury<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>,
-		>,
+		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToTreasury>,
 	);
 
 	type ResponseHandler = PolkadotXcm;
