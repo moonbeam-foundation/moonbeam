@@ -1611,6 +1611,9 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn 
+
+	#[pallet::storage]
 	#[pallet::getter(fn staked)]
 	/// Total counted stake for selected candidates in the round
 	pub type Staked<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, BalanceOf<T>, ValueQuery>;
@@ -2371,11 +2374,18 @@ pub mod pallet {
 				return;
 			}
 			let round_to_payout = now - duration;
-			let total = <Points<T>>::take(round_to_payout);
+			let total = <Points<T>>::get(round_to_payout);
 			if total.is_zero() {
+				// TODO: this perhaps being used to ensure we don't call this fn more than once per
+				// round. now thet we keep the Points storage item around until round payouts are
+				// done, this check would no longer work here (perhaps resulting in multiple payouts
+				// to parachain_bond_reserve.
+				//
+				// Potential alternative: drain() Points instead of get() (as we previously did) but
+				// duplicate instead -- e.g. we probably want to store 'left_issuance' this way
 				return;
 			}
-			let total_staked = <Staked<T>>::take(round_to_payout);
+			let total_staked = <Staked<T>>::take(round_to_payout); // TODO: leave until payouts done
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -2385,39 +2395,14 @@ pub mod pallet {
 				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
 			{
 				// update round issuance iff transfer succeeds
-				left_issuance -= imb.peek();
+				left_issuance -= imb.peek(); // TODO: save left_issuance for payouts in later blocks
 				Self::deposit_event(Event::ReservedForParachainBond(
 					bond_config.account,
 					imb.peek(),
 				));
 			}
-			/*
-			 *
-			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
-					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
-				}
-			};
-			*/
 
 			/*
-			 * TODO: we lose this optimization entirely because we payout per-delegator
-			 *
-			// only pay out rewards at the end to transfer only total amount due
-			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
-			let mut increase_due_rewards = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Some(already_due) = due_rewards.get(&to) {
-					let amount = amt.saturating_add(*already_due);
-					due_rewards.insert(to, amount);
-				} else {
-					due_rewards.insert(to, amt);
-				}
-			};
-			*/
-			let collator_fee = <CollatorCommission<T>>::get(); // TODO: this needs to be saved for
-			                                                   // upcoming distributions
-			let collator_issuance = collator_fee * total_issuance;
-
 			// TODO: this gets broken up per round (and also gets simplified since we remove
 			//       duplicated-delegator-rewards optimization)
 			//
@@ -2451,18 +2436,17 @@ pub mod pallet {
 					}
 				}
 			}
-			/*
-			 * TODO: this should be deferred to per-round distribution payments
-			for (delegator, total_due) in due_rewards {
-				mint(total_due, delegator);
-			}
 			*/
 		}
-		/// sketch of what per-round payout fn would look like
-		pub fn pay_one_collator_reward() {
+		/// Payout a single collator from the given round.
+		/// 
+		/// Returns an optional tuple of (Collator's AccountId, total paid)
+		/// or None if there were no more payouts to be made for the round.
+		fn pay_one_collator_reward(round: RoundIndex) -> Option<(T::AccountId, T::Currency)> {
 			// Relevant storage items:
 			// AwardedPts: tally of who has authored for the current round. 
-			//             would need to be duplicated somehow at round end
+			//             this also uses StorageDoubleMap with round index as primary key -- no
+			//             need to copy it.
 			// CollatorCommission: amount of total reward given to collators (e.g. 1 - treasury
 			//                     payout)
 			// AtStake: the map of collators and stakers chosen for the current round.
@@ -2478,6 +2462,58 @@ pub mod pallet {
 			//
 			//          I expect this allows us to (1) avoid iterating over this at all in round-end
 			//          accounting since multiple rounds can safely coexist in the map itself.
+			//          And (2) still keep our rounds cleanly separated.
+
+			let total = <Points<T>>::get(round);
+			if total.is_zero() {
+				// either we already finished paying for the given round or programmer error...
+				return None;
+			}
+
+			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
+				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
+				}
+			};
+
+			let collator_fee = <CollatorCommission<T>>::get(); // TODO: this needs to be saved for
+			                                                   // upcoming distributions
+			let collator_issuance = collator_fee * total_issuance;
+
+			if let (collator, pts) = <AwardedPts<T>>::iter_prefix_values(round).drain().next() {
+				let pct_due = Perbill::from_rational(pts, total);
+				// TODO: need 'left_issuance' preserved
+				let total_paid = pct_due * left_issuance
+				let mut amt_due = amnt_due;
+				// Take the snapshot of block author and delegations
+				let state = <AtStake<T>>::take(round, &collator);
+				if state.delegations.is_empty() {
+					// solo collator with no delegators
+					mint(amt_due, collator.clone());
+				} else {
+					// pay collator first; commission + due_portion
+					let collator_pct = Perbill::from_rational(state.bond, state.total);
+					let commission = pct_due * collator_issuance;
+					amt_due -= commission;
+					let collator_reward = (collator_pct * amt_due) + commission;
+					mint(collator_reward, collator.clone());
+					// pay delegators due portion
+					for Bond { owner, amount } in state.delegations {
+						let percent = Perbill::from_rational(amount, state.total);
+						let due = percent * amt_due;
+						mint(due, owner.clone());
+						// TODO: this event should change
+						Self::deposit_event(Event::DelegatorDueReward(
+							owner.clone(),
+							collator.clone(),
+							due,
+						));
+					}
+				}
+				return (collator, total_paid);
+			} else {
+				return None;
+			}
 		}
 
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
