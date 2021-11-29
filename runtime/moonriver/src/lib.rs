@@ -899,7 +899,9 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = ();
 	type NormalXcmpHandler = ();
 	type MaintenanceXcmpHandler = ();
+	// We use AllPallets because we dont want to change the hooks in normal operation
 	type NormalExecutiveHooks = AllPallets;
+	// We use AllPallets because we dont want to change the hooks in maintenance operation
 	type MaitenanceExecutiveHooks = AllPallets;
 }
 
