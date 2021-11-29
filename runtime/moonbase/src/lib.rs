@@ -1465,7 +1465,7 @@ impl frame_support::traits::OnIdle<BlockNumber> for DoNothingOnIdle {
 // AllPallets here imply all the specfied pallets in the runtime, except frame_system,
 // will run the associated hook
 // AllPallets is simply a nested tuple containing all the pallets except System
-// In cases where we need only specific pallets to run the hook, 
+// In cases where we need only specific pallets to run the hook,
 // we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
