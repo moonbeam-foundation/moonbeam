@@ -45,11 +45,7 @@ export interface TxWithEventAndFee extends TxWithEvent {
 
 export interface BlockDetails {
   block: Block;
-  // authorName: string;
-  // blockTime: number;
-  // records: EventRecord[];
   txWithEvents: TxWithEventAndFee[];
-  // weightPercentage: number;
 }
 
 export function mapExtrinsics(
@@ -82,39 +78,22 @@ export function mapExtrinsics(
 
 const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<BlockDetails> => {
   debug(`Querying ${blockHash}`);
-  // const maxBlockWeight = api.consts.system.blockWeights.maxBlock.toBigInt();
+
   const [{ block }, records] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
     api.query.system.events.at(blockHash),
-    // api.query.timestamp.now.at(blockHash),
   ]);
 
-  // const authorId = block.extrinsics
-  //   .find((tx) => tx.method.section == "authorInherent" && tx.method.method == "setAuthor")
-  //   .args[0].toString();
-
-  // const [fees, authorName] = await Promise.all([
-  //   Promise.all(
-  //     block.extrinsics.map((ext) => api.rpc.payment.queryInfo(ext.toHex(), block.header.parentHash))
-  //   ),
-  //   getAuthorIdentity(api, authorId),
-  // ]);
   const fees = await Promise.all(
     block.extrinsics.map((ext) => api.rpc.payment.queryInfo(ext.toHex(), block.header.parentHash))
   );
 
   const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
-  // const blockWeight = txWithEvents.reduce((totalWeight, tx, index) => {
-  //   return totalWeight + (tx.dispatchInfo && tx.dispatchInfo.weight.toBigInt());
-  // }, 0n);
+
   return {
     block,
-    // authorName,
-    // blockTime: blockTime.toNumber(),
-    // weightPercentage: Number((blockWeight * 10000n) / maxBlockWeight) / 100,
     txWithEvents,
-    //  records,
-  }; //as BlockDetails;
+  } as BlockDetails;
 };
 
 export interface BlockRangeOption {
@@ -152,11 +131,7 @@ export const verifyBlockFees = async (
   expect,
   expectedBalanceDiff: bigint
 ) => {
-  // Set to and from block numbers
-  // const toBlockNumber = argv.to || (await api.rpc.chain.getBlock()).block.header.number.toNumber();
-  // const fromBlockNumber = argv.from || toBlockNumber;
-
-  console.log(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
+  debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
   let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
   let blockCount = 0;
@@ -202,7 +177,6 @@ export const verifyBlockFees = async (
             event.section == "system" &&
             (event.method == "ExtrinsicSuccess" || event.method == "ExtrinsicFailed")
           ) {
-            console.log("event.method", event.method);
             const dispatchInfo =
               event.method == "ExtrinsicSuccess"
                 ? (event.data[0] as DispatchInfo)
@@ -216,15 +190,12 @@ export const verifyBlockFees = async (
               extrinsic.method.section !== "sudo" &&
               (!extrinsic.signer.isEmpty || extrinsic.method.section == "ethereum")
             ) {
-              console.log("extrinsic.method.section", extrinsic.method.section);
               if (extrinsic.method.section == "ethereum") {
-                console.log("dispatchInfo.weight.toBigInt()", dispatchInfo.weight.toBigInt());
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
                 // And then multiplying by gasPrice
                 txFees = gasFee * (extrinsic.method.args[0] as any).gasPrice.toBigInt();
               } else {
-                console.log("fee.partialFee.toBigInt();", fee.partialFee.toBigInt());
                 // For a regular substrate tx, we use the partialFee
                 txFees = fee.partialFee.toBigInt();
               }
@@ -245,18 +216,6 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin);
 
-              console.log("origin", origin);
-
-              console.log("txFees.toString()", txFees.toString());
-              console.log(
-                "fromBalance.data.free.toBigInt() - toBalance.data.free.toBigInt() - expectedBalanceDiff",
-                (
-                  fromBalance.data.free.toBigInt() -
-                  toBalance.data.free.toBigInt() -
-                  expectedBalanceDiff
-                ).toString()
-              );
-              console.log("expectedBalanceDiff.toString()", expectedBalanceDiff.toString());
               expect(txFees.toString()).to.eq(
                 (
                   fromBalance.data.free.toBigInt() -
@@ -264,25 +223,6 @@ export const verifyBlockFees = async (
                   expectedBalanceDiff
                 ).toString()
               );
-
-              // Verbose option will display tx fee and balance change for each extrinsic
-              // if (argv.verbose) {
-              //   console.log(
-              //     ` ${extrinsic.method.section == "ethereum" ? "[Eth]" : "[Sub]"}${
-              //       event.method == "ExtrinsicSuccess" ? "(✔)" : "(X)"
-              //     }${origin.toString()}: ${txFees.toString().padStart(19, " ")} (${printMOVRs(
-              //       txFees,
-              //       5
-              //     )} MOVR) (Balance diff: ${(
-              //       toBalance.data.free.toBigInt() - fromBalance.data.free.toBigInt()
-              //     )
-              //       .toString()
-              //       .padStart(20, " ")})(${printMOVRs(
-              //       toBalance.data.free.toBigInt() - fromBalance.data.free.toBigInt(),
-              //       5
-              //     )} MOVR)`
-              //   );
-              // }
             }
           }
         }
@@ -299,36 +239,29 @@ export const verifyBlockFees = async (
             // Compare deposit event amont to what should have been sent to deposit (if they don't match, which is not a desired behavior)
             expect(txFees - txBurnt).to.eq(deposit);
             if (txFees - txBurnt !== deposit) {
-              console.log("Desposit Amount Discrepancy!");
-              console.log(`fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}`);
-              console.log(`       deposit : ${deposit.toString().padStart(30, " ")}`);
+              debug("Desposit Amount Discrepancy!");
+              debug(`fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}`);
+              debug(`       deposit : ${deposit.toString().padStart(30, " ")}`);
             }
           }
         }
       }
       sumBlockFees += blockFees;
       sumBlockBurnt += blockBurnt;
-      // console.log(`#${blockDetails.block.header.number} Fees : ${printMOVRs(blockFees, 4)} MOVRs`);
       previousBlockHash = blockDetails.block.hash.toString();
     }
   );
-  // Print total and average for the block range
-  // console.log(
-  //   `Total blocks : ${blockCount}, ${printMOVRs(
-  //     sumBlockFees / BigInt(blockCount),
-  //     4
-  //   )}/block, ${printMOVRs(sumBlockFees, 4)} Total`
-  // );
+
   expect(fromPreSupply.toBigInt() - toSupply.toBigInt()).to.eq(sumBlockBurnt);
 
   // Log difference in supply, we should be equal to the burnt fees
-  console.log(
+  debug(
     `  supply diff: ${(fromPreSupply.toBigInt() - toSupply.toBigInt())
       .toString()
       .padStart(30, " ")}`
   );
-  console.log(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
-  console.log(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
+  debug(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
+  debug(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
 };
 
 export const verifyLatestBlockFees = async (
