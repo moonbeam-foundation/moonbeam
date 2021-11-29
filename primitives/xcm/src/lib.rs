@@ -316,7 +316,7 @@ pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
 impl<
 		Assets: Mutate<AccountId>,
 		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
-		AccountId: Clone, // can't get away without it since Currency is generic over it.
+		AccountId: Clone,
 		ReceiverAccount: Get<AccountId>,
 	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
 {
