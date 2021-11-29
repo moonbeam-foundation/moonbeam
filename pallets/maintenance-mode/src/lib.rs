@@ -36,10 +36,6 @@
 //! 4. Maintenance mode timeout. To avoid getting stuck in maintenance mode. It could automatically
 //! switch back to normal mode after a pre-decided number of blocks. Maybe there could be an
 //! extrinsic to extend the maintenance time.
-//!
-//! 5. Let the runtime developer configure which pallets' on_initialize and on_finalize hooks get
-//! called. This would allow to determine whether eg staking elections should still occur and
-//! democracy referenda still mature
 
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -58,9 +54,7 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use cumulus_primitives_core::{
-		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-	};
+
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
