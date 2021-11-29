@@ -236,9 +236,7 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
-		ethereum: EthereumConfig {
-			storage_schema: pallet_ethereum::EthereumStorageSchema::V2,
-		},
+		ethereum: EthereumConfig {},
 		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
