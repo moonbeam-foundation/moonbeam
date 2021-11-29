@@ -89,7 +89,7 @@ describeParachain(
   "XCM - receive_relay_asset_from_relay",
   { chain: "moonbase-local" },
   (context) => {
-    it.only("should be able to receive an asset from relay", async function () {
+    it("should be able to receive an asset from relay", async function () {
       const keyring = new Keyring({ type: "sr25519" });
       const aliceRelay = keyring.addFromUri("//Alice");
 
