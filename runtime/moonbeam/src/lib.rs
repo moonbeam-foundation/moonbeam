@@ -919,6 +919,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type NormalDmpHandler = ();
+	type MaintenanceDmpHandler = ();
+	type NormalXcmpHandler = ();
+	type MaintenanceXcmpHandler = ();
 	type NormalOnRuntimeUpgrade = AllPallets;
 	type MaintenanceOnRuntimeUpgrade = AllPallets;
 	type NormalOnInitialize = AllPallets;
