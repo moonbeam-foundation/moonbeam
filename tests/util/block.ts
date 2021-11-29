@@ -171,7 +171,8 @@ export const verifyBlockFees = async (
         let txFees = 0n;
         let txBurnt = 0n;
 
-        // For every extrinsic, iterate over every event and search for ExtrinsicSuccess or ExtrinsicFailed
+        // For every extrinsic, iterate over every event
+        // and search for ExtrinsicSuccess or ExtrinsicFailed
         for (const event of events) {
           if (
             event.section == "system" &&
@@ -236,7 +237,8 @@ export const verifyBlockFees = async (
             extrinsic.method.section !== "sudo"
           ) {
             const deposit = (event.data[0] as any).toBigInt();
-            // Compare deposit event amont to what should have been sent to deposit (if they don't match, which is not a desired behavior)
+            // Compare deposit event amont to what should have been sent to deposit
+            // (if they don't match, which is not a desired behavior)
             expect(txFees - txBurnt).to.eq(deposit);
             if (txFees - txBurnt !== deposit) {
               debug("Desposit Amount Discrepancy!");

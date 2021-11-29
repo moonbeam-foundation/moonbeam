@@ -80,7 +80,8 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
       );
     } catch (e) {
       expect(e.toString()).to.eq(
-        "Error: 1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
+        "Error: 1010: Invalid Transaction: Inability " +
+          "to pay some fees , e.g. account balance too low"
       );
     }
     //check parachainBondInfo
