@@ -98,6 +98,7 @@ impl Contains<Call> for MaintenanceCallFilter {
 }
 
 pub struct MaintenanceXcmpHandler;
+#[cfg(feature = "xcm-support")]
 impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
@@ -110,6 +111,7 @@ impl XcmpMessageHandler for MaintenanceXcmpHandler {
 }
 
 pub struct NormalXcmpHandler;
+#[cfg(feature = "xcm-support")]
 impl XcmpMessageHandler for NormalXcmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
@@ -122,6 +124,7 @@ impl XcmpMessageHandler for NormalXcmpHandler {
 }
 
 pub struct MaintenanceDmpHandler;
+#[cfg(feature = "xcm-support")]
 impl DmpMessageHandler for MaintenanceDmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
@@ -134,6 +137,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 }
 
 pub struct NormalDmpHandler;
+#[cfg(feature = "xcm-support")]
 impl DmpMessageHandler for NormalDmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
@@ -278,9 +282,13 @@ impl Config for Test {
 	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = MaintenanceCallFilter;
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
+	#[cfg(feature = "xcm-support")]
 	type NormalDmpHandler = NormalDmpHandler;
+	#[cfg(feature = "xcm-support")]
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	#[cfg(feature = "xcm-support")]
 	type NormalXcmpHandler = NormalXcmpHandler;
+	#[cfg(feature = "xcm-support")]
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	type NormalOnIdle = NormalHooks;
 	type MaintenanceOnIdle = MaintenanceHooks;

@@ -116,6 +116,7 @@ fn cannot_resume_normal_operation_while_already_operating_normally() {
 	})
 }
 
+#[cfg(feature = "xcm-support")]
 #[test]
 fn normal_dmp_and_xcmp_in_non_maintenance() {
 	ExtBuilder::default()
@@ -133,6 +134,7 @@ fn normal_dmp_and_xcmp_in_non_maintenance() {
 		})
 }
 
+#[cfg(feature = "xcm-support")]
 #[test]
 fn maintenance_dmp_and_xcmp_in_maintenance() {
 	ExtBuilder::default()
