@@ -171,12 +171,13 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
       const from = ALITH.slice(2).padStart(64, "0").toLowerCase(); // web3 rpc returns lowercase
       const to = CHARLETH.slice(2).padStart(64, "0").toLowerCase();
 
+      const gas_price = await context.web3.eth.getGasPrice();
       const tx = await createTransaction(context.web3, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
         gas: "0x200000",
-        gasPrice: GAS_PRICE,
+        gasPrice: context.web3.utils.toHex(gas_price),
         to: ADDRESS_ERC20,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });
@@ -224,12 +225,13 @@ describeDevMoonbeam("Precompiles - ERC20", (context) => {
       let from = ALITH.slice(2).padStart(64, "0");
       let to = CHARLETH.slice(2).padStart(64, "0");
 
+      const gas_price = await context.web3.eth.getGasPrice();
       let tx = await createTransaction(context.web3, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
         gas: "0x200000",
-        gasPrice: GAS_PRICE,
+        gasPrice: context.web3.utils.toHex(gas_price),
         to: ADDRESS_ERC20,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });
