@@ -10,6 +10,7 @@ import {
   BOB_AUTHOR_ID,
 } from "../../util/constants";
 import { createBlockWithExtrinsic, logEvents } from "../../util/substrate-rpc";
+import { getMappingInfo } from "./test-proxy-author-mapping";
 const debug = require("debug")("test:proxy");
 
 // In these tests Alith will allow Baltathar to perform calls on her behalf.
@@ -43,7 +44,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
       const events = await substrateTransaction(
         context,
         alith,
-        // @ts-ignore
+        // @ts-ignore //TODO: this is because of https://github.com/polkadot-js/api/issues/4264
         context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
       );
       expect(events[2].method).to.be.eq("ProxyAdded");
@@ -59,10 +60,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         )
       );
-      events2.forEach((e) => {
-        console.log(2);
-        console.log(e.toHuman());
-      });
+
       expect(events2[2].method).to.be.eq("ProxyExecuted");
       expect(events2[2].data[0].toString()).to.be.eq("Ok");
       expect(events2[5].method).to.be.eq("ExtrinsicSuccess");
@@ -72,7 +70,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
 
 describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (context) => {
   it.only("shouldn't accept other proxy types", async () => {
-    await expectBalanceDifference(context, CHARLETH_ADDRESS, 100, async () => {
+    await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
       const events = await substrateTransaction(
         context,
         alith,
@@ -93,13 +91,13 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
           context.polkadotApi.tx.authorMapping.addAssociation(BOB_AUTHOR_ID)
         )
       );
-      events2.forEach((e) => {
-        console.log(2);
-        console.log(e.toHuman());
-      });
-      //   expect(events2[2].method).to.be.eq("ProxyExecuted");
-      //   expect(events2[2].data[0].toString()).to.be.eq("Ok");
-      expect(events2[5].method).to.be.eq("ExtrinsicFailed");
+
+      expect(events2[1].method).to.be.eq("ProxyExecuted");
+      expect(events2[1].data[0].toString()).to.be.eq(`{"err":{"badOrigin":null}}`);
+      expect(events2[4].method).to.be.eq("ExtrinsicSuccess");
+
+      // // check association failed
+      expect(await getMappingInfo(context, BOB_AUTHOR_ID)).to.eq(null);
     });
   });
 });

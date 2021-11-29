@@ -24,7 +24,7 @@ const aliceAuthorId = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e
 const bobAuthorId = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
 const charlieAuthorId = "0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22";
 
-async function getMappingInfo(
+export async function getMappingInfo(
   context,
   authorId: string
 ): Promise<{ account: string; deposit: BigInt }> {
