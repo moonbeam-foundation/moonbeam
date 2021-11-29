@@ -42,7 +42,7 @@ describeDevMoonbeam("Contract creation", (context) => {
 });
 
 describeDevMoonbeam("Contract creation -block fees", (context) => {
-  it.only("should check latest block fees", async function () {
+  it("should check latest block fees", async function () {
     const { rawTx } = await createContract(context.web3, "TestContract");
     const {} = await context.createBlock({ transactions: [rawTx] });
     await verifyLatestBlockFees(context.polkadotApi, expect);

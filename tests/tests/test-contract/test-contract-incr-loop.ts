@@ -31,7 +31,7 @@ describeDevMoonbeam("Contract loop increment", (context) => {
 });
 
 describeDevMoonbeam("Contract loop increment - check fees", (context) => {
-  it.only("should increment contract state", async function () {
+  it("should increment contract state", async function () {
     const { contract, rawTx } = await createContract(context.web3, "TestContractIncr");
     await context.createBlock({ transactions: [rawTx] });
 

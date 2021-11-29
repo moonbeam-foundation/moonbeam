@@ -68,7 +68,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(isPayable).to.equal(null);
   });
 
-  it.only("should be able to register the genesis account for reward", async function () {
+  it("should be able to register the genesis account for reward", async function () {
     // should be able to register the genesis account for reward
     await context.polkadotApi.tx.sudo
       .sudo(

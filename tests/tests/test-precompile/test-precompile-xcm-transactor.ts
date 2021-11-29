@@ -173,7 +173,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     );
   });
 
-  it.only("allows to issue transfer xcm transactor", async function () {
+  it("allows to issue transfer xcm transactor", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -284,7 +284,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it.only("allows to issue transfer xcm transactor with currency Id", async function () {
+  it("allows to issue transfer xcm transactor with currency Id", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
 

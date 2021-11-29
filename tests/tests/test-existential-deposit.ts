@@ -24,7 +24,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
 });
 
 describeDevMoonbeam("Existential Deposit", (context) => {
-  it.only("should be disabled (no reaped account on tiny balance - 1)", async function () {
+  it("should be disabled (no reaped account on tiny balance - 1)", async function () {
     await context.createBlock({
       transactions: [
         await createTransfer(
@@ -44,7 +44,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
 });
 
 describeDevMoonbeam("Existential Deposit", (context) => {
-  it.only("checks that existantial deposit is set to zero", async function () {
+  it("checks that existantial deposit is set to zero", async function () {
     // Grab existential deposit
     let existentialDeposit = await context.polkadotApi.consts.balances.existentialDeposit;
     expect(existentialDeposit.toBigInt()).to.eq(0n);

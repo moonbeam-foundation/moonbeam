@@ -45,7 +45,7 @@ describeDevMoonbeam("Contract loop error", (context) => {
 });
 
 describeDevMoonbeam("Contract loop error - check fees", (context) => {
-  it.only("should fail with OutOfGas on infinite loop transaction - check fees", async function () {
+  it("should fail with OutOfGas on infinite loop transaction - check fees", async function () {
     const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
     const infiniteTx = await createContractExecution(
       context.web3,

@@ -72,7 +72,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
-  it.only("should successfully call joinCandidates on ETHAN", async function () {
+  it("should successfully call joinCandidates on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
       ADDRESS_STAKING,

@@ -117,7 +117,7 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
       ).data.free.toString()
     );
   });
-  it.only("should check fees", async function () {
+  it("should check fees", async function () {
     await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(512));
   });
 });

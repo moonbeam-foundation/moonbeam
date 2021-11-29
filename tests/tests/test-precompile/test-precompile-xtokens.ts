@@ -25,7 +25,7 @@ async function getBalance(context, blockHeight, address) {
 }
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  it.only("allows to issue transfer xtokens", async function () {
+  it("allows to issue transfer xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
@@ -99,7 +99,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
 });
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  it.only("allows to issue transfer_multiasset xtokens", async function () {
+  it("allows to issue transfer_multiasset xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
