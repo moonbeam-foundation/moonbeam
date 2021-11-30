@@ -1,10 +1,10 @@
 import { expect } from "chai";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
-describeDevMoonbeam("Balance extrinsics", (context) => {
-  it("should appear after transfer", async function () {
+describeDevMoonbeamAllEthTxTypes("Balance extrinsics", (context) => {
+  it.only("should appear after transfer", async function () {
     const testAddress = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
       transactions: [await createTransfer(context, testAddress, 512)],
@@ -113,7 +113,9 @@ describeDevMoonbeam("Balance extrinsics (EIP1559)", (context) => {
   it("should appear after transfer", async function () {
     const testAddress = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
-      transactions: [await createTransfer(context, testAddress, 512, { maxFeePerGas: 1_000_000_000 })],
+      transactions: [
+        await createTransfer(context, testAddress, 512, { maxFeePerGas: 1_000_000_000 }),
+      ],
     });
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);

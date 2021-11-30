@@ -38,23 +38,31 @@ export const createTransaction = async (
   context: DevTestContext,
   options: TransactionOptions
 ): Promise<string> => {
-
-  const isLegacy = options.maxFeePerGas === undefined &&
-    options.maxPriorityFeePerGas === undefined && options.accessList === undefined;
-  const isEip2930 = options.maxFeePerGas === undefined && options.accessList !== undefined;
-  const isEip1559 = options.maxFeePerGas !== undefined;
+  const isLegacy = context.ethTransactionType === "Legacy";
+  //  ||
+  // (options.maxFeePerGas === undefined &&
+  //   options.maxPriorityFeePerGas === undefined &&
+  //   options.accessList === undefined);
+  const isEip2930 = context.ethTransactionType === "EIP2930";
+  //  ||
+  // (options.maxFeePerGas === undefined && options.accessList !== undefined);
+  const isEip1559 = context.ethTransactionType === "EIP1559"; // || options.maxFeePerGas !== undefined;
 
   const gas = options.gas || 12_000_000;
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
-  const maxPriorityFeePerGas = options.maxPriorityFeePerGas !== undefined ?
-    options.maxPriorityFeePerGas : 0;
+  const maxPriorityFeePerGas =
+    options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || GENESIS_ACCOUNT;
   const privateKey =
     options.privateKey !== undefined ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY;
 
+  const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
+  const accessList = options.accessList || [];
+
   let data, rawTransaction;
-  if(isLegacy) {
+  if (isLegacy) {
+    console.log("isLegacy");
     data = {
       from,
       to: options.to,
@@ -69,7 +77,8 @@ export const createTransaction = async (
   } else {
     const signer = new ethers.Wallet(privateKey, context.ethers);
     const chainId = await context.web3.eth.getChainId();
-    if(isEip2930) {
+    if (isEip2930) {
+      console.log("isEip2930");
       data = {
         from,
         to: options.to,
@@ -82,17 +91,18 @@ export const createTransaction = async (
         chainId,
         type: 1,
       };
-    } else if(isEip1559) {
+    } else if (isEip1559) {
+      console.log("isEip1559");
       data = {
         from,
         to: options.to,
         value: value && value.toString(),
-        maxFeePerGas: options.maxFeePerGas,
+        maxFeePerGas,
         maxPriorityFeePerGas,
         gasLimit: gas,
         nonce: options.nonce,
         data: options.data,
-        accessList: options.accessList,
+        accessList,
         chainId,
         type: 2,
       };
@@ -109,7 +119,9 @@ export const createTransaction = async (
       (data.value ? `value: ${data.value.toString()}, ` : "") +
       (data.gasPrice ? `gasPrice: ${data.gasPrice.toString()}, ` : "") +
       (data.maxFeePerGas ? `maxFeePerGas: ${data.maxFeePerGas.toString()}, ` : "") +
-      (data.maxPriorityFeePerGas ? `maxPriorityFeePerGas: ${data.maxPriorityFeePerGas.toString()}, ` : "") +
+      (data.maxPriorityFeePerGas
+        ? `maxPriorityFeePerGas: ${data.maxPriorityFeePerGas.toString()}, `
+        : "") +
       (data.accessList ? `accessList: ${data.accessList.toString()}, ` : "") +
       (data.gas ? `gas: ${data.gas.toString()}, ` : "") +
       (data.nonce ? `nonce: ${data.nonce.toString()}, ` : "") +

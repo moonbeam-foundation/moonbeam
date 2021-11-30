@@ -41,6 +41,7 @@ export interface DevTestContext {
   ethers: ethers.providers.JsonRpcProvider;
   polkadotApi: ApiPromise;
   rpcPort: number;
+  ethTransactionType?: EthTransactionType;
 }
 
 interface InternalDevTestContext extends DevTestContext {
@@ -48,9 +49,12 @@ interface InternalDevTestContext extends DevTestContext {
   _web3Providers: HttpProvider[];
 }
 
+type EthTransactionType = "Legacy" | "EIP2930" | "EIP1559";
+
 export function describeDevMoonbeam(
   title: string,
   cb: (context: DevTestContext) => void,
+  ethTransactionType: EthTransactionType = "Legacy",
   withWasm?: boolean
 ) {
   describe(title, function () {
@@ -59,7 +63,7 @@ export function describeDevMoonbeam(
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
-    let context: InternalDevTestContext = {} as InternalDevTestContext;
+    let context: InternalDevTestContext = { ethTransactionType } as InternalDevTestContext;
 
     // The currently running node for this describe
     let moonbeamProcess: ChildProcess;
@@ -147,4 +151,13 @@ export function describeDevMoonbeam(
 
     cb(context);
   });
+}
+
+export function describeDevMoonbeamAllEthTxTypes(
+  title: string,
+  cb: (context: DevTestContext) => void
+) {
+  describeDevMoonbeam(title + " (Legacy)", cb, "Legacy");
+  describeDevMoonbeam(title + " (EIP1559)", cb, "EIP1559");
+  describeDevMoonbeam(title + " (EIP2930)", cb, "EIP2930");
 }

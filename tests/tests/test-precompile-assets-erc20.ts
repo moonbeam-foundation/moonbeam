@@ -263,6 +263,7 @@ describeDevMoonbeam(
       expect(tx_call.result).equals(amount_hex);
     });
   },
+  "Legacy",
   true
 );
 
@@ -355,6 +356,7 @@ describeDevMoonbeam(
       expect(tx_call.result).equals(amount_hex);
     });
   },
+  "Legacy",
   true
 );
 
@@ -461,6 +463,7 @@ describeDevMoonbeam(
       expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
+  "Legacy",
   true
 );
 
@@ -527,6 +530,7 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
+  "Legacy",
   true
 );
 
@@ -700,6 +704,7 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
+  "Legacy",
   true
 );
 
@@ -1023,5 +1028,6 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
+  "Legacy",
   true
 );
