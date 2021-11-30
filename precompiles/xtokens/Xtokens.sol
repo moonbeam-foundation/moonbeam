@@ -21,7 +21,7 @@ interface Xtokens {
      * @param currency_address The ERC20 address of the currency we want to transfer
      * @param amount The amount of tokens we want to transfer
      * @param destination The Multilocation to which we want to send the tokens
-     * @param destination The weight we want to buy in the destination chain
+     * @param weight The weight we want to buy in the destination chain
      */
     function transfer(address currency_address, uint256 amount, Multilocation memory destination, uint64 weight) external;
 
@@ -32,7 +32,7 @@ interface Xtokens {
      * @param asset The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets
      * @param amount The amount of tokens we want to transfer
      * @param destination The Multilocation to which we want to send the tokens
-     * @param destination The weight we want to buy in the destination chain
+     * @param weight The weight we want to buy in the destination chain
      */
     function transfer_multiasset(Multilocation memory asset, uint256 amount, Multilocation memory destination, uint64 weight) external;
 }
