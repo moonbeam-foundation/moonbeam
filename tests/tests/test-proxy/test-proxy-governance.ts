@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
-import { Event } from "@polkadot/types/interfaces";
 import {
   ALITH_PRIV_KEY,
   DOROTHY,
