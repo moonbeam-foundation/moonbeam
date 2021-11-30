@@ -5,7 +5,7 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Receipt - Revert", (context) => {
   it("should generate a receipt", async function () {
-    const { rawTx } = await createContract(context.web3, "FailContract");
+    const { rawTx } = await createContract(context, "FailContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     const receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
 

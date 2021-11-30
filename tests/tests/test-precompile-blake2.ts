@@ -4,7 +4,7 @@ import { createContract } from "../util/transactions";
 
 describeDevMoonbeam("Precompiles - Blake2", (context) => {
   it("should be accessible from a smart contract", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "Blake2Check");
+    const { contract, rawTx } = await createContract(context, "Blake2Check");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
 
     // The contract should deploy successfully and the receipt should show success.

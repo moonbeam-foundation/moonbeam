@@ -9,7 +9,7 @@ chaiUse(chaiAsPromised);
 
 describeDevMoonbeam("Estimate Gas - infinite loop", (context) => {
   it("Should be able to estimate gas of infinite loop call", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
     await expect(

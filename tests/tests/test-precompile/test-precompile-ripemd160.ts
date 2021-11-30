@@ -25,7 +25,7 @@ describeDevMoonbeam("Precompiles - ripemd160 ", (context) => {
 
 describeDevMoonbeam("Precompiles - ripemd160 ", (context) => {
   it("should be accessible from a smart contract", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "HashRipmd160");
+    const { contract, rawTx } = await createContract(context, "HashRipmd160");
     await context.createBlock({ transactions: [rawTx] });
 
     // Because the call to ripemd160 is in the constructor of HashRipmd160, verifying the code

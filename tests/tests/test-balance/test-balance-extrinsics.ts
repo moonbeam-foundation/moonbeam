@@ -7,7 +7,7 @@ describeDevMoonbeam("Balance extrinsics", (context) => {
   it("should appear after transfer", async function () {
     const testAddress = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, testAddress, 512)],
+      transactions: [await createTransfer(context, testAddress, 512)],
     });
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);

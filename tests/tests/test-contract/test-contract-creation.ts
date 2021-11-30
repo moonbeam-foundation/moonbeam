@@ -4,7 +4,7 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Contract creation", (context) => {
   it("should return the transaction hash", async () => {
-    const { rawTx } = await createContract(context.web3, "TestContract");
+    const { rawTx } = await createContract(context, "TestContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
 
     expect(
@@ -16,12 +16,12 @@ describeDevMoonbeam("Contract creation", (context) => {
 
 describeDevMoonbeam("Contract creation", (context) => {
   it("should not contain contract at genesis", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context, "TestContract");
     expect(await context.web3.eth.getCode(contract.options.address)).to.deep.equal("0x");
   });
 
   it("should store the code on chain", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context, "TestContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
 
     expect(await context.web3.eth.getCode(contract.options.address)).to.deep.equal(

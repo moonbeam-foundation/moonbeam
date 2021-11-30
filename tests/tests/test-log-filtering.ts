@@ -38,7 +38,7 @@ describeDevMoonbeam("Log - Filter out non-matching", (context) => {
     ];
   }
   before("Setup: Create block with transfer", async () => {
-    const { rawTx } = await createContract(context.web3, "SingleEventContract", {
+    const { rawTx } = await createContract(context, "SingleEventContract", {
       from: GENESIS_ACCOUNT,
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });

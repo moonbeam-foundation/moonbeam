@@ -43,7 +43,7 @@ describeDevMoonbeam("Precompiles - precompiles dummy bytecode", (context) => {
   it("should revert when dummy bytecode is called", async function () {
     // we deploy a new contract with the same bytecode to be able to
     // execute the bytecode instead of executing a precompile.
-    const createTx = await createTransaction(context.web3, {
+    const createTx = await createTransaction(context, {
       data: INIT_CODE,
     });
 
@@ -63,7 +63,7 @@ describeDevMoonbeam("Precompiles - precompiles dummy bytecode", (context) => {
     expect(code).to.equal(DEPLOYED_BYTECODE);
 
     // try to call contract (with empty data, shouldn't matter)
-    const callTx = await createTransaction(context.web3, {
+    const callTx = await createTransaction(context, {
       data: "0x",
       to: contractAddress,
     });

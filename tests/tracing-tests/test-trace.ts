@@ -69,7 +69,7 @@ describeDevMoonbeam(
     // "Allocator ran out of space"'.
     it("should not overflow Wasm memory", async function () {
       this.timeout(15000);
-      const { contract, rawTx } = await createContract(context.web3, "OverflowingTrace", {}, [
+      const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [
         false,
       ]);
       const { txResults } = await context.createBlock({
@@ -98,7 +98,7 @@ describeDevMoonbeam(
     });
 
     it("should replay over an intermediate state", async function () {
-      const { contract, rawTx } = await createContract(context.web3, "Incrementer", {}, [false]);
+      const { contract, rawTx } = await createContract(context, "Incrementer", {}, [false]);
       const { txResults } = await context.createBlock({
         transactions: [rawTx],
       });
@@ -215,7 +215,7 @@ describeDevMoonbeam("Trace", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
     this.timeout(10000);
 
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
     let callTx = await context.web3.eth.accounts.signTransaction(
@@ -324,7 +324,7 @@ describeDevMoonbeam("Trace", (context) => {
   it("should format as request (callTrace Create)", async function () {
     let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     const { contract: callee, rawTx: rawTx1 } = await createContract(
-      context.web3,
+      context,
       "Callee",
       { nonce: nonce++ },
       []

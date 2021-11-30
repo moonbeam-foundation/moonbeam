@@ -8,7 +8,7 @@ describeDevMoonbeam("Balance transfer cost", (context) => {
   it("should cost 21000 * 1_000_000_000", async function () {
     const testAccount = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, testAccount, 0)],
+      transactions: [await createTransfer(context, testAccount, 0)],
     });
 
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
@@ -21,7 +21,7 @@ describeDevMoonbeam("Balance transfer", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
   });
 

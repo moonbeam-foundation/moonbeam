@@ -36,7 +36,7 @@ describeDevMoonbeam("Fork", (context) => {
     await context.createBlock({ finalize: false });
     const { txResults } = await context.createBlock({
       finalize: false,
-      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
     const insertedTx = txResults[0].result;
     const retractedTx = await context.web3.eth.getTransaction(insertedTx);

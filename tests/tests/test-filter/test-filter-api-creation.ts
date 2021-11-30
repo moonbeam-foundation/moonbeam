@@ -5,7 +5,7 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Filter API", (context) => {
   it("should be able to create a Log filter", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { contract, rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({ transactions: [rawTx] });
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
@@ -25,7 +25,7 @@ describeDevMoonbeam("Filter API", (context) => {
 
 describeDevMoonbeam("Filter API - Creating", (context) => {
   it("should increment filter id", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { contract, rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({ transactions: [rawTx] });
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [

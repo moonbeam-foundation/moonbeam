@@ -111,7 +111,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     const contractData = await getCompiled("XcmTransactorInstance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XcmTransactorInstance");
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -218,7 +218,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       "transact_through_derivative_multilocation",
       [transactor, index, asset, weight, transact_call]
     );
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -274,7 +274,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     const contractData = await getCompiled("XcmTransactorInstance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XcmTransactorInstance");
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -324,7 +324,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       [transactor, index, asset, weight, transact_call]
     );
 
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",

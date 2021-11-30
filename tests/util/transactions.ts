@@ -6,6 +6,8 @@ import { Contract } from "web3-eth-contract";
 import fetch from "node-fetch";
 import { DevTestContext } from "./setup-dev-tests";
 import { customWeb3Request } from "./providers";
+// Ethers is used to handle post-london transactions
+import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
 const debug = require("debug")("test:transaction");
 
@@ -33,27 +35,68 @@ export const GENESIS_TRANSACTION: TransactionOptions = {
 };
 
 export const createTransaction = async (
-  web3: Web3,
+  context: DevTestContext,
   options: TransactionOptions
 ): Promise<string> => {
+
+  const isLegacy = options.maxFeePerGas === undefined &&
+    options.maxPriorityFeePerGas === undefined && options.accessList === undefined;
+  const isEip2930 = options.maxFeePerGas === undefined && options.accessList !== undefined;
+  const isEip1559 = options.maxFeePerGas !== undefined;
+
   const gas = options.gas || 12_000_000;
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
+  const maxPriorityFeePerGas = options.maxPriorityFeePerGas !== undefined ?
+    options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || GENESIS_ACCOUNT;
   const privateKey =
     options.privateKey !== undefined ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY;
 
-  const data = {
-    from,
-    to: options.to,
-    value: value && value.toString(),
-    gasPrice,
-    gas,
-    nonce: options.nonce,
-    data: options.data,
-  };
+  let data, rawTransaction;
+  if(isLegacy) {
+    data = {
+      from,
+      to: options.to,
+      value: value && value.toString(),
+      gasPrice,
+      gas,
+      nonce: options.nonce,
+      data: options.data,
+    };
+    const tx = await context.web3.eth.accounts.signTransaction(data, privateKey);
+    rawTransaction = tx.rawTransaction;
+  } else {
+    const signer = new ethers.Wallet(privateKey, context.ethers);
+    if(isEip2930) {
+      data = {
+        from,
+        to: options.to,
+        value: value && value.toString(),
+        gasPrice,
+        gasLimit: gas,
+        nonce: options.nonce,
+        data: options.data,
+        accessList: options.accessList,
+      };
+    } else if(isEip1559) {
+      data = {
+        from,
+        to: options.to,
+        value: value && value.toString(),
+        maxFeePerGas: options.maxFeePerGas,
+        maxPriorityFeePerGas,
+        gasLimit: gas,
+        nonce: options.nonce,
+        data: options.data,
+        accessList: options.accessList,
+      };
+    }
+    rawTransaction = await signer.signTransaction(data);
+  }
+
   debug(
-    `Tx [${/:([0-9]+)$/.exec((web3.currentProvider as any).host)[1]}] ` +
+    `Tx [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] ` +
       `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
       (data.to
         ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
@@ -70,39 +113,38 @@ export const createTransaction = async (
               : data.data.substr(0, 5) + "..." + data.data.substr(data.data.length - 3)
           }`)
   );
-  const tx = await web3.eth.accounts.signTransaction(data, privateKey);
-  return tx.rawTransaction;
+  return rawTransaction;
 };
 
 export const createTransfer = async (
-  web3: Web3,
+  context: DevTestContext,
   to: string,
   value: number | string | BigInt,
   options: TransactionOptions = GENESIS_TRANSACTION
 ): Promise<string> => {
-  return await createTransaction(web3, { ...options, value, to });
+  return await createTransaction(context, { ...options, value, to });
 };
 
 // Will create the transaction to deploy a contract.
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
 export async function createContract(
-  web3: Web3,
+  context: DevTestContext,
   contractName: string,
   options: TransactionOptions = GENESIS_TRANSACTION,
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = await getCompiled(contractName);
   const from = options.from !== undefined ? options.from : GENESIS_ACCOUNT;
-  const nonce = options.nonce || (await web3.eth.getTransactionCount(from));
+  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from));
   const contractAddress =
     "0x" +
-    web3.utils
+    context.web3.utils
       .sha3(RLP.encode([from, nonce]) as any)
       .slice(12)
       .substring(14);
 
-  const contract = new web3.eth.Contract(contractCompiled.contract.abi, contractAddress);
+  const contract = new context.web3.eth.Contract(contractCompiled.contract.abi, contractAddress);
   const data = contract
     .deploy({
       data: contractCompiled.byteCode,
@@ -110,7 +152,7 @@ export async function createContract(
     })
     .encodeABI();
 
-  const rawTx = await createTransaction(web3, { ...options, from, nonce, data });
+  const rawTx = await createTransaction(context, { ...options, from, nonce, data });
 
   return {
     rawTx,
@@ -123,14 +165,14 @@ export async function createContract(
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
 export async function createContractExecution(
-  web3: Web3,
+  context: DevTestContext,
   execution: {
     contract: Contract;
     contractCall: any;
   },
   options: TransactionOptions = GENESIS_TRANSACTION
 ) {
-  const tx = await createTransaction(web3, {
+  const tx = await createTransaction(context, {
     ...options,
     to: execution.contract.options.address,
     data: execution.contractCall.encodeABI(),
@@ -187,7 +229,7 @@ export async function sendPrecompileTx(
     data += para.slice(2).padStart(64, "0");
   });
 
-  const tx = await createTransaction(context.web3, {
+  const tx = await createTransaction(context, {
     from,
     privateKey,
     value: "0x0",

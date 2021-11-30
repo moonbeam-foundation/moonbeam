@@ -34,7 +34,7 @@ async function sendApprove(context, from, fromPrivate, spender, amount) {
   const fromData = from.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
-  const tx = await createTransaction(context.web3, {
+  const tx = await createTransaction(context, {
     from: from,
     privateKey: fromPrivate,
     value: "0x0",
@@ -131,7 +131,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
     const amount = `400000000000`.padStart(64, "0");
 
     const to = CHARLETH.slice(2).padStart(64, "0");
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -172,7 +172,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
       const to = CHARLETH.slice(2).padStart(64, "0").toLowerCase();
 
       const gas_price = await context.web3.eth.getGasPrice();
-      const tx = await createTransaction(context.web3, {
+      const tx = await createTransaction(context, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
@@ -226,7 +226,7 @@ describeDevMoonbeam("Precompiles - ERC20", (context) => {
       let to = CHARLETH.slice(2).padStart(64, "0");
 
       const gas_price = await context.web3.eth.getGasPrice();
-      let tx = await createTransaction(context.web3, {
+      let tx = await createTransaction(context, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",

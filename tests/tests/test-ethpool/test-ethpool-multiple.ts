@@ -20,7 +20,7 @@ describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
-        const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
+        const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
     );
@@ -64,7 +64,7 @@ describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
-        const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
+        const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
     );

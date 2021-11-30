@@ -7,7 +7,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 
 describeDevMoonbeam("Contract loop error", (context) => {
   it("should return OutOfGas on inifinite loop call", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
     await contract.methods
@@ -22,9 +22,9 @@ describeDevMoonbeam("Contract loop error", (context) => {
 
 describeDevMoonbeam("Contract loop error", (context) => {
   it("should fail with OutOfGas on infinite loop transaction", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     const infiniteTx = await createContractExecution(
-      context.web3,
+      context,
       {
         contract,
         contractCall: contract.methods.infinite(),

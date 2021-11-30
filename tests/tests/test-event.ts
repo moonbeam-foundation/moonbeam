@@ -5,7 +5,7 @@ import { GENESIS_ACCOUNT } from "../util/constants";
 
 describeDevMoonbeam("Event - Contract", (context) => {
   it("should contain event", async function () {
-    const { rawTx } = await createContract(context.web3, "SingleEventContract", {
+    const { rawTx } = await createContract(context, "SingleEventContract", {
       from: GENESIS_ACCOUNT,
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });

@@ -7,7 +7,7 @@ describeDevMoonbeam("Receipt - Contract", (context) => {
   let txHash;
   let eventContract;
   before("Setup: Create block with contract", async () => {
-    const { contract, rawTx } = await createContract(context.web3, "SingleEventContract", {
+    const { contract, rawTx } = await createContract(context, "SingleEventContract", {
       from: GENESIS_ACCOUNT,
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });

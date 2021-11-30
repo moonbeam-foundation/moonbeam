@@ -16,7 +16,7 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
   let multContract: Contract;
 
   before("Setup: Create simple context", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context, "TestContract");
     await context.createBlock({ transactions: [rawTx] });
     multContract = contract;
   });
@@ -68,7 +68,7 @@ describeDevMoonbeam("Estimate Gas - Supplied estimate is sufficient", (context) 
     });
 
     // attempt a transaction with our estimated gas
-    const { rawTx } = await createContract(context.web3, "Incrementer", { gas: estimate });
+    const { rawTx } = await createContract(context, "Incrementer", { gas: estimate });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
       txResults[0].result

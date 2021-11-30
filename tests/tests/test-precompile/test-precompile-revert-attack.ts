@@ -26,14 +26,14 @@ describeDevMoonbeam("Precompiles - test revert attack on state modifier", (conte
     // Check initial balance
     const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
     // Deploy atatck contract
-    const { contract, rawTx } = await createContract(context.web3, "StakingDelegationAttaker");
+    const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
     await context.createBlock({ transactions: [rawTx] });
 
     // call the payable function, which should revert
     const block = await context.createBlock({
       transactions: [
         await createContractExecution(
-          context.web3,
+          context,
           {
             contract,
             contractCall: contract.methods.score_a_free_delegation(),

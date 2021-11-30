@@ -8,7 +8,7 @@ describeDevMoonbeam("Contract creation", (context) => {
   let testContractTx: string;
 
   before("Setup: Create the contract", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context, "TestContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     testContract = contract;
     testContractTx = txResults[0].result;

@@ -27,7 +27,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -70,7 +70,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
@@ -100,7 +100,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -165,7 +165,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     // create tx
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
