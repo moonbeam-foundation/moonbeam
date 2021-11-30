@@ -68,6 +68,7 @@ export const createTransaction = async (
     rawTransaction = tx.rawTransaction;
   } else {
     const signer = new ethers.Wallet(privateKey, context.ethers);
+    const chainId = await context.web3.eth.getChainId();
     if(isEip2930) {
       data = {
         from,
@@ -78,6 +79,8 @@ export const createTransaction = async (
         nonce: options.nonce,
         data: options.data,
         accessList: options.accessList,
+        chainId,
+        type: 1,
       };
     } else if(isEip1559) {
       data = {
@@ -90,6 +93,8 @@ export const createTransaction = async (
         nonce: options.nonce,
         data: options.data,
         accessList: options.accessList,
+        chainId,
+        type: 2,
       };
     }
     rawTransaction = await signer.signTransaction(data);
@@ -102,7 +107,10 @@ export const createTransaction = async (
         ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
         : "") +
       (data.value ? `value: ${data.value.toString()}, ` : "") +
-      `gasPrice: ${data.gasPrice.toString()}, ` +
+      (data.gasPrice ? `gasPrice: ${data.gasPrice.toString()}, ` : "") +
+      (data.maxFeePerGas ? `maxFeePerGas: ${data.maxFeePerGas.toString()}, ` : "") +
+      (data.maxPriorityFeePerGas ? `maxPriorityFeePerGas: ${data.maxPriorityFeePerGas.toString()}, ` : "") +
+      (data.accessList ? `accessList: ${data.accessList.toString()}, ` : "") +
       (data.gas ? `gas: ${data.gas.toString()}, ` : "") +
       (data.nonce ? `nonce: ${data.nonce.toString()}, ` : "") +
       (!data.data
