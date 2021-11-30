@@ -97,3 +97,6 @@ export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - E
 
 // for author mapping
 export const BOB_AUTHOR_ID = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
+
+// Weight per gas mapping
+export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
