@@ -230,7 +230,7 @@ export async function callPrecompile(
   ]);
 }
 
-/// Sign and sand Substrate transaction then create a block.
+/// Sign and send Substrate transaction and then create a block.
 /// Will provide events emited by the transaction to check if they match what is expected.
 export async function substrateTransaction(context, sender, polkadotCall): Promise<Event[]> {
   const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
