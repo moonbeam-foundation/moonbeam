@@ -6,6 +6,7 @@ import { Contract } from "web3-eth-contract";
 import fetch from "node-fetch";
 import { DevTestContext } from "./setup-dev-tests";
 import { customWeb3Request } from "./providers";
+import { AccessListish } from "@ethersproject/transactions";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -15,8 +16,11 @@ export interface TransactionOptions {
   nonce?: number;
   gas?: string | number;
   gasPrice?: string | number;
+  maxFeePerGas?: string | number;
+  maxPriorityFeePerGas?: string | number;
   value?: string | number | BigInt;
   data?: string;
+  accessList?: AccessListish; // AccessList | Array<[string, Array<string>]>
 }
 
 export const GENESIS_TRANSACTION: TransactionOptions = {
