@@ -214,6 +214,7 @@ impl<
 	}
 }
 
+/// Deal with spent fees, deposit them as dictated by R
 impl<
 		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
@@ -310,6 +311,9 @@ pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }
 
+/// XCM fee depositor to which we implement the TakeRevenut trait
+/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
+/// AssetId and amount, and the fee receiver account
 pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
 	PhantomData<(Assets, Matcher, AccountId, ReceiverAccount)>,
 );
@@ -322,8 +326,10 @@ impl<
 {
 	fn take_revenue(revenue: MultiAsset) {
 		if let Ok((asset_id, amount)) = Matcher::matches_fungibles(&revenue) {
-			let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
-			debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+			if !amount.is_zero() {
+				let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+				debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+			}
 		}
 	}
 }
