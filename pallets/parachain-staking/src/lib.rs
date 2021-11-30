@@ -66,7 +66,7 @@ pub use pallet::*;
 pub mod pallet {
 	use crate::{set::OrderedSet, InflationInfo, InflationInformation, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
+	use frame_support::traits::{Currency, Get, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::{Decode, Encode};
 	use scale_info::TypeInfo;
@@ -2315,7 +2315,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		pub fn claim_rewards(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn claim(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let caller = ensure_signed(origin)?;
 			let rewards = <ClaimableRewards<T>>::take(&caller);
 			T::Currency::deposit_into_existing(&caller, rewards)?;
@@ -2379,8 +2379,8 @@ pub mod pallet {
 			));
 			Ok(())
 		}
-		fn pay_collator_and_delegations(who: T::AccountId) {
-			// TODO: make compute_issuance pure and move this into it
+		/// Set claimable rewards for block author and its delegations
+		fn reward_author_and_delegations(who: T::AccountId) {
 			let current_round = <Round<T>>::get().current;
 			let total_issuance = Self::compute_issuance(<Staked<T>>::get(current_round));
 			let mut left_issuance = total_issuance;
@@ -2393,7 +2393,7 @@ pub mod pallet {
 				old_reward + parachain_bond_reserve,
 			);
 			left_issuance -= parachain_bond_reserve;
-			// TODO: different event name
+			// TODO: new event
 			Self::deposit_event(Event::ReservedForParachainBond(
 				bond_config.account,
 				parachain_bond_reserve,
@@ -2413,7 +2413,7 @@ pub mod pallet {
 				let collator_reward = (collator_pct * left_issuance) + commission;
 				let old_claimable = <ClaimableRewards<T>>::get(&who);
 				<ClaimableRewards<T>>::insert(&who, old_claimable + collator_reward);
-				// TODO: SET EVENT
+				// TODO: new event
 				// pay delegators due portion
 				for Bond { owner, amount } in state.delegations {
 					let percent = Perbill::from_rational(amount, state.total);
@@ -2423,82 +2423,6 @@ pub mod pallet {
 					// TODO: new event
 					Self::deposit_event(Event::DelegatorDueReward(owner.clone(), who.clone(), due));
 				}
-			}
-		}
-		fn pay_stakers(now: RoundIndex) {
-			// payout is now - duration rounds ago => now - duration > 0 else return early
-			let duration = T::RewardPaymentDelay::get();
-			if now <= duration {
-				return;
-			}
-			let round_to_payout = now - duration;
-			let total = <Points<T>>::take(round_to_payout);
-			if total.is_zero() {
-				return;
-			}
-			let total_staked = <Staked<T>>::take(round_to_payout);
-			let total_issuance = Self::compute_issuance(total_staked);
-			let mut left_issuance = total_issuance;
-			// reserve portion of issuance for parachain bond account
-			let bond_config = <ParachainBondInfo<T>>::get();
-			let parachain_bond_reserve = bond_config.percent * total_issuance;
-			if let Ok(imb) =
-				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
-			{
-				// update round issuance iff transfer succeeds
-				left_issuance -= imb.peek();
-				Self::deposit_event(Event::ReservedForParachainBond(
-					bond_config.account,
-					imb.peek(),
-				));
-			}
-			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
-					Self::deposit_event(Event::Rewarded(to.clone(), amount_transferred.peek()));
-				}
-			};
-			// only pay out rewards at the end to transfer only total amount due
-			let mut due_rewards: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
-			let mut increase_due_rewards = |amt: BalanceOf<T>, to: T::AccountId| {
-				if let Some(already_due) = due_rewards.get(&to) {
-					let amount = amt.saturating_add(*already_due);
-					due_rewards.insert(to, amount);
-				} else {
-					due_rewards.insert(to, amt);
-				}
-			};
-			let collator_fee = <CollatorCommission<T>>::get();
-			let collator_issuance = collator_fee * total_issuance;
-			for (collator, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
-				let pct_due = Perbill::from_rational(pts, total);
-				let mut amt_due = pct_due * left_issuance;
-				// Take the snapshot of block author and delegations
-				let state = <AtStake<T>>::take(round_to_payout, &collator);
-				if state.delegations.is_empty() {
-					// solo collator with no delegators
-					mint(amt_due, collator.clone());
-				} else {
-					// pay collator first; commission + due_portion
-					let collator_pct = Perbill::from_rational(state.bond, state.total);
-					let commission = pct_due * collator_issuance;
-					amt_due -= commission;
-					let collator_reward = (collator_pct * amt_due) + commission;
-					mint(collator_reward, collator.clone());
-					// pay delegators due portion
-					for Bond { owner, amount } in state.delegations {
-						let percent = Perbill::from_rational(amount, state.total);
-						let due = percent * amt_due;
-						increase_due_rewards(due, owner.clone());
-						Self::deposit_event(Event::DelegatorDueReward(
-							owner.clone(),
-							collator.clone(),
-							due,
-						));
-					}
-				}
-			}
-			for (delegator, total_due) in due_rewards {
-				mint(total_due, delegator);
 			}
 		}
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
@@ -2547,7 +2471,7 @@ pub mod pallet {
 	/// Immediately sets aside future issuance for block authors and their delegators
 	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
-			Self::pay_collator_and_delegations(author);
+			Self::reward_author_and_delegations(author);
 		}
 	}
 
