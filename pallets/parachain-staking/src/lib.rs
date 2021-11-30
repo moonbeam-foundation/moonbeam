@@ -57,14 +57,14 @@ mod tests;
 pub mod weights;
 
 use frame_support::pallet;
-pub use inflation::{InflationInfo, Range};
+pub use inflation::{InflationInfo, InflationInformation, Range};
 use weights::WeightInfo;
 
 pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use crate::{set::OrderedSet, InflationInfo, Range, WeightInfo};
+	use crate::{set::OrderedSet, InflationInfo, InflationInformation, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
@@ -1485,8 +1485,6 @@ pub mod pallet {
 			if round.should_update(n) {
 				// mutate round
 				round.update(n);
-				// pay all stakers for T::RewardPaymentDelay rounds ago
-				Self::pay_stakers(round.current);
 				// select top collator candidates for next round
 				let (collator_count, delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -1615,9 +1613,21 @@ pub mod pallet {
 	pub type Staked<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn claimable_rewards)]
+	/// Due rewards to be claimed by the key account
+	pub type ClaimableRewards<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn inflation_config)]
-	/// Inflation configuration
+	/// DEPRECATED
 	pub type InflationConfig<T: Config> = StorageValue<_, InflationInfo<BalanceOf<T>>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn inflation_configuration)]
+	/// Inflation configuration
+	pub type InflationConfiguration<T: Config> =
+		StorageValue<_, InflationInformation<BalanceOf<T>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn points)]
@@ -1641,7 +1651,7 @@ pub mod pallet {
 	pub struct GenesisConfig<T: Config> {
 		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
 		pub delegations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
-		pub inflation_config: InflationInfo<BalanceOf<T>>,
+		pub inflation_config: InflationInformation<BalanceOf<T>>,
 	}
 
 	#[cfg(feature = "std")]
@@ -1658,7 +1668,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			<InflationConfig<T>>::put(self.inflation_config.clone());
+			<InflationConfiguration<T>>::put(self.inflation_config.clone());
 			let mut candidate_count = 0u32;
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
@@ -1754,7 +1764,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
-			let mut config = <InflationConfig<T>>::get();
+			let mut config = <InflationConfiguration<T>>::get();
 			ensure!(
 				config.expect != expectations,
 				Error::<T>::NoWritingSameValue
@@ -1765,7 +1775,7 @@ pub mod pallet {
 				config.expect.ideal,
 				config.expect.max,
 			));
-			<InflationConfig<T>>::put(config);
+			<InflationConfiguration<T>>::put(config);
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_inflation())]
@@ -1776,19 +1786,19 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
-			let mut config = <InflationConfig<T>>::get();
+			let mut config = <InflationConfiguration<T>>::get();
 			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
 			config.annual = schedule;
-			config.set_round_from_annual::<T>(schedule);
+			config.set_block_from_annual::<T>(schedule);
 			Self::deposit_event(Event::InflationSet(
 				config.annual.min,
 				config.annual.ideal,
 				config.annual.max,
-				config.round.min,
-				config.round.ideal,
-				config.round.max,
+				config.block.min,
+				config.block.ideal,
+				config.block.max,
 			));
-			<InflationConfig<T>>::put(config);
+			<InflationConfiguration<T>>::put(config);
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
@@ -1861,7 +1871,6 @@ pub mod pallet {
 		/// Set blocks per round
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
-		/// - also updates per-round inflation config
 		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
@@ -1873,19 +1882,20 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			round.length = new;
 			// update per-round inflation given new rounds per year
-			let mut inflation_config = <InflationConfig<T>>::get();
-			inflation_config.reset_round(new);
+			let mut inflation_config = <InflationConfiguration<T>>::get();
+			// TODO: redundant, unnecessary?
+			inflation_config.reset_block();
 			<Round<T>>::put(round);
 			Self::deposit_event(Event::BlocksPerRoundSet(
 				now,
 				first,
 				old,
 				new,
-				inflation_config.round.min,
-				inflation_config.round.ideal,
-				inflation_config.round.max,
+				inflation_config.block.min,
+				inflation_config.block.ideal,
+				inflation_config.block.max,
 			));
-			<InflationConfig<T>>::put(inflation_config);
+			<InflationConfiguration<T>>::put(inflation_config);
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
@@ -2304,6 +2314,14 @@ pub mod pallet {
 			Self::deposit_event(Event::CancelledDelegationRequest(delegator, request));
 			Ok(().into())
 		}
+		#[pallet::weight(0)]
+		pub fn claim_rewards(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			let caller = ensure_signed(origin)?;
+			let rewards = <ClaimableRewards<T>>::take(&caller);
+			T::Currency::deposit_into_existing(&caller, rewards)?;
+			// TODO: event
+			Ok(().into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -2326,17 +2344,17 @@ pub mod pallet {
 			});
 			<CandidatePool<T>>::put(candidates);
 		}
-		/// Compute round issuance based on total staked for the given round
+		/// Compute block issuance based on total staked in the given block
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
-			let config = <InflationConfig<T>>::get();
-			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
+			let config = <InflationConfiguration<T>>::get();
+			let block_issuance = crate::inflation::block_issuance_range::<T>(config.block);
 			// TODO: consider interpolation instead of bounded range
 			if staked < config.expect.min {
-				round_issuance.min
+				block_issuance.min
 			} else if staked > config.expect.max {
-				round_issuance.max
+				block_issuance.max
 			} else {
-				round_issuance.ideal
+				block_issuance.ideal
 			}
 		}
 		fn delegator_leaves_collator(
@@ -2360,6 +2378,52 @@ pub mod pallet {
 				new_total,
 			));
 			Ok(())
+		}
+		fn pay_collator_and_delegations(who: T::AccountId) {
+			// TODO: make compute_issuance pure and move this into it
+			let current_round = <Round<T>>::get().current;
+			let total_issuance = Self::compute_issuance(<Staked<T>>::get(current_round));
+			let mut left_issuance = total_issuance;
+			// reserve portion of issuance for parachain bond account
+			let bond_config = <ParachainBondInfo<T>>::get();
+			let parachain_bond_reserve = bond_config.percent * total_issuance;
+			let old_reward = <ClaimableRewards<T>>::get(&bond_config.account);
+			<ClaimableRewards<T>>::insert(
+				&bond_config.account,
+				old_reward + parachain_bond_reserve,
+			);
+			left_issuance -= parachain_bond_reserve;
+			// TODO: different event name
+			Self::deposit_event(Event::ReservedForParachainBond(
+				bond_config.account,
+				parachain_bond_reserve,
+			));
+			let collator_fee = <CollatorCommission<T>>::get();
+			// Get the snapshot of block author and delegations
+			let state = <AtStake<T>>::get(current_round, &who);
+			if state.delegations.is_empty() {
+				// solo collator with no delegators
+				let old_claimable = <ClaimableRewards<T>>::get(&who);
+				<ClaimableRewards<T>>::insert(&who, old_claimable + left_issuance);
+			} else {
+				// pay collator first; commission + due_portion
+				let collator_pct = Perbill::from_rational(state.bond, state.total);
+				let commission = collator_fee * left_issuance;
+				left_issuance -= commission;
+				let collator_reward = (collator_pct * left_issuance) + commission;
+				let old_claimable = <ClaimableRewards<T>>::get(&who);
+				<ClaimableRewards<T>>::insert(&who, old_claimable + collator_reward);
+				// TODO: SET EVENT
+				// pay delegators due portion
+				for Bond { owner, amount } in state.delegations {
+					let percent = Perbill::from_rational(amount, state.total);
+					let due = percent * left_issuance;
+					let old_claimable_reward = <ClaimableRewards<T>>::get(&owner);
+					<ClaimableRewards<T>>::insert(&owner, old_claimable_reward + due);
+					// TODO: new event
+					Self::deposit_event(Event::DelegatorDueReward(owner.clone(), who.clone(), due));
+				}
+			}
 		}
 		fn pay_stakers(now: RoundIndex) {
 			// payout is now - duration rounds ago => now - duration > 0 else return early
@@ -2480,14 +2544,10 @@ pub mod pallet {
 		}
 	}
 
-	/// Add reward points to block authors:
-	/// * 20 points to the block producer for producing a block in the chain
+	/// Immediately sets aside future issuance for block authors and their delegators
 	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
-			let now = <Round<T>>::get().current;
-			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
-			<AwardedPts<T>>::insert(now, author, score_plus_20);
-			<Points<T>>::mutate(now, |x| *x += 20);
+			Self::pay_collator_and_delegations(author);
 		}
 	}
 
