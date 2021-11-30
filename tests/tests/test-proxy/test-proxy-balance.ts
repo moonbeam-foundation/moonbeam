@@ -57,19 +57,20 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
 });
 
 describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (context) => {
+  before("first add proxy", async () => {
+    await substrateTransaction(
+      context,
+      alith,
+      // @ts-ignore
+      context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
+    );
+  });
   it("shouldn't accept other proxy types", async () => {
     await expectBalanceDifference(
       context,
-      BOB_AUTHOR_ID,
+      alith.address,
       0,
       async () => {
-        await substrateTransaction(
-          context,
-          alith,
-          // @ts-ignore
-          context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
-        );
-
         const events2 = await substrateTransaction(
           context,
           baltathar,
