@@ -140,6 +140,17 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
+	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Info needed to make delayed payments to stakers after round end
+	pub struct DelayedPayout<Balance> {
+		/// Total round reward (result of compute_issuance() at round end)
+		pub round_issuance: Balance,
+		/// The total inflation paid this round to stakers (e.g. less parachain bond fund)
+		pub total_staking_reward: Balance,
+		/// Snapshot of collator commission rate at the end of the round
+		pub collator_commission: Perbill,
+	}
+
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// DEPRECATED
 	/// Collator state with commission fee, bonded stake, and delegations
@@ -1611,7 +1622,9 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn 
+	#[pallet::getter(fn delayed_payouts)]
+	/// Delayed payouts
+	pub type DelayedPayouts<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, DelayedPayout<BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn staked)]
@@ -2374,8 +2387,8 @@ pub mod pallet {
 				return;
 			}
 			let round_to_payout = now - duration;
-			let total = <Points<T>>::get(round_to_payout);
-			if total.is_zero() {
+			let total_points = <Points<T>>::get(round_to_payout);
+			if total_points.is_zero() {
 				// TODO: this perhaps being used to ensure we don't call this fn more than once per
 				// round. now thet we keep the Points storage item around until round payouts are
 				// done, this check would no longer work here (perhaps resulting in multiple payouts
@@ -2402,6 +2415,12 @@ pub mod pallet {
 				));
 			}
 
+			<DelayedPayouts<T>>::insert(round_to_payout, DelayedPayout {
+				round_issuance: total_issuance,
+				total_staking_reward: left_issuance,
+				collator_commission: <CollatorCommission<T>>::get(),
+			});
+
 			/*
 			// TODO: this gets broken up per round (and also gets simplified since we remove
 			//       duplicated-delegator-rewards optimization)
@@ -2409,7 +2428,7 @@ pub mod pallet {
 			// TODO: we should be able to avoid this entire loop here; see comments in
 			//       pay_one_collator_reward for details
 			for (collator, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
-				let pct_due = Perbill::from_rational(pts, total);
+				let pct_due = Perbill::from_rational(pts, total_points);
 				let mut amt_due = pct_due * left_issuance;
 				// Take the snapshot of block author and delegations
 				let state = <AtStake<T>>::take(round_to_payout, &collator);
@@ -2442,33 +2461,17 @@ pub mod pallet {
 		/// 
 		/// Returns an optional tuple of (Collator's AccountId, total paid)
 		/// or None if there were no more payouts to be made for the round.
-		fn pay_one_collator_reward(round: RoundIndex) -> Option<(T::AccountId, T::Currency)> {
-			// Relevant storage items:
-			// AwardedPts: tally of who has authored for the current round. 
-			//             this also uses StorageDoubleMap with round index as primary key -- no
-			//             need to copy it.
-			// CollatorCommission: amount of total reward given to collators (e.g. 1 - treasury
-			//                     payout)
-			// AtStake: the map of collators and stakers chosen for the current round.
-			//          currently, this is populated once per round in select_top_candidates and
-			//          then drain()ed at the end of each round in pay_stakers.
-			//
-			//          it is a map of (now, account) -> CollatorSnaphsot.
-			//          StorageDoubleMap documentation:
-			//          https://docs.substrate.io/rustdocs/latest/frame_support/storage/types/struct.StorageDoubleMap.html
-			//          this means it is easy to iterate over the items matching only the first key,
-			//          which is our round index -- this is exactly what we want.
-			//          (see iter_prefix_values())
-			//
-			//          I expect this allows us to (1) avoid iterating over this at all in round-end
-			//          accounting since multiple rounds can safely coexist in the map itself.
-			//          And (2) still keep our rounds cleanly separated.
-
-			let total = <Points<T>>::get(round);
-			if total.is_zero() {
+		fn pay_one_collator_reward(round: RoundIndex) -> Option<(T::AccountId, BalanceOf<T>)> {
+			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
+			// so that we do fewer reads each block
+			let total_points = <Points<T>>::get(round);
+			if total_points.is_zero() {
 				// either we already finished paying for the given round or programmer error...
 				return None;
 			}
+
+			let payout_info = <DelayedPayouts<T>>::get(round)
+				.expect("No payout info for given round."); // TODO: review
 
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
 				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
@@ -2476,15 +2479,13 @@ pub mod pallet {
 				}
 			};
 
-			let collator_fee = <CollatorCommission<T>>::get(); // TODO: this needs to be saved for
-			                                                   // upcoming distributions
-			let collator_issuance = collator_fee * total_issuance;
+			let collator_fee = payout_info.collator_commission;
+			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			if let (collator, pts) = <AwardedPts<T>>::iter_prefix_values(round).drain().next() {
-				let pct_due = Perbill::from_rational(pts, total);
-				// TODO: need 'left_issuance' preserved
-				let total_paid = pct_due * left_issuance
-				let mut amt_due = amnt_due;
+			if let Some((collator, pts)) = <AwardedPts<T>>::iter_prefix(round).drain().next() {
+				let pct_due = Perbill::from_rational(pts, total_points);
+				let total_paid = pct_due * payout_info.total_staking_reward;
+				let mut amt_due = total_paid;
 				// Take the snapshot of block author and delegations
 				let state = <AtStake<T>>::take(round, &collator);
 				if state.delegations.is_empty() {
@@ -2502,7 +2503,6 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						mint(due, owner.clone());
-						// TODO: this event should change
 						Self::deposit_event(Event::DelegatorDueReward(
 							owner.clone(),
 							collator.clone(),
@@ -2510,8 +2510,11 @@ pub mod pallet {
 						));
 					}
 				}
-				return (collator, total_paid);
+				return Some((collator, total_paid));
 			} else {
+				// TODO: we're done, so:
+				// * consider emitting event
+				// * should clean up storage items we don't need (AtStake, AwardedPts, etc.)
 				return None;
 			}
 		}
