@@ -15,11 +15,10 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   before("Send a simple transfer with pallet evm", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     ({ events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.evm.call(
+      context.polkadotApi.tx.eVM.call(
         ALITH,
         TEST_ACCOUNT,
         "0x0",
@@ -48,7 +47,7 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.evm.call(
+        context.polkadotApi.tx.eVM.call(
           ALITH,
           TEST_ACCOUNT,
           "0x0",

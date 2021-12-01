@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { TransactionReceipt } from "web3-core";
+import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { createContract, createContractExecution } from "../../util/transactions";
@@ -40,5 +41,29 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
       txResults[1].result
     );
     expect(receipt.status).to.eq(false);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Contract loop error - check fees", (context) => {
+  it("should fail with OutOfGas on infinite loop transaction - check fees", async function () {
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
+    const infiniteTx = await createContractExecution(
+      context,
+      {
+        contract,
+        contractCall: contract.methods.infinite(),
+      },
+      { nonce: 1 }
+    );
+
+    await context.createBlock({
+      transactions: [rawTx],
+    });
+
+    await context.createBlock({
+      transactions: [infiniteTx],
+    });
+
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });

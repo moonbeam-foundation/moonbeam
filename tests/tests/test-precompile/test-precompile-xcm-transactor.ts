@@ -8,6 +8,7 @@ import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { ALITH, ALITH_PRIV_KEY } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XCM_TRANSACTOR = "0x0000000000000000000000000000000000000806";
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
@@ -244,6 +245,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });
 
@@ -350,5 +354,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });

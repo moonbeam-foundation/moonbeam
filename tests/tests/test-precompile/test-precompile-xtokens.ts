@@ -11,6 +11,7 @@ import {
   ALITH,
   ALITH_PRIV_KEY,
 } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
@@ -95,6 +96,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });
 
@@ -192,5 +194,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });

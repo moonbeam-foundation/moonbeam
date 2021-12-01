@@ -5553,6 +5553,7 @@ dependencies = [
  "futures 0.3.17",
  "jsonrpc-core",
  "jsonrpc-pubsub",
+ "libsecp256k1 0.6.0",
  "log",
  "moonbase-runtime",
  "moonbeam-cli-opt",

@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
@@ -37,5 +38,13 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
         "70667358221220a82dff050f5e40b874671c1f40e579b5a8c361f5313d1a9d32437222ab6a384c64736f6c63" +
         "430008030033"
     );
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Contract creation -block fees", (context) => {
+  it("should check latest block fees", async function () {
+    const { rawTx } = await createContract(context, "TestContract");
+    const {} = await context.createBlock({ transactions: [rawTx] });
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });
