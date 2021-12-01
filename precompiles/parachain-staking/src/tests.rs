@@ -18,7 +18,7 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
 	ParachainStaking, Precompiles, Runtime, TestAccount,
 };
-use crate::PrecompileOutput;
+use crate::{Action, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitSucceed, PrecompileSet};
@@ -37,6 +37,28 @@ fn evm_call(source: TestAccount, input: Vec<u8>) -> EvmCall<Runtime> {
 		gas_price: 0.into(),
 		nonce: None, // Use the next nonce
 	}
+}
+
+#[test]
+fn selectors() {
+	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
+	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
+	assert_eq!(Action::Points as u32, 0x9799b4e7);
+	assert_eq!(Action::DelegationAmount as u32, 0x5e1f805c);
+	assert_eq!(Action::IsInTopDelegations as u32, 0xd6836220);
+	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
+	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
+	// TODO
+	// assert_eq!(Action::CandidateDelegationCount as u32, 0x075bf970);
+	// assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	// assert_eq!(Action::DelegationAmount as u32, 0x5e1f805c);
+	// assert_eq!(Action::IsInTopDelegations as u32, 0xd6836220);
+	// assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	// assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
+	// assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
+	// TODO: rest of these
+	//TODO also test logs once we have them
 }
 
 #[test]
