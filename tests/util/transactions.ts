@@ -39,15 +39,8 @@ export const createTransaction = async (
   options: TransactionOptions
 ): Promise<string> => {
   const isLegacy = context.ethTransactionType === "Legacy";
-  //  ||
-  // (options.maxFeePerGas === undefined &&
-  //   options.maxPriorityFeePerGas === undefined &&
-  //   options.accessList === undefined);
   const isEip2930 = context.ethTransactionType === "EIP2930";
-  //  ||
-  // (options.maxFeePerGas === undefined && options.accessList !== undefined);
   const isEip1559 = context.ethTransactionType === "EIP1559";
-  // || options.maxFeePerGas !== undefined;
 
   const gas = options.gas || 12_000_000;
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
