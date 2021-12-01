@@ -670,13 +670,13 @@ parameter_types! {
 	/// Collator candidate exit delay (number of rounds)
 	pub const LeaveCandidatesDelay: u32 = 2;
 	/// Collator candidate bond increases/decreases delay (number of rounds)
-	pub const CandidateBondDelay: u32 = 2;
+	pub const CandidateBondLessDelay: u32 = 2;
 	/// Delegator exit delay (number of rounds)
 	pub const LeaveDelegatorsDelay: u32 = 2;
 	/// Delegation revocations delay (number of rounds)
 	pub const RevokeDelegationDelay: u32 = 2;
-	/// Delegation bond increases/decreases delay (number of rounds)
-	pub const DelegationBondDelay: u32 = 2;
+	/// Delegation bond decreases delay (number of rounds)
+	pub const DelegationBondLessDelay: u32 = 2;
 	/// Reward payments delay (number of rounds)
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
@@ -704,10 +704,10 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type CandidateBondDelay = CandidateBondDelay;
+	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
 	type RevokeDelegationDelay = RevokeDelegationDelay;
-	type DelegationBondDelay = DelegationBondDelay;
+	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
