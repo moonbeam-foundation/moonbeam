@@ -1513,15 +1513,11 @@ pub mod pallet {
 				));
 				// TODO: update active_on_initialize
 				T::WeightInfo::active_on_initialize(collator_count, delegation_count)
-			} else {
-				// TODO: proper check / error handling (rather than blindly calling every round)
-				Self::pay_one_collator_reward(round.current - 1);
-				// TODO: proper weight
-				0u64.into()
-			/*
+			} else if Self::handle_delayed_payouts(round.current - 1) {
+				// TODO: return proper weight
+				T::WeightInfo::passive_on_initialize()
 			} else {
 				T::WeightInfo::passive_on_initialize()
-			*/
 			}
 		}
 	}
@@ -2464,21 +2460,54 @@ pub mod pallet {
 			}
 			*/
 		}
+
+		/// Wrapper around pay_one_collator_reward which handles the following logic:
+		/// * whether or not a payout needs to be made
+		/// * cleaning up when payouts are done
+		/// * returns whether or not a payout was made
+		///
+		/// TODO: settle on (and document) return value
+		fn handle_delayed_payouts(round: RoundIndex) -> bool {
+			// cases:
+			// 1. payouts doesn't exist: nothing to do
+			//		caveat/TODO: on first round after this upgrade, this will be true and we won't
+			//		clean up? a migration could solve this...
+			// 2. payouts exists and we aren't done
+			// 3. payouts exists and we are done (and we should clean up)
+
+			if let Some(payout_info) = <DelayedPayouts<T>>::get(round) {
+				if let None = Self::pay_one_collator_reward(round, payout_info) {
+					log::debug!("Done paying out stakers for previous round");
+
+					// clean up storage items that we no longer need
+					<DelayedPayouts<T>>::remove(round);
+					// TODO: clean up other storage
+				}
+				true
+			} else {
+				false
+			}
+
+		}
+
 		/// Payout a single collator from the given round.
 		/// 
 		/// Returns an optional tuple of (Collator's AccountId, total paid)
 		/// or None if there were no more payouts to be made for the round.
-		fn pay_one_collator_reward(round: RoundIndex) -> Option<(T::AccountId, BalanceOf<T>)> {
+		fn pay_one_collator_reward(round: RoundIndex, payout_info: DelayedPayout<BalanceOf<T>>) -> Option<(T::AccountId, BalanceOf<T>)> {
+
 			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
 			// so that we do fewer reads each block
 			let total_points = <Points<T>>::get(round);
 			if total_points.is_zero() {
-				// either we already finished paying for the given round or programmer error...
+				// TODO: this case is obnoxious... it's a value query, so it could mean one of two
+				// different logic errors:
+				// 1. we removed it before we should have
+				// 2. we called pay_one_collator_reward when we were actually done with deferred
+				//    payouts
+				log::warn!("pay_one_collator_reward called with no <Points<T>> for the round!");
 				return None;
 			}
-
-			let payout_info = <DelayedPayouts<T>>::get(round)
-				.expect("No payout info for given round."); // TODO: review
 
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
 				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
