@@ -1985,7 +1985,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
 		/// Increase collator candidate self bond by `more`
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
@@ -2010,7 +2010,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateBondLessRequested(collator, less, when));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::execute_candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_candidate_bond_less())]
 		/// Execute pending request to adjust the collator candidate self bond
 		pub fn execute_candidate_bond_less(
 			origin: OriginFor<T>,
@@ -2023,7 +2023,7 @@ pub mod pallet {
 			Self::deposit_event(event);
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_candidate_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_candidate_bond_less())]
 		/// Cancel pending request to adjust the collator candidate self bond
 		pub fn cancel_candidate_bond_less(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
@@ -2169,7 +2169,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::delegator_bond_more())]
 		/// Bond more for delegators wrt a specific collator candidate.
 		pub fn delegator_bond_more(
 			origin: OriginFor<T>,
@@ -2197,7 +2197,7 @@ pub mod pallet {
 			));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
 		/// Execute pending request to change an existing delegation
 		pub fn execute_delegation_request(
 			origin: OriginFor<T>,
@@ -2209,7 +2209,7 @@ pub mod pallet {
 			state.execute_pending_request::<T>(candidate)?;
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_more())]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_less())]
 		/// Cancel request to change an existing delegation.
 		pub fn cancel_delegation_request(
 			origin: OriginFor<T>,
