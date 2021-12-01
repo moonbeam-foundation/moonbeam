@@ -64,6 +64,6 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error - check fees", (context) =
       transactions: [infiniteTx],
     });
 
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

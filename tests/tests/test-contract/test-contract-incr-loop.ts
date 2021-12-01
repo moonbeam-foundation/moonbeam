@@ -42,6 +42,6 @@ describeDevMoonbeamAllEthTxTypes("Contract loop increment - check fees", (contex
         }),
       ],
     });
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

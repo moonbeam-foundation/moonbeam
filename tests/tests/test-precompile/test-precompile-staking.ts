@@ -105,7 +105,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
     );
 
     expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
-    await verifyLatestBlockFees(context.polkadotApi, expect, MIN_GLMR_STAKING);
+    await verifyLatestBlockFees(context, expect, MIN_GLMR_STAKING);
   });
 });
 

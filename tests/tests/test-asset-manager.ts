@@ -53,6 +53,6 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const registeredAsset = ((await parachainOne.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

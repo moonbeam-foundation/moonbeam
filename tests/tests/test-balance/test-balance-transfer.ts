@@ -48,14 +48,14 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   });
 });
 
-describeDevMoonbeam("Balance transfer - fees", (context) => {
+describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
   });
   it("should check latest block fees", async function () {
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(512));
+    await verifyLatestBlockFees(context, expect, BigInt(512));
   });
 });

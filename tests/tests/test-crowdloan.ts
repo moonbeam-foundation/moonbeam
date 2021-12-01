@@ -79,7 +79,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    await verifyLatestBlockFees(context.polkadotApi, expect, 3_000_000n);
+    await verifyLatestBlockFees(context, expect, 3_000_000n);
 
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
 

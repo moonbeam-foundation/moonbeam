@@ -45,6 +45,6 @@ describeDevMoonbeamAllEthTxTypes("Contract creation -block fees", (context) => {
   it("should check latest block fees", async function () {
     const { rawTx } = await createContract(context, "TestContract");
     const {} = await context.createBlock({ transactions: [rawTx] });
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

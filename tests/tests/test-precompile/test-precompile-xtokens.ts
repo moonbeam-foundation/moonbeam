@@ -96,7 +96,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
   });
 });
 
@@ -194,6 +194,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
   });
 });
