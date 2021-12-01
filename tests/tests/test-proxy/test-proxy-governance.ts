@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
-import { Event } from "@polkadot/types/interfaces";
 import {
   ALITH_PRIV_KEY,
   DOROTHY,
@@ -9,10 +8,13 @@ import {
   ETHAN_PRIVKEY,
   GLMR,
   VOTE_AMOUNT,
-} from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from "../util/governance";
-import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+} from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import {
+  execFromTwoThirdsOfCouncil,
+  execFromAllMembersOfTechCommittee,
+} from "../../util/governance";
+import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 
 const keyring = new Keyring({ type: "ethereum" });
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
@@ -31,7 +33,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
       context,
       context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
     );
-    let { events } = await execFromAllMembersOfTechCommittee(
+    await execFromAllMembersOfTechCommittee(
       context,
       context.polkadotApi.tx.democracy.fastTrack(proposalHash, 5, 0)
     );
@@ -42,7 +44,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
     let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
     expect(referendumCount.toBigInt()).to.equal(1n);
 
-    // Dorothy add proxy rigth to ethan for governance only
+    // Dorothy add proxy right to ethan for governance only
     await context.polkadotApi.tx.proxy.addProxy(ETHAN, "Governance", 0).signAndSend(dorothy);
     await context.createBlock();
 
