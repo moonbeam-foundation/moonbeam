@@ -39,8 +39,8 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, EqualPrivilegeOnly, Everything, FindAuthor, Get, Imbalance, InstanceFilter,
-		Nothing, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
+		Imbalance, InstanceFilter, Nothing, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -72,8 +72,8 @@ use pallet_ethereum::Transaction as EthereumTransaction;
 #[cfg(feature = "std")]
 pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
-	Runner,
+	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
+	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
@@ -434,6 +434,46 @@ where
 	}
 }
 
+type CurrencyAccountId<T> = <T as frame_system::Config>::AccountId;
+
+type BalanceFor<T> =
+	<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::Balance;
+
+type PositiveImbalanceFor<T> =
+	<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::PositiveImbalance;
+
+type NegativeImbalanceFor<T> =
+	<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::NegativeImbalance;
+
+pub struct OnChargeEVMTransaction<OU>(sp_std::marker::PhantomData<OU>);
+impl<T, OU> OnChargeEVMTransactionT<T> for OnChargeEVMTransaction<OU>
+where
+	T: pallet_evm::Config,
+	PositiveImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = NegativeImbalanceFor<T>>,
+	NegativeImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = PositiveImbalanceFor<T>>,
+	OU: OnUnbalanced<NegativeImbalanceFor<T>>,
+{
+	type LiquidityInfo = Option<NegativeImbalanceFor<T>>;
+
+	fn withdraw_fee(who: &H160, fee: U256) -> Result<Self::LiquidityInfo, pallet_evm::Error<T>> {
+		EVMCurrencyAdapter::<<T as pallet_evm::Config>::Currency, ()>::withdraw_fee(who, fee)
+	}
+
+	fn correct_and_deposit_fee(
+		who: &H160,
+		corrected_fee: U256,
+		already_withdrawn: Self::LiquidityInfo,
+	) {
+		<EVMCurrencyAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
+			T,
+		>>::correct_and_deposit_fee(who, corrected_fee, already_withdrawn)
+	}
+
+	fn pay_priority_fee(_tip: U256) {
+		// <EVMCurrencyAdapter::<<T as Config>::Currency, ()> as OnChargeEVMTransaction<T>>::pay_priority_fee(tip);
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = BaseFee;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
@@ -447,7 +487,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = MoonbasePrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
 }
