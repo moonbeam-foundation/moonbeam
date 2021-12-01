@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 import { Contract } from "web3-eth-contract";
 
-describeDevMoonbeam("Contract creation", (context) => {
+describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   let testContract: Contract;
   let testContractTx: string;
 
@@ -29,6 +29,7 @@ describeDevMoonbeam("Contract creation", (context) => {
     expect(await testContract.methods.multiply(3).call()).to.equal("21");
   });
 
+  // TODO: when web3 supports eip1559 and eip2930, this test should be adapted
   it("should fail for call method with missing parameters", async function () {
     // Create a fake contract based on origin deployed contract.
     // It make the multiply method supposed to have 0 arguments

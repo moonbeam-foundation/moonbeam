@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
 
-describeDevMoonbeam("Existential Deposit", (context) => {
+describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on 0 balance)", async function () {
     await context.createBlock({
       transactions: [

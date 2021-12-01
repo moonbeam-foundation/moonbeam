@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
 
-describeDevMoonbeam("Contract loop creation", (context) => {
+describeDevMoonbeamAllEthTxTypes("Contract loop creation", (context) => {
   it("Should be initialized at 0", async () => {
     const { contract, rawTx } = await createContract(context, "TestContractIncr");
     await context.createBlock({ transactions: [rawTx] });
@@ -11,11 +11,13 @@ describeDevMoonbeam("Contract loop creation", (context) => {
   });
 });
 
-describeDevMoonbeam("Contract loop increment", (context) => {
-  it("should increment contract state", async function () {
-    const { contract, rawTx } = await createContract(context, "TestContractIncr");
+describeDevMoonbeamAllEthTxTypes("Contract loop increment", (context) => {
+  it.only("should increment contract state", async function () {
+    const { contract, rawTx, contractAddress } = await createContract(context, "TestContractIncr");
+    console.log("contractAddress", contractAddress);
     await context.createBlock({ transactions: [rawTx] });
-
+    // console.log(Object.keys(contract));
+    // console.log(Object.keys(contract.methods));
     await context.createBlock({
       transactions: [
         await createContractExecution(context, {
@@ -24,6 +26,9 @@ describeDevMoonbeam("Contract loop increment", (context) => {
         }),
       ],
     });
+    await context.createBlock();
+    await context.createBlock();
+    await context.createBlock();
 
     expect(await contract.methods.count().call()).to.eq("1");
   });

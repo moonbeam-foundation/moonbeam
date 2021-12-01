@@ -87,7 +87,7 @@ export const createTransaction = async (
         gasLimit: gas,
         nonce: options.nonce,
         data: options.data,
-        accessList: options.accessList,
+        accessList,
         chainId,
         type: 1,
       };
@@ -192,13 +192,18 @@ export async function createContractExecution(
   },
   options: TransactionOptions = GENESIS_TRANSACTION
 ) {
-  const tx = await createTransaction(context, {
+  console.log({
+    ...options,
+    to: execution.contract.options.address,
+    data: execution.contractCall.encodeABI(),
+  });
+  const rawTx = await createTransaction(context, {
     ...options,
     to: execution.contract.options.address,
     data: execution.contractCall.encodeABI(),
   });
 
-  return tx;
+  return rawTx;
 }
 
 /**
