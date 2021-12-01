@@ -23,9 +23,6 @@ describeDevMoonbeamAllEthTxTypes("Contract loop increment", (context) => {
         }),
       ],
     });
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
 
     expect(await contract.methods.count().call()).to.eq("1");
   });
