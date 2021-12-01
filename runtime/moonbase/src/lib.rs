@@ -469,9 +469,7 @@ where
 		>>::correct_and_deposit_fee(who, corrected_fee, already_withdrawn)
 	}
 
-	fn pay_priority_fee(_tip: U256) {
-		// <EVMCurrencyAdapter::<<T as Config>::Currency, ()> as OnChargeEVMTransaction<T>>::pay_priority_fee(tip);
-	}
+	fn pay_priority_fee(_tip: U256) {}
 }
 
 impl pallet_evm::Config for Runtime {
