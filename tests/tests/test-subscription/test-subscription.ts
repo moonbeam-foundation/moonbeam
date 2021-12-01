@@ -36,7 +36,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
 
     await context.createBlock({
       transactions: [
-        await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 0),
+        await createTransfer(context, "0x1111111111111111111111111111111111111111", 0),
       ],
     });
 
@@ -78,7 +78,7 @@ describeDevMoonbeam("Subscription - Pending transactions", (context) => {
     });
 
     const { result } = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 0),
+      await createTransfer(context, "0x1111111111111111111111111111111111111111", 0),
     ]);
 
     // This test passes if you produce the block
