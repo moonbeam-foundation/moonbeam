@@ -1511,10 +1511,17 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
+				// TODO: update active_on_initialize
 				T::WeightInfo::active_on_initialize(collator_count, delegation_count)
-			// TODO: here we need an "if else <still have distributions from previous round>"
+			} else {
+				// TODO: proper check / error handling (rather than blindly calling every round)
+				Self::pay_one_collator_reward(round.current - 1);
+				// TODO: proper weight
+				0u64.into()
+			/*
 			} else {
 				T::WeightInfo::passive_on_initialize()
+			*/
 			}
 		}
 	}
