@@ -59,17 +59,17 @@ export const createTransaction = async (
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
+  const nonce = options.nonce || context.web3.eth.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
   if (isLegacy) {
-    console.log("isLegacy");
     data = {
       from,
       to: options.to,
       value: value && value.toString(),
       gasPrice,
       gas,
-      nonce: options.nonce,
+      nonce: nonce,
       data: options.data,
     };
     const tx = await context.web3.eth.accounts.signTransaction(data, privateKey);
@@ -78,21 +78,19 @@ export const createTransaction = async (
     const signer = new ethers.Wallet(privateKey, context.ethers);
     const chainId = await context.web3.eth.getChainId();
     if (isEip2930) {
-      console.log("isEip2930");
       data = {
         from,
         to: options.to,
         value: value && value.toString(),
         gasPrice,
         gasLimit: gas,
-        nonce: options.nonce,
+        nonce: nonce,
         data: options.data,
         accessList,
         chainId,
         type: 1,
       };
     } else if (isEip1559) {
-      console.log("isEip1559");
       data = {
         from,
         to: options.to,
@@ -100,7 +98,7 @@ export const createTransaction = async (
         maxFeePerGas,
         maxPriorityFeePerGas,
         gasLimit: gas,
-        nonce: options.nonce,
+        nonce: nonce,
         data: options.data,
         accessList,
         chainId,
@@ -192,11 +190,6 @@ export async function createContractExecution(
   },
   options: TransactionOptions = GENESIS_TRANSACTION
 ) {
-  console.log({
-    ...options,
-    to: execution.contract.options.address,
-    data: execution.contractCall.encodeABI(),
-  });
   const rawTx = await createTransaction(context, {
     ...options,
     to: execution.contract.options.address,

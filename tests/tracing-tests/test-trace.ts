@@ -9,14 +9,14 @@ const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 async function createContracts(context) {
   let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
   const { contract: callee, rawTx: rawTx1 } = await createContract(
-    context.web3,
+    context,
     "Callee",
     { nonce: nonce++ },
     []
   );
 
   const { contract: caller, rawTx: rawTx2 } = await createContract(
-    context.web3,
+    context,
     "Caller",
     { nonce: nonce++ },
     []
@@ -208,6 +208,7 @@ describeDevMoonbeam(
       expect(resCallee.traceAddress[0]).to.be.eq(0);
     });
   },
+  "Legacy",
   true
 );
 

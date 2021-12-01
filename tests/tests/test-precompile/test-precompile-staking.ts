@@ -13,7 +13,7 @@ import {
   ALITH_PRIV_KEY,
 } from "../../util/constants";
 import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
 import { numberToHex, stringToHex } from "@polkadot/util";
 import Web3 from "web3";
 import { customWeb3Request } from "../../util/providers";
@@ -70,7 +70,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Join Candidates", (context) => {
+describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
   it("should successfully call joinCandidates on ETHAN", async function () {
     const block = await sendPrecompileTx(
       context,
@@ -103,7 +103,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Join Delegators", (context) => {
+describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
   beforeEach("should successfully call delegate for ETHAN to ALITH", async function () {
     await sendPrecompileTx(context, ADDRESS_STAKING, SELECTORS, ETHAN, ETHAN_PRIVKEY, "nominate", [
       ALITH,

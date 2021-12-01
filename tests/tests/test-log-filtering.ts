@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import { createContract } from "../util/transactions";
 import { GENESIS_ACCOUNT } from "../util/constants";
 import { TransactionReceipt } from "web3-core";
 
-describeDevMoonbeam("Log - Filter out non-matching", (context) => {
+describeDevMoonbeamAllEthTxTypes("Log - Filter out non-matching", (context) => {
   let non_matching_cases = null;
   function getNonMatchingCases(receipt: TransactionReceipt) {
     return [

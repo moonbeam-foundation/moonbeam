@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import {
   GENESIS_ACCOUNT,
@@ -108,7 +108,7 @@ const SELECTORS = {
 };
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -263,11 +263,10 @@ describeDevMoonbeam(
       expect(tx_call.result).equals(amount_hex);
     });
   },
-  "Legacy",
   true
 );
 
-describeDevMoonbeam(
+  describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -356,11 +355,10 @@ describeDevMoonbeam(
       expect(tx_call.result).equals(amount_hex);
     });
   },
-  "Legacy",
   true
 );
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -463,11 +461,10 @@ describeDevMoonbeam(
       expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
-  "Legacy",
   true
 );
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -530,11 +527,10 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
-  "Legacy",
   true
 );
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -641,7 +637,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -704,11 +700,10 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
-  "Legacy",
   true
 );
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -851,7 +846,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -958,7 +953,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -1028,6 +1023,5 @@ describeDevMoonbeam(
       expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
     });
   },
-  "Legacy",
   true
 );

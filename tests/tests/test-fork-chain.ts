@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
 import { TEST_ACCOUNT } from "../util/constants";
@@ -30,7 +30,7 @@ describeDevMoonbeam("Fork", (context) => {
   });
 });
 
-describeDevMoonbeam("Fork", (context) => {
+describeDevMoonbeamAllEthTxTypes("Fork", (context) => {
   it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });

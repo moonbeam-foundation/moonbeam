@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
 import { TREASURY_ACCOUNT } from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
-describeDevMoonbeam("20% of the fees should go to treasury", (context) => {
+describeDevMoonbeamAllEthTxTypes("20% of the fees should go to treasury", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   const keyring = new Keyring({ type: "ethereum" });
 

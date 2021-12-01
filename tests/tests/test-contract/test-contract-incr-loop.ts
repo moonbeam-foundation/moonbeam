@@ -12,12 +12,9 @@ describeDevMoonbeamAllEthTxTypes("Contract loop creation", (context) => {
 });
 
 describeDevMoonbeamAllEthTxTypes("Contract loop increment", (context) => {
-  it.only("should increment contract state", async function () {
+  it("should increment contract state", async function () {
     const { contract, rawTx, contractAddress } = await createContract(context, "TestContractIncr");
-    console.log("contractAddress", contractAddress);
     await context.createBlock({ transactions: [rawTx] });
-    // console.log(Object.keys(contract));
-    // console.log(Object.keys(contract.methods));
     await context.createBlock({
       transactions: [
         await createContractExecution(context, {

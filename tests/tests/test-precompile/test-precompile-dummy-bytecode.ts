@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { GENESIS_ACCOUNT } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract, createTransaction } from "../../util/transactions";
 import * as RLP from "rlp";
 
@@ -17,7 +17,7 @@ const DEPLOYED_BYTECODE = "0x60006000fd";
 // <deployed bytecode>
 const INIT_CODE = "0x600580600B6000396000F360006000fd";
 
-describeDevMoonbeam("Precompiles - precompiles dummy bytecode", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (context) => {
   it("should return dummy bytecode for every precompiles", async function () {
     [
       "0x0000000000000000000000000000000000000001",

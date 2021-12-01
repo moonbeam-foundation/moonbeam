@@ -10,7 +10,7 @@
 // We have to make sure that's not possible
 
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { GENESIS_ACCOUNT, MIN_GLMR_STAKING } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
@@ -21,7 +21,7 @@ import {
 } from "../../util/transactions";
 import { numberToHex } from "@polkadot/util";
 
-describeDevMoonbeam("Precompiles - test revert attack on state modifier", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - test revert attack on state modifier", (context) => {
   it("should return contract creation gas cost", async function () {
     // Check initial balance
     const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
