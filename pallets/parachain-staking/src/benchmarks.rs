@@ -18,8 +18,8 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondChange, CandidateBondLessRequest, Config, DelegationChange,
-	DelegationRequest, Pallet, Range,
+	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationChange, DelegationRequest, Pallet,
+	Range,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
