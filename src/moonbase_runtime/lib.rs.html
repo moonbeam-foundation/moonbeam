@@ -1695,6 +1695,11 @@
 <span id="1695">1695</span>
 <span id="1696">1696</span>
 <span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3117,6 +3122,12 @@
 				<span class="ident">pallet_assets::Call::cancel_approval</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
 				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			},
+			<span class="comment">// We just want to enable this in case of live chains, since the default version</span>
+			<span class="comment">// is populated at genesis</span>
+			<span class="ident">Call::PolkadotXcm</span>(<span class="ident">method</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_xcm::Call::force_default_xcm_version</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			},
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
 		}
 	}
@@ -3170,8 +3181,7 @@
 		<span class="ident">XcmpQueue</span>: <span class="ident">cumulus_pallet_xcmp_queue</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">25</span>,
 		<span class="ident">CumulusXcm</span>: <span class="ident">cumulus_pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>} <span class="op">=</span> <span class="number">26</span>,
 		<span class="ident">DmpQueue</span>: <span class="ident">cumulus_pallet_dmp_queue</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">27</span>,
-		<span class="comment">// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now</span>
-		<span class="ident">PolkadotXcm</span>: <span class="ident">pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">28</span>,
+		<span class="ident">PolkadotXcm</span>: <span class="ident">pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">28</span>,
 		<span class="ident">Assets</span>: <span class="ident">pallet_assets</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">29</span>,
 		<span class="ident">XTokens</span>: <span class="ident">orml_xtokens</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">30</span>,
 		<span class="ident">AssetManager</span>: <span class="ident">pallet_asset_manager</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">31</span>,
