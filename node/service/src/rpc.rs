@@ -29,15 +29,13 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride, Web3Api,
-	Web3ApiServer,
+	Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -57,7 +55,6 @@ use sp_blockchain::{
 };
 use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 /// Full client dependencies.
@@ -78,8 +75,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
-	/// Size of the LRU cache for block data and their transaction statuses.
-	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -90,6 +85,10 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub max_past_logs: u32,
 	/// Ethereum transaction to Extrinsic converter.
 	pub transaction_converter: TransactionConverters,
+	/// Ethereum data access overrides.
+	pub overrides: Arc<OverrideHandle<Block>>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<EthBlockDataCache<Block>>,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(
@@ -118,12 +117,13 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
-		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
 		max_past_logs,
 		transaction_converter,
+		overrides,
+		block_data_cache,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -136,28 +136,6 @@ where
 	)));
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
-
-	let block_data_cache = Arc::new(EthBlockDataCache::new(
-		eth_log_block_cache,
-		eth_log_block_cache,
-	));
-
-	let mut overrides_map = BTreeMap::new();
-	overrides_map.insert(
-		EthereumStorageSchema::V1,
-		Box::new(SchemaV1Override::new(client.clone()))
-			as Box<dyn StorageOverride<_> + Send + Sync>,
-	);
-	overrides_map.insert(
-		EthereumStorageSchema::V2,
-		Box::new(SchemaV2Override::new(client.clone()))
-			as Box<dyn StorageOverride<_> + Send + Sync>,
-	);
-
-	let overrides = Arc::new(OverrideHandle {
-		schemas: overrides_map,
-		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
-	});
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
@@ -180,7 +158,6 @@ where
 			frontier_backend,
 			filter_pool,
 			500_usize, // max stored filters
-			overrides.clone(),
 			max_past_logs,
 			block_data_cache.clone(),
 		)));

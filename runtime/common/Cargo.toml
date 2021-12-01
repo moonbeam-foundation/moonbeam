@@ -25,7 +25,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 # Frontier
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-async-log-cache-moonbeam-v0.9.13", default-features = false }
 
 [features]
 std = [

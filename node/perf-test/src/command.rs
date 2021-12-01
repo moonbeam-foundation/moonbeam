@@ -23,8 +23,13 @@ use crate::{
 
 use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
 use ethereum::TransactionAction;
+use fc_rpc::{
+	EthBlockDataCache, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
+	SchemaV2Override, StorageOverride,
+};
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
+use pallet_ethereum::EthereumStorageSchema;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
@@ -33,7 +38,9 @@ use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, Transact
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{
+	collections::BTreeMap, fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc,
+};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -183,6 +190,30 @@ where
 		let command_sink_for_deps = command_sink.clone();
 		let runtime_variant = RuntimeVariant::from_chain_spec(&config.chain_spec);
 
+		let mut overrides_map = BTreeMap::new();
+		overrides_map.insert(
+			EthereumStorageSchema::V1,
+			Box::new(SchemaV1Override::new(client.clone()))
+				as Box<dyn StorageOverride<_> + Send + Sync>,
+		);
+		overrides_map.insert(
+			EthereumStorageSchema::V2,
+			Box::new(SchemaV2Override::new(client.clone()))
+				as Box<dyn StorageOverride<_> + Send + Sync>,
+		);
+
+		let overrides = Arc::new(OverrideHandle {
+			schemas: overrides_map,
+			fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+		});
+
+		let block_data_cache = Arc::new(EthBlockDataCache::new(
+			task_manager.spawn_handle(),
+			overrides.clone(),
+			3000,
+			3000,
+		));
+
 		let rpc_extensions_builder = {
 			let client = client.clone();
 			let pool = transaction_pool.clone();
@@ -202,7 +233,6 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
-					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
@@ -210,6 +240,8 @@ where
 					transaction_converter: TransactionConverters::for_runtime_variant(
 						runtime_variant,
 					),
+					overrides: overrides.clone(),
+					block_data_cache: block_data_cache.clone(),
 				};
 				#[allow(unused_mut)]
 				let mut io = rpc::create_full(deps, subscription_task_executor.clone());

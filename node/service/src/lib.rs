@@ -24,6 +24,10 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
+use fc_rpc::{
+	EthBlockDataCache, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
+	SchemaV2Override, StorageOverride,
+};
 use fc_rpc_core::types::FilterPool;
 use futures::StreamExt;
 #[cfg(feature = "moonbase-native")]
@@ -32,6 +36,7 @@ pub use moonbase_runtime;
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
+use pallet_ethereum::EthereumStorageSchema;
 use sc_service::BasePath;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
@@ -565,6 +570,30 @@ where
 			}
 		};
 
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V2,
+		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+
+	let overrides = Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	});
+
+	let block_data_cache = Arc::new(EthBlockDataCache::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache,
+	));
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -593,7 +622,6 @@ where
 				command_sink: None,
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -602,6 +630,8 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				overrides: overrides.clone(),
+				block_data_cache: block_data_cache.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -909,6 +939,30 @@ where
 			}
 		};
 
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V2,
+		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+
+	let overrides = Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	});
+
+	let block_data_cache = Arc::new(EthBlockDataCache::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache,
+	));
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -935,7 +989,6 @@ where
 				command_sink: command_sink.clone(),
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -944,6 +997,8 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				overrides: overrides.clone(),
+				block_data_cache: block_data_cache.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
