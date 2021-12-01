@@ -19,9 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Trace filter - Contract creation ", (context) 
     await context.createBlock({ transactions: [rawTx2] });
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
-    const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [
-      false,
-    ]);
+    const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
     await context.createBlock({ transactions: [rawTx3, rawTx4] });
 
     await context.createBlock({

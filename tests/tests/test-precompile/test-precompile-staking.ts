@@ -13,7 +13,11 @@ import {
   ALITH_PRIV_KEY,
 } from "../../util/constants";
 import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+  DevTestContext,
+} from "../../util/setup-dev-tests";
 import { numberToHex, stringToHex } from "@polkadot/util";
 import Web3 from "web3";
 import { customWeb3Request } from "../../util/providers";

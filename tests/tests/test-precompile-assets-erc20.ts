@@ -266,7 +266,7 @@ describeDevMoonbeamAllEthTxTypes(
   true
 );
 
-  describeDevMoonbeamAllEthTxTypes(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;

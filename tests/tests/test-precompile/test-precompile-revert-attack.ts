@@ -21,45 +21,48 @@ import {
 } from "../../util/transactions";
 import { numberToHex } from "@polkadot/util";
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - test revert attack on state modifier", (context) => {
-  it("should return contract creation gas cost", async function () {
-    // Check initial balance
-    const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
-    // Deploy atatck contract
-    const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
-    await context.createBlock({ transactions: [rawTx] });
+describeDevMoonbeamAllEthTxTypes(
+  "Precompiles - test revert attack on state modifier",
+  (context) => {
+    it("should return contract creation gas cost", async function () {
+      // Check initial balance
+      const initialBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
+      // Deploy atatck contract
+      const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
+      await context.createBlock({ transactions: [rawTx] });
 
-    // call the payable function, which should revert
-    const block = await context.createBlock({
-      transactions: [
-        await createContractExecution(
-          context,
-          {
-            contract,
-            contractCall: contract.methods.score_a_free_delegation(),
-          },
-          {
-            ...GENESIS_TRANSACTION,
-            value: numberToHex(Number(MIN_GLMR_STAKING)),
-          }
-        ),
-      ],
+      // call the payable function, which should revert
+      const block = await context.createBlock({
+        transactions: [
+          await createContractExecution(
+            context,
+            {
+              contract,
+              contractCall: contract.methods.score_a_free_delegation(),
+            },
+            {
+              ...GENESIS_TRANSACTION,
+              value: numberToHex(Number(MIN_GLMR_STAKING)),
+            }
+          ),
+        ],
+      });
+
+      // TX should be included but fail
+      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      expect(receipt.status).to.eq(false);
+
+      // Delegation shouldn't have passed
+      const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
+        GENESIS_ACCOUNT
+      );
+      expect(nominatorsAfter.toHuman()).to.eq(null);
+
+      // balance dif should only be tx fee, not MIN_GLMR_STAKING
+      expect(
+        Number(initialBalance) - Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) <
+          Number(MIN_GLMR_STAKING)
+      ).to.eq(true);
     });
-
-    // TX should be included but fail
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    expect(receipt.status).to.eq(false);
-
-    // Delegation shouldn't have passed
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
-      GENESIS_ACCOUNT
-    );
-    expect(nominatorsAfter.toHuman()).to.eq(null);
-
-    // balance dif should only be tx fee, not MIN_GLMR_STAKING
-    expect(
-      Number(initialBalance) - Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) <
-        Number(MIN_GLMR_STAKING)
-    ).to.eq(true);
-  });
-});
+  }
+);

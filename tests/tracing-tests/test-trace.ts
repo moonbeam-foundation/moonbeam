@@ -69,9 +69,7 @@ describeDevMoonbeam(
     // "Allocator ran out of space"'.
     it("should not overflow Wasm memory", async function () {
       this.timeout(15000);
-      const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [
-        false,
-      ]);
+      const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [false]);
       const { txResults } = await context.createBlock({
         transactions: [rawTx],
       });
