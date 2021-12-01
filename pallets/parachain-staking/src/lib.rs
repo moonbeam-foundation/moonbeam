@@ -1627,7 +1627,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn delayed_payouts)]
 	/// Delayed payouts
-	pub type DelayedPayouts<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, DelayedPayout<BalanceOf<T>>, OptionQuery>;
+	pub type DelayedPayouts<T: Config> =
+		StorageMap<_, Twox64Concat, RoundIndex, DelayedPayout<BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn staked)]
@@ -2418,11 +2419,14 @@ pub mod pallet {
 				));
 			}
 
-			<DelayedPayouts<T>>::insert(round_to_payout, DelayedPayout {
-				round_issuance: total_issuance,
-				total_staking_reward: left_issuance,
-				collator_commission: <CollatorCommission<T>>::get(),
-			});
+			<DelayedPayouts<T>>::insert(
+				round_to_payout,
+				DelayedPayout {
+					round_issuance: total_issuance,
+					total_staking_reward: left_issuance,
+					collator_commission: <CollatorCommission<T>>::get(),
+				},
+			);
 
 			/*
 			// TODO: this gets broken up per round (and also gets simplified since we remove
@@ -2487,15 +2491,16 @@ pub mod pallet {
 			} else {
 				false
 			}
-
 		}
 
 		/// Payout a single collator from the given round.
-		/// 
+		///
 		/// Returns an optional tuple of (Collator's AccountId, total paid)
 		/// or None if there were no more payouts to be made for the round.
-		fn pay_one_collator_reward(round: RoundIndex, payout_info: DelayedPayout<BalanceOf<T>>) -> Option<(T::AccountId, BalanceOf<T>)> {
-
+		fn pay_one_collator_reward(
+			round: RoundIndex,
+			payout_info: DelayedPayout<BalanceOf<T>>,
+		) -> Option<(T::AccountId, BalanceOf<T>)> {
 			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
 			// so that we do fewer reads each block
 			let total_points = <Points<T>>::get(round);
