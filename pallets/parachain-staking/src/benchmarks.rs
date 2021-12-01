@@ -18,7 +18,7 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondChange, CandidateBondRequest, Config, DelegationChange,
+	BalanceOf, Call, CandidateBondChange, CandidateBondLessRequest, Config, DelegationChange,
 	DelegationRequest, Pallet, Range,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
@@ -338,9 +338,8 @@ benchmarks! {
 		let state = Pallet::<T>::candidate_state(&caller).expect("request bonded less so exists");
 		assert_eq!(
 			state.request,
-			Some(CandidateBondRequest {
+			Some(CandidateBondLessRequest {
 				amount: min_candidate_stk,
-				change: CandidateBondChange::Decrease,
 				when_executable: 3,
 			})
 		);

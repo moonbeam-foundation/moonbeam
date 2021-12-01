@@ -891,15 +891,8 @@ fn cancel_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledCandidateBondChange(
-				TestAccount::Alice,
-				parachain_staking::CandidateBondRequest {
-					amount: 200,
-					change: parachain_staking::CandidateBondChange::Decrease,
-					when_executable: 3,
-				},
-			)
-			.into();
+			let expected: crate::mock::Event =
+				StakingEvent::CancelledCandidateBondLess(TestAccount::Alice, 200, 3).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});

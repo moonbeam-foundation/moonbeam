@@ -25,9 +25,8 @@ use crate::mock::{
 	roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
-	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CandidateBondChange,
-	CandidateBondRequest, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
-	Error, Event, Range,
+	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CollatorStatus,
+	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -1332,13 +1331,8 @@ fn cancel_candidate_bond_less_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			assert_ok!(Stake::cancel_candidate_bond_less(Origin::signed(1)));
-			assert_last_event!(MetaEvent::Stake(Event::CancelledCandidateBondChange(
-				1,
-				CandidateBondRequest {
-					amount: 10,
-					change: CandidateBondChange::Decrease,
-					when_executable: 3,
-				},
+			assert_last_event!(MetaEvent::Stake(Event::CancelledCandidateBondLess(
+				1, 10, 3,
 			)));
 		});
 }

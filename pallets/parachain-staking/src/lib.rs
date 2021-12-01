@@ -179,16 +179,9 @@ pub mod pallet {
 	}
 
 	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// Changes allowed by an active collator candidate to their self bond
-	pub enum CandidateBondChange {
-		Decrease,
-	}
-
-	#[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Request scheduled to change the collator candidate self-bond
-	pub struct CandidateBondRequest<Balance> {
+	pub struct CandidateBondLessRequest<Balance> {
 		pub amount: Balance,
-		pub change: CandidateBondChange,
 		pub when_executable: RoundIndex,
 	}
 
@@ -209,8 +202,8 @@ pub mod pallet {
 		pub total_counted: Balance,
 		/// Sum of all delegations + self.bond = (total_counted + uncounted)
 		pub total_backing: Balance,
-		/// Maximum 1 pending request to adjust candidate self bond at any given time
-		pub request: Option<CandidateBondRequest<Balance>>,
+		/// Maximum 1 pending request to decrease candidate self bond at any given time
+		pub request: Option<CandidateBondLessRequest<Balance>>,
 		/// Current status of the collator
 		pub state: CollatorStatus,
 	}
@@ -304,8 +297,7 @@ pub mod pallet {
 				Error::<T>::CandidateBondBelowMin
 			);
 			let when_executable = <Round<T>>::get().current + T::CandidateBondLessDelay::get();
-			self.request = Some(CandidateBondRequest {
-				change: CandidateBondChange::Decrease,
+			self.request = Some(CandidateBondLessRequest {
 				amount: less,
 				when_executable,
 			});
@@ -326,23 +318,19 @@ pub mod pallet {
 				Error::<T>::PendingCandidateRequestNotDueYet
 			);
 			let caller: T::AccountId = self.id.clone().into();
-			let event = match request.change {
-				CandidateBondChange::Decrease => {
-					T::Currency::unreserve(&caller, request.amount.into());
-					let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
-					<Total<T>>::put(new_total_staked);
-					// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
-					// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
-					self.bond -= request.amount;
-					self.total_counted -= request.amount;
-					self.total_backing -= request.amount;
-					Event::CandidateBondedLess(
-						self.id.clone().into(),
-						request.amount.into(),
-						self.bond.into(),
-					)
-				}
-			};
+			T::Currency::unreserve(&caller, request.amount.into());
+			let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
+			<Total<T>>::put(new_total_staked);
+			// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
+			// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
+			self.bond -= request.amount;
+			self.total_counted -= request.amount;
+			self.total_backing -= request.amount;
+			let event = Event::CandidateBondedLess(
+				self.id.clone().into(),
+				request.amount.into(),
+				self.bond.into(),
+			);
 			// reset s.t. no pending request
 			self.request = None;
 			// update candidate pool value because it must change if self bond changes
@@ -354,13 +342,18 @@ pub mod pallet {
 		/// Cancel pending request to change the collator self bond
 		pub fn cancel_pending_request<T: Config>(&mut self) -> Result<Event<T>, DispatchError>
 		where
-			CandidateBondRequest<BalanceOf<T>>: From<CandidateBondRequest<B>>,
+			CandidateBondLessRequest<BalanceOf<T>>: From<CandidateBondLessRequest<B>>,
 			T::AccountId: From<A>,
+			BalanceOf<T>: From<B>,
 		{
 			let request = self
 				.request
 				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
-			let event = Event::CancelledCandidateBondChange(self.id.clone().into(), request.into());
+			let event = Event::CancelledCandidateBondLess(
+				self.id.clone().into(),
+				request.amount.into(),
+				request.when_executable,
+			);
 			self.request = None;
 			Ok(event)
 		}
@@ -1347,8 +1340,8 @@ pub mod pallet {
 		CandidateScheduledExit(RoundIndex, T::AccountId, RoundIndex),
 		/// Candidate
 		CancelledCandidateExit(T::AccountId),
-		/// Candidate, Cancelled Request
-		CancelledCandidateBondChange(T::AccountId, CandidateBondRequest<BalanceOf<T>>),
+		/// Candidate, Amount, Round at which could be executed
+		CancelledCandidateBondLess(T::AccountId, BalanceOf<T>, RoundIndex),
 		/// Ex-Candidate, Amount Unlocked, New Total Amt Locked
 		CandidateLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Delegator, Candidate, Amount to be decreased, Round at which can be executed
