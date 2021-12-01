@@ -1420,6 +1420,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
 			},
+			// We just want to enable this in case of live chains, since the default version
+			// is populated at genesis
+			Call::PolkadotXcm(method) => match method {
+				pallet_xcm::Call::force_default_xcm_version { .. } => true,
+				_ => false,
+			},
 			_ => true,
 		}
 	}
@@ -1473,8 +1479,7 @@ construct_runtime! {
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
-		// PolkadotXcm and Assets are filtered by AssetManager and XTokens for now
-		PolkadotXcm: pallet_xcm::{Pallet, Storage, Event<T>, Origin, Config} = 28,
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
