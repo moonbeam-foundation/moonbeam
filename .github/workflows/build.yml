@@ -50,7 +50,7 @@ jobs:
         run: |
           echo ::set-output name=sha::$(git log -1 --format="%H")
           echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
-          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock)
+          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)
           echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
             head -1 | sed 's/.*#//' |  cut -c1-8)
       - name: Check existing docker image
