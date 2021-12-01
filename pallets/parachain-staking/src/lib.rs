@@ -1013,7 +1013,6 @@ pub mod pallet {
 	}
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// TODO: add leaving logic to this?
 	/// Pending requests to mutate delegations for each delegator
 	pub struct PendingDelegationRequests<AccountId, Balance> {
 		/// Number of pending revocations (necessary for determining whether revoke is exit)
@@ -1334,8 +1333,6 @@ pub mod pallet {
 		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Round, Collator Account, Total Exposed Amount (includes all delegations)
 		CollatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
-		/// Candidate, Amount To Increase, Round at which request can be executed by caller
-		CandidateBondMoreRequested(T::AccountId, BalanceOf<T>, RoundIndex),
 		/// Candidate, Amount To Decrease, Round at which request can be executed by caller
 		CandidateBondLessRequested(T::AccountId, BalanceOf<T>, RoundIndex),
 		/// Candidate, Amount, New Bond Total
@@ -1354,8 +1351,6 @@ pub mod pallet {
 		CancelledCandidateBondChange(T::AccountId, CandidateBondRequest<BalanceOf<T>>),
 		/// Ex-Candidate, Amount Unlocked, New Total Amt Locked
 		CandidateLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Delegator, Candidate, Amount to be increased, Round at which can be executed
-		DelegationIncreaseScheduled(T::AccountId, T::AccountId, BalanceOf<T>, RoundIndex),
 		/// Delegator, Candidate, Amount to be decreased, Round at which can be executed
 		DelegationDecreaseScheduled(T::AccountId, T::AccountId, BalanceOf<T>, RoundIndex),
 		// Delegator, Candidate, Amount, If in top delegations for candidate after increase
