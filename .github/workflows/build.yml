@@ -26,6 +26,7 @@ jobs:
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
+      polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
     steps:
       - name: Check git ref
@@ -49,6 +50,7 @@ jobs:
         run: |
           echo ::set-output name=sha::$(git log -1 --format="%H")
           echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
+          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock)
           echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
             head -1 | sed 's/.*#//' |  cut -c1-8)
       - name: Check existing docker image
@@ -178,12 +180,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
         run: |
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
-            # $POLKADOT_COMMIT is used to build the relay image
+            # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
           fi
