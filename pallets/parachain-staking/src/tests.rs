@@ -22,7 +22,7 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
+	roll_to, roll_to_round_begin, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
 	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CandidateBondChange,
@@ -4540,6 +4540,81 @@ fn delegation_events_convey_correct_position() {
 				collator1_state.total_counted + 23,
 				collator1_state.total_backing
 			);
+		});
+}
+
+#[test]
+fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.build()
+		.execute_with(|| {
+			roll_to_round_begin(2);
+			// payouts for round 1 
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+			set_author(1, 3, 1);
+			set_author(1, 4, 1);
+			set_author(1, 4, 1);
+			let mut expected = vec![
+				Event::CollatorChosen(2, 1, 20),
+				Event::CollatorChosen(2, 2, 20),
+				Event::CollatorChosen(2, 3, 20),
+				Event::CollatorChosen(2, 4, 20),
+				Event::NewRound(5, 2, 4, 80),
+			];
+			assert_eq_events!(expected);
+
+			roll_to_round_begin(3);
+			expected.append(&mut vec![
+				Event::CollatorChosen(3, 1, 20),
+				Event::CollatorChosen(3, 2, 20),
+				Event::CollatorChosen(3, 3, 20),
+				Event::CollatorChosen(3, 4, 20),
+				Event::NewRound(10, 3, 4, 80),
+			]);
+			assert_eq_events!(expected);
+
+			// rewards will be paid out in this round, but not until subsequent blocks
+			roll_to_round_begin(4);
+			expected.append(&mut vec![
+				Event::CollatorChosen(4, 1, 20),
+				Event::CollatorChosen(4, 2, 20),
+				Event::CollatorChosen(4, 3, 20),
+				Event::CollatorChosen(4, 4, 20),
+				Event::NewRound(15, 4, 4, 80),
+			]);
+			assert_eq_events!(expected);
+
+			// roll one block at a time and expect one payout per round
+			// TODO: the order is [probably] based on hashes in the underlying trie, and isn't
+			// significant here. these should be rewritten to work in arbitrary order
+			roll_to(16);
+			expected.push(Event::Rewarded(3, 1));
+			assert_eq_events!(expected);
+
+			roll_to(17);
+			expected.push(Event::Rewarded(4, 2));
+			assert_eq_events!(expected);
+
+			roll_to(18);
+			expected.push(Event::Rewarded(1, 1));
+			assert_eq_events!(expected);
+
+			roll_to(19);
+			expected.push(Event::Rewarded(2, 1));
+			assert_eq_events!(expected);
+
+			// and if we roll one more block we should get new collators and a new round
+			roll_to(20);
+			expected.append(&mut vec![
+				Event::CollatorChosen(5, 1, 20),
+				Event::CollatorChosen(5, 2, 20),
+				Event::CollatorChosen(5, 3, 20),
+				Event::CollatorChosen(5, 4, 20),
+				Event::NewRound(20, 5, 4, 80),
+			]);
 		});
 }
 

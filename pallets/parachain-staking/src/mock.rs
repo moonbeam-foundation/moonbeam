@@ -239,6 +239,13 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
+/// Rolls block-by-block to the beginning of the specified round.
+pub(crate) fn roll_to_round_begin(round: u64) {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	println!("rolling from {} to {}", System::block_number(), block);
+	roll_to(block);
+}
+
 pub(crate) fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
@@ -384,4 +391,22 @@ fn geneses() {
 				assert_eq!(Balances::reserved_balance(&x), 10);
 			}
 		});
+}
+
+#[test]
+fn roll_to_round_begin_works() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+			assert_eq!(System::block_number(), 1); // we start on block 1
+
+			roll_to_round_begin(1);
+			assert_eq!(System::block_number(), 1); // no-op, we're already on this round
+			roll_to_round_begin(2);
+			assert_eq!(System::block_number(), 5);
+			roll_to_round_begin(3);
+			assert_eq!(System::block_number(), 10);
+		});
+
 }
