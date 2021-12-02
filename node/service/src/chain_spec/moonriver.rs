@@ -140,9 +140,14 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
-	const SECONDS_PER_YEAR: u32 = 31557600;
-	const SECONDS_PER_BLOCK: u32 = 12;
-	const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
+	fn to_round_inflation(annual: Perbill) -> Perbill {
+		use parachain_staking::inflation::{perbill_annual_to_perbill_round, BLOCKS_PER_YEAR};
+		perbill_annual_to_perbill_round(
+			annual,
+			// rounds per year
+			BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get(),
+		)
+	}
 	InflationInfo {
 		// staking expectations
 		expect: Range {
@@ -157,18 +162,9 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			max: Perbill::from_percent(5),
 		},
 		round: Range {
-			min: Perbill::from_parts(
-				Perbill::from_percent(4).deconstruct()
-					/ (BLOCKS_PER_YEAR / moonriver_runtime::DefaultBlocksPerRound::get()),
-			),
-			ideal: Perbill::from_parts(
-				Perbill::from_percent(5).deconstruct()
-					/ (BLOCKS_PER_YEAR / moonriver_runtime::DefaultBlocksPerRound::get()),
-			),
-			max: Perbill::from_parts(
-				Perbill::from_percent(5).deconstruct()
-					/ (BLOCKS_PER_YEAR / moonriver_runtime::DefaultBlocksPerRound::get()),
-			),
+			min: to_round_inflation(Perbill::from_percent(4)),
+			ideal: to_round_inflation(Perbill::from_percent(5)),
+			max: to_round_inflation(Perbill::from_percent(5)),
 		},
 	}
 }

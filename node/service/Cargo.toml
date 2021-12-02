@@ -41,6 +41,7 @@ moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
 moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
 moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
+parachain-staking = { path = "../../pallets/parachain-staking", optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
