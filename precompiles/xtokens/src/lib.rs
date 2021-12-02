@@ -17,13 +17,12 @@
 //! Precompile to xtokens runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(assert_matches)]
 
-use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{
-	error, Address, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper,
-};
+use precompile_utils::{Address, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper};
 
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
@@ -61,6 +60,7 @@ pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
+	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -71,15 +71,20 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		_is_static: bool,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		let gasometer = &mut gasometer;
+
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let input = &mut input;
 
 		match selector {
-			Action::Transfer => Self::transfer(input, target_gas, context),
-			Action::TransferWithFee => Self::transfer_with_fee(input, target_gas, context),
-			Action::TransferMultiAsset => Self::transfer_multiasset(input, target_gas, context),
+			Action::Transfer => Self::transfer(input, gasometer, context),
+			Action::TransferWithFee => Self::transfer_with_fee(input, gasometer, context),
+			Action::TransferMultiAsset => Self::transfer_multiasset(input, gasometer, context),
 			Action::TransferMultiAssetWithFee => {
-				Self::transfer_multiasset_with_fee(input, target_gas, context)
+				Self::transfer_multiasset_with_fee(input, gasometer, context)
 			}
 		}
 	}
@@ -95,32 +100,33 @@ where
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn transfer(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		input.expect_arguments(4)?;
-
-		let to_address: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		// Bound check
+		input.expect_arguments(gasometer, 2)?;
+		let to_address: H160 = input.read::<Address>(gasometer)?.into();
+		let amount: U256 = input.read(gasometer)?;
 
 		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		// Bound check
+		input.expect_arguments(gasometer, 1)?;
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		// We convert the address into a currency id xtokens understands
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
-				.ok_or(error("cannot convert into currency id"))?;
+				.ok_or(gasometer.revert("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let amount = amount
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
@@ -129,13 +135,7 @@ where
 			dest_weight,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -146,40 +146,39 @@ where
 	}
 
 	fn transfer_with_fee(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		input.expect_arguments(5)?;
+		input.expect_arguments(gasometer, 5)?;
 
-		let to_address: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
-		let fee: U256 = input.read()?;
+		let to_address: H160 = input.read::<Address>(gasometer)?.into();
+		let amount: U256 = input.read(gasometer)?;
+		let fee: U256 = input.read(gasometer)?;
 
 		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		// We convert the address into a currency id xtokens understands
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
-				.ok_or(error("cannot convert into currency id"))?;
+				.ok_or(gasometer.revert("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
 		// Transferred amount
 		let amount = amount
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		// Fee amount
 		let fee = fee
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_with_fee {
 			currency_id,
@@ -189,13 +188,7 @@ where
 			dest_weight,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -206,28 +199,28 @@ where
 	}
 
 	fn transfer_multiasset(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		input.expect_arguments(4)?;
-
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 		// Bound check
-		let amount: U256 = input.read()?;
+		input.expect_arguments(gasometer, 1)?;
+		let amount: U256 = input.read(gasometer)?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		// Bound check
+		input.expect_arguments(gasometer, 1)?;
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let to_balance = amount
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
@@ -238,13 +231,7 @@ where
 			dest_weight,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -255,31 +242,30 @@ where
 	}
 
 	fn transfer_multiasset_with_fee(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		input.expect_arguments(5)?;
+		input.expect_arguments(gasometer, 5)?;
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
-		let amount: U256 = input.read()?;
-		let fee: U256 = input.read()?;
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let amount: U256 = input.read(gasometer)?;
+		let fee: U256 = input.read(gasometer)?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let amount = amount
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 		let fee = fee
 			.try_into()
-			.map_err(|_| error("Amount is too large for provided balance type"))?;
+			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
@@ -294,13 +280,7 @@ where
 			dest_weight,
 		};
 
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-
-		gasometer.record_cost(used_gas)?;
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,

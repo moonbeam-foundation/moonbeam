@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
@@ -11,6 +11,7 @@ import {
   ALITH,
   ALITH_PRIV_KEY,
 } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
@@ -23,11 +24,11 @@ async function getBalance(context, blockHeight, address) {
   return account.data.free;
 }
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -70,12 +71,14 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const tx = await createTransaction(context.web3, {
+    const base_fee = await context.web3.eth.getGasPrice();
+
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
-      gasPrice: GAS_PRICE,
+      gasPrice: base_fee,
       to: ADDRESS_XTOKENS,
       data,
     });
@@ -85,7 +88,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     });
 
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
+    const fees = BigInt(receipt.gasUsed) * BigInt(base_fee);
 
     // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
@@ -93,14 +96,15 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
   });
 });
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -148,7 +152,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
@@ -175,11 +179,11 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -243,13 +247,15 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
       ]
     );
 
+    const base_fee = await context.web3.eth.getGasPrice();
+
     // create tx
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
-      gasPrice: GAS_PRICE,
+      gasPrice: base_fee,
       to: ADDRESS_XTOKENS,
       data,
     });
@@ -259,7 +265,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     });
 
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
+    const fees = BigInt(receipt.gasUsed) * BigInt(base_fee);
 
     // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
@@ -267,14 +273,15 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
   });
 });
 
-describeDevMoonbeam("Precompiles - xtokens", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+    const { contract, rawTx } = await createContract(context, "XtokensInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     // Junction::AccountId32
@@ -344,7 +351,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     // create tx
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",

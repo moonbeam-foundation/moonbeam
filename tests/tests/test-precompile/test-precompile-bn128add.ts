@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
-describeDevMoonbeam("Precompiles - bn128add", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - bn128add", (context) => {
   it("should be accessible from a smart contract", async function () {
-    const { rawTx } = await createContract(context.web3, "Bn128Addition");
+    const { rawTx } = await createContract(context, "Bn128Addition");
     await context.createBlock({ transactions: [rawTx] });
 
     // Because the call to bn128add is in the constructor of HashRipmd160, verifying the code

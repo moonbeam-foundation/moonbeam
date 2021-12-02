@@ -99,7 +99,6 @@ where
 				transaction_pool: transaction_pool.clone(),
 				spawn_handle: task_manager.spawn_handle(),
 				import_queue,
-				on_demand: None,
 				block_announce_validator_builder: None,
 				warp_sync: None,
 			})?;
@@ -137,6 +136,7 @@ where
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
+			Some("block-authoring"),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -224,8 +224,6 @@ where
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
 			rpc_extensions_builder,
-			on_demand: None,
-			remote_blockchain: None,
 			backend,
 			system_rpc_tx,
 			config,
@@ -277,7 +275,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -290,7 +289,8 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
 		);
@@ -304,7 +304,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -316,7 +317,8 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
 		);
@@ -356,7 +358,9 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let unchecked_extrinsic = self.transaction_converter.convert_transaction(signed);
+		let unchecked_extrinsic = self
+			.transaction_converter
+			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
 
 		let hash = self.client.info().best_hash;
 		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);

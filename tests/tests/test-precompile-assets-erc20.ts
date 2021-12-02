@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 import {
   GENESIS_ACCOUNT,
@@ -15,7 +15,6 @@ import Keyring from "@polkadot/keyring";
 import { getCompiled } from "../util/contracts";
 import { ethers } from "ethers";
 import { createContract, createTransaction } from "../util/transactions";
-import { createTransfer } from "../util/transactions";
 
 const sourceLocationRelay = { parents: 1, interior: "Here" };
 
@@ -108,7 +107,7 @@ const SELECTORS = {
 };
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -138,7 +137,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       const address = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -266,7 +265,7 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -292,7 +291,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       const address = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -303,7 +302,7 @@ describeDevMoonbeam(
         [BALTATHAR, 1000]
       );
 
-      const tx = await createTransaction(context.web3, {
+      const tx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
         value: "0x0",
@@ -358,7 +357,7 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -384,7 +383,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -396,7 +395,7 @@ describeDevMoonbeam(
         [BALTATHAR, 1000]
       );
 
-      let tx = await createTransaction(context.web3, {
+      let tx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
         value: "0x0",
@@ -424,7 +423,7 @@ describeDevMoonbeam(
         [ALITH, CHARLETH, 1000]
       );
 
-      tx = await createTransaction(context.web3, {
+      tx = await createTransaction(context, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
@@ -464,7 +463,7 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace;
@@ -490,7 +489,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       const address = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -502,7 +501,7 @@ describeDevMoonbeam(
         [BALTATHAR, 1000]
       );
 
-      let tx = await createTransaction(context.web3, {
+      let tx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
         value: "0x0",
@@ -530,7 +529,7 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -554,7 +553,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
 
     const contractData = await getCompiled("ERC20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+    const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
   });
@@ -566,7 +565,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [BALTATHAR, 1000]
     );
 
-    let tx = await createTransaction(context.web3, {
+    let tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -602,7 +601,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [ALITH, CHARLETH, 1000]
     );
 
-    tx = await createTransaction(context.web3, {
+    tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
       value: "0x0",
@@ -637,7 +636,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -663,7 +662,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -675,7 +674,7 @@ describeDevMoonbeam(
         [BALTATHAR, 1000]
       );
 
-      let tx = await createTransaction(context.web3, {
+      let tx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
         value: "0x0",
@@ -703,7 +702,7 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -725,7 +724,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
 
     const contractData = await getCompiled("ERC20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+    const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
     // We fund the contract address with this test
     await mockAssetBalance(
@@ -747,7 +746,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [BALTATHAR, 1000]
     );
 
-    let tx = await createTransaction(context.web3, {
+    let tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -785,7 +784,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [contractInstanceAddress, CHARLETH, 1000]
     );
 
-    tx = await createTransaction(context.web3, {
+    tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
       value: "0x0",
@@ -813,7 +812,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
     expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
 
     // this time we call directly from Baltathar the ERC20 contract
-    tx = await createTransaction(context.web3, {
+    tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
       value: "0x0",
@@ -846,7 +845,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, assetId, iFace, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -868,7 +867,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
 
     const contractData = await getCompiled("ERC20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+    const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
     // We fund Alith with this test
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
@@ -883,7 +882,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [contractInstanceAddress, 1000]
     );
 
-    let tx = await createTransaction(context.web3, {
+    let tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -920,7 +919,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
       [ALITH, CHARLETH, 1000]
     );
 
-    tx = await createTransaction(context.web3, {
+    tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
       value: "0x0",
@@ -953,7 +952,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 });
 
-describeDevMoonbeam(
+describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let sudoAccount, assetId, iFace, contractInstanceAddress;
@@ -977,7 +976,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
       await mockAssetBalance(
         context,
@@ -998,7 +997,7 @@ describeDevMoonbeam(
         [BALTATHAR, 1000]
       );
 
-      let tx = await createTransaction(context.web3, {
+      let tx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
         value: "0x0",

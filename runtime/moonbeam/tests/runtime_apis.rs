@@ -148,14 +148,15 @@ fn ethereum_runtime_rpc_api_call() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::call(
-				H160::from(ALICE),  // from
-				H160::from(BOB),    // to
-				Vec::new(),         // data
-				U256::from(1000),   // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				H160::from(BOB),       // to
+				Vec::new(),            // data
+				U256::from(1000u64),   // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -168,13 +169,14 @@ fn ethereum_runtime_rpc_api_create() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::create(
-				H160::from(ALICE),  // from
-				vec![0, 1, 1, 0],   // data
-				U256::zero(),       // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				vec![0, 1, 1, 0],      // data
+				U256::zero(),          // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -209,7 +211,9 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
+			// Changed from BadOrigin to CallFiltered
+			// https://github.com/paritytech/substrate/pull/10134
+			assert_noop!(result, frame_system::Error::<Runtime>::CallFiltered);
 			// // Future us: uncomment below.
 			// run_to_block(2);
 			// let statuses =
@@ -274,7 +278,9 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
+			// Changed from BadOrigin to CallFiltered
+			// https://github.com/paritytech/substrate/pull/10134
+			assert_noop!(result, frame_system::Error::<Runtime>::CallFiltered);
 			// // Future us: uncomment below.
 			// run_to_block(2);
 			// let receipts = Runtime::current_receipts().expect("Receipts result.");

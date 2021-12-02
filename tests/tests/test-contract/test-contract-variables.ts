@@ -7,7 +7,7 @@ describeDevMoonbeam("Block Contract - Block variables", (context) => {
   let blockContract: Contract;
 
   before("Setup: Creating contract with block variables", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "CheckBlockVariables");
+    const { contract, rawTx } = await createContract(context, "CheckBlockVariables");
     await context.createBlock({ transactions: [rawTx] });
     blockContract = contract;
   });

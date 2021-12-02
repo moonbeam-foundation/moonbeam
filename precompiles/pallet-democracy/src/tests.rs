@@ -16,33 +16,39 @@
 
 use crate::{
 	mock::{
-		events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy,
-		ExtBuilder, Origin, Precompiles, Runtime,
-		TestAccount::{self, Alice, Bob},
+		events, evm_test_context, roll_to, Balances, Call, Democracy, ExtBuilder, Origin,
+		Precompiles, PrecompilesValue, Runtime,
+		TestAccount::{self, Alice, Bob, Precompile},
 	},
 	Action,
 };
-use fp_evm::PrecompileOutput;
+use fp_evm::{PrecompileFailure, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
 	VoteThreshold, Voting,
 };
-use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, Bytes, EvmDataWriter};
+use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitSucceed, PrecompileSet};
+use precompile_utils::{Address, Bytes, EvmDataWriter};
 use sp_core::{H160, U256};
-use std::convert::TryInto;
+use std::{assert_matches::assert_matches, convert::TryInto, str::from_utf8};
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: precompile_address(),
+		target: Precompile.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
-		gas_price: 0.into(),
+		max_fee_per_gas: 0.into(),
+		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
+		access_list: Vec::new(),
 	}
 }
 
@@ -52,17 +58,16 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("tried to parse selector out of bounds")));
-
-		assert_eq!(
-			Precompiles::execute(
-				precompile_address(),
+		assert_matches!(
+			precompiles().execute(
+				Precompile.into(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"tried to parse selector out of bounds",
 		);
 	});
 }
@@ -72,17 +77,16 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("unknown selector")));
-
-		assert_eq!(
-			Precompiles::execute(
-				precompile_address(),
+		assert_matches!(
+			precompiles().execute(
+				Precompile.into(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"unknown selector",
 		);
 	});
 }
@@ -121,7 +125,7 @@ fn prop_count_zero() {
 
 		// Assert that no props have been opened.
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 			expected_zero_result
 		);
 	});
@@ -153,7 +157,7 @@ fn prop_count_non_zero() {
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 				expected_one_result
 			);
 		});
@@ -188,7 +192,7 @@ fn deposit_of_non_zero() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 				expected_result
 			)
 		});
@@ -202,12 +206,10 @@ fn deposit_of_bad_index() {
 			.write(10u32)
 			.build();
 
-		// Expected result is an error stating there is no such proposal in the underlying pallet
-		let expected_result = Some(Err(error("No such proposal in pallet democracy")));
-
-		assert_eq!(
-			Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
-			expected_result
+		assert_matches!(
+			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"No such proposal in pallet democracy",
 		);
 	});
 }
@@ -227,7 +229,7 @@ fn lowest_unbaked_zero() {
 		}));
 
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 			expected_zero_result
 		)
 	});
@@ -297,7 +299,7 @@ fn lowest_unbaked_non_zero() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 				expected_one_result
 			)
 		});
@@ -366,7 +368,7 @@ fn propose_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 		})
@@ -407,7 +409,7 @@ fn second_works() {
 					// This 100 is reserved for the second.
 					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved(Alice, 100).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 		})
@@ -445,7 +447,7 @@ fn standard_vote_aye_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 
@@ -499,7 +501,7 @@ fn standard_vote_nay_conviction_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 
@@ -568,7 +570,7 @@ fn remove_vote_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 
@@ -609,10 +611,10 @@ fn remove_vote_dne() {
 				.build();
 
 			// Expected result is an error from the pallet
-			if let Some(Err(ExitError::Other(e))) =
-				Precompiles::execute(precompile_address(), &input, None, &evm_test_context())
+			if let Some(Err(PrecompileFailure::Revert { output: e, .. })) =
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false)
 			{
-				assert!(e.contains("NotVoter"));
+				assert!(from_utf8(&e).unwrap().contains("NotVoter"));
 			} else {
 				panic!("Expected an ExitError, but didn't get one.")
 			}
@@ -640,7 +642,7 @@ fn delegate_works() {
 				events(),
 				vec![
 					DemocracyEvent::Delegated(Alice, Bob).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 
@@ -698,7 +700,7 @@ fn undelegate_works() {
 				vec![
 					DemocracyEvent::Delegated(Alice, Bob).into(),
 					DemocracyEvent::Undelegated(Alice).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 
@@ -722,10 +724,10 @@ fn undelegate_dne() {
 		let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
 
 		// Expected result is an error from the pallet
-		if let Some(Err(ExitError::Other(e))) =
-			Precompiles::execute(precompile_address(), &input, None, &evm_test_context())
+		if let Some(Err(PrecompileFailure::Revert { output: e, .. })) =
+			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false)
 		{
-			assert!(e.contains("NotDelegating"));
+			assert!(from_utf8(&e).unwrap().contains("NotDelegating"));
 		} else {
 			panic!("Expected an ExitError, but didn't get one.")
 		}
@@ -792,7 +794,7 @@ fn unlock_works() {
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
 					DemocracyEvent::Passed(0).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 		})
@@ -815,7 +817,7 @@ fn unlock_with_nothing_locked() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::Executed(precompile_address()).into(),]
+				vec![EvmEvent::Executed(Precompile.into()).into(),]
 			);
 		})
 }
@@ -844,12 +846,14 @@ fn note_preimage_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: precompile_address(),
+				target: Precompile.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -859,7 +863,7 @@ fn note_preimage_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, expected_deposit).into(),
 					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
 		})
@@ -889,24 +893,28 @@ fn cannot_note_duplicate_preimage() {
 			// First call should go successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: precompile_address(),
+				target: Precompile.into(),
 				input: input.clone(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
 			// Second call should fail because that preimage is already noted
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: precompile_address(),
+				target: Precompile.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -916,8 +924,8 @@ fn cannot_note_duplicate_preimage() {
 				vec![
 					BalancesEvent::Reserved(Alice, expected_deposit).into(),
 					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
-					EvmEvent::Executed(precompile_address()).into(),
-					EvmEvent::ExecutedFailed(precompile_address()).into(),
+					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::ExecutedFailed(Precompile.into()).into(),
 				]
 			);
 		})
@@ -941,19 +949,21 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			// This call should not succeed because
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: precompile_address(),
+				target: Precompile.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::ExecutedFailed(precompile_address()).into()]
+				vec![EvmEvent::ExecutedFailed(Precompile.into()).into()]
 			);
 		})
 }

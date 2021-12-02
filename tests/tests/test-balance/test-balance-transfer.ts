@@ -1,14 +1,15 @@
 import { expect } from "chai";
+import { verifyLatestBlockFees } from "../../util/block";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../../util/constants";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
-describeDevMoonbeam("Balance transfer cost", (context) => {
+describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
   it("should cost 21000 * 1_000_000_000", async function () {
     const testAccount = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, testAccount, 0)],
+      transactions: [await createTransfer(context, testAccount, 0)],
     });
 
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
@@ -17,11 +18,11 @@ describeDevMoonbeam("Balance transfer cost", (context) => {
   });
 });
 
-describeDevMoonbeam("Balance transfer", (context) => {
+describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock({
-      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
   });
 
@@ -44,5 +45,17 @@ describeDevMoonbeam("Balance transfer", (context) => {
         await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)
       ).data.free.toString()
     );
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
+  const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
+  before("Create block with transfer to test account of 512", async () => {
+    await context.createBlock({
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
+    });
+  });
+  it("should check latest block fees", async function () {
+    await verifyLatestBlockFees(context, expect, BigInt(512));
   });
 });

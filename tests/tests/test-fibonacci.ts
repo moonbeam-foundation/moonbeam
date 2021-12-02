@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
 
-describeDevMoonbeam("Fibonacci", (context) => {
+describeDevMoonbeamAllEthTxTypes("Fibonacci", (context) => {
   it("should be able to call fibonacci", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "Fibonacci");
+    const { contract, rawTx } = await createContract(context, "Fibonacci");
     await context.createBlock({ transactions: [rawTx] });
 
     expect(await contract.methods.fib2(0).call()).to.equal("" + 0);
@@ -24,10 +24,10 @@ describeDevMoonbeam("Fibonacci", (context) => {
   });
 
   it("should be able to call fibonacci[370] in txn", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "Fibonacci");
+    const { contract, rawTx } = await createContract(context, "Fibonacci");
     await context.createBlock({ transactions: [rawTx] });
 
-    const tx = await createContractExecution(context.web3, {
+    const tx = await createContractExecution(context, {
       contract,
       contractCall: contract.methods.fib2(370),
     });

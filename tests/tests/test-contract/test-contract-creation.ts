@@ -1,10 +1,11 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { verifyLatestBlockFees } from "../../util/block";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
-describeDevMoonbeam("Contract creation", (context) => {
+describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   it("should return the transaction hash", async () => {
-    const { rawTx } = await createContract(context.web3, "TestContract");
+    const { rawTx } = await createContract(context, "TestContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
 
     expect(
@@ -14,15 +15,15 @@ describeDevMoonbeam("Contract creation", (context) => {
   });
 });
 
-describeDevMoonbeam("Contract creation", (context) => {
+describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   it("should not contain contract at genesis", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract } = await createContract(context, "TestContract");
     expect(await context.web3.eth.getCode(contract.options.address)).to.deep.equal("0x");
   });
 
   it("should store the code on chain", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    const { contract, rawTx } = await createContract(context, "TestContract");
+    await context.createBlock({ transactions: [rawTx] });
 
     expect(await context.web3.eth.getCode(contract.options.address)).to.deep.equal(
       "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c8063c6888fa114610030575b" +
@@ -37,5 +38,13 @@ describeDevMoonbeam("Contract creation", (context) => {
         "70667358221220a82dff050f5e40b874671c1f40e579b5a8c361f5313d1a9d32437222ab6a384c64736f6c63" +
         "430008030033"
     );
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Contract creation -block fees", (context) => {
+  it("should check latest block fees", async function () {
+    const { rawTx } = await createContract(context, "TestContract");
+    const {} = await context.createBlock({ transactions: [rawTx] });
+    await verifyLatestBlockFees(context, expect);
   });
 });
