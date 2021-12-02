@@ -39,7 +39,8 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, FindAuthor, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
+		Contains, Everything, FindAuthor, Get, Imbalance, InstanceFilter, Nothing, OffchainWorker,
+		OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -691,10 +692,10 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = DmpQueue;
+	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type XcmpMessageHandler = XcmpQueue;
+	type XcmpMessageHandler = MaintenanceMode;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -1393,11 +1394,13 @@ pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
+			Call::Assets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
 			Call::XTokens(_) => false,
+			Call::XcmTransactor(_) => false,
 			_ => true,
 		}
 	}
@@ -1431,12 +1434,99 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+};
+pub struct MaintenanceDmpHandler;
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		_limit: Weight,
+	) -> Weight {
+		DmpQueue::handle_dmp_messages(iter, 0)
+	}
+}
+
+pub struct MaintenanceXcmpHandler;
+impl XcmpMessageHandler for MaintenanceXcmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		iter: I,
+		_limit: Weight,
+	) -> Weight {
+		XcmpQueue::handle_xcmp_messages(iter, 0)
+	}
+}
+
+/// The hooks we wnat to run in Maintenance Mode
+pub struct MaintenanceHooks;
+
+impl OnInitialize<BlockNumber> for MaintenanceHooks {
+	fn on_initialize(n: BlockNumber) -> Weight {
+		AllPallets::on_initialize(n)
+	}
+}
+
+// return 0
+// For some reason using empty tuple () isnt working
+// There exist only two pallets that use onIdle and these are xcmp and dmp queues
+// For some reason putting an empty tumple does not work (transaction never finishes)
+// We use an empty onIdle, if on the future we want one of the pallets to execute it
+// we need to provide it here
+impl OnIdle<BlockNumber> for MaintenanceHooks {
+	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
+		0
+	}
+}
+
+impl OnRuntimeUpgrade for MaintenanceHooks {
+	fn on_runtime_upgrade() -> Weight {
+		AllPallets::on_runtime_upgrade()
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		AllPallets::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		AllPallets::post_upgrade()
+	}
+}
+
+impl OnFinalize<BlockNumber> for MaintenanceHooks {
+	fn on_finalize(n: BlockNumber) {
+		AllPallets::on_finalize(n)
+	}
+}
+
+impl OffchainWorker<BlockNumber> for MaintenanceHooks {
+	fn offchain_worker(n: BlockNumber) {
+		AllPallets::offchain_worker(n)
+	}
+}
+
+// AllPallets here implies all the specfied pallets in the runtime, except frame_system,
+// will run the associated hook
+// AllPallets is simply a nested tuple containing all the pallets except System
+// In cases where we need only specific pallets to run the hook,
+// we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type NormalDmpHandler = DmpQueue;
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	type NormalXcmpHandler = XcmpQueue;
+	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
+	// We use AllPallets because we dont want to change the hooks in normal operation
+	type NormalExecutiveHooks = AllPallets;
+	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -1518,7 +1608,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPallets,
+	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
