@@ -56,11 +56,11 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["round"]["min"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["min"])).to.eq(66666); // 4% / blocks per year * 10^9
+    expect(Number(inflationInfo["round"]["min"])).to.eq(8949); // 4% / blocks per year * 10^9
     expect(inflationInfo.toHuman()["round"]["ideal"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["ideal"])).to.eq(83332); // 5% / blocks per year * 10^9
+    expect(Number(inflationInfo["round"]["ideal"])).to.eq(11132); // 5% / blocks per year * 10^9
     expect(inflationInfo.toHuman()["round"]["max"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["max"])).to.eq(83332); // 5% / blocks per year * 10^9
+    expect(Number(inflationInfo["round"]["max"])).to.eq(11132); // 5% / blocks per year * 10^9
   });
 });
 
