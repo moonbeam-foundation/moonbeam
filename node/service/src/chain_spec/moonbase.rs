@@ -161,20 +161,31 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
-	InflationInfo::new::<Runtime>(
-		// annual inflation
-		Range {
-			min: Perbill::from_percent(4),
-			ideal: Perbill::from_percent(5),
-			max: Perbill::from_percent(5),
-		},
+	InflationInfo {
 		// staking expectations
-		Range {
+		expect: Range {
 			min: 100_000 * UNIT,
 			ideal: 200_000 * UNIT,
 			max: 500_000 * UNIT,
 		},
-	)
+		// annual inflation
+		annual: Range {
+			min: Perbill::from_percent(4),
+			ideal: Perbill::from_percent(5),
+			max: Perbill::from_percent(5),
+		},
+		round: Range {
+			min: Perbill::from_parts(
+				Perbill::from_percent(4).deconstruct() / Runtime::DefaultBlocksPerRound::get(),
+			),
+			ideal: Perbill::from_parts(
+				Perbill::from_percent(5).deconstruct() / Runtime::DefaultBlocksPerRound::get(),
+			),
+			max: Perbill::from_parts(
+				Perbill::from_percent(5).deconstruct() / Runtime::DefaultBlocksPerRound::get(),
+			),
+		},
+	}
 }
 
 pub fn testnet_genesis(
