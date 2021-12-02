@@ -332,9 +332,9 @@ impl<
 					debug_assert!(ok, "`mint_into` cannot generally fail; qed");
 				}
 			}
-			Err(e) => log::debug!(
+			Err(_) => log::debug!(
 				target: "xcm",
-				"take revenue failed with error {}", e
+				"take revenue failed matching fungible"
 			),
 		}
 	}
