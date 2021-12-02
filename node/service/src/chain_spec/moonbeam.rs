@@ -160,15 +160,15 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		round: Range {
 			min: Perbill::from_parts(
 				Perbill::from_percent(4).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonbeam_runtime::DefaultBlocksPerRound::get(),
 			),
 			ideal: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonbeam_runtime::DefaultBlocksPerRound::get(),
 			),
 			max: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonbeam_runtime::DefaultBlocksPerRound::get(),
 			),
 		},
 	}

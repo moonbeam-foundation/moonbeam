@@ -27,9 +27,8 @@ use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig,
-	ParachainStakingConfigTrait, Precompiles, Range, Runtime, SchedulerConfig, SystemConfig,
-	TechCommitteeCollectiveConfig, WASM_BINARY,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range,
+	SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -157,15 +156,15 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		round: Range {
 			min: Perbill::from_parts(
 				Perbill::from_percent(4).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonriver_runtime::DefaultBlocksPerRound::get(),
 			),
 			ideal: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonriver_runtime::DefaultBlocksPerRound::get(),
 			),
 			max: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ <Runtime as ParachainStakingConfigTrait>::DefaultBlocksPerRound::get(),
+					/ moonriver_runtime::DefaultBlocksPerRound::get(),
 			),
 		},
 	}
