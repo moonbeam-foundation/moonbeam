@@ -404,9 +404,8 @@ fn second_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					// This 100 is reserved for the second.
-					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved(Alice, 100).into(),
+					DemocracyEvent::Seconded(Alice, 0).into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -445,6 +444,18 @@ fn standard_vote_aye_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -499,6 +510,18 @@ fn standard_vote_nay_conviction_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: false,
+								conviction: 3u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -568,6 +591,18 @@ fn remove_vote_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
