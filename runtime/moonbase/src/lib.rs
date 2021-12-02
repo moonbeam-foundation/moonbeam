@@ -1057,6 +1057,8 @@ parameter_types! {
 }
 
 /// This is the struct that will handle the revenue from xcm fees
+/// We do not burn anything because we want to mimic exactly what
+/// the sovereign account has
 pub type XcmFeesToAccount_ = XcmFeesToAccount<
 	Assets,
 	(
