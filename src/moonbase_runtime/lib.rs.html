@@ -1700,6 +1700,96 @@
 <span id="1700">1700</span>
 <span id="1701">1701</span>
 <span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1741,7 +1831,8 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{
-		<span class="ident">Contains</span>, <span class="ident">Everything</span>, <span class="ident">FindAuthor</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Nothing</span>, <span class="ident">OnUnbalanced</span>,
+		<span class="ident">Contains</span>, <span class="ident">Everything</span>, <span class="ident">FindAuthor</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Nothing</span>, <span class="ident">OffchainWorker</span>,
+		<span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
 		<span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
 	},
 	<span class="ident">weights</span>::{
@@ -2393,10 +2484,10 @@
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">OnValidationData</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">SelfParaId</span> <span class="op">=</span> <span class="ident">ParachainInfo</span>;
-	<span class="kw">type</span> <span class="ident">DmpMessageHandler</span> <span class="op">=</span> <span class="ident">DmpQueue</span>;
+	<span class="kw">type</span> <span class="ident">DmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">ReservedDmpWeight</span> <span class="op">=</span> <span class="ident">ReservedDmpWeight</span>;
 	<span class="kw">type</span> <span class="ident">OutboundXcmpMessageSource</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
-	<span class="kw">type</span> <span class="ident">XcmpMessageHandler</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
+	<span class="kw">type</span> <span class="ident">XcmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">ReservedXcmpWeight</span> <span class="op">=</span> <span class="ident">ReservedXcmpWeight</span>;
 }
 
@@ -3095,11 +3186,13 @@
 <span class="kw">impl</span> <span class="ident">Contains</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceFilter</span> {
 	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
+			<span class="ident">Call::Assets</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="ident">Call::XTokens</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			<span class="ident">Call::XcmTransactor</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
 		}
 	}
@@ -3133,12 +3226,99 @@
 	}
 }
 
+<span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::{
+	<span class="ident">relay_chain::BlockNumber</span> <span class="kw">as</span> <span class="ident">RelayBlockNumber</span>, <span class="ident">DmpMessageHandler</span>, <span class="ident">ParaId</span>, <span class="ident">XcmpMessageHandler</span>,
+};
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceDmpHandler</span>;
+<span class="kw">impl</span> <span class="ident">DmpMessageHandler</span> <span class="kw">for</span> <span class="ident">MaintenanceDmpHandler</span> {
+	<span class="comment">// This implementation makes messages be queued</span>
+	<span class="comment">// Since the limit is 0, messages are queued for next iteration</span>
+	<span class="kw">fn</span> <span class="ident">handle_dmp_messages</span>(
+		<span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">RelayBlockNumber</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="ident">DmpQueue::handle_dmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
+	}
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceXcmpHandler</span>;
+<span class="kw">impl</span> <span class="ident">XcmpMessageHandler</span> <span class="kw">for</span> <span class="ident">MaintenanceXcmpHandler</span> {
+	<span class="comment">// This implementation makes messages be queued</span>
+	<span class="comment">// Since the limit is 0, messages are queued for next iteration</span>
+	<span class="kw">fn</span> <span class="ident">handle_xcmp_messages</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ParaId</span>, <span class="ident">RelayBlockNumber</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span><span class="op">&gt;</span>(
+		<span class="ident">iter</span>: <span class="ident">I</span>,
+		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="ident">XcmpQueue::handle_xcmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
+	}
+}
+
+<span class="doccomment">/// The hooks we wnat to run in Maintenance Mode</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceHooks</span>;
+
+<span class="kw">impl</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
+	<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="ident">AllPallets::on_initialize</span>(<span class="ident">n</span>)
+	}
+}
+
+<span class="comment">// return 0</span>
+<span class="comment">// For some reason using empty tuple () isnt working</span>
+<span class="comment">// There exist only two pallets that use onIdle and these are xcmp and dmp queues</span>
+<span class="comment">// For some reason putting an empty tumple does not work (transaction never finishes)</span>
+<span class="comment">// We use an empty onIdle, if on the future we want one of the pallets to execute it</span>
+<span class="comment">// we need to provide it here</span>
+<span class="kw">impl</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
+	<span class="kw">fn</span> <span class="ident">on_idle</span>(<span class="ident">_n</span>: <span class="ident">BlockNumber</span>, <span class="ident">_max_weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="number">0</span>
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="ident">AllPallets::on_runtime_upgrade</span>()
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">AllPallets::pre_upgrade</span>()
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">AllPallets::post_upgrade</span>()
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">OnFinalize</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
+	<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">n</span>: <span class="ident">BlockNumber</span>) {
+		<span class="ident">AllPallets::on_finalize</span>(<span class="ident">n</span>)
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">OffchainWorker</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
+	<span class="kw">fn</span> <span class="ident">offchain_worker</span>(<span class="ident">n</span>: <span class="ident">BlockNumber</span>) {
+		<span class="ident">AllPallets::offchain_worker</span>(<span class="ident">n</span>)
+	}
+}
+
+<span class="comment">// AllPallets here implies all the specfied pallets in the runtime, except frame_system,</span>
+<span class="comment">// will run the associated hook</span>
+<span class="comment">// AllPallets is simply a nested tuple containing all the pallets except System</span>
+<span class="comment">// In cases where we need only specific pallets to run the hook,</span>
+<span class="comment">// we should state them in nested tuples</span>
 <span class="kw">impl</span> <span class="ident">pallet_maintenance_mode::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">NormalCallFilter</span> <span class="op">=</span> <span class="ident">NormalFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceCallFilter</span> <span class="op">=</span> <span class="ident">MaintenanceFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceOrigin</span> <span class="op">=</span>
 		<span class="ident">pallet_collective::EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">NormalDmpHandler</span> <span class="op">=</span> <span class="ident">DmpQueue</span>;
+	<span class="kw">type</span> <span class="ident">MaintenanceDmpHandler</span> <span class="op">=</span> <span class="ident">MaintenanceDmpHandler</span>;
+	<span class="kw">type</span> <span class="ident">NormalXcmpHandler</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
+	<span class="kw">type</span> <span class="ident">MaintenanceXcmpHandler</span> <span class="op">=</span> <span class="ident">MaintenanceXcmpHandler</span>;
+	<span class="comment">// We use AllPallets because we dont want to change the hooks in normal operation</span>
+	<span class="kw">type</span> <span class="ident">NormalExecutiveHooks</span> <span class="op">=</span> <span class="ident">AllPallets</span>;
+	<span class="kw">type</span> <span class="ident">MaitenanceExecutiveHooks</span> <span class="op">=</span> <span class="ident">MaintenanceHooks</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_proxy_genesis_companion::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -3220,7 +3400,7 @@
 	<span class="ident">Block</span>,
 	<span class="ident">frame_system::ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
-	<span class="ident">AllPallets</span>,
+	<span class="ident">pallet_maintenance_mode::ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 <span class="op">&gt;</span>;
 
 <span class="comment">// All of our runtimes share most of their Runtime API implementations.</span>

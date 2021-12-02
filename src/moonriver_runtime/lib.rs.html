@@ -1162,6 +1162,19 @@
 <span id="1162">1162</span>
 <span id="1163">1163</span>
 <span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2048,12 +2061,25 @@
 	}
 }
 
+<span class="comment">// AllPallets here imply all the specfied pallets in the runtime, except frame_system,</span>
+<span class="comment">// will run the associated hook</span>
+<span class="comment">// AllPallets is simply a nested tuple containing all the pallets except System</span>
+<span class="comment">// In cases where we need only specific pallets to run the hook,</span>
+<span class="comment">// we should state them in nested tuples</span>
 <span class="kw">impl</span> <span class="ident">pallet_maintenance_mode::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">NormalCallFilter</span> <span class="op">=</span> <span class="ident">Everything</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceCallFilter</span> <span class="op">=</span> <span class="ident">PhaseThreeFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceOrigin</span> <span class="op">=</span>
 		<span class="ident">pallet_collective::EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">NormalDmpHandler</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">MaintenanceDmpHandler</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">NormalXcmpHandler</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">MaintenanceXcmpHandler</span> <span class="op">=</span> ();
+	<span class="comment">// We use AllPallets because we dont want to change the hooks in normal operation</span>
+	<span class="kw">type</span> <span class="ident">NormalExecutiveHooks</span> <span class="op">=</span> <span class="ident">AllPallets</span>;
+	<span class="comment">// We use AllPallets because we dont want to change the hooks in maintenance operation</span>
+	<span class="kw">type</span> <span class="ident">MaitenanceExecutiveHooks</span> <span class="op">=</span> <span class="ident">AllPallets</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_proxy_genesis_companion::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2144,7 +2170,7 @@
 	<span class="ident">Block</span>,
 	<span class="ident">frame_system::ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
-	<span class="ident">AllPallets</span>,
+	<span class="ident">pallet_maintenance_mode::ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 <span class="op">&gt;</span>;
 
 <span class="comment">// All of our runtimes share most of their Runtime API implementations.</span>

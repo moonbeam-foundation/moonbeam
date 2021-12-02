@@ -190,6 +190,66 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -228,10 +288,6 @@
 <span class="doccomment">//! 4. Maintenance mode timeout. To avoid getting stuck in maintenance mode. It could automatically</span>
 <span class="doccomment">//! switch back to normal mode after a pre-decided number of blocks. Maybe there could be an</span>
 <span class="doccomment">//! extrinsic to extend the maintenance time.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 5. Let the runtime developer configure which pallets&#39; on_initialize and on_finalize hooks get</span>
-<span class="doccomment">//! called. This would allow to determine whether eg staking elections should still occur and</span>
-<span class="doccomment">//! democracy referenda still mature</span>
 
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
@@ -241,16 +297,27 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">mod</span> <span class="ident">types</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
+
 <span class="kw">use</span> <span class="ident">frame_support::pallet</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Contains</span>, <span class="ident">EnsureOrigin</span>};
-	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+	<span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::{
+		<span class="ident">relay_chain::BlockNumber</span> <span class="kw">as</span> <span class="ident">RelayBlockNumber</span>, <span class="ident">DmpMessageHandler</span>, <span class="ident">ParaId</span>, <span class="ident">XcmpMessageHandler</span>,
+	};
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+	<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
 
+	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
+	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{
+		<span class="ident">Contains</span>, <span class="ident">EnsureOrigin</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>,
+	};
+	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="doccomment">/// Pallet for migrations</span>
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::generate_storage_info</span>]</span>
@@ -273,6 +340,32 @@
 		<span class="doccomment">/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make</span>
 		<span class="doccomment">/// sure that your councilors can still cast votes.</span>
 		<span class="kw">type</span> <span class="ident">MaintenanceOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// The DMP handler to be used in normal operating mode</span>
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+		<span class="kw">type</span> <span class="ident">NormalDmpHandler</span>: <span class="ident">DmpMessageHandler</span>;
+		<span class="doccomment">/// The DMP handler to be used in maintenance mode</span>
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+		<span class="kw">type</span> <span class="ident">MaintenanceDmpHandler</span>: <span class="ident">DmpMessageHandler</span>;
+		<span class="doccomment">/// The XCMP handler to be used in normal operating mode</span>
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+		<span class="kw">type</span> <span class="ident">NormalXcmpHandler</span>: <span class="ident">XcmpMessageHandler</span>;
+		<span class="doccomment">/// The XCMP handler to be used in maintenance mode</span>
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+		<span class="kw">type</span> <span class="ident">MaintenanceXcmpHandler</span>: <span class="ident">XcmpMessageHandler</span>;
+		<span class="doccomment">/// The executive hooks that will be used in normal operating mode</span>
+		<span class="doccomment">/// Important: Use AllPallets here if you dont want to modify the hooks behaviour</span>
+		<span class="kw">type</span> <span class="ident">NormalExecutiveHooks</span>: <span class="ident">OnRuntimeUpgrade</span>
+			<span class="op">+</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OnFinalize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OffchainWorker</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// The executive hooks that will be used in maintenance mode</span>
+		<span class="doccomment">/// Important: Use AllPallets here if you dont want to modify the hooks behaviour</span>
+		<span class="kw">type</span> <span class="ident">MaitenanceExecutiveHooks</span>: <span class="ident">OnRuntimeUpgrade</span>
+			<span class="op">+</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OnFinalize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
+			<span class="op">+</span> <span class="ident">OffchainWorker</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
@@ -378,6 +471,33 @@
 				<span class="ident">T::MaintenanceCallFilter::contains</span>(<span class="ident">call</span>)
 			} <span class="kw">else</span> {
 				<span class="ident">T::NormalCallFilter::contains</span>(<span class="ident">call</span>)
+			}
+		}
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">DmpMessageHandler</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">handle_dmp_messages</span>(
+			<span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">RelayBlockNumber</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+			<span class="ident">limit</span>: <span class="ident">Weight</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="kw">if</span> <span class="ident">MaintenanceMode</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>() {
+				<span class="ident">T::MaintenanceDmpHandler::handle_dmp_messages</span>(<span class="ident">iter</span>, <span class="ident">limit</span>)
+			} <span class="kw">else</span> {
+				<span class="ident">T::NormalDmpHandler::handle_dmp_messages</span>(<span class="ident">iter</span>, <span class="ident">limit</span>)
+			}
+		}
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">XcmpMessageHandler</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">handle_xcmp_messages</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ParaId</span>, <span class="ident">RelayBlockNumber</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span><span class="op">&gt;</span>(
+			<span class="ident">iter</span>: <span class="ident">I</span>,
+			<span class="ident">limit</span>: <span class="ident">Weight</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="kw">if</span> <span class="ident">MaintenanceMode</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>() {
+				<span class="ident">T::MaintenanceXcmpHandler::handle_xcmp_messages</span>(<span class="ident">iter</span>, <span class="ident">limit</span>)
+			} <span class="kw">else</span> {
+				<span class="ident">T::NormalXcmpHandler::handle_xcmp_messages</span>(<span class="ident">iter</span>, <span class="ident">limit</span>)
 			}
 		}
 	}
