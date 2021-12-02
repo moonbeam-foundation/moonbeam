@@ -444,6 +444,18 @@ fn standard_vote_aye_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
