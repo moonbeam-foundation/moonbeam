@@ -24,7 +24,7 @@ sha3 = { version = "0.9", default-features = false }
 structopt = "0.3"
 tiny-bip39 = { version = "0.8", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
-tokio = { version = "1.12.0", features = [ "macros", "sync" ] }
+tokio = { version = "1.13.0", features = [ "macros", "sync" ] }
 trie-root = "0.15.2"
 
 # Moonbeam
