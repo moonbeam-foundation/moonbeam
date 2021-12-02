@@ -311,7 +311,7 @@ pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }
 
-/// XCM fee depositor to which we implement the TakeRevenut trait
+/// XCM fee depositor to which we implement the TakeRevenue trait
 /// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
 /// AssetId and amount, and the fee receiver account
 pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(

@@ -1053,11 +1053,11 @@ pub type XcmBarrier = (
 
 parameter_types! {
 	/// Xcm fees will go to the treasury account
-	pub TreasuryAccount:AccountId = Treasury::account_id();
+	pub XcmFeesAccount: AccountId = Treasury::account_id();
 }
 
 /// This is the struct that will handle the revenue from xcm fees
-pub type XcmFeesToTreasury = XcmFeesToAccount<
+pub type XcmFeesToAccount_ = XcmFeesToAccount<
 	Assets,
 	(
 		ConvertedConcreteAssetId<
@@ -1068,7 +1068,7 @@ pub type XcmFeesToTreasury = XcmFeesToAccount<
 		>,
 	),
 	AccountId,
-	TreasuryAccount,
+	XcmFeesAccount,
 >;
 
 pub struct XcmExecutorConfig;
@@ -1096,7 +1096,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToTreasury>,
+		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;

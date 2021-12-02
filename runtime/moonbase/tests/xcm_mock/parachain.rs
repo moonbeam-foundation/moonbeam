@@ -224,11 +224,11 @@ pub type Barrier = (
 
 parameter_types! {
 	/// Xcm fees will go to the treasury account
-	pub TreasuryAccount:AccountId = Treasury::account_id();
+	pub XcmFeesAccount: AccountId = Treasury::account_id();
 }
 
 /// This is the struct that will handle the revenue from xcm fees
-pub type XcmFeesToTreasury = xcm_primitives::XcmFeesToAccount<
+pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
 	Assets,
 	(
 		ConvertedConcreteAssetId<
@@ -239,7 +239,7 @@ pub type XcmFeesToTreasury = xcm_primitives::XcmFeesToAccount<
 		>,
 	),
 	AccountId,
-	TreasuryAccount,
+	XcmFeesAccount,
 >;
 
 parameter_types! {
@@ -273,7 +273,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToTreasury>,
+		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 
 	type ResponseHandler = PolkadotXcm;
