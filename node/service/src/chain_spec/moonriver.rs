@@ -140,7 +140,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
-	fn to_round_inflation(annual: Perbill) -> Perbill {
+	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use parachain_staking::inflation::{perbill_annual_to_perbill_round, BLOCKS_PER_YEAR};
 		perbill_annual_to_perbill_round(
 			annual,
@@ -148,6 +148,11 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			BLOCKS_PER_YEAR / moonriver_runtime::DefaultBlocksPerRound::get(),
 		)
 	}
+	let annual = Range {
+		min: Perbill::from_percent(4),
+		ideal: Perbill::from_percent(5),
+		max: Perbill::from_percent(5),
+	};
 	InflationInfo {
 		// staking expectations
 		expect: Range {
@@ -156,16 +161,8 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			max: 500_000 * MOVR,
 		},
 		// annual inflation
-		annual: Range {
-			min: Perbill::from_percent(4),
-			ideal: Perbill::from_percent(5),
-			max: Perbill::from_percent(5),
-		},
-		round: Range {
-			min: to_round_inflation(Perbill::from_percent(4)),
-			ideal: to_round_inflation(Perbill::from_percent(5)),
-			max: to_round_inflation(Perbill::from_percent(5)),
-		},
+		annual,
+		round: to_round_inflation(annual),
 	}
 }
 
