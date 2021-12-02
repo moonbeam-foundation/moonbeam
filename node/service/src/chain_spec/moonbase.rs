@@ -161,6 +161,9 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+	const SECONDS_PER_YEAR: u32 = 31557600;
+	const SECONDS_PER_BLOCK: u32 = 12;
+	const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 	InflationInfo {
 		// staking expectations
 		expect: Range {
@@ -177,15 +180,15 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		round: Range {
 			min: Perbill::from_parts(
 				Perbill::from_percent(4).deconstruct()
-					/ moonbase_runtime::DefaultBlocksPerRound::get(),
+					/ (BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get()),
 			),
 			ideal: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ moonbase_runtime::DefaultBlocksPerRound::get(),
+					/ (BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get()),
 			),
 			max: Perbill::from_parts(
 				Perbill::from_percent(5).deconstruct()
-					/ moonbase_runtime::DefaultBlocksPerRound::get(),
+					/ (BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get()),
 			),
 		},
 	}
