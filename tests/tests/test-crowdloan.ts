@@ -14,6 +14,7 @@ import {
   GLMR,
   ALITH_PRIV_KEY,
   ALITH,
+  BALTATHAR_PRIVATE_KEY,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { verifyLatestBlockFees } from "../util/block";
@@ -873,6 +874,98 @@ describeDevMoonbeam("Crowdloan", (context) => {
     );
 
     await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
+
+    await context.createBlock();
+
+    // Claimed amount should match
+    const claimedRewards = (await getAccountPayable(context, GENESIS_ACCOUNT)).claimedReward;
+
+    expect(claimedRewards.toBigInt()).to.equal(claimed);
+
+    // Let's update the reward address
+    await context.polkadotApi.tx.crowdloanRewards
+      .updateRewardAddress(toUpdateAccount.address)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // GENESIS_ACCOUNT should no longer be in accounts payable
+    expect(await getAccountPayable(context, GENESIS_ACCOUNT)).to.be.null;
+
+    // toUpdateAccount should be in accounts paYable
+    rewardInfo = await getAccountPayable(context, toUpdateAccount.address);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(claimed);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    toUpdateAccount: KeyringPair,
+    proxy: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    proxy = keyring.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    toUpdateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+
+  it("should be able to call crowdloan rewards with non-transfer proxy", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // GENESIS_ACCOUNT should be in accounts pauable
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
+
+    // CreateProxy
+    await context.polkadotApi.tx.proxy
+      .addProxy(proxy.address, "NonTransfer", 0)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // three blocks elapsed
+    let claimed = await calculate_vested_amount(
+      context,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
+      3
+    );
+
+    // Claim with proxy
+    await context.polkadotApi.tx.proxy
+      .proxy(genesisAccount.address, null, context.polkadotApi.tx.crowdloanRewards.claim())
+      .signAndSend(proxy);
 
     await context.createBlock();
 
