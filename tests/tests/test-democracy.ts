@@ -331,7 +331,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     encodedHash = blake2AsHex(encodedProposal);
   });
 
-  it("vote foo bar", async function () {
+  it("vote", async function () {
     this.timeout(20000);
 
     // propose
