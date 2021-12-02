@@ -27,7 +27,7 @@ async function main() {
   - [ ] Get that PR approved and merged
   - [ ] Tag master with v${newVersion} and push to github
   - [ ] Start the github action Publish Binary Draft with v${previousVersion} => v${newVersion}
-  - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft until I approve)
+  - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
   - [ ] Update moonbeam-networks stagenet/moonsama config.json to include sha-xxxxx (matching your v${newVersion} tag) and increase the config version + 1
   - [ ] Test the new client on stagenet and moonsama
   - [ ] When everything is ok, publish the new docker image: start github action Publish Docker with v${newVersion}
