@@ -36,12 +36,12 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+parachain-staking = { path = "../../pallets/parachain-staking" }
 
 # Moonbeam runtimes
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
 moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
 moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
-parachain-staking = { path = "../../pallets/parachain-staking", optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
