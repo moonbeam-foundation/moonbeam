@@ -2501,13 +2501,13 @@
 	<span class="doccomment">/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveCandidatesDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Collator candidate bond increases/decreases are delayed by 2 hours (2 * 300 block_time)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CandidateBondDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CandidateBondLessDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Delegator exits are delayed by 2 hours (2 * 300 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveDelegatorsDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Delegation revocations are delayed by 2 hours (2 * 300 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RevokeDelegationDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
-	<span class="doccomment">/// Delegation bond increases/decreases are delayed by 2 hours (2 * 300 * block_time)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DelegationBondDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="doccomment">/// Delegation bond decreases are delayed by 2 hours (2 * 300 * block_time)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DelegationBondLessDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Reward payments are delayed by 2 hours (2 * 300 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RewardPaymentDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Minimum collators selected per round, default at genesis and minimum forever after</span>
@@ -2535,10 +2535,10 @@
 	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">MinBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">DefaultBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span> <span class="op">=</span> <span class="ident">LeaveCandidatesDelay</span>;
-	<span class="kw">type</span> <span class="ident">CandidateBondDelay</span> <span class="op">=</span> <span class="ident">CandidateBondDelay</span>;
+	<span class="kw">type</span> <span class="ident">CandidateBondLessDelay</span> <span class="op">=</span> <span class="ident">CandidateBondLessDelay</span>;
 	<span class="kw">type</span> <span class="ident">LeaveDelegatorsDelay</span> <span class="op">=</span> <span class="ident">LeaveDelegatorsDelay</span>;
 	<span class="kw">type</span> <span class="ident">RevokeDelegationDelay</span> <span class="op">=</span> <span class="ident">RevokeDelegationDelay</span>;
-	<span class="kw">type</span> <span class="ident">DelegationBondDelay</span> <span class="op">=</span> <span class="ident">DelegationBondDelay</span>;
+	<span class="kw">type</span> <span class="ident">DelegationBondLessDelay</span> <span class="op">=</span> <span class="ident">DelegationBondLessDelay</span>;
 	<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span> <span class="op">=</span> <span class="ident">RewardPaymentDelay</span>;
 	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxDelegatorsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxDelegatorsPerCandidate</span>;
