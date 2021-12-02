@@ -36,6 +36,7 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+parachain-staking = { path = "../../pallets/parachain-staking" }
 
 # Moonbeam runtimes
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
