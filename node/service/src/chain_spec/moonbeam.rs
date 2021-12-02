@@ -153,9 +153,9 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		},
 		// staking expectations
 		Range {
-			min: 100_000 * MOVR,
-			ideal: 200_000 * MOVR,
-			max: 500_000 * MOVR,
+			min: 100_000 * GLMR,
+			ideal: 200_000 * GLMR,
+			max: 500_000 * GLMR,
 		},
 	)
 }
