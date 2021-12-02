@@ -332,7 +332,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
   });
 
   it("vote", async function () {
-    this.timeout(20000);
+    this.timeout(200000);
 
     // propose
     const { events: eventsPropose } = await createBlockWithExtrinsic(
