@@ -808,6 +808,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
+						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
 				)
 			}
 			ProxyType::Governance => matches!(
