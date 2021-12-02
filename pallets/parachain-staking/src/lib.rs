@@ -47,7 +47,7 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
-mod inflation;
+pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
