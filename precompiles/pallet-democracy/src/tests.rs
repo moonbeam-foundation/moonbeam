@@ -366,8 +366,16 @@ fn propose_works() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(Alice, 100).into(),
-					DemocracyEvent::Proposed(0, 100).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: 100
+					}
+					.into(),
+					DemocracyEvent::Proposed {
+						proposal_index: 0,
+						deposit: 100
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -404,11 +412,23 @@ fn second_works() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(Alice, 100).into(),
-					DemocracyEvent::Proposed(0, 100).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: 100
+					}
+					.into(),
+					DemocracyEvent::Proposed {
+						proposal_index: 0,
+						deposit: 100
+					}
+					.into(),
 					// This 100 is reserved for the second.
 					// Pallet democracy does not have an event for seconding
-					BalancesEvent::Reserved(Alice, 100).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: 100
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -445,8 +465,11 @@ fn standard_vote_aye_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
-						.into(),
+					DemocracyEvent::Started {
+						ref_index: 0,
+						threshold: pallet_democracy::VoteThreshold::SimpleMajority
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -499,8 +522,11 @@ fn standard_vote_nay_conviction_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
-						.into(),
+					DemocracyEvent::Started {
+						ref_index: 0,
+						threshold: pallet_democracy::VoteThreshold::SimpleMajority
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -568,8 +594,11 @@ fn remove_vote_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
-						.into(),
+					DemocracyEvent::Started {
+						ref_index: 0,
+						threshold: pallet_democracy::VoteThreshold::SimpleMajority
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -641,7 +670,11 @@ fn delegate_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Delegated(Alice, Bob).into(),
+					DemocracyEvent::Delegated {
+						who: Alice,
+						target: Bob
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -698,8 +731,12 @@ fn undelegate_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Delegated(Alice, Bob).into(),
-					DemocracyEvent::Undelegated(Alice).into(),
+					DemocracyEvent::Delegated {
+						who: Alice,
+						target: Bob
+					}
+					.into(),
+					DemocracyEvent::Undelegated { account: Alice }.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -791,9 +828,12 @@ fn unlock_works() {
 			assert_eq!(
 				events(),
 				vec![
-					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
-						.into(),
-					DemocracyEvent::Passed(0).into(),
+					DemocracyEvent::Started {
+						ref_index: 0,
+						threshold: pallet_democracy::VoteThreshold::SimpleMajority
+					}
+					.into(),
+					DemocracyEvent::Passed { ref_index: 0 }.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -850,7 +890,7 @@ fn note_preimage_works() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				max_fee_per_gas: 0.into(),
+				max_fee_per_gas: U256::zero(),
 				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
 				access_list: Vec::new(),
@@ -861,8 +901,17 @@ fn note_preimage_works() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(Alice, expected_deposit).into(),
-					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: expected_deposit
+					}
+					.into(),
+					DemocracyEvent::PreimageNoted {
+						proposal_hash,
+						who: Alice,
+						deposit: expected_deposit
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -897,7 +946,7 @@ fn cannot_note_duplicate_preimage() {
 				input: input.clone(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				max_fee_per_gas: 0.into(),
+				max_fee_per_gas: U256::zero(),
 				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
 				access_list: Vec::new(),
@@ -911,7 +960,7 @@ fn cannot_note_duplicate_preimage() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				max_fee_per_gas: 0.into(),
+				max_fee_per_gas: U256::zero(),
 				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
 				access_list: Vec::new(),
@@ -922,8 +971,17 @@ fn cannot_note_duplicate_preimage() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(Alice, expected_deposit).into(),
-					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: expected_deposit
+					}
+					.into(),
+					DemocracyEvent::PreimageNoted {
+						proposal_hash,
+						who: Alice,
+						deposit: expected_deposit
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 					EvmEvent::ExecutedFailed(Precompile.into()).into(),
 				]

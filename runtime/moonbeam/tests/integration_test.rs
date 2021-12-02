@@ -577,14 +577,14 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				})]
 			})
 			.dispatch(root_origin()));
-			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
-				0,
-				DispatchError::Module {
+			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
+				index: 0,
+				error: DispatchError::Module {
 					index: 90,
 					error: 8,
 					message: None,
 				},
-			));
+			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
