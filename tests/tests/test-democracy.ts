@@ -348,7 +348,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       alith,
       context.polkadotApi.tx.democracy.second(0, 1000)
     );
-    expect(eventsSecond[4].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(eventsSecond[5].toHuman().method).to.eq("ExtrinsicSuccess");
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
     for (let i = 0; i < 7200; i++) {
