@@ -1175,6 +1175,7 @@
 <span id="1175">1175</span>
 <span id="1176">1176</span>
 <span id="1177">1177</span>
+<span id="1178">1178</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1985,6 +1986,7 @@
 						<span class="op">|</span> <span class="ident">Call::TechCommitteeCollective</span>(..)
 						<span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::Proxy</span>(..)
 						<span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
+						<span class="op">|</span> <span class="ident">Call::CrowdloanRewards</span>(<span class="ident">pallet_crowdloan_rewards::Call::claim</span> { .. })
 				)
 			}
 			<span class="ident">ProxyType::Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
