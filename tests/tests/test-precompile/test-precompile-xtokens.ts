@@ -152,12 +152,14 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
 
+    const base_fee = await context.web3.eth.getGasPrice();
+
     const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
-      gasPrice: GAS_PRICE,
+      gasPrice: base_fee,
       to: ADDRESS_XTOKENS,
       data,
     });
@@ -167,7 +169,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     });
 
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
+    const fees = BigInt(receipt.gasUsed) * BigInt(base_fee);
 
     // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
@@ -350,13 +352,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
 
+    const base_fee = await context.web3.eth.getGasPrice();
+
     // create tx
     const tx = await createTransaction(context, {
       from: GENESIS_ACCOUNT,
       privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
-      gasPrice: GAS_PRICE,
+      gasPrice: base_fee,
       to: ADDRESS_XTOKENS,
       data,
     });
@@ -366,7 +370,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     });
 
     const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    const fees = BigInt(receipt.gasUsed) * BigInt(GAS_PRICE);
+    const fees = BigInt(receipt.gasUsed) * BigInt(base_fee);
 
     // our tokens + fees should have been spent
     expect(BigInt(await getBalance(context, 2, GENESIS_ACCOUNT))).to.equal(
