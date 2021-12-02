@@ -28,7 +28,7 @@ use moonbeam_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range,
-	SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	Runtime, SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -144,24 +144,20 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
-	InflationInfo {
-		expect: Range {
-			min: 100_000 * GLMR,
-			ideal: 200_000 * GLMR,
-			max: 500_000 * GLMR,
-		},
-		annual: Range {
+	InflationInfo::new::<Runtime>(
+		// annual inflation
+		Range {
 			min: Perbill::from_percent(4),
 			ideal: Perbill::from_percent(5),
 			max: Perbill::from_percent(5),
 		},
-		// 8766 rounds (hours) in a year
-		round: Range {
-			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
-			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+		// staking expectations
+		Range {
+			min: 100_000 * MOVR,
+			ideal: 200_000 * MOVR,
+			max: 500_000 * MOVR,
 		},
-	}
+	)
 }
 
 pub fn testnet_genesis(
