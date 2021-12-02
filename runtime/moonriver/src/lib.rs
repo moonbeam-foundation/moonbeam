@@ -56,7 +56,7 @@ use pallet_evm::{
 	Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
-pub use parachain_staking::{InflationInfo, Range};
+pub use parachain_staking::{Config as ParachainStakingConfigTrait, InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
