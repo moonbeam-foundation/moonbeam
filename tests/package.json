@@ -47,11 +47,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+<<<<<<< HEAD
     "@polkadot/api": "^6.9.2",
     "@polkadot/types": "^6.9.2",
     "@substrate/txwrapper-core": "^1.2.18",
     "@substrate/txwrapper-registry": "^1.2.18",
     "@substrate/txwrapper-substrate": "^1.2.18",
+=======
+    "@polkadot/api": "^6.8.1",
+    "@polkadot/types": "^6.8.1",
+    "@substrate/txwrapper-core": "^1.2.17",
+    "@substrate/txwrapper-registry": "^1.2.17",
+    "@substrate/txwrapper-substrate": "^1.2.17",
+>>>>>>> 9ef38fdb7ba1af917d1aee6108f08cc195b0d2f9
     "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^8.2.2",
