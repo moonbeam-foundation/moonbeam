@@ -238,6 +238,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonriver_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonriver_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonriver_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonriver_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonriver_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonriver_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonriver_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![

@@ -40,15 +40,15 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-staking.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-proxy.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^6.8.1",
-    "@polkadot/types": "^6.8.1",
+    "@polkadot/api": "^6.9.2",
+    "@polkadot/types": "^6.9.2",
     "@substrate/txwrapper-core": "^1.2.17",
     "@substrate/txwrapper-registry": "^1.2.17",
     "@substrate/txwrapper-substrate": "^1.2.17",
