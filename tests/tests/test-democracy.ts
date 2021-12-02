@@ -331,8 +331,8 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     encodedHash = blake2AsHex(encodedProposal);
   });
 
-  it("vote", async function () {
-    this.timeout(200000);
+  it("vote foo bar", async function () {
+    this.timeout(20000);
 
     // propose
     const { events: eventsPropose } = await createBlockWithExtrinsic(
@@ -367,7 +367,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
     );
-    expect(eventsVote[3].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
     // referendumInfoOf
     const referendumInfoOf = (
