@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::time::Duration;
-
 use crate::command::{FullBackend, FullClient, TestContext};
 
 use sc_service::NativeExecutionDispatch;
 use service::{Block, RuntimeApiCollection};
 use sp_api::ConstructRuntimeApi;
 
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
+use cli_table::{format::Justify, Table};
 use serde::Serialize;
 
 mod block_creation;
@@ -88,6 +86,11 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	/// Return a globally unique name for this test. This is used as a filter on the command line
+	/// so a CLI-friendly name is preferred.
+	fn name(&self) -> String;
+
+	/// Run the test
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,

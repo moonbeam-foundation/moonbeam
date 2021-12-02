@@ -32,10 +32,10 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::FilterAssetLocation;
 use xcm_executor::traits::WeightTrader;
 
-use sp_runtime::traits::Zero;
-
 use sp_std::borrow::Borrow;
 use sp_std::{convert::TryInto, marker::PhantomData};
+
+use sp_std::vec::Vec;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
@@ -215,67 +215,6 @@ impl<
 	}
 }
 
-// This defines how multiTraders should be implemented
-// The intention is to distinguish between non-self-reserve assets and the reserve asset
-pub struct MultiWeightTraders<NativeTrader, OtherTrader> {
-	native_trader: NativeTrader,
-	other_trader: OtherTrader,
-}
-impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
-	for MultiWeightTraders<NativeTrader, OtherTrader>
-{
-	fn new() -> Self {
-		Self {
-			native_trader: NativeTrader::new(),
-			other_trader: OtherTrader::new(),
-		}
-	}
-	fn buy_weight(
-		&mut self,
-		weight: Weight,
-		payment: xcm_executor::Assets,
-	) -> Result<xcm_executor::Assets, XcmError> {
-		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
-			return Ok(assets);
-		}
-
-		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
-			return Ok(assets);
-		}
-
-		Err(XcmError::TooExpensive)
-	}
-	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
-		let native = self.native_trader.refund_weight(weight);
-		match native.clone() {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		let other = self.other_trader.refund_weight(weight);
-		match other {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		None
-	}
-}
-
 pub trait Reserve {
 	/// Returns assets reserve location.
 	fn reserve(&self) -> Option<MultiLocation>;
@@ -319,9 +258,41 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;
 }
 
-// Defines the trait to obtain the units per second of a give assetId
+// Defines the trait to obtain the units per second of a give assetId for local execution
 // This parameter will be used to charge for fees upon assetId deposit
 pub trait UnitsToWeightRatio<AssetId> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
+}
+
+// The utility calls that need to be implemented as part of
+// this pallet
+#[derive(Debug, PartialEq, Eq)]
+pub enum UtilityAvailableCalls {
+	AsDerivative(u16, Vec<u8>),
+}
+
+// Trait that the ensures we can encode a call with utility functions.
+// With this trait we ensure that the user cannot control entirely the call
+// to be performed in the destination chain. It only can control the call inside
+// the as_derivative extrinsic, and thus, this call can only be dispatched from the
+// derivative account
+pub trait UtilityEncodeCall {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+}
+
+// Trait to ensure we can retrieve the destination if a given type
+// It must implement UtilityEncodeCall
+// We separate this in two traits to be able to implement UtilityEncodeCall separately
+// for different runtimes of our choice
+pub trait XcmTransact: UtilityEncodeCall {
+	/// Encode call from the relay.
+	fn destination(self) -> MultiLocation;
+}
+
+/// This trait ensure we can convert AccountIds to CurrencyIds
+/// We will require Runtime to have this trait implemented
+pub trait AccountIdToCurrencyId<Account, CurrencyId> {
+	// Get assetId from account
+	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }

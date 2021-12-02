@@ -213,18 +213,22 @@ pub mod pallet {
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+	pub(crate) type MigrationState<T: Config> =
+		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
-	pub struct GenesisConfig {
-		pub completed_migrations: Vec<Vec<u8>>,
-	}
+	pub struct GenesisConfig;
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			for migration_name in &self.completed_migrations {
+			// When building a new genesis, all listed migrations should be considered as already
+			// applied, they only make sense for networks that had been launched in the past.
+			for migration_name in T::MigrationsList::get()
+				.into_iter()
+				.map(|migration| migration.friendly_name().as_bytes().to_vec())
+			{
 				<MigrationState<T>>::insert(migration_name, true);
 			}
 		}

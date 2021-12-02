@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
@@ -26,15 +26,16 @@ use precompile_utils::{
 };
 
 use sp_core::{H160, U256};
+use sp_std::boxed::Box;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
 };
-mod encoding;
-pub use encoding::MultiLocationWrapper;
-use sp_std::boxed::Box;
-use xcm::v1::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
+use xcm::{VersionedMultiAsset, VersionedMultiLocation};
+use xcm_primitives::AccountIdToCurrencyId;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -45,17 +46,10 @@ pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-}
-
-/// This trait ensure we can convert AccountIds to CurrencyIds
-/// We will require Runtime to have this trait implemented
-pub trait AccountIdToCurrencyId<Account, CurrencyId> {
-	// Get assetId from account
-	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -105,9 +99,9 @@ where
 		let to_address: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
-		// We use the MultiLocationWrapper, which we have instructed how to read
+		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -127,7 +121,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
-			dest: Box::new(destination),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 
@@ -156,13 +150,13 @@ where
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		// Bound check
 		input.expect_arguments(1)?;
 		let amount: U256 = input.read()?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocationWrapper>()?.into();
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -174,11 +168,11 @@ where
 			.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
-			}),
-			dest: Box::new(destination),
+			})),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
 		};
 

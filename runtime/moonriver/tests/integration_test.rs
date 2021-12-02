@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -180,6 +180,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -223,6 +238,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonriver_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonriver_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonriver_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonriver_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonriver_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonriver_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonriver_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -235,7 +261,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MOVR),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * MOVR),
 		])
@@ -255,7 +281,7 @@ fn join_collator_candidates() {
 					1_000 * MOVR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -327,8 +353,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: vec![],
 				value: (1_000 * MOVR).into(),
 				gas_limit,
@@ -367,7 +393,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -410,7 +436,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			(AccountId::from(CHARLIE), MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -743,7 +769,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1048,7 +1074,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1143,4 +1169,83 @@ fn ethereum_invalid_transaction() {
 			)
 		);
 	});
+}
+
+#[test]
+fn transfer_ed_0_substrate() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * MOVR) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * MOVR,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+}
+
+#[test]
+fn transfer_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * MOVR) + (21_000 * 1_000_000_000)) + (1 * WEI),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
+				input: Vec::new(),
+				value: (1 * MOVR).into(),
+				gas_limit: 21_000u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI,);
+		});
+}
+
+#[test]
+fn refund_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * MOVR) + (21_777 * 1_000_000_000)),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer that zeroes ALICE
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
+				input: Vec::new(),
+				value: (1 * MOVR).into(),
+				gas_limit: 21_777u64,
+				gas_price: U256::from(1_000_000_000),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// ALICE is refunded
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				777 * 1_000_000_000,
+			);
+		});
 }

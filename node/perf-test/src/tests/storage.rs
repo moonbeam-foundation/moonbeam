@@ -78,6 +78,10 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	fn name(&self) -> String {
+		"storage".into()
+	}
+
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
@@ -157,7 +161,7 @@ where
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 
-		let now = Instant::now();
+		let _now = Instant::now();
 		context.create_block(true);
 
 		const NUM_STORAGE_ITEMS: u64 = 50000;

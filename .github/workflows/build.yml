@@ -5,11 +5,8 @@ name: Build
 # 2. It includes the PR/Commit text in the action item
 # 3. Artifacts are not available between workflows.
 
-# This is only allowing pushes on the moonbeam repo for pull requests.
-####### DO NOT CHANGE THIS !! #######
 on:
   pull_request:
-    types: [opened, edited, unassigned, synchronize]
   push:
     branches:
       - master
@@ -29,6 +26,7 @@ jobs:
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
+      polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
     steps:
       - name: Check git ref
@@ -52,6 +50,7 @@ jobs:
         run: |
           echo ::set-output name=sha::$(git log -1 --format="%H")
           echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
+          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)
           echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
             head -1 | sed 's/.*#//' |  cut -c1-8)
       - name: Check existing docker image
@@ -131,6 +130,22 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
+  check-cargo-toml-format:
+    name: "Check Cargo.toml files format"
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Check Cargo.toml files format with toml_sort
+        run: ./scripts/check-cargo-toml-files-format.sh
+
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
@@ -152,6 +167,7 @@ jobs:
   prepare-polkadot:
     runs-on: self-hosted
     needs: ["set-tags"]
+    if: github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -164,12 +180,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
         run: |
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
-            # $POLKADOT_COMMIT is used to build the relay image
+            # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
           fi
@@ -181,7 +198,7 @@ jobs:
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: 90e1dc81
-      RUSTFLAGS: "-C opt-level=3"
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -255,6 +272,8 @@ jobs:
             false
           fi
       - name: Check with Clippy
+        env:
+          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
         run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
@@ -328,7 +347,7 @@ jobs:
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: 90e1dc81
-      RUSTFLAGS: "-C opt-level=3"
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -458,7 +477,7 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -509,7 +528,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
