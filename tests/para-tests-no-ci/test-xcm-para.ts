@@ -7,6 +7,8 @@ import { describeParachain } from "../util/setup-para-tests";
 import { createBlockWithExtrinsicParachain, logEvents, waitOneBlock } from "../util/substrate-rpc";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ApiPromise } from "@polkadot/api";
+import { execFromTwoThirdsOfCouncil } from "../util/governance";
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const HUNDRED_UNITS = 100000000000000;
@@ -38,6 +40,43 @@ interface SourceLocation {
   };
 }
 const sourceLocationRelay = { XCM: { parents: 1, interior: "Here" } };
+
+const execFromAllMembersOfTechCommittee = async <Call extends SubmittableExtrinsic<ApiTypes>>(
+  parachainApi: ApiPromise,
+  polkadotCall: Call,
+  key_1: KeyringPair,
+  key_2: KeyringPair,
+  index: Number
+) => {
+  let lengthBound = polkadotCall.encodedLength;
+  const { events: proposalEvents } = await createBlockWithExtrinsicParachain(
+    parachainApi,
+    key_1,
+    parachainApi.tx.techCommitteeCollective.propose(2, polkadotCall, lengthBound)
+  );
+
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
+
+  await createBlockWithExtrinsicParachain(
+    parachainApi,
+    key_1,
+    parachainApi.tx.techCommitteeCollective.vote(proposalHash, index, true)
+  );
+
+  await createBlockWithExtrinsicParachain(
+    parachainApi,
+    key_2,
+    parachainApi.tx.techCommitteeCollective.vote(proposalHash, index, true)
+  );
+
+  await createBlockWithExtrinsicParachain(
+    parachainApi,
+    key_2,
+    parachainApi.tx.techCommitteeCollective.close(proposalHash, index, 1_000_000_000, lengthBound)
+  );
+};
 
 async function registerAssetToParachain(
   parachainApi: ApiPromise,
@@ -767,6 +806,257 @@ describeParachain(
       expect(
         (await parachainThree.query.assets.account(assetId, BALTATHAR)).balance.toString()
       ).to.eq((BigInt(HUNDRED_UNITS_PARA) - paraAXcmFee).toString());
+    });
+  }
+);
+
+describeParachain(
+  "XCM - receive_relay_asset_from_relay",
+  { chain: "moonbase-local" },
+  (context) => {
+    it("should enqueue DMP messages in maintenance and execute when normal", async function () {
+      const keyring = new Keyring({ type: "sr25519" });
+      const aliceRelay = keyring.addFromUri("//Alice");
+
+      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+
+      const parachainOne = context.polkadotApiParaone;
+      const relayOne = context._polkadotApiRelaychains[0];
+
+      // Log events
+      logEvents(parachainOne, "PARA");
+
+      logEvents(relayOne, "RELAY");
+
+      await new Promise((res) => setTimeout(res, 10000));
+
+      // PARACHAINS
+      // registerAsset
+      const { events, assetId } = await registerAssetToParachain(parachainOne, alith);
+
+      expect(events[1].toHuman().method).to.eq("UnitsPerSecondChanged");
+      expect(events[4].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      // check asset in storage
+      const registeredAsset = await parachainOne.query.assets.asset(assetId);
+      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
+
+      // PARACHAIN
+      // go into Maintenance
+      await execFromAllMembersOfTechCommittee(
+        parachainOne,
+        parachainOne.tx.maintenanceMode.enterMaintenanceMode(),
+        alith,
+        baltathar,
+        0
+      );
+
+      // Make sure we are on maintenance
+      expect(((await parachainOne.query.maintenanceMode.maintenanceMode()) as any).toHuman()).to.eq(
+        true
+      );
+
+      // RELAYCHAIN
+      // set default version
+      await setDefaultVersionRelay(relayOne, aliceRelay);
+      // Trigger the transfer
+      const { events: eventsRelay } = await createBlockWithExtrinsicParachain(
+        relayOne,
+        aliceRelay,
+        relayOne.tx.xcmPallet.reserveTransferAssets(
+          { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
+          {
+            V1: {
+              parents: new BN(0),
+              interior: { X1: { AccountKey20: { network: "Any", key: ALITH } } },
+            },
+          },
+          {
+            V0: [{ ConcreteFungible: { id: "Null", amount: new BN(THOUSAND_UNITS) } }],
+          },
+          0
+        )
+      );
+
+      expect(eventsRelay[3].toHuman().method).to.eq("Attempted");
+
+      // The DMP queue should queue up
+      // Wait for parachain block to have been emited
+      await waitOneBlock(parachainOne, 2);
+
+      // Assert the DMP message arrived and got queued
+      expect(((await parachainOne.query.dmpQueue.pages(null)) as any).length).to.eq(1);
+
+      // Assert it did not get executed
+      expect(
+        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+      ).to.eq(BigInt(0).toString());
+
+      // PARACHAIN
+      // get out of Maintenance
+      await execFromAllMembersOfTechCommittee(
+        parachainOne,
+        parachainOne.tx.maintenanceMode.resumeNormalOperation(),
+        alith,
+        baltathar,
+        1
+      );
+
+      expect(((await parachainOne.query.maintenanceMode.maintenanceMode()) as any).toHuman()).to.eq(
+        false
+      );
+
+      // Assert the DMP message got executed
+      expect(((await parachainOne.query.dmpQueue.pages(null)) as any).length).to.eq(0);
+
+      // Alith asset balance should have been increased to 1000*e12 after messages is executed
+      expect(
+        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+      ).to.eq(BigInt(THOUSAND_UNITS).toString());
+    });
+  }
+);
+
+describeParachain(
+  "XCM - send_para_a_asset_to_para_b - aka parachainTwo",
+  { chain: "moonbase-local", numberOfParachains: 2 },
+  (context) => {
+    let keyring: Keyring,
+      alith: KeyringPair,
+      baltathar: KeyringPair,
+      parachainOne: ApiPromise,
+      parachainTwo: ApiPromise,
+      relayOne: ApiPromise,
+      assetId: string,
+      sourceLocationParaA: SourceLocation,
+      initialBalance: number;
+    before("Register Para A asset in Para B", async function () {
+      keyring = new Keyring({ type: "ethereum" });
+
+      // Setup Relaychain
+      relayOne = context._polkadotApiRelaychains[0];
+
+      // Setup Parachains
+      alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+      parachainOne = context.polkadotApiParaone;
+      parachainTwo = context._polkadotApiParachains[1].apis[0];
+
+      // Log events
+      logEvents(parachainOne, "PARA A");
+      logEvents(parachainTwo, "PARA B");
+      logEvents(relayOne, "RELAY");
+
+      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+
+      // Get Pallet balances index
+      const metadata = await parachainOne.rpc.state.getMetadata();
+      const palletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
+        return pallet.name === "Balances";
+      }).index;
+
+      expect(palletIndex);
+
+      sourceLocationParaA = {
+        XCM: {
+          parents: 1,
+          interior: { X2: [{ Parachain: new BN(1000) }, { Palletinstance: new BN(palletIndex) }] },
+        },
+      };
+
+      // PARACHAIN B
+      // registerAsset
+      ({ assetId } = await registerAssetToParachain(
+        parachainTwo,
+        alith,
+        sourceLocationParaA,
+        paraAssetMetadata
+      ));
+    });
+    it("should enqueue XCMP messages in maintenance and execute when normal", async function () {
+      // PARACHAIN B
+      // go into Maintenance
+      await execFromAllMembersOfTechCommittee(
+        parachainTwo,
+        parachainTwo.tx.maintenanceMode.enterMaintenanceMode(),
+        alith,
+        baltathar,
+        0
+      );
+
+      // Make sure we are on maintenance
+      expect(((await parachainTwo.query.maintenanceMode.maintenanceMode()) as any).toHuman()).to.eq(
+        true
+      );
+
+      // PARACHAIN A
+      // transfer 100 units to parachain B
+      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
+        parachainOne,
+        baltathar,
+        parachainOne.tx.xTokens.transfer(
+          "SelfReserve",
+          HUNDRED_UNITS_PARA,
+          {
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
+            },
+          },
+          new BN(4000000000)
+        )
+      );
+
+      expect(eventsTransfer[5].toHuman().method).to.eq("XcmpMessageSent");
+      expect(eventsTransfer[6].toHuman().method).to.eq("Transferred");
+      expect(eventsTransfer[11].toHuman().method).to.eq("ExtrinsicSuccess");
+
+      await waitOneBlock(parachainTwo, 3);
+
+      let queuedMessages = ((await parachainTwo.query.xcmpQueue.inboundXcmpStatus()) as any)[0][2]
+        .length;
+
+      // Assert the XCMP message arrived and got queued. At least one (probably two for versioning)
+      // should have arrived
+      expect(queuedMessages > 0).to.eq(true);
+
+      // Assert it did not get executed
+      expect(
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(BigInt(0).toString());
+
+      // PARACHAIN
+      // get out of Maintenance
+      await execFromAllMembersOfTechCommittee(
+        parachainTwo,
+        parachainTwo.tx.maintenanceMode.resumeNormalOperation(),
+        alith,
+        baltathar,
+        1
+      );
+
+      expect(((await parachainOne.query.maintenanceMode.maintenanceMode()) as any).toHuman()).to.eq(
+        false
+      );
+
+      queuedMessages = ((await parachainTwo.query.xcmpQueue.inboundXcmpStatus()) as any).toHuman()
+        .length;
+
+      // Now the messages should have executed
+      expect(queuedMessages).to.eq(0);
+
+      let expectedBaltatharParaTwoBalance = BigInt(HUNDRED_UNITS_PARA);
+
+      // Assert it did get executed
+      expect(
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
 );
