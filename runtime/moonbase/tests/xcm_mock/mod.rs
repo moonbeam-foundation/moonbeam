@@ -16,7 +16,7 @@
 
 pub mod parachain;
 pub mod relay_chain;
-
+pub mod statemine_like;
 use cumulus_primitives_core::ParaId;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sp_runtime::AccountId32;
@@ -52,6 +52,15 @@ decl_test_parachain! {
 		XcmpMessageHandler = parachain::MsgQueue,
 		DmpMessageHandler = parachain::MsgQueue,
 		new_ext = para_ext(3),
+	}
+}
+
+decl_test_parachain! {
+	pub struct Statemine {
+		Runtime = statemine_like::Runtime,
+		XcmpMessageHandler = statemine_like::MsgQueue,
+		DmpMessageHandler = statemine_like::MsgQueue,
+		new_ext = statemine_ext(4),
 	}
 }
 
@@ -96,6 +105,26 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	});
 	ext
 }
+pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
+	use statemine_like::{MsgQueue, Runtime, System};
+
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap();
+
+	pallet_balances::GenesisConfig::<Runtime> {
+		balances: vec![(RELAYALICE.into(), INITIAL_BALANCE)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		MsgQueue::set_para_id(para_id.into());
+	});
+	ext
+}
 
 pub fn relay_ext() -> sp_io::TestExternalities {
 	use relay_chain::{Runtime, System};
@@ -116,8 +145,12 @@ pub fn relay_ext() -> sp_io::TestExternalities {
 }
 
 pub type RelayChainPalletXcm = pallet_xcm::Pallet<relay_chain::Runtime>;
+pub type StatemineChainPalletXcm = pallet_xcm::Pallet<statemine_like::Runtime>;
+
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
 pub type Assets = pallet_assets::Pallet<parachain::Runtime>;
+pub type StatemineAssets = pallet_assets::Pallet<statemine_like::Runtime>;
+
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;

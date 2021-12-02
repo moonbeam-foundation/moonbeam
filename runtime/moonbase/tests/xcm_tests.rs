@@ -30,12 +30,18 @@ use xcm::latest::{
 	Junctions::*,
 	MultiLocation, NetworkId, Response, Xcm,
 };
+use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
-
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
+
+	let a = parachain::StatemintLike::convert_ref(MultiLocation::new(
+		1,
+		X1(xcm::latest::prelude::GeneralIndex(0)),
+	));
+	println!("A is {:?}", a);
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -1276,6 +1282,45 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert!(parachain::para_events().contains(&expected_supported_version_2));
 	});
 }
+
+#[test]
+fn test_statemine_like() {
+	MockNet::reset();
+
+	Statemine::execute_with(|| {
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	}
+	.into();
+
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
+			0,
+		));
+		println!("Events {:?}", statemine_like::statemint_events())
+	});
+
+}
+
 
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
