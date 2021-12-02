@@ -404,9 +404,8 @@ fn second_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					// This 100 is reserved for the second.
-					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved(Alice, 100).into(),
+					DemocracyEvent::Seconded(Alice, 0).into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
