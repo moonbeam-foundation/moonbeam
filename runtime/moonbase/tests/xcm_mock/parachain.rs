@@ -629,6 +629,15 @@ impl xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 }
 
+pub struct NormalFilter;
+impl frame_support::traits::Contains<Call> for NormalFilter {
+	fn contains(c: &Call) -> bool {
+		match c {
+			_ => true,
+		}
+	}
+}
+
 // We need to use the encoding from the relay mock runtime
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -691,7 +700,6 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-
 	}
 );
 
