@@ -147,9 +147,9 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		// staking expectations
 		expect: Range {
-			min: 100_000 * UNIT,
-			ideal: 200_000 * UNIT,
-			max: 500_000 * UNIT,
+			min: 100_000 * GLMR,
+			ideal: 200_000 * GLMR,
+			max: 500_000 * GLMR,
 		},
 		// annual inflation
 		annual: Range {
