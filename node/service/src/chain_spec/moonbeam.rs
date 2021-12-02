@@ -149,7 +149,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		perbill_annual_to_perbill_round(
 			annual,
 			// rounds per year
-			BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get(),
+			BLOCKS_PER_YEAR / moonbeam_runtime::DefaultBlocksPerRound::get(),
 		)
 	}
 	InflationInfo {
