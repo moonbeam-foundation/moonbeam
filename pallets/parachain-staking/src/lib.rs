@@ -1491,8 +1491,15 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+
 		fn on_initialize(n: T::BlockNumber) -> Weight {
             println!("on_initialize({})", n);
+
+			// base weight of a "no-op" on_initialize() call
+			// TODO: rewrite passive_on_initialize() and active_on_initialize() benchmarks to work as
+			// described here
+			let mut weight = T::WeightInfo::passive_on_initialize();
+
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
                 println!("    - round {} needs update", round.current);
@@ -1514,13 +1521,16 @@ pub mod pallet {
 					total_staked,
 				));
 				// TODO: update active_on_initialize
-				T::WeightInfo::active_on_initialize(collator_count, delegation_count)
-			} else if Self::handle_delayed_payouts(round.current) {
-				// TODO: return proper weight
-				T::WeightInfo::passive_on_initialize()
-			} else {
-				T::WeightInfo::passive_on_initialize()
+				//       OR: benchmark the individual functions here and add up their weight
+				weight += T::WeightInfo::active_on_initialize(collator_count, delegation_count);
 			}
+
+			if Self::handle_delayed_payouts(round.current) {
+				// TODO: let handle_delayed_payouts return its own weight
+				weight += T::WeightInfo::passive_on_initialize()
+			}
+
+			weight
 		}
 	}
 

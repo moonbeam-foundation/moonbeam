@@ -22,7 +22,8 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	roll_to, roll_to_round_begin, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
+	roll_to, roll_to_round_begin, roll_to_round_end,
+	set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
 	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CandidateBondChange,
@@ -4576,8 +4577,11 @@ fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
 			]);
 			assert_eq_events!(expected);
 
-			// rewards will be paid out in this round, but not until subsequent blocks
-			roll_to_round_begin(4);
+			// rewards will begin in round 4 in the block in which the round change occurs
+			let num_blocks_rolled = roll_to_round_end(3);
+			assert_eq_events!(expected); // no more staking events in round 3
+			assert_eq!(num_blocks_rolled, 4); // sanity check...
+
 			expected.append(&mut vec![
 				Event::CollatorChosen(4, 1, 20),
 				Event::CollatorChosen(4, 2, 20),
@@ -4585,29 +4589,29 @@ fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
 				Event::CollatorChosen(4, 4, 20),
 				Event::NewRound(15, 4, 4, 80),
 			]);
-			assert_eq_events!(expected);
 
-			// roll one block at a time and expect one payout per round
+			// roll to the next block where we start round 4; we should have round change and first
+			// payout made.
 			// TODO: the order is [probably] based on hashes in the underlying trie, and isn't
 			// significant here. these should be rewritten to work in arbitrary order
-			roll_to(16);
+			roll_to_round_begin(4);
 			expected.push(Event::Rewarded(3, 1));
 			assert_eq_events!(expected);
 
-			roll_to(17);
+			roll_to(16);
 			expected.push(Event::Rewarded(4, 2));
 			assert_eq_events!(expected);
 
-			roll_to(18);
+			roll_to(17);
 			expected.push(Event::Rewarded(1, 1));
 			assert_eq_events!(expected);
 
-			roll_to(19);
+			roll_to(18);
 			expected.push(Event::Rewarded(2, 1));
 			assert_eq_events!(expected);
 
 			// and if we roll one more block we should get new collators and a new round
-			roll_to(20);
+			roll_to(19);
 			expected.append(&mut vec![
 				Event::CollatorChosen(5, 1, 20),
 				Event::CollatorChosen(5, 2, 20),

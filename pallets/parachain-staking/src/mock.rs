@@ -227,7 +227,9 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn roll_to(n: u64) {
+/// Rolls to the desired block. Returns the number of blocks played.
+pub(crate) fn roll_to(n: u64) -> u64 {
+	let mut num_blocks = 0;
 	while System::block_number() < n {
 		Stake::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
@@ -236,14 +238,26 @@ pub(crate) fn roll_to(n: u64) {
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		Stake::on_initialize(System::block_number());
+		num_blocks += 1;
 	}
+	num_blocks
 }
 
 /// Rolls block-by-block to the beginning of the specified round.
-pub(crate) fn roll_to_round_begin(round: u64) {
+/// This will complete the block in which the round change occurs.
+/// Returns the number of blocks played.
+pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
 	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
 	println!("rolling from {} to {}", System::block_number(), block);
-	roll_to(block);
+	roll_to(block)
+}
+
+/// Rolls block-by-block to the end of the specified round.
+/// The block following will be the one in which the specified round change occurs.
+pub(crate) fn roll_to_round_end(round: u64) -> u64 {
+	let block = round * DefaultBlocksPerRound::get() as u64 - 1;
+	println!("rolling from {} to {}", System::block_number(), block);
+	roll_to(block)
 }
 
 pub(crate) fn last_event() -> Event {
@@ -401,12 +415,40 @@ fn roll_to_round_begin_works() {
 			// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
 			assert_eq!(System::block_number(), 1); // we start on block 1
 
-			roll_to_round_begin(1);
+			let num_blocks = roll_to_round_begin(1);
 			assert_eq!(System::block_number(), 1); // no-op, we're already on this round
-			roll_to_round_begin(2);
+			assert_eq!(num_blocks, 0);
+
+			let num_blocks = roll_to_round_begin(2);
 			assert_eq!(System::block_number(), 5);
-			roll_to_round_begin(3);
+			assert_eq!(num_blocks, 4);
+
+			let num_blocks = roll_to_round_begin(3);
 			assert_eq!(System::block_number(), 10);
+			assert_eq!(num_blocks, 5);
+		});
+
+}
+
+#[test]
+fn roll_to_round_end_works() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+			assert_eq!(System::block_number(), 1); // we start on block 1
+
+			let num_blocks = roll_to_round_end(1);
+			assert_eq!(System::block_number(), 4);
+			assert_eq!(num_blocks, 3);
+
+			let num_blocks = roll_to_round_end(2);
+			assert_eq!(System::block_number(), 9);
+			assert_eq!(num_blocks, 5);
+
+			let num_blocks = roll_to_round_end(3);
+			assert_eq!(System::block_number(), 14);
+			assert_eq!(num_blocks, 5);
 		});
 
 }
