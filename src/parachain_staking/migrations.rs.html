@@ -228,6 +228,15 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -250,6 +259,10 @@
 	<span class="ident">BalanceOf</span>, <span class="ident">CandidateState</span>, <span class="ident">CollatorCandidate</span>, <span class="ident">CollatorState2</span>, <span class="ident">Config</span>, <span class="ident">DelegatorState</span>,
 	<span class="ident">ExitQueue2</span>, <span class="ident">NominatorState2</span>, <span class="ident">Points</span>, <span class="ident">Round</span>, <span class="ident">Staked</span>,
 };
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Collator2</span>, <span class="ident">Delegator</span>, <span class="ident">Nominator2</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">frame_support::Twox64Concat</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">pallet_prelude::PhantomData</span>,
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>},
@@ -313,7 +326,10 @@
 
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">storage::migration::storage_iter</span>, <span class="ident">traits::OnRuntimeUpgradeHelpersExt</span>};
+		<span class="kw">use</span> <span class="ident">frame_support</span>::{
+			<span class="ident">storage::migration</span>::{<span class="ident">storage_iter</span>, <span class="ident">storage_key_iter</span>},
+			<span class="ident">traits::OnRuntimeUpgradeHelpersExt</span>,
+		};
 
 		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
 		<span class="kw">let</span> <span class="ident">collator_state_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;CollatorState2&quot;</span>;
@@ -380,11 +396,12 @@
 		<span class="comment">// Check that our example candidate is converted correctly</span>
 		<span class="kw">if</span> <span class="ident">new_candidate_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
 			<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_collator_state</span>): (
-				<span class="ident">T::AuthorId</span>,
+				<span class="ident">T::AccountId</span>,
 				<span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_collator&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let</span> <span class="ident">new_candidate_state</span> <span class="op">=</span> <span class="ident">CandidateState</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">old_candidate_converted</span>: <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">original_collator_state</span>.<span class="ident">into</span>();
+			<span class="kw">let</span> <span class="ident">old_candidate_converted</span>: <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+				<span class="ident">original_collator_state</span>.<span class="ident">into</span>();
 			<span class="macro">assert_eq!</span>(<span class="ident">new_candidate_state</span>, <span class="ident">old_candidate_converted</span>);
 		}
 
@@ -394,15 +411,16 @@
 		<span class="kw">let</span> <span class="ident">new_delegator_count</span> <span class="op">=</span> <span class="ident">DelegatorState</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 		<span class="macro">assert_eq!</span>(<span class="ident">old_nominator_count</span>, <span class="ident">new_delegator_count</span>);
 
-		<span class="comment">// Check that our example nominator is converted correctly</span>
+		<span class="comment">// Check that our example delegator is converted correctly</span>
 		<span class="kw">if</span> <span class="ident">new_delegator_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-			<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_nominator_state</span>): (
-				<span class="ident">T::AuthorId</span>,
+			<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_delegator_state</span>): (
+				<span class="ident">T::AccountId</span>,
 				<span class="ident">Nominator2</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_nominator&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">new_candidate_state</span> <span class="op">=</span> <span class="ident">DelegatorState</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">old_candidate_converted</span>: <span class="ident">Delegator</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">original_nominator_state</span>.<span class="ident">into</span>();
-			<span class="macro">assert_eq!</span>(<span class="ident">old_candidate_converted</span>, <span class="ident">new_candidate_state</span>);
+			<span class="kw">let</span> <span class="ident">new_delegator_state</span> <span class="op">=</span> <span class="ident">DelegatorState</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">old_delegator_converted</span>: <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+				<span class="ident">migrate_nominator_to_delegator_state</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">account</span>, <span class="ident">original_delegator_state</span>);
+			<span class="macro">assert_eq!</span>(<span class="ident">old_delegator_converted</span>, <span class="ident">new_delegator_state</span>);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
