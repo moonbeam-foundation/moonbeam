@@ -25,7 +25,6 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
 };
-use sp_runtime::DispatchError;
 
 #[test]
 fn can_remark_during_normal_operation() {
