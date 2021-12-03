@@ -296,6 +296,12 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -442,23 +448,29 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">moonbeam_inflation_config</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">to_round_inflation</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
+		<span class="kw">use</span> <span class="ident">parachain_staking::inflation</span>::{<span class="ident">perbill_annual_to_perbill_round</span>, <span class="ident">BLOCKS_PER_YEAR</span>};
+		<span class="ident">perbill_annual_to_perbill_round</span>(
+			<span class="ident">annual</span>,
+			<span class="comment">// rounds per year</span>
+			<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">moonbeam_runtime::DefaultBlocksPerRound::get</span>(),
+		)
+	}
+	<span class="kw">let</span> <span class="ident">annual</span> <span class="op">=</span> <span class="ident">Range</span> {
+		<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">4</span>),
+		<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
+		<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
+	};
 	<span class="ident">InflationInfo</span> {
+		<span class="comment">// staking expectations</span>
 		<span class="ident">expect</span>: <span class="ident">Range</span> {
 			<span class="ident">min</span>: <span class="number">100_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
 			<span class="ident">ideal</span>: <span class="number">200_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
 			<span class="ident">max</span>: <span class="number">500_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
 		},
-		<span class="ident">annual</span>: <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">4</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-		},
-		<span class="comment">// 8766 rounds (hours) in a year</span>
-		<span class="ident">round</span>: <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_parts</span>(<span class="ident">Perbill::from_percent</span>(<span class="number">4</span>).<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="number">8766</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_parts</span>(<span class="ident">Perbill::from_percent</span>(<span class="number">5</span>).<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="number">8766</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_parts</span>(<span class="ident">Perbill::from_percent</span>(<span class="number">5</span>).<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="number">8766</span>),
-		},
+		<span class="comment">// annual inflation</span>
+		<span class="ident">annual</span>,
+		<span class="ident">round</span>: <span class="ident">to_round_inflation</span>(<span class="ident">annual</span>),
 	}
 }
 
