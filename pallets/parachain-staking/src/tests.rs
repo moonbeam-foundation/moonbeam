@@ -4617,6 +4617,151 @@ fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
 		});
 }
 
+#[test]
+fn deferred_payment_storage_items_are_cleaned_up() {
+	use crate::*;
+
+	// this test sets up two collators, gives them points in round one, and focuses on the
+	// storage over the next several blocks to show that it is properly cleaned up
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			let mut round: u32 = 1;
+			set_author(round, 1, 1);
+			set_author(round, 2, 1);
+
+			/*
+			 * these macros aren't helpful because these storage items get populated at different
+			 * rounds (e.g. some populated during current round, some after RewardPaymentDelay,
+			 * etc.)
+			 *
+			 * TODO: remove
+			 *
+			// macros to test that round-scoped storage exists or doesn't
+			macro_rules! assert_round_scoped_storage_exists {
+				($round: expr) => ({
+					assert!(<DelayedPayouts<Test>>::contains_key($round),
+						"DelayedPayouts for round {} was expected to exist", $round);
+					assert!(<Points<Test>>::contains_key($round),
+						"Points for round {} was expected to exist", $round);
+					assert!(<Staked<Test>>::contains_key($round),
+						"Staked for round {} was expected to exist", $round);
+				});
+			}
+			macro_rules! assert_round_scoped_storage_doesnt_exist {
+				($round: expr) => ({
+					assert!(! <DelayedPayouts<Test>>::contains_key($round),
+						"DelayedPayouts for round {} was expected not to exist", $round);
+					assert!(! <Points<Test>>::contains_key($round),
+						"Points for round {} was expected not to exist", $round);
+					assert!(! <Staked<Test>>::contains_key($round),
+						"Staked for round {} was expected not to exist", $round);
+				});
+			}
+			*/
+
+			// reflects genesis?
+			assert!(<AtStake<Test>>::contains_key(round, 1));
+			assert!(<AtStake<Test>>::contains_key(round, 2));
+
+			round = 2;
+			roll_to_round_begin(round.into());
+			let mut expected = vec![
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(5, round, 2, 40),
+			];
+			assert_eq_events!(expected);
+
+			// we should have AtStake snapshots as soon as we start a round...
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
+			// ...and it should persist until the round is fully paid out
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+
+			assert!(! <DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay");
+			assert!(<Points<Test>>::contains_key(1),
+				"Points should be populated during current round");
+			assert!(<Staked<Test>>::contains_key(1),
+				"Staked should be populated when round changes");
+
+			assert!(! <Points<Test>>::contains_key(2),
+				"Points should not be populated until author noted");
+			assert!(<Staked<Test>>::contains_key(2),
+				"Staked should be populated when round changes");
+
+			round = 3;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(10, round, 2, 40),
+			]);
+			assert_eq_events!(expected);
+
+			// no payout yet, so we should have all AtStake storage items
+			assert!(<AtStake<Test>>::contains_key(3, 1));
+			assert!(<AtStake<Test>>::contains_key(3, 2));
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+
+			assert!(<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts should be populated after RewardPaymentDelay");
+			assert!(<Points<Test>>::contains_key(1));
+			assert!(! <Staked<Test>>::contains_key(1),
+				"Staked should be cleaned up after round change");
+
+			assert!(! <DelayedPayouts<Test>>::contains_key(2));
+			assert!(! <Points<Test>>::contains_key(2), "We never rewarded points for round 2");
+			assert!(<Staked<Test>>::contains_key(2));
+
+			assert!(! <DelayedPayouts<Test>>::contains_key(3));
+			assert!(! <Points<Test>>::contains_key(3), "We never awarded points for round 3");
+			assert!(<Staked<Test>>::contains_key(3));
+
+			// first payout occurs in round 4
+			round = 4;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(15, round, 2, 40),
+				Event::Rewarded(1, 1),
+			]);
+			assert_eq_events!(expected);
+
+			// collator 1 has been paid in this last block and associated storage cleaned up
+			assert!(! <AtStake<Test>>::contains_key(1, 1));
+			assert!(! <AwardedPts<Test>>::contains_key(1, 1));
+
+			// but collator 2 hasn't been paid
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+
+			roll_to_round_end(4);
+			// collators have both been paid and storage fully cleaned up for round 1
+			assert!(! <AtStake<Test>>::contains_key(1, 2));
+			assert!(! <AwardedPts<Test>>::contains_key(1, 2));
+			assert!(! <Staked<Test>>::contains_key(1));
+			assert!(! <Points<Test>>::contains_key(1)); // points should be cleaned up
+			assert!(! <DelayedPayouts<Test>>::contains_key(1));
+
+			// and we should see the payout event for collator 2 as well
+			expected.append(&mut vec![
+				Event::Rewarded(2, 1),
+			]);
+			assert_eq_events!(expected);
+
+		});
+}
+
 // TODO: deferred payout tests, ideas:
 // * no payouts occur immediately
 // * storage items correctly persist after round end

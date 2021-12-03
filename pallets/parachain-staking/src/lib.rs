@@ -2475,11 +2475,11 @@ pub mod pallet {
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
                 println!("    - have payout info, calling pay_one_collator_reward...");
 				if let None = Self::pay_one_collator_reward(paid_for_round, payout_info) {
-					log::debug!("Done paying out stakers for previous round");
+					println!("Done paying out stakers for previous round ({})", paid_for_round);
 
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
-					// TODO: clean up other storage
+					<Points<T>>::remove(paid_for_round);
 				}
 				true
 			} else {
@@ -2547,11 +2547,12 @@ pub mod pallet {
 						));
 					}
 				}
+
+				<AtStake<T>>::remove(paid_for_round, collator.clone());
+
 				return Some((collator, total_paid));
 			} else {
-				// TODO: we're done, so:
-				// * consider emitting event
-				// * should clean up storage items we don't need (AtStake, AwardedPts, etc.)
+				// Note that storage is cleaned up in handle_delayed_payouts()
 				return None;
 			}
 		}
