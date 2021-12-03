@@ -4610,15 +4610,10 @@ fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
 			expected.push(Event::Rewarded(2, 1));
 			assert_eq_events!(expected);
 
-			// and if we roll one more block we should get new collators and a new round
-			roll_to(19);
-			expected.append(&mut vec![
-				Event::CollatorChosen(5, 1, 20),
-				Event::CollatorChosen(5, 2, 20),
-				Event::CollatorChosen(5, 3, 20),
-				Event::CollatorChosen(5, 4, 20),
-				Event::NewRound(20, 5, 4, 80),
-			]);
+			// there should be no more payments in this round...
+			let num_blocks_rolled = roll_to_round_end(4);
+			assert_eq_events!(expected);
+			assert_eq!(num_blocks_rolled, 1);
 		});
 }
 
