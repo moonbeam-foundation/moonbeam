@@ -62,6 +62,7 @@ scale-info = { version = "1.0", default-features = false, features = [ "derive" 
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-debug-derive = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 sp-offchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
@@ -174,7 +175,12 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 ]
+
+# Must be enabled for tracing runtimes only
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
+
+# Allow to print logs details (no wasm:stripped)
+force-debug = ["sp-debug-derive/force-debug"]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = []
