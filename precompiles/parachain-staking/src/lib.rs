@@ -173,7 +173,9 @@ where
 				Self::schedule_candidate_bond_less(input, gasometer, context)?
 			}
 			Action::CandidateBondMore => Self::candidate_bond_more(input, gasometer, context)?,
-			Action::ExecuteCandidateBondLess => Self::execute_candidate_bond_less(input, gasometer, context)?,
+			Action::ExecuteCandidateBondLess => {
+				Self::execute_candidate_bond_less(input, gasometer, context)?
+			}
 			Action::CancelCandidateBondLess => Self::cancel_candidate_bond_less(context)?,
 			// DEPRECATED
 			Action::Nominate => Self::delegate(input, gasometer, context)?,
@@ -202,8 +204,12 @@ where
 			// DEPRECATED
 			Action::NominatorBondMore => Self::delegator_bond_more(input, gasometer, context)?,
 			Action::DelegatorBondMore => Self::delegator_bond_more(input, gasometer, context)?,
-			Action::ExecuteDelegationRequest => Self::execute_delegation_request(input, gasometer, context)?,
-			Action::CancelDelegationRequest => Self::cancel_delegation_request(input, gasometer, context)?,
+			Action::ExecuteDelegationRequest => {
+				Self::execute_delegation_request(input, gasometer, context)?
+			}
+			Action::CancelDelegationRequest => {
+				Self::cancel_delegation_request(input, gasometer, context)?
+			}
 		};
 
 		// Dispatch call (if enough gas).

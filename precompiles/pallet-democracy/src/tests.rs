@@ -429,7 +429,11 @@ fn second_works() {
 						amount: 100
 					}
 					.into(),
-					DemocracyEvent::Seconded{who: Alice, proposal_index: 0}.into(),
+					DemocracyEvent::Seconded {
+						who: Alice,
+						proposal_index: 0
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -471,7 +475,7 @@ fn standard_vote_aye_works() {
 						threshold: pallet_democracy::VoteThreshold::SimpleMajority
 					}
 					.into(),
-					DemocracyEvent::Voted{
+					DemocracyEvent::Voted {
 						who: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
@@ -540,7 +544,7 @@ fn standard_vote_nay_conviction_works() {
 						threshold: pallet_democracy::VoteThreshold::SimpleMajority
 					}
 					.into(),
-					DemocracyEvent::Voted{
+					DemocracyEvent::Voted {
 						who: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
@@ -624,7 +628,7 @@ fn remove_vote_works() {
 						threshold: pallet_democracy::VoteThreshold::SimpleMajority
 					}
 					.into(),
-					DemocracyEvent::Voted{
+					DemocracyEvent::Voted {
 						who: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
