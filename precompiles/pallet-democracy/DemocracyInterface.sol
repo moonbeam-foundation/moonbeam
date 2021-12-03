@@ -10,7 +10,9 @@ pragma solidity >=0.8.0;
  * important parts and the parts that are expected to be most useful to evm contracts.
  * More exhaustive wrapping can be added later if it is desireable and the pallet interface
  * is deemed sufficiently stable.
+ * Moonbase address : 0x0000000000000000000000000000000000000803
  */
+ 
 interface Democracy {
     // First some simple accessors
 

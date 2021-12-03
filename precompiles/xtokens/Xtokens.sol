@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 /**
  * @title Xtokens Interface
- *
  * The interface through which solidity contracts will interact with xtokens pallet
- *
+ * Moonbase address :    0x0000000000000000000000000000000000000804
  */
+
 interface Xtokens {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)
     struct Multilocation {
