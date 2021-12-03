@@ -33,7 +33,6 @@ use fp_rpc::TransactionStatus;
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use account::AccountId20;
-
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -98,16 +97,18 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::v1::{
-	BodyId,
-	Junction::{PalletInstance, Parachain},
-	Junctions, MultiLocation, NetworkId,
-};
+use xcm::latest::prelude::*;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
 use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
+
+use xcm_primitives::{
+	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmFeesToAccount, XcmTransact,
+};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -172,7 +173,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 1000,
+	spec_version: 1001,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -746,19 +747,19 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	pub const MinBlocksPerRound: u32 = 10;
-	/// Default BlocksPerRound is every hour (300 * 12 second block times)
-	pub const DefaultBlocksPerRound: u32 = 300;
-	/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Blocks per round
+	pub const DefaultBlocksPerRound: u32 = 2 * HOURS;
+	/// Rounds before the collator leaving the candidates request can be executed
 	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Collator candidate bond increases/decreases are delayed by 2 hours (2 * 300 block_time)
-	pub const CandidateBondDelay: u32 = 2;
-	/// Delegator exits are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the candidate bond increase/decrease can be executed
+	pub const CandidateBondLessDelay: u32 = 2;
+	/// Rounds before the delegator exit can be executed
 	pub const LeaveDelegatorsDelay: u32 = 2;
-	/// Delegation revocations are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the delegator revocation can be executed
 	pub const RevokeDelegationDelay: u32 = 2;
-	/// Delegation bond increases/decreases are delayed by 2 hours (2 * 300 * block_time)
-	pub const DelegationBondDelay: u32 = 2;
-	/// Reward payments are delayed by 2 hours (2 * 300 * block_time)
+	/// Rounds before the delegator bond increase/decrease can be executed
+	pub const DelegationBondLessDelay: u32 = 2;
+	/// Rounds before the reward is paid
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
@@ -771,9 +772,9 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
+	pub const MinCollatorStk: u128 = 1000 * currency::UNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCandidateStk: u128 = 1 * currency::KILOUNIT * currency::SUPPLY_FACTOR;
+	pub const MinCandidateStk: u128 = 500 * currency::UNIT * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::UNIT * currency::SUPPLY_FACTOR;
 }
@@ -785,10 +786,10 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type CandidateBondDelay = CandidateBondDelay;
+	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
 	type RevokeDelegationDelay = RevokeDelegationDelay;
-	type DelegationBondDelay = DelegationBondDelay;
+	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
@@ -910,6 +911,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
+						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -1014,7 +1016,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
-			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
+			AsAssetType<AssetId, AssetType, AssetManager>,
 			JustTry,
 		>,
 	),
@@ -1093,6 +1095,28 @@ pub type XcmBarrier = (
 	AllowSubscriptionsFrom<Everything>,
 );
 
+parameter_types! {
+	/// Xcm fees will go to the treasury account
+	pub XcmFeesAccount: AccountId = Treasury::account_id();
+}
+
+/// This is the struct that will handle the revenue from xcm fees
+/// We do not burn anything because we want to mimic exactly what
+/// the sovereign account has
+pub type XcmFeesToAccount_ = XcmFeesToAccount<
+	Assets,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsAssetType<AssetId, AssetType, AssetManager>,
+			JustTry,
+		>,
+	),
+	AccountId,
+	XcmFeesAccount,
+>;
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -1101,7 +1125,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
-	type IsReserve = xcm_primitives::MultiNativeAsset;
+	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
@@ -1118,7 +1142,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
+		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -1133,8 +1157,7 @@ parameter_types! {
 }
 
 // Converts a Signed Local Origin into a MultiLocation
-pub type LocalOriginToLocation =
-	xcm_primitives::SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
@@ -1321,7 +1344,7 @@ pub enum CurrencyId {
 	OtherReserve(AssetId),
 }
 
-impl xcm_primitives::AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
@@ -1367,9 +1390,9 @@ impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
 	type CurrencyIdConvert =
-		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -1395,8 +1418,8 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl xcm_primitives::UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			// Shall we use westend for moonbase? The tests are probably based on rococo
 			// but moonbase-alpha is attached to westend-runtime I think
@@ -1405,7 +1428,7 @@ impl xcm_primitives::UtilityEncodeCall for Transactors {
 	}
 }
 
-impl xcm_primitives::XcmTransact for Transactors {
+impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
@@ -1420,9 +1443,9 @@ impl xcm_transactor::Config for Runtime {
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
 	type CurrencyIdToMultiLocation =
-		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
@@ -1860,7 +1883,7 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(1 * KILOUNIT));
-		assert_eq!(MinCandidateStk::get(), Balance::from(1 * KILOUNIT));
+		assert_eq!(MinCandidateStk::get(), Balance::from(500 * UNIT));
 		assert_eq!(MinDelegatorStk::get(), Balance::from(5 * UNIT));
 
 		// crowdloan min reward
