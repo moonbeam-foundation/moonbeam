@@ -189,6 +189,11 @@ impl ExtBuilder {
 		self
 	}
 
+	/// add a delegation by providing a Vec of tuples where each tuple is a delegation expressing:
+	/// 1. delegator's AccountId
+	/// 2. collator's AccountId
+	/// 3. delegation amount
+	/// (Note that this is passed directly to GenesisConfig's build())
 	pub(crate) fn with_delegations(
 		mut self,
 		delegations: Vec<(AccountId, AccountId, Balance)>,

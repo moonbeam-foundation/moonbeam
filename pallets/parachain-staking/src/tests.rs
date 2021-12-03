@@ -4762,6 +4762,77 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 		});
 }
 
+#[test]
+fn deferred_payment_steady_state_event_flow() {
+
+	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
+	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
+	// rounds to clear RewardPaymentDelay)
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			   ( 1, 20), ( 2, 20), ( 3, 20), ( 4, 20), // collators
+			   (11, 20), (22, 20), (33, 20), (44, 20), // delegators
+		])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![
+			  (11, 1, 10), (11, 2, 10), // delegator 11 delegates 10 to 1 and 2
+			  (22, 2, 10), (22, 3, 10), // delegator 22 delegates 10 to 2 and 3
+			  (33, 3, 10), (33, 4, 10), // delegator 33 delegates 10 to 3 and 4
+			  (44, 4, 10), (44, 1, 10), // delegator 44 delegates 10 to 4 and 1
+		])
+		.build()
+		.execute_with(|| {
+			// convenience to set the round points consistently
+			let set_round_points = |round: u64| {
+				set_author(round as u32, 1, 1);
+				set_author(round as u32, 2, 1);
+				set_author(round as u32, 3, 1);
+				set_author(round as u32, 4, 1);
+			};
+
+			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
+			let roll_through_initial_rounds = |mut round: u64| -> u64 {
+				while round < 2 { // TODO: how to use mock's declared RewardPaymentDelay directly?
+					set_round_points(round);
+
+					roll_to_round_end(round);
+					round += 1;
+				}
+				round
+			};
+
+			// roll through a "steady state" round and make all of our assertions
+			// returns new round index
+			let roll_through_steady_state_round = |round: u64| -> u64 {
+				// TODO: pre block assertions
+
+				let num_rounds_rolled = roll_to_round_begin(round);
+				assert!(num_rounds_rolled == 0, "expected to be at round begin already");
+
+				set_round_points(round);
+
+				// TODO: roll block-by-block through round, making assertions
+
+				let num_rounds_rolled = roll_to_round_end(round);
+				assert!(num_rounds_rolled == 0, "expected to be at round end already");
+
+				// TODO: post block assertions
+				round + 1
+			};
+
+			let mut round = 1;
+			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
+			for _ in 1..10 {
+				round = roll_through_steady_state_round(round);
+			}
+
+			// TODO: first RewardPaymentDelay rounds
+			// TODO: iterate over several rounds, asserting that the same pattern of events/storage
+			// creation and removal occur.
+		});
+}
+
 // TODO: deferred payout tests, ideas:
 // * no payouts occur immediately
 // * storage items correctly persist after round end
