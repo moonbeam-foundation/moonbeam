@@ -153,7 +153,7 @@ describeParachain(
 
       // check asset in storage
       const registeredAsset = await parachainOne.query.assets.asset(assetId);
-      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId.toLowerCase());
+      expect((registeredAsset.toHuman() as { owner: string }).owner).to.eq(palletId);
 
       // RELAYCHAIN
       // Sets default xcm version to relay

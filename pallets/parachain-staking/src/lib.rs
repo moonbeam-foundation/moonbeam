@@ -47,7 +47,7 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
-mod inflation;
+pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
@@ -206,6 +206,63 @@ pub mod pallet {
 		pub request: Option<CandidateBondLessRequest<Balance>>,
 		/// Current status of the collator
 		pub state: CollatorStatus,
+	}
+
+	// Temporary manual implementation for migration testing purposes
+	impl<A: PartialEq, B: PartialEq> PartialEq for CollatorCandidate<A, B> {
+		fn eq(&self, other: &Self) -> bool {
+			let must_be_true = self.id == other.id
+				&& self.bond == other.bond
+				&& self.total_counted == other.total_counted
+				&& self.total_backing == other.total_backing
+				&& self.request == other.request
+				&& self.state == other.state;
+			if !must_be_true {
+				return false;
+			}
+			for (x, y) in self.delegators.0.iter().zip(other.delegators.0.iter()) {
+				if x != y {
+					return false;
+				}
+			}
+			for (
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) in self
+				.top_delegations
+				.iter()
+				.zip(other.top_delegations.iter())
+			{
+				if o1 != o2 || a1 != a2 {
+					return false;
+				}
+			}
+			for (
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) in self
+				.bottom_delegations
+				.iter()
+				.zip(other.bottom_delegations.iter())
+			{
+				if o1 != o2 || a1 != a2 {
+					return false;
+				}
+			}
+			true
+		}
 	}
 
 	/// Convey relevant information describing if a delegator was added to the top or bottom
@@ -634,6 +691,35 @@ pub mod pallet {
 		pub status: DelegatorStatus,
 	}
 
+	// Temporary manual implementation for migration testing purposes
+	impl<A: PartialEq, B: PartialEq> PartialEq for Delegator<A, B> {
+		fn eq(&self, other: &Self) -> bool {
+			let must_be_true = self.id == other.id
+				&& self.total == other.total
+				&& self.requests == other.requests
+				&& self.status == other.status;
+			if !must_be_true {
+				return false;
+			}
+			for (
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) in self.delegations.0.iter().zip(other.delegations.0.iter())
+			{
+				if o1 != o2 || a1 != a2 {
+					return false;
+				}
+			}
+			true
+		}
+	}
+
 	impl<
 			AccountId: Ord + Clone + Default,
 			Balance: Copy
@@ -1005,7 +1091,7 @@ pub mod pallet {
 		pub action: DelegationChange,
 	}
 
-	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
 	/// Pending requests to mutate delegations for each delegator
 	pub struct PendingDelegationRequests<AccountId, Balance> {
 		/// Number of pending revocations (necessary for determining whether revoke is exit)
