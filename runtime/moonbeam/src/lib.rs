@@ -691,9 +691,8 @@ parameter_types! {
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
 	pub const MinCollatorStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
-	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR / 10;
+	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
@@ -776,11 +775,9 @@ impl pallet_author_mapping::Config for Runtime {
 
 parameter_types! {
 	// One storage item; key size 32, value size 8; .
-	// TODO: Restore the real value before phase 2
-	pub const ProxyDepositBase: Balance = 0;//currency::deposit(1, 8);
+	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
 	// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
-	// TODO: Restore the real value before phase 2
-	pub const ProxyDepositFactor: Balance = 0;//currency::deposit(0, 21);
+	pub const ProxyDepositFactor: Balance = currency::deposit(0, 21);
 	pub const MaxProxies: u16 = 32;
 	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
 	// Additional storage item size of 56 bytes:
@@ -1179,8 +1176,7 @@ mod tests {
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(
 			MinCandidateStk::get(),
-			// TODO restore real value before phase 2
-			Balance::from(10 * KILOGLMR) //Balance::from(100 * KILOGLMR)
+			Balance::from(100 * KILOGLMR)
 		);
 		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
 
@@ -1193,13 +1189,11 @@ mod tests {
 		// proxy deposits
 		assert_eq!(
 			ProxyDepositBase::get(),
-			// TODO restore real value before phase 2
-			Balance::zero() //Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(100 * GLMR + 80 * MILLIGLMR)
 		);
 		assert_eq!(
 			ProxyDepositFactor::get(),
-			// TODO restore real value before phase 2
-			Balance::zero() //Balance::from(210 * MILLIGLMR)
+			Balance::from(210 * MILLIGLMR)
 		);
 		assert_eq!(
 			AnnouncementDepositBase::get(),
