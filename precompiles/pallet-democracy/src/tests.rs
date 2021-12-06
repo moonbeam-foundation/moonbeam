@@ -26,8 +26,8 @@ use fp_evm::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
-	VoteThreshold, Voting,
+	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent,
+	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, Bytes, EvmDataWriter};
@@ -897,6 +897,24 @@ fn note_preimage_works() {
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
+
+			// Check storage to make sure the data is actually stored there.
+			// There is no `Eq` implementation, so we check the data individually
+			if let PreimageStatus::Available {
+				data,
+				provider,
+				deposit,
+				expiry,
+				..
+			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
+			{
+				assert_eq!(data, dummy_preimage);
+				assert_eq!(provider, Alice);
+				assert_eq!(deposit, 40u128);
+				assert_eq!(expiry, None);
+			} else {
+				panic!("Expected preimge status to be available");
+			}
 		})
 }
 
