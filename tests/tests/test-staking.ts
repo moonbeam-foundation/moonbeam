@@ -23,14 +23,14 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
   it("should include collator from the specs", async function () {
     const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
-    expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(COLLATOR_ACCOUNT);
+    expect((collators[0] as Buffer).toString("hex")).equal(COLLATOR_ACCOUNT);
   });
 
   it("should have collator state as defined in the specs", async function () {
     const collator = await context.polkadotApi.query.parachainStaking.candidateState(
       COLLATOR_ACCOUNT
     );
-    expect(collator.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
+    expect(collator.toHuman()["id"]).equal(COLLATOR_ACCOUNT);
     expect(collator.toHuman()["state"]).equal("Active");
   });
 
@@ -56,11 +56,11 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["round"]["min"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["min"])).to.eq(4563); // 4% / 8766 * 10^9
+    expect(Number(inflationInfo["round"]["min"])).to.eq(8949); // 4% / blocks per year * 10^9
     expect(inflationInfo.toHuman()["round"]["ideal"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["ideal"])).to.eq(5703); // 5% / 8766 * 10^9
+    expect(Number(inflationInfo["round"]["ideal"])).to.eq(11132); // 5% / blocks per year * 10^9
     expect(inflationInfo.toHuman()["round"]["max"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["max"])).to.eq(5703); // 5% / 8766 * 10^9
+    expect(Number(inflationInfo["round"]["max"])).to.eq(11132); // 5% / blocks per year * 10^9
   });
 });
 
@@ -75,8 +75,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
     let candidatesAfter = (await context.polkadotApi.query.parachainStaking.candidatePool()) as any;
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
-    expect(candidatesAfter[1].owner.toHex()).to.equal(
-      ETHAN.toLowerCase(),
+    expect(candidatesAfter[1].owner.toString()).to.equal(
+      ETHAN,
       "new candidate ethan should have been added"
     );
     expect(candidatesAfter[1].amount.toBigInt()).to.equal(
@@ -101,7 +101,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
       (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
     ).unwrap();
     expect(delegatorsAfter.delegations[0].owner.toString()).to.equal(
-      ALITH.toLowerCase(),
+      ALITH,
       "new delegation to alith should have been added"
     );
     expect(delegatorsAfter.delegations[0].amount.toBigInt()).to.equal(

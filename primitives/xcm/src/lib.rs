@@ -19,9 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	traits::{Get, OriginTrait},
+	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
+use sp_runtime::traits::Zero;
+use sp_std::borrow::Borrow;
+use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
 	AssetId as xcmAssetId, Error as XcmError, Fungibility,
 	Junction::{AccountKey20, Parachain},
@@ -29,13 +32,7 @@ use xcm::latest::{
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::FilterAssetLocation;
-use xcm_executor::traits::WeightTrader;
-
-use sp_runtime::traits::Zero;
-
-use sp_std::borrow::Borrow;
-use sp_std::{convert::TryInto, marker::PhantomData};
+use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
 
 use sp_std::vec::Vec;
 
@@ -217,64 +214,18 @@ impl<
 	}
 }
 
-// This defines how multiTraders should be implemented
-// The intention is to distinguish between non-self-reserve assets and the reserve asset
-pub struct MultiWeightTraders<NativeTrader, OtherTrader> {
-	native_trader: NativeTrader,
-	other_trader: OtherTrader,
-}
-impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
-	for MultiWeightTraders<NativeTrader, OtherTrader>
+/// Deal with spent fees, deposit them as dictated by R
+impl<
+		AssetId: From<AssetType> + Clone,
+		AssetType: From<MultiLocation> + Clone,
+		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
+		R: TakeRevenue,
+	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
 {
-	fn new() -> Self {
-		Self {
-			native_trader: NativeTrader::new(),
-			other_trader: OtherTrader::new(),
+	fn drop(&mut self) {
+		if let Some((id, amount, _)) = self.1.clone() {
+			R::take_revenue((id, amount).into());
 		}
-	}
-	fn buy_weight(
-		&mut self,
-		weight: Weight,
-		payment: xcm_executor::Assets,
-	) -> Result<xcm_executor::Assets, XcmError> {
-		if let Ok(assets) = self.native_trader.buy_weight(weight, payment.clone()) {
-			return Ok(assets);
-		}
-
-		if let Ok(assets) = self.other_trader.buy_weight(weight, payment) {
-			return Ok(assets);
-		}
-
-		Err(XcmError::TooExpensive)
-	}
-	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
-		let native = self.native_trader.refund_weight(weight);
-		match native.clone() {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		let other = self.other_trader.refund_weight(weight);
-		match other {
-			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(_id),
-			}) => {
-				if !amount.is_zero() {
-					return native;
-				}
-			}
-			_ => {}
-		}
-
-		None
 	}
 }
 
@@ -358,4 +309,33 @@ pub trait XcmTransact: UtilityEncodeCall {
 pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	// Get assetId from account
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
+}
+
+/// XCM fee depositor to which we implement the TakeRevenue trait
+/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
+/// AssetId and amount, and the fee receiver account
+pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
+	PhantomData<(Assets, Matcher, AccountId, ReceiverAccount)>,
+);
+impl<
+		Assets: Mutate<AccountId>,
+		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
+		AccountId: Clone,
+		ReceiverAccount: Get<AccountId>,
+	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
+{
+	fn take_revenue(revenue: MultiAsset) {
+		match Matcher::matches_fungibles(&revenue) {
+			Ok((asset_id, amount)) => {
+				if !amount.is_zero() {
+					let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+					debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+				}
+			}
+			Err(_) => log::debug!(
+				target: "xcm",
+				"take revenue failed matching fungible"
+			),
+		}
+	}
 }

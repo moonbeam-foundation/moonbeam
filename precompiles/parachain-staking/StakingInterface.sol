@@ -149,17 +149,10 @@ interface ParachainStaking {
     /// Selector: d2f73ceb
     function go_online() external;
 
-    /// DEPRECATED, replaced by schedule_candidate_bond_more, execute_candidate_bond_request,
-    /// cancel_candidate_bond_request
     /// @dev Request to bond more for collator candidates
     /// Selector: c57bd3a8
     /// @param more The additional amount self-bonded
     function candidate_bond_more(uint256 more) external;
-
-    /// @dev Request to bond more for collator candidates
-    /// Selector: d6d56bab
-    /// @param more The additional amount self-bonded
-    function schedule_candidate_bond_more(uint256 more) external;
 
     /// DEPRECATED, replaced by schedule_candidate_bond_less, execute_candidate_bond_request,
     /// cancel_candidate_bond_request
@@ -174,13 +167,13 @@ interface ParachainStaking {
     function schedule_candidate_bond_less(uint256 less) external;
 
     /// @dev Execute pending candidate bond request
-    /// Selector: e2c3aacc
+    /// Selector: a9a2b8b7
     /// @param candidate The address for the candidate for which the request will be executed
-    function execute_candidate_bond_request(address candidate) external;
+    function execute_candidate_bond_less(address candidate) external;
 
     /// @dev Cancel pending candidate bond request
-    /// Selector: 39ffe013
-    function cancel_candidate_bond_request() external;
+    /// Selector: 583d0fdc
+    function cancel_candidate_bond_less() external;
 
     /// DEPRECATED, replaced by delegate
     /// @dev Make a nomination in support of a collator candidate
@@ -250,12 +243,11 @@ interface ParachainStaking {
     /// @param more The amount by which the nomination is increased
     function nominator_bond_more(address candidate, uint256 more) external;
 
-    /// @dev Request to bond more for nominators with respect to a specific collator candidate
-    /// Selector: e12d5915
+    /// @dev Bond more for nominators with respect to a specific collator candidate
+    /// Selector: 6d988413
     /// @param candidate The address of the collator candidate for which delegation shall increase
-    /// @param more The amount by which the delegation is increased (upon execution)
-    function schedule_delegator_bond_more(address candidate, uint256 more)
-        external;
+    /// @param more The amount by which the delegation is increased
+    function delegator_bond_more(address candidate, uint256 more) external;
 
     /// DEPRECATED, replaced by schedule_delegator_bond_less, execute_delegation_request,
     /// cancel_delegation_request
