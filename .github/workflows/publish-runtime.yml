@@ -78,6 +78,8 @@ jobs:
         with:
           node-version: 14.x
       - name: Generate release body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: generate-release-body
         run: |
           cd tools

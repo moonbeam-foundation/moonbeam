@@ -31,8 +31,8 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime,
-	System,
+	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, System, XTokens,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -52,7 +52,6 @@ use sp_runtime::{
 	DispatchError,
 };
 use xcm::latest::prelude::*;
-use xcm::v1::{Junctions, MultiLocation};
 
 #[test]
 fn fast_track_available() {
@@ -418,7 +417,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -426,7 +425,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -465,7 +464,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -474,7 +473,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -1621,4 +1620,62 @@ fn refund_ed_0_evm() {
 				777 * 1_000_000_000,
 			);
 		});
+}
+
+#[test]
+fn root_can_change_default_xcm_vers() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let dest = MultiLocation {
+				parents: 1,
+				interior: X1(AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			};
+			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			// Default XCM version is not set yet, so xtokens should fail because it does not
+			// know with which version to send
+			assert_noop!(
+				XTokens::transfer(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					100_000_000_000_000,
+					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
+					4000000000
+				),
+				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+			);
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(2)
+			));
+
+			// Now transferring does not fail
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				moonbase_runtime::CurrencyId::OtherReserve(source_id),
+				100_000_000_000_000,
+				Box::new(xcm::VersionedMultiLocation::V1(dest)),
+				4000000000
+			));
+		})
 }
