@@ -22,11 +22,13 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	roll_to, roll_to_round_begin, roll_to_round_end,
-	set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
+	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end,
+	set_author, Balances, System, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
-	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CandidateBondChange,
+	assert_eq_events, assert_event_emitted, assert_last_event, assert_eq_last_events,
+	assert_tail_eq,
+	Bond, CandidateBondChange,
 	CandidateBondRequest, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
 	Error, Event, Range,
 };
@@ -4793,7 +4795,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
 			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				while round < 2 { // TODO: how to use mock's declared RewardPaymentDelay directly?
+				while round < 3 { // TODO: how to use mock's declared RewardPaymentDelay directly?
 					set_round_points(round);
 
 					roll_to_round_end(round);
@@ -4808,14 +4810,30 @@ fn deferred_payment_steady_state_event_flow() {
 				// TODO: pre block assertions
 
 				let num_rounds_rolled = roll_to_round_begin(round);
-				assert!(num_rounds_rolled == 0, "expected to be at round begin already");
+				assert_eq!(num_rounds_rolled, 1, "expected to be at round begin already");
+
+				let expected = vec![
+					Event::CollatorChosen(round as u32, 1, 40),
+					Event::CollatorChosen(round as u32, 2, 40),
+					Event::CollatorChosen(round as u32, 3, 40),
+					Event::CollatorChosen(round as u32, 4, 40),
+					Event::NewRound((round - 1) * 5, round as u32, 4, 160),
+				];
+				assert_eq_last_events!(expected);
 
 				set_round_points(round);
+
+                // TODO: on each block we should expect a payment
+				roll_one_block();
+				roll_one_block();
+				roll_one_block();
+				roll_one_block();
+
 
 				// TODO: roll block-by-block through round, making assertions
 
 				let num_rounds_rolled = roll_to_round_end(round);
-				assert!(num_rounds_rolled == 0, "expected to be at round end already");
+				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
 
 				// TODO: post block assertions
 				round + 1

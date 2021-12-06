@@ -1716,7 +1716,10 @@ pub mod pallet {
 			for &(ref delegator, ref target, balance) in &self.delegations {
 				assert!(
 					T::Currency::free_balance(delegator) >= balance,
-					"Account does not have enough balance to place delegation."
+					"Account {} does not have enough balance ({:?} < {:?}) to place delegation.",
+					delegator, 
+					T::Currency::free_balance(delegator),
+					balance,
 				);
 				let cd_count = if let Some(x) = col_delegator_count.get(target) {
 					*x
