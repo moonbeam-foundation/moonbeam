@@ -40,13 +40,19 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 		let exit_queue = <ExitQueue2<T>>::take();
 		let (mut reads, mut writes) = (1u64, 0u64);
 		let mut delegator_exits: BTreeMap<T::AccountId, RoundIndex> = BTreeMap::new();
-		let mut delegation_revocations: BTreeMap<T::AccountId, (T::AccountId, RoundIndex)> =
+		let mut delegation_revocations: BTreeMap<T::AccountId, Vec<(T::AccountId, RoundIndex)>> =
 			BTreeMap::new();
 		// Track scheduled delegator exits and revocations before migrating state
 		// Candidates already track exit info locally so no tracking is necessary
 		for (delegator, is_revocation, when) in exit_queue.nominator_schedule {
 			if let Some(revoking_candidate) = is_revocation {
-				delegation_revocations.insert(delegator, (revoking_candidate, when));
+				if let Some(existing_revocations) = delegation_revocations.get(&delegator) {
+					let mut new_revocations = existing_revocations.clone().to_vec();
+					new_revocations.push((revoking_candidate, when));
+					delegation_revocations.insert(delegator, new_revocations);
+				} else {
+					delegation_revocations.insert(delegator, vec![(revoking_candidate, when)]);
+				}
 			} else {
 				delegator_exits.insert(delegator, when);
 			}
@@ -67,9 +73,11 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 			if let Some(when) = delegator_exits.get(&delegator_id) {
 				delegator_state.set_leaving(*when);
 			}
-			// add revocation if exists
-			if let Some((candidate, when)) = delegation_revocations.get(&delegator_id) {
-				delegator_state.hotfix_set_revoke::<T>(candidate.clone(), *when);
+			// add revocations if exist
+			if let Some(revocations) = delegation_revocations.get(&delegator_id) {
+				for (candidate, when) in revocations {
+					delegator_state.hotfix_set_revoke::<T>(candidate.clone(), *when);
+				}
 			}
 			<DelegatorState<T>>::insert(delegator_id, delegator_state);
 			reads += 1u64;
