@@ -28,10 +28,12 @@ async function main() {
   - [ ] Get that PR approved and merged
   - [ ] Tag master with v${newVersion} and push to github
   - [ ] Start the github action Publish Binary Draft with v${previousVersion} => v${newVersion}
+  (master branch)
   - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
-  - [ ] Update moonbeam-networks stagenet/moonsama config.json to include sha-xxxxx (matching your
-    v${newVersion} tag) and increase the config version + 1
-  - [ ] Test the new client on stagenet and moonsama
+  - [ ] Update moonbeam-networks stagenet (moonsama/moonlama) config.json to include sha-xxxxx
+  (matching your v${newVersion} tag) and increase the config version + 1
+  - [ ] Test the new client on stagenet (moonsama/moonlama)
+  - [ ] Publish the client release draft
   - [ ] When everything is ok, publish the new docker image: start github action Publish Docker
   with v${newVersion}
   - [ ] Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
