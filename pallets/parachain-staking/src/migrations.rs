@@ -29,7 +29,7 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
-use sp_std::collections::btree_map::BTreeMap;
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 /// Migration to replace the automatic ExitQueue with a manual exits API.
 /// This migration is idempotent so it can be run more than once without any risk.
@@ -51,7 +51,8 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 					new_revocations.push((revoking_candidate, when));
 					delegation_revocations.insert(delegator, new_revocations);
 				} else {
-					delegation_revocations.insert(delegator, vec![(revoking_candidate, when)]);
+					delegation_revocations
+						.insert(delegator, sp_std::vec![(revoking_candidate, when)]);
 				}
 			} else {
 				delegator_exits.insert(delegator, when);
