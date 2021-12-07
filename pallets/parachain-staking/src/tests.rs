@@ -4736,7 +4736,12 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
-	use frame_support::traits::tokens::currency::Currency;
+	use frame_support::traits::{
+		ExistenceRequirement,
+		WithdrawReasons,
+		Currency,
+		Imbalance,
+	};
 
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
@@ -4744,8 +4749,9 @@ fn deferred_payment_steady_state_event_flow() {
 
 	ExtBuilder::default()
 		.with_balances(vec![
-			   ( 1, 200), ( 2, 200), ( 3, 200), ( 4, 200), // collators
-			   (11, 200), (22, 200), (33, 200), (44, 200), // delegators
+			   (  1, 200), ( 2, 200), ( 3, 200), ( 4, 200), // collators
+			   ( 11, 200), (22, 200), (33, 200), (44, 200), // delegators
+			   (111, 1000), // burn account, see `reset_issuance()`
 		])
 		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
 		.with_delegations(vec![
@@ -4781,7 +4787,7 @@ fn deferred_payment_steady_state_event_flow() {
 					(diff));
 				let burned = Balances::burn(diff);
 				println!("    burned: {:?}", burned);
-				assert_eq!(Balances::total_issuance(), initial_issuance);
+				Balances::settle(&111, burned, WithdrawReasons::FEE, ExistenceRequirement::AllowDeath);
 
 			};
 
@@ -4817,9 +4823,9 @@ fn deferred_payment_steady_state_event_flow() {
 					Event::NewRound((round - 1) * 5, round as u32, 4, 1600),
 
 					// first payout should occur on round change
-					Event::Rewarded(3, 12),
-					Event::Rewarded(33, 4),
-					Event::Rewarded(22, 4),
+					Event::Rewarded(3, 19),
+					Event::Rewarded(33, 6),
+					Event::Rewarded(22, 6),
 				];
 				assert_eq_last_events!(expected);
 
@@ -4828,32 +4834,32 @@ fn deferred_payment_steady_state_event_flow() {
                 // TODO: on each block we should expect a payment
 				roll_one_block();
 				let expected = vec![
-					Event::Rewarded(4, 12),
-					Event::Rewarded(44, 4),
-					Event::Rewarded(33, 4),
+					Event::Rewarded(4, 19),
+					Event::Rewarded(44, 6),
+					Event::Rewarded(33, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
-					Event::Rewarded(1, 12),
-					Event::Rewarded(44, 4),
-					Event::Rewarded(11, 4),
+					Event::Rewarded(1, 19),
+					Event::Rewarded(44, 6),
+					Event::Rewarded(11, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
-					Event::Rewarded(2, 12),
-					Event::Rewarded(22, 4),
-					Event::Rewarded(11, 4),
+					Event::Rewarded(2, 19),
+					Event::Rewarded(22, 6),
+					Event::Rewarded(11, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
 					// we paid everyone out by now, should repeat last event
-					Event::Rewarded(11, 4),
+					Event::Rewarded(11, 6),
 				];
 				assert_eq_last_events!(expected);
 
