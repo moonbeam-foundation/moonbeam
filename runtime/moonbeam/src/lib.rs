@@ -1144,7 +1144,6 @@ runtime_common::impl_self_contained_call!();
 #[cfg(test)]
 mod tests {
 	use super::{currency::*, *};
-	use sp_runtime::traits::Zero;
 
 	#[test]
 	fn currency_constants_are_correct() {
@@ -1174,10 +1173,7 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
-		assert_eq!(
-			MinCandidateStk::get(),
-			Balance::from(100 * KILOGLMR)
-		);
+		assert_eq!(MinCandidateStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
 
 		// crowdloan min reward
@@ -1191,10 +1187,7 @@ mod tests {
 			ProxyDepositBase::get(),
 			Balance::from(100 * GLMR + 80 * MILLIGLMR)
 		);
-		assert_eq!(
-			ProxyDepositFactor::get(),
-			Balance::from(210 * MILLIGLMR)
-		);
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
 		assert_eq!(
 			AnnouncementDepositBase::get(),
 			Balance::from(100 * GLMR + 80 * MILLIGLMR)
