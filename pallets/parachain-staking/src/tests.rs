@@ -81,6 +81,9 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 #[test]
 fn set_total_selected_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
+		// round length must be >= total_selected, so update that first
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+
 		assert_eq!(Stake::total_selected(), 5u32);
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
 		assert_eq!(Stake::total_selected(), 6u32);
@@ -150,15 +153,15 @@ fn cannot_set_collator_commission_to_current_collator_commission() {
 #[test]
 fn set_blocks_per_round_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_last_event!(MetaEvent::Stake(Event::BlocksPerRoundSet(
 			1,
 			0,
 			5,
-			3,
-			Perbill::from_parts(463),
-			Perbill::from_parts(463),
-			Perbill::from_parts(463),
+			6,
+			Perbill::from_parts(926),
+			Perbill::from_parts(926),
+			Perbill::from_parts(926),
 		)));
 	});
 }
@@ -167,8 +170,8 @@ fn set_blocks_per_round_event_emits_correctly() {
 fn set_blocks_per_round_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(Stake::round().length, 5);
-		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-		assert_eq!(Stake::round().length, 3);
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
+		assert_eq!(Stake::round().length, 6);
 	});
 }
 
