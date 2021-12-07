@@ -3989,8 +3989,6 @@ fn multiple_delegations() {
 		});
 }
 
-/*
- * TODO: fails because of deferred payouts
 #[test]
 fn payouts_follow_delegation_changes() {
 	ExtBuilder::default()
@@ -4038,19 +4036,16 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(3, 4, 20),
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
-				Event::Rewarded(1, 26),
-				Event::DelegatorDueReward(7, 1, 8),
-				Event::DelegatorDueReward(10, 1, 8),
-				Event::DelegatorDueReward(6, 1, 8),
-				Event::Rewarded(6, 8),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
 				Event::CollatorChosen(4, 1, 50),
 				Event::CollatorChosen(4, 2, 40),
 				Event::CollatorChosen(4, 3, 20),
 				Event::CollatorChosen(4, 4, 20),
 				Event::CollatorChosen(4, 5, 10),
 				Event::NewRound(15, 4, 5, 140),
+				Event::Rewarded(1, 26),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::Rewarded(6, 8),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -4071,32 +4066,26 @@ fn payouts_follow_delegation_changes() {
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),
-				Event::Rewarded(1, 27),
-				Event::DelegatorDueReward(7, 1, 8),
-				Event::DelegatorDueReward(10, 1, 8),
-				Event::DelegatorDueReward(6, 1, 8),
-				Event::Rewarded(6, 8),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
 				Event::CollatorChosen(5, 1, 50),
 				Event::CollatorChosen(5, 2, 40),
 				Event::CollatorChosen(5, 3, 20),
 				Event::CollatorChosen(5, 4, 20),
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
-				Event::Rewarded(1, 29),
-				Event::DelegatorDueReward(7, 1, 9),
-				Event::DelegatorDueReward(10, 1, 9),
-				Event::DelegatorDueReward(6, 1, 9),
-				Event::Rewarded(6, 9),
-				Event::Rewarded(7, 9),
-				Event::Rewarded(10, 9),
+				Event::Rewarded(1, 27),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::Rewarded(6, 8),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
 				Event::CollatorChosen(6, 3, 20),
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
+				Event::Rewarded(1, 29),
+				Event::Rewarded(7, 9),
+				Event::Rewarded(10, 9),
+				Event::Rewarded(6, 9),
 				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 			];
@@ -4107,32 +4096,26 @@ fn payouts_follow_delegation_changes() {
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
-				Event::Rewarded(1, 30),
-				Event::DelegatorDueReward(7, 1, 9),
-				Event::DelegatorDueReward(10, 1, 9),
-				Event::DelegatorDueReward(6, 1, 9),
-				Event::Rewarded(6, 9),
-				Event::Rewarded(7, 9),
-				Event::Rewarded(10, 9),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 3, 20),
 				Event::CollatorChosen(7, 4, 20),
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
-				Event::Rewarded(1, 32),
-				Event::DelegatorDueReward(7, 1, 10),
-				Event::DelegatorDueReward(10, 1, 10),
-				Event::DelegatorDueReward(6, 1, 10),
-				Event::Rewarded(6, 10),
-				Event::Rewarded(7, 10),
-				Event::Rewarded(10, 10),
+				Event::Rewarded(1, 30),
+				Event::Rewarded(7, 9),
+				Event::Rewarded(10, 9),
+				Event::Rewarded(6, 9),
 				Event::CollatorChosen(8, 1, 40),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 3, 20),
 				Event::CollatorChosen(8, 4, 20),
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
+				Event::Rewarded(1, 32),
+				Event::Rewarded(7, 10),
+				Event::Rewarded(10, 10),
+				Event::Rewarded(6, 10),
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
@@ -4140,17 +4123,15 @@ fn payouts_follow_delegation_changes() {
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
-				Event::Rewarded(1, 38),
-				Event::DelegatorDueReward(7, 1, 13),
-				Event::DelegatorDueReward(10, 1, 13),
-				Event::Rewarded(7, 13),
-				Event::Rewarded(10, 13),
 				Event::CollatorChosen(9, 1, 40),
 				Event::CollatorChosen(9, 2, 40),
 				Event::CollatorChosen(9, 3, 20),
 				Event::CollatorChosen(9, 4, 20),
 				Event::CollatorChosen(9, 5, 10),
 				Event::NewRound(40, 9, 5, 130),
+				Event::Rewarded(1, 38),
+				Event::Rewarded(7, 13),
+				Event::Rewarded(10, 13),
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
@@ -4160,17 +4141,15 @@ fn payouts_follow_delegation_changes() {
 			// new delegation is not rewarded yet
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
-				Event::Rewarded(1, 40),
-				Event::DelegatorDueReward(7, 1, 13),
-				Event::DelegatorDueReward(10, 1, 13),
-				Event::Rewarded(7, 13),
-				Event::Rewarded(10, 13),
 				Event::CollatorChosen(10, 1, 50),
 				Event::CollatorChosen(10, 2, 40),
 				Event::CollatorChosen(10, 3, 20),
 				Event::CollatorChosen(10, 4, 20),
 				Event::CollatorChosen(10, 5, 10),
 				Event::NewRound(45, 10, 5, 140),
+				Event::Rewarded(1, 40),
+				Event::Rewarded(7, 13),
+				Event::Rewarded(10, 13),
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
@@ -4178,17 +4157,15 @@ fn payouts_follow_delegation_changes() {
 			roll_to(50);
 			// new delegation not rewarded yet
 			let mut new6 = vec![
-				Event::Rewarded(1, 42),
-				Event::DelegatorDueReward(7, 1, 14),
-				Event::DelegatorDueReward(10, 1, 14),
-				Event::Rewarded(7, 14),
-				Event::Rewarded(10, 14),
 				Event::CollatorChosen(11, 1, 50),
 				Event::CollatorChosen(11, 2, 40),
 				Event::CollatorChosen(11, 3, 20),
 				Event::CollatorChosen(11, 4, 20),
 				Event::CollatorChosen(11, 5, 10),
 				Event::NewRound(50, 11, 5, 140),
+				Event::Rewarded(1, 42),
+				Event::Rewarded(7, 14),
+				Event::Rewarded(10, 14),
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
@@ -4196,73 +4173,21 @@ fn payouts_follow_delegation_changes() {
 			// new delegation is rewarded for first time
 			// 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
-				Event::Rewarded(1, 39),
-				Event::DelegatorDueReward(7, 1, 12),
-				Event::DelegatorDueReward(8, 1, 12),
-				Event::DelegatorDueReward(10, 1, 12),
-				Event::Rewarded(7, 12),
-				Event::Rewarded(8, 12),
-				Event::Rewarded(10, 12),
 				Event::CollatorChosen(12, 1, 50),
 				Event::CollatorChosen(12, 2, 40),
 				Event::CollatorChosen(12, 3, 20),
 				Event::CollatorChosen(12, 4, 20),
 				Event::CollatorChosen(12, 5, 10),
 				Event::NewRound(55, 12, 5, 140),
+				Event::Rewarded(1, 39),
+				Event::Rewarded(7, 12),
+				Event::Rewarded(8, 12),
+				Event::Rewarded(10, 12),
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
 		});
 }
-*/
-
-/*
- * TODO: fails because of deferred payouts
-#[test]
-fn delegations_merged_before_reward_payout() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 120)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		.with_delegations(vec![(5, 1, 30), (5, 2, 30), (5, 3, 30), (5, 4, 30)])
-		.build()
-		.execute_with(|| {
-			roll_to(8);
-			set_author(1, 1, 1);
-			set_author(1, 2, 1);
-			set_author(1, 3, 1);
-			set_author(1, 4, 1);
-			roll_to(16);
-			let expected_events = vec![
-				Event::CollatorChosen(2, 1, 50),
-				Event::CollatorChosen(2, 2, 50),
-				Event::CollatorChosen(2, 3, 50),
-				Event::CollatorChosen(2, 4, 50),
-				Event::NewRound(5, 2, 4, 200),
-				Event::Rewarded(3, 1),
-				Event::DelegatorDueReward(5, 3, 1),
-				Event::Rewarded(4, 1),
-				Event::DelegatorDueReward(5, 4, 1),
-				Event::Rewarded(1, 1),
-				Event::DelegatorDueReward(5, 1, 1),
-				Event::Rewarded(2, 1),
-				Event::DelegatorDueReward(5, 2, 1),
-				// ALL REWARDS FOR 5 are merged into one payment + event
-				Event::Rewarded(5, 4),
-				Event::CollatorChosen(3, 1, 50),
-				Event::CollatorChosen(3, 2, 50),
-				Event::CollatorChosen(3, 3, 50),
-				Event::CollatorChosen(3, 4, 50),
-				Event::NewRound(10, 3, 4, 200),
-				Event::CollatorChosen(4, 1, 50),
-				Event::CollatorChosen(4, 2, 50),
-				Event::CollatorChosen(4, 3, 50),
-				Event::CollatorChosen(4, 4, 50),
-				Event::NewRound(15, 4, 4, 200),
-			];
-			assert_eq_events!(expected_events);
-		});
-}
-*/
 
 #[test]
 // MaxDelegatorsPerCandidate = 4
