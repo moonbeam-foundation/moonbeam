@@ -1198,19 +1198,6 @@
 <span id="1198">1198</span>
 <span id="1199">1199</span>
 <span id="1200">1200</span>
-<span id="1201">1201</span>
-<span id="1202">1202</span>
-<span id="1203">1203</span>
-<span id="1204">1204</span>
-<span id="1205">1205</span>
-<span id="1206">1206</span>
-<span id="1207">1207</span>
-<span id="1208">1208</span>
-<span id="1209">1209</span>
-<span id="1210">1210</span>
-<span id="1211">1211</span>
-<span id="1212">1212</span>
-<span id="1213">1213</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1904,9 +1891,8 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
 	<span class="doccomment">/// Minimum stake required to become a collator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="comment">// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)</span>
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> <span class="op">/</span> <span class="number">10</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 }
@@ -1989,11 +1975,9 @@
 
 <span class="macro">parameter_types!</span> {
 	<span class="comment">// One storage item; key size 32, value size 8; .</span>
-	<span class="comment">// TODO: Restore the real value before phase 2</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;<span class="comment">//currency::deposit(1, 8);</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
 	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).</span>
-	<span class="comment">// TODO: Restore the real value before phase 2</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;<span class="comment">//currency::deposit(0, 21);</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">21</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProxies</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">32</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
 	<span class="comment">// Additional storage item size of 56 bytes:</span>
@@ -2360,7 +2344,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
-	<span class="kw">use</span> <span class="ident">sp_runtime::traits::Zero</span>;
 
 	<span class="attribute">#[<span class="ident">test</span>]</span>
 	<span class="kw">fn</span> <span class="ident">currency_constants_are_correct</span>() {
@@ -2390,11 +2373,7 @@
 
 		<span class="comment">// staking minimums</span>
 		<span class="macro">assert_eq!</span>(<span class="ident">MinCollatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">MinCandidateStk::get</span>(),
-			<span class="comment">// TODO restore real value before phase 2</span>
-			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>) <span class="comment">//Balance::from(100 * KILOGLMR)</span>
-		);
+		<span class="macro">assert_eq!</span>(<span class="ident">MinCandidateStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
 		<span class="macro">assert_eq!</span>(<span class="ident">MinDelegatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">500</span> <span class="op">*</span> <span class="ident">GLMR</span>));
 
 		<span class="comment">// crowdloan min reward</span>
@@ -2406,14 +2385,9 @@
 		<span class="comment">// proxy deposits</span>
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">ProxyDepositBase::get</span>(),
-			<span class="comment">// TODO restore real value before phase 2</span>
-			<span class="ident">Balance::zero</span>() <span class="comment">//Balance::from(100 * GLMR + 80 * MILLIGLMR)</span>
+			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">ProxyDepositFactor::get</span>(),
-			<span class="comment">// TODO restore real value before phase 2</span>
-			<span class="ident">Balance::zero</span>() <span class="comment">//Balance::from(210 * MILLIGLMR)</span>
-		);
+		<span class="macro">assert_eq!</span>(<span class="ident">ProxyDepositFactor::get</span>(), <span class="ident">Balance::from</span>(<span class="number">210</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">AnnouncementDepositBase::get</span>(),
 			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
