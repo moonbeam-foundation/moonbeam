@@ -1386,6 +1386,7 @@ pub mod pallet {
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
+		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
@@ -1871,6 +1872,10 @@ pub mod pallet {
 			);
 			let old = <TotalSelected<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			ensure!(
+				new <= T::MinBlocksPerRound::get(),
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+			);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
@@ -1902,6 +1907,10 @@ pub mod pallet {
 			let mut round = <Round<T>>::get();
 			let (now, first, old) = (round.current, round.first, round.length);
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			ensure!(
+				new >= <TotalSelected<T>>::get(),
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+			);
 			round.length = new;
 			// update per-round inflation given new rounds per year
 			let mut inflation_config = <InflationConfig<T>>::get();

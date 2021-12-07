@@ -60,8 +60,21 @@ fn invalid_root_origin_fails() {
 #[test]
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
+		// before we can bump total_selected we must bump the blocks per round 
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
-		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32)));
+		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 4u32)));
+	});
+}
+
+#[test]
+fn set_total_selected_fails_if_above_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Stake::round().length, 5); // test relies on this
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 6u32),
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+		);
 	});
 }
 
@@ -186,12 +199,16 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			// default round every 5 blocks
-			roll_to(8);
-			assert_last_event!(MetaEvent::Stake(Event::NewRound(5, 2, 1, 20)));
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			roll_to(9);
-			assert_last_event!(MetaEvent::Stake(Event::NewRound(9, 3, 1, 20)));
+			// we can't lower the blocks per round because it must be above the number of collators,
+			// and we can't lower the number of collators because it must be above
+			// MinSelectedCandidates. so we first raise blocks per round, then lower it.
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+
+			roll_to(17);
+			assert_last_event!(MetaEvent::Stake(Event::NewRound(10, 2, 1, 20)));
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 5u32));
+			roll_to(18);
+			assert_last_event!(MetaEvent::Stake(Event::NewRound(18, 3, 1, 20)));
 		});
 }
 
