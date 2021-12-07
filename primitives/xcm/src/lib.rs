@@ -19,9 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	traits::{Get, OriginTrait},
+	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
+use sp_runtime::traits::Zero;
+use sp_std::borrow::Borrow;
+use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
 	AssetId as xcmAssetId, Error as XcmError, Fungibility,
 	Junction::{AccountKey20, Parachain},
@@ -29,11 +32,7 @@ use xcm::latest::{
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::FilterAssetLocation;
-use xcm_executor::traits::WeightTrader;
-
-use sp_std::borrow::Borrow;
-use sp_std::{convert::TryInto, marker::PhantomData};
+use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
 
 use sp_std::vec::Vec;
 
@@ -215,6 +214,21 @@ impl<
 	}
 }
 
+/// Deal with spent fees, deposit them as dictated by R
+impl<
+		AssetId: From<AssetType> + Clone,
+		AssetType: From<MultiLocation> + Clone,
+		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
+		R: TakeRevenue,
+	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+{
+	fn drop(&mut self) {
+		if let Some((id, amount, _)) = self.1.clone() {
+			R::take_revenue((id, amount).into());
+		}
+	}
+}
+
 pub trait Reserve {
 	/// Returns assets reserve location.
 	fn reserve(&self) -> Option<MultiLocation>;
@@ -295,4 +309,33 @@ pub trait XcmTransact: UtilityEncodeCall {
 pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	// Get assetId from account
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
+}
+
+/// XCM fee depositor to which we implement the TakeRevenue trait
+/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
+/// AssetId and amount, and the fee receiver account
+pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
+	PhantomData<(Assets, Matcher, AccountId, ReceiverAccount)>,
+);
+impl<
+		Assets: Mutate<AccountId>,
+		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
+		AccountId: Clone,
+		ReceiverAccount: Get<AccountId>,
+	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
+{
+	fn take_revenue(revenue: MultiAsset) {
+		match Matcher::matches_fungibles(&revenue) {
+			Ok((asset_id, amount)) => {
+				if !amount.is_zero() {
+					let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+					debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+				}
+			}
+			Err(_) => log::debug!(
+				target: "xcm",
+				"take revenue failed matching fungible"
+			),
+		}
+	}
 }

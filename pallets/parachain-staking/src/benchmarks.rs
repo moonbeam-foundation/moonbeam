@@ -18,8 +18,8 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondChange, CandidateBondRequest, Config, DelegationChange,
-	DelegationRequest, Pallet, Range,
+	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationChange, DelegationRequest, Pallet,
+	Range,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
@@ -309,7 +309,7 @@ benchmarks! {
 		assert!(Pallet::<T>::candidate_state(&caller).unwrap().is_active());
 	}
 
-	schedule_candidate_bond_more {
+	candidate_bond_more {
 		let more = min_candidate_stk::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
@@ -320,15 +320,8 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()), more)
 	verify {
-		let state = Pallet::<T>::candidate_state(&caller).expect("request bonded more so exists");
-		assert_eq!(
-			state.request,
-			Some(CandidateBondRequest {
-				amount: more,
-				change: CandidateBondChange::Increase,
-				when_executable: 3,
-			})
-		);
+		let expected_bond = more * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	schedule_candidate_bond_less {
@@ -345,36 +338,11 @@ benchmarks! {
 		let state = Pallet::<T>::candidate_state(&caller).expect("request bonded less so exists");
 		assert_eq!(
 			state.request,
-			Some(CandidateBondRequest {
+			Some(CandidateBondLessRequest {
 				amount: min_candidate_stk,
-				change: CandidateBondChange::Decrease,
 				when_executable: 3,
 			})
 		);
-	}
-
-	execute_candidate_bond_more {
-		let min_candidate_stk = min_candidate_stk::<T>();
-		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			min_candidate_stk,
-			true,
-			1u32,
-		)?;
-		Pallet::<T>::schedule_candidate_bond_more(
-			RawOrigin::Signed(caller.clone()).into(),
-			min_candidate_stk
-		)?;
-		roll_to_and_author::<T>(2, caller.clone());
-	}: {
-		Pallet::<T>::execute_candidate_bond_request(
-			RawOrigin::Signed(caller.clone()).into(),
-			caller.clone()
-		)?;
-	} verify {
-		let expected_bond = min_candidate_stk * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	execute_candidate_bond_less {
@@ -392,35 +360,12 @@ benchmarks! {
 		)?;
 		roll_to_and_author::<T>(2, caller.clone());
 	}: {
-		Pallet::<T>::execute_candidate_bond_request(
+		Pallet::<T>::execute_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			caller.clone()
 		)?;
 	} verify {
 		assert_eq!(T::Currency::reserved_balance(&caller), min_candidate_stk);
-	}
-
-	cancel_candidate_bond_more {
-		let min_candidate_stk = min_candidate_stk::<T>();
-		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			min_candidate_stk,
-			true,
-			1u32,
-		)?;
-		Pallet::<T>::schedule_candidate_bond_more(
-			RawOrigin::Signed(caller.clone()).into(),
-			min_candidate_stk
-		)?;
-	}: {
-		Pallet::<T>::cancel_candidate_bond_request(
-			RawOrigin::Signed(caller.clone()).into(),
-		)?;
-	} verify {
-		assert!(
-			Pallet::<T>::candidate_state(&caller).unwrap().request.is_none()
-		);
 	}
 
 	cancel_candidate_bond_less {
@@ -437,7 +382,7 @@ benchmarks! {
 			min_candidate_stk
 		)?;
 	}: {
-		Pallet::<T>::cancel_candidate_bond_request(
+		Pallet::<T>::cancel_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 		)?;
 	} verify {
@@ -628,7 +573,7 @@ benchmarks! {
 		);
 	}
 
-	schedule_delegator_bond_more {
+	delegator_bond_more {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -647,17 +592,8 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond)
 	verify {
-		let state = Pallet::<T>::delegator_state(&caller)
-			.expect("just request bonded less so exists");
-		assert_eq!(
-			state.requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: 5u32.into(),
-				when_executable: 3,
-				action: DelegationChange::Increase
-			})
-		);
+		let expected_bond = bond * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	schedule_delegator_bond_less {
@@ -726,40 +662,6 @@ benchmarks! {
 		);
 	}
 
-	execute_delegator_bond_more {
-		let collator: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
-		)?;
-		Pallet::<T>::schedule_delegator_bond_more(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond
-		)?;
-		roll_to_and_author::<T>(2, collator.clone());
-	}: {
-		Pallet::<T>::execute_delegation_request(
-			RawOrigin::Signed(caller.clone()).into(),
-			caller.clone(),
-			collator.clone()
-		)?;
-	} verify {
-		let expected_bond = bond * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
-	}
-
 	execute_delegator_bond_less {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
@@ -823,44 +725,6 @@ benchmarks! {
 	} verify {
 		assert!(
 			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator).is_none()
-		);
-	}
-
-	cancel_delegator_bond_more {
-		let collator: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
-		)?;
-		Pallet::<T>::schedule_delegator_bond_more(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond
-		)?;
-		roll_to_and_author::<T>(2, collator.clone());
-	}: {
-		Pallet::<T>::cancel_delegation_request(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone()
-		)?;
-	} verify {
-		assert!(
-			Pallet::<T>::delegator_state(&caller)
-				.unwrap()
-				.requests()
-				.get(&collator)
-				.is_none()
 		);
 	}
 
@@ -1178,9 +1042,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_schedule_candidate_bond_more() {
+	fn bench_candidate_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_candidate_bond_more());
+			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_more());
 		});
 	}
 
@@ -1192,23 +1056,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_execute_candidate_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_more());
-		});
-	}
-
-	#[test]
 	fn bench_execute_candidate_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_candidate_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_candidate_bond_more());
 		});
 	}
 
@@ -1255,9 +1105,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_schedule_delegator_bond_more() {
+	fn bench_delegator_bond_more() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_delegator_bond_more());
+			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_more());
 		});
 	}
 
@@ -1276,13 +1126,6 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_execute_delegator_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_delegator_bond_more());
-		});
-	}
-
-	#[test]
 	fn bench_execute_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_execute_delegator_bond_less());
@@ -1293,13 +1136,6 @@ mod tests {
 	fn bench_cancel_revoke_delegation() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_cancel_revoke_delegation());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_delegator_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_delegator_bond_more());
 		});
 	}
 
