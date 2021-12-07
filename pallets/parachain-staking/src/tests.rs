@@ -4537,8 +4537,6 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 
 			// roll to the next block where we start round 3; we should have round change and first
 			// payout made.
-			// TODO: the order is [probably] based on hashes in the underlying trie, and isn't
-			// significant here. these should be rewritten to work in arbitrary order
 			roll_one_block();
 			expected.push(Event::Rewarded(4, 2));
 			assert_eq_events!(expected);
@@ -4709,13 +4707,14 @@ fn deferred_payment_steady_state_event_flow() {
 			// it is consistent every round
 			let initial_issuance = Balances::total_issuance();
 			let reset_issuance = || {
-				// total hack. issuance is based on total supply, which inflates each round. so we burn
-				// what we minted in the round to cause the rewards to be the same in the next round.
 				let new_issuance = Balances::total_issuance();
 				let diff = new_issuance - initial_issuance;
 				let burned = Balances::burn(diff);
-				// TODO: inspect return statement
-				Balances::settle(&111, burned, WithdrawReasons::FEE, ExistenceRequirement::AllowDeath);
+				let result = Balances::settle(
+					&111,
+					burned,
+					WithdrawReasons::FEE,
+					ExistenceRequirement::AllowDeath)?;
 
 			};
 
@@ -4755,7 +4754,6 @@ fn deferred_payment_steady_state_event_flow() {
 
 				set_round_points(round);
 
-                // TODO: on each block we should expect a payment
 				roll_one_block();
 				let expected = vec![
 					Event::Rewarded(4, 19),
@@ -4802,15 +4800,6 @@ fn deferred_payment_steady_state_event_flow() {
 			}
 		});
 }
-
-// TODO: deferred payout tests, ideas:
-// * no payouts occur immediately
-// * storage items correctly persist after round end
-// * payouts occur only one at a time
-// * payouts are not duplicated
-// * storage items are cleaned up at the end
-// * round duration cannot be less than payout 
-// * payouts properly respect RewardPaymentDelay
 
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
