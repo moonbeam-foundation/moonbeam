@@ -4547,7 +4547,7 @@ fn delegation_events_convey_correct_position() {
 }
 
 #[test]
-fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
+fn no_rewards_paid_until_after_reward_payment_delay() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
@@ -4576,44 +4576,29 @@ fn no_rewards_paid_until_after_reward_payment_delay_plus_one() {
 				Event::CollatorChosen(3, 3, 20),
 				Event::CollatorChosen(3, 4, 20),
 				Event::NewRound(10, 3, 4, 80),
+				// rewards will begin immediately following a NewRound
+				Event::Rewarded(3, 1),
 			]);
 			assert_eq_events!(expected);
 
-			// rewards will begin in round 4 in the block in which the round change occurs
-			let num_blocks_rolled = roll_to_round_end(3);
-			assert_eq_events!(expected); // no more staking events in round 3
-			assert_eq!(num_blocks_rolled, 4); // sanity check...
-
-			expected.append(&mut vec![
-				Event::CollatorChosen(4, 1, 20),
-				Event::CollatorChosen(4, 2, 20),
-				Event::CollatorChosen(4, 3, 20),
-				Event::CollatorChosen(4, 4, 20),
-				Event::NewRound(15, 4, 4, 80),
-			]);
-
-			// roll to the next block where we start round 4; we should have round change and first
+			// roll to the next block where we start round 3; we should have round change and first
 			// payout made.
 			// TODO: the order is [probably] based on hashes in the underlying trie, and isn't
 			// significant here. these should be rewritten to work in arbitrary order
-			roll_to_round_begin(4);
-			expected.push(Event::Rewarded(3, 1));
-			assert_eq_events!(expected);
-
-			roll_to(16);
+			roll_one_block();
 			expected.push(Event::Rewarded(4, 2));
 			assert_eq_events!(expected);
 
-			roll_to(17);
+			roll_one_block();
 			expected.push(Event::Rewarded(1, 1));
 			assert_eq_events!(expected);
 
-			roll_to(18);
+			roll_one_block();
 			expected.push(Event::Rewarded(2, 1));
 			assert_eq_events!(expected);
 
 			// there should be no more payments in this round...
-			let num_blocks_rolled = roll_to_round_end(4);
+			let num_blocks_rolled = roll_to_round_end(3);
 			assert_eq_events!(expected);
 			assert_eq!(num_blocks_rolled, 1);
 		});
@@ -4667,22 +4652,22 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<Staked<Test>>::contains_key(2),
 				"Staked should be populated when round changes");
 
+			// first payout occurs in round 3
 			round = 3;
 			roll_to_round_begin(round.into());
 			expected.append(&mut vec![
 				Event::CollatorChosen(round, 1, 20),
 				Event::CollatorChosen(round, 2, 20),
 				Event::NewRound(10, round, 2, 40),
+				Event::Rewarded(1, 1),
 			]);
 			assert_eq_events!(expected);
 
-			// no payout yet, so we should have all AtStake storage items
+			// payouts should exist for past rounds that haven't been paid out yet..
 			assert!(<AtStake<Test>>::contains_key(3, 1));
 			assert!(<AtStake<Test>>::contains_key(3, 2));
 			assert!(<AtStake<Test>>::contains_key(2, 1));
 			assert!(<AtStake<Test>>::contains_key(2, 2));
-			assert!(<AtStake<Test>>::contains_key(1, 1));
-			assert!(<AtStake<Test>>::contains_key(1, 2));
 
 			assert!(<DelayedPayouts<Test>>::contains_key(1),
 				"DelayedPayouts should be populated after RewardPaymentDelay");
@@ -4698,17 +4683,6 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(! <Points<Test>>::contains_key(3), "We never awarded points for round 3");
 			assert!(<Staked<Test>>::contains_key(3));
 
-			// first payout occurs in round 4
-			round = 4;
-			roll_to_round_begin(round.into());
-			expected.append(&mut vec![
-				Event::CollatorChosen(round, 1, 20),
-				Event::CollatorChosen(round, 2, 20),
-				Event::NewRound(15, round, 2, 40),
-				Event::Rewarded(1, 1),
-			]);
-			assert_eq_events!(expected);
-
 			// collator 1 has been paid in this last block and associated storage cleaned up
 			assert!(! <AtStake<Test>>::contains_key(1, 1));
 			assert!(! <AwardedPts<Test>>::contains_key(1, 1));
@@ -4716,6 +4690,16 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			// but collator 2 hasn't been paid
 			assert!(<AtStake<Test>>::contains_key(1, 2));
 			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+
+			round = 4;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::Rewarded(2, 1), // from previous round
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(15, round, 2, 40),
+			]);
+			assert_eq_events!(expected);
 
 			roll_to_round_end(4);
 			// collators have both been paid and storage fully cleaned up for round 1
@@ -4725,10 +4709,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(! <Points<Test>>::contains_key(1)); // points should be cleaned up
 			assert!(! <DelayedPayouts<Test>>::contains_key(1));
 
-			// and we should see the payout event for collator 2 as well
-			expected.append(&mut vec![
-				Event::Rewarded(2, 1),
-			]);
+			// no more events expected
 			assert_eq_events!(expected);
 
 		});
