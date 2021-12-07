@@ -1459,8 +1459,6 @@ pub mod pallet {
 		),
 		/// Delegator, Candidate, Amount Unstaked, New Total Amt Staked for Candidate
 		DelegatorLeftCandidate(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Delegator, Collator, Due reward (as per counted delegation for collator)
-		DelegatorDueReward(T::AccountId, T::AccountId, BalanceOf<T>),
 		/// Paid the account (delegator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Transferred to account which holds funds reserved for parachain bond
@@ -1502,9 +1500,9 @@ pub mod pallet {
 
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
-                println!("    - round {} needs update", round.current);
 				// mutate round
 				round.update(n);
+				println!("***** round: {}, fight! *****", round.current);
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(round.current);
 				// select top collator candidates for next round
@@ -2364,8 +2362,11 @@ pub mod pallet {
 		}
 		/// Compute round issuance based on total staked for the given round
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
+			println!("compute_issuance with staked: {:?}", staked);
 			let config = <InflationConfig<T>>::get();
+			println!("    config: {:?}", config);
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
+			println!("    round_issuance: {:?}", round_issuance);
 			// TODO: consider interpolation instead of bounded range
 			if staked < config.expect.min {
 				round_issuance.min
@@ -2407,6 +2408,9 @@ pub mod pallet {
 				return;
 			}
 			let round_to_payout = now - delay;
+			println!("pay_stakers processing round {}, total_issuance: {:?}",
+					 round_to_payout,
+					 T::Currency::total_issuance());
 			let total_points = <Points<T>>::get(round_to_payout);
 			if total_points.is_zero() {
 				// TODO: this perhaps being used to ensure we don't call this fn more than once per
@@ -2420,6 +2424,7 @@ pub mod pallet {
 				return;
 			}
 			let total_staked = <Staked<T>>::take(round_to_payout); // TODO: leave until payouts done
+			println!("total staked: {:?}", total_staked);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -2429,21 +2434,23 @@ pub mod pallet {
 				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
 			{
 				// update round issuance iff transfer succeeds
-				left_issuance -= imb.peek(); // TODO: save left_issuance for payouts in later blocks
+				left_issuance -= imb.peek();
 				Self::deposit_event(Event::ReservedForParachainBond(
 					bond_config.account,
 					imb.peek(),
 				));
 			}
 
-            println!("Inserting DelayedPayout for round {}", round_to_payout);
+			let payout = DelayedPayout {
+				round_issuance: total_issuance,
+				total_staking_reward: left_issuance,
+				collator_commission: <CollatorCommission<T>>::get(),
+			};
+
+            println!("Inserting DelayedPayout for round {}: {:?}", round_to_payout, payout);
 			<DelayedPayouts<T>>::insert(
 				round_to_payout,
-				DelayedPayout {
-					round_issuance: total_issuance,
-					total_staking_reward: left_issuance,
-					collator_commission: <CollatorCommission<T>>::get(),
-				},
+				payout
 			);
 		}
 
@@ -2469,11 +2476,11 @@ pub mod pallet {
 
 			let delay = T::RewardPaymentDelay::get();
             // don't underflow uint
-            if now < delay + 1 {
+            if now < delay {
                 return false;
             }
 
-            let paid_for_round = now - (delay + 1);
+            let paid_for_round = now - delay;
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
                 println!("    - have payout info, calling pay_one_collator_reward...");
@@ -2486,7 +2493,7 @@ pub mod pallet {
 				}
 				true
 			} else {
-                println!("    - no payout info");
+                println!("    - no payout info (paid_for_round: {})", paid_for_round);
 				false
 			}
 		}
@@ -2542,12 +2549,8 @@ pub mod pallet {
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
+						println!("due: {:?}, percent: {:?}, amt_due: {:?}", due, percent, amt_due);
 						mint(due, owner.clone());
-						Self::deposit_event(Event::DelegatorDueReward(
-							owner.clone(),
-							collator.clone(),
-							due,
-						));
 					}
 				}
 

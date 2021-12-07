@@ -4635,36 +4635,6 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			set_author(round, 1, 1);
 			set_author(round, 2, 1);
 
-			/*
-			 * these macros aren't helpful because these storage items get populated at different
-			 * rounds (e.g. some populated during current round, some after RewardPaymentDelay,
-			 * etc.)
-			 *
-			 * TODO: remove
-			 *
-			// macros to test that round-scoped storage exists or doesn't
-			macro_rules! assert_round_scoped_storage_exists {
-				($round: expr) => ({
-					assert!(<DelayedPayouts<Test>>::contains_key($round),
-						"DelayedPayouts for round {} was expected to exist", $round);
-					assert!(<Points<Test>>::contains_key($round),
-						"Points for round {} was expected to exist", $round);
-					assert!(<Staked<Test>>::contains_key($round),
-						"Staked for round {} was expected to exist", $round);
-				});
-			}
-			macro_rules! assert_round_scoped_storage_doesnt_exist {
-				($round: expr) => ({
-					assert!(! <DelayedPayouts<Test>>::contains_key($round),
-						"DelayedPayouts for round {} was expected not to exist", $round);
-					assert!(! <Points<Test>>::contains_key($round),
-						"Points for round {} was expected not to exist", $round);
-					assert!(! <Staked<Test>>::contains_key($round),
-						"Staked for round {} was expected not to exist", $round);
-				});
-			}
-			*/
-
 			// reflects genesis?
 			assert!(<AtStake<Test>>::contains_key(round, 1));
 			assert!(<AtStake<Test>>::contains_key(round, 2));
@@ -4766,6 +4736,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
+	use frame_support::traits::tokens::currency::Currency;
 
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
@@ -4773,15 +4744,15 @@ fn deferred_payment_steady_state_event_flow() {
 
 	ExtBuilder::default()
 		.with_balances(vec![
-			   ( 1, 20), ( 2, 20), ( 3, 20), ( 4, 20), // collators
-			   (11, 20), (22, 20), (33, 20), (44, 20), // delegators
+			   ( 1, 200), ( 2, 200), ( 3, 200), ( 4, 200), // collators
+			   (11, 200), (22, 200), (33, 200), (44, 200), // delegators
 		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
 		.with_delegations(vec![
-			  (11, 1, 10), (11, 2, 10), // delegator 11 delegates 10 to 1 and 2
-			  (22, 2, 10), (22, 3, 10), // delegator 22 delegates 10 to 2 and 3
-			  (33, 3, 10), (33, 4, 10), // delegator 33 delegates 10 to 3 and 4
-			  (44, 4, 10), (44, 1, 10), // delegator 44 delegates 10 to 4 and 1
+			  (11, 1, 100), (11, 2, 100), // delegator 11 delegates 100 to 1 and 2
+			  (22, 2, 100), (22, 3, 100), // delegator 22 delegates 100 to 2 and 3
+			  (33, 3, 100), (33, 4, 100), // delegator 33 delegates 100 to 3 and 4
+			  (44, 4, 100), (44, 1, 100), // delegator 44 delegates 100 to 4 and 1
 		])
 		.build()
 		.execute_with(|| {
@@ -4793,31 +4764,62 @@ fn deferred_payment_steady_state_event_flow() {
 				set_author(round as u32, 4, 1);
 			};
 
+			// grab initial issuance -- we will reset it before round issuance is calculated so that
+			// it is consistent every round
+			let initial_issuance = Balances::total_issuance();
+			let reset_issuance = || {
+
+				println!("************** RESETTING ISSUANCE");
+
+				// total hack. issuance is based on total supply, which inflates each round. so we burn
+				// what we minted in the round to cause the rewards to be the same in the next round.
+				let new_issuance = Balances::total_issuance();
+				let diff = new_issuance - initial_issuance;
+				println!("new_issuance ({:?}) - initial_issuance ({:?}) = {:?}",
+					new_issuance,
+					initial_issuance,
+					(diff));
+				let burned = Balances::burn(diff);
+				println!("    burned: {:?}", burned);
+				assert_eq!(Balances::total_issuance(), initial_issuance);
+
+			};
+
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
 			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				while round < 3 { // TODO: how to use mock's declared RewardPaymentDelay directly?
+				println!("roll_through_initial_rounds() -------------------------------");
+				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
 					set_round_points(round);
 
 					roll_to_round_end(round);
 					round += 1;
 				}
+
+				reset_issuance();
+
 				round
 			};
 
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
 			let roll_through_steady_state_round = |round: u64| -> u64 {
+				println!("roll_through_steady_state_round({}) ------------------------------", round);
 				// TODO: pre block assertions
 
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(num_rounds_rolled, 1, "expected to be at round begin already");
 
 				let expected = vec![
-					Event::CollatorChosen(round as u32, 1, 40),
-					Event::CollatorChosen(round as u32, 2, 40),
-					Event::CollatorChosen(round as u32, 3, 40),
-					Event::CollatorChosen(round as u32, 4, 40),
-					Event::NewRound((round - 1) * 5, round as u32, 4, 160),
+					Event::CollatorChosen(round as u32, 1, 400),
+					Event::CollatorChosen(round as u32, 2, 400),
+					Event::CollatorChosen(round as u32, 3, 400),
+					Event::CollatorChosen(round as u32, 4, 400),
+					Event::NewRound((round - 1) * 5, round as u32, 4, 1600),
+
+					// first payout should occur on round change
+					Event::Rewarded(3, 12),
+					Event::Rewarded(33, 4),
+					Event::Rewarded(22, 4),
 				];
 				assert_eq_last_events!(expected);
 
@@ -4825,15 +4827,40 @@ fn deferred_payment_steady_state_event_flow() {
 
                 // TODO: on each block we should expect a payment
 				roll_one_block();
-				roll_one_block();
-				roll_one_block();
-				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(4, 12),
+					Event::Rewarded(44, 4),
+					Event::Rewarded(33, 4),
+				];
+				assert_eq_last_events!(expected);
 
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(1, 12),
+					Event::Rewarded(44, 4),
+					Event::Rewarded(11, 4),
+				];
+				assert_eq_last_events!(expected);
 
-				// TODO: roll block-by-block through round, making assertions
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(2, 12),
+					Event::Rewarded(22, 4),
+					Event::Rewarded(11, 4),
+				];
+				assert_eq_last_events!(expected);
+
+				roll_one_block();
+				let expected = vec![
+					// we paid everyone out by now, should repeat last event
+					Event::Rewarded(11, 4),
+				];
+				assert_eq_last_events!(expected);
 
 				let num_rounds_rolled = roll_to_round_end(round);
 				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
+
+				reset_issuance();
 
 				// TODO: post block assertions
 				round + 1
