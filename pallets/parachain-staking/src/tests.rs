@@ -4325,7 +4325,6 @@ fn candidate_pool_updates_when_total_counted_changes() {
 				3
 			));
 			roll_to(30);
-			println!("test");
 			// 10: 18 -> 15 => 10 bumped to bottom, 8 bumped to top (- 18 + 16 = -2 for count)
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(10), 10, 1));
 			// 16 + 17 + 19 + 20 + 20 = 92 (top 4 + self bond)
@@ -4755,26 +4754,18 @@ fn deferred_payment_steady_state_event_flow() {
 			// it is consistent every round
 			let initial_issuance = Balances::total_issuance();
 			let reset_issuance = || {
-
-				println!("************** RESETTING ISSUANCE");
-
 				// total hack. issuance is based on total supply, which inflates each round. so we burn
 				// what we minted in the round to cause the rewards to be the same in the next round.
 				let new_issuance = Balances::total_issuance();
 				let diff = new_issuance - initial_issuance;
-				println!("new_issuance ({:?}) - initial_issuance ({:?}) = {:?}",
-					new_issuance,
-					initial_issuance,
-					(diff));
 				let burned = Balances::burn(diff);
-				println!("    burned: {:?}", burned);
+				// TODO: inspect return statement
 				Balances::settle(&111, burned, WithdrawReasons::FEE, ExistenceRequirement::AllowDeath);
 
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
 			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				println!("roll_through_initial_rounds() -------------------------------");
 				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
 					set_round_points(round);
 
@@ -4790,9 +4781,6 @@ fn deferred_payment_steady_state_event_flow() {
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
 			let roll_through_steady_state_round = |round: u64| -> u64 {
-				println!("roll_through_steady_state_round({}) ------------------------------", round);
-				// TODO: pre block assertions
-
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(num_rounds_rolled, 1, "expected to be at round begin already");
 
@@ -4849,7 +4837,6 @@ fn deferred_payment_steady_state_event_flow() {
 
 				reset_issuance();
 
-				// TODO: post block assertions
 				round + 1
 			};
 
@@ -4858,10 +4845,6 @@ fn deferred_payment_steady_state_event_flow() {
 			for _ in 1..10 {
 				round = roll_through_steady_state_round(round);
 			}
-
-			// TODO: first RewardPaymentDelay rounds
-			// TODO: iterate over several rounds, asserting that the same pattern of events/storage
-			// creation and removal occur.
 		});
 }
 

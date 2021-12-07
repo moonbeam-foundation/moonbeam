@@ -1491,8 +1491,6 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 
 		fn on_initialize(n: T::BlockNumber) -> Weight {
-            println!("on_initialize({})", n);
-
 			// base weight of a "no-op" on_initialize() call
 			// TODO: rewrite passive_on_initialize() and active_on_initialize() benchmarks to work as
 			// described here
@@ -1502,7 +1500,6 @@ pub mod pallet {
 			if round.should_update(n) {
 				// mutate round
 				round.update(n);
-				println!("***** round: {}, fight! *****", round.current);
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(round.current);
 				// select top collator candidates for next round
@@ -2362,11 +2359,8 @@ pub mod pallet {
 		}
 		/// Compute round issuance based on total staked for the given round
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
-			println!("compute_issuance with staked: {:?}", staked);
 			let config = <InflationConfig<T>>::get();
-			println!("    config: {:?}", config);
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
-			println!("    round_issuance: {:?}", round_issuance);
 			// TODO: consider interpolation instead of bounded range
 			if staked < config.expect.min {
 				round_issuance.min
@@ -2404,13 +2398,9 @@ pub mod pallet {
 			// payout is now - delay rounds ago => now - delay > 0 else return early
 			let delay = T::RewardPaymentDelay::get();
 			if now <= delay {
-                println!("!!! pay_stakers bailing because now <= delay!");
 				return;
 			}
 			let round_to_payout = now - delay;
-			println!("pay_stakers processing round {}, total_issuance: {:?}",
-					 round_to_payout,
-					 T::Currency::total_issuance());
 			let total_points = <Points<T>>::get(round_to_payout);
 			if total_points.is_zero() {
 				// TODO: this perhaps being used to ensure we don't call this fn more than once per
@@ -2420,11 +2410,9 @@ pub mod pallet {
 				//
 				// Potential alternative: drain() Points instead of get() (as we previously did) but
 				// duplicate instead -- e.g. we probably want to store 'left_issuance' this way
-                println!("!!! pay_stakers bailing because total_points is zero!");
 				return;
 			}
 			let total_staked = <Staked<T>>::take(round_to_payout); // TODO: leave until payouts done
-			println!("total staked: {:?}", total_staked);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -2447,7 +2435,6 @@ pub mod pallet {
 				collator_commission: <CollatorCommission<T>>::get(),
 			};
 
-            println!("Inserting DelayedPayout for round {}: {:?}", round_to_payout, payout);
 			<DelayedPayouts<T>>::insert(
 				round_to_payout,
 				payout
@@ -2461,7 +2448,6 @@ pub mod pallet {
 		///
 		/// TODO: settle on (and document) return value
 		fn handle_delayed_payouts(now: RoundIndex) -> bool {
-            println!("handle_delayed_payouts({})", now);
 			// cases:
 			// 1. payouts doesn't exist: nothing to do
 			//		caveat/TODO: on first round after this upgrade, this will be true and we won't
@@ -2483,17 +2469,13 @@ pub mod pallet {
             let paid_for_round = now - delay;
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
-                println!("    - have payout info, calling pay_one_collator_reward...");
 				if let None = Self::pay_one_collator_reward(paid_for_round, payout_info) {
-					println!("Done paying out stakers for previous round ({})", paid_for_round);
-
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
 				}
 				true
 			} else {
-                println!("    - no payout info (paid_for_round: {})", paid_for_round);
 				false
 			}
 		}
@@ -2506,7 +2488,6 @@ pub mod pallet {
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout<BalanceOf<T>>,
 		) -> Option<(T::AccountId, BalanceOf<T>)> {
-            println!("pay_one_collator_reward, round: {}", paid_for_round);
 			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
 			// so that we do fewer reads each block
 			let total_points = <Points<T>>::get(paid_for_round);
@@ -2549,7 +2530,6 @@ pub mod pallet {
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						println!("due: {:?}, percent: {:?}, amt_due: {:?}", due, percent, amt_due);
 						mint(due, owner.clone());
 					}
 				}
