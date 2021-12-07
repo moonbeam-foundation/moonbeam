@@ -37,7 +37,9 @@ async function main() {
   - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
   - [ ] Create the tracing runtime on moonbeam-runtime-overrides
   (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
+  - [ ] Add new substitute in stagenet configuration 
   - [ ] Upgrade stagenet
+  - [ ] Add new substitute in alphanet configuration 
   - [ ] Upgrade alphanet
   - [ ] Create new tracing image for partners: start the github action Publish Docker
   with v${lastClientVersion} and master
