@@ -63,7 +63,7 @@ fn set_total_selected_event_emits_correctly() {
 		// before we can bump total_selected we must bump the blocks per round 
 		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
-		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 4u32)));
+		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32)));
 	});
 }
 
@@ -75,6 +75,51 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 			Stake::set_total_selected(Origin::root(), 6u32),
 			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
+	});
+}
+
+#[test]
+fn set_total_selected_passes_if_equal_to_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 10u32));
+	});
+}
+
+#[test]
+fn set_total_selected_passes_if_below_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 9u32));
+	});
+}
+
+#[test]
+fn set_blocks_per_round_fails_if_below_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 20u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 15u32));
+		assert_noop!(
+			Stake::set_blocks_per_round(Origin::root(), 14u32),
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+		);
+	});
+}
+
+#[test]
+fn set_blocks_per_round_passes_if_equal_to_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 9u32));
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 9u32));
+	});
+}
+
+#[test]
+fn set_blocks_per_round_passes_if_above_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Stake::round().length, 5); // test relies on this
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 	});
 }
 
