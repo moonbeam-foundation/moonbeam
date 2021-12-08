@@ -22,6 +22,7 @@ use frame_support::{
 	weights::Weight,
 	Twox64Concat,
 };
+use nimbus_primitives::NimbusId;
 
 use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
@@ -39,7 +40,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// Read all the data into memory.
 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
 		let stored_data: Vec<_> = storage_key_iter::<
-			T::AuthorId,
+			NimbusId,
 			RegistrationInfo<T::AccountId, BalanceOf<T>>,
 			Twox64Concat,
 		>(pallet_prefix, storage_item_prefix)
@@ -56,7 +57,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 		// Assert that old storage is empty
 		assert!(storage_key_iter::<
-			T::AuthorId,
+			NimbusId,
 			RegistrationInfo<T::AccountId, BalanceOf<T>>,
 			Twox64Concat,
 		>(pallet_prefix, storage_item_prefix)
