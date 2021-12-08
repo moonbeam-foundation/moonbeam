@@ -40,9 +40,6 @@ fn load_spec(
 	para_id: ParaId,
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	if id.is_empty() {
-		return Err("Not specific which chain to run.".into());
-	}
 	Ok(match id {
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
@@ -66,14 +63,9 @@ fn load_spec(
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonbeam networks
-		"moonbeam" => {
-			return Err(
-				"You chosen the moonbeam mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonbeam.json")[..],
-			// )?)
-		}
+		"moonbeam" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonbeam/parachain-embedded-specs.json")[..],
+		)?),
 		#[cfg(feature = "moonbeam-native")]
 		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
 		#[cfg(feature = "moonbeam-native")]
@@ -137,11 +129,6 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		if let Some(Subcommand::PerfTest(_)) = &self.subcommand {
-			return Ok(Box::new(chain_spec::moonbase::development_chain_spec(
-				None, None,
-			)));
-		}
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
@@ -455,17 +442,36 @@ pub fn run() -> Result<()> {
 			cmd.shared_params.base_path = Some(working_dir.clone());
 
 			let runner = cli.create_runner(&cmd)?;
-			runner.sync_run(|config| {
-				#[cfg(feature = "moonbase-native")]
-				return cmd
-					.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => runner.sync_run(|config| {
+					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
 						&working_dir,
 						&cmd,
 						config,
-					);
-				#[cfg(not(feature = "moonbase-native"))]
-				panic!("perf-test only available for moonbase");
-			})?;
+					)
+				}),
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => runner.sync_run(|config| {
+					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					)
+				}),
+				#[cfg(feature = "moonbase-native")]
+				spec if spec.is_moonbase() => runner.sync_run(|config| {
+					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+						&working_dir,
+						&cmd,
+						config,
+					)
+				}),
+				_ => {
+					panic!("invalid chain spec");
+				}
+			}?;
 
 			log::debug!("removing temp perf_test dir {:?}", working_dir);
 			std::fs::remove_dir_all(working_dir)?;
@@ -504,6 +510,11 @@ pub fn run() -> Result<()> {
 					#[cfg(not(feature = "moonbase-native"))]
 					_ => panic!("invalid chain spec"),
 				}
+			} else if cfg!(feature = "moonbase-runtime-benchmarks") {
+				let runner = cli.create_runner(cmd)?;
+				return runner.sync_run(|config| {
+					cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config)
+				});
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
@@ -520,7 +531,7 @@ pub fn run() -> Result<()> {
 					runner.async_run(|config| {
 						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 						let task_manager =
-							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
 								.map_err(|e| {
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})?;
@@ -535,7 +546,7 @@ pub fn run() -> Result<()> {
 				spec if spec.is_moonbeam() => runner.async_run(|config| {
 					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 					let task_manager =
-						sc_service::TaskManager::new(config.task_executor.clone(), registry)
+						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
 							.map_err(|e| {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
@@ -554,7 +565,7 @@ pub fn run() -> Result<()> {
 						// manager to do `async_run`.
 						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 						let task_manager =
-							sc_service::TaskManager::new(config.task_executor.clone(), registry)
+							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
 								.map_err(|e| {
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})?;

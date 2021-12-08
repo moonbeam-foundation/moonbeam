@@ -31,8 +31,8 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, Precompiles, Runtime,
-	System,
+	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, System, XTokens,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -52,7 +52,6 @@ use sp_runtime::{
 	DispatchError,
 };
 use xcm::latest::prelude::*;
-use xcm::v1::{Junctions, MultiLocation};
 
 #[test]
 fn fast_track_available() {
@@ -201,6 +200,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -235,6 +249,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonbase_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonbase_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonbase_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonbase_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonbase_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonbase_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonbase_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -247,7 +272,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * UNIT),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * UNIT),
 		])
@@ -267,7 +292,7 @@ fn join_collator_candidates() {
 					1_000 * UNIT,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -340,8 +365,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 UNIT to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
@@ -380,7 +405,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * UNIT,
@@ -392,7 +417,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -400,7 +425,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -423,7 +448,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			(AccountId::from(CHARLIE), UNIT),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * UNIT,
@@ -439,7 +464,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -448,7 +473,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -754,7 +779,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1044,7 +1069,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1095,7 +1120,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * UNIT);
 
 			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1150,12 +1175,12 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 25084u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
@@ -1222,12 +1247,12 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128);
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 15035u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
@@ -1260,7 +1285,7 @@ fn asset_erc20_precompiles_approve() {
 			// Expected result for transfer_from
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: Default::default(),
+				output: EvmDataWriter::new().write(true).build(),
 				cost: 31042u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
@@ -1344,7 +1369,7 @@ fn xtokens_precompiles_transfer() {
 			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
 
 			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id);
+			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id).into();
 
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = MultiLocation::new(
@@ -1552,8 +1577,8 @@ fn transfer_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
@@ -1580,8 +1605,8 @@ fn refund_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer that zeroes ALICE
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
@@ -1595,4 +1620,62 @@ fn refund_ed_0_evm() {
 				777 * 1_000_000_000,
 			);
 		});
+}
+
+#[test]
+fn root_can_change_default_xcm_vers() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let dest = MultiLocation {
+				parents: 1,
+				interior: X1(AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			};
+			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			// Default XCM version is not set yet, so xtokens should fail because it does not
+			// know with which version to send
+			assert_noop!(
+				XTokens::transfer(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					100_000_000_000_000,
+					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
+					4000000000
+				),
+				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+			);
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(2)
+			));
+
+			// Now transferring does not fail
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				moonbase_runtime::CurrencyId::OtherReserve(source_id),
+				100_000_000_000_000,
+				Box::new(xcm::VersionedMultiLocation::V1(dest)),
+				4000000000
+			));
+		})
 }

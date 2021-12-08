@@ -120,6 +120,32 @@ impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
 	}
 }
 
+/// Trivial enum representing runtime variant
+#[derive(Clone)]
+pub enum RuntimeVariant {
+	#[cfg(feature = "moonbeam-native")]
+	Moonbeam,
+	#[cfg(feature = "moonriver-native")]
+	Moonriver,
+	#[cfg(feature = "moonbase-native")]
+	Moonbase,
+	Unrecognized,
+}
+
+impl RuntimeVariant {
+	pub fn from_chain_spec(chain_spec: &Box<dyn ChainSpec>) -> Self {
+		match chain_spec {
+			#[cfg(feature = "moonbeam-native")]
+			spec if spec.is_moonbeam() => Self::Moonbeam,
+			#[cfg(feature = "moonriver-native")]
+			spec if spec.is_moonriver() => Self::Moonriver,
+			#[cfg(feature = "moonbase-native")]
+			spec if spec.is_moonbase() => Self::Moonbase,
+			_ => Self::Unrecognized,
+		}
+	}
+}
+
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the `Moonbeam` network.
 pub trait IdentifyVariant {
@@ -408,6 +434,17 @@ impl TransactionConverters {
 	#[cfg(not(feature = "moonbase-native"))]
 	fn moonbase() -> Self {
 		unimplemented!()
+	}
+	pub fn for_runtime_variant(runtime: RuntimeVariant) -> Self {
+		match runtime {
+			#[cfg(feature = "moonbeam-native")]
+			RuntimeVariant::Moonbeam => Self::moonbeam(),
+			#[cfg(feature = "moonriver-native")]
+			RuntimeVariant::Moonriver => Self::moonriver(),
+			#[cfg(feature = "moonbase-native")]
+			RuntimeVariant::Moonbase => Self::moonbase(),
+			_ => panic!("invalid chain spec"),
+		}
 	}
 }
 
@@ -752,7 +789,6 @@ where
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
-
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {
@@ -829,7 +865,6 @@ where
 			}),
 		);
 	}
-
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
 		client: client.clone(),

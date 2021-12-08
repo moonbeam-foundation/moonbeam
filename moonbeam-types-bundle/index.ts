@@ -190,6 +190,17 @@ const TYPES_37_42: RegistryTypes = {
   ...TYPES_36_36,
   AccountId32: "H256",
   AuthorId: "AccountId32",
+  ProxyType: {
+    _enum: [
+      "Any",
+      "NonTransfer",
+      "Governance",
+      "Staking",
+      "CancelProxy",
+      "Balances",
+      "AuthorMapping",
+    ],
+  },
   RelayChainAccountId: "AccountId32",
   RewardInfo: {
     totalReward: "Balance",
@@ -376,6 +387,20 @@ const TYPES_900_undefined_deprecated: RegistryTypes = {
   },
 };
 
+const TYPES_POST_900: RegistryTypes = {
+  ProxyType: {
+    _enum: [
+      "Any",
+      "NonTransfer",
+      "Governance",
+      "Staking",
+      "CancelProxy",
+      "Balances",
+      "AuthorMapping",
+    ],
+  },
+};
+
 export const moonbeamDefinitions = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
@@ -434,7 +459,7 @@ export const moonbeamDefinitions = {
     },
     {
       minmax: [900, undefined],
-      types: {},
+      types: TYPES_POST_900,
     },
   ],
 } as OverrideBundleDefinition;
