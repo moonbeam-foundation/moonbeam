@@ -26,8 +26,8 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Polkadot / XCM
-orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "gorka-try-new-reanchor", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -42,12 +42,12 @@ scale-info = { version = "1.0", features = [ "derive" ] }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
 
 # Polkadot
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 
 [features]
 default = [ "std" ]

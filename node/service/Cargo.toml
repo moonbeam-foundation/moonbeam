@@ -93,24 +93,24 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
 
 # Cumulus / Nimbus
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor" }
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "gorka-try-new-reanchor" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "gorka-try-new-reanchor" }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "gorka-try-new-reanchor" }
 
 # Polkadot
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 
 # Benchmarking
 frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
@@ -122,7 +122,7 @@ nix = "0.17"
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }

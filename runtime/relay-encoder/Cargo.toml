@@ -21,17 +21,17 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
-kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 
 [features]
 default = [ "std" ]

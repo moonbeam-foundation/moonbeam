@@ -20,19 +20,19 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
 
 # Polkadot / XCM
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "gorka-try-new-reanchor", default-features = false }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
 
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 parity-scale-codec = { version = "2.1.1" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 

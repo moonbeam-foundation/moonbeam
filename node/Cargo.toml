@@ -26,8 +26,8 @@ serde_json = "1.0"
 tempfile = "3.2.0"
 
 # Benchmarking
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor" }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]

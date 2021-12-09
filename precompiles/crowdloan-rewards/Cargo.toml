@@ -17,7 +17,7 @@ precompile-utils = { path = "../utils", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "gorka-try-new-reanchor", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
@@ -37,10 +37,10 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 # Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "gorka-try-new-reanchor", default-features = false }
 
 [features]
 default = [ "std" ]

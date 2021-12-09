@@ -298,9 +298,8 @@ parameter_types! {
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 		pub SelfReserve: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(MsgQueue::parachain_id().into()),
+		parents:0,
+		interior: Junctions::X1(
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
@@ -473,6 +472,9 @@ pub mod mock_msg_queue {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
+					println!("Message is {:?}", xcm);
+					println!("Para Id is {:?}", ParachainId::<T>::get());
+
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
 					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
@@ -487,6 +489,8 @@ pub mod mock_msg_queue {
 					Event::BadVersion(Some(hash)),
 				),
 			};
+			println!("event is {:?}", event);
+
 			Self::deposit_event(event);
 			result
 		}
@@ -524,6 +528,7 @@ pub mod mock_msg_queue {
 				let id = sp_io::hashing::blake2_256(&data[..]);
 				let maybe_msg =
 					VersionedXcm::<T::Call>::decode(&mut &data[..]).map(Xcm::<T::Call>::try_from);
+				println!("Message is {:?}", maybe_msg);
 				match maybe_msg {
 					Err(_) => {
 						Self::deposit_event(Event::InvalidFormat(id));

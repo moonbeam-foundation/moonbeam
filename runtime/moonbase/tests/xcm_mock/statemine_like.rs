@@ -1,4 +1,4 @@
-	// Copyright 2021 Parity Technologies (UK) Ltd.
+// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
 // Polkadot is free software: you can redistribute it and/or modify
@@ -17,37 +17,42 @@
 //! Relay chain runtime mock.
 
 use frame_support::{
-	construct_runtime, parameter_types, match_type,
+	construct_runtime, match_type, parameter_types,
 	traits::{Everything, Nothing},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
 
 use sp_core::H256;
-use sp_runtime::{testing::Header, traits::{IdentityLookup, Hash}, AccountId32};
+use sp_runtime::{
+	testing::Header,
+	traits::{Hash, IdentityLookup},
+	AccountId32,
+};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 
 use polkadot_parachain::primitives::Id as ParaId;
+use polkadot_parachain::primitives::Sibling;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
+use sp_std::convert::TryFrom;
 use xcm::latest::prelude::*;
+use xcm::VersionedXcm;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
-	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
-	FixedWeightBounds, IsConcrete, LocationInverter, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, FungiblesAdapter,
-	ParentIsDefault, SiblingParachainConvertsVia, CurrencyAdapter, ConvertedConcreteAssetId, AsPrefixedGeneralIndex,
-	RelayChainAsNative,SiblingParachainAsNative,ParentAsSuperuser, AllowUnpaidExecutionFrom, EnsureXcmOrigin
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
+	ChildParachainAsNative, ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
+	ConvertedConcreteAssetId, CurrencyAdapter as XcmCurrencyAdapter, CurrencyAdapter,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
+	LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
-use sp_std::convert::TryFrom;
-use polkadot_parachain::primitives::Sibling;
-use xcm::VersionedXcm;
+use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
 };
-use xcm_executor::{Config, XcmExecutor, traits::JustTry};
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type AssetId = u128;
@@ -134,6 +139,7 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 	pub const Local: MultiLocation = Here.into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
+	pub KsmPerSecond: (xcm::latest::prelude::AssetId, u128) = (Concrete(KsmLocation::get()), 1);
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -212,7 +218,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 1_000_000_000;
+	pub UnitWeightCost: Weight = 100;
 	pub const MaxInstructions: u32 = 100;
 }
 
@@ -251,7 +257,7 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = ();
+	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
@@ -263,12 +269,11 @@ pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNet
 
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
-
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
-	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;	
+	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Everything;
@@ -352,8 +357,49 @@ pub mod mock_msg_queue {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
+					let xcm_2 = Xcm([
+						WithdrawAsset(
+							[MultiAsset {
+								id: Concrete(MultiLocation {
+									parents: 0,
+									interior: X1(GeneralIndex(0)),
+								}),
+								fun: Fungible(123),
+							}]
+							.to_vec()
+							.into(),
+						),
+						ClearOrigin,
+						BuyExecution {
+							fees: MultiAsset {
+								id: Concrete(MultiLocation {
+									parents: 0,
+									interior: X1(GeneralIndex(0)),
+								}),
+								fun: Fungible(123),
+							},
+							weight_limit: Limited(8000),
+						},
+						DepositAsset {
+							assets: Wild(All),
+							max_assets: 1,
+							beneficiary: MultiLocation {
+								parents: 0,
+								interior: X1(xcm::latest::prelude::AccountId32 {
+									network: Any,
+									id: [
+										0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+										0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+									],
+								}),
+							},
+						},
+					]
+					.to_vec());
+
+					println!("Statemint: Rceived xcm is {:?}", xcm);
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
-					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
+					match T::XcmExecutor::execute_xcm(location, xcm_2, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
 						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
 						// As far as the caller is concerned, this was dispatched without error, so

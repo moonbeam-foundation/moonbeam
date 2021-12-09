@@ -79,6 +79,8 @@ decl_test_network! {
 			(1, ParaA),
 			(2, ParaB),
 			(3, ParaC),
+			(4, Statemine),
+
 		],
 	}
 }
@@ -156,4 +158,6 @@ pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
+pub type StatemintBalances = pallet_balances::Pallet<statemine_like::Runtime>;
+
 pub type XcmTransactor = xcm_transactor::Pallet<parachain::Runtime>;

@@ -22,9 +22,9 @@ sha3 = { version = "0.8", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "gorka-try-new-reanchor", default-features = false }
 
 [features]
 default = [ "std" ]
