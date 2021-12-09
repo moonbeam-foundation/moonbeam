@@ -455,8 +455,8 @@ impl WeightInfo for () {
 			.saturating_add((46_120_000 as Weight).saturating_mul(x as Weight))
 			// Standard Error: 12_000
 			.saturating_add((1_248_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn passive_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
