@@ -238,6 +238,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonriver_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonriver_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonriver_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonriver_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonriver_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonriver_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonriver_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -394,7 +405,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -402,7 +413,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -441,7 +452,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..599 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -450,7 +461,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),

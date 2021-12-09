@@ -325,11 +325,17 @@ impl<
 	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
 {
 	fn take_revenue(revenue: MultiAsset) {
-		if let Ok((asset_id, amount)) = Matcher::matches_fungibles(&revenue) {
-			if !amount.is_zero() {
-				let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
-				debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+		match Matcher::matches_fungibles(&revenue) {
+			Ok((asset_id, amount)) => {
+				if !amount.is_zero() {
+					let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+					debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+				}
 			}
+			Err(_) => log::debug!(
+				target: "xcm",
+				"take revenue failed matching fungible"
+			),
 		}
 	}
 }

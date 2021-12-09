@@ -152,7 +152,6 @@ pub type StatemineChainPalletXcm = pallet_xcm::Pallet<statemine_like::Runtime>;
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
 pub type Assets = pallet_assets::Pallet<parachain::Runtime>;
 pub type StatemineAssets = pallet_assets::Pallet<statemine_like::Runtime>;
-
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;

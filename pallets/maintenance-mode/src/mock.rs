@@ -17,9 +17,15 @@
 //! A minimal runtime including the maintenance-mode pallet
 use super::*;
 use crate as pallet_maintenance_mode;
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, Everything, GenesisBuild},
+	traits::{
+		Contains, Everything, GenesisBuild, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
+		OnRuntimeUpgrade,
+	},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -46,6 +52,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event, Config},
+		MockPalletMaintenanceHooks: mock_pallet_maintenance_hooks::{Pallet, Call, Event},
 	}
 );
 
@@ -90,11 +97,201 @@ impl Contains<Call> for MaintenanceCallFilter {
 	}
 }
 
+pub struct MaintenanceXcmpHandler;
+#[cfg(feature = "xcm-support")]
+impl XcmpMessageHandler for MaintenanceXcmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		_iter: I,
+		_limit: Weight,
+	) -> Weight {
+		return 1;
+	}
+}
+
+pub struct NormalXcmpHandler;
+#[cfg(feature = "xcm-support")]
+impl XcmpMessageHandler for NormalXcmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		_iter: I,
+		_limit: Weight,
+	) -> Weight {
+		return 0;
+	}
+}
+
+pub struct MaintenanceDmpHandler;
+#[cfg(feature = "xcm-support")]
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		_limit: Weight,
+	) -> Weight {
+		return 1;
+	}
+}
+
+pub struct NormalDmpHandler;
+#[cfg(feature = "xcm-support")]
+impl DmpMessageHandler for NormalDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		_limit: Weight,
+	) -> Weight {
+		return 0;
+	}
+}
+
+impl mock_pallet_maintenance_hooks::Config for Test {
+	type Event = Event;
+}
+
+// Pallet to throw events, used to test maintenance mode hooks
+#[frame_support::pallet]
+pub mod mock_pallet_maintenance_hooks {
+	use frame_support::pallet_prelude::*;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		type Event: From<Event> + IsType<<Self as frame_system::Config>::Event>;
+	}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event {
+		MaintenanceOnIdle,
+		MaintenanceOnInitialize,
+		MaintenanceOffchainWorker,
+		MaintenanceOnFinalize,
+		MaintenanceOnRuntimeUpgrade,
+		NormalOnIdle,
+		NormalOnInitialize,
+		NormalOffchainWorker,
+		NormalOnFinalize,
+		NormalOnRuntimeUpgrade,
+	}
+}
+
+pub struct MaintenanceHooks;
+
+impl OnInitialize<BlockNumber> for MaintenanceHooks {
+	fn on_initialize(_n: BlockNumber) -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::MaintenanceOnInitialize,
+		);
+		return 1;
+	}
+}
+
+impl OnIdle<BlockNumber> for MaintenanceHooks {
+	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::MaintenanceOnIdle,
+		);
+		return 1;
+	}
+}
+
+impl OnRuntimeUpgrade for MaintenanceHooks {
+	fn on_runtime_upgrade() -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::MaintenanceOnRuntimeUpgrade,
+		);
+		return 1;
+	}
+}
+
+impl OnFinalize<BlockNumber> for MaintenanceHooks {
+	fn on_finalize(_n: BlockNumber) {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::MaintenanceOnFinalize,
+		);
+	}
+}
+
+impl OffchainWorker<BlockNumber> for MaintenanceHooks {
+	fn offchain_worker(_n: BlockNumber) {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::MaintenanceOffchainWorker,
+		);
+	}
+}
+
+pub struct NormalHooks;
+
+impl OnInitialize<BlockNumber> for NormalHooks {
+	fn on_initialize(_n: BlockNumber) -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::NormalOnInitialize,
+		);
+		return 0;
+	}
+}
+
+impl OnIdle<BlockNumber> for NormalHooks {
+	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::NormalOnIdle,
+		);
+		return 0;
+	}
+}
+
+impl OnRuntimeUpgrade for NormalHooks {
+	fn on_runtime_upgrade() -> Weight {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::NormalOnRuntimeUpgrade,
+		);
+
+		return 0;
+	}
+}
+
+impl OnFinalize<BlockNumber> for NormalHooks {
+	fn on_finalize(_n: BlockNumber) {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::NormalOnFinalize,
+		);
+	}
+}
+
+impl OffchainWorker<BlockNumber> for NormalHooks {
+	fn offchain_worker(_n: BlockNumber) {
+		MockPalletMaintenanceHooks::deposit_event(
+			mock_pallet_maintenance_hooks::Event::NormalOffchainWorker,
+		);
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = MaintenanceCallFilter;
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
+	#[cfg(feature = "xcm-support")]
+	type NormalDmpHandler = NormalDmpHandler;
+	#[cfg(feature = "xcm-support")]
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	#[cfg(feature = "xcm-support")]
+	type NormalXcmpHandler = NormalXcmpHandler;
+	#[cfg(feature = "xcm-support")]
+	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
+	type NormalExecutiveHooks = NormalHooks;
+	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
@@ -141,6 +338,20 @@ pub(crate) fn events() -> Vec<pallet_maintenance_mode::Event> {
 		.map(|r| r.event)
 		.filter_map(|e| {
 			if let Event::MaintenanceMode(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
+}
+
+pub(crate) fn mock_events() -> Vec<mock_pallet_maintenance_hooks::Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let Event::MockPalletMaintenanceHooks(inner) = e {
 				Some(inner)
 			} else {
 				None

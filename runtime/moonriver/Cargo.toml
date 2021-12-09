@@ -24,7 +24,7 @@ runtime-common = { path = "../common", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "gorka-try-new-reanchor", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
-pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
+pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }

@@ -243,51 +243,6 @@ pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
 >;
 
 parameter_types! {
-	pub const Local: MultiLocation = Here.into();
-}
-/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
-/// `PalletInstance` junction.
-///
-pub struct LocalAsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>(
-	sp_std::marker::PhantomData<(Prefix, AssetId, ConvertAssetId)>,
-);
-impl<
-		Prefix: Get<MultiLocation>,
-		AssetId: Clone,
-		ConvertAssetId: xcm_executor::traits::Convert<u128, AssetId>,
-	> xcm_executor::traits::Convert<MultiLocation, AssetId>
-	for LocalAsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>
-{
-	fn convert_ref(id: impl sp_std::borrow::Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		let prefix = Prefix::get();
-		let id = id.borrow();
-		if prefix.parent_count() != id.parent_count()
-			|| prefix
-				.interior()
-				.iter()
-				.enumerate()
-				.any(|(index, junction)| id.interior().at(index) != Some(junction))
-		{
-			return Err(());
-		}
-		match id.interior().at(prefix.interior().len()) {
-			Some(Junction::GeneralIndex(id)) => ConvertAssetId::convert_ref(id),
-			_ => Err(()),
-		}
-	}
-	fn reverse_ref(what: impl sp_std::borrow::Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		let mut location = Prefix::get();
-		let id = ConvertAssetId::reverse_ref(what)?;
-		location
-			.push_interior(Junction::GeneralIndex(id))
-			.map_err(|_| ())?;
-		Ok(location)
-	}
-}
-
-pub type StatemintLike = LocalAsPrefixedGeneralIndex<Local, AssetId, JustTry>;
-parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
 	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000000000);
@@ -726,6 +681,15 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
+}
+
+pub struct NormalFilter;
+impl frame_support::traits::Contains<Call> for NormalFilter {
+	fn contains(c: &Call) -> bool {
+		match c {
+			_ => true,
+		}
+	}
 }
 
 // We need to use the encoding from the relay mock runtime

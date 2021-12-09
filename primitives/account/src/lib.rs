@@ -44,7 +44,7 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	Clone,
 	Encode,
 	Decode,
-	sp_core::RuntimeDebug,
+	Debug,
 	TypeInfo,
 	MaxEncodedLen,
 	Default,

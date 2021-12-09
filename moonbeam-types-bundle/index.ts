@@ -387,6 +387,20 @@ const TYPES_900_undefined_deprecated: RegistryTypes = {
   },
 };
 
+const TYPES_POST_900: RegistryTypes = {
+  ProxyType: {
+    _enum: [
+      "Any",
+      "NonTransfer",
+      "Governance",
+      "Staking",
+      "CancelProxy",
+      "Balances",
+      "AuthorMapping",
+    ],
+  },
+};
+
 export const moonbeamDefinitions = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
@@ -445,7 +459,7 @@ export const moonbeamDefinitions = {
     },
     {
       minmax: [900, undefined],
-      types: {},
+      types: TYPES_POST_900,
     },
   ],
 } as OverrideBundleDefinition;
