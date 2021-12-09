@@ -944,9 +944,8 @@ parameter_types! {
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
 	pub SelfReserve: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(ParachainInfo::parachain_id().into()),
+		parents:0,
+		interior: Junctions::X1(
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};

@@ -6887,7 +6887,7 @@ dependencies = [
 name = "pallet-maintenance-mode"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-try-new-reanchor)",
  "frame-support",
  "frame-system",
  "log",
