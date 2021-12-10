@@ -1679,3 +1679,11 @@ fn root_can_change_default_xcm_vers() {
 			));
 		})
 }
+
+// Test to ensure we can use either in crowdloan rewards without worrying for migrations
+#[test]
+fn account_id_32_encodes_like_32_byte_u8_slice() {
+	let account_as_account_id_32: sp_runtime::AccountId32 = [1u8; 32].into();
+	let account_as_slice = [1u8; 32];
+	assert_eq!(account_as_account_id_32.encode(), account_as_slice.encode());
+}
