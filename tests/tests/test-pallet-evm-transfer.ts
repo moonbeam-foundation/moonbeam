@@ -18,7 +18,7 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
     ({ events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.eVM.call(
+      context.polkadotApi.tx.evm.call(
         ALITH,
         TEST_ACCOUNT,
         "0x0",
@@ -45,7 +45,7 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.eVM.call(
+        context.polkadotApi.tx.evm.call(
           ALITH,
           TEST_ACCOUNT,
           "0x0",
