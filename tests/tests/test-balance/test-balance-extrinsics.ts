@@ -5,7 +5,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam("Balance extrinsics", (context) => {
-  it.only("should appear after transfer", async function () {
+  it("should appear after transfer", async function () {
     const testAddress = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
       transactions: [await createTransfer(context.web3, testAddress, 512)],
