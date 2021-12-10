@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { customWeb3Request } from "../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { customWeb3Request } from "../../util/providers";
 import {
   GENESIS_ACCOUNT,
   ALITH,
@@ -8,13 +8,13 @@ import {
   ALITH_PRIV_KEY,
   CHARLETH,
   BALTATHAR_PRIV_KEY,
-} from "../util/constants";
+} from "../../util/constants";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { BN, hexToU8a, bnToHex, u8aToHex, stringToHex, numberToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
-import { getCompiled } from "../util/contracts";
+import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
-import { createContract, createTransaction } from "../util/transactions";
+import { createContract, createTransaction } from "../../util/transactions";
 
 const sourceLocationRelay = { parents: 1, interior: "Here" };
 
@@ -34,7 +34,7 @@ const relayAssetMetadata: AssetMetadata = {
   isFrozen: false,
 };
 
-async function mockAssetBalance(
+export async function mockAssetBalance(
   context,
   assetBalance,
   assetDetails,
@@ -291,8 +291,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
-      const address = contract.options.address;
+      const { rawTx } = await createContract(context.web3, "ERC20Instance");
       await context.createBlock({ transactions: [rawTx] });
     });
     it("allows to approve transfers, and allowance matches", async function () {
@@ -489,8 +488,7 @@ describeDevMoonbeam(
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context.web3, "ERC20Instance");
-      const address = contract.options.address;
+      const { rawTx } = await createContract(context.web3, "ERC20Instance");
       await context.createBlock({ transactions: [rawTx] });
     });
     it("allows to transfer", async function () {

@@ -78,6 +78,12 @@ export const GERALD_ADDRESS = "0x7BF369283338E12C90514468aa3868A551AB2929";
 export const GERALD_PRIVATE_KEY =
   "0x96b8a38e12e1a31dee1eab2fffdf9d9990045f5b37e44d8cc27766ef294acf18";
 
+// Relay addresses for crowdloan tests
+export const relayChainAddress: string =
+  "0x1111111111111111111111111111111111111111111111111111111111111111";
+export const relayChainAddress_2: string =
+  "0x2222222222222222222222222222222222222222222222222222222222222222";
+
 // Current gas per second
 export const GAS_PER_SECOND = 40_000_000;
 // The real computation is 1_000_000_000_000 / 40_000_000, but we simplify to avoid bigint.
