@@ -1049,6 +1049,156 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 
+	pay_one_collator_reward {
+		// TODO: clean up this copy pasta, we probably don't need most of it
+
+		// DELEGATIONS
+		let y in 0..(<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get() * 28);
+
+		// must come after 'let foo in 0..` statements for macro
+		use crate::{
+			RoundIndex, DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
+			AwardedPts,
+		};
+
+		let max_delegators_per_collator =
+			<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get();
+		let max_delegations = 1 * max_delegators_per_collator;
+		// y should depend on x but cannot directly, we overwrite y here if necessary to bound it
+		let total_delegations: u32 = if max_delegations < y { max_delegations } else { y };
+		// INITIALIZE RUNTIME STATE
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		// Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		// Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 29u32)?;
+		// INITIALIZE COLLATOR STATE
+		let mut collators: Vec<T::AccountId> = Vec::new();
+		let collator_count = 1u32;
+		let sole_collator = create_funded_collator::<T>(
+			"collator",
+			0,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			collator_count,
+		)?;
+		collators.push(sole_collator.clone());
+
+		// STORE starting balances for all collators
+		let collator_starting_balances: Vec<(
+			T::AccountId,
+			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
+		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
+		// INITIALIZE DELEGATIONS
+		let mut col_del_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+		collators.iter().for_each(|x| {
+			col_del_count.insert(x.clone(), 0u32);
+		});
+		let mut delegators: Vec<T::AccountId> = Vec::new();
+		let mut remaining_delegations = if total_delegations > max_delegators_per_collator {
+			for j in 1..(max_delegators_per_collator + 1) {
+				let seed = USER_SEED + j;
+				let delegator = create_funded_delegator::<T>(
+					"delegator",
+					seed,
+					min_candidate_stk::<T>() * 1_000_000u32.into(),
+					collators[0].clone(),
+					true,
+					delegators.len() as u32,
+				)?;
+				delegators.push(delegator);
+			}
+			total_delegations - max_delegators_per_collator
+		} else {
+			for j in 1..(total_delegations + 1) {
+				let seed = USER_SEED + j;
+				let delegator = create_funded_delegator::<T>(
+					"delegator",
+					seed,
+					min_candidate_stk::<T>() * 1_000_000u32.into(),
+					collators[0].clone(),
+					true,
+					delegators.len() as u32,
+				)?;
+				delegators.push(delegator);
+			}
+			0u32
+		};
+		col_del_count.insert(collators[0].clone(), delegators.len() as u32);
+		// FILL remaining delegations
+		if remaining_delegations > 0 {
+			for (col, n_count) in col_del_count.iter_mut() {
+				if n_count < &mut (delegators.len() as u32) {
+					// assumes delegators.len() <= MaxDelegatorsPerCandidate
+					let mut open_spots = delegators.len() as u32 - *n_count;
+					while open_spots > 0 && remaining_delegations > 0 {
+						let caller = delegators[open_spots as usize - 1usize].clone();
+						if let Ok(_) = Pallet::<T>::delegate(RawOrigin::Signed(
+							caller.clone()).into(),
+							col.clone(),
+							<<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get(),
+							*n_count,
+							collators.len() as u32, // overestimate
+						) {
+							*n_count += 1;
+							remaining_delegations -= 1;
+						}
+						open_spots -= 1;
+					}
+				}
+				if remaining_delegations == 0 {
+					break;
+				}
+			}
+		}
+		// STORE starting balances for all delegators
+		let delegator_starting_balances: Vec<(
+			T::AccountId,
+			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
+		)> = delegators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
+
+		// rather than roll through rounds in order to initialize the storage we want, we set it
+		// directly and then call pay_one_collator_reward directly.
+
+		let round_for_payout = 5;
+		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
+			round_issuance: 100u32.into(),
+			total_staking_reward: 100u32.into(),
+			collator_commission: Perbill::from_rational(5u32, 100u32),
+		});
+
+		let mut delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> = Vec::new();
+		delegations.push(Bond {
+			owner: sole_collator.clone(),
+			amount: 100u32.into(),
+		});
+
+		<AtStake<T>>::insert(round_for_payout, &sole_collator, CollatorSnapshot {
+			bond: 0u32.into(),
+			delegations,
+			total: 0u32.into(),
+		});
+
+		<Points<T>>::insert(round_for_payout, 100);
+
+		<AwardedPts<T>>::insert(round_for_payout, sole_collator, 20);
+		for delegator in delegators {
+			<AwardedPts<T>>::insert(round_for_payout, delegator, 20);
+		}
+
+	}: {
+		let round_for_payout = 5;
+		// TODO: this is an extra read right here (we should whitelist it?)
+		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
+		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
+		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+	}
+	verify {
+		// TODO: we could verify balances here
+	}
+
 	passive_on_initialize {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",

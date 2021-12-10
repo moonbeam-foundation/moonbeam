@@ -1521,10 +1521,7 @@ pub mod pallet {
 				weight += T::WeightInfo::active_on_initialize(collator_count, delegation_count);
 			}
 
-			if Self::handle_delayed_payouts(round.current) {
-				// TODO: let handle_delayed_payouts return its own weight
-				weight += T::WeightInfo::passive_on_initialize()
-			}
+			weight += Self::handle_delayed_payouts(round.current);
 
 			weight
 		}
@@ -2453,10 +2450,9 @@ pub mod pallet {
 		/// Wrapper around pay_one_collator_reward which handles the following logic:
 		/// * whether or not a payout needs to be made
 		/// * cleaning up when payouts are done
-		/// * returns whether or not a payout was made
+		/// * returns the weight consumed by pay_one_collator_reward if applicable
 		///
-		/// TODO: settle on (and document) return value
-		fn handle_delayed_payouts(now: RoundIndex) -> bool {
+		fn handle_delayed_payouts(now: RoundIndex) -> Weight {
 			// cases:
 			// 1. payouts doesn't exist: nothing to do
 			//		caveat/TODO: on first round after this upgrade, this will be true and we won't
@@ -2472,20 +2468,21 @@ pub mod pallet {
 			let delay = T::RewardPaymentDelay::get();
             // don't underflow uint
             if now < delay {
-                return false;
+                return 0u64.into();
             }
 
             let paid_for_round = now - delay;
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
-				if let None = Self::pay_one_collator_reward(paid_for_round, payout_info) {
+                let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
+                if result.0.is_some() { // indicates whether or not a payout was made
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
 				}
-				true
+                result.1 // weight consumed by pay_one_collator_reward
 			} else {
-				false
+				0u64.into()
 			}
 		}
 
@@ -2493,10 +2490,10 @@ pub mod pallet {
 		///
 		/// Returns an optional tuple of (Collator's AccountId, total paid)
 		/// or None if there were no more payouts to be made for the round.
-		fn pay_one_collator_reward(
+		pub(crate) fn pay_one_collator_reward(
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout<BalanceOf<T>>,
-		) -> Option<(T::AccountId, BalanceOf<T>)> {
+		) -> (Option<(T::AccountId, BalanceOf<T>)>, Weight) {
 			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
 			// so that we do fewer reads each block
 			let total_points = <Points<T>>::get(paid_for_round);
@@ -2507,7 +2504,7 @@ pub mod pallet {
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
 				log::warn!("pay_one_collator_reward called with no <Points<T>> for the round!");
-				return None;
+				return (None, 0u64.into());
 			}
 
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
@@ -2545,10 +2542,15 @@ pub mod pallet {
 
 				<AtStake<T>>::remove(paid_for_round, collator.clone());
 
-				return Some((collator, total_paid));
+				return (
+                    Some((collator, total_paid)),
+                    0u64.into(),
+                    // TODO: once weight is set in file:
+                    // T::WeightInfo::pay_one_collator_reward(state.delegations.len())
+                )
 			} else {
 				// Note that storage is cleaned up in handle_delayed_payouts()
-				return None;
+				return (None, 0u64.into());
 			}
 		}
 
