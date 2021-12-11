@@ -1902,7 +1902,7 @@
 	<span class="ident">transaction_validity</span>::{
 		<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>, <span class="ident">TransactionValidityError</span>,
 	},
-	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
+	<span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
 	<span class="ident">SaturatedConversion</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
@@ -2606,7 +2606,7 @@
 	<span class="kw">type</span> <span class="ident">MaxInitContributors</span> <span class="op">=</span> <span class="ident">MaxInitContributorsBatchSizes</span>;
 	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> <span class="ident">AccountId32</span>;
+	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">32</span>];
 	<span class="kw">type</span> <span class="ident">RewardAddressChangeOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">RewardAddressRelayVoteThreshold</span> <span class="op">=</span> <span class="ident">RelaySignaturesThreshold</span>;
 	<span class="kw">type</span> <span class="ident">VestingBlockNumber</span> <span class="op">=</span> <span class="ident">cumulus_primitives_core::relay_chain::BlockNumber</span>;
