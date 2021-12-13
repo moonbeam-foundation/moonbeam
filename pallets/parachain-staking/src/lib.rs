@@ -1507,7 +1507,7 @@ pub mod pallet {
 				// mutate round
 				round.update(n);
 				// pay all stakers for T::RewardPaymentDelay rounds ago
-				Self::pay_stakers(round.current);
+				Self::prepare_staking_payouts(round.current);
 				// select top collator candidates for next round
 				let (collator_count, delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -1716,10 +1716,7 @@ pub mod pallet {
 			for &(ref delegator, ref target, balance) in &self.delegations {
 				assert!(
 					T::Currency::free_balance(delegator) >= balance,
-					"Account {} does not have enough balance ({:?} < {:?}) to place delegation.",
-					delegator,
-					T::Currency::free_balance(delegator),
-					balance,
+					"Account does not have enough balance to place delegation."
 				);
 				let cd_count = if let Some(x) = col_delegator_count.get(target) {
 					*x
@@ -2400,9 +2397,7 @@ pub mod pallet {
 			));
 			Ok(())
 		}
-		// TODO: rename this; split it up so that it does minimum round-end accounting, should set
-		// up distribution storage info
-		fn pay_stakers(now: RoundIndex) {
+		fn prepare_staking_payouts(now: RoundIndex) {
 			// payout is now - delay rounds ago => now - delay > 0 else return early
 			let delay = T::RewardPaymentDelay::get();
 			if now <= delay {
@@ -2411,16 +2406,9 @@ pub mod pallet {
 			let round_to_payout = now - delay;
 			let total_points = <Points<T>>::get(round_to_payout);
 			if total_points.is_zero() {
-				// TODO: this perhaps being used to ensure we don't call this fn more than once per
-				// round. now thet we keep the Points storage item around until round payouts are
-				// done, this check would no longer work here (perhaps resulting in multiple payouts
-				// to parachain_bond_reserve.
-				//
-				// Potential alternative: drain() Points instead of get() (as we previously did) but
-				// duplicate instead -- e.g. we probably want to store 'left_issuance' this way
 				return;
 			}
-			let total_staked = <Staked<T>>::take(round_to_payout); // TODO: leave until payouts done
+			let total_staked = <Staked<T>>::take(round_to_payout);
 			let total_issuance = Self::compute_issuance(total_staked);
 			let mut left_issuance = total_issuance;
 			// reserve portion of issuance for parachain bond account
@@ -2450,21 +2438,9 @@ pub mod pallet {
 		/// * whether or not a payout needs to be made
 		/// * cleaning up when payouts are done
 		/// * returns the weight consumed by pay_one_collator_reward if applicable
-		///
 		fn handle_delayed_payouts(now: RoundIndex) -> Weight {
-			// cases:
-			// 1. payouts doesn't exist: nothing to do
-			//		caveat/TODO: on first round after this upgrade, this will be true and we won't
-			//		clean up? a migration could solve this...
-			// 2. payouts exists and we aren't done
-			// 3. payouts exists and we are done (and we should clean up)
-
-			// we call the current round the "payout_round" and the round we are paying out for the
-			// "paid_for_round".
-			// payout_round is paid_for_round + RewardPaymentDelay + 1 and starts at the first
-			// block.
-
 			let delay = T::RewardPaymentDelay::get();
+
 			// don't underflow uint
 			if now < delay {
 				return 0u64.into();
@@ -2475,7 +2451,7 @@ pub mod pallet {
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
 				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
 				if result.0.is_none() {
-					// indicates whether or not a payout was made
+					// result.0 indicates whether or not a payout was made
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
@@ -2548,7 +2524,7 @@ pub mod pallet {
 					T::WeightInfo::pay_one_collator_reward(num_delegators as u32),
 				);
 			} else {
-				// Note that storage is cleaned up in handle_delayed_payouts()
+				// Note that we don't clean up storage here; it is cleaned up in handle_delayed_payouts()
 				return (None, 0u64.into());
 			}
 		}
