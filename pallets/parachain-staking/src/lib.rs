@@ -24,10 +24,14 @@
 //! There is a new round every `<Round<T>>::get().length` blocks.
 //!
 //! At the start of every round,
-//! * issuance is distributed to collators (and their delegators) for block authoring
+//! * issuance is calculated for collators (and their delegators) for block authoring
 //! `T::RewardPaymentDelay` rounds ago
 //! * queued collator and delegator exits are executed
 //! * a new set of collators is chosen from the candidates
+//!
+//! Immediately following a round change, payments are made once-per-block until all payments have
+//! been made. In each such block, one collator is chosen for a rewards payment and is paid along
+//! with each of its "top" delegators.
 //!
 //! To join the set of candidates, call `join_candidates` with `bond >= MinCandidateStk`.
 //! To leave the set of candidates, call `schedule_leave_candidates`. If the call succeeds,
