@@ -161,7 +161,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
       ).to.eq(0n);
 
-      // Lets transfer it the native token. We want to transfer enough to cover for a future transfer fee.
+      // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
       const fee = (
         await context.polkadotApi.tx.assets
           .transfer(assetId, BALTATHAR, transferAmount)
@@ -296,7 +296,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
       ).to.eq(0n);
 
-      // Lets transfer it the native token. We want to transfer enough to cover for a future transfer fee.
+      // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
       const fee = (
         await context.polkadotApi.tx.assets
           .transfer(assetId, BALTATHAR, transferAmount)
@@ -432,7 +432,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
       ).to.eq(0n);
 
-      // Lets transfer it the native token. We want to transfer enough to cover for a future transfer fee.
+      // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
       const fee = (
         await context.polkadotApi.tx.assets
           .transfer(assetId, BALTATHAR, transferAmount)
