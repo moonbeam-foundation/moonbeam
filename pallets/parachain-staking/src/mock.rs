@@ -261,7 +261,6 @@ pub(crate) fn roll_to(n: u64) -> u64 {
 /// Returns the number of blocks played.
 pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
 	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
-	println!("rolling from {} to {}", System::block_number(), block);
 	roll_to(block)
 }
 
@@ -269,7 +268,6 @@ pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
 /// The block following will be the one in which the specified round change occurs.
 pub(crate) fn roll_to_round_end(round: u64) -> u64 {
 	let block = round * DefaultBlocksPerRound::get() as u64 - 1;
-	println!("rolling from {} to {}", System::block_number(), block);
 	roll_to(block)
 }
 

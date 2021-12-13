@@ -4624,6 +4624,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<DelayedPayouts<Test>>::contains_key(1),
 				"DelayedPayouts should be populated after RewardPaymentDelay");
 			assert!(<Points<Test>>::contains_key(1));
+
 			assert!(! <Staked<Test>>::contains_key(1),
 				"Staked should be cleaned up after round change");
 
@@ -4714,7 +4715,7 @@ fn deferred_payment_steady_state_event_flow() {
 					&111,
 					burned,
 					WithdrawReasons::FEE,
-					ExistenceRequirement::AllowDeath)?;
+					ExistenceRequirement::AllowDeath).expect("Account can absorb burn");
 
 			};
 

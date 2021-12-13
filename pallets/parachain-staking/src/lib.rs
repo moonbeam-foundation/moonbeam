@@ -2472,7 +2472,7 @@ pub mod pallet {
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
                 let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
-                if result.0.is_some() { // indicates whether or not a payout was made
+                if result.0.is_none() { // indicates whether or not a payout was made
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
@@ -2518,7 +2518,7 @@ pub mod pallet {
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
 				// Take the snapshot of block author and delegations
-				let state = <AtStake<T>>::get(paid_for_round, &collator);
+				let state = <AtStake<T>>::take(paid_for_round, &collator);
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
@@ -2537,8 +2537,6 @@ pub mod pallet {
 						mint(due, owner.clone());
 					}
 				}
-
-				<AtStake<T>>::remove(paid_for_round, collator.clone());
 
 				return (
                     Some((collator, total_paid)),
