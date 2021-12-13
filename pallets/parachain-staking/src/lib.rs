@@ -1386,7 +1386,7 @@ pub mod pallet {
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		RoundLengthMustBeGreaterThanTotalSelectedCollators,
+		RoundLengthMustBeAtLeastTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
