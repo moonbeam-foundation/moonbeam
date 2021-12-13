@@ -28,7 +28,7 @@ use substrate_fixed::types::{I32F32, I64F64};
 
 const SECONDS_PER_YEAR: u32 = 31557600;
 const SECONDS_PER_BLOCK: u32 = 12;
-const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
+pub const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
 fn rounds_per_year<T: Config>() -> u32 {
 	let blocks_per_round = <Pallet<T>>::round().length;
@@ -60,7 +60,10 @@ impl<T: Ord + Copy> From<T> for Range<T> {
 }
 /// Convert an annual inflation to a round inflation
 /// round = 1 - (1+annual)^(1/rounds_per_year)
-fn perbill_annual_to_perbill_round(annual: Range<Perbill>, rounds_per_year: u32) -> Range<Perbill> {
+pub fn perbill_annual_to_perbill_round(
+	annual: Range<Perbill>,
+	rounds_per_year: u32,
+) -> Range<Perbill> {
 	let exponent = I32F32::from_num(1) / I32F32::from_num(rounds_per_year);
 	let annual_to_round = |annual: Perbill| -> Perbill {
 		let x = I32F32::from_num(annual.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);

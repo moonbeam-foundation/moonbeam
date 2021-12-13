@@ -13,6 +13,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
 import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
+import { verifyLatestBlockFees } from "../../util/block";
 
 /**
  * Signing function. Implement this on the OFFLINE signing device.
@@ -36,7 +37,7 @@ export function signWith(
     })
     .sign(pair);
 
-  return signature;
+  return signature as `0x${string}`; //TODO: fix this when type problem is fixed
 }
 
 describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
@@ -115,5 +116,8 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
         await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)
       ).data.free.toString()
     );
+  });
+  it("should check fees", async function () {
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(512));
   });
 });

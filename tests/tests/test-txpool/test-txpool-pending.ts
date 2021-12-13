@@ -17,6 +17,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 
   it("should appear in the txpool inspection", async function () {
     let inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
+    // web3 rpc returns lowercase
     let data = inspect.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(0)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
@@ -37,7 +38,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 
   it("should appear in the txpool content", async function () {
     let content = await customWeb3Request(context.web3, "txpool_content", []);
-
+    // web3 rpc returns lowercase
     const data = content.result.pending[GENESIS_ACCOUNT.toLowerCase()][context.web3.utils.toHex(0)];
     expect(data).to.include({
       blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -80,7 +81,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
 
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      contractAddress.toString().toLowerCase() + ": 0 wei + 12000000 gas x 1000000000 wei"
+      contractAddress.toLowerCase() + ": 0 wei + 12000000 gas x 1000000000 wei"
     );
   });
 
@@ -95,7 +96,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       gasPrice: "0x3b9aca00",
       hash: txHash,
       nonce: context.web3.utils.toHex(1),
-      to: testContract.options.address.toString().toLowerCase(),
+      to: testContract.options.address.toLowerCase(),
       value: "0x0",
     });
   });

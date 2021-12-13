@@ -95,7 +95,7 @@ fn ethereum_runtime_rpc_api_author() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -197,7 +197,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -230,7 +230,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -262,7 +262,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
