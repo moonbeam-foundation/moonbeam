@@ -4304,26 +4304,33 @@ fn deferred_payment_steady_state_event_flow() {
 
 	ExtBuilder::default()
 		.with_balances(vec![
+			// collators
 			(1, 200),
 			(2, 200),
 			(3, 200),
-			(4, 200), // collators
+			(4, 200),
+			// delegators
 			(11, 200),
 			(22, 200),
 			(33, 200),
-			(44, 200),   // delegators
-			(111, 1000), // burn account, see `reset_issuance()`
+			(44, 200),
+			// burn account, see `reset_issuance()`
+			(111, 1000),
 		])
 		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
 		.with_delegations(vec![
+			// delegator 11 delegates 100 to 1 and 2
 			(11, 1, 100),
-			(11, 2, 100), // delegator 11 delegates 100 to 1 and 2
+			(11, 2, 100),
+			// delegator 22 delegates 100 to 2 and 3
 			(22, 2, 100),
-			(22, 3, 100), // delegator 22 delegates 100 to 2 and 3
+			(22, 3, 100),
+			// delegator 33 delegates 100 to 3 and 4
 			(33, 3, 100),
-			(33, 4, 100), // delegator 33 delegates 100 to 3 and 4
+			(33, 4, 100),
+			// delegator 44 delegates 100 to 4 and 1
 			(44, 4, 100),
-			(44, 1, 100), // delegator 44 delegates 100 to 4 and 1
+			(44, 1, 100),
 		])
 		.build()
 		.execute_with(|| {
