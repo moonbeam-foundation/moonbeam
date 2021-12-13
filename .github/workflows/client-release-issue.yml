@@ -1,0 +1,35 @@
+name: Create client release ticket
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Previous client version"
+        required: true
+      to:
+        description: "Next client version"
+        required: true
+
+jobs:
+  create_client_ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Generate client release issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd tools
+          yarn install
+          yarn --silent run print-client-release-issue --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../client-release-issue.md
+      - name: Create version bump issue
+        uses: peter-evans/create-issue-from-file@v3
+        with:
+          title: v${{ github.event.inputs.to }} release
+          content-filepath: ./client-release-issue.md
+          labels: |
+            automated issue
