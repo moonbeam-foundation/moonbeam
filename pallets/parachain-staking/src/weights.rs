@@ -85,6 +85,7 @@ pub trait WeightInfo {
 	fn cancel_delegator_bond_less() -> Weight;
 	fn active_on_initialize(x: u32, y: u32) -> Weight;
 	fn passive_on_initialize() -> Weight;
+	fn pay_one_collator_reward(y: u32) -> Weight;
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
@@ -273,6 +274,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	fn passive_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
+	fn pay_one_collator_reward(_y: u32) -> Weight {
+		(82_496_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(11 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -460,5 +466,10 @@ impl WeightInfo for () {
 	}
 	fn passive_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
+	}
+	fn pay_one_collator_reward(_y: u32) -> Weight {
+		(82_496_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 }

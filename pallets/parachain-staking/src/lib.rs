@@ -2522,6 +2522,7 @@ pub mod pallet {
 				let mut amt_due = total_paid;
 				// Take the snapshot of block author and delegations
 				let state = <AtStake<T>>::get(paid_for_round, &collator);
+				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					mint(amt_due, collator.clone());
@@ -2544,9 +2545,7 @@ pub mod pallet {
 
 				return (
                     Some((collator, total_paid)),
-                    0u64.into(),
-                    // TODO: once weight is set in file:
-                    // T::WeightInfo::pay_one_collator_reward(state.delegations.len())
+                    T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
                 )
 			} else {
 				// Note that storage is cleaned up in handle_delayed_payouts()
