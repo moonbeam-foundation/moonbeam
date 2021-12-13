@@ -47,6 +47,25 @@ fn test_selector_enum() {
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
 		Action::TransferMultiAsset,
 	);
+
+	buffer.copy_from_slice(
+		&Keccak256::digest(b"transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)")
+			[0..4],
+	);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::TransferWithFee,
+	);
+
+	buffer.copy_from_slice(
+		&Keccak256::digest(
+			b"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+		)[0..4],
+	);
+	assert_eq!(
+		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
+		Action::TransferMultiAssetWithFee,
+	);
 }
 
 #[test]
@@ -179,6 +198,59 @@ fn transfer_to_reserve_works() {
 }
 
 #[test]
+fn transfer_to_reserve_with_fee_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			// Fees are not trully charged, so no worries
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
+						.write(Address(AssetId(0u128).into()))
+						.write(U256::from(500))
+						.write(U256::from(50))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredWithFee(
+				Alice,
+				CurrencyId::OtherReserve(0u128),
+				500,
+				50,
+				destination,
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
 fn transfer_non_reserve_to_non_reserve_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -219,6 +291,59 @@ fn transfer_non_reserve_to_non_reserve_works() {
 			let expected: crate::mock::Event =
 				XtokensEvent::Transferred(Alice, CurrencyId::OtherReserve(1u128), 500, destination)
 					.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_non_reserve_to_non_reserve_with_fee_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			// We are transferring asset 1, which corresponds to another parachain Id asset
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
+						.write(Address(AssetId(1u128).into()))
+						.write(U256::from(500))
+						.write(U256::from(50))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredWithFee(
+				Alice,
+				CurrencyId::OtherReserve(1u128),
+				500,
+				50,
+				destination,
+			)
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -331,6 +456,65 @@ fn transfer_multi_asset_self_reserve_works() {
 }
 
 #[test]
+fn transfer_multi_asset_self_reserve_with_fee_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			let self_reserve = crate::mock::SelfReserve::get();
+
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
+						.write(self_reserve.clone())
+						.write(U256::from(500))
+						.write(U256::from(50))
+						.write(destination)
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee(
+				Alice,
+				MultiAsset {
+					id: AssetId::Concrete(self_reserve.clone()),
+					fun: Fungibility::Fungible(500),
+				},
+				MultiAsset {
+					id: AssetId::Concrete(self_reserve),
+					fun: Fungibility::Fungible(50),
+				},
+				MultiLocation::parent(),
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
 fn transfer_multi_asset_non_reserve_to_non_reserve() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -377,6 +561,68 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				MultiAsset {
 					id: AssetId::Concrete(asset_location),
 					fun: Fungibility::Fungible(500),
+				},
+				MultiLocation::parent(),
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			let asset_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(5u128)),
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
+						.write(asset_location.clone())
+						.write(U256::from(500))
+						.write(U256::from(50))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee(
+				Alice,
+				MultiAsset {
+					id: AssetId::Concrete(asset_location.clone()),
+					fun: Fungibility::Fungible(500),
+				},
+				MultiAsset {
+					id: AssetId::Concrete(asset_location),
+					fun: Fungibility::Fungible(50),
 				},
 				MultiLocation::parent(),
 			)
