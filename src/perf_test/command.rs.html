@@ -508,6 +508,19 @@
 <span id="508">508</span>
 <span id="509">509</span>
 <span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -531,7 +544,9 @@
 	<span class="ident">PerfCmd</span>,
 };
 
-<span class="kw">use</span> <span class="ident">cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider</span>;
+<span class="kw">use</span> <span class="ident">cumulus_primitives_parachain_inherent</span>::{
+	<span class="ident">MockValidationDataInherentDataProvider</span>, <span class="ident">MockXcmConfig</span>,
+};
 <span class="kw">use</span> <span class="ident">ethereum::TransactionAction</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::{<span class="ident">ConvertTransaction</span>, <span class="ident">EthereumRuntimeRPCApi</span>};
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
@@ -662,6 +677,8 @@
 						.<span class="ident">expect</span>(<span class="string">&quot;Header passed in as parent should be present in backend.&quot;</span>);
 					<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">author_id</span>.<span class="ident">clone</span>();
 
+					<span class="kw">let</span> <span class="ident">client_for_xcm</span> <span class="op">=</span> <span class="ident">client_set_aside_for_cidp</span>.<span class="ident">clone</span>();
+
 					<span class="kw">async</span> <span class="kw">move</span> {
 						<span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">sp_timestamp::InherentDataProvider::from_system_time</span>();
 
@@ -669,6 +686,14 @@
 							<span class="ident">current_para_block</span>,
 							<span class="ident">relay_offset</span>: <span class="number">1000</span>,
 							<span class="ident">relay_blocks_per_para_block</span>: <span class="number">2</span>,
+							<span class="ident">raw_downward_messages</span>: <span class="ident">Vec::new</span>(),
+							<span class="ident">raw_horizontal_messages</span>: <span class="ident">Vec::new</span>(),
+							<span class="ident">xcm_config</span>: <span class="ident">MockXcmConfig::new</span>(
+								<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">client_for_xcm</span>,
+								<span class="ident">block</span>,
+								<span class="ident">Default::default</span>(),
+								<span class="ident">Default::default</span>(),
+							),
 						};
 
 						<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives::InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="ident">author_id</span>);
@@ -720,6 +745,7 @@
 					<span class="ident">transaction_converter</span>: <span class="ident">TransactionConverters::for_runtime_variant</span>(
 						<span class="ident">runtime_variant</span>,
 					),
+					<span class="ident">xcm_senders</span>: <span class="prelude-val">None</span>,
 				};
 				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
 				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>());

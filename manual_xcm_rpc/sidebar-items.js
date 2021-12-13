@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["internal_err",""]],"struct":[["ManualXcm",""]],"trait":[["ManualXcmApi","This RPC interface is used to manually submit XCM messages that will be injected into a parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration tests."]]});

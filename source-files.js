@@ -2,6 +2,7 @@ var N = null;var sourcesIndex = {};
 sourcesIndex["account"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["crowdloan_rewards_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["evm_tracing_events"] = {"name":"","files":["evm.rs","gasometer.rs","lib.rs","runtime.rs"]};
+sourcesIndex["manual_xcm_rpc"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbase_runtime"] = {"name":"","files":["lib.rs","precompiles.rs"]};
 sourcesIndex["moonbeam"] = {"name":"","files":["main.rs"]};
 sourcesIndex["moonbeam_cli"] = {"name":"","files":["cli.rs","command.rs","lib.rs"]};

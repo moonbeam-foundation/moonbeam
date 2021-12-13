@@ -274,6 +274,18 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -301,6 +313,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">client::RuntimeApiCollection</span>, <span class="ident">TransactionConverters</span>};
 <span class="kw">use</span> <span class="ident">cli_opt::EthApi</span> <span class="kw">as</span> <span class="ident">EthApiCmd</span>;
+<span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">fc_mapping_sync</span>::{<span class="ident">MappingSyncWorker</span>, <span class="ident">SyncStrategy</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{
 	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthBlockDataCache</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>,
@@ -310,6 +323,7 @@
 <span class="kw">use</span> <span class="ident">fc_rpc_core::types::FilterPool</span>;
 <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub::manager::SubscriptionManager</span>;
+<span class="kw">use</span> <span class="ident">manual_xcm_rpc</span>::{<span class="ident">ManualXcm</span>, <span class="ident">ManualXcmApi</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{<span class="ident">Block</span>, <span class="ident">Hash</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_txpool</span>::{<span class="ident">TxPool</span>, <span class="ident">TxPoolServer</span>};
 <span class="kw">use</span> <span class="ident">pallet_ethereum::EthereumStorageSchema</span>;
@@ -365,6 +379,8 @@
 	<span class="kw">pub</span> <span class="ident">max_past_logs</span>: <span class="ident">u32</span>,
 	<span class="doccomment">/// Ethereum transaction to Extrinsic converter.</span>
 	<span class="kw">pub</span> <span class="ident">transaction_converter</span>: <span class="ident">TransactionConverters</span>,
+	<span class="doccomment">/// Channels for manual xcm messages (downward, hrmp)</span>
+	<span class="kw">pub</span> <span class="ident">xcm_senders</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">flume::Sender</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">flume::Sender</span><span class="op">&lt;</span>(<span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>)<span class="op">&gt;</span>,
 }
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">BE</span>, <span class="ident">A</span><span class="op">&gt;</span>(
@@ -399,6 +415,7 @@
 		<span class="ident">backend</span>: <span class="kw">_</span>,
 		<span class="ident">max_past_logs</span>,
 		<span class="ident">transaction_converter</span>,
+		<span class="ident">xcm_senders</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
 
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi::to_delegate</span>(<span class="ident">FullSystem::new</span>(
@@ -486,6 +503,13 @@
 			<span class="ident">ManualSealApi::to_delegate</span>(<span class="ident">ManualSeal::new</span>(<span class="ident">command_sink</span>)),
 		);
 	};
+
+	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">downward_message_channel</span>, <span class="ident">hrmp_message_channel</span>)) <span class="op">=</span> <span class="ident">xcm_senders</span> {
+		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">ManualXcmApi::to_delegate</span>(<span class="ident">ManualXcm</span> {
+			<span class="ident">downward_message_channel</span>,
+			<span class="ident">hrmp_message_channel</span>,
+		}));
+	}
 
 	<span class="ident">io</span>
 }
