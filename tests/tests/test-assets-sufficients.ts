@@ -31,7 +31,8 @@ async function mockAssetBalance(
   assetDetails,
   sudoAccount,
   assetId,
-  account
+  account,
+  is_sufficient
 ) {
   // Register the asset
   await context.polkadotApi.tx.sudo
@@ -39,7 +40,8 @@ async function mockAssetBalance(
       context.polkadotApi.tx.assetManager.registerAsset(
         sourceLocationRelayAssetType,
         relayAssetMetadata,
-        new BN(1)
+        new BN(1),
+        is_sufficient
       )
     )
     .signAndSend(sudoAccount);
@@ -86,7 +88,7 @@ async function mockAssetBalance(
 }
 
 describeDevMoonbeam(
-  "Pallet Assets - Sufficient tests",
+  "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
     let sudoAccount, assetId, iFace;
     before("Setup contract and mock balance", async () => {
@@ -109,7 +111,15 @@ describeDevMoonbeam(
         minBalance: 1,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        sudoAccount,
+        assetId,
+        ALITH,
+        true
+      );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
@@ -158,7 +168,6 @@ describeDevMoonbeam(
           .paymentInfo(freshAccount)
       ).partialFee as any;
 
-      // We transfer Assets to freshAccount, which should increase sufficients
       // For some reason paymentInfo overestimates by 4358
       await context.polkadotApi.tx.balances
         .transfer(freshAccount.address, BigInt(fee) - BigInt(4358))
@@ -214,7 +223,7 @@ describeDevMoonbeam(
 );
 
 describeDevMoonbeam(
-  "Pallet Assets - Sufficient tests",
+  "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
     let sudoAccount, assetId, iFace;
     before("Setup contract and mock balance", async () => {
@@ -237,7 +246,15 @@ describeDevMoonbeam(
         minBalance: 1,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        sudoAccount,
+        assetId,
+        ALITH,
+        true
+      );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
@@ -286,7 +303,6 @@ describeDevMoonbeam(
           .paymentInfo(freshAccount)
       ).partialFee as any;
 
-      // We transfer Assets to freshAccount, which should increase sufficients
       await context.polkadotApi.tx.balances
         .transfer(freshAccount.address, BigInt(fee))
         .signAndSend(alith);
@@ -321,6 +337,176 @@ describeDevMoonbeam(
           await context.polkadotApi.query.system.account(freshAccount.address)
         ).sufficients.toBigInt()
       ).to.eq(0n);
+      // Providers should be 1
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+      ).to.eq(1n);
+
+      // Nonce should be 1
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+      ).to.eq(1n);
+
+      // But balance of MOVR should be 0
+      expect(
+        (
+          await context.polkadotApi.query.system.account(freshAccount.address)
+        ).data.free.toBigInt() > 0n
+      ).to.eq(true);
+    });
+  },
+  true
+);
+
+describeDevMoonbeam(
+  "Pallet Assets - Sufficient tests: is_sufficient to false",
+  (context) => {
+    let sudoAccount, assetId, iFace;
+    before("Setup contract and mock balance", async () => {
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+      // And we need relay tokens for issuing a transaction to be executed in the relay
+      const balance = new BN("100000000000000");
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+        balance: balance,
+      });
+      assetId = context.polkadotApi.createType(
+        "u128",
+        new BN("42259045809535163221576417993425387648")
+      );
+
+      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+        supply: balance,
+        isSufficient: false,
+        minBalance: 1,
+      });
+
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        sudoAccount,
+        assetId,
+        ALITH,
+        false
+      );
+
+      let beforeAssetBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance as BN;
+      await context.createBlock();
+      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+    });
+
+    it("Send MOVR and assets to an account, then drain assets, dont drain MOVR", async function () {
+      // We are going to use a fresh account here, since we mocked the asset balance
+      const keyring = new Keyring({ type: "ethereum" });
+      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+      const seed = randomAsHex(32);
+      const transferAmount = new BN("10000000000000");
+
+      let freshAccount = await keyring.addFromUri(seed, null, "ethereum");
+
+      // We cannot transfer to freshAccount, since sufficient is false
+      await context.polkadotApi.tx.assets
+        .transfer(assetId, freshAccount.address, transferAmount)
+        .signAndSend(alith);
+
+      await context.createBlock();
+
+      let freshAccountBalance = (await context.polkadotApi.query.assets.account(
+        assetId,
+        freshAccount.address
+      )) as any;
+      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+
+      expect(
+        (
+          await context.polkadotApi.query.system.account(freshAccount.address)
+        ).sufficients.toBigInt()
+      ).to.eq(0n);
+      // Providers should still be 0
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+      ).to.eq(0n);
+
+      // Lets transfer it the native token. We want to transfer enough to cover for a future transfer fee.
+      const fee = (
+        await context.polkadotApi.tx.assets
+          .transfer(assetId, BALTATHAR, transferAmount)
+          .paymentInfo(freshAccount)
+      ).partialFee as any;
+
+      // We transfer Balances, which should increase provider
+      await context.polkadotApi.tx.balances
+        .transfer(freshAccount.address, BigInt(fee))
+        .signAndSend(alith);
+      await context.createBlock();
+
+      expect(
+        (
+          await context.polkadotApi.query.system.account(freshAccount.address)
+        ).sufficients.toBigInt()
+      ).to.eq(0n);
+      // Providers should now be 1
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+      ).to.eq(1n);
+
+      // We now can transfer assets to freshAccount, since it has a provider
+      await context.polkadotApi.tx.assets
+        .transfer(assetId, freshAccount.address, transferAmount)
+        .signAndSend(alith);
+
+      await context.createBlock();
+
+      freshAccountBalance = (await context.polkadotApi.query.assets.account(
+        assetId,
+        freshAccount.address
+      )) as any;
+      expect(freshAccountBalance.balance.eq(transferAmount)).to.equal(true);
+
+      expect(
+        (
+          await context.polkadotApi.query.system.account(freshAccount.address)
+        ).sufficients.toBigInt()
+      ).to.eq(0n);
+
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+      ).to.eq(1n);
+
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).consumers.toBigInt()
+      ).to.eq(1n);
+
+      // What happens now when we execute such transaction? both MOVR and Assets should be drained.
+      await context.polkadotApi.tx.assets
+        .transfer(assetId, BALTATHAR, transferAmount)
+        .signAndSend(freshAccount);
+
+      await context.createBlock();
+
+      freshAccountBalance = (await context.polkadotApi.query.assets.account(
+        assetId,
+        freshAccount.address
+      )) as any;
+      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+
+      // Sufficients should be 0
+      expect(
+        (
+          await context.polkadotApi.query.system.account(freshAccount.address)
+        ).sufficients.toBigInt()
+      ).to.eq(0n);
+
+      // Consumers should be 0
+      expect(
+        (await context.polkadotApi.query.system.account(freshAccount.address)).consumers.toBigInt()
+      ).to.eq(0n);
+
       // Providers should be 1
       expect(
         (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
