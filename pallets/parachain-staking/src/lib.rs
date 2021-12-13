@@ -1672,6 +1672,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
+		/// Vec of tuples of the format (delegator AccountId, collator AccountId, delegation Amount)
 		pub delegations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
 		pub inflation_config: InflationInfo<BalanceOf<T>>,
 	}
