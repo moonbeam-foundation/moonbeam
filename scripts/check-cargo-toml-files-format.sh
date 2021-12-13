@@ -9,7 +9,7 @@ stdbuf -oL $CMD | {
     echo ║ $line
     if [[ "$line" == *"Cargo.toml" ]]; then 
       echo "Check fails: $line"
-      OK="false"
+      echo "Please run './scripts/toml-sort.sh' to format Cargo.toml files properly."
       exit 1
     fi
   done
