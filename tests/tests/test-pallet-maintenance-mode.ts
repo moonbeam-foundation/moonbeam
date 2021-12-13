@@ -1,6 +1,7 @@
 import Keyring from "@polkadot/keyring";
 import { expect } from "chai";
-import { BN } from "@polkadot/util";
+import { BN, hexToU8a } from "@polkadot/util";
+import { KeyringPair } from "@polkadot/keyring/types";
 import {
   ALITH,
   ALITH_PRIV_KEY,
@@ -13,10 +14,11 @@ import {
 import { execFromAllMembersOfTechCommittee } from "../util/governance";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { createBlockWithExtrinsic, createBlockWithExtrinsicParachain } from "../util/substrate-rpc";
 import { createTransfer } from "../util/transactions";
-import { getAccountPayable, VESTING_PERIOD } from "./test-crowdloan";
+import { VESTING_PERIOD } from "./test-crowdloan";
 import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20";
+import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
 
 const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 
@@ -306,12 +308,6 @@ describeDevMoonbeam(
       });
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
-
-      // const contractData = await getCompiled("ERC20Instance");
-      // iFace = new ethers.utils.Interface(contractData.contract.abi);
-      // const { rawTx } = await createContract(context.web3, "ERC20Instance");
-      // await context.createBlock({ transactions: [rawTx] });
-      // crowdloanRewards.claim
     });
 
     it("shouldn't succeed with maintenance on", async function () {
@@ -320,6 +316,157 @@ describeDevMoonbeam(
           context,
           sudoAccount,
           context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
+        );
+      } catch (e) {
+        expect(e.toString()).to.eq(
+          "Error: 1010: Invalid Transaction: Transaction call is not expected"
+        );
+      }
+    });
+  }
+);
+
+
+const HUNDRED_UNITS = 100000000000000;
+
+describeDevMoonbeam(
+  "Pallet Maintenance Mode - no xtokens transfer with maintenance mode",
+  (context) => {
+    let events, sudoAccount
+    let keyring: Keyring,
+      aliceRelay: KeyringPair,
+      alith: KeyringPair,
+      baltathar: KeyringPair,
+      // parachainOne: ApiPromise,
+      // parachainTwo: ApiPromise,
+      // relayOne: ApiPromise,
+      assetId: string;
+    before("First send relay chain asset to parachain", async function () {
+      // const contractData = await getCompiled("XtokensInstance");
+      // const iFace = new ethers.utils.Interface(contractData.contract.abi);
+      // const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
+      // const address = contract.options.address;
+      // await context.createBlock({ transactions: [rawTx] });
+      // Junction::AccountId32
+      const destination_enum_selector = "0x01";
+      // [0x01; 32]
+      const destination_address = "0101010101010101010101010101010101010101010101010101010101010101";
+      // NetworkId::Any
+      const destination_network_id = "00";
+  
+      // This represents X2(Parent, AccountId32([0x01; 32]))
+      // We will transfer the tokens the former account in the relay chain
+      // However it does not really matter as we are not testing what happens
+      // in the relay side of things
+      let destination =
+        // Destination as multilocation
+        [
+          // one parent
+          1,
+          // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
+          [destination_enum_selector + destination_address + destination_network_id],
+        ];
+      // 100 units
+      let amountTransferred = 1000;
+  
+      // weight
+      let weight = 100;
+
+      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
+        context.polkadotApi,
+        baltathar,
+        context.polkadotApi.tx.xTokens.transfer(
+          { OtherReserve: BALANCES_ADDRESS },
+          new BN(HUNDRED_UNITS),
+          {
+            V1: {
+              parents: new BN(1),
+              interior: {
+                X2: [
+                  { Parachain: new BN(2000) },
+                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                ],
+              },
+            },
+          },
+          new BN(4000000000)
+        )
+      );
+  
+      // const data = iFace.encodeFunctionData(
+      //   // action
+      //   "transfer",
+      //   [
+      //     // address of the multiasset, in this case our own balances
+      //     BALANCES_ADDRESS,
+      //     // amount
+      //     amountTransferred,
+      //     // Destination as multilocation
+      //     destination,
+      //     // weight
+      //     weight,
+      //   ]
+      // );
+  
+    });
+
+    it("shouldn't succeed with maintenance on", async function () {
+      try {
+        await createBlockWithExtrinsic(
+          context,
+          sudoAccount,
+          context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
+        );
+      } catch (e) {
+        expect(e.toString()).to.eq(
+          "Error: 1010: Invalid Transaction: Transaction call is not expected"
+        );
+      }
+    });
+  }
+);
+
+
+const sourceLocationRelayVersioned = { v1: { parents: 1, interior: "Here" } };
+
+describeDevMoonbeam(
+  "Pallet Maintenance Mode - no xcmTransactor transfer with maintenance mode",
+  (context) => {
+    let events, sudoAccount
+    let keyring: Keyring,
+      aliceRelay: KeyringPair,
+      alith: KeyringPair,
+      baltathar: KeyringPair,
+      // parachainOne: ApiPromise,
+      // parachainTwo: ApiPromise,
+      // relayOne: ApiPromise,
+      assetId: string;
+    before("First send relay chain asset to parachain", async function () {
+      
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+      // turn maintenance on
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
+      );
+      // try to register index 0 for Alith
+      // await context.polkadotApi.tx.sudo
+      //   .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+      //   .signAndSend(sudoAccount);
+      // await context.createBlock();
+    
+  
+    });
+
+    it.only("shouldn't succeed with maintenance on", async function () {
+      try {
+        await createBlockWithExtrinsic(
+          context,
+          sudoAccount,
+          context.polkadotApi.tx.sudo
+        .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
         );
       } catch (e) {
         expect(e.toString()).to.eq(
