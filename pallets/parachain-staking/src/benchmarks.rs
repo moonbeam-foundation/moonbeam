@@ -921,7 +921,7 @@ benchmarks! {
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{
-			RoundIndex, DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
+			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
 			AwardedPts,
 		};
 
