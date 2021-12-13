@@ -8,7 +8,6 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 
-// Twelve decimal places in the moonbase relay chain's token
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
@@ -65,7 +64,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it.only("Should receive a horizontal transfer of 10 FOREIGNs to Alith", async function () {
+  it("Should receive a horizontal transfer of 10 FOREIGNs to Alith", async function () {
     // Send RPC call to inject XCM message
     // You can provide a message, but if you don't a horizontal transfer is the default
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, []]);
@@ -73,7 +72,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
-    // Make sure the state has ALITH's to DOT tokens
+    // Make sure the state has ALITH's foreign parachain tokens
     let alith_dot_balance = (
       await context.polkadotApi.query.assets.account(assetId, alith.address)
     ).balance.toBigInt();

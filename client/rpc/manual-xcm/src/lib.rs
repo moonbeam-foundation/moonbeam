@@ -40,6 +40,8 @@ pub trait ManualXcmApi {
 	/// https://github.com/paritytech/cumulus/blob/c308c01b/pallets/parachain-system/src/lib.rs#L204
 	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
 	/// constraint. In fact, violating it may be useful for testing.
+	/// The method accepts a paraId as a paremeter, and a bytearray representing an arbitrary message
+	/// if you provide an emtpy byte array, then a default message representing the paraId token will be injected
 	#[rpc(name = "xcm_injectHrmpMessage")]
 	fn inject_hrmp_message(
 		&self,
