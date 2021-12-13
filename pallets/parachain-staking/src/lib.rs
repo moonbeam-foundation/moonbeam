@@ -1499,7 +1499,6 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
@@ -1524,7 +1523,8 @@ pub mod pallet {
 				));
 				// TODO: update active_on_initialize
 				//       OR: benchmark the individual functions here and add up their weight
-				weight += T::WeightInfo::round_transition_on_initialize(collator_count, delegation_count);
+				weight +=
+					T::WeightInfo::round_transition_on_initialize(collator_count, delegation_count);
 			}
 
 			weight += Self::handle_delayed_payouts(round.current);
@@ -1717,7 +1717,7 @@ pub mod pallet {
 				assert!(
 					T::Currency::free_balance(delegator) >= balance,
 					"Account {} does not have enough balance ({:?} < {:?}) to place delegation.",
-					delegator, 
+					delegator,
 					T::Currency::free_balance(delegator),
 					balance,
 				);
@@ -2443,10 +2443,7 @@ pub mod pallet {
 				collator_commission: <CollatorCommission<T>>::get(),
 			};
 
-			<DelayedPayouts<T>>::insert(
-				round_to_payout,
-				payout
-			);
+			<DelayedPayouts<T>>::insert(round_to_payout, payout);
 		}
 
 		/// Wrapper around pay_one_collator_reward which handles the following logic:
@@ -2477,7 +2474,8 @@ pub mod pallet {
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
 				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
-				if result.0.is_none() { // indicates whether or not a payout was made
+				if result.0.is_none() {
+					// indicates whether or not a payout was made
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
@@ -2518,7 +2516,9 @@ pub mod pallet {
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			if let Some((collator, pts)) = <AwardedPts<T>>::iter_prefix(paid_for_round).drain().next() {
+			if let Some((collator, pts)) =
+				<AwardedPts<T>>::iter_prefix(paid_for_round).drain().next()
+			{
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
@@ -2545,8 +2545,8 @@ pub mod pallet {
 
 				return (
 					Some((collator, total_paid)),
-					T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
-					)
+					T::WeightInfo::pay_one_collator_reward(num_delegators as u32),
+				);
 			} else {
 				// Note that storage is cleaned up in handle_delayed_payouts()
 				return (None, 0u64.into());

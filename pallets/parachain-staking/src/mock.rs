@@ -333,7 +333,8 @@ macro_rules! assert_eq_last_events {
 #[macro_export]
 macro_rules! assert_tail_eq {
 	($tail:expr, $arr:expr) => {
-		if $tail.len() != 0 { // 0-length always passes
+		if $tail.len() != 0 {
+			// 0-length always passes
 
 			if $tail.len() > $arr.len() {
 				similar_asserts::assert_eq!($tail, $arr); // will fail
@@ -455,107 +456,78 @@ fn geneses() {
 
 #[test]
 fn roll_to_round_begin_works() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
-			assert_eq!(System::block_number(), 1); // we start on block 1
+	ExtBuilder::default().build().execute_with(|| {
+		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		assert_eq!(System::block_number(), 1); // we start on block 1
 
-			let num_blocks = roll_to_round_begin(1);
-			assert_eq!(System::block_number(), 1); // no-op, we're already on this round
-			assert_eq!(num_blocks, 0);
+		let num_blocks = roll_to_round_begin(1);
+		assert_eq!(System::block_number(), 1); // no-op, we're already on this round
+		assert_eq!(num_blocks, 0);
 
-			let num_blocks = roll_to_round_begin(2);
-			assert_eq!(System::block_number(), 5);
-			assert_eq!(num_blocks, 4);
+		let num_blocks = roll_to_round_begin(2);
+		assert_eq!(System::block_number(), 5);
+		assert_eq!(num_blocks, 4);
 
-			let num_blocks = roll_to_round_begin(3);
-			assert_eq!(System::block_number(), 10);
-			assert_eq!(num_blocks, 5);
-		});
-
+		let num_blocks = roll_to_round_begin(3);
+		assert_eq!(System::block_number(), 10);
+		assert_eq!(num_blocks, 5);
+	});
 }
 
 #[test]
 fn roll_to_round_end_works() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
-			assert_eq!(System::block_number(), 1); // we start on block 1
+	ExtBuilder::default().build().execute_with(|| {
+		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		assert_eq!(System::block_number(), 1); // we start on block 1
 
-			let num_blocks = roll_to_round_end(1);
-			assert_eq!(System::block_number(), 4);
-			assert_eq!(num_blocks, 3);
+		let num_blocks = roll_to_round_end(1);
+		assert_eq!(System::block_number(), 4);
+		assert_eq!(num_blocks, 3);
 
-			let num_blocks = roll_to_round_end(2);
-			assert_eq!(System::block_number(), 9);
-			assert_eq!(num_blocks, 5);
+		let num_blocks = roll_to_round_end(2);
+		assert_eq!(System::block_number(), 9);
+		assert_eq!(num_blocks, 5);
 
-			let num_blocks = roll_to_round_end(3);
-			assert_eq!(System::block_number(), 14);
-			assert_eq!(num_blocks, 5);
-		});
-
+		let num_blocks = roll_to_round_end(3);
+		assert_eq!(System::block_number(), 14);
+		assert_eq!(num_blocks, 5);
+	});
 }
 
 #[test]
 fn assert_tail_eq_works() {
+	assert_tail_eq!(vec![1, 2], vec![0, 1, 2]);
 
-	assert_tail_eq!(
-		vec![1, 2],
-		vec![0, 1, 2]
-	);
-
-	assert_tail_eq!(
-		vec![1],
-		vec![1]
-	);
+	assert_tail_eq!(vec![1], vec![1]);
 
 	assert_tail_eq!(
 		vec![0u32; 0], // 0 length array
-		vec![0u32; 1] // 1-length array
+		vec![0u32; 1]  // 1-length array
 	);
 
-	assert_tail_eq!(
-		vec![0u32, 0],
-		vec![0u32, 0]
-	);
-
+	assert_tail_eq!(vec![0u32, 0], vec![0u32, 0]);
 }
 
 #[test]
 #[should_panic]
 fn assert_tail_eq_panics_on_non_equal_tail() {
-	assert_tail_eq!(
-		vec![2, 2],
-		vec![0, 1, 2]
-	);
+	assert_tail_eq!(vec![2, 2], vec![0, 1, 2]);
 }
 
 #[test]
 #[should_panic]
 fn assert_tail_eq_panics_on_empty_arr() {
-	assert_tail_eq!(
-		vec![2, 2],
-		vec![0u32; 0]
-	);
+	assert_tail_eq!(vec![2, 2], vec![0u32; 0]);
 }
 
 #[test]
 #[should_panic]
 fn assert_tail_eq_panics_on_longer_tail() {
-	assert_tail_eq!(
-		vec![1, 2, 3],
-		vec![1, 2]
-	);
+	assert_tail_eq!(vec![1, 2, 3], vec![1, 2]);
 }
 
 #[test]
 #[should_panic]
 fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
-	assert_tail_eq!(
-		vec![1, 2, 3],
-		vec![0, 1, 2]
-	);
+	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
 }

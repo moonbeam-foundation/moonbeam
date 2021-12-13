@@ -22,13 +22,13 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end,
-	set_author, Balances, System, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
+	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
+	Event as MetaEvent, ExtBuilder, Origin, Stake, System, Test,
 };
 use crate::{
-	assert_eq_events, assert_event_emitted, assert_last_event, assert_eq_last_events,
-	assert_tail_eq, Bond, CollatorStatus,
-	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range,
+	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
+	assert_tail_eq, Bond, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
+	Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -58,7 +58,7 @@ fn invalid_root_origin_fails() {
 #[test]
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		// before we can bump total_selected we must bump the blocks per round 
+		// before we can bump total_selected we must bump the blocks per round
 		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
 		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32)));
@@ -4115,7 +4115,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		.build()
 		.execute_with(|| {
 			roll_to_round_begin(2);
-			// payouts for round 1 
+			// payouts for round 1
 			set_author(1, 1, 1);
 			set_author(1, 2, 1);
 			set_author(1, 3, 1);
@@ -4199,17 +4199,27 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<AtStake<Test>>::contains_key(1, 1));
 			assert!(<AtStake<Test>>::contains_key(1, 2));
 
-			assert!(! <DelayedPayouts<Test>>::contains_key(1),
-				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay");
-			assert!(<Points<Test>>::contains_key(1),
-				"Points should be populated during current round");
-			assert!(<Staked<Test>>::contains_key(1),
-				"Staked should be populated when round changes");
+			assert!(
+				!<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
+			);
+			assert!(
+				<Points<Test>>::contains_key(1),
+				"Points should be populated during current round"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(1),
+				"Staked should be populated when round changes"
+			);
 
-			assert!(! <Points<Test>>::contains_key(2),
-				"Points should not be populated until author noted");
-			assert!(<Staked<Test>>::contains_key(2),
-				"Staked should be populated when round changes");
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"Points should not be populated until author noted"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(2),
+				"Staked should be populated when round changes"
+			);
 
 			// first payout occurs in round 3
 			round = 3;
@@ -4228,23 +4238,33 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<AtStake<Test>>::contains_key(2, 1));
 			assert!(<AtStake<Test>>::contains_key(2, 2));
 
-			assert!(<DelayedPayouts<Test>>::contains_key(1),
-				"DelayedPayouts should be populated after RewardPaymentDelay");
+			assert!(
+				<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts should be populated after RewardPaymentDelay"
+			);
 			assert!(<Points<Test>>::contains_key(1));
-			assert!(! <Staked<Test>>::contains_key(1),
-				"Staked should be cleaned up after round change");
+			assert!(
+				!<Staked<Test>>::contains_key(1),
+				"Staked should be cleaned up after round change"
+			);
 
-			assert!(! <DelayedPayouts<Test>>::contains_key(2));
-			assert!(! <Points<Test>>::contains_key(2), "We never rewarded points for round 2");
+			assert!(!<DelayedPayouts<Test>>::contains_key(2));
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"We never rewarded points for round 2"
+			);
 			assert!(<Staked<Test>>::contains_key(2));
 
-			assert!(! <DelayedPayouts<Test>>::contains_key(3));
-			assert!(! <Points<Test>>::contains_key(3), "We never awarded points for round 3");
+			assert!(!<DelayedPayouts<Test>>::contains_key(3));
+			assert!(
+				!<Points<Test>>::contains_key(3),
+				"We never awarded points for round 3"
+			);
 			assert!(<Staked<Test>>::contains_key(3));
 
 			// collator 1 has been paid in this last block and associated storage cleaned up
-			assert!(! <AtStake<Test>>::contains_key(1, 1));
-			assert!(! <AwardedPts<Test>>::contains_key(1, 1));
+			assert!(!<AtStake<Test>>::contains_key(1, 1));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
 
 			// but collator 2 hasn't been paid
 			assert!(<AtStake<Test>>::contains_key(1, 2));
@@ -4261,28 +4281,22 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert_eq_events!(expected);
 
 			// collators have both been paid and storage fully cleaned up for round 1
-			assert!(! <AtStake<Test>>::contains_key(1, 2));
-			assert!(! <AwardedPts<Test>>::contains_key(1, 2));
-			assert!(! <Staked<Test>>::contains_key(1));
-			assert!(! <Points<Test>>::contains_key(1)); // points should be cleaned up
-			assert!(! <DelayedPayouts<Test>>::contains_key(1));
+			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<Staked<Test>>::contains_key(1));
+			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
+			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 
 			roll_to_round_end(4);
 
 			// no more events expected
 			assert_eq_events!(expected);
-
 		});
 }
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
-	use frame_support::traits::{
-		ExistenceRequirement,
-		WithdrawReasons,
-		Currency,
-		Imbalance,
-	};
+	use frame_support::traits::{Currency, ExistenceRequirement, Imbalance, WithdrawReasons};
 
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
@@ -4290,16 +4304,26 @@ fn deferred_payment_steady_state_event_flow() {
 
 	ExtBuilder::default()
 		.with_balances(vec![
-			(  1, 200), ( 2, 200), ( 3, 200), ( 4, 200), // collators
-			( 11, 200), (22, 200), (33, 200), (44, 200), // delegators
+			(1, 200),
+			(2, 200),
+			(3, 200),
+			(4, 200), // collators
+			(11, 200),
+			(22, 200),
+			(33, 200),
+			(44, 200),   // delegators
 			(111, 1000), // burn account, see `reset_issuance()`
 		])
 		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
 		.with_delegations(vec![
-			(11, 1, 100), (11, 2, 100), // delegator 11 delegates 100 to 1 and 2
-			(22, 2, 100), (22, 3, 100), // delegator 22 delegates 100 to 2 and 3
-			(33, 3, 100), (33, 4, 100), // delegator 33 delegates 100 to 3 and 4
-			(44, 4, 100), (44, 1, 100), // delegator 44 delegates 100 to 4 and 1
+			(11, 1, 100),
+			(11, 2, 100), // delegator 11 delegates 100 to 1 and 2
+			(22, 2, 100),
+			(22, 3, 100), // delegator 22 delegates 100 to 2 and 3
+			(33, 3, 100),
+			(33, 4, 100), // delegator 33 delegates 100 to 3 and 4
+			(44, 4, 100),
+			(44, 1, 100), // delegator 44 delegates 100 to 4 and 1
 		])
 		.build()
 		.execute_with(|| {
@@ -4322,8 +4346,9 @@ fn deferred_payment_steady_state_event_flow() {
 					&111,
 					burned,
 					WithdrawReasons::FEE,
-					ExistenceRequirement::AllowDeath).expect("Account can absorb burn");
-
+					ExistenceRequirement::AllowDeath,
+				)
+				.expect("Account can absorb burn");
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
@@ -4344,7 +4369,10 @@ fn deferred_payment_steady_state_event_flow() {
 			// returns new round index
 			let roll_through_steady_state_round = |round: u64| -> u64 {
 				let num_rounds_rolled = roll_to_round_begin(round);
-				assert_eq!(num_rounds_rolled, 1, "expected to be at round begin already");
+				assert_eq!(
+					num_rounds_rolled, 1,
+					"expected to be at round begin already"
+				);
 
 				let expected = vec![
 					Event::CollatorChosen(round as u32, 1, 400),
@@ -4352,7 +4380,6 @@ fn deferred_payment_steady_state_event_flow() {
 					Event::CollatorChosen(round as u32, 3, 400),
 					Event::CollatorChosen(round as u32, 4, 400),
 					Event::NewRound((round - 1) * 5, round as u32, 4, 1600),
-
 					// first payout should occur on round change
 					Event::Rewarded(3, 19),
 					Event::Rewarded(33, 6),
