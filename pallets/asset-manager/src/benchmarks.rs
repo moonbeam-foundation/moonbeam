@@ -28,7 +28,7 @@ benchmarks! {
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
 
-	}: _(RawOrigin::Root, asset_type.clone(), metadata, amount)
+	}: _(RawOrigin::Root, asset_type.clone(), metadata, amount, true)
 	verify {
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(asset_type));
 	}

@@ -95,7 +95,12 @@ pub struct ExtBuilder {
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance>]
-	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	xcm_assets: Vec<(
+		AssetType,
+		AssetRegistrarMetadata,
+		Vec<(AccountId, Balance)>,
+		bool,
+	)>,
 	safe_xcm_version: Option<u32>,
 }
 
@@ -163,7 +168,12 @@ impl ExtBuilder {
 
 	pub fn with_xcm_assets(
 		mut self,
-		xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+		xcm_assets: Vec<(
+			AssetType,
+			AssetRegistrarMetadata,
+			Vec<(AccountId, Balance)>,
+			bool,
+		)>,
 	) -> Self {
 		self.xcm_assets = xcm_assets;
 		self
@@ -264,9 +274,15 @@ impl ExtBuilder {
 				}
 			}
 			// If any xcm assets specified, we register them here
-			for (asset_type, metadata, balances) in xcm_assets.clone() {
-				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
-					.unwrap();
+			for (asset_type, metadata, balances, sufficient) in xcm_assets.clone() {
+				AssetManager::register_asset(
+					root_origin(),
+					asset_type.clone(),
+					metadata,
+					1,
+					sufficient,
+				)
+				.unwrap();
 				for (account, balance) in balances {
 					Assets::mint(
 						origin_of(AssetManager::account_id()),
