@@ -23,7 +23,7 @@
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	Event as MetaEvent, ExtBuilder, Origin, Stake, System, Test,
+	Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
@@ -4296,7 +4296,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
-	use frame_support::traits::{Currency, ExistenceRequirement, Imbalance, WithdrawReasons};
+	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
