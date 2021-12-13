@@ -1871,7 +1871,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new <= <Round<T>>::get().length,
-				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 			);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
@@ -1906,7 +1906,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new >= <TotalSelected<T>>::get(),
-				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 			);
 			round.length = new;
 			// update per-round inflation given new rounds per year

@@ -73,7 +73,7 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 		assert_eq!(Stake::round().length, 5); // test relies on this
 		assert_noop!(
 			Stake::set_total_selected(Origin::root(), 6u32),
-			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 		);
 	});
 }
@@ -101,7 +101,7 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 		assert_ok!(Stake::set_total_selected(Origin::root(), 15u32));
 		assert_noop!(
 			Stake::set_blocks_per_round(Origin::root(), 14u32),
-			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 		);
 	});
 }
