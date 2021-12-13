@@ -165,9 +165,10 @@ where
 							relay_blocks_per_para_block: 2,
 							raw_downward_messages: Vec::new(),
 							raw_horizontal_messages: Vec::new(),
-							xcm_config: MockXcmConfig::from_standard_storage(
+							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
+								Default::default(),
 								Default::default(),
 							),
 						};

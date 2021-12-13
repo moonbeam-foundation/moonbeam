@@ -885,9 +885,10 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
-							xcm_config: MockXcmConfig::from_standard_storage(
+							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
+								Default::default(),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
