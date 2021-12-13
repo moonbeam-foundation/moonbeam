@@ -904,7 +904,7 @@ benchmarks! {
 
 	// ON_INITIALIZE
 
-	active_on_initialize {
+	round_transition_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
 		let x in 1..28;
 		// DELEGATIONS
@@ -1199,7 +1199,7 @@ benchmarks! {
 		// TODO: we could verify balances here
 	}
 
-	passive_on_initialize {
+	base_on_initialize {
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -1461,16 +1461,16 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_active_on_initialize() {
+	fn bench_round_transition_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_active_on_initialize());
+			assert_ok!(Pallet::<Test>::test_benchmark_round_transition_on_initialize());
 		});
 	}
 
 	#[test]
-	fn bench_passive_on_initialize() {
+	fn bench_base_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_passive_on_initialize());
+			assert_ok!(Pallet::<Test>::test_benchmark_base_on_initialize());
 		});
 	}
 }

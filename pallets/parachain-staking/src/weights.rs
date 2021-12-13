@@ -83,8 +83,8 @@ pub trait WeightInfo {
 	fn cancel_revoke_delegation() -> Weight;
 	fn cancel_delegator_bond_more() -> Weight;
 	fn cancel_delegator_bond_less() -> Weight;
-	fn active_on_initialize(x: u32, y: u32) -> Weight;
-	fn passive_on_initialize() -> Weight;
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight;
+	fn base_on_initialize() -> Weight;
 	fn pay_one_collator_reward(y: u32) -> Weight;
 }
 
@@ -262,7 +262,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 1_342_000
 			.saturating_add((46_120_000 as Weight).saturating_mul(x as Weight))
@@ -271,7 +271,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn passive_on_initialize() -> Weight {
+	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
 	fn pay_one_collator_reward(_y: u32) -> Weight {
@@ -455,7 +455,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 1_342_000
 			.saturating_add((46_120_000 as Weight).saturating_mul(x as Weight))
@@ -464,7 +464,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn passive_on_initialize() -> Weight {
+	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
 	}
 	fn pay_one_collator_reward(_y: u32) -> Weight {
