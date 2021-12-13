@@ -135,7 +135,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       genesis: {
         runtime: {
           runtime_genesis_config: {
-            parachainsConfiguration: {
+            configuration: {
               config: {
                 validation_upgrade_frequency: 1,
                 validation_upgrade_delay: 1,
@@ -148,7 +148,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     parachains: parachainArray.map((_, i) => {
       return {
         bin: BINARY_PATH,
-        balance: "1000000000000000000000",
         chain: options.chain,
         nodes: [
           {
