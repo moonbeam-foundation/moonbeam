@@ -39,7 +39,7 @@ benchmarks! {
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
-		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount)?;
+		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 
 	}: _(RawOrigin::Root, asset_id, 1)
 	verify {
