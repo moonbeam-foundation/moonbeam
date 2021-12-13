@@ -4260,13 +4260,14 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			]);
 			assert_eq_events!(expected);
 
-			roll_to_round_end(4);
 			// collators have both been paid and storage fully cleaned up for round 1
 			assert!(! <AtStake<Test>>::contains_key(1, 2));
 			assert!(! <AwardedPts<Test>>::contains_key(1, 2));
 			assert!(! <Staked<Test>>::contains_key(1));
 			assert!(! <Points<Test>>::contains_key(1)); // points should be cleaned up
 			assert!(! <DelayedPayouts<Test>>::contains_key(1));
+
+			roll_to_round_end(4);
 
 			// no more events expected
 			assert_eq_events!(expected);
