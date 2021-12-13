@@ -2462,27 +2462,27 @@ pub mod pallet {
 			// 2. payouts exists and we aren't done
 			// 3. payouts exists and we are done (and we should clean up)
 
-            // we call the current round the "payout_round" and the round we are paying out for the
-            // "paid_for_round".
-            // payout_round is paid_for_round + RewardPaymentDelay + 1 and starts at the first
-            // block.
+			// we call the current round the "payout_round" and the round we are paying out for the
+			// "paid_for_round".
+			// payout_round is paid_for_round + RewardPaymentDelay + 1 and starts at the first
+			// block.
 
 			let delay = T::RewardPaymentDelay::get();
-            // don't underflow uint
-            if now < delay {
-                return 0u64.into();
-            }
+			// don't underflow uint
+			if now < delay {
+				return 0u64.into();
+			}
 
-            let paid_for_round = now - delay;
+			let paid_for_round = now - delay;
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
-                let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
-                if result.0.is_none() { // indicates whether or not a payout was made
+				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
+				if result.0.is_none() { // indicates whether or not a payout was made
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
 				}
-                result.1 // weight consumed by pay_one_collator_reward
+				result.1 // weight consumed by pay_one_collator_reward
 			} else {
 				0u64.into()
 			}
@@ -2544,9 +2544,9 @@ pub mod pallet {
 				}
 
 				return (
-                    Some((collator, total_paid)),
-                    T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
-                )
+					Some((collator, total_paid)),
+					T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
+					)
 			} else {
 				// Note that storage is cleaned up in handle_delayed_payouts()
 				return (None, 0u64.into());
