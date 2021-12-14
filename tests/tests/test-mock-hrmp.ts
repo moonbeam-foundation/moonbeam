@@ -35,7 +35,12 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1))
+        context.polkadotApi.tx.assetManager.registerAsset(
+          sourceLocation,
+          assetMetadata,
+          new BN(1),
+          true
+        )
       )
     );
     // Look for assetId in events
