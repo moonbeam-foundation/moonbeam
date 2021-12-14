@@ -1,6 +1,6 @@
 # Bug Bounty
 
-The Moonbeam bug bounty program is focused on the Moonriver and Moonbeam Parachains (deployed to Kusama and Polkadot respectively) and dAapps and is focused on preventing:
+The Moonbeam bug bounty program is focused on the Moonriver and Moonbeam Parachains (deployed to Kusama and Polkadot respectively) and dAapps. It is focused on preventing:
 
 * Thefts and freezing of principal of any amount
 * Thefts and freezing of unclaimed yield of any amount
@@ -32,7 +32,7 @@ https://immunefi.com/bounty/moonbeam/
 | Medium | USD $2,500 |
 | Low | USD $1,000 |
 
-\* All web/app bug reports must come with a PoC in order to be considered for a reward. 
+\* All web/app bug reports must come with a Proof of Concept (PoC) in order to be considered for a reward. 
 
 At the discretion of the team, a PoC may be required in order to determine if the bug exists, and if necessary, to calculate the extent of the damage the bug could have if exploited.
 
