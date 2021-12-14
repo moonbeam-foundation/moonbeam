@@ -31,7 +31,7 @@
   "scripts": {
     "test-with-logs": "mocha --printlogs -r ts-node/register 'tests/**/test-*.ts'",
     "pre-build-contracts": "ts-node ./pre-build-contracts.ts && npx prettier -w ./contracts/compiled/*.json",
-    "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts'",
+    "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts' -- -j 4",
     "test-seq": "mocha -r ts-node/register 'tests/**/test-*.ts'",
     "tracing-test": "ETHAPI_CMD='--ethapi=txpool,debug,trace' mocha --parallel -r ts-node/register 'tracing-tests/**/*.ts'",
     "para-test": "mocha -r ts-node/register 'para-tests/**/test-*.ts'",
