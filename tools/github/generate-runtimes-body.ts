@@ -104,7 +104,6 @@ ${runtimes
 🏋 size                        : ${runtime.srtool.runtimes.compressed.size}
 #️⃣ sha256                      : ${runtime.srtool.runtimes.compressed.sha256}
 #️⃣ blake2-256                  : ${runtime.srtool.runtimes.compressed.blake2_256}
-🗳️ proposal (setCode)          : ${runtime.srtool.runtimes.compressed.prop}
 🗳️ proposal (authorizeUpgrade) : ${authorizeUpgradeHash(runtime.name, runtime.srtool)}
 \`\`\``
   )
