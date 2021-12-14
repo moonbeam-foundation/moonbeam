@@ -6681,7 +6681,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.13#2af07525a8026934ee27b7ff0d1e8da6b0db2350"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.13#0d0fad6b31214946489290e3bcb712770c0cbc42"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
