@@ -153,16 +153,6 @@ fn verify_pallet_prefixes() {
 		]
 	);
 	assert_eq!(
-		<moonbeam_runtime::Sudo as StorageInfoTrait>::storage_info(),
-		vec![StorageInfo {
-			pallet_name: b"Sudo".to_vec(),
-			storage_name: b"Key".to_vec(),
-			prefix: prefix(b"Sudo", b"Key"),
-			max_values: Some(1),
-			max_size: Some(20),
-		}]
-	);
-	assert_eq!(
 		<moonbeam_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -234,8 +224,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Utility>(30);
 	is_pallet_index::<moonbeam_runtime::Proxy>(31);
 	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(32);
-	// Sudo
-	is_pallet_index::<moonbeam_runtime::Sudo>(40);
+	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
