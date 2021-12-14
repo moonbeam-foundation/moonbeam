@@ -206,15 +206,11 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result =
-				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let statuses =
-			// 	Runtime::current_transaction_statuses().expect("Transaction statuses result.");
-			// assert_eq!(statuses.len(), 1);
+
+			run_to_block(2);
+			let statuses =
+				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
+			assert_eq!(statuses.len(), 1);
 		});
 }
 
@@ -271,14 +267,10 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result =
-				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let receipts = Runtime::current_receipts().expect("Receipts result.");
-			// assert_eq!(receipts.len(), 1);
+
+			run_to_block(2);
+			let receipts = Runtime::current_receipts().expect("Receipts result.");
+			assert_eq!(receipts.len(), 1);
 		});
 }
 
