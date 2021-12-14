@@ -956,7 +956,8 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
-		// Sudo was previously index 40.
+		// Has been permanently removed for safety reasons.
+		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility.
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
