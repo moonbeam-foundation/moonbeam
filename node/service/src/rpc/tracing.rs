@@ -106,7 +106,7 @@ where
 	if let Some(trace_filter_task) = trace_filter_task {
 		params.task_manager.spawn_essential_handle().spawn(
 			"trace-filter-cache",
-			Some("EthTracing"),
+			Some("eth-tracing"),
 			trace_filter_task,
 		);
 	}
@@ -116,7 +116,7 @@ where
 	if let Some(debug_task) = debug_task {
 		params.task_manager.spawn_essential_handle().spawn(
 			"ethapi-debug",
-			Some("EthTracing"),
+			Some("eth-tracing"),
 			debug_task,
 		);
 	}
