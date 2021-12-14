@@ -6,6 +6,7 @@ import {
   ALITH,
   ALITH_PRIV_KEY,
   BALTATHAR,
+  BALTATHAR_PRIV_KEY,
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_PRIVATE_KEY,
   GLMR,
@@ -21,6 +22,16 @@ import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20
 import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
 
 const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
+
+export const expectError = (fun): Promise<string> => {
+  return new Promise(async (resolve) => {
+    try {
+      await fun();
+    } catch (e) {
+      resolve(e.toString());
+    }
+  });
+};
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
@@ -109,7 +120,6 @@ describeDevMoonbeam("Pallet Maintenance Mode - exit mode", (context) => {
 describeDevMoonbeam(
   "Pallet Maintenance Mode - exit mode - make sure transfers are allowed again",
   (context) => {
-    let events;
     before("Try turning maintenance mode on", async () => {
       // go into Maintenance
       await execFromAllMembersOfTechCommittee(
@@ -117,10 +127,10 @@ describeDevMoonbeam(
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       );
       // exit maintenance
-      ({ events } = await execFromAllMembersOfTechCommittee(
+      await execFromAllMembersOfTechCommittee(
         context,
         context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
-      ));
+      );
 
       //try transfer
       await context.createBlock({
@@ -164,7 +174,6 @@ describeDevMoonbeam("Pallet Maintenance Mode - normal exit call shouldnt work", 
 describeDevMoonbeam(
   "Pallet Maintenance Mode - no balance transfer with maintenance mode",
   (context) => {
-    let events;
     before("Try turning maintenance mode on", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -263,17 +272,14 @@ describeDevMoonbeam(
     });
 
     it("shouldn't succeed with maintenance on", async function () {
-      try {
+      const error = await expectError(async () => {
         await createBlockWithExtrinsic(
           context,
           genesisAccount,
           context.polkadotApi.tx.crowdloanRewards.claim()
         );
-      } catch (e) {
-        expect(e.toString()).to.eq(
-          "Error: 1010: Invalid Transaction: Transaction call is not expected"
-        );
-      }
+      });
+      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -281,7 +287,7 @@ describeDevMoonbeam(
 describeDevMoonbeam(
   "Pallet Maintenance Mode - no assets transfer with maintenance mode",
   (context) => {
-    let events, sudoAccount, assetId;
+    let sudoAccount, assetId;
     before("Try turning maintenance mode on", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -311,138 +317,68 @@ describeDevMoonbeam(
     });
 
     it("shouldn't succeed with maintenance on", async function () {
-      try {
+      const error = await expectError(async () => {
         await createBlockWithExtrinsic(
           context,
           sudoAccount,
           context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
         );
-      } catch (e) {
-        expect(e.toString()).to.eq(
-          "Error: 1010: Invalid Transaction: Transaction call is not expected"
-        );
-      }
+      });
+      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
-
 
 const HUNDRED_UNITS = 100000000000000;
 
 describeDevMoonbeam(
   "Pallet Maintenance Mode - no xtokens transfer with maintenance mode",
   (context) => {
-    let events, sudoAccount
-    let keyring: Keyring,
-      aliceRelay: KeyringPair,
-      alith: KeyringPair,
-      baltathar: KeyringPair,
-      // parachainOne: ApiPromise,
-      // parachainTwo: ApiPromise,
-      // relayOne: ApiPromise,
-      assetId: string;
+    let baltathar: KeyringPair;
     before("First send relay chain asset to parachain", async function () {
-      // const contractData = await getCompiled("XtokensInstance");
-      // const iFace = new ethers.utils.Interface(contractData.contract.abi);
-      // const { contract, rawTx } = await createContract(context.web3, "XtokensInstance");
-      // const address = contract.options.address;
-      // await context.createBlock({ transactions: [rawTx] });
-      // Junction::AccountId32
-      const destination_enum_selector = "0x01";
-      // [0x01; 32]
-      const destination_address = "0101010101010101010101010101010101010101010101010101010101010101";
-      // NetworkId::Any
-      const destination_network_id = "00";
-  
-      // This represents X2(Parent, AccountId32([0x01; 32]))
-      // We will transfer the tokens the former account in the relay chain
-      // However it does not really matter as we are not testing what happens
-      // in the relay side of things
-      let destination =
-        // Destination as multilocation
-        [
-          // one parent
-          1,
-          // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
-          [destination_enum_selector + destination_address + destination_network_id],
-        ];
-      // 100 units
-      let amountTransferred = 1000;
-  
-      // weight
-      let weight = 100;
+      const keyring = new Keyring({ type: "ethereum" });
+      baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-      const { events: eventsTransfer } = await createBlockWithExtrinsicParachain(
-        context.polkadotApi,
-        baltathar,
-        context.polkadotApi.tx.xTokens.transfer(
-          { OtherReserve: BALANCES_ADDRESS },
-          new BN(HUNDRED_UNITS),
-          {
-            V1: {
-              parents: new BN(1),
-              interior: {
-                X2: [
-                  { Parachain: new BN(2000) },
-                  { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
-                ],
-              },
-            },
-          },
-          new BN(4000000000)
-        )
+      // turn maintenance on
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       );
-  
-      // const data = iFace.encodeFunctionData(
-      //   // action
-      //   "transfer",
-      //   [
-      //     // address of the multiasset, in this case our own balances
-      //     BALANCES_ADDRESS,
-      //     // amount
-      //     amountTransferred,
-      //     // Destination as multilocation
-      //     destination,
-      //     // weight
-      //     weight,
-      //   ]
-      // );
-  
     });
 
     it("shouldn't succeed with maintenance on", async function () {
-      try {
+      const error = await expectError(async () => {
         await createBlockWithExtrinsic(
           context,
-          sudoAccount,
-          context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
+          baltathar,
+          context.polkadotApi.tx.xTokens.transfer(
+            "SelfReserve", //enum
+            new BN(HUNDRED_UNITS),
+            {
+              V1: {
+                parents: new BN(1),
+                interior: {
+                  X2: [
+                    { Parachain: new BN(2000) },
+                    { AccountKey20: { network: "Any", key: hexToU8a(BALTATHAR) } },
+                  ],
+                },
+              },
+            },
+            new BN(4000000000)
+          )
         );
-      } catch (e) {
-        expect(e.toString()).to.eq(
-          "Error: 1010: Invalid Transaction: Transaction call is not expected"
-        );
-      }
+      });
+      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
 
-
-const sourceLocationRelayVersioned = { v1: { parents: 1, interior: "Here" } };
-
 describeDevMoonbeam(
   "Pallet Maintenance Mode - no xcmTransactor transfer with maintenance mode",
   (context) => {
-    let events, sudoAccount
-    let keyring: Keyring,
-      aliceRelay: KeyringPair,
-      alith: KeyringPair,
-      baltathar: KeyringPair,
-      // parachainOne: ApiPromise,
-      // parachainTwo: ApiPromise,
-      // relayOne: ApiPromise,
-      assetId: string;
+    let sudoAccount;
     before("First send relay chain asset to parachain", async function () {
-      
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
@@ -451,28 +387,50 @@ describeDevMoonbeam(
         context,
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       );
-      // try to register index 0 for Alith
-      // await context.polkadotApi.tx.sudo
-      //   .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
-      //   .signAndSend(sudoAccount);
-      // await context.createBlock();
-    
-  
     });
 
-    it.only("shouldn't succeed with maintenance on", async function () {
-      try {
+    it("should succeed with maintenance on", async function () {
+      await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+      );
+      const resp = await context.polkadotApi.query.xcmTransactor.indexToAccount(0);
+      expect(resp.toString()).to.eq(ALITH);
+    });
+  }
+);
+
+describeDevMoonbeam(
+  "Pallet Maintenance Mode - no xcmTransactor transfer with maintenance mode",
+  (context) => {
+    let sudoAccount;
+    before("First send relay chain asset to parachain", async function () {
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+      // turn maintenance on
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
+      );
+    });
+
+    it("should succeedn't with maintenance on", async function () {
+      const error = await expectError(async () => {
         await createBlockWithExtrinsic(
           context,
           sudoAccount,
-          context.polkadotApi.tx.sudo
-        .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+          context.polkadotApi.tx.xcmTransactor.transactThroughDerivative(
+            "Relay",
+            0,
+            "SelfReserve",
+            new BN(4000000000),
+            []
+          )
         );
-      } catch (e) {
-        expect(e.toString()).to.eq(
-          "Error: 1010: Invalid Transaction: Transaction call is not expected"
-        );
-      }
+      });
+      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );

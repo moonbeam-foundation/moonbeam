@@ -118,10 +118,10 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it.only("allows to retrieve index through precompiles", async function () {
-      const resp=await context.polkadotApi.query.xcmTransactor.indexToAccount(0)
-      console.log(1,resp.toHuman())
-      expect(resp.toString()).to.eq(ALITH)
+  it("allows to retrieve index through precompiles", async function () {
+    const resp = await context.polkadotApi.query.xcmTransactor.indexToAccount(0);
+    console.log(1, resp.toHuman());
+    expect(resp.toString()).to.eq(ALITH);
     // let data = iFace.encodeFunctionData(
     //   // action
     //   "index_to_account",
@@ -143,115 +143,115 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     // );
   });
 
-//   it("allows to retrieve transactor info through precompiles", async function () {
-//     let asset =
-//       // Destination as multilocation
-//       [
-//         // one parent
-//         1,
-//         [],
-//       ];
-//     let data = iFace.encodeFunctionData(
-//       // action
-//       "transact_info",
-//       [asset]
-//     );
-//     let tx_call = await customWeb3Request(context.web3, "eth_call", [
-//       {
-//         from: ALITH,
-//         value: "0x0",
-//         gas: "0x10000",
-//         gasPrice: GAS_PRICE,
-//         to: ADDRESS_XCM_TRANSACTOR,
-//         data: data,
-//       },
-//     ]);
+  //   it("allows to retrieve transactor info through precompiles", async function () {
+  //     let asset =
+  //       // Destination as multilocation
+  //       [
+  //         // one parent
+  //         1,
+  //         [],
+  //       ];
+  //     let data = iFace.encodeFunctionData(
+  //       // action
+  //       "transact_info",
+  //       [asset]
+  //     );
+  //     let tx_call = await customWeb3Request(context.web3, "eth_call", [
+  //       {
+  //         from: ALITH,
+  //         value: "0x0",
+  //         gas: "0x10000",
+  //         gasPrice: GAS_PRICE,
+  //         to: ADDRESS_XCM_TRANSACTOR,
+  //         data: data,
+  //       },
+  //     ]);
 
-//     expect(tx_call.result).to.equal(
-//       "0x0000000000000000000000000000000000000000000000000000000000000000" +
-//         "0000000000000000000000000000000000000000000000000000000000000000" +
-//         "0000000000000000000000000000000000000000000000000000000000000000" +
-//         "0000000000000000000000000000000000000000000000000000000000000000" +
-//         "0000000000000000000000000000000000000000000000000000000000000001"
-//     );
-//   });
+  //     expect(tx_call.result).to.equal(
+  //       "0x0000000000000000000000000000000000000000000000000000000000000000" +
+  //         "0000000000000000000000000000000000000000000000000000000000000000" +
+  //         "0000000000000000000000000000000000000000000000000000000000000000" +
+  //         "0000000000000000000000000000000000000000000000000000000000000000" +
+  //         "0000000000000000000000000000000000000000000000000000000000000001"
+  //     );
+  //   });
 
-//   it("allows to issue transfer xcm transactor", async function () {
-//     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-//     // And we need relay tokens for issuing a transaction to be executed in the relay
-//     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-//     const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
-//       balance: balance,
-//     });
+  //   it("allows to issue transfer xcm transactor", async function () {
+  //     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+  //     // And we need relay tokens for issuing a transaction to be executed in the relay
+  //     const balance = context.polkadotApi.createType("Balance", 100000000000000);
+  //     const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+  //       balance: balance,
+  //     });
 
-//     const assetId = context.polkadotApi.createType(
-//       "u128",
-//       new BN("42259045809535163221576417993425387648")
-//     );
-//     const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-//       supply: balance,
-//     });
+  //     const assetId = context.polkadotApi.createType(
+  //       "u128",
+  //       new BN("42259045809535163221576417993425387648")
+  //     );
+  //     const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
+  //       supply: balance,
+  //     });
 
-//     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
-//     let beforeAssetBalance = (
-//       (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-//     ).balance as BN;
+  //     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
+  //     let beforeAssetBalance = (
+  //       (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+  //     ).balance as BN;
 
-//     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
+  //     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
-//     // supply and balance should be the same
-//     expect(beforeAssetBalance.eq(new BN(100000000000000))).to.equal(true);
-//     expect(beforeAssetDetails.unwrap()["supply"].eq(new BN(100000000000000))).to.equal(true);
+  //     // supply and balance should be the same
+  //     expect(beforeAssetBalance.eq(new BN(100000000000000))).to.equal(true);
+  //     expect(beforeAssetDetails.unwrap()["supply"].eq(new BN(100000000000000))).to.equal(true);
 
-//     let transactor = 0;
-//     let index = 0;
-//     let asset =
-//       // Destination as multilocation
-//       [
-//         // one parent
-//         1,
-//         [],
-//       ];
-//     // we dont care, the call wont be executed
-//     let transact_call = new Uint8Array([0x01]);
-//     // weight
-//     let weight = 1000;
-//     // Call the precompile
-//     let data = iFace.encodeFunctionData(
-//       // action
-//       "transact_through_derivative_multilocation",
-//       [transactor, index, asset, weight, transact_call]
-//     );
-//     const tx = await createTransaction(context.web3, {
-//       from: ALITH,
-//       privateKey: ALITH_PRIV_KEY,
-//       value: "0x0",
-//       gas: "0x200000",
-//       gasPrice: GAS_PRICE,
-//       to: ADDRESS_XCM_TRANSACTOR,
-//       data,
-//     });
+  //     let transactor = 0;
+  //     let index = 0;
+  //     let asset =
+  //       // Destination as multilocation
+  //       [
+  //         // one parent
+  //         1,
+  //         [],
+  //       ];
+  //     // we dont care, the call wont be executed
+  //     let transact_call = new Uint8Array([0x01]);
+  //     // weight
+  //     let weight = 1000;
+  //     // Call the precompile
+  //     let data = iFace.encodeFunctionData(
+  //       // action
+  //       "transact_through_derivative_multilocation",
+  //       [transactor, index, asset, weight, transact_call]
+  //     );
+  //     const tx = await createTransaction(context.web3, {
+  //       from: ALITH,
+  //       privateKey: ALITH_PRIV_KEY,
+  //       value: "0x0",
+  //       gas: "0x200000",
+  //       gasPrice: GAS_PRICE,
+  //       to: ADDRESS_XCM_TRANSACTOR,
+  //       data,
+  //     });
 
-//     const block = await context.createBlock({
-//       transactions: [tx],
-//     });
+  //     const block = await context.createBlock({
+  //       transactions: [tx],
+  //     });
 
-//     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
-//     // have changed
-//     let afterAssetBalance = (
-//       (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-//     ).balance as BN;
+  //     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
+  //     // have changed
+  //     let afterAssetBalance = (
+  //       (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+  //     ).balance as BN;
 
-//     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
-//     expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
+  //     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
+  //     expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
 
-//     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
+  //     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
-//     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+  //     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
 
-//     // 1000 fee for the relay is paid with relay assets
-//     await verifyLatestBlockFees(context.polkadotApi, expect);
-//   });
+  //     // 1000 fee for the relay is paid with relay assets
+  //     await verifyLatestBlockFees(context.polkadotApi, expect);
+  //   });
 });
 
 describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
