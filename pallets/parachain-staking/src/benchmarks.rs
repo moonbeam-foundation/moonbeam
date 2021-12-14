@@ -915,7 +915,11 @@ benchmarks! {
 
 	pay_one_collator_reward {
 		// y controls number of delegators
-		let y in 0..(<<T as Config>::MaxDelegatorsPerCandidate as Get<u32>>::get());
+		// TODO: mock.rs sets MaxDelegatorsPerCandidate to 4, which is too low for this test to be
+		// meaningful. we use a higher value here, which works so long as we don't invoke any of
+		// pallet_staking's logic which uses MaxDelegatorsPerCandidate as a constraint. this is
+		// brittle, to say the least...
+		let y in 0..2000;
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{
@@ -923,28 +927,35 @@ benchmarks! {
 			AwardedPts,
 		};
 
+		let before_running_round_index = Pallet::<T>::round().current;
+		let initial_stake_amount = min_candidate_stk::<T>() * 1_000_000u32.into();
+
+		let mut total_staked = 0u32.into();
+
 		// initialize our single collator
 		let sole_collator = create_funded_collator::<T>(
 			"collator",
 			0,
-			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			initial_stake_amount,
 			true,
 			1u32,
 		)?;
+		total_staked += initial_stake_amount;
 
 		// generate funded collator accounts
 		let mut delegators: Vec<T::AccountId> = Vec::new();
-		for i in 1..y {
+		for i in 0..y {
 			let seed = USER_SEED + i;
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed,
-				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				initial_stake_amount,
 				sole_collator.clone(),
 				true,
 				delegators.len() as u32,
 			)?;
 			delegators.push(delegator);
+			total_staked += initial_stake_amount;
 		}
 
 		// rather than roll through rounds in order to initialize the storage we want, we set it
@@ -952,19 +963,13 @@ benchmarks! {
 
 		let round_for_payout = 5;
 		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
-			round_issuance: 100u32.into(),
-			total_staking_reward: 100u32.into(),
-			collator_commission: Perbill::from_rational(5u32, 100u32),
+			// NOTE: round_issuance is not correct here, but it doesn't seem to cause problems
+			round_issuance: 1000u32.into(),
+			total_staking_reward: total_staked,
+			collator_commission: Perbill::from_rational(1u32, 100u32),
 		});
 
 		let mut delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> = Vec::new();
-		// sole_collator's self-delegation
-		delegations.push(Bond {
-			owner: sole_collator.clone(),
-			amount: 100u32.into(),
-		});
-
-		// all other delegators
 		for delegator in &delegators {
 			delegations.push(Bond {
 				owner: delegator.clone(),
@@ -973,17 +978,13 @@ benchmarks! {
 		}
 
 		<AtStake<T>>::insert(round_for_payout, &sole_collator, CollatorSnapshot {
-			bond: 0u32.into(),
+			bond: 1_000u32.into(),
 			delegations,
-			total: 0u32.into(),
+			total: 1_000_000u32.into(),
 		});
 
 		<Points<T>>::insert(round_for_payout, 100);
-
-		<AwardedPts<T>>::insert(round_for_payout, sole_collator, 20);
-		for delegator in delegators {
-			<AwardedPts<T>>::insert(round_for_payout, delegator, 20);
-		}
+		<AwardedPts<T>>::insert(round_for_payout, &sole_collator, 20);
 
 	}: {
 		let round_for_payout = 5;
@@ -993,7 +994,18 @@ benchmarks! {
 		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
 	}
 	verify {
-		// TODO: we could verify balances here
+		// collator should have been paid
+		assert!(
+			T::Currency::free_balance(&sole_collator) > initial_stake_amount,
+			"collator should have been paid in pay_one_collator_reward"
+		);
+		// nominators should have been paid
+		for delegator in &delegators {
+			assert!(
+				T::Currency::free_balance(&delegator) > initial_stake_amount,
+				"delegator should have been paid in pay_one_collator_reward"
+			);
+		}
 	}
 
 	base_on_initialize {
