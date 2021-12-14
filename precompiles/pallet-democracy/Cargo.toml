@@ -28,6 +28,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 derive_more = "0.99"
+hex-literal = "0.3.4"
 serde = "1.0.100"
 
 # Substrate
