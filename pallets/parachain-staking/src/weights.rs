@@ -240,20 +240,24 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 1_342_000
-			.saturating_add((46_120_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 1_378_000
+			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
 			// Standard Error: 12_000
-			.saturating_add((1_248_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
-	fn pay_one_collator_reward(_y: u32) -> Weight {
-		(82_496_000 as Weight)
+	fn pay_one_collator_reward(y: u32) -> Weight {
+		(0 as Weight)
+			// Standard Error: 6_000
+			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(T::DbWeight::get().reads(11 as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 }
 
@@ -413,19 +417,23 @@ impl WeightInfo for () {
 	}
 	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 1_342_000
-			.saturating_add((46_120_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 1_378_000
+			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
 			// Standard Error: 12_000
-			.saturating_add((1_248_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
 	}
-	fn pay_one_collator_reward(_y: u32) -> Weight {
-		(82_496_000 as Weight)
+	fn pay_one_collator_reward(y: u32) -> Weight {
+		(0 as Weight)
+			// Standard Error: 6_000
+			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
+			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 }
