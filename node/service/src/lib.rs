@@ -39,8 +39,9 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, ParachainInherentData,
+	MockValidationDataInherentDataProvider, MockXcmConfig, ParachainInherentData,
 };
 use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
@@ -602,6 +603,7 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: None,
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -786,6 +788,7 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
+	let mut xcm_senders = None;
 	let collator = config.role.is_authority();
 
 	if collator {
@@ -847,6 +850,11 @@ where
 
 		let client_set_aside_for_cidp = client.clone();
 
+		// Create channels for mocked XCM messages.
+		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
+		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
@@ -863,8 +871,12 @@ where
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
-					let author_id = author_id.clone();
 
+					let author_id = author_id.clone();
+					let downward_xcm_receiver = downward_xcm_receiver.clone();
+					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+
+					let client_for_xcm = client_set_aside_for_cidp.clone();
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -872,6 +884,14 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							xcm_config: MockXcmConfig::new(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+								Default::default(),
+							),
+							raw_downward_messages: downward_xcm_receiver.drain().collect(),
+							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
@@ -944,6 +964,7 @@ where
 				max_past_logs,
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: xcm_senders.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
