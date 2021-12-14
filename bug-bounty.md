@@ -2,11 +2,14 @@
 
 The Moonbeam bug bounty program is focused on the Moonriver and Moonbeam Parachains (deployed to Kusama and Polkadot respectively) and dAapps. It is focused on preventing:
 
+Moonbeam/Moonriver:
 * Thefts and freezing of principal of any amount
 * Thefts and freezing of unclaimed yield of any amount
 * Theft of governance funds 
 * Governance activity disruption
 * Network shutdown
+
+Website and Apps:
 * Website goes down
 * Leak of user data
 * Deletion of user data
