@@ -64,10 +64,15 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
-				System::initialize(&n, &System::parent_hash(), &pre_digest, InitKind::Full);
+				System::initialize(
+					&(System::block_number() + 1),
+					&System::parent_hash(),
+					&pre_digest,
+					InitKind::Full,
+				);
 			}
 			None => {
-				System::set_block_number(n);
+				System::set_block_number(System::block_number() + 1);
 			}
 		}
 

@@ -102,7 +102,7 @@ fn ethereum_runtime_rpc_api_author() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			run_to_block(1, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
