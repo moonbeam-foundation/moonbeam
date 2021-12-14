@@ -1525,8 +1525,6 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-				// TODO: update active_on_initialize
-				//       OR: benchmark the individual functions here and add up their weight
 				weight +=
 					T::WeightInfo::round_transition_on_initialize(collator_count, delegation_count);
 			}
