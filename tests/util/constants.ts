@@ -106,3 +106,5 @@ export const BOB_AUTHOR_ID = "0x8eaf04151687736326c9fea17e25fc5287613693c912909c
 
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
+
+export const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
