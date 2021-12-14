@@ -1138,7 +1138,7 @@ export const contractSources: { [key: string]: string } = {
          * Selector: 8b93d11a
          *
          * @dev This, along with "finished_referendum_info", wraps the pallet's "referendum_info"
-         * function. It is necessary to split it into two here because Solidity only has c-style enums.
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
          * @param ref_index The index of the referendum you are interested in
          * @return A tuple including:
          * * The block in which the referendum ended
@@ -1167,9 +1167,9 @@ export const contractSources: { [key: string]: string } = {
          * Selector: b1fd383f
          *
          * @dev This, along with "ongoing_referendum_info", wraps the pallet's "referendum_info"
-         * function. It is necessary to split it into two here because Solidity only has c-style enums.
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
          * @param ref_index The index of the referendum you are interested in
-         * @return A tuple including whether the referendum passed, and the block at which it finished.
+    * @return A tuple including whether the referendum passed, and the block at which it finished.
          */
         function finished_referendum_info(uint256 ref_index)
             external
@@ -1191,25 +1191,25 @@ export const contractSources: { [key: string]: string } = {
          * Signal agreement with a proposal
          * Selector: c7a76601
          *
-         * @dev No amount is necessary here. Seconds are always for the same amount that the original
+        * @dev No amount is necessary here. Seconds are always for the same amount that the original
          * proposer locked. You may second multiple times.
          *
          * @param prop_index index of the proposal you want to second
-         * @param seconds_upper_bound A number greater than or equal to the current number of seconds.
+    * @param seconds_upper_bound A number greater than or equal to the current number of seconds.
          * This is necessary for calculating the weight of the call.
          */
         function second(uint256 prop_index, uint256 seconds_upper_bound) external;
     
-        //TODO should we have an alternative "simple_second" where the upper bound is read from storage?
+    //TODO should we have an alternative "simple_second" where the upper bound is read from storage?
     
         /**
          * Vote in a referendum.
          * Selector: 3f3c21cc
          *
          * @param ref_index index of the referendum you want to vote in
-         * @param aye "true" is a vote to enact the proposal; "false" is a vote to keep the status quo.
+    * @param aye "true" is a vote to enact the proposal; "false" is a vote to keep the status quo.
          * @param vote_amount The number of tokens you are willing to lock if you get your way
-         * @param conviction How strongly you want to vote. Higher conviction means longer lock time.
+        * @param conviction How strongly you want to vote. Higher conviction means longer lock time.
          * This must be an interget in the range 0 to 6
          *
          * @dev This function only supposrts "Standard" votes where you either vote aye xor nay.
@@ -1235,10 +1235,10 @@ export const contractSources: { [key: string]: string } = {
          * Delegate voting power to another account.
          * Selector: 0185921e
          *
-         * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
+    * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
          * time appropriate for the conviction's lock period.
          * @param representative The account to whom the vote shall be delegated.
-         * @param conviction The conviction with which you are delegating. This conviction is used for
+    * @param conviction The conviction with which you are delegating. This conviction is used for
          * _all_ delegated votes.
          * @param amount The number of tokens whose voting power shall be delegated.
          */
@@ -1252,7 +1252,7 @@ export const contractSources: { [key: string]: string } = {
          * Undelegatehe voting power
          * Selector: cb37b8ea
          *
-         * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which
+    * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which
          * the delegation was issued has elapsed.
          */
         function un_delegate() external;
@@ -1270,7 +1270,7 @@ export const contractSources: { [key: string]: string } = {
          * in the dispatch queue but does require a deposit, returned once enacted.
          * Selector: 200881f5
          *
-         * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
          */
         function note_preimage(bytes memory encoded_proposal) external;
     
@@ -1281,7 +1281,7 @@ export const contractSources: { [key: string]: string } = {
          * no fee is paid.
          * Selector: cf205f96
          *
-         * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
          */
         function note_imminent_preimage(bytes memory encoded_proposal) external;
     }`,
