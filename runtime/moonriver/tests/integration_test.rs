@@ -399,19 +399,19 @@ fn reward_block_authors() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -440,7 +440,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -451,13 +451,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -484,7 +484,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -595,7 +595,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -699,7 +699,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -793,7 +793,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -914,7 +914,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -1007,7 +1007,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS.into()),
+			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)

@@ -22,16 +22,17 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use frame_system::InitKind;
 pub use moonriver_runtime::{
 	currency::{MOVR, WEI},
 	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
 	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use nimbus_primitives::NimbusId;
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
-use sp_core::H160;
-use sp_runtime::Perbill;
+use sp_core::{Encode, H160};
+use sp_runtime::{Digest, DigestItem, Perbill};
 
 use std::collections::BTreeMap;
 
@@ -59,7 +60,7 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 
 		// Set the new block number and author
 		match author {
-			Some(author) => {
+			Some(ref author) => {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
@@ -258,14 +259,6 @@ pub fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 
 pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-pub fn set_author(a: NimbusId) {
-	// assert_ok!(
-	// 	Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
-	// 		.dispatch(inherent_origin())
-	// );
 }
 
 /// Mock the inherent that sets validation data in ParachainSystem, which
