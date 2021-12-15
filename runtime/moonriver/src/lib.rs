@@ -1325,10 +1325,13 @@ pub struct PhaseThreeFilter;
 impl Contains<Call> for PhaseThreeFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
+			Call::Assets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::XTokens(_) => false,
+			Call::PolkadotXcm(_) => false,
 			_ => true,
 		}
 	}
@@ -1441,8 +1444,8 @@ impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 // we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = Everything;
-	type MaintenanceCallFilter = NormalFilter;
+	type NormalCallFilter = NormalFilter;
+	type MaintenanceCallFilter = PhaseThreeFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type NormalDmpHandler = DmpQueue;
