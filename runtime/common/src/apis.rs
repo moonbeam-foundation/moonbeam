@@ -381,7 +381,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			// We also implement the olf AuthorFilterAPI to meet the trait bounds on the client side.
+			// We also implement the old AuthorFilterAPI to meet the trait bounds on the client side.
 			impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
 				fn can_author(_: NimbusId, _: u32, _: &<Block as BlockT>::Header) -> bool {
 					panic!("AuthorFilterAPI is no longer supported. Please update your client.")
