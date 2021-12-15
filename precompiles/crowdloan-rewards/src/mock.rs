@@ -244,6 +244,7 @@ parameter_types! {
 	pub const TestInitialized: bool = false;
 	pub const TestInitializationPayment: Perbill = Perbill::from_percent(20);
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const TestSignatureNetworkIdentifier: &'static [u8] = b"test-";
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -254,8 +255,11 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = TestMinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type RewardAddressAssociateOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
+	type SignatureNetworkIdentifier = TestSignatureNetworkIdentifier;
+
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;

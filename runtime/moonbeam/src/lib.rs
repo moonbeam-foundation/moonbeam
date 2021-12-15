@@ -40,7 +40,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{EnsureOneOf, EnsureRoot};
+use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
 	Signature,
@@ -744,6 +744,7 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonbeam-";
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -754,9 +755,10 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
-	// This will get accessible to users in future phases.
-	type RewardAddressChangeOrigin = EnsureRoot<Self::AccountId>;
+	type RewardAddressAssociateOrigin = EnsureSigned<Self::AccountId>;
+	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;

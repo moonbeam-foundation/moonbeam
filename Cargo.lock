@@ -6727,6 +6727,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex-literal",
  "log",
  "num_enum",
  "pallet-balances",

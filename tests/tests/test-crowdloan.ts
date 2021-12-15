@@ -693,9 +693,15 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // toAssociateAccount should not be in accounts payable
     expect(await getAccountPayable(context, toAssociateAccount.address)).to.be.null;
 
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
+      ...toAssociateAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
     // Construct the signature
     let signature = {};
-    signature["Ed25519"] = relayAccount.sign(toAssociateAccount.address);
+    signature["Ed25519"] = relayAccount.sign(message);
 
     // Associate the identity
     await context.polkadotApi.tx.crowdloanRewards
@@ -794,6 +800,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let message = new Uint8Array([
       ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
       ...toAssociateAccount.addressRaw,
       ...firstAccount.addressRaw,
       ...stringToU8a("</Bytes>"),

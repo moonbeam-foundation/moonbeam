@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
-import { customWeb3Request } from "../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { customWeb3Request } from "../../util/providers";
 import {
   GENESIS_ACCOUNT,
   ALITH,
@@ -8,13 +8,13 @@ import {
   ALITH_PRIV_KEY,
   CHARLETH,
   BALTATHAR_PRIV_KEY,
-} from "../util/constants";
+} from "../../util/constants";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { BN, hexToU8a, bnToHex, u8aToHex, stringToHex, numberToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
-import { getCompiled } from "../util/contracts";
+import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
-import { createContract, createTransaction } from "../util/transactions";
+import { createContract, createTransaction } from "../../util/transactions";
 
 const sourceLocationRelay = { parents: 1, interior: "Here" };
 
