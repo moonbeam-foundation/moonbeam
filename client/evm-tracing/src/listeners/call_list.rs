@@ -696,19 +696,12 @@ mod tests {
 		}
 	}
 
-	fn test_stack() -> Stack {
-		Stack {
-			data: Vec::new(),
-			limit: 0u64,
-		}
+	fn test_stack() -> Option<Stack> {
+		None
 	}
 
-	fn test_memory() -> Memory {
-		Memory {
-			data: Vec::new(),
-			effective_len: U256::zero(),
-			limit: 0u64,
-		}
+	fn test_memory() -> Option<Memory> {
+		None
 	}
 
 	fn test_snapshot() -> Snapshot {
