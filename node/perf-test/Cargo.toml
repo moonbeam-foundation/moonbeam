@@ -62,4 +62,4 @@ pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moo
 
 # Cumulus / Nimbus
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0912-with-breaking-changes" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12" }

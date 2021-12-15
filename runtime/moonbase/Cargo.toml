@@ -104,9 +104,9 @@ cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", bran
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "mp0912-with-breaking-changes", default-features = false }
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "mp0912-with-breaking-changes", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "mp0912-with-breaking-changes", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 # Polkadot / XCM 
