@@ -619,7 +619,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
-#[ignore]
 #[test]
 fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 	ExtBuilder::default()
@@ -725,7 +724,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		});
 }
 
-#[ignore]
 #[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
@@ -1034,7 +1032,6 @@ fn reward_info_via_precompile() {
 		})
 }
 
-#[ignore]
 #[test]
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
