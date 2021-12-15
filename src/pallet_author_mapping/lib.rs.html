@@ -253,39 +253,6 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -305,7 +272,7 @@
 <span class="doccomment">//! Maps Author Ids as used in nimbus consensus layer to account ids as used i nthe runtime.</span>
 <span class="doccomment">//! This should likely be moved to nimbus eventually.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! This pallet maps AuthorId =&gt; AccountId which is most useful when using propositional style</span>
+<span class="doccomment">//! This pallet maps NimbusId =&gt; AccountId which is most useful when using propositional style</span>
 <span class="doccomment">//! queries. This mapping will likely need to go the other way if using exhaustive authority sets.</span>
 <span class="doccomment">//! That could either be a seperate pallet, or this pallet could implement a two-way mapping. But</span>
 <span class="doccomment">//! for now it it one-way</span>
@@ -333,7 +300,7 @@
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">ReservableCurrency</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">nimbus_primitives::AccountLookup</span>;
+	<span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">AccountLookup</span>, <span class="ident">NimbusId</span>};
 
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span>
 		<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
@@ -355,11 +322,9 @@
 	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> {
 		<span class="doccomment">/// Overarching event type</span>
 		<span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// The type of authority id that will be used at the consensus layer.</span>
-		<span class="kw">type</span> <span class="ident">AuthorId</span>: <span class="ident">Member</span> <span class="op">+</span> <span class="ident">Parameter</span> <span class="op">+</span> <span class="ident">MaybeSerializeDeserialize</span> <span class="op">+</span> <span class="ident">Default</span>;
 		<span class="doccomment">/// Currency in which the security deposit will be taken.</span>
 		<span class="kw">type</span> <span class="ident">DepositCurrency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ReservableCurrency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// The amount that should be taken as a security deposit when registering an AuthorId.</span>
+		<span class="doccomment">/// The amount that should be taken as a security deposit when registering a NimbusId.</span>
 		<span class="kw">type</span> <span class="ident">DepositAmount</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
@@ -374,32 +339,32 @@
 		<span class="ident">NotYourAssociation</span>,
 		<span class="doccomment">/// This account cannot set an author because it cannon afford the security deposit</span>
 		<span class="ident">CannotAffordSecurityDeposit</span>,
-		<span class="doccomment">/// The AuthorId in question is already associated and cannot be overwritten</span>
+		<span class="doccomment">/// The NimbusId in question is already associated and cannot be overwritten</span>
 		<span class="ident">AlreadyAssociated</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// An AuthorId has been registered and mapped to an AccountId.</span>
-		<span class="ident">AuthorRegistered</span>(<span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span>),
-		<span class="doccomment">/// An AuthorId has been de-registered, and its AccountId mapping removed.</span>
-		<span class="ident">AuthorDeRegistered</span>(<span class="ident">T::AuthorId</span>),
-		<span class="doccomment">/// An AuthorId has been registered, replacing a previous registration and its mapping.</span>
-		<span class="ident">AuthorRotated</span>(<span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span>),
-		<span class="doccomment">/// An AuthorId has been forcibly deregistered after not being rotated or cleaned up.</span>
+		<span class="doccomment">/// A NimbusId has been registered and mapped to an AccountId.</span>
+		<span class="ident">AuthorRegistered</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
+		<span class="doccomment">/// An NimbusId has been de-registered, and its AccountId mapping removed.</span>
+		<span class="ident">AuthorDeRegistered</span>(<span class="ident">NimbusId</span>),
+		<span class="doccomment">/// An NimbusId has been registered, replacing a previous registration and its mapping.</span>
+		<span class="ident">AuthorRotated</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
+		<span class="doccomment">/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.</span>
 		<span class="doccomment">/// The reporteing account has been rewarded accordingly.</span>
-		<span class="ident">DefunctAuthorBusted</span>(<span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span>),
+		<span class="ident">DefunctAuthorBusted</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Register your AuthorId onchain so blocks you author are associated with your account.</span>
+		<span class="doccomment">/// Register your NimbusId onchain so blocks you author are associated with your account.</span>
 		<span class="doccomment">///</span>
 		<span class="doccomment">/// Users who have been (or will soon be) elected active collators in staking,</span>
 		<span class="doccomment">/// should submit this extrinsic to have their blocks accepted and earn rewards.</span>
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::add_association</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_association</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">author_id</span>: <span class="ident">T::AuthorId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_association</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">author_id</span>: <span class="ident">NimbusId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
@@ -414,15 +379,15 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Change your AuthorId.</span>
+		<span class="doccomment">/// Change your Mapping.</span>
 		<span class="doccomment">///</span>
 		<span class="doccomment">/// This is useful for normal key rotation or for when switching from one physical collator</span>
 		<span class="doccomment">/// machine to another. No new security deposit is required.</span>
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::update_association</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_association</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">old_author_id</span>: <span class="ident">T::AuthorId</span>,
-			<span class="ident">new_author_id</span>: <span class="ident">T::AuthorId</span>,
+			<span class="ident">old_author_id</span>: <span class="ident">NimbusId</span>,
+			<span class="ident">new_author_id</span>: <span class="ident">NimbusId</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
@@ -442,14 +407,14 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Clear your AuthorId.</span>
+		<span class="doccomment">/// Clear your Mapping.</span>
 		<span class="doccomment">///</span>
 		<span class="doccomment">/// This is useful when you are no longer an author and would like to re-claim your security</span>
 		<span class="doccomment">/// deposit.</span>
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::clear_association</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_association</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">author_id</span>: <span class="ident">T::AuthorId</span>,
+			<span class="ident">author_id</span>: <span class="ident">NimbusId</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
@@ -469,42 +434,11 @@
 
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-
-		<span class="comment">//TODO maybe in the future we will add some more incentivization for key cleanup and also</span>
-		<span class="comment">// proper key rotation</span>
-		<span class="comment">// /// The portion of the security deposit that goes to the the account who reports it</span>
-		<span class="comment">// /// occupying space after it should have been cleaned or rotated.</span>
-		<span class="comment">// pub const NARC_REWARD: Percent = Percent::from_percent(5);</span>
-
-		<span class="comment">// /// The period of time after which an AuthorId can be reported as defunct.</span>
-		<span class="comment">// /// This value should be roughly the recommended key rotation period.</span>
-		<span class="comment">// pub const NARC_GRACE_PERIOD: u32 = 2_000;</span>
-		<span class="comment">//</span>
-		<span class="comment">// /// Narc on another account for having a useless association and collect a bounty.</span>
-		<span class="comment">// ///</span>
-		<span class="comment">// /// This incentivizes good citizenship in the form of cleaning up others&#39; defunct</span>
-		<span class="comment">// /// associations. When you clean up another account&#39;s association, you will receive X</span>
-		<span class="comment">// /// percent of their security deposit.</span>
-		<span class="comment">// ///</span>
-		<span class="comment">// /// No association can be cleaned up within the initial grace period which allows collators</span>
-		<span class="comment">// /// some time to get their associations onchain before they become active, and to clean up</span>
-		<span class="comment">// /// after they are no longer active.</span>
-		<span class="comment">// ///</span>
-		<span class="comment">// /// This also _forces_ collators to rotate their keys regularly because failing to will</span>
-		<span class="comment">// /// make their mappings ripe for narcing. If an active collator gets its association reaped</span>
-		<span class="comment">// /// they will lose out on their block rewards (and in the future potentially be slashed).</span>
-		<span class="comment">// #[pallet::weight(0)]</span>
-		<span class="comment">// pub fn narc_defunct_association(</span>
-		<span class="comment">// 	origin: OriginFor&lt;T&gt;,</span>
-		<span class="comment">// 	author_id: T::AuthorId,</span>
-		<span class="comment">// ) -&gt; DispatchResult {</span>
-		<span class="comment">// 	todo!()</span>
-		<span class="comment">// }</span>
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enact_registration</span>(
-			<span class="ident">author_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AuthorId</span>,
+			<span class="ident">author_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>,
 			<span class="ident">account_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">deposit</span> <span class="op">=</span> <span class="ident">T::DepositAmount::get</span>();
@@ -525,12 +459,12 @@
 
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">account_and_deposit_of</span>)]</span>
-	<span class="doccomment">/// We maintain a mapping from the AuthorIds used in the consensus layer</span>
+	<span class="doccomment">/// We maintain a mapping from the NimbusIds used in the consensus layer</span>
 	<span class="doccomment">/// to the AccountIds runtime (including this staking pallet).</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span>
 		<span class="kw">_</span>,
 		<span class="ident">Blake2_128Concat</span>,
-		<span class="ident">T::AuthorId</span>,
+		<span class="ident">NimbusId</span>,
 		<span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">OptionQuery</span>,
 	<span class="op">&gt;</span>;
@@ -539,7 +473,7 @@
 	<span class="doccomment">/// Genesis config for author mapping pallet</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// The associations that should exist at chain genesis</span>
-		<span class="kw">pub</span> <span class="ident">mappings</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span>)<span class="op">&gt;</span>,
+		<span class="kw">pub</span> <span class="ident">mappings</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>)<span class="op">&gt;</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -560,8 +494,8 @@
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident">T::AuthorId</span>, <span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">lookup_account</span>(<span class="ident">author</span>: <span class="kw-2">&amp;</span><span class="ident">T::AuthorId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">lookup_account</span>(<span class="ident">author</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
 			<span class="ident"><span class="self">Self</span>::account_id_of</span>(<span class="ident">author</span>)
 		}
 	}
@@ -569,7 +503,7 @@
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// A helper function to lookup the account id associated with the given author id. This is</span>
 		<span class="doccomment">/// the primary lookup that this pallet is responsible for.</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">account_id_of</span>(<span class="ident">author_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AuthorId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">account_id_of</span>(<span class="ident">author_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
 			<span class="ident"><span class="self">Self</span>::account_and_deposit_of</span>(<span class="ident">author_id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">account</span>)
 		}
 	}
