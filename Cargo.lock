@@ -6275,7 +6275,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-mapping"
-version = "2.0.4"
+version = "2.0.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
