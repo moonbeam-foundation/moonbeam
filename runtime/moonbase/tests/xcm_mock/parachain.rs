@@ -20,13 +20,16 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
+	PalletId,
 };
+
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
+	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
@@ -218,6 +221,27 @@ pub type Barrier = (
 	// Subscriptions for version tracking are OK.
 	AllowSubscriptionsFrom<Everything>,
 );
+
+parameter_types! {
+	/// Xcm fees will go to the treasury account
+	pub XcmFeesAccount: AccountId = Treasury::account_id();
+}
+
+/// This is the struct that will handle the revenue from xcm fees
+pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
+	Assets,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
+			JustTry,
+		>,
+	),
+	AccountId,
+	XcmFeesAccount,
+>;
+
 parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
@@ -249,7 +273,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, ()>,
+		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 
 	type ResponseHandler = PolkadotXcm;
@@ -311,6 +335,31 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
+}
+
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 0;
+	pub const SpendPeriod: u64 = 0;
+	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const MaxApprovals: u32 = 100;
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
 }
 
 #[frame_support::pallet]
@@ -629,6 +678,15 @@ impl xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 }
 
+pub struct NormalFilter;
+impl frame_support::traits::Contains<Call> for NormalFilter {
+	fn contains(c: &Call) -> bool {
+		match c {
+			_ => true,
+		}
+	}
+}
+
 // We need to use the encoding from the relay mock runtime
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -691,7 +749,7 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call}
 	}
 );
 

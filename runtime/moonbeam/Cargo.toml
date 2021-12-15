@@ -24,7 +24,7 @@ runtime-common = { path = "../common", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
-pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false }
+pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
@@ -52,7 +52,6 @@ pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonb
 pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-society = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-transaction-payment = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
@@ -147,7 +146,6 @@ std = [
 	"pallet-randomness-collective-flip/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
-	"pallet-sudo/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",

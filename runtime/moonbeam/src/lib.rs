@@ -28,6 +28,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use account::AccountId20;
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
@@ -39,7 +40,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{EnsureOneOf, EnsureRoot};
+use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
 	Signature,
@@ -52,7 +53,7 @@ use pallet_ethereum::Transaction as EthereumTransaction;
 pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
-	IdentityAddressMapping, Runner,
+	Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
@@ -66,7 +67,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -143,7 +144,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 0900,
+	spec_version: 1001,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -306,11 +307,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-impl pallet_sudo::Config for Runtime {
-	type Call = Call;
-	type Event = Event;
-}
-
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
@@ -374,13 +370,33 @@ impl FeeCalculator for FixedGasPrice {
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
+use frame_support::traits::FindAuthor;
+//TODO It feels like this shold be able to work for any T: H160, but I tried for
+// embarassingly long and couldn't figure that out.
+
+/// The author inherent provides a AccountId20, but pallet evm needs an H160.
+/// This simple adapter makes the conversion.
+pub struct FindAuthorAdapter<Inner>(sp_std::marker::PhantomData<Inner>);
+
+impl<Inner> FindAuthor<H160> for FindAuthorAdapter<Inner>
+where
+	Inner: FindAuthor<AccountId20>,
+{
+	fn find_author<'a, I>(digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (sp_runtime::ConsensusEngineId, &'a [u8])>,
+	{
+		Inner::find_author(digests).map(Into::into)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = IdentityAddressMapping;
+	type AddressMapping = runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -388,7 +404,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
-	type FindAuthor = AuthorInherent;
+	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 }
 
 parameter_types! {
@@ -644,19 +660,19 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	pub const MinBlocksPerRound: u32 = 10;
-	/// Default BlocksPerRound is every 4 hours (1200 * 12 second block times)
-	pub const DefaultBlocksPerRound: u32 = 4 * HOURS;
-	/// Collator candidate exit delay (number of rounds)
-	pub const LeaveCandidatesDelay: u32 = 2;
-	/// Collator candidate bond increases/decreases delay (number of rounds)
-	pub const CandidateBondDelay: u32 = 2;
-	/// Delegator exit delay (number of rounds)
-	pub const LeaveDelegatorsDelay: u32 = 2;
-	/// Delegation revocations delay (number of rounds)
-	pub const RevokeDelegationDelay: u32 = 2;
-	/// Delegation bond increases/decreases delay (number of rounds)
-	pub const DelegationBondDelay: u32 = 2;
-	/// Reward payments delay (number of rounds)
+	/// Blocks per round
+	pub const DefaultBlocksPerRound: u32 = 6 * HOURS;
+	/// Rounds before the collator leaving the candidates request can be executed
+	pub const LeaveCandidatesDelay: u32 = 4 * 7;
+	/// Rounds before the candidate bond increase/decrease can be executed
+	pub const CandidateBondLessDelay: u32 = 4 * 7;
+	/// Rounds before the delegator exit can be executed
+	pub const LeaveDelegatorsDelay: u32 = 4 * 7;
+	/// Rounds before the delegator revocation can be executed
+	pub const RevokeDelegationDelay: u32 = 4 * 7;
+	/// Rounds before the delegator bond increase/decrease can be executed
+	pub const DelegationBondLessDelay: u32 = 4 * 7;
+	/// Rounds before the reward is paid
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
@@ -669,10 +685,9 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to become a collator
-	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR * currency::SUPPLY_FACTOR;
-	// TODO: Restore to 100_000 for Phase 2 (remove the division by 10)
+	pub const MinCollatorStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a candidate
-	pub const MinCandidateStk: u128 = currency::KILOGLMR * currency::SUPPLY_FACTOR / 10;
+	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
 	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
 }
@@ -683,10 +698,10 @@ impl parachain_staking::Config for Runtime {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type CandidateBondDelay = CandidateBondDelay;
+	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
 	type RevokeDelegationDelay = RevokeDelegationDelay;
-	type DelegationBondDelay = DelegationBondDelay;
+	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
@@ -701,7 +716,6 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type AuthorId = NimbusId;
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
@@ -720,6 +734,7 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonbeam-";
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -729,11 +744,11 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MaxInitContributors = MaxInitContributorsBatchSizes;
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
-	type RelayChainAccountId = AccountId32;
-
-	// This will get accessible to users in future phases.
-	type RewardAddressChangeOrigin = EnsureRoot<Self::AccountId>;
+	type RelayChainAccountId = [u8; 32];
+	type RewardAddressAssociateOrigin = EnsureSigned<Self::AccountId>;
+	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
@@ -747,7 +762,6 @@ parameter_types! {
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
-	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
@@ -755,11 +769,9 @@ impl pallet_author_mapping::Config for Runtime {
 
 parameter_types! {
 	// One storage item; key size 32, value size 8; .
-	// TODO: Restore the real value before phase 2
-	pub const ProxyDepositBase: Balance = 0;//currency::deposit(1, 8);
+	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
 	// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
-	// TODO: Restore the real value before phase 2
-	pub const ProxyDepositFactor: Balance = 0;//currency::deposit(0, 21);
+	pub const ProxyDepositFactor: Balance = currency::deposit(0, 21);
 	pub const MaxProxies: u16 = 32;
 	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
 	// Additional storage item size of 56 bytes:
@@ -777,19 +789,19 @@ parameter_types! {
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
-	Any,
+	Any = 0,
 	/// Only extrinsics that do not transfer funds.
-	NonTransfer,
+	NonTransfer = 1,
 	/// Only extrinsics related to governance (democracy and collectives).
-	Governance,
+	Governance = 2,
 	/// Only extrinsics related to staking.
-	Staking,
+	Staking = 3,
 	/// Allow to veto an announced proxy call.
-	CancelProxy,
+	CancelProxy = 4,
 	/// Allow extrinsic related to Balances.
-	Balances,
+	Balances = 5,
 	/// Allow extrinsic related to AuthorMapping.
-	AuthorMapping,
+	AuthorMapping = 6,
 }
 
 impl Default for ProxyType {
@@ -811,6 +823,7 @@ impl InstanceFilter<Call> for ProxyType {
 						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
+						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -887,12 +900,25 @@ impl Contains<Call> for MaintenanceFilter {
 	}
 }
 
+// AllPallets here imply all the specfied pallets in the runtime, except frame_system,
+// will run the associated hook
+// AllPallets is simply a nested tuple containing all the pallets except System
+// In cases where we need only specific pallets to run the hook,
+// we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = BaseFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type NormalDmpHandler = ();
+	type MaintenanceDmpHandler = ();
+	type NormalXcmpHandler = ();
+	type MaintenanceXcmpHandler = ();
+	// We use AllPallets because we dont want to change the hooks in normal operation
+	type NormalExecutiveHooks = AllPallets;
+	// We use AllPallets because we dont want to change the hooks in maintenance operation
+	type MaitenanceExecutiveHooks = AllPallets;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -930,8 +956,8 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
-		// Sudo.
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+		// Has been permanently removed for safety reasons.
+		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility.
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
@@ -984,7 +1010,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPallets,
+	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
@@ -1112,7 +1138,6 @@ runtime_common::impl_self_contained_call!();
 #[cfg(test)]
 mod tests {
 	use super::{currency::*, *};
-	use sp_runtime::traits::Zero;
 
 	#[test]
 	fn currency_constants_are_correct() {
@@ -1142,11 +1167,7 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
-		assert_eq!(
-			MinCandidateStk::get(),
-			// TODO restore real value before phase 2
-			Balance::from(10 * KILOGLMR) //Balance::from(100 * KILOGLMR)
-		);
+		assert_eq!(MinCandidateStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
 
 		// crowdloan min reward
@@ -1158,14 +1179,9 @@ mod tests {
 		// proxy deposits
 		assert_eq!(
 			ProxyDepositBase::get(),
-			// TODO restore real value before phase 2
-			Balance::zero() //Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(100 * GLMR + 80 * MILLIGLMR)
 		);
-		assert_eq!(
-			ProxyDepositFactor::get(),
-			// TODO restore real value before phase 2
-			Balance::zero() //Balance::from(210 * MILLIGLMR)
-		);
+		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
 		assert_eq!(
 			AnnouncementDepositBase::get(),
 			Balance::from(100 * GLMR + 80 * MILLIGLMR)

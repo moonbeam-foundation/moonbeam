@@ -15,7 +15,6 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   before("Send a simple transfer with pallet evm", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     ({ events } = await createBlockWithExtrinsic(
       context,
       alith,

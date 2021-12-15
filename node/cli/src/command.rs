@@ -40,9 +40,6 @@ fn load_spec(
 	para_id: ParaId,
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	if id.is_empty() {
-		return Err("Not specific which chain to run.".into());
-	}
 	Ok(match id {
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
@@ -66,14 +63,9 @@ fn load_spec(
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonbeam networks
-		"moonbeam" => {
-			return Err(
-				"You chosen the moonbeam mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonbeam.json")[..],
-			// )?)
-		}
+		"moonbeam" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonbeam/parachain-embedded-specs.json")[..],
+		)?),
 		#[cfg(feature = "moonbeam-native")]
 		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
 		#[cfg(feature = "moonbeam-native")]

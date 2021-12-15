@@ -61,6 +61,21 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "Result<Vec<TransactionTrace>>",
     },
   },
+  xcm: {
+    injectDownwardMessage: {
+      description: "Inject a downward message from the relay chain.",
+      params: [{ name: "message", type: "Vec<u8>" }],
+      type: "Result<()>",
+    },
+    injectHrmpMessage: {
+      description: "Inject an HRMP message from a dedicated channel from a sibling parachain",
+      params: [
+        { name: "sender", type: "ParaId" },
+        { name: "message", type: "Vec<u8>" },
+      ],
+      type: "Result<()>",
+    },
+  },
 };
 
 const TYPES_0_4: RegistryTypes = {
@@ -387,6 +402,20 @@ const TYPES_900_undefined_deprecated: RegistryTypes = {
   },
 };
 
+const TYPES_POST_900: RegistryTypes = {
+  ProxyType: {
+    _enum: [
+      "Any",
+      "NonTransfer",
+      "Governance",
+      "Staking",
+      "CancelProxy",
+      "Balances",
+      "AuthorMapping",
+    ],
+  },
+};
+
 export const moonbeamDefinitions = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
@@ -445,7 +474,7 @@ export const moonbeamDefinitions = {
     },
     {
       minmax: [900, undefined],
-      types: {},
+      types: TYPES_POST_900,
     },
   ],
 } as OverrideBundleDefinition;

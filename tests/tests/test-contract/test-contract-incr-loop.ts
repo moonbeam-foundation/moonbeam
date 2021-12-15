@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
 
@@ -26,5 +27,22 @@ describeDevMoonbeam("Contract loop increment", (context) => {
     });
 
     expect(await contract.methods.count().call()).to.eq("1");
+  });
+});
+
+describeDevMoonbeam("Contract loop increment - check fees", (context) => {
+  it("should increment contract state", async function () {
+    const { contract, rawTx } = await createContract(context.web3, "TestContractIncr");
+    await context.createBlock({ transactions: [rawTx] });
+
+    await context.createBlock({
+      transactions: [
+        await createContractExecution(context.web3, {
+          contract,
+          contractCall: contract.methods.incr(),
+        }),
+      ],
+    });
+    await verifyLatestBlockFees(context.polkadotApi, expect);
   });
 });

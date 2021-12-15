@@ -575,6 +575,80 @@ fn receive_relay_asset_with_trader() {
 	ParaA::execute_with(|| {
 		// non-free execution, not full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
+		// Fee should have been received by treasury
+		assert_eq!(Assets::balance(source_id, &Treasury::account_id()), 10);
+	});
+}
+
+#[test]
+fn send_para_a_asset_to_para_b_with_trader() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			2500000000000u128
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	// In destination chain, we only need 4 weight
+	// We put 10 weight, 6 of which should be refunded and 4 of which should go to treasury
+	ParaA::execute_with(|| {
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			10
+		));
+	});
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	// We are sending 100 tokens from para A.
+	// Amount spent in fees is Units per second * weight / 1_000_000_000_000 (weight per second)
+	// weight is 4 since we are executing 4 instructions with a unitweightcost of 1.
+	// Units per second should be 2_500_000_000_000_000
+	// Since we set 10 weight in destination chain, 25 will be charged upfront
+	// 15 of those will be refunded, while 10 will go to treasury as the true weight used
+	// will be 4
+	ParaB::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
+		// Fee should have been received by treasury
+		assert_eq!(Assets::balance(source_id, &Treasury::account_id()), 10);
 	});
 }
 

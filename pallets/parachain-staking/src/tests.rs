@@ -22,11 +22,12 @@
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
-	roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
+	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
+	Event as MetaEvent, ExtBuilder, Origin, Stake, Test,
 };
 use crate::{
-	assert_eq_events, assert_event_emitted, assert_last_event, Bond, CandidateBondChange,
-	CandidateBondRequest, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
+	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
+	assert_tail_eq, Bond, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
 	Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
@@ -57,14 +58,75 @@ fn invalid_root_origin_fails() {
 #[test]
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
+		// before we can bump total_selected we must bump the blocks per round
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
 		assert_last_event!(MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32)));
 	});
 }
 
 #[test]
+fn set_total_selected_fails_if_above_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Stake::round().length, 5); // test relies on this
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 6u32),
+			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+		);
+	});
+}
+
+#[test]
+fn set_total_selected_passes_if_equal_to_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 10u32));
+	});
+}
+
+#[test]
+fn set_total_selected_passes_if_below_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 9u32));
+	});
+}
+
+#[test]
+fn set_blocks_per_round_fails_if_below_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 20u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 15u32));
+		assert_noop!(
+			Stake::set_blocks_per_round(Origin::root(), 14u32),
+			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+		);
+	});
+}
+
+#[test]
+fn set_blocks_per_round_passes_if_equal_to_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+		assert_ok!(Stake::set_total_selected(Origin::root(), 9u32));
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 9u32));
+	});
+}
+
+#[test]
+fn set_blocks_per_round_passes_if_above_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Stake::round().length, 5); // test relies on this
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
+	});
+}
+
+#[test]
 fn set_total_selected_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
+		// round length must be >= total_selected, so update that first
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+
 		assert_eq!(Stake::total_selected(), 5u32);
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
 		assert_eq!(Stake::total_selected(), 6u32);
@@ -134,15 +196,15 @@ fn cannot_set_collator_commission_to_current_collator_commission() {
 #[test]
 fn set_blocks_per_round_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
 		assert_last_event!(MetaEvent::Stake(Event::BlocksPerRoundSet(
 			1,
 			0,
 			5,
-			3,
-			Perbill::from_parts(463),
-			Perbill::from_parts(463),
-			Perbill::from_parts(463),
+			6,
+			Perbill::from_parts(926),
+			Perbill::from_parts(926),
+			Perbill::from_parts(926),
 		)));
 	});
 }
@@ -151,8 +213,8 @@ fn set_blocks_per_round_event_emits_correctly() {
 fn set_blocks_per_round_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(Stake::round().length, 5);
-		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-		assert_eq!(Stake::round().length, 3);
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 6u32));
+		assert_eq!(Stake::round().length, 6);
 	});
 }
 
@@ -183,12 +245,16 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			// default round every 5 blocks
-			roll_to(8);
-			assert_last_event!(MetaEvent::Stake(Event::NewRound(5, 2, 1, 20)));
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			roll_to(9);
-			assert_last_event!(MetaEvent::Stake(Event::NewRound(9, 3, 1, 20)));
+			// we can't lower the blocks per round because it must be above the number of collators,
+			// and we can't lower the number of collators because it must be above
+			// MinSelectedCandidates. so we first raise blocks per round, then lower it.
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 10u32));
+
+			roll_to(17);
+			assert_last_event!(MetaEvent::Stake(Event::NewRound(10, 2, 1, 20)));
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 5u32));
+			roll_to(18);
+			assert_last_event!(MetaEvent::Stake(Event::NewRound(18, 3, 1, 20)));
 		});
 }
 
@@ -1061,111 +1127,90 @@ fn cannot_go_online_if_leaving() {
 		});
 }
 
-// SCHEDULE CANDIDATE BOND MORE
+// CANDIDATE BOND MORE
 
 #[test]
-fn schedule_candidate_bond_more_event_emits_correctly() {
+fn candidate_bond_more_emits_correct_event() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50)])
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			assert_last_event!(MetaEvent::Stake(Event::CandidateBondMoreRequested(
-				1, 30, 3,
-			)));
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			assert_last_event!(MetaEvent::Stake(Event::CandidateBondedMore(1, 30, 50)));
 		});
 }
 
 #[test]
-fn schedule_candidate_bond_more_updates_candidate_state() {
+fn candidate_bond_more_reserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50)])
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			let state = Stake::candidate_state(&1).expect("request bonded more so exists");
+			assert_eq!(Balances::reserved_balance(&1), 20);
+			assert_eq!(Balances::free_balance(&1), 30);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			assert_eq!(Balances::reserved_balance(&1), 50);
+			assert_eq!(Balances::free_balance(&1), 0);
+		});
+}
+
+#[test]
+fn candidate_bond_more_increases_total() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			total += 30;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+#[test]
+fn candidate_bond_more_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let candidate_state = Stake::candidate_state(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 20);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			let candidate_state = Stake::candidate_state(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 50);
+		});
+}
+
+#[test]
+fn candidate_bond_more_updates_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
 			assert_eq!(
-				state.request,
-				Some(CandidateBondRequest {
-					amount: 30,
-					change: CandidateBondChange::Increase,
-					when_executable: 3,
-				})
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 20
+				}
+			);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 50
+				}
 			);
 		});
 }
 
-#[test]
-fn cannot_schedule_candidate_bond_more_if_request_exists() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 40)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 5));
-			assert_noop!(
-				Stake::schedule_candidate_bond_more(Origin::signed(1), 5),
-				Error::<Test>::PendingCandidateRequestAlreadyExists
-			);
-		});
-}
-
-#[test]
-fn cannot_schedule_candidate_bond_more_if_not_candidate() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			Stake::schedule_candidate_bond_more(Origin::signed(6), 50),
-			Error::<Test>::CandidateDNE
-		);
-	});
-}
-
-#[test]
-fn cannot_schedule_candidate_bond_more_if_insufficient_balance() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				Stake::schedule_candidate_bond_more(Origin::signed(1), 1),
-				Error::<Test>::InsufficientBalance
-			);
-		});
-}
-
-#[test]
-fn can_schedule_candidate_bond_more_if_leaving_candidates() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-		});
-}
-
-#[test]
-fn cannot_schedule_candidate_bond_more_if_exited_candidates() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
-			assert_noop!(
-				Stake::schedule_candidate_bond_more(Origin::signed(1), 30),
-				Error::<Test>::CandidateDNE
-			);
-		});
-}
-
-// CANDIDATE BOND LESS
+// SCHEDULE CANDIDATE BOND LESS
 
 #[test]
 fn schedule_candidate_bond_less_event_emits_correctly() {
@@ -1249,101 +1294,7 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 		});
 }
 
-// EXECUTE CANDIDATE BOND REQUEST
-// 1. BOND MORE REQUEST
-
-#[test]
-fn execute_candidate_bond_more_emits_correct_event() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			assert_last_event!(MetaEvent::Stake(Event::CandidateBondedMore(1, 30, 50)));
-		});
-}
-
-#[test]
-fn execute_candidate_bond_more_reserves_balance() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&1), 20);
-			assert_eq!(Balances::free_balance(&1), 30);
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			assert_eq!(Balances::reserved_balance(&1), 50);
-			assert_eq!(Balances::free_balance(&1), 0);
-		});
-}
-
-#[test]
-fn execute_candidate_bond_more_increases_total() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let mut total = Stake::total();
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			total += 30;
-			assert_eq!(Stake::total(), total);
-		});
-}
-
-#[test]
-fn execute_candidate_bond_more_updates_candidate_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let candidate_state = Stake::candidate_state(1).expect("updated => exists");
-			assert_eq!(candidate_state.bond, 20);
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			let candidate_state = Stake::candidate_state(1).expect("updated => exists");
-			assert_eq!(candidate_state.bond, 50);
-		});
-}
-
-#[test]
-fn execute_candidate_bond_more_updates_candidate_pool() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 20
-				}
-			);
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 30));
-			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 50
-				}
-			);
-		});
-}
-
-// 2. BOND LESS REQUEST
+// 2. EXECUTE BOND LESS REQUEST
 
 #[test]
 fn execute_candidate_bond_less_emits_correct_event() {
@@ -1354,7 +1305,7 @@ fn execute_candidate_bond_less_emits_correct_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 30));
 			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateBondedLess(1, 30, 20)));
 		});
 }
@@ -1370,7 +1321,7 @@ fn execute_candidate_bond_less_unreserves_balance() {
 			assert_eq!(Balances::free_balance(&1), 0);
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
 			assert_eq!(Balances::reserved_balance(&1), 20);
 			assert_eq!(Balances::free_balance(&1), 10);
 		});
@@ -1386,7 +1337,7 @@ fn execute_candidate_bond_less_decreases_total() {
 			let mut total = Stake::total();
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
 			total -= 10;
 			assert_eq!(Stake::total(), total);
 		});
@@ -1403,7 +1354,7 @@ fn execute_candidate_bond_less_updates_candidate_state() {
 			assert_eq!(candidate_state.bond, 30);
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
 			let candidate_state = Stake::candidate_state(1).expect("updated => exists");
 			assert_eq!(candidate_state.bond, 20);
 		});
@@ -1425,7 +1376,7 @@ fn execute_candidate_bond_less_updates_candidate_pool() {
 			);
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			roll_to(10);
-			assert_ok!(Stake::execute_candidate_bond_request(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
 			assert_eq!(
 				Stake::candidate_pool().0[0],
 				Bond {
@@ -1436,58 +1387,7 @@ fn execute_candidate_bond_less_updates_candidate_pool() {
 		});
 }
 
-// CANCEL CANDIDATE BOND REQUEST
-// 1. CANCEL CANDIDATE BOND MORE REQUEST
-
-#[test]
-fn cancel_candidate_bond_more_emits_event() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 40)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 10));
-			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
-			assert_last_event!(MetaEvent::Stake(Event::CancelledCandidateBondChange(
-				1,
-				CandidateBondRequest {
-					amount: 10,
-					change: CandidateBondChange::Increase,
-					when_executable: 3,
-				},
-			)));
-		});
-}
-
-#[test]
-fn cancel_candidate_bond_more_updates_candidate_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 40)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 10));
-			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
-			assert!(Stake::candidate_state(&1).unwrap().request.is_none());
-		});
-}
-
-#[test]
-fn only_candidate_can_cancel_candidate_bond_more_request() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 40)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_candidate_bond_more(Origin::signed(1), 10));
-			assert_noop!(
-				Stake::cancel_candidate_bond_request(Origin::signed(2)),
-				Error::<Test>::CandidateDNE
-			);
-		});
-}
-
-// 2. CANCEL CANDIDATE BOND LESS REQUEST
+// CANCEL CANDIDATE BOND LESS REQUEST
 
 #[test]
 fn cancel_candidate_bond_less_emits_event() {
@@ -1497,14 +1397,9 @@ fn cancel_candidate_bond_less_emits_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
-			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
-			assert_last_event!(MetaEvent::Stake(Event::CancelledCandidateBondChange(
-				1,
-				CandidateBondRequest {
-					amount: 10,
-					change: CandidateBondChange::Decrease,
-					when_executable: 3,
-				},
+			assert_ok!(Stake::cancel_candidate_bond_less(Origin::signed(1)));
+			assert_last_event!(MetaEvent::Stake(Event::CancelledCandidateBondLess(
+				1, 10, 3,
 			)));
 		});
 }
@@ -1517,7 +1412,7 @@ fn cancel_candidate_bond_less_updates_candidate_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
-			assert_ok!(Stake::cancel_candidate_bond_request(Origin::signed(1)));
+			assert_ok!(Stake::cancel_candidate_bond_less(Origin::signed(1)));
 			assert!(Stake::candidate_state(&1).unwrap().request.is_none());
 		});
 }
@@ -1531,7 +1426,7 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			assert_noop!(
-				Stake::cancel_candidate_bond_request(Origin::signed(2)),
+				Stake::cancel_candidate_bond_less(Origin::signed(2)),
 				Error::<Test>::CandidateDNE
 			);
 		});
@@ -2101,20 +1996,35 @@ fn can_schedule_revoke_delegation_below_min_delegator_stake() {
 		});
 }
 
-// SCHEDULE DELEGATOR BOND MORE
+// DELEGATOR BOND MORE
 
 #[test]
-fn delegator_bond_more_event_emits_correctly() {
+fn delegator_bond_more_reserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			assert_last_event!(MetaEvent::Stake(Event::DelegationIncreaseScheduled(
-				2, 1, 5, 3,
-			)));
+			assert_eq!(Balances::reserved_balance(&2), 10);
+			assert_eq!(Balances::free_balance(&2), 5);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Balances::reserved_balance(&2), 15);
+			assert_eq!(Balances::free_balance(&2), 0);
+		});
+}
+
+#[test]
+fn delegator_bond_more_increases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::total(), 40);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::total(), 45);
 		});
 }
 
@@ -2126,101 +2036,99 @@ fn delegator_bond_more_updates_delegator_state() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			let state = Stake::delegator_state(&2).expect("just request bonded less so exists");
-			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
-					when_executable: 3,
-					action: DelegationChange::Increase
-				})
-			);
+			assert_eq!(Stake::delegator_state(2).expect("exists").total, 10);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::delegator_state(2).expect("exists").total, 15);
 		});
 }
 
 #[test]
-fn can_delegator_bond_more_if_leaving() {
+fn delegator_bond_more_updates_candidate_state_top_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_delegators(Origin::signed(2)));
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-		});
-}
-
-#[test]
-fn cannot_delegator_bond_more_if_revoking() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 25), (3, 20)])
-		.with_candidates(vec![(1, 30), (3, 20)])
-		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(2), 1));
-			assert_noop!(
-				Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5),
-				Error::<Test>::PendingDelegationRequestAlreadyExists
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0],
+				Bond {
+					owner: 2,
+					amount: 15
+				}
 			);
 		});
 }
 
 #[test]
-fn cannot_delegator_bond_more_if_not_delegator() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5),
-			Error::<Test>::DelegatorDNE
-		);
-	});
+fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 20),
+			(4, 1, 20),
+			(5, 1, 20),
+			(6, 1, 20),
+		])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::candidate_state(1)
+					.expect("exists")
+					.bottom_delegations[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_last_event!(MetaEvent::Stake(Event::DelegationIncreased(2, 1, 5, false)));
+			assert_eq!(
+				Stake::candidate_state(1)
+					.expect("exists")
+					.bottom_delegations[0],
+				Bond {
+					owner: 2,
+					amount: 15
+				}
+			);
+		});
 }
 
 #[test]
-fn cannot_delegator_bond_more_if_candidate_dne() {
+fn delegator_bond_more_increases_total() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
+		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				Stake::schedule_delegator_bond_more(Origin::signed(2), 3, 5),
-				Error::<Test>::DelegationDNE
-			);
+			assert_eq!(Stake::total(), 40);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::total(), 45);
 		});
 }
 
 #[test]
-fn cannot_delegator_bond_more_if_delegation_dne() {
+fn can_delegator_bond_more_for_leaving_candidate() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10), (3, 30)])
-		.with_candidates(vec![(1, 30), (3, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				Stake::schedule_delegator_bond_more(Origin::signed(2), 3, 5),
-				Error::<Test>::DelegationDNE
-			);
-		});
-}
-
-#[test]
-fn cannot_delegator_bond_more_if_insufficient_balance() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
+		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5),
-				Error::<Test>::InsufficientBalance
-			);
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 		});
 }
 
@@ -2619,18 +2527,9 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(2), 1));
-			assert_noop!(
-				Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 10),
-				Error::<Test>::PendingDelegationRequestAlreadyExists
-			);
-			assert_ok!(Stake::schedule_delegator_bond_more(
-				Origin::signed(2),
-				3,
-				10
-			));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 3, 10));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 3));
 			assert!(Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 20);
 			assert_eq!(Balances::free_balance(&2), 10);
@@ -2664,158 +2563,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 		});
 }
 
-// 2. EXECUTE BOND MORE
-
-#[test]
-fn execute_delegator_bond_more_reserves_balance() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 5);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(Balances::reserved_balance(&2), 15);
-			assert_eq!(Balances::free_balance(&2), 0);
-		});
-}
-
-#[test]
-fn execute_delegator_bond_more_increases_total_staked() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Stake::total(), 40);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(Stake::total(), 45);
-		});
-}
-
-#[test]
-fn execute_delegator_bond_more_updates_delegator_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Stake::delegator_state(2).expect("exists").total, 10);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(Stake::delegator_state(2).expect("exists").total, 15);
-		});
-}
-
-#[test]
-fn execute_delegator_bond_more_updates_candidate_state_top_delegations() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
-			);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 15
-				}
-			);
-		});
-}
-
-#[test]
-fn execute_delegator_bond_more_updates_candidate_state_bottom_delegations() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![
-			(2, 1, 10),
-			(3, 1, 20),
-			(4, 1, 20),
-			(5, 1, 20),
-			(6, 1, 20),
-		])
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				Stake::candidate_state(1)
-					.expect("exists")
-					.bottom_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
-			);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_last_event!(MetaEvent::Stake(Event::DelegationIncreased(2, 1, 5, false)));
-			assert_eq!(
-				Stake::candidate_state(1)
-					.expect("exists")
-					.bottom_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 15
-				}
-			);
-		});
-}
-
-#[test]
-fn execute_delegator_bond_more_increases_total() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Stake::total(), 40);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-			assert_eq!(Stake::total(), 45);
-		});
-}
-
-#[test]
-fn can_execute_delegator_bond_more_for_leaving_candidate() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			roll_to(10);
-			// can execute bond more delegation request for leaving candidate
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
-		});
-}
-
-// 3, EXECUTE BOND LESS
+// 2. EXECUTE BOND LESS
 
 #[test]
 fn execute_delegator_bond_less_unreserves_balance() {
@@ -3107,58 +2855,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 		});
 }
 
-// 2. CANCEL DELEGATOR BOND MORE
-
-#[test]
-fn cancel_delegator_bond_more_emits_correct_event() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			assert_last_event!(MetaEvent::Stake(Event::CancelledDelegationRequest(
-				2,
-				DelegationRequest {
-					collator: 1,
-					amount: 5,
-					when_executable: 3,
-					action: DelegationChange::Increase,
-				},
-			)));
-		});
-}
-
-#[test]
-fn cancel_delegator_bond_more_updates_delegator_state() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 15)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(2), 1, 5));
-			let state = Stake::delegator_state(&2).unwrap();
-			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
-					when_executable: 3,
-					action: DelegationChange::Increase,
-				})
-			);
-			assert_eq!(state.requests.more_total, 5);
-			assert_ok!(Stake::cancel_delegation_request(Origin::signed(2), 1));
-			let state = Stake::delegator_state(&2).unwrap();
-			assert!(state.requests().get(&1).is_none());
-			assert_eq!(state.requests.more_total, 0);
-		});
-}
-
-// 3. CANCEL DELEGATOR BOND LESS
+// 2. CANCEL DELEGATOR BOND LESS
 
 #[test]
 fn cancel_delegator_bond_less_correct_event() {
@@ -3321,19 +3018,16 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
 				Event::ReservedForParachainBond(11, 15),
-				Event::Rewarded(1, 20),
-				Event::DelegatorDueReward(7, 1, 5),
-				Event::DelegatorDueReward(10, 1, 5),
-				Event::DelegatorDueReward(6, 1, 5),
-				Event::Rewarded(6, 5),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
 				Event::CollatorChosen(4, 1, 50),
 				Event::CollatorChosen(4, 2, 40),
 				Event::CollatorChosen(4, 3, 20),
 				Event::CollatorChosen(4, 4, 20),
 				Event::CollatorChosen(4, 5, 10),
 				Event::NewRound(15, 4, 5, 140),
+				Event::Rewarded(1, 20),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
+				Event::Rewarded(6, 5),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -3355,49 +3049,40 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
-				Event::Rewarded(1, 21),
-				Event::DelegatorDueReward(7, 1, 5),
-				Event::DelegatorDueReward(10, 1, 5),
-				Event::DelegatorDueReward(6, 1, 5),
-				Event::Rewarded(6, 5),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
 				Event::CollatorChosen(5, 1, 50),
 				Event::CollatorChosen(5, 2, 40),
 				Event::CollatorChosen(5, 3, 20),
 				Event::CollatorChosen(5, 4, 20),
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
+				Event::Rewarded(1, 21),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
+				Event::Rewarded(6, 5),
 				Event::ReservedForParachainBond(11, 16),
-				Event::Rewarded(1, 22),
-				Event::DelegatorDueReward(7, 1, 6),
-				Event::DelegatorDueReward(10, 1, 6),
-				Event::DelegatorDueReward(6, 1, 6),
-				Event::Rewarded(6, 6),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
 				Event::CollatorChosen(6, 3, 20),
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
+				Event::Rewarded(1, 22),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::Rewarded(6, 6),
 				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 				Event::ReservedForParachainBond(11, 17),
-				Event::Rewarded(1, 24),
-				Event::DelegatorDueReward(7, 1, 6),
-				Event::DelegatorDueReward(10, 1, 6),
-				Event::DelegatorDueReward(6, 1, 6),
-				Event::Rewarded(6, 6),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 3, 20),
 				Event::CollatorChosen(7, 4, 20),
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
+				Event::Rewarded(1, 24),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::Rewarded(6, 6),
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
@@ -3416,19 +3101,16 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					Percent::from_percent(50),
 				),
 				Event::ReservedForParachainBond(11, 30),
-				Event::Rewarded(1, 20),
-				Event::DelegatorDueReward(7, 1, 4),
-				Event::DelegatorDueReward(10, 1, 4),
-				Event::DelegatorDueReward(6, 1, 4),
-				Event::Rewarded(6, 4),
-				Event::Rewarded(7, 4),
-				Event::Rewarded(10, 4),
 				Event::CollatorChosen(8, 1, 40),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 3, 20),
 				Event::CollatorChosen(8, 4, 20),
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
+				Event::Rewarded(1, 20),
+				Event::Rewarded(7, 4),
+				Event::Rewarded(10, 4),
+				Event::Rewarded(6, 4),
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
@@ -3438,17 +3120,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// no more paying 6
 			let mut new4 = vec![
 				Event::ReservedForParachainBond(11, 32),
-				Event::Rewarded(1, 22),
-				Event::DelegatorDueReward(7, 1, 5),
-				Event::DelegatorDueReward(10, 1, 5),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
 				Event::CollatorChosen(9, 1, 40),
 				Event::CollatorChosen(9, 2, 40),
 				Event::CollatorChosen(9, 3, 20),
 				Event::CollatorChosen(9, 4, 20),
 				Event::CollatorChosen(9, 5, 10),
 				Event::NewRound(40, 9, 5, 130),
+				Event::Rewarded(1, 22),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
@@ -3460,17 +3140,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
 				Event::ReservedForParachainBond(11, 33),
-				Event::Rewarded(1, 23),
-				Event::DelegatorDueReward(7, 1, 5),
-				Event::DelegatorDueReward(10, 1, 5),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
 				Event::CollatorChosen(10, 1, 50),
 				Event::CollatorChosen(10, 2, 40),
 				Event::CollatorChosen(10, 3, 20),
 				Event::CollatorChosen(10, 4, 20),
 				Event::CollatorChosen(10, 5, 10),
 				Event::NewRound(45, 10, 5, 140),
+				Event::Rewarded(1, 23),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
@@ -3481,17 +3159,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// new delegation is still not rewarded yet
 			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 35),
-				Event::Rewarded(1, 24),
-				Event::DelegatorDueReward(7, 1, 5),
-				Event::DelegatorDueReward(10, 1, 5),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(10, 5),
 				Event::CollatorChosen(11, 1, 50),
 				Event::CollatorChosen(11, 2, 40),
 				Event::CollatorChosen(11, 3, 20),
 				Event::CollatorChosen(11, 4, 20),
 				Event::CollatorChosen(11, 5, 10),
 				Event::NewRound(50, 11, 5, 140),
+				Event::Rewarded(1, 24),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(10, 5),
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
@@ -3500,19 +3176,16 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 37),
-				Event::Rewarded(1, 24),
-				Event::DelegatorDueReward(7, 1, 4),
-				Event::DelegatorDueReward(8, 1, 4),
-				Event::DelegatorDueReward(10, 1, 4),
-				Event::Rewarded(7, 4),
-				Event::Rewarded(8, 4),
-				Event::Rewarded(10, 4),
 				Event::CollatorChosen(12, 1, 50),
 				Event::CollatorChosen(12, 2, 40),
 				Event::CollatorChosen(12, 3, 20),
 				Event::CollatorChosen(12, 4, 20),
 				Event::CollatorChosen(12, 5, 10),
 				Event::NewRound(55, 12, 5, 140),
+				Event::Rewarded(1, 24),
+				Event::Rewarded(7, 4),
+				Event::Rewarded(8, 4),
+				Event::Rewarded(10, 4),
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
@@ -3563,20 +3236,18 @@ fn paid_collator_commission_matches_config() {
 			// only reward author with id 4
 			set_author(3, 4, 100);
 			roll_to(21);
-			// 20% of 10 is commission + due_portion (4) = 2 + 4 = 6
+			// 20% of 10 is commission + due_portion (0) = 2 + 4 = 6
 			// all delegator payouts are 10-2 = 8 * stake_pct
 			let mut new2 = vec![
 				Event::CollatorChosen(4, 1, 40),
 				Event::CollatorChosen(4, 4, 40),
 				Event::NewRound(15, 4, 2, 80),
-				Event::Rewarded(4, 18),
-				Event::DelegatorDueReward(6, 4, 6),
-				Event::DelegatorDueReward(5, 4, 6),
-				Event::Rewarded(5, 6),
-				Event::Rewarded(6, 6),
 				Event::CollatorChosen(5, 1, 40),
 				Event::CollatorChosen(5, 4, 40),
 				Event::NewRound(20, 5, 2, 80),
+				Event::Rewarded(4, 18),
+				Event::Rewarded(6, 6),
+				Event::Rewarded(5, 6),
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected);
@@ -3744,13 +3415,13 @@ fn payout_distribution_to_solo_collators() {
 				Event::CollatorChosen(3, 4, 70),
 				Event::CollatorChosen(3, 5, 60),
 				Event::NewRound(10, 3, 5, 400),
-				Event::Rewarded(1, 305),
 				Event::CollatorChosen(4, 1, 100),
 				Event::CollatorChosen(4, 2, 90),
 				Event::CollatorChosen(4, 3, 80),
 				Event::CollatorChosen(4, 4, 70),
 				Event::CollatorChosen(4, 5, 60),
 				Event::NewRound(15, 4, 5, 400),
+				Event::Rewarded(1, 305),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -3767,14 +3438,14 @@ fn payout_distribution_to_solo_collators() {
 				Event::CollatorChosen(5, 4, 70),
 				Event::CollatorChosen(5, 5, 60),
 				Event::NewRound(20, 5, 5, 400),
-				Event::Rewarded(1, 192),
-				Event::Rewarded(2, 128),
 				Event::CollatorChosen(6, 1, 100),
 				Event::CollatorChosen(6, 2, 90),
 				Event::CollatorChosen(6, 3, 80),
 				Event::CollatorChosen(6, 4, 70),
 				Event::CollatorChosen(6, 5, 60),
 				Event::NewRound(25, 6, 5, 400),
+				Event::Rewarded(1, 192),
+				Event::Rewarded(2, 128),
 			];
 			expected.append(&mut new1);
 			assert_eq_events!(expected.clone());
@@ -3784,7 +3455,7 @@ fn payout_distribution_to_solo_collators() {
 			set_author(6, 3, 20);
 			set_author(6, 4, 20);
 			set_author(6, 5, 20);
-			roll_to(36);
+			roll_to(39);
 			// pay 20% issuance for all collators
 			let mut new2 = vec![
 				Event::CollatorChosen(7, 1, 100),
@@ -3793,17 +3464,17 @@ fn payout_distribution_to_solo_collators() {
 				Event::CollatorChosen(7, 4, 70),
 				Event::CollatorChosen(7, 5, 60),
 				Event::NewRound(30, 7, 5, 400),
-				Event::Rewarded(5, 67),
-				Event::Rewarded(3, 67),
-				Event::Rewarded(4, 67),
-				Event::Rewarded(1, 67),
-				Event::Rewarded(2, 67),
 				Event::CollatorChosen(8, 1, 100),
 				Event::CollatorChosen(8, 2, 90),
 				Event::CollatorChosen(8, 3, 80),
 				Event::CollatorChosen(8, 4, 70),
 				Event::CollatorChosen(8, 5, 60),
 				Event::NewRound(35, 8, 5, 400),
+				Event::Rewarded(5, 67),
+				Event::Rewarded(3, 67),
+				Event::Rewarded(4, 67),
+				Event::Rewarded(1, 67),
+				Event::Rewarded(2, 67),
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected);
@@ -3994,19 +3665,16 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(3, 4, 20),
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
-				Event::Rewarded(1, 26),
-				Event::DelegatorDueReward(7, 1, 8),
-				Event::DelegatorDueReward(10, 1, 8),
-				Event::DelegatorDueReward(6, 1, 8),
-				Event::Rewarded(6, 8),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
 				Event::CollatorChosen(4, 1, 50),
 				Event::CollatorChosen(4, 2, 40),
 				Event::CollatorChosen(4, 3, 20),
 				Event::CollatorChosen(4, 4, 20),
 				Event::CollatorChosen(4, 5, 10),
 				Event::NewRound(15, 4, 5, 140),
+				Event::Rewarded(1, 26),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::Rewarded(6, 8),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -4027,32 +3695,26 @@ fn payouts_follow_delegation_changes() {
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
 				Event::DelegatorExitScheduled(4, 6, 6),
-				Event::Rewarded(1, 27),
-				Event::DelegatorDueReward(7, 1, 8),
-				Event::DelegatorDueReward(10, 1, 8),
-				Event::DelegatorDueReward(6, 1, 8),
-				Event::Rewarded(6, 8),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
 				Event::CollatorChosen(5, 1, 50),
 				Event::CollatorChosen(5, 2, 40),
 				Event::CollatorChosen(5, 3, 20),
 				Event::CollatorChosen(5, 4, 20),
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
-				Event::Rewarded(1, 29),
-				Event::DelegatorDueReward(7, 1, 9),
-				Event::DelegatorDueReward(10, 1, 9),
-				Event::DelegatorDueReward(6, 1, 9),
-				Event::Rewarded(6, 9),
-				Event::Rewarded(7, 9),
-				Event::Rewarded(10, 9),
+				Event::Rewarded(1, 27),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::Rewarded(6, 8),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
 				Event::CollatorChosen(6, 3, 20),
 				Event::CollatorChosen(6, 4, 20),
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
+				Event::Rewarded(1, 29),
+				Event::Rewarded(7, 9),
+				Event::Rewarded(10, 9),
+				Event::Rewarded(6, 9),
 				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 			];
@@ -4063,32 +3725,26 @@ fn payouts_follow_delegation_changes() {
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
-				Event::Rewarded(1, 30),
-				Event::DelegatorDueReward(7, 1, 9),
-				Event::DelegatorDueReward(10, 1, 9),
-				Event::DelegatorDueReward(6, 1, 9),
-				Event::Rewarded(6, 9),
-				Event::Rewarded(7, 9),
-				Event::Rewarded(10, 9),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 3, 20),
 				Event::CollatorChosen(7, 4, 20),
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
-				Event::Rewarded(1, 32),
-				Event::DelegatorDueReward(7, 1, 10),
-				Event::DelegatorDueReward(10, 1, 10),
-				Event::DelegatorDueReward(6, 1, 10),
-				Event::Rewarded(6, 10),
-				Event::Rewarded(7, 10),
-				Event::Rewarded(10, 10),
+				Event::Rewarded(1, 30),
+				Event::Rewarded(7, 9),
+				Event::Rewarded(10, 9),
+				Event::Rewarded(6, 9),
 				Event::CollatorChosen(8, 1, 40),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 3, 20),
 				Event::CollatorChosen(8, 4, 20),
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
+				Event::Rewarded(1, 32),
+				Event::Rewarded(7, 10),
+				Event::Rewarded(10, 10),
+				Event::Rewarded(6, 10),
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
@@ -4096,17 +3752,15 @@ fn payouts_follow_delegation_changes() {
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
-				Event::Rewarded(1, 38),
-				Event::DelegatorDueReward(7, 1, 13),
-				Event::DelegatorDueReward(10, 1, 13),
-				Event::Rewarded(7, 13),
-				Event::Rewarded(10, 13),
 				Event::CollatorChosen(9, 1, 40),
 				Event::CollatorChosen(9, 2, 40),
 				Event::CollatorChosen(9, 3, 20),
 				Event::CollatorChosen(9, 4, 20),
 				Event::CollatorChosen(9, 5, 10),
 				Event::NewRound(40, 9, 5, 130),
+				Event::Rewarded(1, 38),
+				Event::Rewarded(7, 13),
+				Event::Rewarded(10, 13),
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
@@ -4116,17 +3770,15 @@ fn payouts_follow_delegation_changes() {
 			// new delegation is not rewarded yet
 			let mut new5 = vec![
 				Event::Delegation(8, 10, 1, DelegatorAdded::AddedToTop { new_total: 50 }),
-				Event::Rewarded(1, 40),
-				Event::DelegatorDueReward(7, 1, 13),
-				Event::DelegatorDueReward(10, 1, 13),
-				Event::Rewarded(7, 13),
-				Event::Rewarded(10, 13),
 				Event::CollatorChosen(10, 1, 50),
 				Event::CollatorChosen(10, 2, 40),
 				Event::CollatorChosen(10, 3, 20),
 				Event::CollatorChosen(10, 4, 20),
 				Event::CollatorChosen(10, 5, 10),
 				Event::NewRound(45, 10, 5, 140),
+				Event::Rewarded(1, 40),
+				Event::Rewarded(7, 13),
+				Event::Rewarded(10, 13),
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
@@ -4134,17 +3786,15 @@ fn payouts_follow_delegation_changes() {
 			roll_to(50);
 			// new delegation not rewarded yet
 			let mut new6 = vec![
-				Event::Rewarded(1, 42),
-				Event::DelegatorDueReward(7, 1, 14),
-				Event::DelegatorDueReward(10, 1, 14),
-				Event::Rewarded(7, 14),
-				Event::Rewarded(10, 14),
 				Event::CollatorChosen(11, 1, 50),
 				Event::CollatorChosen(11, 2, 40),
 				Event::CollatorChosen(11, 3, 20),
 				Event::CollatorChosen(11, 4, 20),
 				Event::CollatorChosen(11, 5, 10),
 				Event::NewRound(50, 11, 5, 140),
+				Event::Rewarded(1, 42),
+				Event::Rewarded(7, 14),
+				Event::Rewarded(10, 14),
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
@@ -4152,67 +3802,19 @@ fn payouts_follow_delegation_changes() {
 			// new delegation is rewarded for first time
 			// 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
-				Event::Rewarded(1, 39),
-				Event::DelegatorDueReward(7, 1, 12),
-				Event::DelegatorDueReward(8, 1, 12),
-				Event::DelegatorDueReward(10, 1, 12),
-				Event::Rewarded(7, 12),
-				Event::Rewarded(8, 12),
-				Event::Rewarded(10, 12),
 				Event::CollatorChosen(12, 1, 50),
 				Event::CollatorChosen(12, 2, 40),
 				Event::CollatorChosen(12, 3, 20),
 				Event::CollatorChosen(12, 4, 20),
 				Event::CollatorChosen(12, 5, 10),
 				Event::NewRound(55, 12, 5, 140),
+				Event::Rewarded(1, 39),
+				Event::Rewarded(7, 12),
+				Event::Rewarded(8, 12),
+				Event::Rewarded(10, 12),
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
-		});
-}
-
-#[test]
-fn delegations_merged_before_reward_payout() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 120)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		.with_delegations(vec![(5, 1, 30), (5, 2, 30), (5, 3, 30), (5, 4, 30)])
-		.build()
-		.execute_with(|| {
-			roll_to(8);
-			set_author(1, 1, 1);
-			set_author(1, 2, 1);
-			set_author(1, 3, 1);
-			set_author(1, 4, 1);
-			roll_to(16);
-			let expected_events = vec![
-				Event::CollatorChosen(2, 1, 50),
-				Event::CollatorChosen(2, 2, 50),
-				Event::CollatorChosen(2, 3, 50),
-				Event::CollatorChosen(2, 4, 50),
-				Event::NewRound(5, 2, 4, 200),
-				Event::Rewarded(3, 1),
-				Event::DelegatorDueReward(5, 3, 1),
-				Event::Rewarded(4, 1),
-				Event::DelegatorDueReward(5, 4, 1),
-				Event::Rewarded(1, 1),
-				Event::DelegatorDueReward(5, 1, 1),
-				Event::Rewarded(2, 1),
-				Event::DelegatorDueReward(5, 2, 1),
-				// ALL REWARDS FOR 5 are merged into one payment + event
-				Event::Rewarded(5, 4),
-				Event::CollatorChosen(3, 1, 50),
-				Event::CollatorChosen(3, 2, 50),
-				Event::CollatorChosen(3, 3, 50),
-				Event::CollatorChosen(3, 4, 50),
-				Event::NewRound(10, 3, 4, 200),
-				Event::CollatorChosen(4, 1, 50),
-				Event::CollatorChosen(4, 2, 50),
-				Event::CollatorChosen(4, 3, 50),
-				Event::CollatorChosen(4, 4, 50),
-				Event::NewRound(15, 4, 4, 200),
-			];
-			assert_eq_events!(expected_events);
 		});
 }
 
@@ -4289,16 +3891,12 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			}
 			// 15 + 16 + 17 + 18 + 20 = 86 (top 4 + self bond)
 			is_candidate_pool_bond(1, 86);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(3), 1, 8));
-			roll_to(10);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 8));
 			// 3: 11 -> 19 => 3 is in top, bumps out 7
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
 			is_candidate_pool_bond(1, 90);
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(4), 1, 8));
-			roll_to(20);
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(4), 1, 8));
 			// 4: 12 -> 20 => 4 is in top, bumps out 8
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(4), 4, 1));
 			// 17 + 18 + 19 + 20 + 20 = 94 (top 4 + self bond)
 			is_candidate_pool_bond(1, 94);
 			assert_ok!(Stake::schedule_delegator_bond_less(
@@ -4307,7 +3905,6 @@ fn candidate_pool_updates_when_total_counted_changes() {
 				3
 			));
 			roll_to(30);
-			println!("test");
 			// 10: 18 -> 15 => 10 bumped to bottom, 8 bumped to top (- 18 + 16 = -2 for count)
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(10), 10, 1));
 			// 16 + 17 + 19 + 20 + 20 = 92 (top 4 + self bond)
@@ -4361,10 +3958,7 @@ fn only_top_collators_are_counted() {
 				collator_state.total_backing
 			);
 			// bump bottom to the top
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(3), 1, 8));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(3, 1, 8, 3));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 8));
 			assert_event_emitted!(Event::DelegationIncreased(3, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
@@ -4375,10 +3969,7 @@ fn only_top_collators_are_counted() {
 				collator_state.total_backing
 			);
 			// bump bottom to the top
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(4), 1, 8));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(4, 1, 8, 5));
-			roll_to(20);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(4), 4, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(4), 1, 8));
 			assert_event_emitted!(Event::DelegationIncreased(4, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 17 + 18 + 19 + 20 + 20 = 94 (top 4 + self bond)
@@ -4389,10 +3980,7 @@ fn only_top_collators_are_counted() {
 				collator_state.total_backing
 			);
 			// bump bottom to the top
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(5), 1, 8));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(5, 1, 8, 7));
-			roll_to(30);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(5), 5, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(5), 1, 8));
 			assert_event_emitted!(Event::DelegationIncreased(5, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 18 + 19 + 20 + 21 + 20 = 98 (top 4 + self bond)
@@ -4403,10 +3991,7 @@ fn only_top_collators_are_counted() {
 				collator_state.total_backing
 			);
 			// bump bottom to the top
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(6), 1, 8));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(6, 1, 8, 9));
-			roll_to(40);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(6), 1, 8));
 			assert_event_emitted!(Event::DelegationIncreased(6, 1, 8, true));
 			let collator_state = Stake::candidate_state(1).unwrap();
 			// 19 + 20 + 21 + 22 + 20 = 102 (top 4 + self bond)
@@ -4470,10 +4055,7 @@ fn delegation_events_convey_correct_position() {
 				collator1_state.total_backing
 			);
 			// 8 increases delegation to the top
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(8), 1, 3));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(8, 1, 3, 3));
-			roll_to(10);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(8), 8, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(8), 1, 3));
 			assert_event_emitted!(Event::DelegationIncreased(8, 1, 3, true));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
@@ -4484,10 +4066,7 @@ fn delegation_events_convey_correct_position() {
 				collator1_state.total_backing
 			);
 			// 3 increases delegation but stays in bottom
-			assert_ok!(Stake::schedule_delegator_bond_more(Origin::signed(3), 1, 1));
-			assert_event_emitted!(Event::DelegationIncreaseScheduled(3, 1, 1, 5));
-			roll_to(20);
-			assert_ok!(Stake::execute_delegation_request(Origin::signed(3), 3, 1));
+			assert_ok!(Stake::delegator_bond_more(Origin::signed(3), 1, 1));
 			assert_event_emitted!(Event::DelegationIncreased(3, 1, 1, false));
 			let collator1_state = Stake::candidate_state(1).unwrap();
 			// 13 + 13 + 14 + 15 + 20 = 75 (top 4 + self bond)
@@ -4499,7 +4078,7 @@ fn delegation_events_convey_correct_position() {
 			);
 			// 6 decreases delegation but stays in top
 			assert_ok!(Stake::schedule_delegator_bond_less(Origin::signed(6), 1, 2));
-			assert_event_emitted!(Event::DelegationDecreaseScheduled(6, 1, 2, 7));
+			assert_event_emitted!(Event::DelegationDecreaseScheduled(6, 1, 2, 3));
 			roll_to(30);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(6), 6, 1));
 			assert_event_emitted!(Event::DelegationDecreased(6, 1, 2, true));
@@ -4525,6 +4104,342 @@ fn delegation_events_convey_correct_position() {
 				collator1_state.total_counted + 23,
 				collator1_state.total_backing
 			);
+		});
+}
+
+#[test]
+fn no_rewards_paid_until_after_reward_payment_delay() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.build()
+		.execute_with(|| {
+			roll_to_round_begin(2);
+			// payouts for round 1
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+			set_author(1, 3, 1);
+			set_author(1, 4, 1);
+			set_author(1, 4, 1);
+			let mut expected = vec![
+				Event::CollatorChosen(2, 1, 20),
+				Event::CollatorChosen(2, 2, 20),
+				Event::CollatorChosen(2, 3, 20),
+				Event::CollatorChosen(2, 4, 20),
+				Event::NewRound(5, 2, 4, 80),
+			];
+			assert_eq_events!(expected);
+
+			roll_to_round_begin(3);
+			expected.append(&mut vec![
+				Event::CollatorChosen(3, 1, 20),
+				Event::CollatorChosen(3, 2, 20),
+				Event::CollatorChosen(3, 3, 20),
+				Event::CollatorChosen(3, 4, 20),
+				Event::NewRound(10, 3, 4, 80),
+				// rewards will begin immediately following a NewRound
+				Event::Rewarded(3, 1),
+			]);
+			assert_eq_events!(expected);
+
+			// roll to the next block where we start round 3; we should have round change and first
+			// payout made.
+			roll_one_block();
+			expected.push(Event::Rewarded(4, 2));
+			assert_eq_events!(expected);
+
+			roll_one_block();
+			expected.push(Event::Rewarded(1, 1));
+			assert_eq_events!(expected);
+
+			roll_one_block();
+			expected.push(Event::Rewarded(2, 1));
+			assert_eq_events!(expected);
+
+			// there should be no more payments in this round...
+			let num_blocks_rolled = roll_to_round_end(3);
+			assert_eq_events!(expected);
+			assert_eq!(num_blocks_rolled, 1);
+		});
+}
+
+#[test]
+fn deferred_payment_storage_items_are_cleaned_up() {
+	use crate::*;
+
+	// this test sets up two collators, gives them points in round one, and focuses on the
+	// storage over the next several blocks to show that it is properly cleaned up
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			let mut round: u32 = 1;
+			set_author(round, 1, 1);
+			set_author(round, 2, 1);
+
+			// reflects genesis?
+			assert!(<AtStake<Test>>::contains_key(round, 1));
+			assert!(<AtStake<Test>>::contains_key(round, 2));
+
+			round = 2;
+			roll_to_round_begin(round.into());
+			let mut expected = vec![
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(5, round, 2, 40),
+			];
+			assert_eq_events!(expected);
+
+			// we should have AtStake snapshots as soon as we start a round...
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
+			// ...and it should persist until the round is fully paid out
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+
+			assert!(
+				!<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
+			);
+			assert!(
+				<Points<Test>>::contains_key(1),
+				"Points should be populated during current round"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(1),
+				"Staked should be populated when round changes"
+			);
+
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"Points should not be populated until author noted"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(2),
+				"Staked should be populated when round changes"
+			);
+
+			// first payout occurs in round 3
+			round = 3;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(10, round, 2, 40),
+				Event::Rewarded(1, 1),
+			]);
+			assert_eq_events!(expected);
+
+			// payouts should exist for past rounds that haven't been paid out yet..
+			assert!(<AtStake<Test>>::contains_key(3, 1));
+			assert!(<AtStake<Test>>::contains_key(3, 2));
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
+
+			assert!(
+				<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts should be populated after RewardPaymentDelay"
+			);
+			assert!(<Points<Test>>::contains_key(1));
+			assert!(
+				!<Staked<Test>>::contains_key(1),
+				"Staked should be cleaned up after round change"
+			);
+
+			assert!(!<DelayedPayouts<Test>>::contains_key(2));
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"We never rewarded points for round 2"
+			);
+			assert!(<Staked<Test>>::contains_key(2));
+
+			assert!(!<DelayedPayouts<Test>>::contains_key(3));
+			assert!(
+				!<Points<Test>>::contains_key(3),
+				"We never awarded points for round 3"
+			);
+			assert!(<Staked<Test>>::contains_key(3));
+
+			// collator 1 has been paid in this last block and associated storage cleaned up
+			assert!(!<AtStake<Test>>::contains_key(1, 1));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
+
+			// but collator 2 hasn't been paid
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+
+			round = 4;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::Rewarded(2, 1), // from previous round
+				Event::CollatorChosen(round, 1, 20),
+				Event::CollatorChosen(round, 2, 20),
+				Event::NewRound(15, round, 2, 40),
+			]);
+			assert_eq_events!(expected);
+
+			// collators have both been paid and storage fully cleaned up for round 1
+			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<Staked<Test>>::contains_key(1));
+			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
+			assert!(!<DelayedPayouts<Test>>::contains_key(1));
+
+			roll_to_round_end(4);
+
+			// no more events expected
+			assert_eq_events!(expected);
+		});
+}
+
+#[test]
+fn deferred_payment_steady_state_event_flow() {
+	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
+
+	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
+	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
+	// rounds to clear RewardPaymentDelay)
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			// collators
+			(1, 200),
+			(2, 200),
+			(3, 200),
+			(4, 200),
+			// delegators
+			(11, 200),
+			(22, 200),
+			(33, 200),
+			(44, 200),
+			// burn account, see `reset_issuance()`
+			(111, 1000),
+		])
+		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
+		.with_delegations(vec![
+			// delegator 11 delegates 100 to 1 and 2
+			(11, 1, 100),
+			(11, 2, 100),
+			// delegator 22 delegates 100 to 2 and 3
+			(22, 2, 100),
+			(22, 3, 100),
+			// delegator 33 delegates 100 to 3 and 4
+			(33, 3, 100),
+			(33, 4, 100),
+			// delegator 44 delegates 100 to 4 and 1
+			(44, 4, 100),
+			(44, 1, 100),
+		])
+		.build()
+		.execute_with(|| {
+			// convenience to set the round points consistently
+			let set_round_points = |round: u64| {
+				set_author(round as u32, 1, 1);
+				set_author(round as u32, 2, 1);
+				set_author(round as u32, 3, 1);
+				set_author(round as u32, 4, 1);
+			};
+
+			// grab initial issuance -- we will reset it before round issuance is calculated so that
+			// it is consistent every round
+			let initial_issuance = Balances::total_issuance();
+			let reset_issuance = || {
+				let new_issuance = Balances::total_issuance();
+				let diff = new_issuance - initial_issuance;
+				let burned = Balances::burn(diff);
+				Balances::settle(
+					&111,
+					burned,
+					WithdrawReasons::FEE,
+					ExistenceRequirement::AllowDeath,
+				)
+				.expect("Account can absorb burn");
+			};
+
+			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
+			let roll_through_initial_rounds = |mut round: u64| -> u64 {
+				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
+					set_round_points(round);
+
+					roll_to_round_end(round);
+					round += 1;
+				}
+
+				reset_issuance();
+
+				round
+			};
+
+			// roll through a "steady state" round and make all of our assertions
+			// returns new round index
+			let roll_through_steady_state_round = |round: u64| -> u64 {
+				let num_rounds_rolled = roll_to_round_begin(round);
+				assert_eq!(
+					num_rounds_rolled, 1,
+					"expected to be at round begin already"
+				);
+
+				let expected = vec![
+					Event::CollatorChosen(round as u32, 1, 400),
+					Event::CollatorChosen(round as u32, 2, 400),
+					Event::CollatorChosen(round as u32, 3, 400),
+					Event::CollatorChosen(round as u32, 4, 400),
+					Event::NewRound((round - 1) * 5, round as u32, 4, 1600),
+					// first payout should occur on round change
+					Event::Rewarded(3, 19),
+					Event::Rewarded(33, 6),
+					Event::Rewarded(22, 6),
+				];
+				assert_eq_last_events!(expected);
+
+				set_round_points(round);
+
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(4, 19),
+					Event::Rewarded(44, 6),
+					Event::Rewarded(33, 6),
+				];
+				assert_eq_last_events!(expected);
+
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(1, 19),
+					Event::Rewarded(44, 6),
+					Event::Rewarded(11, 6),
+				];
+				assert_eq_last_events!(expected);
+
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded(2, 19),
+					Event::Rewarded(22, 6),
+					Event::Rewarded(11, 6),
+				];
+				assert_eq_last_events!(expected);
+
+				roll_one_block();
+				let expected = vec![
+					// we paid everyone out by now, should repeat last event
+					Event::Rewarded(11, 6),
+				];
+				assert_eq_last_events!(expected);
+
+				let num_rounds_rolled = roll_to_round_end(round);
+				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
+
+				reset_issuance();
+
+				round + 1
+			};
+
+			let mut round = 1;
+			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
+			for _ in 1..5 {
+				round = roll_through_steady_state_round(round);
+			}
 		});
 }
 
