@@ -1813,6 +1813,10 @@
 <span id="1813">1813</span>
 <span id="1814">1814</span>
 <span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2597,6 +2601,8 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InitializationPayment</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">30</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxInitContributorsBatchSizes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">500</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RelaySignaturesThreshold</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>);
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SignatureNetworkIdentifier</span>:  <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;moonbase-&quot;</span>;
+
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_crowdloan_rewards::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2607,8 +2613,10 @@
 	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">32</span>];
+	<span class="kw">type</span> <span class="ident">RewardAddressAssociateOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">RewardAddressChangeOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">RewardAddressRelayVoteThreshold</span> <span class="op">=</span> <span class="ident">RelaySignaturesThreshold</span>;
+	<span class="kw">type</span> <span class="ident">SignatureNetworkIdentifier</span> <span class="op">=</span> <span class="ident">SignatureNetworkIdentifier</span>;
 	<span class="kw">type</span> <span class="ident">VestingBlockNumber</span> <span class="op">=</span> <span class="ident">cumulus_primitives_core::relay_chain::BlockNumber</span>;
 	<span class="kw">type</span> <span class="ident">VestingBlockProvider</span> <span class="op">=</span>
 		<span class="ident">cumulus_pallet_parachain_system::RelaychainBlockNumberProvider</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
