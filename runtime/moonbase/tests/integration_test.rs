@@ -637,7 +637,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			// signature:
 			// WRAP_BYTES|| NetworkIdentifier|| new_account || previous_account || WRAP_BYTES
 			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
-			message.append(&mut b"Moonbase-".to_vec());
+			message.append(&mut b"moonbase-".to_vec());
 			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
 			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());

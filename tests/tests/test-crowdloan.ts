@@ -695,7 +695,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let message = new Uint8Array([
       ...stringToU8a("<Bytes>"),
-      ...stringToU8a("Moonbase-"),
+      ...stringToU8a("moonbase-"),
       ...toAssociateAccount.addressRaw,
       ...stringToU8a("</Bytes>"),
     ]);
@@ -800,7 +800,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let message = new Uint8Array([
       ...stringToU8a("<Bytes>"),
-      ...stringToU8a("Moonbase-"),
+      ...stringToU8a("moonbase-"),
       ...toAssociateAccount.addressRaw,
       ...firstAccount.addressRaw,
       ...stringToU8a("</Bytes>"),

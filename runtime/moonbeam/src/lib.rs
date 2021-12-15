@@ -740,7 +740,7 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
-	pub const SignatureNetworkIdentifier:  &'static [u8] = b"Moonbeam-";
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonbeam-";
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {

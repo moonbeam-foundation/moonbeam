@@ -721,7 +721,7 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
-	pub const SignatureNetworkIdentifier:  &'static [u8] = b"Moonriver-";
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonriver-";
 
 }
 
