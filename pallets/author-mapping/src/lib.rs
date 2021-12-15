@@ -146,8 +146,8 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 			MappingWithDeposit::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, stored_info.account));
 
