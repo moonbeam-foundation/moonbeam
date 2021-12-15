@@ -2507,6 +2507,96 @@
 <span id="2507">2507</span>
 <span id="2508">2508</span>
 <span id="2509">2509</span>
+<span id="2510">2510</span>
+<span id="2511">2511</span>
+<span id="2512">2512</span>
+<span id="2513">2513</span>
+<span id="2514">2514</span>
+<span id="2515">2515</span>
+<span id="2516">2516</span>
+<span id="2517">2517</span>
+<span id="2518">2518</span>
+<span id="2519">2519</span>
+<span id="2520">2520</span>
+<span id="2521">2521</span>
+<span id="2522">2522</span>
+<span id="2523">2523</span>
+<span id="2524">2524</span>
+<span id="2525">2525</span>
+<span id="2526">2526</span>
+<span id="2527">2527</span>
+<span id="2528">2528</span>
+<span id="2529">2529</span>
+<span id="2530">2530</span>
+<span id="2531">2531</span>
+<span id="2532">2532</span>
+<span id="2533">2533</span>
+<span id="2534">2534</span>
+<span id="2535">2535</span>
+<span id="2536">2536</span>
+<span id="2537">2537</span>
+<span id="2538">2538</span>
+<span id="2539">2539</span>
+<span id="2540">2540</span>
+<span id="2541">2541</span>
+<span id="2542">2542</span>
+<span id="2543">2543</span>
+<span id="2544">2544</span>
+<span id="2545">2545</span>
+<span id="2546">2546</span>
+<span id="2547">2547</span>
+<span id="2548">2548</span>
+<span id="2549">2549</span>
+<span id="2550">2550</span>
+<span id="2551">2551</span>
+<span id="2552">2552</span>
+<span id="2553">2553</span>
+<span id="2554">2554</span>
+<span id="2555">2555</span>
+<span id="2556">2556</span>
+<span id="2557">2557</span>
+<span id="2558">2558</span>
+<span id="2559">2559</span>
+<span id="2560">2560</span>
+<span id="2561">2561</span>
+<span id="2562">2562</span>
+<span id="2563">2563</span>
+<span id="2564">2564</span>
+<span id="2565">2565</span>
+<span id="2566">2566</span>
+<span id="2567">2567</span>
+<span id="2568">2568</span>
+<span id="2569">2569</span>
+<span id="2570">2570</span>
+<span id="2571">2571</span>
+<span id="2572">2572</span>
+<span id="2573">2573</span>
+<span id="2574">2574</span>
+<span id="2575">2575</span>
+<span id="2576">2576</span>
+<span id="2577">2577</span>
+<span id="2578">2578</span>
+<span id="2579">2579</span>
+<span id="2580">2580</span>
+<span id="2581">2581</span>
+<span id="2582">2582</span>
+<span id="2583">2583</span>
+<span id="2584">2584</span>
+<span id="2585">2585</span>
+<span id="2586">2586</span>
+<span id="2587">2587</span>
+<span id="2588">2588</span>
+<span id="2589">2589</span>
+<span id="2590">2590</span>
+<span id="2591">2591</span>
+<span id="2592">2592</span>
+<span id="2593">2593</span>
+<span id="2594">2594</span>
+<span id="2595">2595</span>
+<span id="2596">2596</span>
+<span id="2597">2597</span>
+<span id="2598">2598</span>
+<span id="2599">2599</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2533,10 +2623,14 @@
 <span class="doccomment">//! There is a new round every `&lt;Round&lt;T&gt;&gt;::get().length` blocks.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! At the start of every round,</span>
-<span class="doccomment">//! * issuance is distributed to collators (and their delegators) for block authoring</span>
+<span class="doccomment">//! * issuance is calculated for collators (and their delegators) for block authoring</span>
 <span class="doccomment">//! `T::RewardPaymentDelay` rounds ago</span>
 <span class="doccomment">//! * queued collator and delegator exits are executed</span>
 <span class="doccomment">//! * a new set of collators is chosen from the candidates</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Immediately following a round change, payments are made once-per-block until all payments have</span>
+<span class="doccomment">//! been made. In each such block, one collator is chosen for a rewards payment and is paid along</span>
+<span class="doccomment">//! with each of its &quot;top&quot; delegators.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! To join the set of candidates, call `join_candidates` with `bond &gt;= MinCandidateStk`.</span>
 <span class="doccomment">//! To leave the set of candidates, call `schedule_leave_candidates`. If the call succeeds,</span>
@@ -2647,6 +2741,17 @@
 		<span class="kw">pub</span> <span class="ident">bond</span>: <span class="ident">Balance</span>,
 		<span class="kw">pub</span> <span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
+	}
+
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+	<span class="doccomment">/// Info needed to make delayed payments to stakers after round end</span>
+	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DelayedPayout</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+		<span class="doccomment">/// Total round reward (result of compute_issuance() at round end)</span>
+		<span class="kw">pub</span> <span class="ident">round_issuance</span>: <span class="ident">Balance</span>,
+		<span class="doccomment">/// The total inflation paid this round to stakers (e.g. less parachain bond fund)</span>
+		<span class="kw">pub</span> <span class="ident">total_staking_reward</span>: <span class="ident">Balance</span>,
+		<span class="doccomment">/// Snapshot of collator commission rate at the end of the round</span>
+		<span class="kw">pub</span> <span class="ident">collator_commission</span>: <span class="ident">Perbill</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
@@ -3897,6 +4002,7 @@
 		<span class="ident">AlreadyDelegatedCandidate</span>,
 		<span class="ident">InvalidSchedule</span>,
 		<span class="ident">CannotSetBelowMin</span>,
+		<span class="ident">RoundLengthMustBeAtLeastTotalSelectedCollators</span>,
 		<span class="ident">NoWritingSameValue</span>,
 		<span class="ident">TooLowCandidateCountWeightHintJoinCandidates</span>,
 		<span class="ident">TooLowCandidateCountWeightHintCancelLeaveCandidates</span>,
@@ -3966,8 +4072,6 @@
 		),
 		<span class="doccomment">/// Delegator, Candidate, Amount Unstaked, New Total Amt Staked for Candidate</span>
 		<span class="ident">DelegatorLeftCandidate</span>(<span class="ident">T::AccountId</span>, <span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
-		<span class="doccomment">/// Delegator, Collator, Due reward (as per counted delegation for collator)</span>
-		<span class="ident">DelegatorDueReward</span>(<span class="ident">T::AccountId</span>, <span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
 		<span class="doccomment">/// Paid the account (delegator or collator) the balance as liquid rewards</span>
 		<span class="ident">Rewarded</span>(<span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
 		<span class="doccomment">/// Transferred to account which holds funds reserved for parachain bond</span>
@@ -3999,12 +4103,14 @@
 	<span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">T::BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::WeightInfo::base_on_initialize</span>();
+
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
 			<span class="kw">if</span> <span class="ident">round</span>.<span class="ident">should_update</span>(<span class="ident">n</span>) {
 				<span class="comment">// mutate round</span>
 				<span class="ident">round</span>.<span class="ident">update</span>(<span class="ident">n</span>);
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago</span>
-				<span class="ident"><span class="self">Self</span>::pay_stakers</span>(<span class="ident">round</span>.<span class="ident">current</span>);
+				<span class="ident"><span class="self">Self</span>::prepare_staking_payouts</span>(<span class="ident">round</span>.<span class="ident">current</span>);
 				<span class="comment">// select top collator candidates for next round</span>
 				<span class="kw">let</span> (<span class="ident">collator_count</span>, <span class="ident">delegation_count</span>, <span class="ident">total_staked</span>) <span class="op">=</span>
 					<span class="ident"><span class="self">Self</span>::select_top_candidates</span>(<span class="ident">round</span>.<span class="ident">current</span>);
@@ -4018,10 +4124,13 @@
 					<span class="ident">collator_count</span>,
 					<span class="ident">total_staked</span>,
 				));
-				<span class="ident">T::WeightInfo::active_on_initialize</span>(<span class="ident">collator_count</span>, <span class="ident">delegation_count</span>)
-			} <span class="kw">else</span> {
-				<span class="ident">T::WeightInfo::passive_on_initialize</span>()
+				<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span>
+					<span class="ident">T::WeightInfo::round_transition_on_initialize</span>(<span class="ident">collator_count</span>, <span class="ident">delegation_count</span>);
 			}
+
+			<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::handle_delayed_payouts</span>(<span class="ident">round</span>.<span class="ident">current</span>);
+
+			<span class="ident">weight</span>
 		}
 	}
 
@@ -4128,6 +4237,12 @@
 	<span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
+	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">delayed_payouts</span>)]</span>
+	<span class="doccomment">/// Delayed payouts</span>
+	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DelayedPayouts</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
+		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">RoundIndex</span>, <span class="ident">DelayedPayout</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
+
+	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">staked</span>)]</span>
 	<span class="doccomment">/// Total counted stake for selected candidates in the round</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Staked</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">RoundIndex</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
@@ -4158,6 +4273,7 @@
 	<span class="attribute">#[<span class="ident">pallet::genesis_config</span>]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+		<span class="doccomment">/// Vec of tuples of the format (delegator AccountId, collator AccountId, delegation Amount)</span>
 		<span class="kw">pub</span> <span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T::AccountId</span>, <span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
 		<span class="kw">pub</span> <span class="ident">inflation_config</span>: <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	}
@@ -4358,6 +4474,10 @@
 			);
 			<span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
 			<span class="macro">ensure!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NoWritingSameValue</span>);
+			<span class="macro">ensure!</span>(
+				<span class="ident">new</span> <span class="op">&lt;</span><span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">length</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::RoundLengthMustBeAtLeastTotalSelectedCollators</span>,
+			);
 			<span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">new</span>);
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::TotalSelectedSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
@@ -4389,6 +4509,10 @@
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
 			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">first</span>, <span class="ident">old</span>) <span class="op">=</span> (<span class="ident">round</span>.<span class="ident">current</span>, <span class="ident">round</span>.<span class="ident">first</span>, <span class="ident">round</span>.<span class="ident">length</span>);
 			<span class="macro">ensure!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NoWritingSameValue</span>);
+			<span class="macro">ensure!</span>(
+				<span class="ident">new</span> <span class="op">&gt;</span><span class="op">=</span> <span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::RoundLengthMustBeAtLeastTotalSelectedCollators</span>,
+			);
 			<span class="ident">round</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">new</span>;
 			<span class="comment">// update per-round inflation given new rounds per year</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inflation_config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
@@ -4874,15 +4998,15 @@
 			));
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">fn</span> <span class="ident">pay_stakers</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) {
-			<span class="comment">// payout is now - duration rounds ago =&gt; now - duration &gt; 0 else return early</span>
-			<span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
-			<span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">duration</span> {
+		<span class="kw">fn</span> <span class="ident">prepare_staking_payouts</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) {
+			<span class="comment">// payout is now - delay rounds ago =&gt; now - delay &gt; 0 else return early</span>
+			<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
+			<span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">delay</span> {
 				<span class="kw">return</span>;
 			}
-			<span class="kw">let</span> <span class="ident">round_to_payout</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">-</span> <span class="ident">duration</span>;
-			<span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="ident">round_to_payout</span>);
-			<span class="kw">if</span> <span class="ident">total</span>.<span class="ident">is_zero</span>() {
+			<span class="kw">let</span> <span class="ident">round_to_payout</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">-</span> <span class="ident">delay</span>;
+			<span class="kw">let</span> <span class="ident">total_points</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">round_to_payout</span>);
+			<span class="kw">if</span> <span class="ident">total_points</span>.<span class="ident">is_zero</span>() {
 				<span class="kw">return</span>;
 			}
 			<span class="kw">let</span> <span class="ident">total_staked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Staked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="ident">round_to_payout</span>);
@@ -4901,28 +5025,83 @@
 					<span class="ident">imb</span>.<span class="ident">peek</span>(),
 				));
 			}
+
+			<span class="kw">let</span> <span class="ident">payout</span> <span class="op">=</span> <span class="ident">DelayedPayout</span> {
+				<span class="ident">round_issuance</span>: <span class="ident">total_issuance</span>,
+				<span class="ident">total_staking_reward</span>: <span class="ident">left_issuance</span>,
+				<span class="ident">collator_commission</span>: <span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(),
+			};
+
+			<span class="op">&lt;</span><span class="ident">DelayedPayouts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">round_to_payout</span>, <span class="ident">payout</span>);
+		}
+
+		<span class="doccomment">/// Wrapper around pay_one_collator_reward which handles the following logic:</span>
+		<span class="doccomment">/// * whether or not a payout needs to be made</span>
+		<span class="doccomment">/// * cleaning up when payouts are done</span>
+		<span class="doccomment">/// * returns the weight consumed by pay_one_collator_reward if applicable</span>
+		<span class="kw">fn</span> <span class="ident">handle_delayed_payouts</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+			<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
+
+			<span class="comment">// don&#39;t underflow uint</span>
+			<span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">delay</span> {
+				<span class="kw">return</span> <span class="number">0u64</span>.<span class="ident">into</span>();
+			}
+
+			<span class="kw">let</span> <span class="ident">paid_for_round</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">-</span> <span class="ident">delay</span>;
+
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">payout_info</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelayedPayouts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">paid_for_round</span>) {
+				<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::pay_one_collator_reward</span>(<span class="ident">paid_for_round</span>, <span class="ident">payout_info</span>);
+				<span class="kw">if</span> <span class="ident">result</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
+					<span class="comment">// result.0 indicates whether or not a payout was made</span>
+					<span class="comment">// clean up storage items that we no longer need</span>
+					<span class="op">&lt;</span><span class="ident">DelayedPayouts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">paid_for_round</span>);
+					<span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">paid_for_round</span>);
+				}
+				<span class="ident">result</span>.<span class="number">1</span> <span class="comment">// weight consumed by pay_one_collator_reward</span>
+			} <span class="kw">else</span> {
+				<span class="number">0u64</span>.<span class="ident">into</span>()
+			}
+		}
+
+		<span class="doccomment">/// Payout a single collator from the given round.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// Returns an optional tuple of (Collator&#39;s AccountId, total paid)</span>
+		<span class="doccomment">/// or None if there were no more payouts to be made for the round.</span>
+		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pay_one_collator_reward</span>(
+			<span class="ident">paid_for_round</span>: <span class="ident">RoundIndex</span>,
+			<span class="ident">payout_info</span>: <span class="ident">DelayedPayout</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>, <span class="ident">Weight</span>) {
+			<span class="comment">// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item</span>
+			<span class="comment">// so that we do fewer reads each block</span>
+			<span class="kw">let</span> <span class="ident">total_points</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">paid_for_round</span>);
+			<span class="kw">if</span> <span class="ident">total_points</span>.<span class="ident">is_zero</span>() {
+				<span class="comment">// TODO: this case is obnoxious... it&#39;s a value query, so it could mean one of two</span>
+				<span class="comment">// different logic errors:</span>
+				<span class="comment">// 1. we removed it before we should have</span>
+				<span class="comment">// 2. we called pay_one_collator_reward when we were actually done with deferred</span>
+				<span class="comment">//    payouts</span>
+				<span class="macro">log::warn!</span>(<span class="string">&quot;pay_one_collator_reward called with no &lt;Points&lt;T&gt;&gt; for the round!&quot;</span>);
+				<span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="number">0u64</span>.<span class="ident">into</span>());
+			}
+
 			<span class="kw">let</span> <span class="ident">mint</span> <span class="op">=</span> <span class="op">|</span><span class="ident">amt</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">to</span>: <span class="ident">T::AccountId</span><span class="op">|</span> {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">amount_transferred</span>) <span class="op">=</span> <span class="ident">T::Currency::deposit_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>, <span class="ident">amt</span>) {
 					<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::Rewarded</span>(<span class="ident">to</span>.<span class="ident">clone</span>(), <span class="ident">amount_transferred</span>.<span class="ident">peek</span>()));
 				}
 			};
-			<span class="comment">// only pay out rewards at the end to transfer only total amount due</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">due_rewards</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">increase_due_rewards</span> <span class="op">=</span> <span class="op">|</span><span class="ident">amt</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">to</span>: <span class="ident">T::AccountId</span><span class="op">|</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">already_due</span>) <span class="op">=</span> <span class="ident">due_rewards</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>) {
-					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amt</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">already_due</span>);
-					<span class="ident">due_rewards</span>.<span class="ident">insert</span>(<span class="ident">to</span>, <span class="ident">amount</span>);
-				} <span class="kw">else</span> {
-					<span class="ident">due_rewards</span>.<span class="ident">insert</span>(<span class="ident">to</span>, <span class="ident">amt</span>);
-				}
-			};
-			<span class="kw">let</span> <span class="ident">collator_fee</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
-			<span class="kw">let</span> <span class="ident">collator_issuance</span> <span class="op">=</span> <span class="ident">collator_fee</span> <span class="op">*</span> <span class="ident">total_issuance</span>;
-			<span class="kw">for</span> (<span class="ident">collator</span>, <span class="ident">pts</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::drain_prefix</span>(<span class="ident">round_to_payout</span>) {
-				<span class="kw">let</span> <span class="ident">pct_due</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">pts</span>, <span class="ident">total</span>);
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">pct_due</span> <span class="op">*</span> <span class="ident">left_issuance</span>;
+
+			<span class="kw">let</span> <span class="ident">collator_fee</span> <span class="op">=</span> <span class="ident">payout_info</span>.<span class="ident">collator_commission</span>;
+			<span class="kw">let</span> <span class="ident">collator_issuance</span> <span class="op">=</span> <span class="ident">collator_fee</span> <span class="op">*</span> <span class="ident">payout_info</span>.<span class="ident">round_issuance</span>;
+
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">collator</span>, <span class="ident">pts</span>)) <span class="op">=</span>
+				<span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter_prefix</span>(<span class="ident">paid_for_round</span>).<span class="ident">drain</span>().<span class="ident">next</span>()
+			{
+				<span class="kw">let</span> <span class="ident">pct_due</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">pts</span>, <span class="ident">total_points</span>);
+				<span class="kw">let</span> <span class="ident">total_paid</span> <span class="op">=</span> <span class="ident">pct_due</span> <span class="op">*</span> <span class="ident">payout_info</span>.<span class="ident">total_staking_reward</span>;
+				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">total_paid</span>;
 				<span class="comment">// Take the snapshot of block author and delegations</span>
-				<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="ident">round_to_payout</span>, <span class="kw-2">&amp;</span><span class="ident">collator</span>);
+				<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="ident">paid_for_round</span>, <span class="kw-2">&amp;</span><span class="ident">collator</span>);
+				<span class="kw">let</span> <span class="ident">num_delegators</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="ident">len</span>();
 				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="ident">is_empty</span>() {
 					<span class="comment">// solo collator with no delegators</span>
 					<span class="ident">mint</span>(<span class="ident">amt_due</span>, <span class="ident">collator</span>.<span class="ident">clone</span>());
@@ -4937,19 +5116,20 @@
 					<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> } <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">delegations</span> {
 						<span class="kw">let</span> <span class="ident">percent</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">amount</span>, <span class="ident">state</span>.<span class="ident">total</span>);
 						<span class="kw">let</span> <span class="ident">due</span> <span class="op">=</span> <span class="ident">percent</span> <span class="op">*</span> <span class="ident">amt_due</span>;
-						<span class="ident">increase_due_rewards</span>(<span class="ident">due</span>, <span class="ident">owner</span>.<span class="ident">clone</span>());
-						<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorDueReward</span>(
-							<span class="ident">owner</span>.<span class="ident">clone</span>(),
-							<span class="ident">collator</span>.<span class="ident">clone</span>(),
-							<span class="ident">due</span>,
-						));
+						<span class="ident">mint</span>(<span class="ident">due</span>, <span class="ident">owner</span>.<span class="ident">clone</span>());
 					}
 				}
-			}
-			<span class="kw">for</span> (<span class="ident">delegator</span>, <span class="ident">total_due</span>) <span class="kw">in</span> <span class="ident">due_rewards</span> {
-				<span class="ident">mint</span>(<span class="ident">total_due</span>, <span class="ident">delegator</span>);
+
+				<span class="kw">return</span> (
+					<span class="prelude-val">Some</span>((<span class="ident">collator</span>, <span class="ident">total_paid</span>)),
+					<span class="ident">T::WeightInfo::pay_one_collator_reward</span>(<span class="ident">num_delegators</span> <span class="kw">as</span> <span class="ident">u32</span>),
+				);
+			} <span class="kw">else</span> {
+				<span class="comment">// Note that we don&#39;t clean up storage here; it is cleaned up in handle_delayed_payouts()</span>
+				<span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="number">0u64</span>.<span class="ident">into</span>());
 			}
 		}
+
 		<span class="doccomment">/// Compute the top `TotalSelected` candidates in the CandidatePool and return</span>
 		<span class="doccomment">/// a vec of their AccountIds (in the order of selection)</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_top_candidates</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
