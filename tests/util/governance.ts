@@ -24,7 +24,7 @@ export const notePreimage = async <
   const encodedProposal = proposal.method.toHex() || "";
   await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
   await context.createBlock();
-  // return encodedHash
+
   return blake2AsHex(encodedProposal);
 };
 

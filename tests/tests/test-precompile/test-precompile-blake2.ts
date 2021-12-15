@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createContract } from "../util/transactions";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Precompiles - Blake2", (context) => {
   it("should be accessible from a smart contract", async function () {
