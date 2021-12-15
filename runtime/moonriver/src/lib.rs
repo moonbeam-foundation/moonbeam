@@ -34,8 +34,8 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OnUnbalanced,
-		PalletInfo as PalletInfoTrait,
+		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize,
+		OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -96,6 +96,9 @@ use xcm_primitives::{
 	MultiNativeAsset, SignedToAccountId20, XcmFeesToAccount,
 };
 
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -1359,6 +1362,78 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+pub struct MaintenanceDmpHandler;
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		_limit: Weight,
+	) -> Weight {
+		DmpQueue::handle_dmp_messages(iter, 0)
+	}
+}
+
+pub struct MaintenanceXcmpHandler;
+impl XcmpMessageHandler for MaintenanceXcmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		iter: I,
+		_limit: Weight,
+	) -> Weight {
+		XcmpQueue::handle_xcmp_messages(iter, 0)
+	}
+}
+
+/// The hooks we wantt to run in Maintenance Mode
+pub struct MaintenanceHooks;
+
+impl OnInitialize<BlockNumber> for MaintenanceHooks {
+	fn on_initialize(n: BlockNumber) -> Weight {
+		AllPallets::on_initialize(n)
+	}
+}
+
+// return 0
+// For some reason using empty tuple () isnt working
+// There exist only two pallets that use onIdle and these are xcmp and dmp queues
+// For some reason putting an empty tumple does not work (transaction never finishes)
+// We use an empty onIdle, if on the future we want one of the pallets to execute it
+// we need to provide it here
+impl OnIdle<BlockNumber> for MaintenanceHooks {
+	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
+		0
+	}
+}
+
+impl OnRuntimeUpgrade for MaintenanceHooks {
+	fn on_runtime_upgrade() -> Weight {
+		AllPallets::on_runtime_upgrade()
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		AllPallets::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		AllPallets::post_upgrade()
+	}
+}
+
+impl OnFinalize<BlockNumber> for MaintenanceHooks {
+	fn on_finalize(n: BlockNumber) {
+		AllPallets::on_finalize(n)
+	}
+}
+
+impl OffchainWorker<BlockNumber> for MaintenanceHooks {
+	fn offchain_worker(n: BlockNumber) {
+		AllPallets::offchain_worker(n)
+	}
+}
+
 // AllPallets here imply all the specfied pallets in the runtime, except frame_system,
 // will run the associated hook
 // AllPallets is simply a nested tuple containing all the pallets except System
@@ -1370,14 +1445,13 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceCallFilter = NormalFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
-	type NormalDmpHandler = ();
-	type MaintenanceDmpHandler = ();
-	type NormalXcmpHandler = ();
-	type MaintenanceXcmpHandler = ();
+	type NormalDmpHandler = DmpQueue;
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	type NormalXcmpHandler = XcmpQueue;
+	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	// We use AllPallets because we dont want to change the hooks in normal operation
 	type NormalExecutiveHooks = AllPallets;
-	// We use AllPallets because we dont want to change the hooks in maintenance operation
-	type MaitenanceExecutiveHooks = AllPallets;
+	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
