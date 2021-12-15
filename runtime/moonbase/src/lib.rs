@@ -1046,7 +1046,7 @@ pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 pub type XcmBarrier = (
 	TakeWeightCredit,
 	AllowTopLevelPaidExecutionFrom<Everything>,
-	// AllowKnownQueryResponses<PolkadotXcm>,
+	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
 	AllowSubscriptionsFrom<Everything>,
 );
@@ -1100,7 +1100,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 		>,
 		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
 	);
-	type ResponseHandler = ();
+	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
