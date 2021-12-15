@@ -296,12 +296,6 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -332,7 +326,7 @@
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
 	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>,
-	<span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">SchedulerConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
@@ -359,8 +353,6 @@
 		<span class="ident">ChainType::Development</span>,
 		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Alith is Sudo</span>
-				<span class="ident">accounts</span>[<span class="number">0</span>],
 				<span class="comment">// Collator Candidate: Alice -&gt; Alith</span>
 				<span class="macro">vec!</span>[(
 					<span class="ident">accounts</span>[<span class="number">0</span>],
@@ -403,8 +395,6 @@
 		<span class="ident">ChainType::Local</span>,
 		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Alith is Sudo</span>
-				<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
 				<span class="comment">// Collator Candidates</span>
 				<span class="macro">vec!</span>[
 					<span class="comment">// Alice -&gt; Alith</span>
@@ -475,7 +465,6 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">testnet_genesis</span>(
-	<span class="ident">root_key</span>: <span class="ident">AccountId</span>,
 	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">endowed_accounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
@@ -506,7 +495,6 @@
 		<span class="ident">crowdloan_rewards</span>: <span class="ident">CrowdloanRewardsConfig</span> {
 			<span class="ident">funded_amount</span>: <span class="ident">crowdloan_fund_pot</span>,
 		},
-		<span class="ident">sudo</span>: <span class="ident">SudoConfig</span> { <span class="ident">key</span>: <span class="ident">root_key</span> },
 		<span class="ident">parachain_info</span>: <span class="ident">ParachainInfoConfig</span> {
 			<span class="ident">parachain_id</span>: <span class="ident">para_id</span>,
 		},
