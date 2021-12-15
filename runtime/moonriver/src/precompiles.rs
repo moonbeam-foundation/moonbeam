@@ -17,6 +17,7 @@
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::{Context, ExitError, PrecompileOutput};
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -27,6 +28,12 @@ use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xtokens_precompiles::XtokensWrapper;
+
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet
+pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -56,6 +63,8 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20AssetsPrecompileSet<R>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -85,6 +94,11 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
+			}
 			_ => None,
 		}
 	}
