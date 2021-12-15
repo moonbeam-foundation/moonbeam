@@ -24,9 +24,10 @@ use frame_support::{
 };
 pub use moonriver_runtime::{
 	currency::{MOVR, WEI},
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
-	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic, WEEKS,
+	AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets, AuthorInherent,
+	Balance, Balances, Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice,
+	InflationInfo, ParachainStaking, Range, Runtime, System, TransactionConverter,
+	UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
@@ -76,6 +77,8 @@ pub fn evm_test_context() -> fp_evm::Context {
 }
 
 pub struct ExtBuilder {
+	// [asset, Vec<Account, Balance>]
+	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
@@ -92,11 +95,15 @@ pub struct ExtBuilder {
 	chain_id: u64,
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
+	// [assettype, metadata, Vec<Account, Balance>]
+	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	safe_xcm_version: Option<u32>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
+			assets: vec![],
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
@@ -123,6 +130,8 @@ impl Default for ExtBuilder {
 			crowdloan_fund: 0,
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
+			xcm_assets: vec![],
+			safe_xcm_version: None,
 		}
 	}
 }
@@ -161,6 +170,24 @@ impl ExtBuilder {
 	#[allow(dead_code)]
 	pub fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
 		self.inflation = inflation;
+		self
+	}
+
+	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
+		self.assets = assets;
+		self
+	}
+
+	pub fn with_xcm_assets(
+		mut self,
+		xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	) -> Self {
+		self.xcm_assets = xcm_assets;
+		self
+	}
+
+	pub fn with_safe_xcm_version(mut self, safe_xcm_version: u32) -> Self {
+		self.safe_xcm_version = Some(safe_xcm_version);
 		self
 	}
 
@@ -217,8 +244,41 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
+		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_xcm::GenesisConfig {
+				safe_xcm_version: self.safe_xcm_version,
+			},
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		let assets = self.assets.clone();
+		let xcm_assets = self.xcm_assets.clone();
+		ext.execute_with(|| {
+			// If any assets specified, we create them here
+			for (asset_id, balances) in assets.clone() {
+				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+				for (account, balance) in balances {
+					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+				}
+			}
+			// If any xcm assets specified, we register them here
+			for (asset_type, metadata, balances) in xcm_assets.clone() {
+				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
+					.unwrap();
+				for (account, balance) in balances {
+					Assets::mint(
+						origin_of(AssetManager::account_id()),
+						asset_type.clone().into(),
+						account,
+						balance,
+					)
+					.unwrap();
+				}
+			}
+			System::set_block_number(1);
+		});
 		ext
 	}
 }

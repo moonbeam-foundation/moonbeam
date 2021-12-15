@@ -29,12 +29,16 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
-use moonriver_runtime::{BlockWeights, Precompiles};
+use moonriver_runtime::{BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_evm_precompile_assets_erc20::{
+	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+};
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::Bond;
 use parity_scale_codec::Encode;
+use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 use sp_core::Pair;
 use sp_core::{Public, H160, U256};
@@ -42,6 +46,8 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
 };
+use xcm::latest::prelude::*;
+use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
 fn fast_track_available() {
@@ -1248,4 +1254,441 @@ fn refund_ed_0_evm() {
 				777 * 1_000_000_000,
 			);
 		});
+}
+
+#[test]
+fn root_can_change_default_xcm_vers() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let dest = MultiLocation {
+				parents: 1,
+				interior: X1(AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			};
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			// Default XCM version is not set yet, so xtokens should fail because it does not
+			// know with which version to send
+			assert_noop!(
+				XTokens::transfer(
+					origin_of(AccountId::from(ALICE)),
+					CurrencyId::OtherReserve(source_id),
+					100_000_000_000_000,
+					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
+					4000000000
+				),
+				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+			);
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(2)
+			));
+
+			// Now transferring does not fail
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				CurrencyId::OtherReserve(source_id),
+				100_000_000_000_000,
+				Box::new(xcm::VersionedMultiLocation::V1(dest)),
+				4000000000
+			));
+		})
+}
+
+#[test]
+fn asset_can_be_registered() {
+	ExtBuilder::default().build().execute_with(|| {
+		let source_location = AssetType::Xcm(MultiLocation::parent());
+		let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+		let asset_metadata = AssetRegistrarMetadata {
+			name: b"RelayToken".to_vec(),
+			symbol: b"Relay".to_vec(),
+			decimals: 12,
+			is_frozen: false,
+		};
+		assert_ok!(AssetManager::register_asset(
+			moonriver_runtime::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+		));
+		assert!(AssetManager::asset_id_type(source_id).is_some());
+	});
+}
+
+#[test]
+fn asset_erc20_precompiles_supply_and_balance() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.build()
+		.execute_with(|| {
+			// Assert the asset has been created with the correct supply
+			assert_eq!(Assets::total_supply(0u128), 1_000 * MOVR);
+
+			// Convert the assetId to its corresponding precompile address
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+
+			// The expected result for both total supply and balance of is the same, as only Alice
+			// holds balance
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(1000 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Access totalSupply through precompile. Important that the context is correct
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Access balanceOf through precompile
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(ALICE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+
+			// Expected result for a transfer
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 25084u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Aice to Bob, 400 MOVR.
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for balanceOf BOB
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure BOB has 400 MOVR
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(BOB.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_approve() {
+	ExtBuilder::default()
+		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 15035u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_APPROVAL,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Aprove Bob for spending 400 MOVR from Alice
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Approve)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for transfer_from
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 31042u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(CHARLIE),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Alice to Charlie by using BOB as origin
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
+						.write(EvmAddress(ALICE.into()))
+						.write(EvmAddress(CHARLIE.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+
+			// Expected result for balance of CHARLIE
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure CHARLIE has 400 MOVR
+			assert_eq!(
+				Precompiles::execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(CHARLIE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: CHARLIE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn xtokens_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: moonriver_runtime::AssetId =
+				AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id).into();
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			// We use the address of the asset as an identifier of the asset we want to transferS
+			assert_eq!(
+				Precompiles::execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
+						.write(EvmAddress(asset_precompile_address))
+						.write(U256::from(500_000_000_000_000u128))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
+}
+
+#[test]
+fn xtokens_precompiles_transfer_multiasset() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+
+			// This time we transfer it through TransferMultiAsset
+			// Instead of the address, we encode directly the multilocation referencing the asset
+			assert_eq!(
+				Precompiles::execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
+						// We want to transfer the relay token
+						.write(MultiLocation::parent())
+						.write(U256::from(500_000_000_000_000u128))
+						.write(destination)
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
 }
