@@ -5954,8 +5954,8 @@ dependencies = [
 
 [[package]]
 name = "nimbus-consensus"
-version = "0.1.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#262f0b1da74a041697ca0b9a1ef6bf00e21c3c4e"
+version = "0.9.0"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#eaaa6069e347ef8f403dd8ee61fbdd1f39377e80"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -5979,15 +5979,14 @@ dependencies = [
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "sp-std",
  "substrate-prometheus-endpoint",
  "tracing",
 ]
 
 [[package]]
 name = "nimbus-primitives"
-version = "0.1.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#262f0b1da74a041697ca0b9a1ef6bf00e21c3c4e"
+version = "0.9.0"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#eaaa6069e347ef8f403dd8ee61fbdd1f39377e80"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6388,8 +6387,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-inherent"
-version = "0.1.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#262f0b1da74a041697ca0b9a1ef6bf00e21c3c4e"
+version = "0.9.0"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#eaaa6069e347ef8f403dd8ee61fbdd1f39377e80"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6426,8 +6425,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-slot-filter"
-version = "0.1.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#262f0b1da74a041697ca0b9a1ef6bf00e21c3c4e"
+version = "0.9.0"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.13#eaaa6069e347ef8f403dd8ee61fbdd1f39377e80"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -12888,7 +12887,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.11.1",
+ "parking_lot 0.7.1",
  "regex",
  "serde",
  "serde_json",
@@ -13033,8 +13032,8 @@ version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f559b464de2e2bdabcac6a210d12e9b5a5973c251e102c44c585c71d51bd78e"
 dependencies = [
- "cfg-if 1.0.0",
- "rand 0.8.4",
+ "cfg-if 0.1.10",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
