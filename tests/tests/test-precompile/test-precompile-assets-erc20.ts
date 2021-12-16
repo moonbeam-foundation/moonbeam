@@ -16,8 +16,6 @@ import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import { createContract, createTransaction } from "../../util/transactions";
 
-const sourceLocationRelay = { parents: 1, interior: "Here" };
-
 const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
 
 interface AssetMetadata {
