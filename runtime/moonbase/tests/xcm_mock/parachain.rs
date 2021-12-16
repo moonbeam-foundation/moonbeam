@@ -676,6 +676,7 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
+	type AssetTransactor = AssetTransactors;
 }
 
 pub struct NormalFilter;
