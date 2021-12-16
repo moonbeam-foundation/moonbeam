@@ -183,8 +183,8 @@ pub mod pallet {
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
 		BadVersion,
-		UnableToWithdrawAsset,
 		MaxWeightTransactReached,
+		UnableToWithdrawAsset,
 	}
 
 	#[pallet::event]
