@@ -23,10 +23,12 @@ use crate::{
 #[cfg(feature = "try-runtime")]
 use crate::{Collator2, Delegator, Nominator2};
 #[cfg(feature = "try-runtime")]
+use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+#[cfg(feature = "try-runtime")]
 use frame_support::Twox64Concat;
 use frame_support::{
 	pallet_prelude::PhantomData,
-	traits::{Get, OnRuntimeUpgrade, OnRuntimeUpgradeHelpersExt},
+	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
 extern crate alloc;
