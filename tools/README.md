@@ -1,7 +1,5 @@
 # Tools
 
-_NB: this folder is yarn only_
-
 ## Launching complete network
 
 Based on [polkadot-launch](https://github.com/paritytech/polkadot-launch), the tool to launch
@@ -19,13 +17,13 @@ from the given docker images.
 (Docker is required for using network configurations other than "local")
 
 ```
-yarn install
+npm install
 ```
 
 ### Usage
 
 ```
-yarn run launch --parachain moonbase-0.11.2
+npm run launch -- --parachain moonbase-0.11.2
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
@@ -48,9 +46,9 @@ Those are listed directly inside [launch.ts](./launch.ts). Ex:
 It is also possible to specify a binary instead of a docker image. Ex:
 
 ```
-yarn run launch --parachain local
+npm run launch -- --parachain local
 # or
-yarn run launch
+npm run launch
 ```
 
 which uses the configuration (based on latest rococo, you can override using `--relay local`):
@@ -78,7 +76,7 @@ local: {
 See all parameters and possible choices doing
 
 ```
-> npm run launch --help
+> npm run launch -- --help
 
 Usage: launch [args]
 
@@ -114,7 +112,7 @@ Options:
 Ex: _Run only local binaries (with runtime moonriver and relay runtime kusama)_
 
 ```
-npm run launch --parachain-chain moonriver-local --relay local --relay-chain kusama-local
+npm run launch -- --parachain-chain moonriver-local --relay local --relay-chain kusama-local
 ```
 
 (no --parachain defaults to `--parachain local`)
@@ -122,7 +120,7 @@ npm run launch --parachain-chain moonriver-local --relay local --relay-chain kus
 Ex: _Run alphanet-8.1 with westend 9030 runtime_
 
 ```
-npm run launch --parachain alphanet-8.1 --relay westend-9030
+npm run launch -- --parachain alphanet-8.1 --relay westend-9030
 ```
 
 ### Fast local build

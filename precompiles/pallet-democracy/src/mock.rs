@@ -26,6 +26,7 @@ use pallet_democracy::VoteThreshold;
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
 };
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -38,8 +39,8 @@ pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 #[derive(
 	Eq,
@@ -54,6 +55,7 @@ type Block = frame_system::mocking::MockBlock<Test>;
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
@@ -92,7 +94,7 @@ impl From<TestAccount> for H160 {
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -110,7 +112,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
@@ -138,7 +140,7 @@ impl frame_system::Config for Test {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
@@ -154,9 +156,9 @@ impl pallet_balances::Config for Test {
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
-pub type Precompiles = (DemocracyWrapper<Test>,);
+pub type Precompiles = (DemocracyWrapper<Runtime>,);
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
@@ -176,7 +178,7 @@ impl pallet_evm::Config for Test {
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -186,6 +188,7 @@ impl pallet_timestamp::Config for Test {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 10;
 	pub const VotingPeriod: BlockNumber = 10;
+	pub const VoteLockingPeriod: BlockNumber = 10;
 	pub const FastTrackVotingPeriod: BlockNumber = 5;
 	pub const EnactmentPeriod: BlockNumber = 10;
 	pub const CooloffPeriod: BlockNumber = 10;
@@ -196,13 +199,14 @@ parameter_types! {
 	pub const InstantAllowed: bool = false;
 }
 
-impl pallet_democracy::Config for Test {
+impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
 	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	type ExternalOrigin = EnsureRoot<AccountId>;
@@ -225,7 +229,7 @@ impl pallet_democracy::Config for Test {
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
 }
-impl pallet_scheduler::Config for Test {
+impl pallet_scheduler::Config for Runtime {
 	type Event = Event;
 	type Origin = Origin;
 	type PalletsOrigin = OriginCaller;
@@ -272,10 +276,10 @@ impl ExtBuilder {
 	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances.clone(),
 		}
 		.assimilate_storage(&mut t)
@@ -328,8 +332,8 @@ pub(crate) fn events() -> Vec<Event> {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

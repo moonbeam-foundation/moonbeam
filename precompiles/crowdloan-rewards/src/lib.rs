@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
@@ -46,7 +46,7 @@ pub type BalanceOf<Runtime> =
 	>>::Balance;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 enum Action {
 	IsContributor = "is_contributor(address)",
 	RewardInfo = "reward_info(address)",
@@ -182,7 +182,7 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim();
+		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim {};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -218,13 +218,13 @@ where
 		// parse the address
 		let new_address: H160 = input.read::<Address>()?.into();
 
-		let new_address_account = Runtime::AddressMapping::into_account_id(new_address);
+		let new_reward_account = Runtime::AddressMapping::into_account_id(new_address);
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call =
-			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address_account);
+			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address { new_reward_account };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

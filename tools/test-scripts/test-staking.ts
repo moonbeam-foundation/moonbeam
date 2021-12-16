@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
-import { typesBundle } from "../../moonbeam-types-bundle/dist";
+import { typesBundlePre900 } from "../../moonbeam-types-bundle/dist";
 import {
   ALITH,
   GERALD,
@@ -33,7 +33,7 @@ async function test() {
   const wsProvider = new WsProvider(wsProviderUrl);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    typesBundle: typesBundle as any,
+    typesBundle: typesBundlePre900 as any,
   });
 
   // subscribe to all new headers (with extended info)
@@ -60,16 +60,13 @@ async function test() {
 
   // Validators
   const validators = await polkadotApi.query.parachainStaking.selectedCandidates();
-  assert(validators.toHuman()[0].toLowerCase() === GERALD, "Gerald is not a validator");
-  assert(validators.toHuman()[1].toLowerCase() === FAITH.toLowerCase(), "Faith is not a validator");
+  assert(validators.toHuman()[0] === GERALD, "Gerald is not a validator");
+  assert(validators.toHuman()[1] === FAITH, "Faith is not a validator");
 
   // Candidates
   const candidates = await polkadotApi.query.parachainStaking.candidatePool();
-  assert(candidates.toHuman()[0].owner.toLowerCase() === GERALD, "Gerald is not a candidates");
-  assert(
-    candidates.toHuman()[1].owner.toLowerCase() === FAITH.toLowerCase(),
-    "Faith is not a candidates"
-  );
+  assert(candidates.toHuman()[0].owner === GERALD, "Gerald is not a candidates");
+  assert(candidates.toHuman()[1].owner === FAITH, "Faith is not a candidates");
   assert(candidates.toHuman()[0].amount === STAKING_AMOUNT, "Gerald has wrong staking amount");
   assert(candidates.toHuman()[1].amount === STAKING_AMOUNT, "Faith has wrong staking amount");
 
@@ -225,14 +222,14 @@ async function test() {
       nominatorsAfter.toHuman() as {
         nominations: { owner: string; amount: string }[];
       }
-    ).nominations[0].owner.toLowerCase() === GERALD,
+    ).nominations[0].owner === GERALD,
     "nomination didnt go through"
   );
 
-  // Revoke Nomination
+  // Revoke Delegation
   await new Promise<void>(async (res) => {
     const unsub = await polkadotApi.tx.parachainStaking
-      .revokeNomination(GERALD) //TODO: when converting to test add .leaveNominators()
+      .revokeDelegation(GERALD) //TODO: when converting to test add .leaveNominators()
       // that should produce the same behavior
       .signAndSend(alith, ({ events = [], status }) => {
         console.log(`Current status is ${status.type}`);

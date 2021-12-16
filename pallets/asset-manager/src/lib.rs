@@ -33,14 +33,18 @@
 
 use frame_support::pallet;
 pub use pallet::*;
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
 pub mod tests;
+pub mod weights;
 
 #[pallet]
 pub mod pallet {
 
+	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
@@ -83,7 +87,7 @@ pub mod pallet {
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
-		type AssetRegistrarMetadata: Member + Parameter;
+		type AssetRegistrarMetadata: Member + Parameter + Default;
 
 		/// The Asset Kind.
 		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
@@ -96,6 +100,8 @@ pub mod pallet {
 
 		/// Origin that is allowed to create and modify asset information
 		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -118,8 +124,8 @@ pub mod pallet {
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
 
-	// Stores the units per second. Not all assets might contain units per second, hence the
-	// different storage
+	// Stores the units per second for local execution.
+	// Not all assets might contain units per second, hence the different storage
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_units_per_second)]
 	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
@@ -127,7 +133,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::register_asset())]
 		pub fn register_asset(
 			origin: OriginFor<T>,
 			asset: T::AssetType,
@@ -151,7 +157,7 @@ pub mod pallet {
 		}
 
 		/// Change the amount of units we are charging per execution second for a given AssetId
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,

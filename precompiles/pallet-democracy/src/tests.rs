@@ -17,22 +17,34 @@
 use crate::{
 	mock::{
 		events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy,
-		ExtBuilder, Origin, Precompiles, Test,
+		ExtBuilder, Origin, Precompiles, Runtime,
 		TestAccount::{self, Alice, Bob},
 	},
 	Action,
 };
-use evm::executor::PrecompileOutput;
+use fp_evm::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
-	VoteThreshold, Voting,
+	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent,
+	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, EvmDataWriter};
+use precompile_utils::{error, Address, Bytes, EvmDataWriter};
 use sp_core::{H160, U256};
 use std::convert::TryInto;
+
+fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
+	EvmCall::call {
+		source: Alice.into(),
+		target: precompile_address(),
+		input,
+		value: U256::zero(), // No value sent in EVM
+		gas_limit: u64::max_value(),
+		gas_price: 0.into(),
+		nonce: None, // Use the next nonce
+	}
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -122,10 +134,11 @@ fn prop_count_non_zero() {
 		.build()
 		.execute_with(|| {
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
-			assert_ok!(
-				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
-					.dispatch(Origin::signed(Alice))
-			);
+			assert_ok!(Call::Democracy(DemocracyCall::propose {
+				proposal_hash: Default::default(),
+				value: 1000u128
+			})
+			.dispatch(Origin::signed(Alice)));
 
 			// Construct data to read prop count
 			let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
@@ -155,10 +168,11 @@ fn deposit_of_non_zero() {
 		.build()
 		.execute_with(|| {
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
-			assert_ok!(
-				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
-					.dispatch(Origin::signed(Alice))
-			);
+			assert_ok!(Call::Democracy(DemocracyCall::propose {
+				proposal_hash: Default::default(),
+				value: 1000u128
+			})
+			.dispatch(Origin::signed(Alice)));
 
 			// Construct data to read prop count
 			let input = EvmDataWriter::new_with_selector(Action::DepositOf)
@@ -233,21 +247,21 @@ fn lowest_unbaked_non_zero() {
 		.build()
 		.execute_with(|| {
 			// To ensure the referendum passes, we need an Aye vote on it
-			assert_ok!(Call::Democracy(DemocracyCall::vote(
-				0, // referendum 0
-				AccountVote::Standard {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
 					vote: Vote {
 						aye: true,
 						conviction: 0u8.try_into().unwrap()
 					},
 					balance: 100_000,
 				}
-			))
+			})
 			.dispatch(Origin::signed(Alice)));
 
 			// Assert that the vote was recorded in storage
 			assert_eq!(
-				pallet_democracy::VotingOf::<Test>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(Alice),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -266,8 +280,8 @@ fn lowest_unbaked_non_zero() {
 
 			// Run it through until it is baked
 			roll_to(
-				<Test as DemocracyConfig>::VotingPeriod::get()
-					+ <Test as DemocracyConfig>::LaunchPeriod::get()
+				<Runtime as DemocracyConfig>::VotingPeriod::get()
+					+ <Runtime as DemocracyConfig>::LaunchPeriod::get()
 					+ 1000,
 			);
 
@@ -344,16 +358,7 @@ fn propose_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -378,10 +383,10 @@ fn second_works() {
 		.build()
 		.execute_with(|| {
 			// Before we can second anything, we have to have a proposal there to second.
-			assert_ok!(Call::Democracy(DemocracyCall::propose(
-				Default::default(), // Propose the default hash
-				100u128,            // bond of 100 tokens
-			))
+			assert_ok!(Call::Democracy(DemocracyCall::propose {
+				proposal_hash: Default::default(), // Propose the default hash
+				value: 100u128,                    // bond of 100 tokens
+			})
 			.dispatch(Origin::signed(Alice)));
 
 			// Construct the call to second via a precompile
@@ -391,16 +396,7 @@ fn second_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -408,9 +404,8 @@ fn second_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					// This 100 is reserved for the second.
-					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved(Alice, 100).into(),
+					DemocracyEvent::Seconded(Alice, 0).into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -441,16 +436,7 @@ fn standard_vote_aye_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -458,6 +444,18 @@ fn standard_vote_aye_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -465,7 +463,7 @@ fn standard_vote_aye_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Test>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(Alice),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -504,16 +502,7 @@ fn standard_vote_nay_conviction_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -521,6 +510,18 @@ fn standard_vote_nay_conviction_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: false,
+								conviction: 3u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -528,7 +529,7 @@ fn standard_vote_nay_conviction_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Test>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(Alice),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -582,16 +583,7 @@ fn remove_vote_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -599,6 +591,18 @@ fn remove_vote_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -606,7 +610,7 @@ fn remove_vote_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Test>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(Alice),
 				Voting::Direct {
 					votes: vec![],
 					delegations: Default::default(),
@@ -625,14 +629,14 @@ fn remove_vote_dne() {
 			// Before we can vote on anything, we have to have a referendum there to vote on.
 			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
 			// Make a proposal
-			assert_ok!(Call::Democracy(DemocracyCall::propose(
-				Default::default(), // Propose the default hash
-				100u128,            // bond of 100 tokens
-			))
+			assert_ok!(Call::Democracy(DemocracyCall::propose {
+				proposal_hash: Default::default(), // Propose the default hash
+				value: 100u128,                    // bond of 100 tokens
+			})
 			.dispatch(Origin::signed(Alice)));
 
 			// Wait until it becomes a referendum
-			roll_to(<Test as DemocracyConfig>::LaunchPeriod::get());
+			roll_to(<Runtime as DemocracyConfig>::LaunchPeriod::get());
 
 			// Construct input data to remove a non-existant vote
 			let input = EvmDataWriter::new_with_selector(Action::RemoveVote)
@@ -664,16 +668,7 @@ fn delegate_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -686,7 +681,7 @@ fn delegate_works() {
 
 			// Check that storage is correct
 			assert_eq!(
-				pallet_democracy::VotingOf::<Test>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(Alice),
 				Voting::Delegating {
 					balance: 100,
 					target: Bob,
@@ -698,7 +693,7 @@ fn delegate_works() {
 			// Would be nice to check that it shows up for Bob too, but  can't because of
 			// private fields. At elast I can see it works manually when uncommenting this.
 			// assert_eq!(
-			// 	pallet_democracy::VotingOf::<Test>::get(Bob),
+			// 	pallet_democracy::VotingOf::<Runtime>::get(Bob),
 			// 	Voting::Direct {
 			// 		votes: Default::default(),
 			// 		delegations: pallet_democracy::Delegations {
@@ -730,16 +725,7 @@ fn undelegate_works() {
 			let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -754,7 +740,7 @@ fn undelegate_works() {
 			// Would be nice to check storage too, but I can't express PriorLock because
 			// it is private.
 			// assert_eq!(
-			// 	pallet_democracy::VotingOf::<Test>::get(Alice),
+			// 	pallet_democracy::VotingOf::<Runtime>::get(Alice),
 			// 	Voting::Direct{
 			// 		votes: Default::default(),
 			// 		delegations: Default::default(),
@@ -832,16 +818,7 @@ fn unlock_works() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -868,21 +845,240 @@ fn unlock_with_nothing_locked() {
 				.build();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.into(),
-				precompile_address(),
-				input,
-				U256::zero(), // No value sent in EVM
-				u64::max_value(),
-				0.into(),
-				None, // Use the next nonce
-			))
-			.dispatch(Origin::root()));
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
 				vec![EvmEvent::Executed(precompile_address()).into(),]
+			);
+		})
+}
+
+#[test]
+fn note_preimage_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let proposal_hash =
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+					&dummy_preimage[..],
+				);
+			let expected_deposit =
+				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(Alice, expected_deposit).into(),
+					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Check storage to make sure the data is actually stored there.
+			// There is no `Eq` implementation, so we check the data individually
+			if let PreimageStatus::Available {
+				data,
+				provider,
+				deposit,
+				expiry,
+				..
+			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
+			{
+				assert_eq!(data, dummy_preimage);
+				assert_eq!(provider, Alice);
+				assert_eq!(deposit, 40u128);
+				assert_eq!(expiry, None);
+			} else {
+				panic!("Expected preimge status to be available");
+			}
+		})
+}
+
+#[test]
+fn note_preimage_works_with_real_data() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> =
+				hex_literal::hex!("0c026be02d1d3665660d22ff9624b7be0551ee1ac91b").to_vec();
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let proposal_hash =
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+					&dummy_preimage[..],
+				);
+			let expected_deposit =
+				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+
+			// Assert that the hash is as expected from TS tests
+			assert_eq!(
+				proposal_hash,
+				sp_core::H256::from(hex_literal::hex!(
+					"e435886138904e20b9d834d5c30b51693e5e53cc97f6d6da5908f1e41468bebf"
+				))
+			);
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(Alice, expected_deposit).into(),
+					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Check storage to make sure the data is actually stored there.
+			// There is no `Eq` implementation, so we check the data individually
+			if let PreimageStatus::Available {
+				data,
+				provider,
+				deposit,
+				expiry,
+				..
+			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
+			{
+				assert_eq!(data, dummy_preimage);
+				assert_eq!(provider, Alice);
+				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
+				assert_eq!(expiry, None);
+			} else {
+				panic!("Expected preimge status to be available");
+			}
+		})
+}
+
+#[test]
+fn cannot_note_duplicate_preimage() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let proposal_hash =
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+					&dummy_preimage[..],
+				);
+			let expected_deposit =
+				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// First call should go successfully
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input: input.clone(),
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Second call should fail because that preimage is already noted
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(Alice, expected_deposit).into(),
+					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::ExecutedFailed(precompile_address()).into(),
+				]
+			);
+		})
+}
+
+#[test]
+fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NoteImminentPreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// This call should not succeed because
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![EvmEvent::ExecutedFailed(precompile_address()).into()]
 			);
 		})
 }

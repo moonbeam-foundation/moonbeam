@@ -23,13 +23,13 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
-use evm::GenesisAccount;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, MaintenanceModeConfig,
-	ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechComitteeCollectiveConfig, WASM_BINARY,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -69,7 +69,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 					get_from_seed::<NimbusId>("Alice"),
 					1_000 * UNIT,
 				)],
-				// Nominations
+				// Delegations
 				vec![],
 				accounts.clone(),
 				3_000_000 * UNIT,
@@ -133,7 +133,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 						1_000 * UNIT,
 					),
 				],
-				// Nominations
+				// Delegations
 				vec![],
 				vec![
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
@@ -161,23 +161,29 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
+		use parachain_staking::inflation::{perbill_annual_to_perbill_round, BLOCKS_PER_YEAR};
+		perbill_annual_to_perbill_round(
+			annual,
+			// rounds per year
+			BLOCKS_PER_YEAR / moonbase_runtime::DefaultBlocksPerRound::get(),
+		)
+	}
+	let annual = Range {
+		min: Perbill::from_percent(4),
+		ideal: Perbill::from_percent(5),
+		max: Perbill::from_percent(5),
+	};
 	InflationInfo {
+		// staking expectations
 		expect: Range {
 			min: 100_000 * UNIT,
 			ideal: 200_000 * UNIT,
 			max: 500_000 * UNIT,
 		},
-		annual: Range {
-			min: Perbill::from_percent(4),
-			ideal: Perbill::from_percent(5),
-			max: Perbill::from_percent(5),
-		},
-		// 8766 rounds (hours) in a year
-		round: Range {
-			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
-			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-		},
+		// annual inflation
+		annual,
+		round: to_round_inflation(annual),
 	}
 }
 
@@ -186,15 +192,15 @@ pub fn testnet_genesis(
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
-	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts. TODO We should have a test to ensure this is the right bytecode.
+	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
@@ -226,7 +232,7 @@ pub fn testnet_genesis(
 			accounts: Precompiles::used_addresses()
 				.map(|addr| {
 					(
-						addr,
+						addr.into(),
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),
@@ -246,14 +252,14 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
-			nominations,
+			delegations,
 			inflation_config: moonbeam_inflation_config(),
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: council_members,
 		},
-		tech_comittee_collective: TechComitteeCollectiveConfig {
+		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: tech_comittee_members,
 		},
@@ -267,11 +273,14 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
+		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 		},
+		// This should initialize it to whatever we have set in the pallet
+		polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 
@@ -284,10 +293,8 @@ mod tests {
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let accounts = 10;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
 			AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
@@ -304,10 +311,8 @@ mod tests {
 				.to_string();
 		let accounts = 20;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
 			AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();

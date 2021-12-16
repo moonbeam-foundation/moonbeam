@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin, System, Test,
+	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin, Runtime, System,
 	TestAuthor,
 };
 use crate::{Error, Event};
@@ -67,7 +67,7 @@ fn cannot_register_without_deposit() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice),
-				Error::<Test>::CannotAffordSecurityDeposit
+				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
 
 			assert_eq!(Balances::free_balance(&2), 10);
@@ -144,7 +144,7 @@ fn unregistered_author_cannot_be_cleared() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice),
-			Error::<Test>::AssociationNotFound
+			Error::<Runtime>::AssociationNotFound
 		);
 	})
 }
@@ -158,7 +158,7 @@ fn registered_author_cannot_be_cleared_by_non_owner() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::clear_association(Origin::signed(2), TestAuthor::Alice),
-				Error::<Test>::NotYourAssociation
+				Error::<Runtime>::NotYourAssociation
 			);
 		})
 }
@@ -172,7 +172,7 @@ fn registered_author_cannot_be_overwritten() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice),
-				Error::<Test>::AlreadyAssociated
+				Error::<Runtime>::AlreadyAssociated
 			);
 		})
 }
@@ -208,7 +208,7 @@ fn unregistered_author_cannot_be_rotated() {
 				TestAuthor::Alice,
 				TestAuthor::Bob
 			),
-			Error::<Test>::AssociationNotFound
+			Error::<Runtime>::AssociationNotFound
 		);
 	})
 }
@@ -226,7 +226,7 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 					TestAuthor::Alice,
 					TestAuthor::Bob
 				),
-				Error::<Test>::NotYourAssociation
+				Error::<Runtime>::NotYourAssociation
 			);
 		})
 }

@@ -1,25 +1,25 @@
 [workspace]
+exclude = [ "bin/utils/moonkey" ]
 members = [
-    'runtime/moonbeam',
-    'runtime/moonriver',
-    'runtime/moonbase',
-    'node',
-    'node/cli',
-    'node/service',
-    'pallets/migrations',
-    'bin/utils/moonkey',
-    'pallets/maintenance-mode',
-    'precompiles/utils/macro',
+	"bin/utils/moonkey",
+	"client/rpc/manual-xcm",
+	"node",
+	"node/cli",
+	"node/service",
+	"pallets/maintenance-mode",
+	"pallets/migrations",
+	"pallets/proxy-genesis-companion",
+	"precompiles/utils/macro",
+	"runtime/moonbase",
+	"runtime/moonbeam",
+	"runtime/moonriver",
 ]
-exclude = [
-    'bin/utils/moonkey'
-]
+
+[patch.crates-io]
+ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
+evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
 
 [profile.release]
-panic = 'unwind'
-
-# Fix EVM tracing impact in block production pipeline.
-[patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "runtime-substitutes-0.30.1" }
+panic = "unwind"

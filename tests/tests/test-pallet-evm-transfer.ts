@@ -15,7 +15,6 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   before("Send a simple transfer with pallet evm", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     ({ events } = await createBlockWithExtrinsic(
       context,
       alith,
@@ -32,7 +31,7 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   });
 
   it("should fail without sudo", async function () {
-    expect(events[3].toHuman().method).to.eq("ExtrinsicFailed");
+    expect(events[5].toHuman().method).to.eq("ExtrinsicFailed");
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("0");
   });
 });
@@ -60,7 +59,7 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
   });
 
   it("should succeed with sudo", async function () {
-    expect(events[8].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(events[13].toHuman().method).to.eq("ExtrinsicSuccess");
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal(
       100_000_000_000_000_000_000n.toString()
     );

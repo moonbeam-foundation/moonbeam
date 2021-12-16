@@ -18,19 +18,23 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	error, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	error, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+	RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
-use sp_std::convert::{TryFrom, TryInto};
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	fmt::Debug,
+	marker::PhantomData,
+	vec::Vec,
+};
 
 #[cfg(test)]
 mod mock;
@@ -44,7 +48,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[derive(Debug, PartialEq)]
 enum Action {
 	PublicPropCount = "public_prop_count()",
 	DepositOf = "deposit_of(uint256)",
@@ -58,6 +62,8 @@ enum Action {
 	Delegate = "delegate(address,uint256,uint256)",
 	UnDelegate = "un_delegate()",
 	Unlock = "unlock(address)",
+	NotePreimage = "note_preimage(bytes)",
+	NoteImminentPreimage = "note_imminent_preimage(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet democracy.
@@ -101,6 +107,10 @@ where
 			Action::Delegate => Self::delegate(input, target_gas, context),
 			Action::UnDelegate => Self::un_delegate(target_gas, context),
 			Action::Unlock => Self::unlock(input, target_gas, context),
+			Action::NotePreimage => Self::note_preimage(input, target_gas, context),
+			Action::NoteImminentPreimage => {
+				Self::note_imminent_preimage(input, target_gas, context)
+			}
 		}
 	}
 }
@@ -256,7 +266,7 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal_hash = input.read::<H256>()?;
+		let proposal_hash = input.read::<H256>()?.into();
 		let amount = input.read::<BalanceOf<Runtime>>()?;
 
 		log::trace!(
@@ -265,7 +275,10 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::propose(proposal_hash.into(), amount);
+		let call = DemocracyCall::<Runtime>::propose {
+			proposal_hash,
+			value: amount,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -292,16 +305,19 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal_index = input.read()?;
+		let proposal = input.read()?;
 		let seconds_upper_bound = input.read()?;
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound
+			"Seconding proposal {:?}, with bound {:?}", proposal, seconds_upper_bound
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::second(proposal_index, seconds_upper_bound);
+		let call = DemocracyCall::<Runtime>::second {
+			proposal,
+			seconds_upper_bound,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -335,7 +351,7 @@ where
 			.read::<u8>()?
 			.try_into()
 			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
-		let account_vote = AccountVote::Standard {
+		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
 			balance,
 		};
@@ -346,7 +362,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
+		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -373,12 +389,18 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let ref_index = input.read()?;
+		let referendum_index = input.read()?;
 
-		log::trace!(target: "democracy-precompile", "Removing vote from referendum {:?}", ref_index);
+		log::trace!(
+			target: "democracy-precompile",
+			"Removing vote from referendum {:?}",
+			referendum_index
+		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::remove_vote(ref_index);
+		let call = DemocracyCall::<Runtime>::remove_vote {
+			index: referendum_index,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -405,8 +427,8 @@ where
 		// Bound check
 		input.expect_arguments(3)?;
 
-		let to_address: H160 = input.read::<Address>()?.into();
-		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		let to: H160 = input.read::<Address>()?.into();
+		let to = Runtime::AddressMapping::into_account_id(to);
 		let conviction = input
 			.read::<u8>()?
 			.try_into()
@@ -415,11 +437,15 @@ where
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
-			to_account, conviction, balance
+			to, conviction, balance
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::delegate(to_account, conviction, balance);
+		let call = DemocracyCall::<Runtime>::delegate {
+			to,
+			conviction,
+			balance,
+		};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -440,7 +466,7 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::undelegate();
+		let call = DemocracyCall::<Runtime>::undelegate {};
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -467,16 +493,80 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let target_address: H160 = input.read::<Address>()?.into();
-		let target_account = Runtime::AddressMapping::into_account_id(target_address);
+		let target: H160 = input.read::<Address>()?.into();
+		let target = Runtime::AddressMapping::into_account_id(target);
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Unlocking democracy tokens for {:?}", target_account
+			"Unlocking democracy tokens for {:?}", target
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::unlock(target_account);
+		let call = DemocracyCall::<Runtime>::unlock { target };
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn note_preimage(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
+
+		log::trace!(
+			target: "democracy-precompile",
+			"Noting preimage {:?}", encoded_proposal
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn note_imminent_preimage(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
+
+		log::trace!(
+			target: "democracy-precompile",
+			"Noting imminent preimage {:?}", encoded_proposal
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),

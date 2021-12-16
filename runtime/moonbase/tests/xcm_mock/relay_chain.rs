@@ -16,7 +16,11 @@
 
 //! Relay chain runtime mock.
 
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, Nothing},
+	weights::Weight,
+};
 use sp_core::H256;
 use sp_runtime::{testing::Header, traits::IdentityLookup, AccountId32};
 
@@ -24,13 +28,13 @@ use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowUnpaidExecutionFrom, ChildParachainAsNative,
-	ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
-	CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible, FixedWeightBounds, IsConcrete,
-	LocationInverter, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
+	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
+	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
+	FixedWeightBounds, IsConcrete, LocationInverter, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{Config, XcmExecutor};
-
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 
@@ -82,9 +86,17 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type WeightInfo = ();
+}
+
 impl shared::Config for Runtime {}
 
-impl configuration::Config for Runtime {}
+impl configuration::Config for Runtime {
+	type WeightInfo = configuration::TestWeightInfo;
+}
 
 parameter_types! {
 	pub const KsmLocation: MultiLocation = Here.into();
@@ -112,10 +124,18 @@ type LocalOriginConverter = (
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 1_000;
 	pub KsmPerSecond: (AssetId, u128) = (Concrete(KsmLocation::get()), 1);
+	pub const MaxInstructions: u32 = 100;
 }
 
 pub type XcmRouter = super::RelayChainXcmRouter;
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
+pub type Barrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	// Expected responses are OK.
+	AllowKnownQueryResponses<XcmPallet>,
+	// Subscriptions for version tracking are OK.
+	AllowSubscriptionsFrom<Everything>,
+);
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -127,9 +147,11 @@ impl Config for XcmConfig {
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
-	type ResponseHandler = ();
+	type ResponseHandler = XcmPallet;
+	type AssetTrap = XcmPallet;
+	type AssetClaims = XcmPallet;
 	type SubscriptionService = XcmPallet;
 }
 
@@ -141,12 +163,16 @@ impl pallet_xcm::Config for Runtime {
 	type XcmRouter = XcmRouter;
 	// Anyone can execute XCM messages locally...
 	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = ();
+	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Everything;
 	type XcmReserveTransferFilter = Everything;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type Origin = Origin;
+	type Call = Call;
+	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
+	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 }
 
 parameter_types! {
@@ -175,6 +201,28 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		ParasOrigin: origin::{Pallet, Origin},
 		ParasUmp: ump::{Pallet, Call, Storage, Event},
-		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>},
+		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
+		Utility: pallet_utility::{Pallet, Call, Event},
 	}
 );
+
+pub(crate) fn relay_events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| Some(e))
+		.collect::<Vec<_>>()
+}
+
+use frame_support::traits::{OnFinalize, OnInitialize};
+pub(crate) fn relay_roll_to(n: u64) {
+	while System::block_number() < n {
+		XcmPallet::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		XcmPallet::on_initialize(System::block_number());
+	}
+}

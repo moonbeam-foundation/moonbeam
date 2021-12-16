@@ -1,39 +1,46 @@
 [package]
 name = "parachain-staking"
-version = "2.1.1"
-authors = ["PureStake"]
-edition = "2018"
+authors = [ "PureStake" ]
 description = "parachain staking pallet for collator selection and reward distribution"
+edition = "2018"
+version = "3.0.0"
 
 [dependencies]
-frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false, optional = true }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
 log = "0.4"
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-parity-scale-codec = { version = "2.2", default-features = false, features = ["derive"] }
 serde = { version = "1.0.101", optional = true }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10", default-features = false }
-substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed" }
+
+# Substrate
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", optional = true, default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
+
+# Nimbus
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
 [dev-dependencies]
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10"}
 similar-asserts = "1.1.0"
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.10" }
+
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
 [features]
-default = ["std"]
+default = [ "std" ]
 std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
 	"parity-scale-codec/std",
+	"scale-info/std",
 	"serde",
 	"sp-runtime/std",
 	"sp-std/std",
 ]
-runtime-benchmarks = ["frame-benchmarking"]
-try-runtime = ["frame-support/try-runtime"]
+runtime-benchmarks = [ "frame-benchmarking" ]
+try-runtime = [ "frame-support/try-runtime" ]

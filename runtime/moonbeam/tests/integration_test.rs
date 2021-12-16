@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -30,8 +30,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
-	ParachainStaking, Precompiles, Runtime, System,
+	currency::{GIGAWEI, GLMR},
+	AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -47,8 +48,8 @@ use sp_runtime::{
 };
 
 #[test]
-fn fast_track_unavailable() {
-	assert!(!<moonbeam_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+fn fast_track_available() {
+	assert!(<moonbeam_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
 }
 
 #[test]
@@ -79,7 +80,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbeam_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbeam_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbeam_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
@@ -193,6 +194,21 @@ fn verify_pallet_prefixes() {
 }
 
 #[test]
+fn test_collectives_storage_item_prefixes() {
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
@@ -229,7 +245,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
 	// Council
 	is_pallet_index::<moonbeam_runtime::CouncilCollective>(70);
-	is_pallet_index::<moonbeam_runtime::TechComitteeCollective>(71);
+	is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71);
 	// Treasury
 	is_pallet_index::<moonbeam_runtime::Treasury>(80);
 	// Crowdloan
@@ -237,28 +253,43 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonbeam_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonbeam_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonbeam_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonbeam_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonbeam_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonbeam_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonbeam_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 2_000 * GLMR),
-			(AccountId::from(CHARLIE), 1_100 * GLMR),
-			(AccountId::from(DAVE), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 200_000 * GLMR),
+			(AccountId::from(CHARLIE), 110_000 * GLMR),
+			(AccountId::from(DAVE), 100_000 * GLMR),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 100_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * GLMR),
-			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * GLMR),
+		.with_delegations(vec![
+			(
+				AccountId::from(CHARLIE),
+				AccountId::from(ALICE),
+				5_000 * GLMR,
+			),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 5_000 * GLMR),
 		])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
 				parachain_staking::Error::<Runtime>::CandidateExists
@@ -266,23 +297,23 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 				2u32
 			));
 			assert_eq!(
 				last_event(),
 				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
-					1_000 * GLMR,
-					3_100 * GLMR
+					100_000 * GLMR,
+					310_000 * GLMR
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
@@ -290,21 +321,21 @@ fn join_collator_candidates() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(ALICE),
-					amount: 1_050 * GLMR
+					amount: 105_000 * GLMR
 				}
 			);
 			assert_eq!(
 				candidates.0[1],
 				Bond {
 					owner: AccountId::from(BOB),
-					amount: 1_050 * GLMR
+					amount: 105_000 * GLMR
 				}
 			);
 			assert_eq!(
 				candidates.0[2],
 				Bond {
 					owner: AccountId::from(DAVE),
-					amount: 1_000 * GLMR
+					amount: 100_000 * GLMR
 				}
 			);
 		});
@@ -313,14 +344,14 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 200_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR,
+					100_000 * GLMR,
 					2u32
 				),
 				DispatchError::Module {
@@ -329,36 +360,36 @@ fn transfer_through_evm_to_stake() {
 					message: Some("InsufficientBalance")
 				}
 			);
-			// Alice transfer from free balance 2000 GLMR to Bob
+			// Alice transfer from free balance 200_000 GLMR to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				2_000 * GLMR,
+				200_000 * GLMR,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 200_000 * GLMR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
-			// Bob transfers 1000 GLMR to Charlie via EVM
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(BOB),
-				AccountId::from(CHARLIE),
-				Vec::new(),
-				(1_000 * GLMR).into(),
+			let gas_price: U256 = (100 * GIGAWEI).into();
+			// Bob transfers 100_000 GLMR to Charlie via EVM
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
+				input: vec![],
+				value: (100_000 * GLMR).into(),
 				gas_limit,
 				gas_price,
-				None
-			))
+				nonce: None
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 			);
 
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				100_000 * GLMR,
 				2u32
 			),);
 			let candidates = ParachainStaking::candidate_pool();
@@ -366,7 +397,7 @@ fn transfer_through_evm_to_stake() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * GLMR
+					amount: 100_000 * GLMR
 				}
 			);
 		});
@@ -376,15 +407,15 @@ fn transfer_through_evm_to_stake() {
 fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			// Alice gets 10k extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 210_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
@@ -393,23 +424,26 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..599 {
+			for x in 2..3599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				100_000 * GLMR,
+			);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(3600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				111366666658400000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				541333333292000000000,
+				54133333329200000000000,
 			);
 		});
 }
@@ -418,16 +452,16 @@ fn reward_block_authors() {
 fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-			(AccountId::from(CHARLIE), GLMR),
+			// Alice gets 10k extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 210_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
+			(AccountId::from(CHARLIE), 100 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
@@ -440,29 +474,32 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..599 {
+			for x in 2..3599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
-			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), GLMR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				100_000 * GLMR,
+			);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(600);
+			run_to_block(3600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				108269333328165000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				525841666640825000000,
+				52584166664082500000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				4751500000000000000000,
 			);
 		});
 }
@@ -471,15 +508,15 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
-		.with_crowdloan_fund(3_000_000 * GLMR)
+		.with_crowdloan_fund(300_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -492,46 +529,51 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								150_000_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								150_000_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
+				]
+			})
+			.dispatch(root_origin()));
+			// 30 percent initial payout
+			assert_eq!(
+				Balances::balance(&AccountId::from(CHARLIE)),
+				45_000_000 * GLMR
 			);
 			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * GLMR);
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 45_000_000 * GLMR);
 			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
-			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
-				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-						[4u8; 32].into(),
-						Some(AccountId::from(ALICE)),
-						432000
-					)])
-				)
-			]))
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch {
+				calls: vec![Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::<
+					Runtime,
+				>::initialize_reward_vec {
+					rewards: vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 43_200_000)]
+				})]
+			})
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
@@ -547,28 +589,28 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 4 * WEEKS as u128;
-			let per_block = (1_050_000 * GLMR) / vesting_period;
+			let per_block = (105_000_000 * GLMR) / vesting_period;
 
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				Balances::balance(&AccountId::from(DAVE)),
-				(450_000 * GLMR) + per_block
+				(45_000_000 * GLMR) + per_block
 			);
 			assert_noop!(
 				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
@@ -620,27 +662,33 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			// Batch calls always succeed. We just need to check the inner event
 			assert_ok!(
 				// two relay accounts pointing at the same reward account
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							public1.into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
-					),
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							public2.into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
-					),
-					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+					calls: vec![
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+								rewards: vec![(
+									public1.into(),
+									Some(AccountId::from(CHARLIE)),
+									1_500_000 * GLMR
+								)]
+							}
+						),
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+								rewards: vec![(
+									public2.into(),
+									Some(AccountId::from(CHARLIE)),
+									1_500_000 * GLMR
+								)]
+							}
+						),
+						Call::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+								lease_ending_block: end_block
+							}
 						)
-					)
-				]))
+					]
+				})
 				.dispatch(root_origin())
 			);
 			// 30 percent initial payout
@@ -703,30 +751,34 @@ fn claim_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
@@ -743,15 +795,15 @@ fn claim_via_precompile() {
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(CHARLIE),
-				crowdloan_precompile_address,
-				call_data,
-				U256::zero(), // No value sent in EVM
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(CHARLIE),
+				target: crowdloan_precompile_address,
+				input: call_data,
+				value: U256::zero(), // No value sent in EVM
 				gas_limit,
 				gas_price,
-				None, // Use the next nonce
-			))
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			let vesting_period = 4 * WEEKS as u128;
@@ -770,15 +822,15 @@ fn claim_via_precompile() {
 fn is_contributor_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
 		)])
-		.with_crowdloan_fund(3_000_000 * GLMR)
+		.with_crowdloan_fund(3_000_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -791,30 +843,34 @@ fn is_contributor_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -888,10 +944,10 @@ fn is_contributor_via_precompile() {
 fn reward_info_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
 			AccountId::from(ALICE),
@@ -909,30 +965,34 @@ fn reward_info_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -1000,30 +1060,34 @@ fn update_reward_address_via_precompile() {
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch_all {
+				calls: vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[4u8; 32].into(),
-							Some(AccountId::from(CHARLIE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
-							[5u8; 32].into(),
-							Some(AccountId::from(DAVE)),
-							1_500_000 * GLMR
-						)])
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
+							rewards: vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * GLMR
+							)]
+						}
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
-							end_block
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
+							lease_ending_block: end_block
+						}
 					)
-				]))
-				.dispatch(root_origin())
-			);
+				]
+			})
+			.dispatch(root_origin()));
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
@@ -1037,15 +1101,15 @@ fn update_reward_address_via_precompile() {
 				.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
 			call_data[16..36].copy_from_slice(&ALICE);
 
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(CHARLIE),
-				crowdloan_precompile_address,
-				call_data,
-				U256::zero(), // No value sent in EVM
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(CHARLIE),
+				target: crowdloan_precompile_address,
+				input: call_data,
+				value: U256::zero(), // No value sent in EVM
 				gas_limit,
 				gas_price,
-				None, // Use the next nonce
-			))
+				nonce: None, // Use the next nonce
+			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());
@@ -1132,4 +1196,83 @@ fn ethereum_invalid_transaction() {
 			)
 		);
 	});
+}
+
+#[test]
+fn transfer_ed_0_substrate() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * GLMR) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * GLMR,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+}
+
+#[test]
+fn transfer_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * GLMR) + (21_000 * (100 * GIGAWEI))) + (1 * WEI),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_000u64,
+				gas_price: U256::from(100 * GIGAWEI),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI,);
+		});
+}
+
+#[test]
+fn refund_ed_0_evm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(
+				AccountId::from(ALICE),
+				((1 * GLMR) + (21_777 * (100 * GIGAWEI))),
+			),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// EVM transfer that zeroes ALICE
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_777u64,
+				gas_price: U256::from(100 * GIGAWEI),
+				nonce: Some(U256::from(0))
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// ALICE is refunded
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				777 * (100 * GIGAWEI),
+			);
+		});
 }

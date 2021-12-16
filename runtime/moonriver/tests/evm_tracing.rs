@@ -45,8 +45,11 @@ mod tests {
 			.build()
 			.execute_with(|| {
 				let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-					pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR)
-						.into(),
+					pallet_balances::Call::<Runtime>::transfer {
+						dest: AccountId::from(BOB),
+						value: 1 * MOVR,
+					}
+					.into(),
 				);
 				let transaction = ethereum_transaction(VALID_ETH_TX);
 				let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
@@ -73,8 +76,11 @@ mod tests {
 			.build()
 			.execute_with(|| {
 				let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-					pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR)
-						.into(),
+					pallet_balances::Call::<Runtime>::transfer {
+						dest: AccountId::from(BOB),
+						value: 1 * MOVR,
+					}
+					.into(),
 				);
 				let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 				let eth_tx = ethereum_transaction(VALID_ETH_TX);

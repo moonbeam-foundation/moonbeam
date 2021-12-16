@@ -19,6 +19,7 @@ use alloc::borrow::ToOwned;
 use core::{any::type_name, ops::Range};
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
+pub mod xcm;
 
 /// The `address` type of Solidity.
 /// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
@@ -66,6 +67,12 @@ impl From<&[u8]> for Bytes {
 impl From<&str> for Bytes {
 	fn from(a: &str) -> Self {
 		a.as_bytes().into()
+	}
+}
+
+impl Into<Vec<u8>> for Bytes {
+	fn into(self: Self) -> Vec<u8> {
+		self.0
 	}
 }
 
