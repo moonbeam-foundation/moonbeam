@@ -22,16 +22,17 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use frame_system::InitKind;
 pub use moonbeam_runtime::{
 	currency::{GLMR, WEI},
 	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
 	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use nimbus_primitives::NimbusId;
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
-use sp_core::H160;
-use sp_runtime::Perbill;
+use sp_core::{Encode, H160};
+use sp_runtime::{Digest, DigestItem, Perbill};
 
 use std::collections::BTreeMap;
 
@@ -49,11 +50,33 @@ pub const INVALID_ETH_TX: &str =
 	0e2d49fcc2afbc582e1abd3eeb027242b92abcebcec7cdefab63ea001732f6fac84acdd5b096554230\
 	75003e7f07430652c3d6722e18f50b3d34e29";
 
-pub fn run_to_block(n: u32) {
+/// Utility function that advances the chain to the desired block number.
+/// If an author is provided, that author information is injected to all the blocks in the meantime.
+pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 	while System::block_number() < n {
+		// Finalize the previous block
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
+
+		// Set the new block number and author
+		match author {
+			Some(ref author) => {
+				let pre_digest = Digest {
+					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
+				};
+				System::initialize(
+					&(System::block_number() + 1),
+					&System::parent_hash(),
+					&pre_digest,
+					InitKind::Full,
+				);
+			}
+			None => {
+				System::set_block_number(System::block_number() + 1);
+			}
+		}
+
+		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
@@ -241,14 +264,6 @@ pub fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 
 pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-pub fn set_author(a: NimbusId) {
-	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
-			.dispatch(inherent_origin())
-	);
 }
 
 /// Mock the inherent that sets validation data in ParachainSystem, which

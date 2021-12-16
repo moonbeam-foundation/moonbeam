@@ -40,7 +40,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{EnsureOneOf, EnsureRoot};
+use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
 	Signature,
@@ -305,11 +305,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
-}
-
-impl pallet_sudo::Config for Runtime {
-	type Call = Call;
-	type Event = Event;
 }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
@@ -721,7 +716,6 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type AuthorId = NimbusId;
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
@@ -740,6 +734,7 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonbeam-";
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -750,9 +745,10 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
-	// This will get accessible to users in future phases.
-	type RewardAddressChangeOrigin = EnsureRoot<Self::AccountId>;
+	type RewardAddressAssociateOrigin = EnsureSigned<Self::AccountId>;
+	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
@@ -766,7 +762,6 @@ parameter_types! {
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
-	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
@@ -961,8 +956,8 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
-		// Sudo.
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+		// Has been permanently removed for safety reasons.
+		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility.
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
