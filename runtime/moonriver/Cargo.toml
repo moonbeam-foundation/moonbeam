@@ -128,6 +128,9 @@ sha3 = "0.9"
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
 
+polkadot-runtime-parachains = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.12" }
+
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 
