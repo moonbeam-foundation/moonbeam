@@ -424,6 +424,7 @@ impl xcm_transactor::Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type AssetTransactor = DummyAssetTransactor;
 }
 
 // We need to use the encoding from the relay mock runtime
