@@ -1,6 +1,6 @@
 # Bug Bounty
 
-The Moonbeam bug bounty program is focused on the Moonriver and Moonbeam Parachains (deployed to Kusama and Polkadot respectively) and dAapps. It is focused on preventing:
+The Moonbeam bug bounty program is focused on the Moonriver and Moonbeam Parachains (deployed to Kusama and Polkadot respectively) and dapps. It is focused on preventing:
 
 Moonbeam/Moonriver:
 * Thefts and freezing of principal of any amount
