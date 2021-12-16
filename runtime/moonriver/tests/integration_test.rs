@@ -1669,7 +1669,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn make_sure_movr_cannot_be_transferred() {
+fn make_sure_movr_cannot_be_transferred_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -1700,6 +1700,39 @@ fn make_sure_movr_cannot_be_transferred() {
 					40000
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+			);
+		});
+}
+
+#[test]
+fn make_sure_movr_cannot_be_transferred() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			let dest = MultiLocation {
+				parents: 1,
+				interior: X1(AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			};
+			assert_noop!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				CurrencyId::SelfReserve,
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				40000
+				),
+			orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
 		});
 }

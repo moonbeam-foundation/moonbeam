@@ -958,6 +958,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 
 // We use only fungiblesAdapter transactor for now
 // The idea is that we only accept the relay token, hence no need to handle the local token
+// As long as this does not contain the local transactor, we are good
 pub type AssetTransactors = FungiblesTransactor;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -1261,8 +1262,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
-	//TODO: Uncomment when reanchoring logic stabilizes
-	//SelfReserve,
+	SelfReserve,
 	OtherReserve(AssetId),
 }
 
@@ -1270,7 +1270,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
 			// the self-reserve currency is identified by the pallet-balances address
-			//a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
+			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
 			_ => Runtime::account_to_asset_id(account)
 				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
@@ -1287,10 +1287,10 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
-			/*CurrencyId::SelfReserve => {
+			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
-			}*/
+			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
