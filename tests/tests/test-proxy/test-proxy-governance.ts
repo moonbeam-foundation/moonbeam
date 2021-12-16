@@ -59,7 +59,9 @@ describeDevMoonbeam("Proxing governance", (context) => {
     const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
     const { events } = await createBlockWithExtrinsic(context, ethan, ext);
 
+    // Check events
     expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[2])).to.be.true;
+    expect(context.polkadotApi.events.democracy.Voted.is(events[1])).to.be.true;
     expect(events[2].data[0].toString()).to.equal("Ok");
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5])).to.be.true;
