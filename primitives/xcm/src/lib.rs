@@ -266,7 +266,7 @@ impl<NativeTrader: WeightTrader, OtherTrader: WeightTrader> WeightTrader
 			}
 			_ => {}
 		}
-		// Try the alternative trader second. If succesful, return
+		// Try the alternative trader second. If successful, return
 		let other = self.other_trader.refund_weight(weight);
 		match other {
 			Some(MultiAsset {

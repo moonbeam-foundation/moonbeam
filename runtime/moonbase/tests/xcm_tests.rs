@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbase Runtime Xcm Tets
+//! Moonbase Runtime Xcm Tests
 
 mod xcm_mock;
 use frame_support::assert_ok;

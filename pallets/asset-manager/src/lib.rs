@@ -24,7 +24,7 @@
 //! can represent other kind of assets that we would like to register
 //!
 //! The main reason to have an asset-manager is to avoid users creating assets with assetIds that
-//! we later cannot use xcm operations. The idea is that instead of looking storing the assetType
+//! we later cannot use xcm operations. The idea is that instead of storing the assetType
 //! -> assetId association we make the assetId computable from the assetType, e.g., by hashing
 //! it. That is the main reason why this pallet only stores the opposit association, i.e.,
 //! assetId -> assetType. This is important, e.g., in xcm, where receiving assets does not imply
@@ -64,7 +64,7 @@ pub mod pallet {
 	/// The registrar trait. This instructs how to create an asset
 	pub trait AssetRegistrar<T: Config> {
 		/// How to create an asset
-		/// asser: the assetId of the associated asset
+		/// asset: the assetId of the associated asset
 		/// min_balance: the existential deposit
 		/// metadata: Other information related to the asset. It can be decimals, name, etc.
 		fn create_asset(
