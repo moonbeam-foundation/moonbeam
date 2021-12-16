@@ -689,8 +689,9 @@ parameter_types! {
 	/// Minimum stake required to be reserved to be a candidate
 	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
-	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
+	pub const MinDelegatorStk: u128 = 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR;
 }
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -1168,7 +1169,7 @@ mod tests {
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinCandidateStk::get(), Balance::from(100 * KILOGLMR));
-		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
+		assert_eq!(MinDelegatorStk::get(), Balance::from(50 * GLMR));
 
 		// crowdloan min reward
 		assert_eq!(MinimumReward::get(), Balance::from(0u128));
