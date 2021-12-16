@@ -34,7 +34,6 @@ use sp_runtime::traits::Block;
 pub trait MoonbeamFinalityApi {
 	/// Reports whether a Moonbeam or Ethereum block is finalized.
 	/// Returns false if the block is not found.
-	/// TODO Should I be generic over the hash type? Probably; ChainApi is. Although chain api isn't moonbeam specific so...
 	#[rpc(name = "moon_isBlockFinalized")]
 	fn is_block_finalized(&self, block_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
 
