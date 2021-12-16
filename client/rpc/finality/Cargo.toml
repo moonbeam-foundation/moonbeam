@@ -1,25 +1,25 @@
 [package]
 name = "moonbeam-finality-rpc"
+authors = [ "PureStake" ]
 description = "An experimental RPC to check for block and transaction finality in the moonbeam parachain"
-version = '0.1.0'
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'GPL-3.0-only'
-repository = 'https://github.com/PureStake/moonbeam/'
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.0"
 
 [dependencies]
-parity-scale-codec = "2.2"
-tokio = { version = "1.12.0", features = ["sync", "time"] }
-futures = { version = "0.3", features = ["compat"] }
+futures = { version = "0.3", features = [ "compat" ] }
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
+parity-scale-codec = "2.2"
+tokio = { version = "1.12.0", features = [ "sync", "time" ] }
 
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12" }
 
 ## Finality-related dependencies?
