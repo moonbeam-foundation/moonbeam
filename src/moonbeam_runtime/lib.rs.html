@@ -1192,6 +1192,7 @@
 <span id="1192">1192</span>
 <span id="1193">1193</span>
 <span id="1194">1194</span>
+<span id="1195">1195</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1883,8 +1884,9 @@
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 }
+
 <span class="kw">impl</span> <span class="ident">parachain_staking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
@@ -2362,7 +2364,7 @@
 		<span class="comment">// staking minimums</span>
 		<span class="macro">assert_eq!</span>(<span class="ident">MinCollatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
 		<span class="macro">assert_eq!</span>(<span class="ident">MinCandidateStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">MinDelegatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">500</span> <span class="op">*</span> <span class="ident">GLMR</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">MinDelegatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">GLMR</span>));
 
 		<span class="comment">// crowdloan min reward</span>
 		<span class="macro">assert_eq!</span>(<span class="ident">MinimumReward::get</span>(), <span class="ident">Balance::from</span>(<span class="number">0u128</span>));
