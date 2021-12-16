@@ -2355,7 +2355,7 @@ pub mod pallet {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
 		}
 		/// Caller must ensure candidate is active before calling
-		fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
+		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 			let mut candidates = <CandidatePool<T>>::get();
 			candidates.remove(&Bond::from_owner(candidate.clone()));
 			candidates.insert(Bond {

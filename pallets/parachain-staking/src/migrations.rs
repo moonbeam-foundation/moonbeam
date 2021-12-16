@@ -17,8 +17,8 @@
 //! # Migrations
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
-	BalanceOf, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2, Points, Round, Staked,
+	BalanceOf, Bond, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
+	ExitQueue2, NominatorState2, Pallet, Points, Round, Staked,
 };
 #[cfg(feature = "try-runtime")]
 use crate::{Collator2, Delegator, Nominator2};
@@ -30,6 +30,82 @@ use frame_support::{
 	weights::Weight,
 };
 use sp_std::collections::btree_map::BTreeMap;
+
+/// Migration to properly increase maximum delegations per collator
+/// This migration can be used to recompute the top and bottom delegations whenever
+/// MaxDelegatorsPerCandidate changes (works for decrease as well)
+pub struct IncreaseMaxDelegationsPerCandidate<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
+	fn on_runtime_upgrade() -> Weight {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		for (account, state) in <CandidateState<T>>::iter() {
+			reads += 1u64;
+			// 1. collect all delegations into single vec and order them
+			let mut all_delegations = state.top_delegations.clone();
+			let mut starting_bottom_delegations = state.bottom_delegations.clone();
+			all_delegations.append(&mut starting_bottom_delegations);
+			// sort all delegations from greatest to least
+			all_delegations.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+			let top_n = T::MaxDelegatorsPerCandidate::get() as usize;
+			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
+			let top_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+				all_delegations.clone().into_iter().take(top_n).collect();
+			let bottom_delegations = if all_delegations.len() > top_n {
+				let rest = all_delegations.len() - top_n;
+				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_delegations
+					.clone()
+					.into_iter()
+					.rev()
+					.take(rest)
+					.collect();
+				bottom
+			} else {
+				// empty, all nominations are in top
+				Vec::new()
+			};
+			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
+				(0u32.into(), 0u32.into());
+			for Bond { amount, .. } in &top_delegations {
+				total_counted += *amount;
+				total_backing += *amount;
+			}
+			for Bond { amount, .. } in &bottom_delegations {
+				total_backing += *amount;
+			}
+			// update candidate pool with new total counted if it changed
+			if state.total_counted != total_counted && state.is_active() {
+				reads += 1u64;
+				writes += 1u64;
+				<Pallet<T>>::update_active(account.clone(), total_counted);
+			}
+			<CandidateState<T>>::insert(
+				account,
+				CollatorCandidate {
+					top_delegations,
+					bottom_delegations,
+					total_counted,
+					total_backing,
+					..state
+				},
+			);
+			writes += 1u64;
+		}
+		let weight = T::DbWeight::get();
+		// 20% of the max block weight as safety margin for computation
+		weight.reads(reads) + weight.writes(writes) + 100_000_000_000
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// get delegation count for all candidates to check consistency
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// check total delegation count for all candidates to check consistency
+		Ok(())
+	}
+}
 
 /// Migration to replace the automatic ExitQueue with a manual exits API.
 /// This migration is idempotent so it can be run more than once without any risk.
