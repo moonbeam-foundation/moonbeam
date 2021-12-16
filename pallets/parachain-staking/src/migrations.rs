@@ -26,9 +26,11 @@ use crate::{Collator2, Delegator, Nominator2};
 use frame_support::Twox64Concat;
 use frame_support::{
 	pallet_prelude::PhantomData,
-	traits::{Get, OnRuntimeUpgrade},
+	traits::{Get, OnRuntimeUpgrade, OnRuntimeUpgradeHelpersExt},
 	weights::Weight,
 };
+extern crate alloc;
+use alloc::format;
 use sp_std::collections::btree_map::BTreeMap;
 
 /// Migration to properly increase maximum delegations per collator
@@ -97,12 +99,29 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		// get delegation count for all candidates to check consistency
+		for (account, state) in <CandidateState<T>>::iter() {
+			// insert top + bottom into some temp map?
+			let total_delegation_count =
+				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
+			Self::set_temp_storage(
+				total_delegation_count,
+				&format!("Candidate{}DelegationCount", account)[..],
+			);
+		}
 		Ok(())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// check total delegation count for all candidates to check consistency
+		// check that top + bottom are the same as the expected (stored in temp)
+		for (account, state) in <CandidateState<T>>::iter() {
+			let expected_count: u32 =
+				Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
+					.expect("qed");
+			let actual_count =
+				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
+			assert_eq!(expected_count, actual_count);
+		}
 		Ok(())
 	}
 }
@@ -163,10 +182,7 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::{
-			storage::migration::{storage_iter, storage_key_iter},
-			traits::OnRuntimeUpgradeHelpersExt,
-		};
+		use frame_support::storage::migration::{storage_iter, storage_key_iter};
 
 		let pallet_prefix: &[u8] = b"ParachainStaking";
 		let collator_state_prefix: &[u8] = b"CollatorState2";
@@ -222,8 +238,6 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
 		// Check number of candidates matches what was set aside in pre_upgrade
 		let old_candidate_count: u64 = Self::get_temp_storage("old_collator_count")
 			.expect("We stored the old collator candidate count so it should be there");

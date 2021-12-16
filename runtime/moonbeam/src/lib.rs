@@ -677,7 +677,7 @@ parameter_types! {
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum delegators counted per candidate
-	pub const MaxDelegatorsPerCandidate: u32 = 500;
+	pub const MaxDelegatorsPerCandidate: u32 = 1000;
 	/// Maximum delegations per delegator
 	pub const MaxDelegationsPerDelegator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards
@@ -1190,5 +1190,12 @@ mod tests {
 			AnnouncementDepositFactor::get(),
 			Balance::from(560 * MILLIGLMR)
 		);
+	}
+
+	#[test]
+	// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate
+	// Purpose of this test is to remind of required migration if constant is ever changed
+	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
+		assert_eq!(MaxDelegatorsPerCandidate::get(), 1000);
 	}
 }
