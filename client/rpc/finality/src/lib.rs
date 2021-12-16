@@ -33,12 +33,13 @@ use sp_runtime::traits::Block;
 #[rpc(server)]
 pub trait MoonbeamFinalityApi {
 	/// Reports whether a Moonbeam or Ethereum block is finalized.
-	/// Errors if the block is not found. //TODO reevaluate design later. Could just return false.
+	/// Returns false if the block is not found.
 	/// TODO Should I be generic over the hash type? Probably; ChainApi is. Although chain api isn't moonbeam specific so...
 	#[rpc(name = "moon_isBlockFinalized")]
 	fn is_block_finalized(&self, block_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
 
 	/// Reports whether a Moonbeam or Ethereum transaction is finalized.
+	/// Returns false if the transaction is not found
 	#[rpc(name = "moon_isTxFinalized")]
 	fn is_tx_finalized(&self, tx_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
 }
@@ -72,8 +73,8 @@ fn is_substrate_block_hash_finalized<B: Block<Hash = H256>, C: HeaderBackend<B> 
 	// It's just a question of whether it is in the finalized prefix or not
 	let query_height = client
 		.number(substrate_hash)
-		.expect("Blocks in best chain should have number")
-		.expect("uhhhh");
+		.expect("No sp_blockchain::Error should be thrown when looking up hash")
+		.expect("Block is already known to be canon, so it must be in the chain");
 	let finalized_height = client.info().finalized_number;
 
 	query_height <= finalized_height
