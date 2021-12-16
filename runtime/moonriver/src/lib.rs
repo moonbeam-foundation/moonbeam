@@ -1357,6 +1357,15 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => MultiLocation::parent(),
 		}
 	}
+
+	fn max_transact_weight(self) -> Weight {
+		match self {
+			// Kusama is 20,000,000,000
+			// This needs to take into account the rest of the message
+			// We use 12,000,000,000 to be safe
+			Transactors::Relay => 12_000_000_000,
+		}
+	}
 }
 
 impl xcm_transactor::Config for Runtime {
@@ -1375,6 +1384,7 @@ impl xcm_transactor::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type AssetTransactor = AssetTransactors;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout

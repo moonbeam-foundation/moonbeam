@@ -29,7 +29,9 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
-use moonriver_runtime::{BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens};
+use moonriver_runtime::{
+	BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
@@ -1778,4 +1780,58 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				DispatchError::BadOrigin
 			);
 		});
+}
+
+#[test]
+fn transactor_cannot_use_more_than_max_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			assert_ok!(XcmTransactor::register(
+				root_origin(),
+				AccountId::from(ALICE),
+				0,
+			));
+
+			assert_noop!(
+				XcmTransactor::transact_through_derivative_multilocation(
+					origin_of(AccountId::from(ALICE)),
+					moonriver_runtime::Transactors::Relay,
+					0,
+					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+			assert_noop!(
+				XcmTransactor::transact_through_derivative(
+					origin_of(AccountId::from(ALICE)),
+					moonriver_runtime::Transactors::Relay,
+					0,
+					moonriver_runtime::CurrencyId::OtherReserve(source_id),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+		})
 }
