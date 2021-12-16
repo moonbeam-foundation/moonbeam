@@ -15,7 +15,7 @@ Website and Apps:
 * Deletion of user data
 * Access to sensitive pages without authorization
 
-https://immunefi.com/bounty/moonbeam/
+https://immunefi.com/bounty/moonbeamnetwork/
 
 **Blockchain and EVM/Precompiles**
 
