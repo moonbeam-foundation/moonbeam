@@ -25,9 +25,7 @@ use frame_support::{
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
 use parachain_staking::{
-	migrations::{
-		ParachainStakingIncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue,
-	},
+	migrations::{IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue},
 	Config as ParachainStakingConfig,
 };
 use sp_std::{marker::PhantomData, prelude::*};
