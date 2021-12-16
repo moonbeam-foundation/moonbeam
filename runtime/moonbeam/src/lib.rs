@@ -689,8 +689,9 @@ parameter_types! {
 	/// Minimum stake required to be reserved to be a candidate
 	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
-	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
+	pub const MinDelegatorStk: u128 = 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR;
 }
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
