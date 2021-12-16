@@ -255,8 +255,21 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 		})
 }
 
-//TODO Test ideas in case we bring back the narc extrinsic
-// unstaked account can be narced after period
-// unstaked account cannot be narced before period
-// staked account can be narced after period
-// staked account cannot be narced before period
+#[test]
+fn rotating_to_the_same_author_id_leaves_registration_in_tact() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(AuthorMapping::update_association(
+				Origin::signed(1),
+				TestAuthor::Alice.into(),
+				TestAuthor::Alice.into()
+			));
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Alice.into()),
+				Some(1)
+			);
+		})
+}
