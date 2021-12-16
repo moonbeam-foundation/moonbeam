@@ -16,8 +16,8 @@
 
 use crate::{
 	mock::{
-		events, evm_test_context, roll_to, Balances, Call, Democracy, ExtBuilder, Origin,
-		Precompiles, PrecompilesValue, Runtime,
+		events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy,
+		ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
 		TestAccount::{self, Alice, Bob, Precompile},
 	},
 	Action,
@@ -1014,8 +1014,10 @@ fn note_preimage_works_with_real_data() {
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
-				gas_price: 0.into(),
+				max_fee_per_gas: U256::zero(),
+				max_priority_fee_per_gas: Some(U256::zero()),
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(Origin::root()));
 
@@ -1023,8 +1025,17 @@ fn note_preimage_works_with_real_data() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(Alice, expected_deposit).into(),
-					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: expected_deposit
+					}
+					.into(),
+					DemocracyEvent::PreimageNoted {
+						proposal_hash,
+						who: Alice,
+						deposit: expected_deposit
+					}
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);

@@ -44,6 +44,11 @@ type Block = frame_system::mocking::MockBlock<Runtime>;
 
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
+/// The democracy precompile is available at address one in the mock runtime.
+pub fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
+}
+
 #[derive(
 	Eq,
 	PartialEq,
