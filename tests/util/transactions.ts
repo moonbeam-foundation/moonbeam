@@ -4,8 +4,10 @@ import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
 import fetch from "node-fetch";
+import { Event } from "@polkadot/types/interfaces";
 import { DevTestContext } from "./setup-dev-tests";
 import { customWeb3Request } from "./providers";
+import { createBlockWithExtrinsic } from "./substrate-rpc";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -171,7 +173,7 @@ export async function sendPrecompileTx(
   from: string,
   privateKey: string,
   selector: string,
-  parameters: string[]
+  parameters: `0x${string}`[]
 ) {
   let data: string;
   if (selectors[selector]) {
@@ -226,4 +228,11 @@ export async function callPrecompile(
       data,
     },
   ]);
+}
+
+/// Sign and send Substrate transaction and then create a block.
+/// Will provide events emited by the transaction to check if they match what is expected.
+export async function substrateTransaction(context, sender, polkadotCall): Promise<Event[]> {
+  const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
+  return events;
 }

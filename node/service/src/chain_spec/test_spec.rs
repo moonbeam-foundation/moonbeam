@@ -58,7 +58,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 						1_000 * UNIT,
 					),
 				],
-				// Nominations
+				// Delegations
 				vec![],
 				// Endowed accounts (each minted 1 << 80 balance)
 				vec![

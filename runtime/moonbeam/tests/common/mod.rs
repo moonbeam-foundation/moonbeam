@@ -22,16 +22,17 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use frame_system::InitKind;
 pub use moonbeam_runtime::{
 	currency::{GLMR, WEI},
 	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
 	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use nimbus_primitives::NimbusId;
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
-use sp_core::H160;
-use sp_runtime::Perbill;
+use sp_core::{Encode, H160};
+use sp_runtime::{Digest, DigestItem, Perbill};
 
 use std::collections::BTreeMap;
 
@@ -49,11 +50,33 @@ pub const INVALID_ETH_TX: &str =
 	0e2d49fcc2afbc582e1abd3eeb027242b92abcebcec7cdefab63ea001732f6fac84acdd5b096554230\
 	75003e7f07430652c3d6722e18f50b3d34e29";
 
-pub fn run_to_block(n: u32) {
+/// Utility function that advances the chain to the desired block number.
+/// If an author is provided, that author information is injected to all the blocks in the meantime.
+pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 	while System::block_number() < n {
+		// Finalize the previous block
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
+
+		// Set the new block number and author
+		match author {
+			Some(ref author) => {
+				let pre_digest = Digest {
+					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
+				};
+				System::initialize(
+					&(System::block_number() + 1),
+					&System::parent_hash(),
+					&pre_digest,
+					InitKind::Full,
+				);
+			}
+			None => {
+				System::set_block_number(System::block_number() + 1);
+			}
+		}
+
+		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
@@ -80,8 +103,8 @@ pub struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, nomination_amount]
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -98,7 +121,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominations: vec![],
+			delegations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -143,8 +166,8 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.nominations = nominations;
+	pub fn with_delegations(mut self, delegations: Vec<(AccountId, AccountId, Balance)>) -> Self {
+		self.delegations = delegations;
 		self
 	}
 
@@ -177,7 +200,7 @@ impl ExtBuilder {
 
 		parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
-			nominations: self.nominations,
+			delegations: self.delegations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
@@ -241,14 +264,6 @@ pub fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 
 pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-pub fn set_author(a: NimbusId) {
-	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
-			.dispatch(inherent_origin())
-	);
 }
 
 /// Mock the inherent that sets validation data in ParachainSystem, which

@@ -100,17 +100,19 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
-	pub const LeaveNominatorsDelay: u32 = 2;
-	pub const RevokeNominationDelay: u32 = 2;
+	pub const CandidateBondLessDelay: u32 = 2;
+	pub const LeaveDelegatorsDelay: u32 = 2;
+	pub const RevokeDelegationDelay: u32 = 2;
+	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxNominatorsPerCollator: u32 = 4;
-	pub const MaxCollatorsPerNominator: u32 = 4;
+	pub const MaxDelegatorsPerCandidate: u32 = 4;
+	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
-	pub const MinNominatorStk: u128 = 5;
-	pub const MinNomination: u128 = 3;
+	pub const MinDelegatorStk: u128 = 5;
+	pub const MinDelegation: u128 = 3;
 }
 impl Config for Test {
 	type Event = Event;
@@ -119,18 +121,20 @@ impl Config for Test {
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type LeaveNominatorsDelay = LeaveNominatorsDelay;
-	type RevokeNominationDelay = RevokeNominationDelay;
+	type CandidateBondLessDelay = CandidateBondLessDelay;
+	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
+	type RevokeDelegationDelay = RevokeDelegationDelay;
+	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
-	type MinNominatorStk = MinNominatorStk;
-	type MinNomination = MinNomination;
+	type MinCandidateStk = MinCollatorStk;
+	type MinDelegatorStk = MinDelegatorStk;
+	type MinDelegation = MinDelegation;
 	type WeightInfo = ();
 }
 
@@ -139,8 +143,8 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, delegation_amount]
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -149,7 +153,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominations: vec![],
+			delegations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -185,11 +189,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominations(
+	pub(crate) fn with_delegations(
 		mut self,
-		nominations: Vec<(AccountId, AccountId, Balance)>,
+		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominations = nominations;
+		self.delegations = delegations;
 		self
 	}
 
@@ -211,7 +215,7 @@ impl ExtBuilder {
 		.expect("Pallet balances storage can be assimilated");
 		stake::GenesisConfig::<Test> {
 			candidates: self.collators,
-			nominations: self.nominations,
+			delegations: self.delegations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
@@ -223,16 +227,43 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Stake::on_finalize(System::block_number());
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-		Stake::on_initialize(System::block_number());
+/// Rolls forward one block. Returns the new block number.
+pub(crate) fn roll_one_block() -> u64 {
+	Stake::on_finalize(System::block_number());
+	Balances::on_finalize(System::block_number());
+	System::on_finalize(System::block_number());
+	System::set_block_number(System::block_number() + 1);
+	System::on_initialize(System::block_number());
+	Balances::on_initialize(System::block_number());
+	Stake::on_initialize(System::block_number());
+
+	System::block_number()
+}
+
+/// Rolls to the desired block. Returns the number of blocks played.
+pub(crate) fn roll_to(n: u64) -> u64 {
+	let mut num_blocks = 0;
+	let mut block = System::block_number();
+	while block < n {
+		block = roll_one_block();
+		num_blocks += 1;
 	}
+	num_blocks
+}
+
+/// Rolls block-by-block to the beginning of the specified round.
+/// This will complete the block in which the round change occurs.
+/// Returns the number of blocks played.
+pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	roll_to(block)
+}
+
+/// Rolls block-by-block to the end of the specified round.
+/// The block following will be the one in which the specified round change occurs.
+pub(crate) fn roll_to_round_end(round: u64) -> u64 {
+	let block = round * DefaultBlocksPerRound::get() as u64 - 1;
+	roll_to(block)
 }
 
 pub(crate) fn last_event() -> Event {
@@ -251,6 +282,85 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 			}
 		})
 		.collect::<Vec<_>>()
+}
+
+/// Assert input equal to the last event emitted
+#[macro_export]
+macro_rules! assert_last_event {
+	($event:expr) => {
+		match &$event {
+			e => assert_eq!(*e, crate::mock::last_event()),
+		}
+	};
+}
+
+/// Compares the system events with passed in events
+/// Prints highlighted diff iff assert_eq fails
+#[macro_export]
+macro_rules! assert_eq_events {
+	($events:expr) => {
+		match &$events {
+			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
+		}
+	};
+}
+
+/// Compares the last N system events with passed in events, where N is the length of events passed
+/// in.
+///
+/// Prints highlighted diff iff assert_eq fails.
+/// The last events from frame_system will be taken in order to match the number passed to this
+/// macro. If there are insufficient events from frame_system, they will still be compared; the
+/// output may or may not be helpful.
+///
+/// Examples:
+/// If frame_system has events [A, B, C, D, E] and events [C, D, E] are passed in, the result would
+/// be a successful match ([C, D, E] == [C, D, E]).
+///
+/// If frame_system has events [A, B, C, D] and events [B, C] are passed in, the result would be an
+/// error and a hopefully-useful diff will be printed between [C, D] and [B, C].
+///
+/// Note that events are filtered to only match parachain-staking (see events()).
+#[macro_export]
+macro_rules! assert_eq_last_events {
+	($events:expr) => {
+		assert_tail_eq!($events, crate::mock::events());
+	};
+}
+
+/// Assert that one array is equal to the tail of the other. A more generic and testable version of
+/// assert_eq_last_events.
+#[macro_export]
+macro_rules! assert_tail_eq {
+	($tail:expr, $arr:expr) => {
+		if $tail.len() != 0 {
+			// 0-length always passes
+
+			if $tail.len() > $arr.len() {
+				similar_asserts::assert_eq!($tail, $arr); // will fail
+			}
+
+			let len_diff = $arr.len() - $tail.len();
+			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
+		}
+	};
+}
+
+/// Panics if an event is not found in the system log of events
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
 }
 
 // Same storage changes as EventHandler::note_author impl
@@ -274,7 +384,7 @@ fn geneses() {
 			(9, 4),
 		])
 		.with_candidates(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_delegations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			assert!(System::events().is_empty());
@@ -285,15 +395,15 @@ fn geneses() {
 			assert_eq!(Balances::reserved_balance(&2), 200);
 			assert_eq!(Balances::free_balance(&2), 100);
 			assert!(Stake::is_candidate(&2));
-			// nominators
+			// delegators
 			for x in 3..7 {
-				assert!(Stake::is_nominator(&x));
+				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 0);
 				assert_eq!(Balances::reserved_balance(&x), 100);
 			}
 			// uninvolved
 			for x in 7..10 {
-				assert!(!Stake::is_nominator(&x));
+				assert!(!Stake::is_delegator(&x));
 			}
 			assert_eq!(Balances::free_balance(&7), 100);
 			assert_eq!(Balances::reserved_balance(&7), 0);
@@ -316,7 +426,7 @@ fn geneses() {
 			(10, 100),
 		])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -335,11 +445,89 @@ fn geneses() {
 			assert!(Stake::is_candidate(&5));
 			assert_eq!(Balances::free_balance(&5), 90);
 			assert_eq!(Balances::reserved_balance(&5), 10);
-			// nominators
+			// delegators
 			for x in 6..11 {
-				assert!(Stake::is_nominator(&x));
+				assert!(Stake::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 90);
 				assert_eq!(Balances::reserved_balance(&x), 10);
 			}
 		});
+}
+
+#[test]
+fn roll_to_round_begin_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		assert_eq!(System::block_number(), 1); // we start on block 1
+
+		let num_blocks = roll_to_round_begin(1);
+		assert_eq!(System::block_number(), 1); // no-op, we're already on this round
+		assert_eq!(num_blocks, 0);
+
+		let num_blocks = roll_to_round_begin(2);
+		assert_eq!(System::block_number(), 5);
+		assert_eq!(num_blocks, 4);
+
+		let num_blocks = roll_to_round_begin(3);
+		assert_eq!(System::block_number(), 10);
+		assert_eq!(num_blocks, 5);
+	});
+}
+
+#[test]
+fn roll_to_round_end_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		assert_eq!(System::block_number(), 1); // we start on block 1
+
+		let num_blocks = roll_to_round_end(1);
+		assert_eq!(System::block_number(), 4);
+		assert_eq!(num_blocks, 3);
+
+		let num_blocks = roll_to_round_end(2);
+		assert_eq!(System::block_number(), 9);
+		assert_eq!(num_blocks, 5);
+
+		let num_blocks = roll_to_round_end(3);
+		assert_eq!(System::block_number(), 14);
+		assert_eq!(num_blocks, 5);
+	});
+}
+
+#[test]
+fn assert_tail_eq_works() {
+	assert_tail_eq!(vec![1, 2], vec![0, 1, 2]);
+
+	assert_tail_eq!(vec![1], vec![1]);
+
+	assert_tail_eq!(
+		vec![0u32; 0], // 0 length array
+		vec![0u32; 1]  // 1-length array
+	);
+
+	assert_tail_eq!(vec![0u32, 0], vec![0u32, 0]);
+}
+
+#[test]
+#[should_panic]
+fn assert_tail_eq_panics_on_non_equal_tail() {
+	assert_tail_eq!(vec![2, 2], vec![0, 1, 2]);
+}
+
+#[test]
+#[should_panic]
+fn assert_tail_eq_panics_on_empty_arr() {
+	assert_tail_eq!(vec![2, 2], vec![0u32; 0]);
+}
+
+#[test]
+#[should_panic]
+fn assert_tail_eq_panics_on_longer_tail() {
+	assert_tail_eq!(vec![1, 2, 3], vec![1, 2]);
+}
+
+#[test]
+#[should_panic]
+fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
+	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
 }

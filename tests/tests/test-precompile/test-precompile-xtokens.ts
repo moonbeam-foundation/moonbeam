@@ -1,21 +1,14 @@
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
 import { createContract, createTransaction } from "../../util/transactions";
 
-import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  ALITH,
-  ALITH_PRIV_KEY,
-} from "../../util/constants";
+import { GAS_PRICE, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
-
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 async function getBalance(context, blockHeight, address) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
@@ -93,6 +86,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });
 
@@ -188,5 +182,6 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(amountTransferred) -
         BigInt(fees)
     );
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred));
   });
 });

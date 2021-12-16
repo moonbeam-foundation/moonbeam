@@ -305,8 +305,8 @@ export const contractSources: { [key: string]: string } = {
     interface ParachainStaking {
         // First some simple accessors
     
-        /// Check whether the specified address is currently a staking nominator
-        function is_nominator(address) external view returns (bool);
+        /// Check whether the specified address is currently a staking delegator
+        function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
     
@@ -316,7 +316,7 @@ export const contractSources: { [key: string]: string } = {
         /// Request to leave the set of candidates. If successful, the account is immediately
         /// removed from the candidate pool to prevent selection as a collator, but unbonding is
         /// executed with a delay of BondDuration rounds.
-        function leave_candidates() external;
+        function schedule_leave_candidates() external;
     
         /// Temporarily leave the set of collator candidates without unbonding
         function go_offline() external;
@@ -330,26 +330,26 @@ export const contractSources: { [key: string]: string } = {
         /// Bond less for collator candidates
         function candidate_bond_less(uint256 less) external;
     
-        /// If caller is not a nominator, then join the set of nominators
-        /// If caller is a nominator, then makes nomination to change their nomination state
-        function nominate(address collator, uint256 amount) external;
+        /// If caller is not a delegator, then join the set of delegators
+        /// If caller is a delegator, then makes delegation to change their delegation state
+        function delegate(address candidate, uint256 amount) external;
     
-        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-        function leave_nominators() external;
+        /// Leave the set of delegators and, by implication, revoke all ongoing delegations
+        function leave_delegators() external;
     
-        /// Revoke an existing nomination
-        function revoke_nomination(address collator) external;
+        /// Revoke an existing delegation
+        function revoke_delegation(address candidate) external;
     
-        /// Bond more for nominators with respect to a specific collator candidate
-        function nominator_bond_more(address candidate, uint256 more) external;
+        /// Bond more for delegators with respect to a specific collator candidate
+        function delegator_bond_more(address candidate, uint256 more) external;
     
-        /// Bond less for nominators with respect to a specific nominator candidate
-        function nominator_bond_less(address candidate, uint256 less) external;
+        /// Bond less for delegators with respect to a specific collator candidate
+        function delegator_bond_less(address candidate, uint256 less) external;
     }
 
     /// An even more dead simple example to call the precompile
     contract JoinCandidatesWrapper {
-        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to 
+        /// The ParachainStaking wrapper at the known precompile address. This will be used to 
         /// make all calls to the underlying staking solution
         ParachainStaking public staking;
 
@@ -436,15 +436,15 @@ export const contractSources: { [key: string]: string } = {
         return b;
       }
     }`,
-  StakingNominationAttaker: `
+  StakingDelegationAttaker: `
     pragma solidity >=0.8.0;
     
 
     interface ParachainStaking {
         // First some simple accessors
     
-        /// Check whether the specified address is currently a staking nominator
-        function is_nominator(address) external view returns (bool);
+        /// Check whether the specified address is currently a staking delegator
+        function is_delegator(address) external view returns (bool);
     
         // Now the dispatchables
     
@@ -454,7 +454,7 @@ export const contractSources: { [key: string]: string } = {
         /// Request to leave the set of candidates. If successful, the account is immediately
         /// removed from the candidate pool to prevent selection as a collator, but unbonding is
         /// executed with a delay of BondDuration rounds.
-        function leave_candidates() external;
+        function schedule_leave_candidates() external;
     
         /// Temporarily leave the set of collator candidates without unbonding
         function go_offline() external;
@@ -463,41 +463,41 @@ export const contractSources: { [key: string]: string } = {
         function go_online() external;
     
         /// Bond more for collator candidates
-        function candidate_bond_more(uint256 more) external;
+        function schedule_candidate_bond_more(uint256 more) external;
     
         /// Bond less for collator candidates
-        function candidate_bond_less(uint256 less) external;
+        function schedule_candidate_bond_less(uint256 less) external;
     
-        /// If caller is not a nominator, then join the set of nominators
-        /// If caller is a nominator, then makes nomination to change their nomination state
-        function nominate(address collator, uint256 amount) external;
+        /// If caller is not a delegator, then join the set of delegators
+        /// If caller is a delegator, then makes delegation to change their delegation state
+        function delegate(address collator, uint256 amount) external;
     
-        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-        function leave_nominators() external;
+        /// Leave the set of delegators and, by implication, revoke all ongoing delegations
+        function schedule_leave_delegators() external;
     
-        /// Revoke an existing nomination
-        function revoke_nomination(address collator) external;
+        /// Revoke an existing delegation
+        function revoke_delegation(address candidate) external;
     
-        /// Bond more for nominators with respect to a specific collator candidate
-        function nominator_bond_more(address candidate, uint256 more) external;
+        /// Bond more for delegators with respect to a specific collator candidate
+        function delegator_bond_more(address candidate, uint256 more) external;
     
-        /// Bond less for nominators with respect to a specific nominator candidate
-        function nominator_bond_less(address candidate, uint256 less) external;
+        /// Bond less for delegators with respect to a specific collator candidate
+        function delegator_bond_less(address candidate, uint256 less) external;
     }
 
-    contract StakingNominationAttaker {
-        /// The collator (ALITH) that this contract will benefit with nominations
+    contract StakingDelegationAttaker {
+        /// The collator (ALITH) that this contract will benefit with delegations
         address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
 
         /// The ParachainStaking wrapper at the known pre-compile address.
     ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);
 
         /// Take advantage of the EVMs reversion logic and the fact that it doesn't extend to
-        /// Substrate storage to score free nominations for a collator condidate of our choosing
-        function score_a_free_nomination() public payable{
+        /// Substrate storage to score free delegations for a collator candidate of our choosing
+        function score_a_free_delegation() public payable{
             
-            // We nominate our target collator with all the tokens provided
-            staking.nominate(target, msg.value);
+            // We delegate our target collator with all the tokens provided
+            staking.delegate(target, msg.value);
             revert("By reverting this transaction, we return the eth to the caller");
         }
     }`,
@@ -975,7 +975,7 @@ export const contractSources: { [key: string]: string } = {
      * Selector: 23b872dd
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to be transferred
+     * @param value uint256 the amount of delegated tokens to be transferred
      */
     function transferFrom(address from, address to, uint256 value)
         external returns (bool);
@@ -1009,55 +1009,280 @@ export const contractSources: { [key: string]: string } = {
 
     contract ERC20Instance is IERC20 {
 
-      /// The ierc20 at the known pre-compile address.
-      IERC20 public erc20 = IERC20(0x0000000000000000000000000000000000000802);
-      
-          function name() override external view returns (string memory) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.name();
-          }
-          
-          function symbol() override external view returns (string memory) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.symbol();
-          }
-          
-          function decimals() override external view returns (uint8) {
-              // We nominate our target collator with all the tokens provided
-              return erc20.decimals();
-          }
+        /// The ierc20 at the known pre-compile address.
+        IERC20 public erc20 = IERC20(0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080);
+        address erc20address = 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080;
 
-          function totalSupply() override external view returns (uint256){
-              // We nominate our target collator with all the tokens provided
-              return erc20.totalSupply();
-          }
-          
-          function balanceOf(address who) override external view returns (uint256){
-              // We nominate our target collator with all the tokens provided
-              return erc20.balanceOf(who);
-          }
-          
-          function allowance(
-              address owner,
-              address spender
-          ) override external view returns (uint256){
-              return erc20.allowance(owner, spender);
-          }
+            receive() external payable {
+            // React to receiving ether
+            }
 
-          function transfer(address to, uint256 value) override external returns (bool) {
-              return erc20.transfer(to, value);
-          }
-          
-          function approve(address spender, uint256 value) override external returns (bool) {
-              return erc20.approve(spender, value);
-          }
-          
-          function transferFrom(
-              address from,
-              address to,
-              uint256 value)
-          override external returns (bool) {
-              return erc20.transferFrom(from, to, value);
-          }
-  }`,
+            function name() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.name();
+            }
+            
+            function symbol() override external view returns (string memory) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.symbol();
+            }
+            
+            function decimals() override external view returns (uint8) {
+                // We nominate our target collator with all the tokens provided
+                return erc20.decimals();
+            }
+
+            function totalSupply() override external view returns (uint256){
+                // We nominate our target collator with all the tokens provided
+                return erc20.totalSupply();
+            }
+            
+            function balanceOf(address who) override external view returns (uint256){
+                // We nominate our target collator with all the tokens provided
+                return erc20.balanceOf(who);
+            }
+            
+            function allowance(
+                address owner,
+                address spender
+            ) override external view returns (uint256){
+                return erc20.allowance(owner, spender);
+            }
+
+            function transfer(address to, uint256 value) override external returns (bool) {
+                return erc20.transfer(to, value);
+            }
+            
+            function transfer_delegate(address to, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transfer(address,uint256)", to, value));
+            return result;
+            }
+            
+            function approve(address spender, uint256 value) override external returns (bool) {
+            return erc20.approve(spender, value);
+            }
+
+            function approve_delegate(address spender, uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("approve(address,uint256)", spender, value));
+            return result;
+            }
+            
+            function transferFrom(
+                address from,
+                address to,
+                uint256 value)
+            override external returns (bool) {
+                return erc20.transferFrom(from, to, value);
+            }
+            
+            function transferFrom_delegate(
+                address from,
+                address to,
+                uint256 value) external returns (bool) {
+            (bool result, bytes memory data) = erc20address.delegatecall(
+                abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, value));
+            return result;
+            }
+    }`,
+  Democracy: `
+    pragma solidity >=0.8.0;
+    interface Democracy {
+        // First some simple accessors
+    
+        /**
+         * Get The total number of public proposals past and present
+         * Selector: 56fdf547
+         *
+         * @return The total number of public proposals past and present
+         */
+        function public_prop_count() external view returns (uint256);
+    
+        /**
+         * Get details about all public porposals.
+         * Selector:
+         * @return (prop index, proposal hash, proposer)
+         * TODO This is supposed to be a vec. Let's save this one for later.
+         */
+        // function public_props()
+        //     external
+        //     view
+        //     returns (
+        //         uint256,
+        //         bytes32,
+        //         address
+        //     );
+    
+        /**
+         * Get the total amount locked behind a proposal.
+         * Selector: a30305e9
+         *
+         * @dev Unlike the similarly-named Rust function this one only returns the value, not the
+         * complete list of backers.
+         * @param prop_index The index of the proposal you are interested in
+         * @return The amount of tokens locked behind the proposal
+         */
+        function deposit_of(uint256 prop_index) external view returns (uint256);
+    
+        /**
+         * Get the index of the lowest unbaked referendum
+         * Selector: 0388f282
+         *
+         * @return The lowest referendum index representing an unbaked referendum.
+         */
+        function lowest_unbaked() external view returns (uint256);
+    
+        /**
+         * Get the details about an ongoing referendum.
+         * Selector: 8b93d11a
+         *
+         * @dev This, along with "finished_referendum_info", wraps the pallet's "referendum_info"
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
+         * @param ref_index The index of the referendum you are interested in
+         * @return A tuple including:
+         * * The block in which the referendum ended
+         * * The proposal hash
+         * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority
+         * * The delay between passing and launching
+         * * The total aye vote (including conviction)
+         * * The total nay vote (including conviction)
+         * * The total turnout (not including conviction)
+         */
+        function ongoing_referendum_info(uint256 ref_index)
+            external
+            view
+            returns (
+                uint256,
+                bytes32,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256
+            );
+    
+        /**
+         * Get the details about a finished referendum.
+         * Selector: b1fd383f
+         *
+         * @dev This, along with "ongoing_referendum_info", wraps the pallet's "referendum_info"
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
+         * @param ref_index The index of the referendum you are interested in
+    * @return A tuple including whether the referendum passed, and the block at which it finished.
+         */
+        function finished_referendum_info(uint256 ref_index)
+            external
+            view
+            returns (bool, uint256);
+    
+        // Now the dispatchables
+    
+        /**
+         * Make a new proposal
+         * Selector: 7824e7d1
+         *
+         * @param proposal_hash The hash of the proposal you are making
+         * @param value The number of tokens to be locked behind this proposal.
+         */
+        function propose(bytes32 proposal_hash, uint256 value) external;
+    
+        /**
+         * Signal agreement with a proposal
+         * Selector: c7a76601
+         *
+        * @dev No amount is necessary here. Seconds are always for the same amount that the original
+         * proposer locked. You may second multiple times.
+         *
+         * @param prop_index index of the proposal you want to second
+    * @param seconds_upper_bound A number greater than or equal to the current number of seconds.
+         * This is necessary for calculating the weight of the call.
+         */
+        function second(uint256 prop_index, uint256 seconds_upper_bound) external;
+    
+    //TODO should we have an alternative "simple_second" where the upper bound is read from storage?
+    
+        /**
+         * Vote in a referendum.
+         * Selector: 3f3c21cc
+         *
+         * @param ref_index index of the referendum you want to vote in
+    * @param aye "true" is a vote to enact the proposal; "false" is a vote to keep the status quo.
+         * @param vote_amount The number of tokens you are willing to lock if you get your way
+        * @param conviction How strongly you want to vote. Higher conviction means longer lock time.
+         * This must be an interget in the range 0 to 6
+         *
+         * @dev This function only supposrts "Standard" votes where you either vote aye xor nay.
+         * It does not support "Split" votes where you vote on both sides. If such a need
+         * arises, we should add an additional function to this interface called "split_vote".
+         */
+        function standard_vote(
+            uint256 ref_index,
+            bool aye,
+            uint256 vote_amount,
+            uint256 conviction
+        ) external;
+    
+        /** Remove a vote for a referendum.
+         * Selector: 2042f50b
+         *
+         * @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.
+         * @param ref_index The index of the referendum you are interested in
+         */
+        function remove_vote(uint256 ref_index) external;
+    
+        /**
+         * Delegate voting power to another account.
+         * Selector: 0185921e
+         *
+    * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
+         * time appropriate for the conviction's lock period.
+         * @param representative The account to whom the vote shall be delegated.
+    * @param conviction The conviction with which you are delegating. This conviction is used for
+         * _all_ delegated votes.
+         * @param amount The number of tokens whose voting power shall be delegated.
+         */
+        function delegate(
+            address representative,
+            uint256 conviction,
+            uint256 amount
+        ) external;
+    
+        /**
+         * Undelegatehe voting power
+         * Selector: cb37b8ea
+         *
+    * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which
+         * the delegation was issued has elapsed.
+         */
+        function un_delegate() external;
+    
+        /**
+         * Unlock tokens that have an expired lock.
+         * Selector: 2f6c493c
+         *
+         * @param target The account whose tokens should be unlocked. This may be any account.
+         */
+        function unlock(address target) external;
+    
+        /**
+         * Register the preimage for an upcoming proposal. This doesn't require the proposal to be
+         * in the dispatch queue but does require a deposit, returned once enacted.
+         * Selector: 200881f5
+         *
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+         */
+        function note_preimage(bytes memory encoded_proposal) external;
+    
+        /**
+         * Register the preimage for an upcoming proposal. This requires the proposal to be
+         * in the dispatch queue. No deposit is needed. When this call is successful, i.e.
+         * the preimage has not been uploaded before and matches some imminent proposal,
+         * no fee is paid.
+         * Selector: cf205f96
+         *
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+         */
+        function note_imminent_preimage(bytes memory encoded_proposal) external;
+    }`,
 };

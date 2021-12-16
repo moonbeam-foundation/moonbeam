@@ -95,7 +95,7 @@ fn ethereum_runtime_rpc_api_author() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -103,7 +103,7 @@ fn ethereum_runtime_rpc_api_author() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
@@ -197,7 +197,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -205,7 +205,6 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
@@ -230,7 +229,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -238,8 +237,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2);
+			run_to_block(2, None);
 			let block = Runtime::current_block().expect("Block result.");
 			assert_eq!(block.header.number, U256::from(1));
 		});
@@ -262,7 +260,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			(AccountId::from(ALICE), 200_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -270,7 +268,6 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// Calls are currently filtered, so the extrinsic will fail to apply.
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");

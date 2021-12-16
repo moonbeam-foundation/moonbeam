@@ -26,8 +26,8 @@ use fp_evm::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent, Vote,
-	VoteThreshold, Voting,
+	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent,
+	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, Address, Bytes, EvmDataWriter};
@@ -404,9 +404,8 @@ fn second_works() {
 				vec![
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					// This 100 is reserved for the second.
-					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved(Alice, 100).into(),
+					DemocracyEvent::Seconded(Alice, 0).into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -445,6 +444,18 @@ fn standard_vote_aye_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -499,6 +510,18 @@ fn standard_vote_nay_conviction_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: false,
+								conviction: 3u8.try_into().unwrap()
+							},
+							balance: 100000
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -568,6 +591,18 @@ fn remove_vote_works() {
 				vec![
 					DemocracyEvent::Started(0, pallet_democracy::VoteThreshold::SimpleMajority)
 						.into(),
+					DemocracyEvent::Voted(
+						Alice,
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100
+						}
+					)
+					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
@@ -862,6 +897,96 @@ fn note_preimage_works() {
 					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
+
+			// Check storage to make sure the data is actually stored there.
+			// There is no `Eq` implementation, so we check the data individually
+			if let PreimageStatus::Available {
+				data,
+				provider,
+				deposit,
+				expiry,
+				..
+			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
+			{
+				assert_eq!(data, dummy_preimage);
+				assert_eq!(provider, Alice);
+				assert_eq!(deposit, 40u128);
+				assert_eq!(expiry, None);
+			} else {
+				panic!("Expected preimge status to be available");
+			}
+		})
+}
+
+#[test]
+fn note_preimage_works_with_real_data() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> =
+				hex_literal::hex!("0c026be02d1d3665660d22ff9624b7be0551ee1ac91b").to_vec();
+			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let proposal_hash =
+				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
+					&dummy_preimage[..],
+				);
+			let expected_deposit =
+				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+
+			// Assert that the hash is as expected from TS tests
+			assert_eq!(
+				proposal_hash,
+				sp_core::H256::from(hex_literal::hex!(
+					"e435886138904e20b9d834d5c30b51693e5e53cc97f6d6da5908f1e41468bebf"
+				))
+			);
+
+			// Construct input data to note preimage
+			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
+				.write(dummy_bytes)
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: precompile_address(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				gas_price: 0.into(),
+				nonce: None, // Use the next nonce
+			})
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(Alice, expected_deposit).into(),
+					DemocracyEvent::PreimageNoted(proposal_hash, Alice, expected_deposit).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Check storage to make sure the data is actually stored there.
+			// There is no `Eq` implementation, so we check the data individually
+			if let PreimageStatus::Available {
+				data,
+				provider,
+				deposit,
+				expiry,
+				..
+			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
+			{
+				assert_eq!(data, dummy_preimage);
+				assert_eq!(provider, Alice);
+				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
+				assert_eq!(expiry, None);
+			} else {
+				panic!("Expected preimge status to be available");
+			}
 		})
 }
 

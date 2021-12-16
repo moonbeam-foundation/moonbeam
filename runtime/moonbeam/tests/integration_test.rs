@@ -153,16 +153,6 @@ fn verify_pallet_prefixes() {
 		]
 	);
 	assert_eq!(
-		<moonbeam_runtime::Sudo as StorageInfoTrait>::storage_info(),
-		vec![StorageInfo {
-			pallet_name: b"Sudo".to_vec(),
-			storage_name: b"Key".to_vec(),
-			prefix: prefix(b"Sudo", b"Key"),
-			max_values: Some(1),
-			max_size: Some(20),
-		}]
-	);
-	assert_eq!(
 		<moonbeam_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -234,8 +224,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Utility>(30);
 	is_pallet_index::<moonbeam_runtime::Proxy>(31);
 	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(32);
-	// Sudo
-	is_pallet_index::<moonbeam_runtime::Sudo>(40);
+	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
@@ -253,6 +242,17 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_proxy_type_indices() {
+	assert_eq!(moonbeam_runtime::ProxyType::Any as u8, 0);
+	assert_eq!(moonbeam_runtime::ProxyType::NonTransfer as u8, 1);
+	assert_eq!(moonbeam_runtime::ProxyType::Governance as u8, 2);
+	assert_eq!(moonbeam_runtime::ProxyType::Staking as u8, 3);
+	assert_eq!(moonbeam_runtime::ProxyType::CancelProxy as u8, 4);
+	assert_eq!(moonbeam_runtime::ProxyType::Balances as u8, 5);
+	assert_eq!(moonbeam_runtime::ProxyType::AuthorMapping as u8, 6);
+}
+
+#[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -265,7 +265,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 100_000 * GLMR),
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![
+		.with_delegations(vec![
 			(
 				AccountId::from(CHARLIE),
 				AccountId::from(ALICE),
@@ -289,7 +289,7 @@ fn join_collator_candidates() {
 					100_000 * GLMR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::NominatorExists
+				parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -361,8 +361,8 @@ fn transfer_through_evm_to_stake() {
 			let gas_price: U256 = (100 * GIGAWEI).into();
 			// Bob transfers 100_000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(BOB),
-				target: AccountId::from(CHARLIE),
+				source: H160::from(BOB),
+				target: H160::from(CHARLIE),
 				input: vec![],
 				value: (100_000 * GLMR).into(),
 				gas_limit,
@@ -401,7 +401,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 100_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -413,9 +413,8 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..2399 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+			for x in 2..3599 {
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -423,8 +422,7 @@ fn reward_block_authors() {
 				100_000 * GLMR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2400);
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -447,7 +445,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			(AccountId::from(CHARLIE), 100 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			50_000 * GLMR,
@@ -463,9 +461,8 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..2399 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+			for x in 2..3599 {
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -474,8 +471,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2400);
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -510,10 +506,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -626,10 +618,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -642,6 +630,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 
 			// signature is new_account || previous_account
 			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
+			message.append(&mut b"moonbeam-".to_vec());
 			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
 			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
@@ -732,10 +721,6 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -785,7 +770,7 @@ fn claim_via_precompile() {
 			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -824,10 +809,6 @@ fn is_contributor_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -946,10 +927,6 @@ fn reward_info_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1041,10 +1018,6 @@ fn update_reward_address_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1091,7 +1064,7 @@ fn update_reward_address_via_precompile() {
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(CHARLIE),
+				source: H160::from(CHARLIE),
 				target: crowdloan_precompile_address,
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
@@ -1221,8 +1194,8 @@ fn transfer_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
@@ -1249,8 +1222,8 @@ fn refund_ed_0_evm() {
 		.execute_with(|| {
 			// EVM transfer that zeroes ALICE
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
-				source: AccountId::from(ALICE),
-				target: AccountId::from(BOB),
+				source: H160::from(ALICE),
+				target: H160::from(BOB),
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_777u64,
