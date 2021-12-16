@@ -179,6 +179,7 @@ pub mod pallet {
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
 		BadVersion,
+		MaxWeightTransactReached,
 	}
 
 	#[pallet::event]
@@ -242,6 +243,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// Ensure the specified destination transact_weight is not reached
+			ensure!(
+				dest_weight < dest.clone().max_transact_weight(),
+				Error::<T>::MaxWeightTransactReached
+			);
+
 			let fee_location =
 				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
@@ -297,6 +304,12 @@ pub mod pallet {
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			// Ensure the specified destination transact_weight is not reached
+			ensure!(
+				dest_weight < dest.clone().max_transact_weight(),
+				Error::<T>::MaxWeightTransactReached
+			);
 
 			let fee_location: MultiLocation = T::CurrencyIdToMultiLocation::convert(currency_id)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
