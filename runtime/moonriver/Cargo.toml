@@ -17,6 +17,7 @@ sha3 = { version = "0.8", optional = true, default-features = false }
 # Moonbeam
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
+moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 runtime-common = { path = "../common", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -30,11 +31,14 @@ pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-fea
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+relay-encoder-precompiles = { path = "../../precompiles/relay-encoder", default-features = false }
+xcm-transactor-precompiles = { path = "../../precompiles/xcm_transactor", default-features = false }
 xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
 
 # Moonbeam tracing
@@ -199,6 +203,8 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
+	"xcm-transactor-precompiles/std",
+	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
 ]

@@ -93,7 +93,8 @@ use xcm::latest::prelude::*;
 
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, XcmFeesToAccount,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmFeesToAccount, XcmTransact,
 };
 
 use cumulus_primitives_core::{
@@ -1322,6 +1323,60 @@ impl orml_xtokens::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
+// For now we only allow to transact in the relay, although this might change in the future
+// Transactors just defines the chains in which we allow transactions to be issued through
+// xcm
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum Transactors {
+	Relay,
+}
+
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
+impl UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			// Shall we use westend for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to westend-runtime I think
+			Transactors::Relay => moonbeam_relay_encoder::kusama::KusamaEncoder.encode_call(call),
+		}
+	}
+}
+
+impl XcmTransact for Transactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			Transactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+impl xcm_transactor::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Transactor = Transactors;
+	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
+	type CurrencyIdToMultiLocation =
+		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type XcmExecutor = XcmExecutor;
+	type XcmSender = XcmRouter;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type LocationInverter = LocationInverter<Ancestry>;
+	type BaseXcmWeight = BaseXcmWeight;
+}
+
 /// Call filter used during Phase 3 of the Moonriver rollout
 pub struct PhaseThreeFilter;
 impl Contains<Call> for PhaseThreeFilter {
@@ -1333,6 +1388,7 @@ impl Contains<Call> for PhaseThreeFilter {
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
 			Call::XTokens(_) => false,
+			Call::XcmTransactor(_) => false,
 			Call::PolkadotXcm(_) => false,
 			_ => true,
 		}
@@ -1525,6 +1581,7 @@ construct_runtime! {
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
+		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 	}
 }
 

@@ -1725,14 +1725,15 @@ fn make_sure_movr_cannot_be_transferred() {
 					id: [1u8; 32],
 				}),
 			};
-			assert_noop!(XTokens::transfer(
-				origin_of(AccountId::from(ALICE)),
-				CurrencyId::SelfReserve,
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				40000
+			assert_noop!(
+				XTokens::transfer(
+					origin_of(AccountId::from(ALICE)),
+					CurrencyId::SelfReserve,
+					100,
+					Box::new(VersionedMultiLocation::V1(dest)),
+					40000
 				),
-			orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
 		});
 }
