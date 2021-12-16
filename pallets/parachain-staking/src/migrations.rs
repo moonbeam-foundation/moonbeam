@@ -26,13 +26,14 @@ use crate::{Collator2, Delegator, Nominator2};
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 #[cfg(feature = "try-runtime")]
 use frame_support::Twox64Concat;
+extern crate alloc;
+#[cfg(feature = "try-runtime")]
+use alloc::format;
 use frame_support::{
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
-extern crate alloc;
-use alloc::format;
 use sp_std::collections::btree_map::BTreeMap;
 
 /// Migration to properly increase maximum delegations per collator
