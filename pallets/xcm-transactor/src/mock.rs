@@ -320,7 +320,7 @@ impl Config for Test {
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<u64>;
-	type LocalAssetTransactor = DummyAssetTransactor;
+	type AssetTransactor = DummyAssetTransactor;
 	type CurrencyId = CurrencyId;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
