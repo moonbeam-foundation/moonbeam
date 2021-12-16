@@ -33,7 +33,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
-pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
+pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }try-
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
 
@@ -226,6 +226,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
