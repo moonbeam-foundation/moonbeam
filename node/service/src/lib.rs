@@ -43,7 +43,9 @@ use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig, ParachainInherentData,
 };
-use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
+use nimbus_consensus::{
+	build_nimbus_consensus, BuildNimbusConsensusParams, NimbusManualSealConsensusDataProvider,
+};
 use nimbus_primitives::NimbusId;
 
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
@@ -364,27 +366,18 @@ where
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
 
 	// Depending whether we are
-	let import_queue = if dev_service {
-		// There is a bug in this import queue where it doesn't properly check inherents:
-		// https://github.com/paritytech/substrate/issues/8164
-		sc_consensus_manual_seal::import_queue(
-			Box::new(frontier_block_import.clone()),
-			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
-		)
-	} else {
-		nimbus_consensus::import_queue(
-			client.clone(),
-			frontier_block_import.clone(),
-			move |_, _| async move {
-				let time = sp_timestamp::InherentDataProvider::from_system_time();
+	let import_queue = nimbus_consensus::import_queue(
+		client.clone(),
+		frontier_block_import.clone(),
+		move |_, _| async move {
+			let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-				Ok((time,))
-			},
-			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
-		)?
-	};
+			Ok((time,))
+		},
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		!dev_service,
+	)?;
 
 	Ok(PartialComponents {
 		backend,
@@ -792,15 +785,6 @@ where
 	let collator = config.role.is_authority();
 
 	if collator {
-		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
-		// This could and perhaps should be made more flexible. Here are some options:
-		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
-		// 2. restore the old --author-id` and also allow it to force a secific key
-		//    in the parachain context
-		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
-		//    be exported as a helper function from nimbus.
-		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
-
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -865,14 +849,16 @@ where
 				pool: transaction_pool.clone(),
 				commands_stream,
 				select_chain,
-				consensus_data_provider: None,
+				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
+					keystore: keystore_container.sync_keystore(),
+					client: client.clone(),
+				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
 
-					let author_id = author_id.clone();
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 
@@ -894,9 +880,7 @@ where
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-						Ok((time, mocked_parachain, author))
+						Ok((time, mocked_parachain))
 					}
 				},
 			}),

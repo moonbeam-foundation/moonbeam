@@ -335,7 +335,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
+			impl nimbus_primitives::NimbusApi<Block> for Runtime {
 				fn can_author(
 					author: nimbus_primitives::NimbusId,
 					slot: u32,
@@ -378,6 +378,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					} else {
 						AuthorInherent::can_author(&author, &slot)
 					}
+				}
+			}
+
+			// We also implement the old AuthorFilterAPI to meet the trait bounds on the client side.
+			impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
+				fn can_author(_: NimbusId, _: u32, _: &<Block as BlockT>::Header) -> bool {
+					panic!("AuthorFilterAPI is no longer supported. Please update your client.")
 				}
 			}
 
