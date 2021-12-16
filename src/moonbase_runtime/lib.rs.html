@@ -1815,6 +1815,7 @@
 <span id="1815">1815</span>
 <span id="1816">1816</span>
 <span id="1817">1817</span>
+<span id="1818">1818</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3229,6 +3230,7 @@
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">xcm_builder::FixedWeightBounds</span><span class="op">&lt;</span><span class="ident">UnitWeightCost</span>, <span class="ident">Call</span>, <span class="ident">MaxInstructions</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BaseXcmWeight</span> <span class="op">=</span> <span class="ident">BaseXcmWeight</span>;
+	<span class="kw">type</span> <span class="ident">AssetTransactor</span> <span class="op">=</span> <span class="ident">AssetTransactors</span>;
 }
 
 <span class="doccomment">/// Call filter used during Phase 3 of the Moonriver rollout</span>
