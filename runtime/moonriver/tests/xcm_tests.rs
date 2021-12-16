@@ -17,7 +17,7 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
-use frame_support::{assert_ok, traits::PalletInfo, assert_noop};
+use frame_support::{assert_noop, assert_ok, traits::PalletInfo};
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
@@ -301,14 +301,16 @@ fn send_para_a_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_noop!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			800000
-		),
-		orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed);
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::SelfReserve,
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				800000
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 	ParaA::execute_with(|| {
 		// free execution, full amount received
@@ -378,14 +380,16 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	};
 	ParaA::execute_with(|| {
 		// We cannot transfer Self Reserve
-		assert_noop!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			80
-		),
-		orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed);
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::SelfReserve,
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				80
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -414,14 +418,16 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	ParaB::execute_with(|| {
 		// first transfer did not go through, so this fails
-		assert_noop!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::OtherReserve(source_id),
-			100,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			80
-		),
-		orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed);
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::OtherReserve(source_id),
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				80
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 
 	// Para C never receives tokens
@@ -470,13 +476,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	};
 	ParaA::execute_with(|| {
 		// We cannot transfer Self Reserve
-		assert_noop!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			80
-		), orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed);
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::SelfReserve,
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				80
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -504,14 +513,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	};
 	ParaB::execute_with(|| {
 		// The token was not received
-		assert_noop!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::OtherReserve(source_id),
-			100,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			80
-		),
-		orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed);
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::OtherReserve(source_id),
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				80
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 
 	ParaA::execute_with(|| {
