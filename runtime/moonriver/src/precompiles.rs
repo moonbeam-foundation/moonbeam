@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use fp_evm::{Context, ExitError, PrecompileOutput};
+use fp_evm::Context;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
