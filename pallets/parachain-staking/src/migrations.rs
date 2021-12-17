@@ -34,7 +34,7 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
-use sp_std::collections::btree_map::BTreeMap;
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 /// Migration to properly increase maximum delegations per collator
 /// This migration can be used to recompute the top and bottom delegations whenever
