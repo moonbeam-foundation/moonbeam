@@ -18,8 +18,8 @@ use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::{Context, ExitError, PrecompileOutput};
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
-use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -72,9 +72,11 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2052, 2053, 2054]
-			.into_iter()
-			.map(|x| R::AddressMapping::into_account_id(hash(x)))
+		sp_std::vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2052, 2053, 2054
+		]
+		.into_iter()
+		.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 
@@ -125,6 +127,7 @@ where
 				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
 					input, target_gas, context,
 				))
+			}
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, KusamaEncoder>::execute(
 				input, target_gas, context,
