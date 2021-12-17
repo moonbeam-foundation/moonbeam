@@ -192,13 +192,13 @@ where
 			dest_weight,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
 			call,
 			gasometer.remaining_gas()?,
 		)?;
 
-		gasometer.recorgasometerd_cost(used_gas)?;
+		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -300,13 +300,13 @@ where
 			dest_weight,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
 			call,
 			gasometer.remaining_gas()?,
 		)?;
 
-		gasometer.recorgasometerd_cost(used_gas)?;
+		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
