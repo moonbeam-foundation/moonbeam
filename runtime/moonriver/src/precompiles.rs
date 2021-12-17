@@ -17,6 +17,7 @@
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::{Context, ExitError, PrecompileOutput};
 use pallet_evm::{AddressMapping, Precompile, PrecompileSet};
+use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -27,6 +28,26 @@ use parachain_staking_precompiles::ParachainStakingWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+
+/// ERC20 metadata for the native token.
+pub struct NativeErc20Metadata;
+
+impl Erc20Metadata for NativeErc20Metadata {
+	/// Returns the name of the token.
+	fn name() -> &'static str {
+		"MOVR token"
+	}
+
+	/// Returns the symbol of the token.
+	fn symbol() -> &'static str {
+		"MOVR"
+	}
+
+	/// Returns the decimals places of the token.
+	fn decimals() -> u8 {
+		18
+	}
+}
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -41,7 +62,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050]
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
@@ -56,6 +77,7 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
 	fn execute(
 		address: H160,
@@ -85,6 +107,11 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
+			a if a == hash(2050) => {
+				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
+					input, target_gas, context,
+				))
+			}
 			_ => None,
 		}
 	}
