@@ -600,7 +600,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
-#[ignore]
 #[test]
 fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 	ExtBuilder::default()
@@ -703,7 +702,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		});
 }
 
-#[ignore]
 #[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
@@ -754,6 +752,9 @@ fn claim_via_precompile() {
 			})
 			.dispatch(root_origin()));
 
+			assert!(CrowdloanRewards::initialized());
+
+			run_to_block(4, None);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
 			// 30 percent initial payout
@@ -763,7 +764,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 100_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1000,7 +1001,6 @@ fn reward_info_via_precompile() {
 		})
 }
 
-#[ignore]
 #[test]
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
@@ -1055,7 +1055,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 100_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
