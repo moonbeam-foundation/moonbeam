@@ -168,7 +168,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(fee) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred+fee));
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred + fee));
   });
 });
 
@@ -368,6 +368,6 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         BigInt(fee) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred+fee));
+    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(amountTransferred + fee));
   });
 });
