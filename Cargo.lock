@@ -2481,6 +2481,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "sha3 0.8.2",
  "sp-api",
+ "sp-block-builder",
  "sp-blockchain",
  "sp-io",
  "sp-runtime",
