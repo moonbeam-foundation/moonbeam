@@ -1286,7 +1286,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROGLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
-		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
+		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
 	}
 }
 
@@ -2325,12 +2325,12 @@
 		<span class="comment">// pallet_identity deposits</span>
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">BasicDeposit::get</span>(),
-			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">2580</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">2580</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 		<span class="macro">assert_eq!</span>(<span class="ident">FieldDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">660</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">SubAccountDeposit::get</span>(),
-			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">530</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">530</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 
 		<span class="comment">// staking minimums</span>
@@ -2347,12 +2347,12 @@
 		<span class="comment">// proxy deposits</span>
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">ProxyDepositBase::get</span>(),
-			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 		<span class="macro">assert_eq!</span>(<span class="ident">ProxyDepositFactor::get</span>(), <span class="ident">Balance::from</span>(<span class="number">210</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">AnnouncementDepositBase::get</span>(),
-			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="ident">AnnouncementDepositFactor::get</span>(),
