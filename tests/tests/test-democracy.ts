@@ -348,6 +348,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       alith,
       context.polkadotApi.tx.democracy.second(0, 1000)
     );
+    expect(eventsSecond[2].toHuman().method).to.eq("Seconded");
     expect(eventsSecond[5].toHuman().method).to.eq("ExtrinsicSuccess");
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
@@ -367,6 +368,8 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
     );
+
+    expect(eventsVote[1].toHuman().method).to.eq("Voted");
     expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
     // referendumInfoOf

@@ -33,7 +33,7 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EqualPrivilegeOnly, Get, Imbalance, InstanceFilter, OnUnbalanced},
+	traits::{Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
@@ -105,7 +105,7 @@ pub mod currency {
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 100 * MILLIGLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -160,20 +160,6 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-
-/// Returns if calls are allowed through the filter
-pub struct BaseFilter;
-impl Contains<Call> for BaseFilter {
-	fn contains(c: &Call) -> bool {
-		match c {
-			Call::Balances(_) => false,
-			Call::CrowdloanRewards(_) => false,
-			Call::Ethereum(_) => false,
-			Call::EVM(_) => false,
-			_ => true,
-		}
-	}
-}
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 256;
@@ -693,8 +679,9 @@ parameter_types! {
 	/// Minimum stake required to be reserved to be a candidate
 	pub const MinCandidateStk: u128 = 1000 * currency::GLMR * currency::SUPPLY_FACTOR;
 	/// Minimum stake required to be reserved to be a delegator
-	pub const MinDelegatorStk: u128 = 5 * currency::GLMR * currency::SUPPLY_FACTOR;
+	pub const MinDelegatorStk: u128 = 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR;
 }
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -911,7 +898,7 @@ impl Contains<Call> for MaintenanceFilter {
 // we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = BaseFilter;
+	type NormalCallFilter = Everything;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
@@ -1193,18 +1180,18 @@ mod tests {
 		// pallet_identity deposits
 		assert_eq!(
 			BasicDeposit::get(),
-			Balance::from(100 * GLMR + 2580 * MILLIGLMR)
+			Balance::from(10 * GLMR + 2580 * MILLIGLMR)
 		);
 		assert_eq!(FieldDeposit::get(), Balance::from(660 * MILLIGLMR));
 		assert_eq!(
 			SubAccountDeposit::get(),
-			Balance::from(100 * GLMR + 530 * MILLIGLMR)
+			Balance::from(10 * GLMR + 530 * MILLIGLMR)
 		);
 
 		// staking minimums
 		assert_eq!(MinCollatorStk::get(), Balance::from(100 * KILOGLMR));
 		assert_eq!(MinCandidateStk::get(), Balance::from(100 * KILOGLMR));
-		assert_eq!(MinDelegatorStk::get(), Balance::from(500 * GLMR));
+		assert_eq!(MinDelegatorStk::get(), Balance::from(50 * GLMR));
 
 		// crowdloan min reward
 		assert_eq!(MinimumReward::get(), Balance::from(0u128));
@@ -1215,12 +1202,12 @@ mod tests {
 		// proxy deposits
 		assert_eq!(
 			ProxyDepositBase::get(),
-			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(10 * GLMR + 80 * MILLIGLMR)
 		);
 		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
 		assert_eq!(
 			AnnouncementDepositBase::get(),
-			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(10 * GLMR + 80 * MILLIGLMR)
 		);
 		assert_eq!(
 			AnnouncementDepositFactor::get(),

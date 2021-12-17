@@ -67,7 +67,7 @@ pub mod pallet {
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
-	use xcm_executor::traits::{InvertLocation, WeightBounds};
+	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
@@ -94,6 +94,10 @@ pub mod pallet {
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
+
+		/// AssetTransactor allows us to withdraw asset without being trapped
+		/// This should change in xcm v3, which allows us to burn assets
+		type AssetTransactor: TransactAsset;
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
@@ -180,6 +184,8 @@ pub mod pallet {
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
 		BadVersion,
+		MaxWeightTransactReached,
+		UnableToWithdrawAsset,
 	}
 
 	#[pallet::event]
@@ -243,6 +249,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// Ensure the specified destination transact_weight is not reached
+			ensure!(
+				dest_weight < dest.clone().max_transact_weight(),
+				Error::<T>::MaxWeightTransactReached
+			);
+
 			let fee_location =
 				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
@@ -298,6 +310,12 @@ pub mod pallet {
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			// Ensure the specified destination transact_weight is not reached
+			ensure!(
+				dest_weight < dest.clone().max_transact_weight(),
+				Error::<T>::MaxWeightTransactReached
+			);
 
 			let fee_location: MultiLocation = T::CurrencyIdToMultiLocation::convert(currency_id)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
@@ -444,28 +462,8 @@ pub mod pallet {
 
 			// Construct the local withdraw message with the previous calculated amount
 			// This message deducts and burns "amount" from the caller when executed
-			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
-
-			// Calculate weight of message
-			let weight = T::Weigher::weight(&mut withdraw_message)
-				.map_err(|()| Error::<T>::UnweighableMessage)?;
-
-			// This execution ensures we withdraw assets from the calling account
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(
-				origin_as_mult,
-				withdraw_message,
-				weight,
-				weight,
-			);
-
-			// Let's check if the execution was succesful
-			let maybe_xcm_err: Option<XcmError> = match outcome {
-				Outcome::Complete(_w) => Option::None,
-				Outcome::Incomplete(_w, err) => Some(err),
-				Outcome::Error(err) => Some(err),
-			};
-
-			ensure!(maybe_xcm_err.is_none(), Error::<T>::XcmExecuteError);
+			T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult)
+				.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.

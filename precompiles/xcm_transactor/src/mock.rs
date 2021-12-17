@@ -426,6 +426,7 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type AssetTransactor = DummyAssetTransactor;
 }
 
 // We need to use the encoding from the relay mock runtime
@@ -462,6 +463,11 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+	fn max_transact_weight(self) -> Weight {
+		match self {
+			MockTransactors::Relay => 20000000000,
 		}
 	}
 }

@@ -32,7 +32,7 @@ use frame_support::{
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
 	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens,
+	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1673,6 +1673,60 @@ fn root_can_change_default_xcm_vers() {
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
 			));
+		})
+}
+
+#[test]
+fn transactor_cannot_use_more_than_max_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			assert_ok!(XcmTransactor::register(
+				root_origin(),
+				AccountId::from(ALICE),
+				0,
+			));
+
+			assert_noop!(
+				XcmTransactor::transact_through_derivative_multilocation(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::Transactors::Relay,
+					0,
+					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+			assert_noop!(
+				XcmTransactor::transact_through_derivative(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::Transactors::Relay,
+					0,
+					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
 		})
 }
 

@@ -27,8 +27,8 @@ use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range,
-	SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -253,6 +253,8 @@ pub fn testnet_genesis(
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 		},
+		// This should initialize it to whatever we have set in the pallet
+		polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 

@@ -24,7 +24,6 @@ use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAc
 use sp_core::{Public, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use frame_support::assert_noop;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -207,7 +206,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			// Calls are currently filtered, so the extrinsic will fail to apply.
+			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			// Changed from BadOrigin to CallFiltered
@@ -272,7 +271,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			// Calls are currently filtered, so the extrinsic will fail to apply.
+			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			// Changed from BadOrigin to CallFiltered

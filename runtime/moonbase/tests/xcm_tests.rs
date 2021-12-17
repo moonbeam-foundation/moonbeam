@@ -906,6 +906,17 @@ fn transact_through_derivative_multilocation() {
 			4000000000,
 			encoded,
 		));
+		let event_found: Option<parachain::Event> =
+			parachain::para_events()
+				.iter()
+				.find_map(|event| match event.clone() {
+					parachain::Event::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
+						Some(event.clone())
+					}
+					_ => None,
+				});
+		// Assert that the events do not contain the assets being trapped
+		assert!(event_found.is_none());
 	});
 
 	Relay::execute_with(|| {

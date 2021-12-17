@@ -132,18 +132,18 @@ polkadot side.
 
 Here is the list of cargo aliases allowing you to compile only some native rutimes:
 
-| command | native runtimes |
-|-|-|
-| `cargo moonbase`  | `moonbase, westend, polkadot`  |
+| command                  | native runtimes                       |
+| ------------------------ | ------------------------------------- |
+| `cargo moonbase`         | `moonbase, westend, polkadot`         |
 | `cargo moonbase-rococo`  | `moonbase, rococo, westend, polkadot` |
-| `cargo moonriver` | `moonriver, polkadot` |
-| `cargo moonriver-rococo` | `moonriver, rococo, polkadot` |
-| `cargo moonriver-kusama` | `moonriver, kusama, polkadot` |
-| `cargo moonbeam` | `moonbeam, polkadot` |
-| `cargo moonbeam-rococo` | `moonbeam, rococo, polkadot` |
+| `cargo moonriver`        | `moonriver, polkadot`                 |
+| `cargo moonriver-rococo` | `moonriver, rococo, polkadot`         |
+| `cargo moonriver-kusama` | `moonriver, kusama, polkadot`         |
+| `cargo moonbeam`         | `moonbeam, polkadot`                  |
+| `cargo moonbeam-rococo`  | `moonbeam, rococo, polkadot`          |
 
-* The `moonbase` native runtime require `westend` native runtime to compile.
-* The `polkadot` native runtime is always included (This is requirement from polkadot repo).
+- The `moonbase` native runtime require `westend` native runtime to compile.
+- The `polkadot` native runtime is always included (This is requirement from polkadot repo).
 
 ### Port assignments
 
@@ -197,6 +197,17 @@ For the default configuration, you can access through polkadotjs:
 
 2021-06-06 04:28:52  Building chain spec
 ```
+
+### Connect with MetaMask
+
+In order to connect to MetaMask, add a network in settings and use these inputs:
+New RPC URL: `http://localhost:RPC_PORT`
+Chain ID: `1280`
+
+You can obtain the RPC_PORT in the logs:
+`Starting a Collator for parachain 1000: 5Ec4AhPZk8STuex8Wsi9TwDtJQxKqzPJRCH7348Xtcs9vZLJ, Collator port : 34100 wsPort : 34102 rpcPort : 34101`
+
+Here `34101` is the rpcPort for the collator.
 
 ## Listing dependency pull request by labels
 
