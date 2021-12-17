@@ -49,7 +49,10 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
+	TransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAssetWithFee =
+		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -73,7 +76,11 @@ where
 
 		match selector {
 			Action::Transfer => Self::transfer(input, target_gas, context),
+			Action::TransferWithFee => Self::transfer_with_fee(input, target_gas, context),
 			Action::TransferMultiAsset => Self::transfer_multiasset(input, target_gas, context),
+			Action::TransferMultiAssetWithFee => {
+				Self::transfer_multiasset_with_fee(input, target_gas, context)
+			}
 		}
 	}
 }
@@ -141,6 +148,66 @@ where
 		})
 	}
 
+	fn transfer_with_fee(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		input.expect_arguments(5)?;
+
+		let to_address: H160 = input.read::<Address>()?.into();
+		let amount: U256 = input.read()?;
+		let fee: U256 = input.read()?;
+
+		// We use the MultiLocation, which we have instructed how to read
+		// In the end we are using the encoding
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
+
+		let dest_weight: u64 = input.read::<u64>()?;
+
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		// We convert the address into a currency id xtokens understands
+		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(error("cannot convert into currency id"))?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+		// Transferred amount
+		let amount = amount
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+
+		// Fee amount
+		let fee = fee
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer_with_fee {
+			currency_id,
+			amount,
+			fee,
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest_weight,
+		};
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
 	fn transfer_multiasset(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
@@ -171,6 +238,63 @@ where
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
+			})),
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest_weight,
+		};
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn transfer_multiasset_with_fee(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		input.expect_arguments(5)?;
+
+		// asset is defined as a multiLocation. For now we are assuming these are concrete
+		// fungible assets
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		let amount: U256 = input.read()?;
+		let fee: U256 = input.read()?;
+
+		// read destination
+		let destination: MultiLocation = input.read::<MultiLocation>()?;
+
+		let dest_weight: u64 = input.read::<u64>()?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let amount = amount
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+		let fee = fee
+			.try_into()
+			.map_err(|_| error("Amount is too large for provided balance type"))?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
+			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
+				id: AssetId::Concrete(asset_multilocation.clone()),
+				fun: Fungibility::Fungible(amount),
+			})),
+			fee: Box::new(VersionedMultiAsset::V1(MultiAsset {
+				id: AssetId::Concrete(asset_multilocation),
+				fun: Fungibility::Fungible(fee),
 			})),
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
 			dest_weight,
