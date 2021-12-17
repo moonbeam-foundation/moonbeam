@@ -31,8 +31,8 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
-parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
+parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 
 # Moonbeam tracing
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
