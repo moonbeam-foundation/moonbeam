@@ -54,10 +54,10 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 			let top_n = T::MaxDelegatorsPerCandidate::get() as usize;
 			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
 			let top_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
-				all_delegations.clone().into_iter().take(top_n).collect();
+				all_delegations.iter().take(top_n).cloned().collect();
 			let bottom_delegations = if all_delegations.len() > top_n {
 				let rest = all_delegations.len() - top_n;
-				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_delegations
+				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_delegations.iter().rev().take(rest).cloned().collect();
 					.clone()
 					.into_iter()
 					.rev()
