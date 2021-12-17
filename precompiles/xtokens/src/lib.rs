@@ -138,7 +138,7 @@ where
 			gasometer.remaining_gas()?,
 		)?;
 
-		gasometer.recorgasometerd_cost(used_gas)?;
+		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
