@@ -1835,3 +1835,51 @@ fn transactor_cannot_use_more_than_max_weight() {
 			);
 		})
 }
+
+#[test]
+fn call_xtokens_with_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let dest = MultiLocation {
+				parents: 1,
+				interior: X1(AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			};
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+
+			let before_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+
+			// We are able to transfer with fee
+			assert_ok!(XTokens::transfer_with_fee(
+				origin_of(AccountId::from(ALICE)),
+				CurrencyId::OtherReserve(source_id),
+				100_000_000_000_000,
+				100,
+				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
+				4000000000
+			),);
+
+			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+			// At least these much (plus fees) should have been charged
+			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
+		});
+}
