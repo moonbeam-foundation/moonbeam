@@ -105,7 +105,7 @@ pub mod currency {
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 100 * MILLIGLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -1144,12 +1144,12 @@ mod tests {
 		// pallet_identity deposits
 		assert_eq!(
 			BasicDeposit::get(),
-			Balance::from(100 * GLMR + 2580 * MILLIGLMR)
+			Balance::from(10 * GLMR + 2580 * MILLIGLMR)
 		);
 		assert_eq!(FieldDeposit::get(), Balance::from(660 * MILLIGLMR));
 		assert_eq!(
 			SubAccountDeposit::get(),
-			Balance::from(100 * GLMR + 530 * MILLIGLMR)
+			Balance::from(10 * GLMR + 530 * MILLIGLMR)
 		);
 
 		// staking minimums
@@ -1166,12 +1166,12 @@ mod tests {
 		// proxy deposits
 		assert_eq!(
 			ProxyDepositBase::get(),
-			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(10 * GLMR + 80 * MILLIGLMR)
 		);
 		assert_eq!(ProxyDepositFactor::get(), Balance::from(210 * MILLIGLMR));
 		assert_eq!(
 			AnnouncementDepositBase::get(),
-			Balance::from(100 * GLMR + 80 * MILLIGLMR)
+			Balance::from(10 * GLMR + 80 * MILLIGLMR)
 		);
 		assert_eq!(
 			AnnouncementDepositFactor::get(),
