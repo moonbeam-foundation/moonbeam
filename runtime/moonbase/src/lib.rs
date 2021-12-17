@@ -1435,6 +1435,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::EVM(_) => false,
 			Call::XTokens(_) => false,
 			Call::XcmTransactor(_) => false,
+			Call::PolkadotXcm(_) => false,
 			_ => true,
 		}
 	}
