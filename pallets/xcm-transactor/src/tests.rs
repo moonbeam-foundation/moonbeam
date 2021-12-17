@@ -117,10 +117,10 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 						1,
 						Junctions::X1(Junction::PalletInstance(1))
-					)),
+					))),
 					21000000000u64,
 					vec![0u8]
 				),
