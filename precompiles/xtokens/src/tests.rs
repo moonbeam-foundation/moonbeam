@@ -213,7 +213,7 @@ fn transfer_to_reserve_with_fee_works() {
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			// Fees are not trully charged, so no worries
 			assert_eq!(
-				precompiles().execute(
+				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
 						.write(Address(AssetId(0u128).into()))
@@ -228,7 +228,6 @@ fn transfer_to_reserve_with_fee_works() {
 						caller: Alice.into(),
 						apparent_value: From::from(0),
 					},
-					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -312,7 +311,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 
 			// We are transferring asset 1, which corresponds to another parachain Id asset
 			assert_eq!(
-				precompiles().execute(
+				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
 						.write(Address(AssetId(1u128).into()))
@@ -327,7 +326,6 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 						caller: Alice.into(),
 						apparent_value: From::from(0),
 					},
-					false
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -472,7 +470,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 			let self_reserve = crate::mock::SelfReserve::get();
 
 			assert_eq!(
-				precompiles().execute(
+				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(self_reserve.clone())
@@ -487,7 +485,6 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						caller: Alice.into(),
 						apparent_value: From::from(0),
 					},
-					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -590,7 +587,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 			);
 
 			assert_eq!(
-				precompiles().execute(
+				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(asset_location.clone())
@@ -604,8 +601,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 						address: Precompile.into(),
 						caller: Alice.into(),
 						apparent_value: From::from(0),
-					},
-					false
+					}
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
