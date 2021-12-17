@@ -269,6 +269,11 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => MultiLocation::parent(),
 		}
 	}
+	fn max_transact_weight(self) -> Weight {
+		match self {
+			Transactors::Relay => 20000000000,
+		}
+	}
 }
 
 impl UtilityEncodeCall for Transactors {
@@ -320,6 +325,7 @@ impl Config for Test {
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<u64>;
+	type AssetTransactor = DummyAssetTransactor;
 	type CurrencyId = CurrencyId;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;

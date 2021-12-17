@@ -24,6 +24,7 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use frame_system::RawOrigin;
+use nimbus_primitives::NimbusId;
 use parity_scale_codec::Decode;
 
 /// Create a funded user.
@@ -37,16 +38,16 @@ fn create_funded_user<T: Config>() -> T::AccountId {
 	user
 }
 
-/// Create a valid author id
-pub fn author_id<T: Config>(seed: u8) -> T::AuthorId {
+/// Create a valid nimbus id from a simple u8 seed
+pub fn nimbus_id(seed: u8) -> NimbusId {
 	let id = [seed; 32];
-	T::AuthorId::decode(&mut &id[..]).unwrap_or_default()
+	NimbusId::decode(&mut &id[..]).unwrap_or_default()
 }
 
 benchmarks! {
 	add_association {
 		let caller = create_funded_user::<T>();
-		let id = author_id::<T>(1u8);
+		let id = nimbus_id(1u8);
 	}: _(RawOrigin::Signed(caller.clone()), id.clone())
 	verify {
 		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
@@ -54,8 +55,8 @@ benchmarks! {
 
 	update_association {
 		let caller = create_funded_user::<T>();
-		let first_id = author_id::<T>(1u8);
-		let second_id = author_id::<T>(2u8);
+		let first_id = nimbus_id(1u8);
+		let second_id = nimbus_id(2u8);
 		assert_ok!(Pallet::<T>::add_association(
 			RawOrigin::Signed(caller.clone()).into(),
 			first_id.clone())
@@ -68,7 +69,7 @@ benchmarks! {
 
 	clear_association {
 		let caller = create_funded_user::<T>();
-		let first_id = author_id::<T>(1u8);
+		let first_id = nimbus_id(1u8);
 		assert_ok!(Pallet::<T>::add_association(
 			RawOrigin::Signed(caller.clone()).into(),
 			first_id.clone())

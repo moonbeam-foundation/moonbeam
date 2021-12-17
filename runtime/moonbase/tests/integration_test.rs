@@ -32,7 +32,7 @@ use frame_support::{
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
 	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens,
+	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -418,14 +418,12 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1200);
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -465,15 +463,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1200);
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -508,10 +504,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -620,10 +612,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -634,8 +622,10 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			let public1 = pair1.public();
 			let public2 = pair2.public();
 
-			// signature is new_account || previous_account
+			// signature:
+			// WRAP_BYTES|| NetworkIdentifier|| new_account || previous_account || WRAP_BYTES
 			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
+			message.append(&mut b"moonbase-".to_vec());
 			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
 			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
@@ -726,10 +716,6 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -818,10 +804,6 @@ fn is_contributor_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -930,10 +912,6 @@ fn reward_info_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1019,10 +997,6 @@ fn update_reward_address_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1677,6 +1651,60 @@ fn root_can_change_default_xcm_vers() {
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
 			));
+		})
+}
+
+#[test]
+fn transactor_cannot_use_more_than_max_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_xcm_assets(vec![(
+			AssetType::Xcm(MultiLocation::parent()),
+			AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+		)])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			assert_ok!(XcmTransactor::register(
+				root_origin(),
+				AccountId::from(ALICE),
+				0,
+			));
+
+			assert_noop!(
+				XcmTransactor::transact_through_derivative_multilocation(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::Transactors::Relay,
+					0,
+					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+			assert_noop!(
+				XcmTransactor::transact_through_derivative(
+					origin_of(AccountId::from(ALICE)),
+					moonbase_runtime::Transactors::Relay,
+					0,
+					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					// 12000000000 is the max
+					13000000000,
+					vec![],
+				),
+				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
 		})
 }
 

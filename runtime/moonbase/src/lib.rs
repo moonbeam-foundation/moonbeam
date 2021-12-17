@@ -762,7 +762,6 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type AuthorId = NimbusId;
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
@@ -782,6 +781,8 @@ parameter_types! {
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
 	pub const MaxInitContributorsBatchSizes: u32 = 500;
 	pub const RelaySignaturesThreshold: Perbill = Perbill::from_percent(100);
+	pub const SignatureNetworkIdentifier:  &'static [u8] = b"moonbase-";
+
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
@@ -792,8 +793,10 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
+	type RewardAddressAssociateOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
+	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
@@ -807,7 +810,6 @@ parameter_types! {
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
-	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
@@ -1392,6 +1394,14 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => MultiLocation::parent(),
 		}
 	}
+	fn max_transact_weight(self) -> Weight {
+		match self {
+			// Westend is 20,000,000,000
+			// This needs to take into account the rest of the message
+			// We use 12,000,000,000 to be safe
+			Transactors::Relay => 12_000_000_000,
+		}
+	}
 }
 
 impl xcm_transactor::Config for Runtime {
@@ -1410,6 +1420,7 @@ impl xcm_transactor::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
+	type AssetTransactor = AssetTransactors;
 }
 
 /// Call filter used during Phase 3 of the Moonriver rollout
