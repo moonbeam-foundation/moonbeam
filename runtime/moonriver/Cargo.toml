@@ -36,6 +36,7 @@ xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = fal
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
+pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 relay-encoder-precompiles = { path = "../../precompiles/relay-encoder", default-features = false }
 xcm-transactor-precompiles = { path = "../../precompiles/xcm_transactor", default-features = false }
@@ -170,6 +171,7 @@ std = [
 	"pallet-democracy/std",
 	"pallet-ethereum-chain-id/std",
 	"pallet-ethereum/std",
+	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
