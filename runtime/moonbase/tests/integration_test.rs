@@ -1708,7 +1708,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::Transactors::Relay,
 					0,
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 12000000000 is the max
 					13000000000,
 					vec![],

@@ -1348,7 +1348,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 
 			// Access totalSupply through precompile. Important that the context is correct
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
 					None,
@@ -1357,13 +1357,14 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
 
 			// Access balanceOf through precompile
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(ALICE.into()))
@@ -1374,6 +1375,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1409,7 +1411,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Transfer tokens from Aice to Bob, 400 MOVR.
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
 						.write(EvmAddress(BOB.into()))
@@ -1421,6 +1423,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1435,7 +1438,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Make sure BOB has 400 MOVR
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(BOB.into()))
@@ -1446,6 +1449,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1481,7 +1485,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Aprove Bob for spending 400 MOVR from Alice
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Approve)
 						.write(EvmAddress(BOB.into()))
@@ -1493,6 +1497,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1514,7 +1519,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
 						.write(EvmAddress(ALICE.into()))
@@ -1527,6 +1532,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1541,7 +1547,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Make sure CHARLIE has 400 MOVR
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(CHARLIE.into()))
@@ -1552,6 +1558,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: CHARLIE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1598,7 +1605,7 @@ fn xtokens_precompiles_transfer() {
 
 			// We use the address of the asset as an identifier of the asset we want to transferS
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
@@ -1612,6 +1619,7 @@ fn xtokens_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1657,7 +1665,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
@@ -1672,6 +1680,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1790,7 +1799,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
 					AccountId::from(ALICE)
 				)),
-				DispatchError::BadOrigin
+				frame_system::Error::<Runtime>::CallFiltered
 			);
 		});
 }
@@ -1827,7 +1836,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonriver_runtime::Transactors::Relay,
 					0,
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 12000000000 is the max
 					13000000000,
 					vec![],

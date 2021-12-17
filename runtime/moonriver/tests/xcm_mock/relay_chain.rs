@@ -90,6 +90,7 @@ impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type WeightInfo = ();
+	type PalletsOrigin = OriginCaller;
 }
 
 impl shared::Config for Runtime {}
