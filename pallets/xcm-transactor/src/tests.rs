@@ -109,6 +109,22 @@ fn test_transact_through_derivative_errors() {
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
+
+			// Cannot exceed the max weight
+			assert_noop!(
+				XcmTransactor::transact_through_derivative_multilocation(
+					Origin::signed(1u64),
+					Transactors::Relay,
+					1,
+					xcm::VersionedMultiLocation::V1(MultiLocation::new(
+						1,
+						Junctions::X1(Junction::PalletInstance(1))
+					)),
+					21000000000u64,
+					vec![0u8]
+				),
+				Error::<Test>::MaxWeightTransactReached
+			);
 		})
 }
 
