@@ -137,19 +137,23 @@ where
 			)),
 			a if a == hash(2050) => {
 				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context,
+					input, target_gas, context, is_static,
 				))
 			}
-			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(input, target_gas, context)),
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, KusamaEncoder>::execute(
-				input, target_gas, context,
+				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context,
+				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::execute(address, input, target_gas, context)
+				Erc20AssetsPrecompileSet::<R>::execute(
+					address, input, target_gas, context, is_static,
+				)
 			}
 			_ => None,
 		}
