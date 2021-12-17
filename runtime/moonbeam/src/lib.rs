@@ -105,7 +105,7 @@ pub mod currency {
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * GLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 100 * MILLIGLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
