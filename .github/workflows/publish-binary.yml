@@ -101,7 +101,7 @@ jobs:
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: build/moonbeam-skylake
-          asset_name: moonbeam-skylake"
+          asset_name: moonbeam-skylake
           asset_content_type: application/octet-stream
       - name: Upload moonbeam znver3
         uses: actions/upload-release-asset@v1
