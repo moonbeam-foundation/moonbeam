@@ -170,7 +170,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(fee) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred + fee));
   });
 });
 
@@ -324,7 +324,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     let amountTransferred = 1000;
 
     // 100 units
-    let fee = 1000;
+    let fee = 100;
 
     // weight
     let weight = 100;
@@ -372,6 +372,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         BigInt(fee) -
         BigInt(fees)
     );
-    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred));
+    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred + fee));
   });
 });
