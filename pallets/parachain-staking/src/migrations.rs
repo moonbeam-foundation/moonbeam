@@ -57,12 +57,8 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 				all_delegations.iter().take(top_n).cloned().collect();
 			let bottom_delegations = if all_delegations.len() > top_n {
 				let rest = all_delegations.len() - top_n;
-				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> = all_delegations.iter().rev().take(rest).cloned().collect();
-					.clone()
-					.into_iter()
-					.rev()
-					.take(rest)
-					.collect();
+				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+					all_delegations.iter().rev().take(rest).cloned().collect();
 				bottom
 			} else {
 				// empty, all nominations are in top
