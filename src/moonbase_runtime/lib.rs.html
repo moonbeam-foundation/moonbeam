@@ -1816,6 +1816,14 @@
 <span id="1816">1816</span>
 <span id="1817">1817</span>
 <span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3210,6 +3218,14 @@
 	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MultiLocation::parent</span>(),
+		}
+	}
+	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="kw">match</span> <span class="self">self</span> {
+			<span class="comment">// Westend is 20,000,000,000</span>
+			<span class="comment">// This needs to take into account the rest of the message</span>
+			<span class="comment">// We use 12,000,000,000 to be safe</span>
+			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12_000_000_000</span>,
 		}
 	}
 }

@@ -657,6 +657,19 @@
 <span id="657">657</span>
 <span id="658">658</span>
 <span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -842,6 +855,7 @@
 		<span class="ident">NotCrossChainTransferableCurrency</span>,
 		<span class="ident">XcmExecuteError</span>,
 		<span class="ident">BadVersion</span>,
+		<span class="ident">MaxWeightTransactReached</span>,
 		<span class="ident">UnableToWithdrawAsset</span>,
 	}
 
@@ -906,6 +920,12 @@
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
+			<span class="comment">// Ensure the specified destination transact_weight is not reached</span>
+			<span class="macro">ensure!</span>(
+				<span class="ident">dest_weight</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">max_transact_weight</span>(),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
+			);
+
 			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span>
 				<span class="ident">MultiLocation::try_from</span>(<span class="ident">fee_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
 			<span class="comment">// The index exists</span>
@@ -961,6 +981,12 @@
 			<span class="ident">inner_call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+
+			<span class="comment">// Ensure the specified destination transact_weight is not reached</span>
+			<span class="macro">ensure!</span>(
+				<span class="ident">dest_weight</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">max_transact_weight</span>(),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
+			);
 
 			<span class="kw">let</span> <span class="ident">fee_location</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">T::CurrencyIdToMultiLocation::convert</span>(<span class="ident">currency_id</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransferableCurrency</span>)<span class="question-mark">?</span>;
