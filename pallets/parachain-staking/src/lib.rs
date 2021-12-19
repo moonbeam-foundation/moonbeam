@@ -200,7 +200,7 @@ pub mod pallet {
 		pub when_executable: RoundIndex,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Collator candidate state with self bond + delegations
 	pub struct CollatorCandidate<AccountId, Balance> {
 		/// The account of this collator
@@ -863,6 +863,9 @@ pub mod pallet {
 					if collator_state.is_active() && (before != after) {
 						Pallet::<T>::update_active(candidate_id.clone(), after);
 					}
+					let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> =
+						collator_state.clone().into();
+					<CandidateSnapshot<T>>::insert(&candidate_id, snapshot);
 					<CandidateState<T>>::insert(&candidate_id, collator_state);
 					let new_total_staked = <Total<T>>::get().saturating_add(balance_amt);
 					<Total<T>>::put(new_total_staked);
@@ -1043,6 +1046,9 @@ pub mod pallet {
 								if collator.is_active() && (before != after) {
 									Pallet::<T>::update_active(candidate_id.clone(), after);
 								}
+								let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> =
+									collator.clone().into();
+								<CandidateSnapshot<T>>::insert(&candidate_id, snapshot);
 								<CandidateState<T>>::insert(&candidate_id, collator);
 								let new_total_staked =
 									<Total<T>>::get().saturating_sub(balance_amt);
@@ -1591,6 +1597,18 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn candidate_snapshot)]
+	/// Get collator candidate info associated with an account if account is a candidate else None
+	/// map($key) = $value => CandidateState($key) = from($value) (TODO: document better)
+	pub(crate) type CandidateSnapshot<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
+		OptionQuery,
+	>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn collator_state2)]
 	/// DEPRECATED in favor of CandidateState
 	/// Get collator state associated with an account if account is collating else None
@@ -1960,6 +1978,8 @@ pub mod pallet {
 			);
 			T::Currency::reserve(&acc, bond)?;
 			let candidate = CollatorCandidate::new(acc.clone(), bond);
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = candidate.clone().into();
+			<CandidateSnapshot<T>>::insert(&acc, snapshot);
 			<CandidateState<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
 			let new_total = <Total<T>>::get().saturating_add(bond);
@@ -1985,6 +2005,8 @@ pub mod pallet {
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+			<CandidateSnapshot<T>>::insert(&collator, snapshot);
 			<CandidateState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
@@ -2024,6 +2046,7 @@ pub mod pallet {
 			}
 			// return stake to collator
 			T::Currency::unreserve(&state.id, state.bond);
+			<CandidateSnapshot<T>>::remove(&candidate);
 			<CandidateState<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(state.total_backing);
 			<Total<T>>::put(new_total_staked);
@@ -2114,6 +2137,8 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			state.bond_more::<T>(more)?;
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+			<CandidateSnapshot<T>>::insert(&collator, snapshot);
 			<CandidateState<T>>::insert(&collator, state);
 			Ok(().into())
 		}
@@ -2126,6 +2151,8 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			let when = state.schedule_bond_less::<T>(less)?;
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+			<CandidateSnapshot<T>>::insert(&collator, snapshot);
 			<CandidateState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBondLessRequested(collator, less, when));
 			Ok(().into())
@@ -2139,6 +2166,8 @@ pub mod pallet {
 			ensure_signed(origin)?; // we may want to reward this if caller != candidate
 			let mut state = <CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let event = state.execute_pending_request::<T>()?;
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+			<CandidateSnapshot<T>>::insert(&candidate, snapshot);
 			<CandidateState<T>>::insert(&candidate, state);
 			Self::deposit_event(event);
 			Ok(().into())
@@ -2216,6 +2245,11 @@ pub mod pallet {
 			}
 			let new_total_locked = <Total<T>>::get() + amount;
 			<Total<T>>::put(new_total_locked);
+			if let DelegatorAdded::AddedToTop { new_total: _ } = delegator_position {
+				// in top so update snapshot
+				let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+				<CandidateSnapshot<T>>::insert(&collator, snapshot);
+			}
 			<CandidateState<T>>::insert(&collator, state);
 			<DelegatorState<T>>::insert(&acc, delegator_state);
 			Self::deposit_event(Event::Delegation(acc, amount, collator, delegator_position));
@@ -2390,6 +2424,8 @@ pub mod pallet {
 			let new_total_locked = <Total<T>>::get() - delegator_stake;
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
+			let snapshot: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.clone().into();
+			<CandidateSnapshot<T>>::insert(&collator, snapshot);
 			<CandidateState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::DelegatorLeftCandidate(
 				delegator,
@@ -2558,14 +2594,13 @@ pub mod pallet {
 			let collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
-				let state = <CandidateState<T>>::get(&account)
+				let state = <CandidateSnapshot<T>>::get(&account)
 					.expect("all members of CandidateQ must be candidates");
 				collator_count += 1u32;
-				delegation_count += state.delegators.0.len() as u32;
-				let amount = state.total_counted;
+				delegation_count += state.delegations.len() as u32;
+				let amount = state.total;
 				total += amount;
-				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
-				<AtStake<T>>::insert(now, account, exposure);
+				<AtStake<T>>::insert(now, account, state);
 				Self::deposit_event(Event::CollatorChosen(now, account.clone(), amount));
 			}
 			// insert canonical collator set
