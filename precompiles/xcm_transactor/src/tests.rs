@@ -161,7 +161,8 @@ fn take_transact_info() {
 				0,
 				0,
 				1,
-				0
+				0,
+				10000
 			));
 
 			// Expected result is zero
@@ -173,6 +174,7 @@ fn take_transact_info() {
 					.write(0u64)
 					.write(0u64)
 					.write(1u128)
+					.write(10000u64)
 					.build(),
 				cost: 1,
 				logs: Default::default(),
@@ -202,7 +204,8 @@ fn test_transactor_multilocation() {
 				0,
 				0,
 				1,
-				0
+				0,
+				10000
 			));
 
 			// we pay with our current self reserve.
@@ -257,7 +260,8 @@ fn test_transactor() {
 				0,
 				0,
 				1,
-				0
+				0,
+				10000
 			));
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();

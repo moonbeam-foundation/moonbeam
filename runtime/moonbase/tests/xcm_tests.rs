@@ -807,7 +807,8 @@ fn transact_through_derivative_multilocation() {
 			0,
 			0,
 			1,
-			0
+			0,
+			20000000000
 		));
 	});
 
@@ -960,7 +961,8 @@ fn transact_through_sovereign() {
 			0,
 			0,
 			1,
-			0
+			0,
+			20000000000
 		));
 	});
 

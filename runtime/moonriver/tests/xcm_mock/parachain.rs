@@ -696,14 +696,6 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => MultiLocation::parent(),
 		}
 	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			// Kusama is 20,000,000,000
-			// This needs to take into account the rest of the message
-			// We use 12,000,000,000 to be safe
-			MockTransactors::Relay => 12_000_000_000,
-		}
-	}
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
