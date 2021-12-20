@@ -55,6 +55,8 @@ pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod migrations;
+
 #[pallet]
 pub mod pallet {
 
@@ -147,6 +149,24 @@ pub mod pallet {
 		pub fee_per_weight: u128,
 	}
 
+	/// Stores the information to be able to issue a transact operation in another chain use an
+	/// asset as fee payer.
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	pub struct RemoteTransactInfoWithMaxWeight {
+		/// Extra weight that transacting a call in a destination chain adds
+		pub transact_extra_weight: Weight,
+		/// Fee per call byte
+		pub fee_per_byte: u128,
+		/// Size of the tx metadata of a transaction in the destination chain
+		pub metadata_size: u64,
+		/// Minimum weight the destination chain charges for a transaction
+		pub base_weight: Weight,
+		/// Fee per weight in the destination chain
+		pub fee_per_weight: u128,
+		/// Max destination weight
+		pub max_weight: Weight,
+	}
+
 	// Since we are using pallet-utility for account derivation (through AsDerivative),
 	// we need to provide an index for the account derivation. This storage item stores the index
 	// assigned for a given local account. These indices are usable as derivative in the relay chain
@@ -154,13 +174,13 @@ pub mod pallet {
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
 
-	// Stores the transact info of a MULTIlOCAITON. This defines how much extra weight we need to
+	// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
 	// add when we want to transact in the destination chain and how we convert weight to units
 	// in the destination chain
 	#[pallet::storage]
 	#[pallet::getter(fn transact_info)]
-	pub type TransactInfo<T: Config> =
-		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfo>;
+	pub type TransactInfoWithWeightLimit<T: Config> =
+		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -194,7 +214,7 @@ pub mod pallet {
 		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
-		TransactInfoChanged(MultiLocation, RemoteTransactInfo),
+		TransactInfoChanged(MultiLocation, RemoteTransactInfoWithMaxWeight),
 	}
 
 	#[pallet::call]
@@ -399,19 +419,21 @@ pub mod pallet {
 			base_weight: Weight,
 			fee_per_weight: u128,
 			metadata_size: u64,
+			max_weight: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let location =
 				MultiLocation::try_from(location).map_err(|()| Error::<T>::BadVersion)?;
-			let remote_info = RemoteTransactInfo {
+			let remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
 				fee_per_byte,
 				base_weight,
 				fee_per_weight,
 				metadata_size,
+				max_weight,
 			};
 
-			TransactInfo::<T>::insert(&location, &remote_info);
+			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
 			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
 			Ok(())
@@ -427,8 +449,8 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
-			let transactor_info =
-				TransactInfo::<T>::get(&fee_location).ok_or(Error::<T>::TransactorInfoNotSet)?;
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&fee_location)
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain

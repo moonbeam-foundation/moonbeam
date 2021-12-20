@@ -17,7 +17,9 @@
 use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{
+	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
+};
 use xcm::latest::{Junction, Junctions, MultiLocation};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
@@ -75,7 +77,8 @@ fn test_transact_through_derivative_errors() {
 				0,
 				0,
 				1,
-				0
+				0,
+				1
 			));
 
 			// Not using the same fee asset as the destination chain, so error
@@ -145,7 +148,8 @@ fn test_transact_through_derivative_multilocation_success() {
 				0,
 				0,
 				1,
-				0
+				0,
+				1
 			));
 
 			// fee as destination are the same, this time it should work
@@ -161,12 +165,13 @@ fn test_transact_through_derivative_multilocation_success() {
 				crate::Event::RegisterdDerivative(1u64, 1),
 				crate::Event::TransactInfoChanged(
 					MultiLocation::parent(),
-					RemoteTransactInfo {
+					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_byte: 0,
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
+						max_weight: 1,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -198,7 +203,8 @@ fn test_transact_through_derivative_success() {
 				0,
 				0,
 				1,
-				0
+				0,
+				1
 			));
 
 			// fee as destination are the same, this time it should work
@@ -214,12 +220,13 @@ fn test_transact_through_derivative_success() {
 				crate::Event::RegisterdDerivative(1u64, 1),
 				crate::Event::TransactInfoChanged(
 					MultiLocation::parent(),
-					RemoteTransactInfo {
+					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_byte: 0,
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
+						max_weight: 1,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -261,7 +268,8 @@ fn test_root_can_transact_through_sovereign() {
 				0,
 				0,
 				1,
-				0
+				0,
+				1
 			));
 
 			// fee as destination are the same, this time it should work
@@ -277,12 +285,13 @@ fn test_root_can_transact_through_sovereign() {
 			let expected = vec![
 				crate::Event::TransactInfoChanged(
 					MultiLocation::parent(),
-					RemoteTransactInfo {
+					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_byte: 0,
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
+						max_weight: 1,
 					},
 				),
 				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),
@@ -308,5 +317,53 @@ fn test_fee_calculation_works() {
 				),
 				12204624000
 			);
+		})
+}
+
+#[test]
+fn test_max_transact_weight_migration_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			let pallet_prefix: &[u8] = b"XcmTransactor";
+			let storage_item_prefix: &[u8] = b"TransactInfo";
+			use frame_support::traits::OnRuntimeUpgrade;
+			use frame_support::StorageHasher;
+			use parity_scale_codec::Encode;
+
+			// This is the previous struct, which we have moved to migrations
+			let old_transact_info = migrations::OldRemoteTransactInfo {
+				transact_extra_weight: 0,
+				fee_per_byte: 0,
+				base_weight: 0,
+				fee_per_weight: 1,
+				metadata_size: 0,
+			};
+			// This is the new struct
+			let expected_transacted_info = RemoteTransactInfoWithMaxWeight {
+				transact_extra_weight: 0,
+				fee_per_byte: 0,
+				base_weight: 0,
+				fee_per_weight: 1,
+				metadata_size: 0,
+				max_weight: 12000000000,
+			};
+
+			// We populate the previous key with the previous struct
+			put_storage_value(
+				pallet_prefix,
+				storage_item_prefix,
+				&Blake2_128Concat::hash(&MultiLocation::parent().encode()),
+				old_transact_info,
+			);
+			// We run the migration
+			crate::migrations::MaxTransactWeight::<Test>::on_runtime_upgrade();
+
+			// We make sure that the new storage key is populated
+			assert_eq!(
+				XcmTransactor::transact_info(MultiLocation::parent()).unwrap(),
+				expected_transacted_info,
+			)
 		})
 }
