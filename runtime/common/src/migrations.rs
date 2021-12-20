@@ -29,6 +29,8 @@ use parachain_staking::{
 	Config as ParachainStakingConfig,
 };
 use sp_std::{marker::PhantomData, prelude::*};
+#[cfg(feature = "xcm-support")]
+use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -167,6 +169,31 @@ where
 	}
 }
 
+#[cfg(feature = "xcm-support")]
+pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+#[cfg(feature = "xcm-support")]
+impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Xcm_Transactor_MaxTransactWeight"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		MaxTransactWeight::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		MaxTransactWeight::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		MaxTransactWeight::<T>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
@@ -191,6 +218,9 @@ where
 		let migration_parachain_staking_increase_max_delegations_per_candidate =
 			ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
 
+		#[cfg(feature = "xcm-support")]
+		let xcm_transactor_max_weight = XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -204,6 +234,35 @@ where
 			// completed in runtime 1000
 			// Box::new(migration_parachain_staking_manual_exits),
 			Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
+		]
+	}
+}
+
+#[cfg(feature = "xcm-support")]
+pub struct XcmMigrations<Runtime>(PhantomData<(Runtime)>);
+
+#[cfg(feature = "xcm-support")]
+impl<Runtime> Get<Vec<Box<dyn Migration>>> for XcmMigrations<Runtime>
+where
+	Runtime: xcm_transactor::Config,
+{
+	fn get() -> Vec<Box<dyn Migration>> {
+		#[cfg(feature = "xcm-support")]
+		let xcm_transactor_max_weight = XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+
+		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
+		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
+
+		vec![
+			// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake),
+			// completed in runtime 900
+			// Box::new(migration_collectives),
+			// completed in runtime 1000
+			// Box::new(migration_parachain_staking_purge_stale_storage),
+			// completed in runtime 1000
+			// Box::new(migration_parachain_staking_manual_exits),
+			Box::new(xcm_transactor_max_weight),
 		]
 	}
 }
