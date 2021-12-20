@@ -13760,6 +13760,7 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
+ "log",
  "orml-traits",
  "pallet-balances",
  "pallet-timestamp",

@@ -78,7 +78,7 @@ fn test_transact_through_derivative_errors() {
 				0,
 				1,
 				0,
-				1
+				10000
 			));
 
 			// Not using the same fee asset as the destination chain, so error
@@ -113,17 +113,26 @@ fn test_transact_through_derivative_errors() {
 				Error::<Test>::TransactorInfoNotSet
 			);
 
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				0,
+				0,
+				0,
+				1,
+				0,
+				10000
+			));
+
 			// Cannot exceed the max weight
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					xcm::VersionedMultiLocation::V1(MultiLocation::new(
-						1,
-						Junctions::X1(Junction::PalletInstance(1))
-					)),
-					21000000000u64,
+					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					10001u64,
 					vec![0u8]
 				),
 				Error::<Test>::MaxWeightTransactReached
@@ -149,7 +158,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				0,
 				1,
 				0,
-				1
+				10000
 			));
 
 			// fee as destination are the same, this time it should work
@@ -171,7 +180,7 @@ fn test_transact_through_derivative_multilocation_success() {
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
-						max_weight: 1,
+						max_weight: 10000,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -204,7 +213,7 @@ fn test_transact_through_derivative_success() {
 				0,
 				1,
 				0,
-				1
+				10000
 			));
 
 			// fee as destination are the same, this time it should work
@@ -226,7 +235,7 @@ fn test_transact_through_derivative_success() {
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
-						max_weight: 1,
+						max_weight: 10000,
 					},
 				),
 				crate::Event::TransactedDerivative(
@@ -269,7 +278,7 @@ fn test_root_can_transact_through_sovereign() {
 				0,
 				1,
 				0,
-				1
+				10000
 			));
 
 			// fee as destination are the same, this time it should work
@@ -291,7 +300,7 @@ fn test_root_can_transact_through_sovereign() {
 						base_weight: 0,
 						fee_per_weight: 1,
 						metadata_size: 0,
-						max_weight: 1,
+						max_weight: 10000,
 					},
 				),
 				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),

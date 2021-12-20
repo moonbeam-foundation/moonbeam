@@ -136,22 +136,6 @@ pub mod pallet {
 	/// Stores the information to be able to issue a transact operation in another chain use an
 	/// asset as fee payer.
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
-	pub struct RemoteTransactInfo {
-		/// Extra weight that transacting a call in a destination chain adds
-		pub transact_extra_weight: Weight,
-		/// Fee per call byte
-		pub fee_per_byte: u128,
-		/// Size of the tx metadata of a transaction in the destination chain
-		pub metadata_size: u64,
-		/// Minimum weight the destination chain charges for a transaction
-		pub base_weight: Weight,
-		/// Fee per weight in the destination chain
-		pub fee_per_weight: u128,
-	}
-
-	/// Stores the information to be able to issue a transact operation in another chain use an
-	/// asset as fee payer.
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
@@ -268,12 +252,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// Ensure the specified destination transact_weight is not reached
-			ensure!(
-				dest_weight < dest.clone().max_transact_weight(),
-				Error::<T>::MaxWeightTransactReached
-			);
-
 			let fee_location =
 				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
@@ -329,12 +307,6 @@ pub mod pallet {
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			// Ensure the specified destination transact_weight is not reached
-			ensure!(
-				dest_weight < dest.clone().max_transact_weight(),
-				Error::<T>::MaxWeightTransactReached
-			);
 
 			let fee_location: MultiLocation = T::CurrencyIdToMultiLocation::convert(currency_id)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
@@ -457,6 +429,11 @@ pub mod pallet {
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
 				.ok_or(Error::<T>::WeightOverflow)?;
+
+			ensure!(
+				total_weight < transactor_info.max_weight,
+				Error::<T>::MaxWeightTransactReached
+			);
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution

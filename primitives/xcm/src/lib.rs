@@ -302,8 +302,6 @@ pub trait UtilityEncodeCall {
 pub trait XcmTransact: UtilityEncodeCall {
 	/// Encode call from the relay.
 	fn destination(self) -> MultiLocation;
-	/// Maximum weight for the entire Transact operation
-	fn max_transact_weight(self) -> Weight;
 }
 
 /// This trait ensure we can convert AccountIds to CurrencyIds
