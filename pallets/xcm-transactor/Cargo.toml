@@ -5,6 +5,7 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
+log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
