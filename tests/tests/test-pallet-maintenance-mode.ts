@@ -134,7 +134,7 @@ describeDevMoonbeam(
 
       //try transfer
       await context.createBlock({
-        transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+        transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
       });
     });
 
@@ -184,7 +184,7 @@ describeDevMoonbeam(
       );
 
       await context.createBlock({
-        transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+        transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
       });
     });
 
@@ -218,7 +218,9 @@ describeDevMoonbeam(
             100_000_000_000_000_000_000n,
             12_000_000n,
             1_000_000_000n,
-            undefined
+            0n,
+            undefined,
+            []
           )
         )
       ));
