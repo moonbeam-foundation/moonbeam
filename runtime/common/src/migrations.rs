@@ -18,13 +18,11 @@
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	pallet_prelude::Get,
 	traits::{OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
-use frame_system::pallet;
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
-use pallet_migrations::{Migrate, Migration};
+use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue},
 	Config as ParachainStakingConfig,
@@ -197,9 +195,9 @@ impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
 
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
-impl<Runtime, Council, Tech> Migrate<Runtime> for CommonMigrations<Runtime, Council, Tech>
+impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config + parachain_staking::Config + pallet_migrations::Config,
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -235,7 +233,7 @@ where
 pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime> Migrate<Runtime> for XcmMigrations<Runtime>
+impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config,
 {

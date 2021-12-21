@@ -58,6 +58,23 @@ pub trait Migration {
 	}
 }
 
+// The migration trait
+pub trait GetMigrations {
+	// Migration list Getter
+	fn get_migrations() -> Vec<Box<dyn Migration>>;
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(30)]
+impl GetMigrations for Tuple {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let mut migrations = Vec::new();
+
+		for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
+
+		migrations
+	}
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -69,30 +86,13 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	// The migration trait
-	pub trait Migrate<T: Config> {
-		// Migration list Getter
-		fn get_migrations() -> Vec<Box<dyn Migration>>;
-	}
-
-	#[impl_trait_for_tuples::impl_for_tuples(30)]
-	impl<T: Config> Migrate<T> for Tuple {
-		fn get_migrations() -> Vec<Box<dyn Migration>> {
-			let mut migrations = Vec::new();
-
-			for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
-
-			migrations
-		}
-	}
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
-		type MigrationsList: Migrate<Self>;
+		type MigrationsList: GetMigrations;
 	}
 
 	#[pallet::event]

@@ -235,7 +235,7 @@ impl Migration for MockMigration {
 /// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
 /// contents of MOCK_MIGRATIONS_LIST.
 pub struct MockMigrations;
-impl Migrate<Test> for MockMigrations {
+impl GetMigrations for MockMigrations {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
