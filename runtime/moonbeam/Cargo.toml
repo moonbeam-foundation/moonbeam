@@ -191,10 +191,10 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
-	"pallet-maintenance-mode/try-runtime",
 ]
