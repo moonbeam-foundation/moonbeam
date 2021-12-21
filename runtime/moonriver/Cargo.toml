@@ -252,4 +252,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"parachain-staking/try-runtime",
+	"pallet-maintenance-mode/try-runtime",
 ]
