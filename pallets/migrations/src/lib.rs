@@ -32,6 +32,8 @@ pub use pallet::*;
 #[macro_use]
 extern crate environmental;
 
+use sp_std::prelude::*;
+
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
@@ -80,7 +82,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_std::prelude::*;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
