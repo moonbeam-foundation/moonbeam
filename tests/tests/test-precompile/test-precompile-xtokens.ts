@@ -8,7 +8,7 @@ import { GAS_PRICE, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../../u
 import { verifyLatestBlockFees } from "../../util/block";
 
 const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
-const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
+export const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
 
 async function getBalance(context, blockHeight, address) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
