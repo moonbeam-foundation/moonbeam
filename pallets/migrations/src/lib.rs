@@ -69,13 +69,30 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	// The migration trait
+	pub trait Migrate<T: Config> {
+		// Migration list Getter
+		fn get_migrations() -> Vec<Box<dyn Migration>>;
+	}
+
+	#[impl_trait_for_tuples::impl_for_tuples(30)]
+	impl<T: Config> Migrate<T> for Tuple {
+		fn get_migrations() -> Vec<Box<dyn Migration>> {
+			let mut migrations = Vec::new();
+
+			for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
+
+			migrations
+		}
+	}
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
-		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		type MigrationsList: Migrate<Self>;
 	}
 
 	#[pallet::event]
@@ -121,7 +138,7 @@ pub mod pallet {
 			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
 
@@ -164,7 +181,7 @@ pub mod pallet {
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 
 				// we can't query MigrationState because on_runtime_upgrade() would have
@@ -225,7 +242,7 @@ pub mod pallet {
 		fn build(&self) {
 			// When building a new genesis, all listed migrations should be considered as already
 			// applied, they only make sense for networks that had been launched in the past.
-			for migration_name in T::MigrationsList::get()
+			for migration_name in T::MigrationsList::get_migrations()
 				.into_iter()
 				.map(|migration| migration.friendly_name().as_bytes().to_vec())
 			{
@@ -237,7 +254,7 @@ pub mod pallet {
 	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
 		let mut weight: Weight = 0u64.into();
 
-		for migration in &T::MigrationsList::get() {
+		for migration in &T::MigrationsList::get_migrations() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);

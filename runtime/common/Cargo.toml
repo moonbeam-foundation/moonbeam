@@ -9,6 +9,7 @@ version = "0.8.0-dev"
 
 [dependencies]
 log = "0.4"
+impl-trait-for-tuples = "0.2.1"
 
 # Moonbeam
 pallet-asset-manager = { path = "../../pallets/asset-manager", optional = true, default-features = false }

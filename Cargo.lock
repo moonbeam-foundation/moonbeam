@@ -6973,6 +6973,7 @@ dependencies = [
  "environmental",
  "frame-support",
  "frame-system",
+ "impl-trait-for-tuples 0.2.1",
  "log",
  "parity-scale-codec",
  "scale-info",
@@ -9859,6 +9860,7 @@ version = "0.8.0-dev"
 dependencies = [
  "frame-support",
  "frame-system",
+ "impl-trait-for-tuples 0.2.1",
  "log",
  "pallet-asset-manager",
  "pallet-author-mapping",

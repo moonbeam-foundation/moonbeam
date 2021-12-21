@@ -22,8 +22,9 @@ use frame_support::{
 	traits::{OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
+use frame_system::pallet;
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
-use pallet_migrations::Migration;
+use pallet_migrations::{Migrate, Migration};
 use parachain_staking::{
 	migrations::{IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue},
 	Config as ParachainStakingConfig,
@@ -196,20 +197,16 @@ impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
 
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
-impl<Runtime, Council, Tech> Get<Vec<Box<dyn Migration>>>
-	for CommonMigrations<Runtime, Council, Tech>
+impl<Runtime, Council, Tech> Migrate<Runtime> for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
+	Runtime: pallet_author_mapping::Config + parachain_staking::Config + pallet_migrations::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
-	fn get() -> Vec<Box<dyn Migration>> {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
 		// 	0: Default::default(),
 		// };
-
-		// let migration_collectives =
-		//	MigrateCollectivePallets::<Runtime, Council, Tech>(Default::default());
 
 		// let migration_parachain_staking_purge_stale_storage =
 		// 	ParachainStakingPurgeStaleStorage::<Runtime>(Default::default());
@@ -218,9 +215,6 @@ where
 		let migration_parachain_staking_increase_max_delegations_per_candidate =
 			ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
 
-		#[cfg(feature = "xcm-support")]
-		let xcm_transactor_max_weight = XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
-
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -228,7 +222,6 @@ where
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
 			// completed in runtime 900
-			// Box::new(migration_collectives),
 			// completed in runtime 1000
 			// Box::new(migration_parachain_staking_purge_stale_storage),
 			// completed in runtime 1000
@@ -239,16 +232,16 @@ where
 }
 
 #[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime>(PhantomData<(Runtime)>);
+pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime> Get<Vec<Box<dyn Migration>>> for XcmMigrations<Runtime>
+impl<Runtime> Migrate<Runtime> for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config,
+	Runtime: xcm_transactor::Config + pallet_migrations::Config,
 {
-	fn get() -> Vec<Box<dyn Migration>> {
-		#[cfg(feature = "xcm-support")]
-		let xcm_transactor_max_weight = XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let xcm_transactor_max_weight =
+			XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
