@@ -65,7 +65,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 				Vec::new()
 			};
 			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
-				(0u32.into(), 0u32.into());
+				(state.bond.into(), state.bond.into());
 			for Bond { amount, .. } in &top_delegations {
 				total_counted += *amount;
 				total_backing += *amount;
