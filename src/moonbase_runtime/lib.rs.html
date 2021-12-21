@@ -3663,7 +3663,7 @@
 	<span class="comment">// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate</span>
 	<span class="comment">// Purpose of this test is to remind of required migration if constant is ever changed</span>
 	<span class="kw">fn</span> <span class="ident">updating_maximum_delegators_per_candidate_requires_configuring_required_migration</span>() {
-		<span class="macro">assert_eq!</span>(<span class="ident">MaxDelegatorsPerCandidate::get</span>(), <span class="number">500</span>);
+		<span class="macro">assert_eq!</span>(<span class="ident">MaxDelegatorsPerCandidate::get</span>(), <span class="number">300</span>);
 	}
 }
 </code></pre></div>
