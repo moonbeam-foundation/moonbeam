@@ -1800,6 +1800,6 @@ mod tests {
 	// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
-		assert_eq!(MaxDelegatorsPerCandidate::get(), 500);
+		assert_eq!(MaxDelegatorsPerCandidate::get(), 300);
 	}
 }
