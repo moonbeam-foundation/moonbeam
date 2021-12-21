@@ -65,6 +65,8 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
+		log::info!(target: "MaxTransactWeight", "Migrating {:?} elements", migrated_count);
+
 		// Now remove the old storage
 		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
 		remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
