@@ -99,6 +99,15 @@ pub fn evm_test_context() -> fp_evm::Context {
 	}
 }
 
+// Test struct with the purpose of initializing xcm assets
+#[derive(Clone)]
+pub struct XcmAssetInitialization {
+	pub asset_type: AssetType,
+	pub metadata: AssetRegistrarMetadata,
+	pub balances: Vec<(AccountId, Balance)>,
+	pub is_sufficient: bool,
+}
+
 pub struct ExtBuilder {
 	// [asset, Vec<Account, Balance>]
 	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
@@ -119,12 +128,7 @@ pub struct ExtBuilder {
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance,>, is_sufficient]
-	xcm_assets: Vec<(
-		AssetType,
-		AssetRegistrarMetadata,
-		Vec<(AccountId, Balance)>,
-		bool,
-	)>,
+	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
 }
 
@@ -206,15 +210,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_xcm_assets(
-		mut self,
-		xcm_assets: Vec<(
-			AssetType,
-			AssetRegistrarMetadata,
-			Vec<(AccountId, Balance)>,
-			bool,
-		)>,
-	) -> Self {
+	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
 		self.xcm_assets = xcm_assets;
 		self
 	}
@@ -297,19 +293,20 @@ impl ExtBuilder {
 				}
 			}
 			// If any xcm assets specified, we register them here
-			for (asset_type, metadata, balances, is_sufficient) in xcm_assets.clone() {
+			for xcm_asset_initialization in xcm_assets {
+				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
 				AssetManager::register_asset(
 					root_origin(),
-					asset_type.clone(),
-					metadata,
+					xcm_asset_initialization.asset_type,
+					xcm_asset_initialization.metadata,
 					1,
-					is_sufficient,
+					xcm_asset_initialization.is_sufficient,
 				)
 				.unwrap();
-				for (account, balance) in balances {
+				for (account, balance) in xcm_asset_initialization.balances {
 					Assets::mint(
 						origin_of(AssetManager::account_id()),
-						asset_type.clone().into(),
+						asset_id,
 						account,
 						balance,
 					)
