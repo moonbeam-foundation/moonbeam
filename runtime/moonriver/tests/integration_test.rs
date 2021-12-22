@@ -1249,6 +1249,7 @@ fn root_can_change_default_xcm_vers() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.build()
 		.execute_with(|| {
@@ -1307,6 +1308,7 @@ fn asset_can_be_registered() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert!(AssetManager::asset_id_type(source_id).is_some());
 	});
@@ -1557,6 +1559,7 @@ fn xtokens_precompiles_transfer() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -1622,6 +1625,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -1798,6 +1802,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.build()
 		.execute_with(|| {
@@ -1853,6 +1858,7 @@ fn call_xtokens_with_fee() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.build()
 		.execute_with(|| {
