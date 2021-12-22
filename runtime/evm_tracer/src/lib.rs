@@ -26,7 +26,7 @@
 
 pub mod tracer {
 	use codec::Encode;
-	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent};
+	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
 
 	use evm::tracing::{using as evm_using, EventListener as EvmListener};
 	use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};
@@ -52,11 +52,17 @@ pub mod tracer {
 		}
 	}
 
-	pub struct EvmTracer;
+	pub struct EvmTracer {
+		step_event_filter: StepEventFilter,
+	}
+
 	impl EvmTracer {
 		pub fn new() -> Self {
-			Self
+			Self {
+				step_event_filter: moonbeam_primitives_ext::moonbeam_ext::step_event_filter(),
+			}
 		}
+
 		/// Setup event listeners and execute provided closure.
 		///
 		/// Consume the tracer and return it alongside the return value of
@@ -103,7 +109,7 @@ pub mod tracer {
 	impl RuntimeListener for EvmTracer {
 		/// Proxies `evm_runtime::tracing::Event` to the host.
 		fn event(&mut self, event: evm_runtime::tracing::Event) {
-			let event: RuntimeEvent = event.into();
+			let event = RuntimeEvent::from_evm_event(event, self.step_event_filter);
 			let message = event.encode();
 			moonbeam_primitives_ext::moonbeam_ext::runtime_event(message);
 		}
