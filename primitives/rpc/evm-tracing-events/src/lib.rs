@@ -43,11 +43,21 @@ use ::evm::Opcode;
 use alloc::vec::Vec;
 use codec::{Decode, Encode};
 use ethereum_types::{H160, U256};
+use sp_runtime_interface::pass_by::PassByCodec;
 
 environmental::environmental!(listener: dyn Listener + 'static);
 
 pub fn using<R, F: FnOnce() -> R>(l: &mut (dyn Listener + 'static), f: F) -> R {
 	listener::using(l, f)
+}
+
+/// Allow to configure which data of the Step event
+/// we want to keep or discard. Not discarding the data requires cloning the data
+/// in the runtime which have a significant cost for each step.
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode, Default, PassByCodec)]
+pub struct StepEventFilter {
+	pub enable_stack: bool,
+	pub enable_memory: bool,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
@@ -74,6 +84,17 @@ impl Event {
 /// - Inside the client to forward those events to the client listener.
 pub trait Listener {
 	fn event(&mut self, event: Event);
+
+	/// Allow the runtime to know which data should be discarded and not cloned.
+	/// WARNING: It is only called once when the runtime tracing is instanciated to avoid
+	/// performing many ext calls.
+	fn step_event_filter(&self) -> StepEventFilter;
+}
+
+pub fn step_event_filter() -> Option<StepEventFilter> {
+	let mut filter = None;
+	listener::with(|listener| filter = Some(listener.step_event_filter()));
+	filter
 }
 
 #[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
