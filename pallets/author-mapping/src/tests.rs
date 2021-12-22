@@ -262,11 +262,13 @@ fn rotating_to_the_same_author_id_leaves_registration_in_tact() {
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(AuthorMapping::update_association(
-				Origin::signed(1),
-				TestAuthor::Alice.into(),
-				TestAuthor::Alice.into()
-			),
-			Error::<Runtime>::AlreadyAssociated);
+			assert_noop!(
+				AuthorMapping::update_association(
+					Origin::signed(1),
+					TestAuthor::Alice.into(),
+					TestAuthor::Alice.into()
+				),
+				Error::<Runtime>::AlreadyAssociated
+			);
 		})
 }
