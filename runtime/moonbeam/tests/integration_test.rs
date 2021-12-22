@@ -153,16 +153,6 @@ fn verify_pallet_prefixes() {
 		]
 	);
 	assert_eq!(
-		<moonbeam_runtime::Sudo as StorageInfoTrait>::storage_info(),
-		vec![StorageInfo {
-			pallet_name: b"Sudo".to_vec(),
-			storage_name: b"Key".to_vec(),
-			prefix: prefix(b"Sudo", b"Key"),
-			max_values: Some(1),
-			max_size: Some(20),
-		}]
-	);
-	assert_eq!(
 		<moonbeam_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -234,8 +224,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Utility>(30);
 	is_pallet_index::<moonbeam_runtime::Proxy>(31);
 	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(32);
-	// Sudo
-	is_pallet_index::<moonbeam_runtime::Sudo>(40);
+	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
@@ -425,8 +414,7 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..3599 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -434,8 +422,7 @@ fn reward_block_authors() {
 				100_000 * GLMR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(3600);
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -475,8 +462,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..3599 {
-				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-				run_to_block(x);
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -485,8 +471,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(3600);
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -521,10 +506,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -619,7 +600,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
-#[ignore]
 #[test]
 fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 	ExtBuilder::default()
@@ -637,10 +617,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -653,6 +629,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 
 			// signature is new_account || previous_account
 			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
+			message.append(&mut b"moonbeam-".to_vec());
 			message.append(&mut AccountId::from(DAVE).encode());
 			message.append(&mut AccountId::from(CHARLIE).encode());
 			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
@@ -725,7 +702,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		});
 }
 
-#[ignore]
 #[test]
 fn claim_via_precompile() {
 	ExtBuilder::default()
@@ -743,10 +719,6 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -780,6 +752,9 @@ fn claim_via_precompile() {
 			})
 			.dispatch(root_origin()));
 
+			assert!(CrowdloanRewards::initialized());
+
+			run_to_block(4, None);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
 			// 30 percent initial payout
@@ -789,7 +764,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 100_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -835,10 +810,6 @@ fn is_contributor_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -957,10 +928,6 @@ fn reward_info_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1034,7 +1001,6 @@ fn reward_info_via_precompile() {
 		})
 }
 
-#[ignore]
 #[test]
 fn update_reward_address_via_precompile() {
 	ExtBuilder::default()
@@ -1052,10 +1018,6 @@ fn update_reward_address_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			for x in 1..3 {
-				run_to_block(x);
-			}
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1093,7 +1055,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 100_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);

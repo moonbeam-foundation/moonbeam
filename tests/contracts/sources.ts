@@ -678,7 +678,23 @@ export const contractSources: { [key: string]: string } = {
             uint64 weight
         ) external;
 
-        /** Transfer a token through XCM based on its currencyId
+        /** Transfer a token through XCM based on its currencyId specifying fee
+         *
+         * @dev The token transfer burns/transfers the corresponding amount before sending
+         * @param currency_address The ERC20 address of the currency we want to transfer
+         * @param amount The amount of tokens we want to transfer
+         * @param destination The Multilocation to which we want to send the tokens
+         * @param destination The weight we want to buy in the destination chain
+         */
+        function transfer_with_fee(
+            address currency_address,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) external;
+
+        /** Transfer a token through XCM based on its MultiLocation
          *
          * @dev The token transfer burns/transfers the corresponding amount before sending
          * @param asset The asset we want to transfer, defined by its multilocation. 
@@ -690,6 +706,21 @@ export const contractSources: { [key: string]: string } = {
         function transfer_multiasset(
             Multilocation memory asset,
             uint256 amount,
+            Multilocation memory destination, uint64 weight) external;
+        
+        /** Transfer a token through XCM based on its MultiLocation specifying fee
+         *
+         * @dev The token transfer burns/transfers the corresponding amount before sending
+         * @param asset The asset we want to transfer, defined by its multilocation. 
+         * Currently only Concrete Fungible assets
+         * @param amount The amount of tokens we want to transfer
+         * @param destination The Multilocation to which we want to send the tokens
+         * @param destination The weight we want to buy in the destination chain
+         */
+        function transfer_multiasset_with_fee(
+            Multilocation memory asset,
+            uint256 amount,
+            uint256 fee,
             Multilocation memory destination, uint64 weight) external;
     }
 
@@ -713,6 +744,16 @@ export const contractSources: { [key: string]: string } = {
             // We nominate our target collator with all the tokens provided
             xtokens.transfer(currency_address, amount, destination, weight);
         }
+        function transfer_with_fee(
+            address currency_address,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
+            // We nominate our target collator with all the tokens provided
+            xtokens.transfer_with_fee(currency_address, amount, fee, destination, weight);
+        }
         function transfer_multiasset(
             Multilocation memory asset,
             uint256 amount,
@@ -720,6 +761,15 @@ export const contractSources: { [key: string]: string } = {
             uint64 weight
         ) override external {
             xtokens.transfer_multiasset(asset, amount, destination, weight);
+        }
+        function transfer_multiasset_with_fee(
+            Multilocation memory asset,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
+            xtokens.transfer_multiasset_with_fee(asset, amount, fee, destination, weight);
         }
     }`,
   XcmTransactorInstance: `
