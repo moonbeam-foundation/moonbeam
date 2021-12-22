@@ -57,7 +57,7 @@ pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address
 /// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_DEPOSIT: [u8; 32] = keccak256!("Deposit(address,uint256)");
 
-/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
+/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_WITHDRAWAL: [u8; 32] = keccak256!("Withdrawal(address,uint256)");
 
 /// Associates pallet Instance to a prefix used for the Approves storage.
