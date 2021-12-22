@@ -143,6 +143,10 @@ pub mod pallet {
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
+			ensure!(
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
 
 			MappingWithDeposit::<T>::remove(&old_author_id);
 			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);

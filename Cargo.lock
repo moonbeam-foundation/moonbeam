@@ -2328,6 +2328,7 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "parity-scale-codec",
+ "sp-runtime-interface",
 ]
 
 [[package]]
