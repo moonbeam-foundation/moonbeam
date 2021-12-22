@@ -462,6 +462,7 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
 		}
+	}
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {

@@ -247,4 +247,17 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]
-try-runtime = [ "frame-executive/try-runtime", "frame-system/try-runtime", "frame-try-runtime", "pallet-author-mapping/try-runtime", "pallet-balances/try-runtime", "pallet-collective/try-runtime", "pallet-maintenance-mode/try-runtime", "pallet-maintenance-mode/try-runtime", #"pallet-crowdloan-rewards/try-runtime", "pallet-migrations/try-runtime", "pallet-society/try-runtime", "pallet-timestamp/try-runtime", "parachain-staking/try-runtime" ]
+try-runtime = [
+	"frame-executive/try-runtime",
+	"frame-system/try-runtime",
+	"frame-try-runtime",
+	"pallet-author-mapping/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-collective/try-runtime",
+	#"pallet-crowdloan-rewards/try-runtime",
+	"pallet-maintenance-mode/try-runtime",
+	"pallet-migrations/try-runtime",
+	"pallet-society/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"parachain-staking/try-runtime",
+]

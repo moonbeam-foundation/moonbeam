@@ -101,10 +101,8 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(0),
-          new BN(0),
           new BN(1),
-          new BN(0)
+          new BN(20000000000)
         )
       )
       .signAndSend(sudoAccount);
@@ -267,10 +265,8 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(0),
-          new BN(0),
           new BN(1),
-          new BN(0)
+          new BN(20000000000)
         )
       )
       .signAndSend(sudoAccount);

@@ -74,10 +74,7 @@ fn test_transact_through_derivative_errors() {
 					Junctions::X1(Junction::Parachain(1000))
 				)),
 				0,
-				0,
-				0,
 				1,
-				0,
 				10000
 			));
 
@@ -118,10 +115,7 @@ fn test_transact_through_derivative_errors() {
 				Origin::root(),
 				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
-				0,
-				0,
 				1,
-				0,
 				10000
 			));
 
@@ -154,10 +148,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				Origin::root(),
 				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
-				0,
-				0,
 				1,
-				0,
 				10000
 			));
 
@@ -176,10 +167,7 @@ fn test_transact_through_derivative_multilocation_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_byte: 0,
-						base_weight: 0,
 						fee_per_weight: 1,
-						metadata_size: 0,
 						max_weight: 10000,
 					},
 				),
@@ -209,10 +197,7 @@ fn test_transact_through_derivative_success() {
 				Origin::root(),
 				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
-				0,
-				0,
 				1,
-				0,
 				10000
 			));
 
@@ -231,10 +216,7 @@ fn test_transact_through_derivative_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_byte: 0,
-						base_weight: 0,
 						fee_per_weight: 1,
-						metadata_size: 0,
 						max_weight: 10000,
 					},
 				),
@@ -274,10 +256,7 @@ fn test_root_can_transact_through_sovereign() {
 				Origin::root(),
 				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 				0,
-				0,
-				0,
 				1,
-				0,
 				10000
 			));
 
@@ -296,10 +275,7 @@ fn test_root_can_transact_through_sovereign() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_byte: 0,
-						base_weight: 0,
 						fee_per_weight: 1,
-						metadata_size: 0,
 						max_weight: 10000,
 					},
 				),
@@ -316,15 +292,8 @@ fn test_fee_calculation_works() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				XcmTransactor::calculate_fee_per_weight(
-					[1u8; 7].to_vec(),
-					578000,
-					100000000,
-					125000000,
-					8,
-					105
-				),
-				12204624000
+				XcmTransactor::calculate_fee_per_weight(1000000000, 8),
+				8000000000
 			);
 		})
 }
@@ -352,11 +321,8 @@ fn test_max_transact_weight_migration_works() {
 			// This is the new struct
 			let expected_transacted_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight: 0,
-				fee_per_byte: 0,
-				base_weight: 0,
 				fee_per_weight: 1,
-				metadata_size: 0,
-				max_weight: 12000000000,
+				max_weight: 20000000000,
 			};
 
 			// We populate the previous key with the previous struct

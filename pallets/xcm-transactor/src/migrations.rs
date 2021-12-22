@@ -86,16 +86,10 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 			TransactInfoWithWeightLimit::<T>::insert(location, {
 				RemoteTransactInfoWithMaxWeight {
 					transact_extra_weight: info.transact_extra_weight,
-					/// Fee per call byte
-					fee_per_byte: info.fee_per_byte,
-					/// Size of the tx metadata of a transaction in the destination chain
-					metadata_size: info.metadata_size,
-					/// Minimum weight the destination chain charges for a transaction
-					base_weight: info.base_weight,
 					/// Fee per weight in the destination chain
 					fee_per_weight: info.fee_per_weight,
 					/// Max destination weight
-					max_weight: 12000000000,
+					max_weight: 20000000000,
 				}
 			});
 		}
@@ -171,11 +165,8 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 				original_info.transact_extra_weight,
 				migrated_info.transact_extra_weight
 			);
-			assert_eq!(original_info.fee_per_byte, migrated_info.fee_per_byte);
-			assert_eq!(original_info.metadata_size, migrated_info.metadata_size);
-			assert_eq!(original_info.base_weight, migrated_info.base_weight);
 			assert_eq!(original_info.fee_per_weight, migrated_info.fee_per_weight);
-			assert_eq!(migrated_info.max_weight, 12000000000)
+			assert_eq!(migrated_info.max_weight, 20000000000)
 		}
 
 		Ok(())

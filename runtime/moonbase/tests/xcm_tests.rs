@@ -804,10 +804,7 @@ fn transact_through_derivative_multilocation() {
 			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
-			0,
-			0,
 			1,
-			0,
 			20000000000
 		));
 	});
@@ -958,10 +955,7 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
 			3000,
-			0,
-			0,
 			1,
-			0,
 			20000000000
 		));
 	});

@@ -139,12 +139,6 @@ pub mod pallet {
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
-		/// Fee per call byte
-		pub fee_per_byte: u128,
-		/// Size of the tx metadata of a transaction in the destination chain
-		pub metadata_size: u64,
-		/// Minimum weight the destination chain charges for a transaction
-		pub base_weight: Weight,
 		/// Fee per weight in the destination chain
 		pub fee_per_weight: u128,
 		/// Max destination weight
@@ -387,10 +381,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			location: VersionedMultiLocation,
 			transact_extra_weight: Weight,
-			fee_per_byte: u128,
-			base_weight: Weight,
 			fee_per_weight: u128,
-			metadata_size: u64,
 			max_weight: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
@@ -398,10 +389,7 @@ pub mod pallet {
 				MultiLocation::try_from(location).map_err(|()| Error::<T>::BadVersion)?;
 			let remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
-				fee_per_byte,
-				base_weight,
 				fee_per_weight,
-				metadata_size,
 				max_weight,
 			};
 
@@ -437,14 +425,8 @@ pub mod pallet {
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = Self::calculate_fee_per_weight(
-				call.clone(),
-				total_weight,
-				transactor_info.fee_per_byte,
-				transactor_info.base_weight,
-				transactor_info.fee_per_weight,
-				transactor_info.metadata_size,
-			);
+			let amount =
+				Self::calculate_fee_per_weight(total_weight, transactor_info.fee_per_weight);
 
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -652,20 +634,10 @@ pub mod pallet {
 		}
 
 		/// Returns the fee for a given set of parameters
-		pub fn calculate_fee_per_weight(
-			call: Vec<u8>,
-			weight: Weight,
-			fee_per_byte: u128,
-			base_weight: Weight,
-			fee_per_weight: u128,
-			metadata_size: u64,
-		) -> u128 {
-			let tx_byte_fee = ((call.len() as u128).saturating_add(metadata_size as u128))
-				.saturating_mul(fee_per_byte);
+		pub fn calculate_fee_per_weight(weight: Weight, fee_per_weight: u128) -> u128 {
 			let weight_fee = fee_per_weight.saturating_mul(weight as u128);
-			let base_fee = fee_per_weight.saturating_mul(base_weight as u128);
 
-			return base_fee.saturating_add(weight_fee.saturating_add(tx_byte_fee));
+			return weight_fee;
 		}
 	}
 }
