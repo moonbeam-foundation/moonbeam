@@ -150,6 +150,12 @@ impl<
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
 				let asset_id: AssetId = AssetId::from(asset_type);
+				// Shortcut if we know the asset is not supported
+				// This involves the same db read per block, mitigating any attack based on
+				// non-supported assets
+				if !AssetIdInfoGetter::payment_is_supported(asset_id.clone()) {
+					return Err(XcmError::TooExpensive);
+				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
 					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
 					let required = MultiAsset {
@@ -275,6 +281,8 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 // Defines the trait to obtain the units per second of a give assetId for local execution
 // This parameter will be used to charge for fees upon assetId deposit
 pub trait UnitsToWeightRatio<AssetId> {
+	// Whether payment in a particular assetId is suppotrted
+	fn payment_is_supported(asset_id: AssetId) -> bool;
 	// Get units per second from asset type
 	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
 }

@@ -85,7 +85,7 @@ fn test_root_can_change_units_per_second() {
 		));
 
 		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
@@ -111,7 +111,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		));
 
 		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
@@ -120,7 +120,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		));
 
 		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 100);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
@@ -147,7 +147,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		));
 
 		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
 
 		assert_ok!(AssetManager::remove_supported_asset(Origin::root(), 1,));
 
