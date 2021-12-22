@@ -117,6 +117,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
+		SupportedAssetRemoved(T::AssetId),
 	}
 
 	/// Stores the asset TYPE
@@ -190,7 +191,7 @@ pub mod pallet {
 
 		/// Change the amount of units we are charging per execution second for a given AssetId
 		#[pallet::weight(0)]
-		pub fn remote_supported_asset(
+		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 		) -> DispatchResult {
@@ -223,6 +224,7 @@ pub mod pallet {
 			// Remove
 			AssetIdUnitsPerSecond::<T>::remove(&asset_id);
 
+			Self::deposit_event(Event::SupportedAssetRemoved(asset_id));
 			Ok(())
 		}
 	}
