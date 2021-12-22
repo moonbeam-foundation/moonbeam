@@ -171,7 +171,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		// Fallback = Deposit
+		let (input, selector) = EvmDataReader::new_with_selector(input)
+			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
 
 		match selector {
 			Action::TotalSupply => Self::total_supply(input, target_gas),

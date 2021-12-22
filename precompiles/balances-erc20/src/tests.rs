@@ -723,8 +723,7 @@ fn get_metadata_decimals() {
 		});
 }
 
-#[test]
-fn deposit() {
+fn deposit(data: Vec<u8>) {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
@@ -758,7 +757,7 @@ fn deposit() {
 				Origin::root(),
 				Account::Alice.into(),
 				Account::Precompile.into(),
-				EvmDataWriter::new_with_selector(Action::Deposit).build(),
+				data,
 				From::from(500), // amount sent
 				u64::MAX,        // gas limit
 				0u32.into(),     // gas price
@@ -842,6 +841,21 @@ fn deposit() {
 				}))
 			);
 		});
+}
+
+#[test]
+fn deposit_function() {
+	deposit(EvmDataWriter::new_with_selector(Action::Deposit).build())
+}
+
+#[test]
+fn deposit_fallback() {
+	deposit(EvmDataWriter::new_with_selector(0x01234567u32).build())
+}
+
+#[test]
+fn deposit_receive() {
+	deposit(vec![])
 }
 
 #[test]
