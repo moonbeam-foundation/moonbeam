@@ -1832,6 +1832,7 @@
 <span id="1832">1832</span>
 <span id="1833">1833</span>
 <span id="1834">1834</span>
+<span id="1835">1835</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3082,12 +3083,13 @@
 		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
 		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
 		<span class="ident">metadata</span>: <span class="ident">AssetRegistrarMetadata</span>,
+		<span class="ident">is_sufficient</span>: <span class="ident">bool</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
 		<span class="ident">Assets::force_create</span>(
 			<span class="ident">Origin::root</span>(),
 			<span class="ident">asset</span>,
 			<span class="ident">AssetManager::account_id</span>(),
-			<span class="bool-val">true</span>,
+			<span class="ident">is_sufficient</span>,
 			<span class="ident">min_balance</span>,
 		)<span class="question-mark">?</span>;
 
