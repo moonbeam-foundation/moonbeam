@@ -8,11 +8,11 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
 // `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
-const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0603";
+const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
 // `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
-const MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0103";
+const MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
 // `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
-const MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0103";
+const MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -52,6 +52,12 @@ function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
     );
   }
 }
+
+/*async function main() {
+  console.log("moonbase: " + blake2AsHex(MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "4f92a8cddee4237ae3ef06b59a6dfe4a59cb6dfd4017e13fa51a2c8cba3813ca"));
+  console.log("moonriver: " + blake2AsHex(MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "8183ebaf5c12edb993752c21af6cf4670cc67e1a62a920bdbf1ff9f54dad5fc2"));
+  console.log("moonbeam: " + blake2AsHex(MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "e01a1363423212a82d8a50ef47da36d6eb53bf651d9ed652ec330c1157ec7079"));
+}*/
 
 async function main() {
   const argv = yargs(process.argv.slice(2))
