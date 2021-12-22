@@ -1134,7 +1134,7 @@
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">evm_tracing_events</span>::{
 	<span class="ident">runtime</span>::{<span class="ident">Capture</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>},
-	<span class="ident">Event</span>, <span class="ident">EvmEvent</span>, <span class="ident">GasometerEvent</span>, <span class="ident">Listener</span> <span class="kw">as</span> <span class="ident">ListenerT</span>, <span class="ident">RuntimeEvent</span>,
+	<span class="ident">Event</span>, <span class="ident">EvmEvent</span>, <span class="ident">GasometerEvent</span>, <span class="ident">Listener</span> <span class="kw">as</span> <span class="ident">ListenerT</span>, <span class="ident">RuntimeEvent</span>, <span class="ident">StepEventFilter</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
 
@@ -1750,6 +1750,13 @@
 			}
 		};
 	}
+
+	<span class="kw">fn</span> <span class="ident">step_event_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StepEventFilter</span> {
+		<span class="ident">StepEventFilter</span> {
+			<span class="ident">enable_memory</span>: <span class="bool-val">false</span>,
+			<span class="ident">enable_stack</span>: <span class="bool-val">false</span>,
+		}
+	}
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1803,19 +1810,12 @@
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_stack</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stack</span> {
-		<span class="ident">Stack</span> {
-			<span class="ident">data</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">limit</span>: <span class="number">0u64</span>,
-		}
+	<span class="kw">fn</span> <span class="ident">test_stack</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&gt;</span> {
+		<span class="prelude-val">None</span>
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_memory</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Memory</span> {
-		<span class="ident">Memory</span> {
-			<span class="ident">data</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">effective_len</span>: <span class="ident">U256::zero</span>(),
-			<span class="ident">limit</span>: <span class="number">0u64</span>,
-		}
+	<span class="kw">fn</span> <span class="ident">test_memory</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Memory</span><span class="op">&gt;</span> {
+		<span class="prelude-val">None</span>
 	}
 
 	<span class="kw">fn</span> <span class="ident">test_snapshot</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Snapshot</span> {

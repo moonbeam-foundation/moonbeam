@@ -146,6 +146,16 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -163,6 +173,8 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::StepEventFilter</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">opcodes_string</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
@@ -221,8 +233,8 @@
 		<span class="ident">opcode</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		<span class="comment">// We can use ExitReason with `with-codec` feature,</span>
 		<span class="ident">position</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">ExitReason</span><span class="op">&gt;</span>,
-		<span class="ident">stack</span>: <span class="ident">Stack</span>,
-		<span class="ident">memory</span>: <span class="ident">Memory</span>,
+		<span class="ident">stack</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&gt;</span>,
+		<span class="ident">memory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Memory</span><span class="op">&gt;</span>,
 	},
 	<span class="ident">StepResult</span> {
 		<span class="ident">result</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Capture</span><span class="op">&lt;</span><span class="ident">ExitReason</span>, <span class="ident">Trap</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -241,8 +253,8 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">evm_runtime::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RuntimeEvent</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">RuntimeEvent</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_evm_event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">filter</span>: <span class="ident">StepEventFilter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="kw">match</span> <span class="ident">i</span> {
 			<span class="ident">evm_runtime::tracing::Event::Step</span> {
 				<span class="ident">context</span>,
@@ -257,8 +269,16 @@
 					<span class="prelude-val">Ok</span>(<span class="ident">position</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">position</span> <span class="kw">as</span> <span class="ident">u64</span>),
 					<span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">clone</span>()),
 				},
-				<span class="ident">stack</span>: <span class="ident">stack</span>.<span class="ident">into</span>(),
-				<span class="ident">memory</span>: <span class="ident">memory</span>.<span class="ident">into</span>(),
+				<span class="ident">stack</span>: <span class="kw">if</span> <span class="ident">filter</span>.<span class="ident">enable_stack</span> {
+					<span class="prelude-val">Some</span>(<span class="ident">stack</span>.<span class="ident">into</span>())
+				} <span class="kw">else</span> {
+					<span class="prelude-val">None</span>
+				},
+				<span class="ident">memory</span>: <span class="kw">if</span> <span class="ident">filter</span>.<span class="ident">enable_memory</span> {
+					<span class="prelude-val">Some</span>(<span class="ident">memory</span>.<span class="ident">into</span>())
+				} <span class="kw">else</span> {
+					<span class="prelude-val">None</span>
+				},
 			},
 			<span class="ident">evm_runtime::tracing::Event::StepResult</span> {
 				<span class="ident">result</span>,
