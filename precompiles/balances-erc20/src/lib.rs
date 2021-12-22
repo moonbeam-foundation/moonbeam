@@ -514,7 +514,17 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(2, 32)?;
 
-		let amount: U256 = input.read()?;
+		let withdrawn_amount: U256 = input.read()?;
+
+		let account_amount: U256 = {
+			let owner: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
+		};
+
+		if withdrawn_amount > account_amount {
+			return Err(error("trying to withdraw more than owned"));
+		}
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -524,7 +534,7 @@ where
 				.log2(
 					SELECTOR_LOG_WITHDRAWAL,
 					context.caller,
-					EvmDataWriter::new().write(amount).build(),
+					EvmDataWriter::new().write(withdrawn_amount).build(),
 				)
 				.build(),
 		})

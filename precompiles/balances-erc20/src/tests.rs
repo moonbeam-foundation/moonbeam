@@ -937,3 +937,72 @@ fn withdraw() {
 			);
 		});
 }
+
+#[test]
+fn withdraw_more_than_owned() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Check precompile balance is 0.
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Withdraw
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Withdraw)
+						.write(U256::from(1001))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Err(error("trying to withdraw more than owned")))
+			);
+
+			// Check Alice balance is still 1000.
+			assert_eq!(
+				Precompiles::<Runtime>::execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1000)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+		});
+}
