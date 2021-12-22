@@ -8,6 +8,7 @@ export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbea
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
 export const SPAWNING_TIME = 20000;
 export const ETHAPI_CMD = process.env.ETHAPI_CMD || "";
+export const WASM_RUNTIME_OVERRIDES = process.env.WASM_RUNTIME_OVERRIDES || "";
 
 export const RELAY_CHAIN_NODE_NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie", "One"];
 
