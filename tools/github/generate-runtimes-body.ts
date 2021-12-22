@@ -53,12 +53,6 @@ function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
   }
 }
 
-/*async function main() {
-  console.log("moonbase: " + blake2AsHex(MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "4f92a8cddee4237ae3ef06b59a6dfe4a59cb6dfd4017e13fa51a2c8cba3813ca"));
-  console.log("moonriver: " + blake2AsHex(MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "8183ebaf5c12edb993752c21af6cf4670cc67e1a62a920bdbf1ff9f54dad5fc2"));
-  console.log("moonbeam: " + blake2AsHex(MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE + "e01a1363423212a82d8a50ef47da36d6eb53bf651d9ed652ec330c1157ec7079"));
-}*/
-
 async function main() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run ts-node github/generate-release-body.ts [args]")
