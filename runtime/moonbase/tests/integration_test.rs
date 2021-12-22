@@ -1674,6 +1674,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 				is_frozen: false,
 			},
 			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			true,
 		)])
 		.build()
 		.execute_with(|| {

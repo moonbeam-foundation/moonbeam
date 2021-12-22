@@ -682,6 +682,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		// With these units per second, 80K weight convrets to 1 asset unit
 		assert_ok!(AssetManager::set_asset_units_per_second(
