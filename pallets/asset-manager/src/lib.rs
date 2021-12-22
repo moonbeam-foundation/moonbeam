@@ -130,6 +130,11 @@ pub mod pallet {
 	#[pallet::getter(fn asset_id_units_per_second)]
 	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
 
+	// Supported fee asset payments
+	#[pallet::storage]
+	#[pallet::getter(fn supported_fee_payment_assets)]
+	pub type SupportedFeePaymentAssets<T: Config> = StorageValue<_, Vec<T::AssetType>, ValueQuery>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
@@ -165,14 +170,59 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
-			ensure!(
-				AssetIdType::<T>::get(&asset_id).is_some(),
-				Error::<T>::AssetDoesNotExist
-			);
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			// If not in our supported asset list, then put it
+			if !supported_assets.contains(&asset_type) {
+				supported_assets.push(asset_type);
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+			}
 
 			AssetIdUnitsPerSecond::<T>::insert(&asset_id, &units_per_second);
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
+			Ok(())
+		}
+
+		/// Change the amount of units we are charging per execution second for a given AssetId
+		#[pallet::weight(0)]
+		pub fn remote_supported_asset(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			let index = supported_assets
+				.iter()
+				.enumerate()
+				.find_map(|(index, asset)| {
+					if asset_type == asset.clone() {
+						Some(index)
+					} else {
+						None
+					}
+				})
+				.ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove
+			supported_assets.remove(index);
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			// Remove
+			AssetIdUnitsPerSecond::<T>::remove(&asset_id);
+
 			Ok(())
 		}
 	}
