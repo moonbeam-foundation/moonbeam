@@ -22,7 +22,8 @@ async function mockAssetBalance(context, assetBalance, assetDetails, sudoAccount
       context.polkadotApi.tx.assetManager.registerAsset(
         sourceLocationRelayAssetType,
         relayAssetMetadata,
-        new BN(1)
+        new BN(1),
+        true
       )
     )
     .signAndSend(sudoAccount);

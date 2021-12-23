@@ -1088,6 +1088,7 @@ fn asset_can_be_registered() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true,
 		));
 		assert!(AssetManager::asset_id_type(source_id).is_some());
 	});
@@ -1336,16 +1337,17 @@ fn asset_erc20_precompiles_approve() {
 #[test]
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
@@ -1401,16 +1403,17 @@ fn xtokens_precompiles_transfer() {
 #[test]
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
@@ -1625,16 +1628,17 @@ fn root_can_change_default_xcm_vers() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.build()
 		.execute_with(|| {
 			let source_location = AssetType::Xcm(MultiLocation::parent());
@@ -1683,16 +1687,17 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.build()
 		.execute_with(|| {
 			let source_location = AssetType::Xcm(MultiLocation::parent());

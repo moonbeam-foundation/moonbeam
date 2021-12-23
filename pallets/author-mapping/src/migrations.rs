@@ -107,7 +107,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
 			let example_pair = storage_key_iter::<
-				T::AuthorId,
+				NimbusId,
 				RegistrationInfo<T::AccountId, BalanceOf<T>>,
 				Twox64Concat,
 			>(pallet_prefix, storage_item_prefix)
@@ -132,10 +132,8 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let (account, original_info): (
-				T::AuthorId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-			) = Self::get_temp_storage("example_pair").expect("qed");
+			let (account, original_info): (NimbusId, RegistrationInfo<T::AccountId, BalanceOf<T>>) =
+				Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info = MappingWithDeposit::<T>::get(account).expect("qed");
 			assert_eq!(original_info, migrated_info);
 		}

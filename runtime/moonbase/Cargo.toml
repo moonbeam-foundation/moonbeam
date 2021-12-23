@@ -262,6 +262,7 @@ try-runtime = [
 	"pallet-author-mapping/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
+	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-society/try-runtime",
