@@ -35,6 +35,7 @@ use frame_support::pallet;
 pub use pallet::*;
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
+pub mod migrations;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]

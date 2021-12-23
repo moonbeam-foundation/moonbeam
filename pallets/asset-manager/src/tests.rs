@@ -18,7 +18,9 @@
 use crate::*;
 use mock::*;
 
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{
+	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
+};
 
 #[test]
 fn registering_works() {
@@ -171,5 +173,36 @@ fn test_asset_id_non_existent_error() {
 			AssetManager::remove_supported_asset(Origin::root(), 1),
 			Error::<Test>::AssetDoesNotExist
 		);
+	});
+}
+
+#[test]
+fn test_populate_supported_fee_payment_assets_works() {
+	new_test_ext().execute_with(|| {
+		use frame_support::StorageHasher;
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use parity_scale_codec::Encode;
+
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&1u32.encode()),
+			10u128,
+		);
+
+		assert_noop!(
+			AssetManager::set_asset_units_per_second(Origin::root(), 1, 200u128.into()),
+			Error::<Test>::AssetDoesNotExist
+		);
+
+		assert!(AssetManager::supported_fee_payment_assets().len() == 0);
+
+		// We run the migration
+		crate::migrations::PopulateSupportedFeePaymentAssets::<Test>::on_runtime_upgrade();
+
+		assert!(AssetManager::supported_fee_payment_assets().len() == 1);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
 	});
 }
