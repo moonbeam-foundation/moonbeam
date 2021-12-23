@@ -144,6 +144,21 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
+	impl<AccountId, Balance: Copy + sp_std::ops::Add<Output = Balance>>
+		CollatorSnapshot<AccountId, Balance>
+	{
+		pub fn new(
+			collator_bond: Balance,
+			top_delegations: Delegations<AccountId, Balance>,
+		) -> Self {
+			Self {
+				bond: collator_bond,
+				delegations: top_delegations.delegations,
+				total: collator_bond + top_delegations.total,
+			}
+		}
+	}
+
 	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Info needed to make delayed payments to stakers after round end
 	pub struct DelayedPayout<Balance> {
@@ -201,6 +216,7 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// DEPRECATED
 	/// Collator candidate state with self bond + delegations
 	pub struct CollatorCandidate<AccountId, Balance> {
 		/// The account of this collator
@@ -222,6 +238,98 @@ pub mod pallet {
 		/// Current status of the collator
 		pub state: CollatorStatus,
 	}
+
+	#[derive(Clone, Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Type for top and bottom delegation storage item
+	pub struct Delegations<AccountId, Balance> {
+		delegations: Vec<Bond<AccountId, Balance>>,
+		total: Balance,
+	}
+
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// All candidate info except the top and bottom delegations
+	pub struct CandidateMetadata<Balance> {
+		/// This candidate's self bond amount
+		pub bond: Balance,
+		/// Self bond + sum of top delegations
+		pub total_counted: Balance,
+		/// Whether or not the top delegations is full
+		/// If not full => highest_bottom_delegation_amount.is_zero() and it is empty
+		pub top_full: bool,
+		/// The smallest top delegation amount
+		pub lowest_top_delegation_amount: Balance,
+		/// The largest bottom delegation amount
+		pub highest_bottom_delegation_amount: Balance,
+		/// Maximum 1 pending request to decrease candidate self bond at any given time
+		pub request: Option<CandidateBondLessRequest<Balance>>,
+		/// Current status of the collator
+		pub status: CollatorStatus,
+	}
+	// TODO: don't forget to add `.bond` to top_delegations.total for the snapshot
+
+	/// Temporary function to migrate CandidateState storage item
+	pub fn migrate_candidate_state<T: Config>(
+		candidate_id: T::AccountId,
+		old_state: CollatorCandidate<T::AccountId, BalanceOf<T>>,
+	) {
+		// get candidate metadata
+		// insert
+		// get top delegations
+		// insert
+		// get bottom delegations
+		// insert
+		todo!()
+	}
+
+	impl<Balance: Copy + Zero> CandidateMetadata<Balance> {
+		pub fn new(bond: Balance) -> Self {
+			CandidateMetadata {
+				bond,
+				total_counted: bond,
+				top_full: false,
+				lowest_top_delegation_amount: Zero::zero(),
+				highest_bottom_delegation_amount: Zero::zero(),
+				request: None,
+				status: CollatorStatus::Active,
+			}
+		}
+		pub fn is_active(&self) -> bool {
+			matches!(self.status, CollatorStatus::Active)
+		}
+		pub fn is_leaving(&self) -> bool {
+			matches!(self.status, CollatorStatus::Leaving(_))
+		}
+		pub fn schedule_leave<T: Config>(
+			&mut self,
+		) -> Result<(RoundIndex, RoundIndex), DispatchError> {
+			ensure!(!self.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
+			let now = <Round<T>>::get().current;
+			let when = now + T::LeaveCandidatesDelay::get();
+			self.status = CollatorStatus::Leaving(when);
+			Ok((now, when))
+		}
+		pub fn can_leave<T: Config>(&self) -> DispatchResult {
+			if let CollatorStatus::Leaving(when) = self.status {
+				ensure!(
+					<Round<T>>::get().current >= when,
+					Error::<T>::CandidateCannotLeaveYet
+				);
+				Ok(())
+			} else {
+				Err(Error::<T>::CandidateNotLeaving.into())
+			}
+		}
+		pub fn go_offline(&mut self) {
+			self.status = CollatorStatus::Idle;
+		}
+		pub fn go_online(&mut self) {
+			self.status = CollatorStatus::Active;
+		}
+	}
+
+	// TODO: all collator methods
+	// create new candidate
+	// update bond amount
 
 	// Temporary manual implementation for migration testing purposes
 	impl<A: PartialEq, B: PartialEq> PartialEq for CollatorCandidate<A, B> {
@@ -1434,10 +1542,10 @@ pub mod pallet {
 		CandidateBondedMore(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Candidate, Amount, New Bond
 		CandidateBondedLess(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Round Offline, Candidate
-		CandidateWentOffline(RoundIndex, T::AccountId),
-		/// Round Online, Candidate
-		CandidateBackOnline(RoundIndex, T::AccountId),
+		/// Candidate
+		CandidateWentOffline(T::AccountId),
+		/// Candidate
+		CandidateBackOnline(T::AccountId),
 		/// Round At Which Exit Is Allowed, Candidate, Scheduled Exit
 		CandidateScheduledExit(RoundIndex, T::AccountId, RoundIndex),
 		/// Candidate
@@ -1581,12 +1689,41 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_state)]
+	/// DEPRECATED
 	/// Get collator candidate state associated with an account if account is a candidate else None
 	pub(crate) type CandidateState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
 		CollatorCandidate<T::AccountId, BalanceOf<T>>,
+		OptionQuery,
+	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_info)]
+	/// Get collator candidate info associated with an account if account is candidate else None
+	pub(crate) type CandidateInfo<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn top_delegations)]
+	/// Top delegations for collator candidate
+	pub(crate) type TopDelegations<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		Delegations<T::AccountId, BalanceOf<T>>,
+		OptionQuery,
+	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn bottom_delegations)]
+	/// Bottom delegations for collator candidate
+	pub(crate) type BottomDelegations<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		Delegations<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -1959,8 +2096,13 @@ pub mod pallet {
 				Error::<T>::CandidateExists
 			);
 			T::Currency::reserve(&acc, bond)?;
-			let candidate = CollatorCandidate::new(acc.clone(), bond);
-			<CandidateState<T>>::insert(&acc, candidate);
+			let candidate = CandidateMetadata::new(bond);
+			<CandidateInfo<T>>::insert(&acc, candidate);
+			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
+			// insert empty top delegations
+			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
+			// insert empty bottom delegations
+			<BottomDelegations<T>>::insert(&acc, empty_delegations);
 			<CandidatePool<T>>::put(candidates);
 			let new_total = <Total<T>>::get().saturating_add(bond);
 			<Total<T>>::put(new_total);
@@ -1975,8 +2117,9 @@ pub mod pallet {
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			let (now, when) = state.leave::<T>()?;
+			// update please
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let (now, when) = state.schedule_leave::<T>()?;
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidate_count >= candidates.0.len() as u32,
@@ -1985,7 +2128,7 @@ pub mod pallet {
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<CandidateState<T>>::insert(&collator, state);
+			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
 		}
@@ -1996,7 +2139,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			let state = <CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			let state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			state.can_leave::<T>()?;
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);
@@ -2014,22 +2157,36 @@ pub mod pallet {
 					}
 				}
 			};
-			// return all top delegations
-			for bond in state.top_delegations {
-				return_stake(bond);
+			// total backing stake is at least the candidate self bond
+			let mut total_backing = state.bond;
+			// return all top delegations if there are top delegations
+			if !state.lowest_top_delegation_amount.is_zero() {
+				let top_delegations =
+					<TopDelegations<T>>::get(&candidate).expect("TODO: explain proof of existence");
+				for bond in top_delegations.delegations {
+					return_stake(bond);
+				}
+				total_backing += top_delegations.total;
 			}
 			// return all bottom delegations
-			for bond in state.bottom_delegations {
-				return_stake(bond);
+			if !state.highest_bottom_delegation_amount.is_zero() {
+				let bottom_delegations = <BottomDelegations<T>>::get(&candidate)
+					.expect("TODO: explain proof of existence");
+				for bond in bottom_delegations.delegations {
+					return_stake(bond);
+				}
+				total_backing += bottom_delegations.total;
 			}
 			// return stake to collator
-			T::Currency::unreserve(&state.id, state.bond);
+			T::Currency::unreserve(&candidate, state.bond);
 			<CandidateState<T>>::remove(&candidate);
-			let new_total_staked = <Total<T>>::get().saturating_sub(state.total_backing);
+			<TopDelegations<T>>::remove(&candidate);
+			<BottomDelegations<T>>::remove(&candidate);
+			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::CandidateLeft(
 				candidate,
-				state.total_backing,
+				total_backing,
 				new_total_staked,
 			));
 			Ok(().into())
@@ -2043,7 +2200,7 @@ pub mod pallet {
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_leaving(), Error::<T>::CandidateNotLeaving);
 			state.go_online();
 			let mut candidates = <CandidatePool<T>>::get();
@@ -2059,7 +2216,7 @@ pub mod pallet {
 				Error::<T>::AlreadyActive
 			);
 			<CandidatePool<T>>::put(candidates);
-			<CandidateState<T>>::insert(&collator, state);
+			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CancelledCandidateExit(collator));
 			Ok(().into())
 		}
@@ -2067,25 +2224,22 @@ pub mod pallet {
 		/// Temporarily leave the set of collator candidates without unbonding
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<CandidateState<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CandidateWentOffline(
-				<Round<T>>::get().current,
-				collator,
-			));
+			<CandidateInfo<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CandidateWentOffline(collator));
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::go_online())]
 		/// Rejoin the set of collator candidates if previously had called `go_offline`
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
 			ensure!(!state.is_leaving(), Error::<T>::CannotGoOnlineIfLeaving);
 			state.go_online();
@@ -2098,11 +2252,8 @@ pub mod pallet {
 				Error::<T>::AlreadyActive
 			);
 			<CandidatePool<T>>::put(candidates);
-			<CandidateState<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CandidateBackOnline(
-				<Round<T>>::get().current,
-				collator,
-			));
+			<CandidateInfo<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CandidateBackOnline(collator));
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
@@ -2349,7 +2500,7 @@ pub mod pallet {
 			<DelegatorState<T>>::get(acc).is_some()
 		}
 		pub fn is_candidate(acc: &T::AccountId) -> bool {
-			<CandidateState<T>>::get(acc).is_some()
+			<CandidateInfo<T>>::get(acc).is_some()
 		}
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
