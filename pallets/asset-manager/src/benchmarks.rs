@@ -43,7 +43,23 @@ benchmarks! {
 
 	}: _(RawOrigin::Root, asset_id, 1)
 	verify {
+		assert!(Pallet::<T>::supported_fee_payment_assets().contains(&asset_id));
 		assert_eq!(Pallet::<T>::asset_id_units_per_second(asset_id), Some(1));
+	}
+
+	remove_supported_asset {
+		// does not really matter what we register
+		let asset_type = T::AssetType::default();
+		let metadata = T::AssetRegistrarMetadata::default();
+		let amount = 1u32.into();
+		let asset_id: T::AssetId = asset_type.clone().into();
+		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount)?;
+		Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_id, 1)?;
+	}: _(RawOrigin::Root, asset_id)
+	verify {
+		assert!(Pallet::<T>::supported_fee_payment_assets().is_empty());
+		assert_eq!(Pallet::<T>::asset_id_units_per_second(asset_id), None);
+
 	}
 }
 
