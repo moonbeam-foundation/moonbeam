@@ -63,6 +63,8 @@ pub mod pallet {
 			asset: T::AssetId,
 			min_balance: T::Balance,
 			metadata: T::AssetRegistrarMetadata,
+			// Wether or not an asset-receiving account increments the sufficient counter
+			is_sufficient: bool,
 		) -> DispatchResult;
 	}
 
@@ -139,6 +141,7 @@ pub mod pallet {
 			asset: T::AssetType,
 			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
+			is_sufficient: bool,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
@@ -147,7 +150,7 @@ pub mod pallet {
 				AssetIdType::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
-			T::AssetRegistrar::create_asset(asset_id, min_amount, metadata.clone())
+			T::AssetRegistrar::create_asset(asset_id, min_amount, metadata.clone(), is_sufficient)
 				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			AssetIdType::<T>::insert(&asset_id, &asset);

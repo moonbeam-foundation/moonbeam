@@ -88,7 +88,7 @@ async function registerAssetToParachain(
     parachainApi,
     sudoKeyring,
     parachainApi.tx.sudo.sudo(
-      parachainApi.tx.assetManager.registerAsset(assetLocation, assetMetadata, new BN(1))
+      parachainApi.tx.assetManager.registerAsset(assetLocation, assetMetadata, new BN(1), true)
     )
   );
   let assetId: string;
