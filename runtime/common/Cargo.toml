@@ -42,4 +42,4 @@ std = [
 	"sp-std/std",
 	"xcm-transactor/std",
 ]
-xcm-support = [ "xcm-transactor", "pallet-asset-manager" ]
+xcm-support = [ "pallet-asset-manager", "xcm-transactor" ]
