@@ -21,6 +21,11 @@ use frame_support::{
 	traits::{OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
+
+#[cfg(feature = "xcm-support")]
+use pallet_asset_manager::{
+	migrations::PopulateSupportedFeePaymentAssets, Config as AssetManagerConfig,
+};
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
@@ -30,7 +35,6 @@ use parachain_staking::{
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
-
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
@@ -193,6 +197,31 @@ impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
 	}
 }
 
+#[cfg(feature = "xcm-support")]
+pub struct XcmPaymentSupportedAssets<T>(PhantomData<T>);
+#[cfg(feature = "xcm-support")]
+impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Xcm_Payment_Supported_Assets"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PopulateSupportedFeePaymentAssets::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PopulateSupportedFeePaymentAssets::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PopulateSupportedFeePaymentAssets::<T>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -235,11 +264,12 @@ pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 #[cfg(feature = "xcm-support")]
 impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config,
+	Runtime: xcm_transactor::Config + pallet_asset_manager::Config + pallet_migrations::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let xcm_transactor_max_weight =
 			XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+		let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -254,6 +284,7 @@ where
 			// completed in runtime 1000
 			// Box::new(migration_parachain_staking_manual_exits),
 			Box::new(xcm_transactor_max_weight),
+			Box::new(xcm_supported_assets),
 		]
 	}
 }
