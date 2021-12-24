@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles&#x2F;parachain-staking&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parachain_staking_precompiles/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles&#x2F;parachain-staking&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parachain_staking_precompiles/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -821,27 +821,6 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -861,19 +840,20 @@
 <span class="doccomment">//! Precompile to call parachain-staking runtime methods via the EVM</span>
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">assert_matches</span>))]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm::Precompile</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">error</span>, <span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
@@ -959,80 +939,105 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+		<span class="ident">_is_static</span>: <span class="ident">bool</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+		<span class="kw">let</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>;
+
+		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">input</span>;
 
 		<span class="comment">// Return early if storage getter; return (origin, call) if dispatchable</span>
 		<span class="kw">let</span> (<span class="ident">origin</span>, <span class="ident">call</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::MinNomination</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">target_gas</span>),
-			<span class="ident">Action::MinDelegation</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">target_gas</span>),
-			<span class="ident">Action::Points</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::points</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::CandidateCount</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_count</span>(<span class="ident">target_gas</span>),
+			<span class="ident">Action::MinNomination</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">gasometer</span>),
+			<span class="ident">Action::MinDelegation</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">gasometer</span>),
+			<span class="ident">Action::Points</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::points</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::CandidateCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_count</span>(<span class="ident">gasometer</span>),
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::CollatorNominationCount</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>)
-			}
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorNominationCount</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>)
-			}
-			<span class="ident">Action::CandidateDelegationCount</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>)
-			}
-			<span class="ident">Action::DelegatorDelegationCount</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>)
+			<span class="ident">Action::CollatorNominationCount</span> =&gt; {
+				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>)
 			}
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::IsNominator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::IsDelegator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::IsCandidate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_candidate</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::IsSelectedCandidate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_selected_candidate</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
+			<span class="ident">Action::NominatorNominationCount</span> =&gt; {
+				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>)
+			}
+			<span class="ident">Action::CandidateDelegationCount</span> =&gt; {
+				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>)
+			}
+			<span class="ident">Action::DelegatorDelegationCount</span> =&gt; {
+				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>)
+			}
+			<span class="comment">// DEPRECATED</span>
+			<span class="ident">Action::IsNominator</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::IsDelegator</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::IsCandidate</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_candidate</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::IsSelectedCandidate</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_selected_candidate</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
 			<span class="comment">// runtime methods (dispatchables)</span>
-			<span class="ident">Action::JoinCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::join_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::JoinCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::join_candidates</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::LeaveCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ScheduleLeaveCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ExecuteLeaveCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::execute_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::CancelLeaveCandidates</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::cancel_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::GoOffline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::go_offline</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::GoOnline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::go_online</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::CandidateBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ScheduleCandidateBondLess</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			<span class="ident">Action::LeaveCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ScheduleLeaveCandidates</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
 			}
-			<span class="ident">Action::CandidateBondMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::candidate_bond_more</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ExecuteCandidateBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::execute_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::CancelCandidateBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::cancel_candidate_bond_less</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ExecuteLeaveCandidates</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::execute_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::CancelLeaveCandidates</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::cancel_leave_candidates</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::GoOffline</span> =&gt; <span class="ident"><span class="self">Self</span>::go_offline</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::GoOnline</span> =&gt; <span class="ident"><span class="self">Self</span>::go_online</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::Nominate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::Delegate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::CandidateBondLess</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::ScheduleCandidateBondLess</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::CandidateBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::candidate_bond_more</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ExecuteCandidateBondLess</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::execute_candidate_bond_less</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::CancelCandidateBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_candidate_bond_less</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::LeaveNominators</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ScheduleLeaveDelegators</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ExecuteLeaveDelegators</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::execute_leave_delegators</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::CancelLeaveDelegators</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::cancel_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::Nominate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::RevokeNomination</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ScheduleRevokeDelegation</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::LeaveNominators</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ScheduleLeaveDelegators</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ExecuteLeaveDelegators</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::execute_leave_delegators</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::CancelLeaveDelegators</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_leave_delegators</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorBondLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ScheduleDelegatorBondLess</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			<span class="ident">Action::RevokeNomination</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::ScheduleRevokeDelegation</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
 			}
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorBondMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::DelegatorBondMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::ExecuteDelegationRequest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::execute_delegation_request</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-			<span class="ident">Action::CancelDelegationRequest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::cancel_delegation_request</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::NominatorBondLess</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::ScheduleDelegatorBondLess</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="comment">// DEPRECATED</span>
+			<span class="ident">Action::NominatorBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::DelegatorBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+			<span class="ident">Action::ExecuteDelegationRequest</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::execute_delegation_request</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
+			<span class="ident">Action::CancelDelegationRequest</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::cancel_delegation_request</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+			}
 		};
-		<span class="comment">// Initialize gasometer</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+
 		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span>
-			<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">origin</span>, <span class="ident">call</span>, <span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">origin</span>, <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
 			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
@@ -1052,16 +1057,14 @@
 {
 	<span class="comment">// Constants</span>
 
-	<span class="kw">fn</span> <span class="ident">min_delegation</span>(<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+	<span class="kw">fn</span> <span class="ident">min_delegation</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">min_nomination</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::MinDelegation</span> <span class="kw">as</span> <span class="ident">Get</span><span class="op">&lt;</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 		<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>()
 		.<span class="ident">try_into</span>()
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
@@ -1074,15 +1077,10 @@
 
 	<span class="comment">// Storage Getters</span>
 
-	<span class="kw">fn</span> <span class="ident">points</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+	<span class="kw">fn</span> <span class="ident">points</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">round</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">round</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1097,9 +1095,7 @@
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">candidate_count</span>(<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+	<span class="kw">fn</span> <span class="ident">candidate_count</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">candidate_count</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_pool</span>()
@@ -1116,14 +1112,13 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">candidate_delegation_count</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1156,14 +1151,13 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">delegator_delegation_count</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1199,14 +1193,13 @@
 	<span class="comment">// Role Verifiers</span>
 
 	<span class="kw">fn</span> <span class="ident">is_delegator</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1222,14 +1215,13 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">is_candidate</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1245,14 +1237,13 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
 
 		<span class="comment">// Fetch info.</span>
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -1270,19 +1261,17 @@
 	<span class="comment">// Runtime Methods (dispatchables)</span>
 
 	<span class="kw">fn</span> <span class="ident">join_candidates</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1296,18 +1285,16 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">schedule_leave_candidates</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1319,18 +1306,17 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">execute_leave_candidates</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1341,18 +1327,16 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">cancel_leave_candidates</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1364,13 +1348,10 @@
 
 	<span class="kw">fn</span> <span class="ident">go_offline</span>(
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span> {};
@@ -1381,13 +1362,10 @@
 
 	<span class="kw">fn</span> <span class="ident">go_online</span>(
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span> {};
@@ -1397,18 +1375,16 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1419,18 +1395,16 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">schedule_candidate_bond_less</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1441,18 +1415,17 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">execute_candidate_bond_less</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1464,13 +1437,10 @@
 
 	<span class="kw">fn</span> <span class="ident">cancel_candidate_bond_less</span>(
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_candidate_bond_less</span> {};
@@ -1480,21 +1450,20 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">delegate</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">4</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">collator</span>);
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate_delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1511,13 +1480,10 @@
 
 	<span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_leave_delegators</span> {};
@@ -1527,19 +1493,18 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">execute_leave_delegators</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>);
+		<span class="kw">let</span> <span class="ident">delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1554,13 +1519,10 @@
 
 	<span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_leave_delegators</span> {};
@@ -1570,18 +1532,17 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">schedule_revoke_delegation</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">collator</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1592,19 +1553,18 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">delegator_bond_more</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
+		<span class="kw">let</span> <span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1615,19 +1575,18 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">schedule_delegator_bond_less</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
+		<span class="kw">let</span> <span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1639,19 +1598,19 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">execute_delegation_request</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>);
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
@@ -1665,18 +1624,17 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">cancel_delegation_request</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-		(
-			<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-			<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		),
-		<span class="ident">ExitError</span>,
-	<span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
+		<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
+		<span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	)<span class="op">&gt;</span> {
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>);
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);

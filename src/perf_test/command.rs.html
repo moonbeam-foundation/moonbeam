@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node&#x2F;perf-test&#x2F;src&#x2F;command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../perf_test/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node&#x2F;perf-test&#x2F;src&#x2F;command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../perf_test/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -521,6 +521,10 @@
 <span id="521">521</span>
 <span id="522">522</span>
 <span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -602,7 +606,7 @@
 		<span class="ident">RuntimeApiCollection</span><span class="op">&lt;</span><span class="ident">StateBackend</span> <span class="op">=</span> <span class="ident">sc_client_api::StateBackendFor</span><span class="op">&lt;</span><span class="ident">FullBackend</span>, <span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Executor</span>: <span class="ident">NativeExecutionDispatch</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_cmd</span>(<span class="ident">config</span>: <span class="ident">Configuration</span>, <span class="ident">_cmd</span>: <span class="kw-2">&amp;</span><span class="ident">PerfCmd</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CliResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_cmd</span>(<span class="ident">config</span>: <span class="ident">Configuration</span>, <span class="ident">_cmd</span>: <span class="kw-2">&amp;</span><span class="ident">PerfCmd</span>) -&gt; <span class="ident">CliResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
 		<span class="macro">println!</span>(<span class="string">&quot;perf-test from_cmd&quot;</span>);
 		<span class="kw">let</span> <span class="ident">sc_service::PartialComponents</span> {
 			<span class="ident">client</span>,
@@ -624,7 +628,6 @@
 				<span class="ident">transaction_pool</span>: <span class="ident">transaction_pool</span>.<span class="ident">clone</span>(),
 				<span class="ident">spawn_handle</span>: <span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
 				<span class="ident">import_queue</span>,
-				<span class="ident">on_demand</span>: <span class="prelude-val">None</span>,
 				<span class="ident">block_announce_validator_builder</span>: <span class="prelude-val">None</span>,
 				<span class="ident">warp_sync</span>: <span class="prelude-val">None</span>,
 			})<span class="question-mark">?</span>;
@@ -662,6 +665,7 @@
 		<span class="macro">log::debug!</span>(<span class="string">&quot;spawning authorship task...&quot;</span>);
 		<span class="ident">task_manager</span>.<span class="ident">spawn_essential_handle</span>().<span class="ident">spawn_blocking</span>(
 			<span class="string">&quot;authorship_task&quot;</span>,
+			<span class="prelude-val">Some</span>(<span class="string">&quot;block-authoring&quot;</span>),
 			<span class="ident">run_manual_seal</span>(<span class="ident">ManualSealParams</span> {
 				<span class="ident">block_import</span>,
 				<span class="ident">env</span>,
@@ -757,11 +761,9 @@
 			<span class="ident">network</span>,
 			<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">keystore</span>: <span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>(),
-			<span class="ident">task_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task_manager</span>,
+			<span class="ident">task_manager</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task_manager</span>,
 			<span class="ident">transaction_pool</span>: <span class="ident">transaction_pool</span>.<span class="ident">clone</span>(),
 			<span class="ident">rpc_extensions_builder</span>,
-			<span class="ident">on_demand</span>: <span class="prelude-val">None</span>,
-			<span class="ident">remote_blockchain</span>: <span class="prelude-val">None</span>,
 			<span class="ident">backend</span>,
 			<span class="ident">system_rpc_tx</span>,
 			<span class="ident">config</span>,
@@ -781,7 +783,7 @@
 		})
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alice_details</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AccountDetails</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alice_details</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AccountDetails</span> {
 		<span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
 		<span class="kw">let</span> <span class="ident">alice_address</span> <span class="op">=</span> <span class="ident">H160::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)
@@ -813,9 +815,10 @@
 		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		<span class="ident">value</span>: <span class="ident">U256</span>,
 		<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-		<span class="ident">gas_price</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+		<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+		<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 		<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fp_evm::CallInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fp_evm::CallInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>;
 		<span class="macro">log::info!</span>(<span class="string">&quot;evm_call best_hash: {:?}&quot;</span>, <span class="ident">hash</span>);
 
@@ -826,7 +829,8 @@
 			<span class="ident">data</span>,
 			<span class="ident">value</span>,
 			<span class="ident">gas_limit</span>,
-			<span class="ident">gas_price</span>,
+			<span class="ident">max_fee_per_gas</span>,
+			<span class="ident">max_priority_fee_per_gas</span>,
 			<span class="ident">nonce</span>,
 			<span class="bool-val">false</span>,
 		);
@@ -840,9 +844,10 @@
 		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		<span class="ident">value</span>: <span class="ident">U256</span>,
 		<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-		<span class="ident">gas_price</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+		<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+		<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 		<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fp_evm::CreateInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fp_evm::CreateInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>;
 		<span class="macro">log::info!</span>(<span class="string">&quot;evm_create best_hash: {:?}&quot;</span>, <span class="ident">hash</span>);
 
@@ -852,7 +857,8 @@
 			<span class="ident">data</span>,
 			<span class="ident">value</span>,
 			<span class="ident">gas_limit</span>,
-			<span class="ident">gas_price</span>,
+			<span class="ident">max_fee_per_gas</span>,
+			<span class="ident">max_priority_fee_per_gas</span>,
 			<span class="ident">nonce</span>,
 			<span class="bool-val">false</span>,
 		);
@@ -870,12 +876,12 @@
 		<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
 		<span class="ident">gas_price</span>: <span class="ident">U256</span>,
 		<span class="ident">nonce</span>: <span class="ident">U256</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
 		<span class="kw">const</span> <span class="ident">CHAIN_ID</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1281</span>; <span class="comment">// TODO: derive from CLI or from Moonbase</span>
 
 		<span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">to</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionAction::Call</span>(<span class="ident">addr</span>),
-			<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionAction::Create</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">addr</span>) =&gt; <span class="ident">TransactionAction::Call</span>(<span class="ident">addr</span>),
+			<span class="prelude-val">None</span> =&gt; <span class="ident">TransactionAction::Create</span>,
 		};
 
 		<span class="kw">let</span> <span class="ident">unsigned</span> <span class="op">=</span> <span class="ident">UnsignedTransaction</span> {
@@ -892,7 +898,9 @@
 		<span class="kw">let</span> <span class="ident">transaction_hash</span> <span class="op">=</span>
 			<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">rlp::encode</span>(<span class="kw-2">&amp;</span><span class="ident">signed</span>)).<span class="ident">as_slice</span>());
 
-		<span class="kw">let</span> <span class="ident">unchecked_extrinsic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">transaction_converter</span>.<span class="ident">convert_transaction</span>(<span class="ident">signed</span>);
+		<span class="kw">let</span> <span class="ident">unchecked_extrinsic</span> <span class="op">=</span> <span class="self">self</span>
+			.<span class="ident">transaction_converter</span>
+			.<span class="ident">convert_transaction</span>(<span class="ident">ethereum::TransactionV2::Legacy</span>(<span class="ident">signed</span>));
 
 		<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>;
 		<span class="macro">log::debug!</span>(<span class="string">&quot;eth_sign_and_send_transaction best_hash: {:?}&quot;</span>, <span class="ident">hash</span>);
@@ -908,7 +916,7 @@
 	}
 
 	<span class="doccomment">/// Author a block through manual sealing</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">create_empty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CreatedBlock</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">create_empty</span>: <span class="ident">bool</span>) -&gt; <span class="ident">CreatedBlock</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
 		<span class="macro">log::trace!</span>(<span class="string">&quot;Issuing seal command...&quot;</span>);
 		<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>;
 
@@ -942,7 +950,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">CliConfiguration</span> <span class="kw">for</span> <span class="ident">PerfCmd</span> {
-	<span class="kw">fn</span> <span class="ident">shared_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SharedParams</span> {
+	<span class="kw">fn</span> <span class="ident">shared_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SharedParams</span> {
 		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">shared_params</span>
 	}
 
@@ -964,7 +972,7 @@
 		<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">PathBuf</span>,
 		<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">PerfCmd</span>,
 		<span class="ident">config</span>: <span class="ident">Configuration</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CliResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+	) -&gt; <span class="ident">CliResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">RuntimeApi</span>:
 			<span class="ident">ConstructRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1001,7 +1009,7 @@
 				}
 			}
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResults</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">test</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">runner</span>)<span class="question-mark">?</span>).<span class="ident">to_vec</span>();
-			<span class="ident">all_test_results</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">results</span>);
+			<span class="ident">all_test_results</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">results</span>);
 		}
 
 		<span class="kw">let</span> (<span class="ident">system_info</span>, <span class="ident">partition_info</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">disable_sysinfo</span> {

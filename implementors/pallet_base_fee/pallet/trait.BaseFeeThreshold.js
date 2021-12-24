@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl BaseFeeThreshold for <a class=\"struct\" href=\"moonbase_runtime/struct.BaseFeeThreshold.html\" title=\"struct moonbase_runtime::BaseFeeThreshold\">BaseFeeThreshold</a>","synthetic":false,"types":["moonbase_runtime::BaseFeeThreshold"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonriver&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonriver_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonriver&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonriver_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1813,6 +1813,43 @@
 <span id="1813">1813</span>
 <span id="1814">1814</span>
 <span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1849,8 +1886,9 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{
-		<span class="ident">Contains</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Nothing</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>,
-		<span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>, <span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
+		<span class="ident">Contains</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Nothing</span>,
+		<span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
+		<span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
@@ -1948,7 +1986,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Balance</span> {
 		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">MOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
 	}
 }
@@ -1995,7 +2033,7 @@
 
 <span class="doccomment">/// The version information used to identify this runtime when compiled natively.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NativeVersion</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_version</span>() -&gt; <span class="ident">NativeVersion</span> {
 	<span class="ident">NativeVersion</span> {
 		<span class="ident">runtime_version</span>: <span class="ident">VERSION</span>,
 		<span class="ident">can_author_with</span>: <span class="ident">Default::default</span>(),
@@ -2061,6 +2099,7 @@
 <span class="kw">impl</span> <span class="ident">pallet_utility::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
+	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_utility::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -2153,10 +2192,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonbeamGasWeightMapping</span>;
 
 <span class="kw">impl</span> <span class="ident">pallet_evm::GasWeightMapping</span> <span class="kw">for</span> <span class="ident">MoonbeamGasWeightMapping</span> {
-	<span class="kw">fn</span> <span class="ident">gas_to_weight</span>(<span class="ident">gas</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">gas_to_weight</span>(<span class="ident">gas</span>: <span class="ident">u64</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">gas</span>.<span class="ident">saturating_mul</span>(<span class="ident">WEIGHT_PER_GAS</span>)
 	}
-	<span class="kw">fn</span> <span class="ident">weight_to_gas</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+	<span class="kw">fn</span> <span class="ident">weight_to_gas</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">u64</span> {
 		<span class="ident">u64::try_from</span>(<span class="ident">weight</span>.<span class="ident">wrapping_div</span>(<span class="ident">WEIGHT_PER_GAS</span>)).<span class="ident">unwrap_or</span>(<span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>)
 	}
 }
@@ -2176,11 +2215,12 @@
 	<span class="doccomment">/// This value is currently only used by pallet-transaction-payment as an assertion that the</span>
 	<span class="doccomment">/// next multiplier is always &gt; min value.</span>
 	<span class="kw">pub</span> <span class="ident">MinimumMultiplier</span>: <span class="ident">Multiplier</span> <span class="op">=</span> <span class="ident">Multiplier::saturating_from_rational</span>(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
+	<span class="kw">pub</span> <span class="ident">PrecompilesValue</span>: <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MoonriverPrecompiles</span>::<span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::new</span>();
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
-	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
+	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() -&gt; <span class="ident">U256</span> {
 		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>()
 	}
 }
@@ -2211,7 +2251,7 @@
 <span class="kw">where</span>
 	<span class="ident">Inner</span>: <span class="ident">FindAuthor</span><span class="op">&lt;</span><span class="ident">AccountId20</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">find_author</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">digests</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>
+	<span class="kw">fn</span> <span class="ident">find_author</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">digests</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">I</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">sp_runtime::ConsensusEngineId</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span>,
 	{
@@ -2229,7 +2269,8 @@
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Runner</span> <span class="op">=</span> <span class="ident">pallet_evm::runner::stack::Runner</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">Precompiles</span> <span class="op">=</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">PrecompilesType</span> <span class="op">=</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">PrecompilesValue</span> <span class="op">=</span> <span class="ident">PrecompilesValue</span>;
 	<span class="kw">type</span> <span class="ident">ChainId</span> <span class="op">=</span> <span class="ident">EthereumChainId</span>;
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">pallet_evm::EVMCurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
@@ -2250,6 +2291,7 @@
 	<span class="kw">type</span> <span class="ident">ScheduleOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">MaxScheduledPerBlock</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_scheduler::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OriginPrivilegeCmp</span> <span class="op">=</span> <span class="ident">EqualPrivilegeOnly</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2444,7 +2486,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TransactionConverter</span>;
 
 <span class="kw">impl</span> <span class="ident">fp_rpc::ConvertTransaction</span><span class="op">&lt;</span><span class="ident">UncheckedExtrinsic</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TransactionConverter</span> {
-	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UncheckedExtrinsic</span> {
+	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>) -&gt; <span class="ident">UncheckedExtrinsic</span> {
 		<span class="ident">UncheckedExtrinsic::new_unsigned</span>(
 			<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
 		)
@@ -2455,12 +2497,12 @@
 	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">opaque::UncheckedExtrinsic</span> {
+	) -&gt; <span class="ident">opaque::UncheckedExtrinsic</span> {
 		<span class="kw">let</span> <span class="ident">extrinsic</span> <span class="op">=</span> <span class="ident">UncheckedExtrinsic::new_unsigned</span>(
 			<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
 		);
 		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">extrinsic</span>.<span class="ident">encode</span>();
-		<span class="ident">opaque::UncheckedExtrinsic::decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..])
+		<span class="ident">opaque::UncheckedExtrinsic::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..])
 			.<span class="ident">expect</span>(<span class="string">&quot;Encoded extrinsic is always valid&quot;</span>)
 	}
 }
@@ -2636,16 +2678,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
 		<span class="ident"><span class="self">Self</span>::Any</span>
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">InstanceFilter</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
-	<span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">ProxyType::Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			<span class="ident">ProxyType::NonTransfer</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::Any</span> =&gt; <span class="bool-val">true</span>,
+			<span class="ident">ProxyType::NonTransfer</span> =&gt; {
 				<span class="macro">matches!</span>(
 					<span class="ident">c</span>,
 					<span class="ident">Call::System</span>(..)
@@ -2657,38 +2699,38 @@
 						<span class="op">|</span> <span class="ident">Call::CrowdloanRewards</span>(<span class="ident">pallet_crowdloan_rewards::Call::claim</span> { .. })
 				)
 			}
-			<span class="ident">ProxyType::Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
+			<span class="ident">ProxyType::Governance</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
 				<span class="ident">Call::Democracy</span>(..)
 					<span class="op">|</span> <span class="ident">Call::CouncilCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call::TechCommitteeCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call::Utility</span>(..)
 			),
-			<span class="ident">ProxyType::Staking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
+			<span class="ident">ProxyType::Staking</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
 				<span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
 			),
-			<span class="ident">ProxyType::CancelProxy</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::CancelProxy</span> =&gt; {
 				<span class="macro">matches!</span>(
 					<span class="ident">c</span>,
 					<span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span> { .. })
 				)
 			}
-			<span class="ident">ProxyType::Balances</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::Balances</span> =&gt; {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..))
 			}
-			<span class="ident">ProxyType::AuthorMapping</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::AuthorMapping</span> =&gt; {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..))
 			}
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">o</span>) {
-			(<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			(<span class="ident">ProxyType::Any</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			(<span class="kw">_</span>, <span class="ident">ProxyType::Any</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			(<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span> =&gt; <span class="bool-val">true</span>,
+			(<span class="ident">ProxyType::Any</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			(<span class="kw">_</span>, <span class="ident">ProxyType::Any</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -2954,21 +2996,21 @@
 	<span class="ident">Xcm</span>(<span class="ident">MultiLocation</span>),
 }
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
 		<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation::here</span>())
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="self">Self</span> {
 		<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>)
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
-	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">location</span>),
+			<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">location</span>),
 		}
 	}
 }
@@ -2976,9 +3018,9 @@
 <span class="comment">// Implementation on how to retrieve the AssetId from an AssetType</span>
 <span class="comment">// We simply hash the AssetType and take the lowest 128 bits</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetId</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">asset</span>: <span class="ident">AssetType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AssetId</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">asset</span>: <span class="ident">AssetType</span>) -&gt; <span class="ident">AssetId</span> {
 		<span class="kw">match</span> <span class="ident">asset</span> {
-			<span class="ident">AssetType::Xcm</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">AssetType::Xcm</span>(<span class="ident">id</span>) =&gt; {
 				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
 				<span class="kw">let</span> <span class="ident">hash</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">using_encoded</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hashing::hash</span>);
 				<span class="ident">result</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>.<span class="ident">as_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">16</span>]);
@@ -3000,7 +3042,7 @@
 		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
 		<span class="ident">metadata</span>: <span class="ident">AssetRegistrarMetadata</span>,
 		<span class="ident">is_sufficient</span>: <span class="ident">bool</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+	) -&gt; <span class="ident">DispatchResult</span> {
 		<span class="ident">Assets::force_create</span>(
 			<span class="ident">Origin::root</span>(),
 			<span class="ident">asset</span>,
@@ -3054,11 +3096,11 @@
 <span class="kw">impl</span> <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">AssetId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="doccomment">/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF</span>
 	<span class="doccomment">/// and by taking the lowest 128 bits as the assetId</span>
-	<span class="kw">fn</span> <span class="ident">account_to_asset_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">account_to_asset_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">h160_account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
 		<span class="kw">let</span> (<span class="ident">prefix_part</span>, <span class="ident">id_part</span>) <span class="op">=</span> <span class="ident">h160_account</span>.<span class="ident">as_fixed_bytes</span>().<span class="ident">split_at</span>(<span class="number">4</span>);
-		<span class="kw">if</span> <span class="ident">prefix_part</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> {
+		<span class="kw">if</span> <span class="ident">prefix_part</span> <span class="op">==</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> {
 			<span class="ident">data</span>.<span class="ident">copy_from_slice</span>(<span class="ident">id_part</span>);
 			<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">u128::from_be_bytes</span>(<span class="ident">data</span>).<span class="ident">into</span>();
 			<span class="prelude-val">Some</span>(<span class="ident">asset_id</span>)
@@ -3068,7 +3110,7 @@
 	}
 
 	<span class="comment">// The opposite conversion</span>
-	<span class="kw">fn</span> <span class="ident">asset_id_to_account</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AccountId</span> {
+	<span class="kw">fn</span> <span class="ident">asset_id_to_account</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="ident">AccountId</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">20</span>];
 		<span class="ident">data</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>);
 		<span class="ident">data</span>[<span class="number">4</span>..<span class="number">20</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>.<span class="ident">to_be_bytes</span>());
@@ -3084,12 +3126,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">account</span> {
 			<span class="comment">// the self-reserve currency is identified by the pallet-balances address</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">H160::from_low_u64_be</span>(<span class="number">2050</span>).<span class="ident">into</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CurrencyId::SelfReserve</span>),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">H160::from_low_u64_be</span>(<span class="number">2050</span>).<span class="ident">into</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">CurrencyId::SelfReserve</span>),
 			<span class="comment">// the rest of the currencies, by their corresponding erc20 address</span>
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">account</span>)
+			<span class="kw">_</span> =&gt; <span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">account</span>)
 				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">asset_id</span><span class="op">|</span> <span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset_id</span>)),
 		}
 	}
@@ -3102,13 +3144,13 @@
 <span class="kw">where</span>
 	<span class="ident">AssetXConverter</span>: <span class="ident">xcm_executor::traits::Convert</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">AssetId</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">currency</span>: <span class="ident">CurrencyId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">currency</span>: <span class="ident">CurrencyId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">currency</span> {
-			<span class="ident">CurrencyId::SelfReserve</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">CurrencyId::SelfReserve</span> =&gt; {
 				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">SelfReserve::get</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">multi</span>)
 			}
-			<span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
+			<span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset</span>) =&gt; <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
 		}
 	}
 }
@@ -3149,37 +3191,37 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
 	<span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
-	<span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">value</span> {
-			<span class="number">0u8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Transactors::Relay</span>),
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
+			<span class="number">0u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Transactors::Relay</span>),
+			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(()),
 		}
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">UtilityEncodeCall</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
-	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">UtilityAvailableCalls</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">UtilityAvailableCalls</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="comment">// Shall we use westend for moonbase? The tests are probably based on rococo</span>
 			<span class="comment">// but moonbase-alpha is attached to westend-runtime I think</span>
-			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">moonbeam_relay_encoder::kusama::KusamaEncoder</span>.<span class="ident">encode_call</span>(<span class="ident">call</span>),
+			<span class="ident">Transactors::Relay</span> =&gt; <span class="ident">moonbeam_relay_encoder::kusama::KusamaEncoder</span>.<span class="ident">encode_call</span>(<span class="ident">call</span>),
 		}
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">XcmTransact</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
-	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span> {
+	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) -&gt; <span class="ident">MultiLocation</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MultiLocation::parent</span>(),
+			<span class="ident">Transactors::Relay</span> =&gt; <span class="ident">MultiLocation::parent</span>(),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="comment">// Kusama is 20,000,000,000</span>
 			<span class="comment">// This needs to take into account the rest of the message</span>
 			<span class="comment">// We use 12,000,000,000 to be safe</span>
-			<span class="ident">Transactors::Relay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12_000_000_000</span>,
+			<span class="ident">Transactors::Relay</span> =&gt; <span class="number">12_000_000_000</span>,
 		}
 	}
 }
@@ -3206,17 +3248,17 @@
 <span class="doccomment">/// Call filter used during Phase 3 of the Moonriver rollout</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PhaseThreeFilter</span>;
 <span class="kw">impl</span> <span class="ident">Contains</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PhaseThreeFilter</span> {
-	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
-			<span class="ident">Call::Assets</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::XTokens</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::XcmTransactor</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::PolkadotXcm</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+			<span class="ident">Call::Assets</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::XTokens</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::XcmTransactor</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::PolkadotXcm</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}
 	}
 }
@@ -3228,23 +3270,23 @@
 <span class="doccomment">/// This can change in the future</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NormalFilter</span>;
 <span class="kw">impl</span> <span class="ident">Contains</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NormalFilter</span> {
-	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
-			<span class="ident">Call::Assets</span>(<span class="ident">method</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">method</span> {
-				<span class="ident">pallet_assets::Call::transfer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="ident">pallet_assets::Call::transfer_keep_alive</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="ident">pallet_assets::Call::approve_transfer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="ident">pallet_assets::Call::transfer_approved</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="ident">pallet_assets::Call::cancel_approval</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			<span class="ident">Call::Assets</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_assets::Call::transfer</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::transfer_keep_alive</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::approve_transfer</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::transfer_approved</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="ident">pallet_assets::Call::cancel_approval</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
 			},
 			<span class="comment">// We just want to enable this in case of live chains, since the default version</span>
 			<span class="comment">// is populated at genesis</span>
-			<span class="ident">Call::PolkadotXcm</span>(<span class="ident">method</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">method</span> {
-				<span class="ident">pallet_xcm::Call::force_default_xcm_version</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			<span class="ident">Call::PolkadotXcm</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_xcm::Call::force_default_xcm_version</span> { .. } =&gt; <span class="bool-val">true</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
 			},
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}
 	}
 }
@@ -3256,7 +3298,7 @@
 	<span class="kw">fn</span> <span class="ident">handle_dmp_messages</span>(
 		<span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">RelayBlockNumber</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
 		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">DmpQueue::handle_dmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
 	}
 }
@@ -3268,7 +3310,7 @@
 	<span class="kw">fn</span> <span class="ident">handle_xcmp_messages</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ParaId</span>, <span class="ident">RelayBlockNumber</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span><span class="op">&gt;</span>(
 		<span class="ident">iter</span>: <span class="ident">I</span>,
 		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">XcmpQueue::handle_xcmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
 	}
 }
@@ -3277,7 +3319,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceHooks</span>;
 
 <span class="kw">impl</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
-	<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">AllPallets::on_initialize</span>(<span class="ident">n</span>)
 	}
 }
@@ -3289,22 +3331,22 @@
 <span class="comment">// We use an empty onIdle, if on the future we want one of the pallets to execute it</span>
 <span class="comment">// we need to provide it here</span>
 <span class="kw">impl</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
-	<span class="kw">fn</span> <span class="ident">on_idle</span>(<span class="ident">_n</span>: <span class="ident">BlockNumber</span>, <span class="ident">_max_weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">on_idle</span>(<span class="ident">_n</span>: <span class="ident">BlockNumber</span>, <span class="ident">_max_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="number">0</span>
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MaintenanceHooks</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
 		<span class="ident">AllPallets::on_runtime_upgrade</span>()
 	}
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
 		<span class="ident">AllPallets::pre_upgrade</span>()
 	}
 
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
 		<span class="ident">AllPallets::post_upgrade</span>()
 	}
 }
@@ -3458,7 +3500,7 @@
 			<span class="ident">source</span>: <span class="ident">TransactionSource</span>,
 			<span class="ident">xt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
 			<span class="ident">block_hash</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionValidity</span> {
+		) -&gt; <span class="ident">TransactionValidity</span> {
 			<span class="comment">// Filtered calls should not enter the tx pool as they&#39;ll fail if inserted.</span>
 			<span class="comment">// If this call is not allowed, we return early.</span>
 			<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BaseCallFilter::contains</span>(<span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span>) {
@@ -3487,12 +3529,12 @@
 			<span class="comment">// according to gas price from pallet ethereum. If it is any other kind of transaction,</span>
 			<span class="comment">// we modify its priority.</span>
 			<span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-				<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
-				<span class="kw">_</span> <span class="kw">if</span> <span class="ident">dispatch_info</span>.<span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DispatchClass::Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { .. }) =&gt; <span class="ident">intermediate_valid</span>,
+				<span class="kw">_</span> <span class="kw">if</span> <span class="ident">dispatch_info</span>.<span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DispatchClass::Normal</span> =&gt; <span class="ident">intermediate_valid</span>,
+				<span class="kw">_</span> =&gt; {
 					<span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">signature</span> {
-						<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">signed_extra</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+						<span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">signed_extra</span>)) =&gt; {
 							<span class="comment">// Yuck, this depends on the index of charge transaction in Signed Extra</span>
 							<span class="kw">let</span> <span class="ident">charge_transaction</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">signed_extra</span>.<span class="number">6</span>;
 							<span class="ident">charge_transaction</span>.<span class="ident">tip</span>()
@@ -3538,7 +3580,7 @@
 	<span class="kw">fn</span> <span class="ident">check_inherents</span>(
 		<span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>,
 		<span class="ident">relay_state_proof</span>: <span class="kw-2">&amp;</span><span class="ident">cumulus_pallet_parachain_system::RelayChainStateProof</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_inherents::CheckInherentsResult</span> {
+	) -&gt; <span class="ident">sp_inherents::CheckInherentsResult</span> {
 		<span class="kw">let</span> <span class="ident">relay_chain_slot</span> <span class="op">=</span> <span class="ident">relay_state_proof</span>
 			.<span class="ident">read_slot</span>()
 			.<span class="ident">expect</span>(<span class="string">&quot;Could not read the relay chain slot from the proof&quot;</span>);
@@ -3567,6 +3609,38 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="comment">// Helps us to identify a Pallet Call in case it exceeds the 1kb limit.</span>
+	<span class="comment">// Hint: this should be a rare case. If that happens, one or more of the dispatchable arguments</span>
+	<span class="comment">// need to be Boxed.</span>
+	<span class="kw">fn</span> <span class="ident">call_max_size</span>() {
+		<span class="kw">const</span> <span class="ident">CALL_ALIGN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1024</span>;
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_ethereum_chain_id::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_evm::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_ethereum::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_inherent::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_slot_filter::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_crowdloan_rewards::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_mapping::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_maintenance_mode::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_migrations::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_proxy_genesis_companion::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+				<span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+	}
 
 	<span class="attribute">#[<span class="ident">test</span>]</span>
 	<span class="kw">fn</span> <span class="ident">currency_constants_are_correct</span>() {

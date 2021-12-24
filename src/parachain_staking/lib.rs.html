@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets&#x2F;parachain-staking&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parachain_staking/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets&#x2F;parachain-staking&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parachain_staking/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2690,7 +2690,7 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">from_owner</span>(<span class="ident">owner</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="kw">fn</span> <span class="ident">from_owner</span>(<span class="ident">owner</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span> {
 			<span class="ident">Bond</span> {
 				<span class="ident">owner</span>,
 				<span class="ident">amount</span>: <span class="ident">B::default</span>(),
@@ -2701,20 +2701,20 @@
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Ord</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Ord</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
+		<span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
 			<span class="self">self</span>.<span class="ident">owner</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">owner</span>)
 		}
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Ord</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
 			<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>))
 		}
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Ord</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-			<span class="self">self</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">owner</span>
+		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+			<span class="self">self</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">owner</span>
 		}
 	}
 
@@ -2730,7 +2730,7 @@
 	}
 
 	<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CollatorStatus</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CollatorStatus</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">CollatorStatus</span> {
 			<span class="ident">CollatorStatus::Active</span>
 		}
 	}
@@ -2777,7 +2777,7 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">CollatorCandidate</span> {
 				<span class="ident">id</span>: <span class="ident">other</span>.<span class="ident">id</span>,
 				<span class="ident">bond</span>: <span class="ident">other</span>.<span class="ident">bond</span>,
@@ -2824,13 +2824,13 @@
 
 	<span class="comment">// Temporary manual implementation for migration testing purposes</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">PartialEq</span>, <span class="ident">B</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-			<span class="kw">let</span> <span class="ident">must_be_true</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">id</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bond</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">bond</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total_counted</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">total_counted</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total_backing</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">total_backing</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">request</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">request</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">state</span>;
+		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+			<span class="kw">let</span> <span class="ident">must_be_true</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">id</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bond</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bond</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total_counted</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">total_counted</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total_backing</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">total_backing</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">request</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">request</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">state</span>;
 			<span class="kw">if</span> <span class="op">!</span><span class="ident">must_be_true</span> {
 				<span class="kw">return</span> <span class="bool-val">false</span>;
 			}
@@ -2897,7 +2897,7 @@
 				<span class="op">+</span> <span class="ident">sp_std::fmt::Debug</span>,
 		<span class="op">&gt;</span> <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
 	{
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">A</span>, <span class="ident">bond</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">A</span>, <span class="ident">bond</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span> {
 			<span class="ident">CollatorCandidate</span> {
 				<span class="ident">id</span>,
 				<span class="ident">bond</span>,
@@ -2910,13 +2910,13 @@
 				<span class="ident">state</span>: <span class="ident">CollatorStatus::default</span>(), <span class="comment">// default active</span>
 			}
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-			<span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CollatorStatus::Active</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+			<span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">CollatorStatus::Active</span>
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_leaving</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_leaving</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
 			<span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">state</span>, <span class="ident">CollatorStatus::Leaving</span>(<span class="kw">_</span>))
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">CollatorStatus::Leaving</span>(<span class="ident">when</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span> {
 				<span class="macro">ensure!</span>(
 					<span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span>,
@@ -2927,7 +2927,7 @@
 				<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateNotLeaving</span>.<span class="ident">into</span>())
 			}
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bond_more</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">more</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bond_more</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">more</span>: <span class="ident">B</span>) -&gt; <span class="ident">DispatchResult</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 			<span class="ident">T::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
@@ -2950,9 +2950,9 @@
 		<span class="doccomment">/// Schedule executable decrease of collator candidate self bond</span>
 		<span class="doccomment">/// Returns the round at which the collator can execute the pending request</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_bond_less</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">less</span>: <span class="ident">B</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundIndex</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundIndex</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 		{
@@ -2976,7 +2976,7 @@
 		}
 		<span class="doccomment">/// Execute pending request to change the collator self bond</span>
 		<span class="doccomment">/// Returns the event to be emitted</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 			<span class="ident">T::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
@@ -3011,7 +3011,7 @@
 			<span class="prelude-val">Ok</span>(<span class="ident">event</span>)
 		}
 		<span class="doccomment">/// Cancel pending request to change the collator self bond</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
 			<span class="ident">CandidateBondLessRequest</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CandidateBondLessRequest</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			<span class="ident">T::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
@@ -3030,43 +3030,43 @@
 		}
 		<span class="doccomment">/// Infallible sorted insertion</span>
 		<span class="doccomment">/// caller must verify !self.delegators.contains(delegation.owner) before call</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_top_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_top_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) {
 			<span class="kw">match</span> <span class="self">self</span>
 				.<span class="ident">top_delegations</span>
 				.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">delegation</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">amount</span>))
 			{
-				<span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">top_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
-				<span class="prelude-val">Err</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">top_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
+				<span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="self">self</span>.<span class="ident">top_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
+				<span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; <span class="self">self</span>.<span class="ident">top_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
 			}
 		}
 		<span class="doccomment">/// Infallible sorted insertion</span>
 		<span class="doccomment">/// caller must verify !self.delegators.contains(delegation.owner) before call</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_bottom_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_bottom_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) {
 			<span class="kw">match</span> <span class="self">self</span>
 				.<span class="ident">bottom_delegations</span>
 				.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">delegation</span>.<span class="ident">amount</span>))
 			{
-				<span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
-				<span class="prelude-val">Err</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
+				<span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="self">self</span>.<span class="ident">bottom_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
+				<span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; <span class="self">self</span>.<span class="ident">bottom_delegations</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">delegation</span>),
 			}
 		}
 		<span class="doccomment">/// Sort top delegations from greatest to least</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_top_delegations</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_top_delegations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="self">self</span>.<span class="ident">top_delegations</span>
 				.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">amount</span>));
 		}
 		<span class="doccomment">/// Sort bottom delegations from least to greatest</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_bottom_delegations</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_bottom_delegations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="self">self</span>.<span class="ident">bottom_delegations</span>
 				.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">amount</span>));
 		}
 		<span class="doccomment">/// Bond account and add delegation. If successful, the return value indicates whether the</span>
 		<span class="doccomment">/// delegation is top for the candidate.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_delegation</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">acc</span>: <span class="ident">A</span>,
 			<span class="ident">amount</span>: <span class="ident">B</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DelegatorAdded</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DelegatorAdded</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
 			<span class="macro">ensure!</span>(
 				<span class="self">self</span>.<span class="ident">delegators</span>.<span class="ident">insert</span>(<span class="ident">acc</span>.<span class="ident">clone</span>()),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorExists</span>
@@ -3104,9 +3104,9 @@
 		}
 		<span class="doccomment">/// Return Ok((if_total_counted_changed, delegation_amount))</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_delegator</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">delegator</span>: <span class="ident">A</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">bool</span>, <span class="ident">B</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span> {
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">bool</span>, <span class="ident">B</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span> {
 			<span class="macro">ensure!</span>(
 				<span class="self">self</span>.<span class="ident">delegators</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNEInDelegatorSet</span>
@@ -3159,10 +3159,10 @@
 		}
 		<span class="doccomment">/// Return true if in_top after call</span>
 		<span class="doccomment">/// Caller must verify before call that account is a delegator</span>
-		<span class="kw">fn</span> <span class="ident">increase_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">delegator</span>: <span class="ident">A</span>, <span class="ident">more</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">fn</span> <span class="ident">increase_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">delegator</span>: <span class="ident">A</span>, <span class="ident">more</span>: <span class="ident">B</span>) -&gt; <span class="ident">bool</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">in_top</span> <span class="op">=</span> <span class="bool-val">false</span>;
-			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">top_delegations</span> {
-				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">delegator</span> {
+			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">top_delegations</span> {
+				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">delegator</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 					<span class="self">self</span>.<span class="ident">total_counted</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 					<span class="self">self</span>.<span class="ident">total_backing</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
@@ -3182,8 +3182,8 @@
 				.<span class="ident">pop</span>()
 				.<span class="ident">expect</span>(<span class="string">&quot;any bottom delegations =&gt; must exist max top delegations&quot;</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">move_2_top</span> <span class="op">=</span> <span class="bool-val">false</span>;
-			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span> {
-				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">delegator</span> {
+			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span> {
+				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">delegator</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 					<span class="self">self</span>.<span class="ident">total_backing</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 					<span class="ident">move_2_top</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">amount</span> <span class="op">&gt;</span> <span class="ident">lowest_top</span>.<span class="ident">amount</span>;
@@ -3205,11 +3205,11 @@
 			}
 		}
 		<span class="doccomment">/// Return true if in_top after call</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrease_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">delegator</span>: <span class="ident">A</span>, <span class="ident">less</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrease_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">delegator</span>: <span class="ident">A</span>, <span class="ident">less</span>: <span class="ident">B</span>) -&gt; <span class="ident">bool</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">in_top</span> <span class="op">=</span> <span class="bool-val">false</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_lowest_top</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">top_delegations</span> {
-				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">delegator</span> {
+			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">top_delegations</span> {
+				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">delegator</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">-</span><span class="op">=</span> <span class="ident">less</span>;
 					<span class="comment">// if there is at least 1 delegator in bottom delegators, compare it to check</span>
 					<span class="comment">// if it should be swapped with lowest top delegation and put in top</span>
@@ -3247,8 +3247,8 @@
 					<span class="kw">return</span> <span class="bool-val">true</span>;
 				}
 			}
-			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span> {
-				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">delegator</span> {
+			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">bottom_delegations</span> {
+				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">delegator</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">-</span><span class="op">=</span> <span class="ident">less</span>;
 					<span class="self">self</span>.<span class="ident">total_backing</span> <span class="op">-</span><span class="op">=</span> <span class="ident">less</span>;
 					<span class="kw">break</span>;
@@ -3257,13 +3257,13 @@
 			<span class="self">self</span>.<span class="ident">sort_bottom_delegations</span>();
 			<span class="bool-val">false</span>
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">CollatorStatus::Idle</span>;
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_online</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_online</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">CollatorStatus::Active</span>;
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span> {
 			<span class="macro">ensure!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateAlreadyLeaving</span>);
 			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
 			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">+</span> <span class="ident">T::LeaveCandidatesDelay::get</span>();
@@ -3273,7 +3273,7 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Clone</span>, <span class="ident">B</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">CollatorSnapshot</span> {
 				<span class="ident">bond</span>: <span class="ident">other</span>.<span class="ident">bond</span>,
 				<span class="ident">delegations</span>: <span class="ident">other</span>.<span class="ident">top_delegations</span>,
@@ -3307,11 +3307,11 @@
 
 	<span class="comment">// Temporary manual implementation for migration testing purposes</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">PartialEq</span>, <span class="ident">B</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-			<span class="kw">let</span> <span class="ident">must_be_true</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">id</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">total</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">requests</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">requests</span>
-				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">status</span>;
+		<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+			<span class="kw">let</span> <span class="ident">must_be_true</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">id</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">total</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">total</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">requests</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">requests</span>
+				<span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">status</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">status</span>;
 			<span class="kw">if</span> <span class="op">!</span><span class="ident">must_be_true</span> {
 				<span class="kw">return</span> <span class="bool-val">false</span>;
 			}
@@ -3346,7 +3346,7 @@
 				<span class="op">+</span> <span class="ident">Default</span>,
 		<span class="op">&gt;</span> <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>
 	{
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">AccountId</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">amount</span>: <span class="ident">Balance</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">AccountId</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">amount</span>: <span class="ident">Balance</span>) -&gt; <span class="self">Self</span> {
 			<span class="ident">Delegator</span> {
 				<span class="ident">id</span>,
 				<span class="ident">delegations</span>: <span class="ident">OrderedSet::from</span>(<span class="macro">vec!</span>[<span class="ident">Bond</span> {
@@ -3358,18 +3358,18 @@
 				<span class="ident">status</span>: <span class="ident">DelegatorStatus::Active</span>,
 			}
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">DelegationRequest</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">DelegationRequest</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 			<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">clone</span>()
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
 			<span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Active</span>)
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_leaving</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_leaving</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
 			<span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Leaving</span>(<span class="kw">_</span>))
 		}
 		<span class="doccomment">/// Can only leave if the current round is less than or equal to scheduled execution round</span>
 		<span class="doccomment">/// - returns None if not in leaving state</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_execute_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">delegation_weight_hint</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_execute_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">delegation_weight_hint</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="macro">ensure!</span>(
 				<span class="ident">delegation_weight_hint</span> <span class="op">&gt;</span><span class="op">=</span> (<span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TooLowDelegationCountToLeaveDelegators</span>
@@ -3385,21 +3385,21 @@
 			}
 		}
 		<span class="doccomment">/// Set status to leaving</span>
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_leaving</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">when</span>: <span class="ident">RoundIndex</span>) {
+		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_leaving</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">when</span>: <span class="ident">RoundIndex</span>) {
 			<span class="self">self</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Leaving</span>(<span class="ident">when</span>);
 		}
 		<span class="doccomment">/// Schedule status to exit</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; (<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>) {
 			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
 			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">+</span> <span class="ident">T::LeaveDelegatorsDelay::get</span>();
 			<span class="self">self</span>.<span class="ident">set_leaving</span>(<span class="ident">when</span>);
 			(<span class="ident">now</span>, <span class="ident">when</span>)
 		}
 		<span class="doccomment">/// Set delegator status to active</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="self">self</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Active</span>
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bond</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bond</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
 			<span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <span class="ident">bond</span>.<span class="ident">amount</span>;
 			<span class="kw">if</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="ident">insert</span>(<span class="ident">bond</span>) {
 				<span class="self">self</span>.<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span>;
@@ -3410,14 +3410,14 @@
 		}
 		<span class="comment">// Return Some(remaining balance), must be more than MinDelegatorStk</span>
 		<span class="comment">// Return None if delegation not found</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_delegation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 			<span class="kw">let</span> <span class="ident">delegations</span> <span class="op">=</span> <span class="self">self</span>
 				.<span class="ident">delegations</span>
 				.<span class="number">0</span>
 				.<span class="ident">iter</span>()
 				.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
-					<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">collator</span> {
+					<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">collator</span> {
 						<span class="ident">amt</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">amount</span>);
 						<span class="prelude-val">None</span>
 					} <span class="kw">else</span> {
@@ -3434,10 +3434,10 @@
 			}
 		}
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">increase_delegation</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">candidate</span>: <span class="ident">AccountId</span>,
 			<span class="ident">amount</span>: <span class="ident">Balance</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span>
+		) -&gt; <span class="ident">DispatchResult</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 			<span class="ident">T::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
@@ -3447,8 +3447,8 @@
 			<span class="kw">let</span> <span class="ident">candidate_id</span>: <span class="ident">T::AccountId</span> <span class="op">=</span> <span class="ident">candidate</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
 			<span class="kw">let</span> <span class="ident">balance_amt</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">amount</span>.<span class="ident">into</span>();
 			<span class="comment">// increase delegation</span>
-			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span> {
-				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">candidate</span> {
+			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span> {
+				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">candidate</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amount</span>;
 					<span class="self">self</span>.<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amount</span>;
 					<span class="comment">// update collator state delegation</span>
@@ -3480,10 +3480,10 @@
 		}
 		<span class="doccomment">/// Schedule decrease delegation</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_decrease_delegation</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">collator</span>: <span class="ident">AccountId</span>,
 			<span class="ident">less</span>: <span class="ident">Balance</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundIndex</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundIndex</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
@@ -3492,7 +3492,7 @@
 				.<span class="ident">delegations</span>
 				.<span class="number">0</span>
 				.<span class="ident">iter</span>()
-				.<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">collator</span>)
+				.<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">collator</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegationDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="kw-2">*</span><span class="ident">amount</span> <span class="op">&gt;</span> <span class="ident">less</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorBondBelowMin</span>);
 			<span class="kw">let</span> <span class="ident">expected_amt</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">amount</span> <span class="op">-</span> <span class="ident">less</span>).<span class="ident">into</span>();
@@ -3513,9 +3513,9 @@
 			<span class="prelude-val">Ok</span>(<span class="ident">when</span>)
 		}
 		<span class="doccomment">/// Temporary function to migrate revocations</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hotfix_set_revoke</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">when</span>: <span class="ident">RoundIndex</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hotfix_set_revoke</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">when</span>: <span class="ident">RoundIndex</span>) {
 			<span class="comment">// get delegation amount</span>
-			<span class="kw">let</span> <span class="ident">maybe_bond</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">collator</span>);
+			<span class="kw">let</span> <span class="ident">maybe_bond</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">collator</span>);
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Bond</span> { <span class="ident">amount</span>, .. }) <span class="op">=</span> <span class="ident">maybe_bond</span> {
 				<span class="comment">// add revocation to pending requests</span>
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">revoke</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">collator</span>, <span class="kw-2">*</span><span class="ident">amount</span>, <span class="ident">when</span>) {
@@ -3527,9 +3527,9 @@
 		}
 		<span class="doccomment">/// Schedule revocation for the given collator</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_revoke</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">collator</span>: <span class="ident">AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span>
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
@@ -3538,7 +3538,7 @@
 				.<span class="ident">delegations</span>
 				.<span class="number">0</span>
 				.<span class="ident">iter</span>()
-				.<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">collator</span>)
+				.<span class="ident">find</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">collator</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegationDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
 			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">+</span> <span class="ident">T::RevokeDelegationDelay::get</span>();
@@ -3547,7 +3547,7 @@
 			<span class="prelude-val">Ok</span>((<span class="ident">now</span>, <span class="ident">when</span>))
 		}
 		<span class="doccomment">/// Execute pending delegation change request</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">candidate</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">candidate</span>: <span class="ident">AccountId</span>) -&gt; <span class="ident">DispatchResult</span>
 		<span class="kw">where</span>
 			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 			<span class="ident">T::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
@@ -3578,9 +3578,9 @@
 				<span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
 			);
 			<span class="kw">match</span> <span class="ident">action</span> {
-				<span class="ident">DelegationChange::Revoke</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">DelegationChange::Revoke</span> =&gt; {
 					<span class="comment">// revoking last delegation =&gt; leaving set of delegators</span>
-					<span class="kw">let</span> <span class="ident">leaving</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1usize</span> {
+					<span class="kw">let</span> <span class="ident">leaving</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1usize</span> {
 						<span class="bool-val">true</span>
 					} <span class="kw">else</span> {
 						<span class="macro">ensure!</span>(
@@ -3613,12 +3613,12 @@
 					}
 					<span class="prelude-val">Ok</span>(())
 				}
-				<span class="ident">DelegationChange::Decrease</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">DelegationChange::Decrease</span> =&gt; {
 					<span class="comment">// remove from pending requests</span>
 					<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">less_total</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amount</span>;
 					<span class="comment">// decrease delegation</span>
-					<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span> {
-						<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">candidate</span> {
+					<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span> {
+						<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">candidate</span> {
 							<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">amount</span> <span class="op">&gt;</span> <span class="ident">amount</span> {
 								<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amount</span>;
 								<span class="self">self</span>.<span class="ident">total</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amount</span>;
@@ -3668,20 +3668,20 @@
 		}
 		<span class="doccomment">/// Cancel pending delegation change request</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_pending_request</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">candidate</span>: <span class="ident">AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DelegationRequest</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DelegationRequest</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">order</span> <span class="op">=</span> <span class="self">self</span>
 				.<span class="ident">requests</span>
 				.<span class="ident">requests</span>
 				.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::PendingDelegationRequestDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">match</span> <span class="ident">order</span>.<span class="ident">action</span> {
-				<span class="ident">DelegationChange::Revoke</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">DelegationChange::Revoke</span> =&gt; {
 					<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">revocations_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1u32</span>;
 					<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">less_total</span> <span class="op">-</span><span class="op">=</span> <span class="ident">order</span>.<span class="ident">amount</span>;
 				}
-				<span class="ident">DelegationChange::Decrease</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">DelegationChange::Decrease</span> =&gt; {
 					<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">less_total</span> <span class="op">-</span><span class="op">=</span> <span class="ident">order</span>.<span class="ident">amount</span>;
 				}
 			}
@@ -3717,7 +3717,7 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Ord</span>, <span class="ident">B</span>: <span class="ident">Zero</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">PendingDelegationRequests</span> {
 				<span class="ident">revocations_count</span>: <span class="number">0u32</span>,
 				<span class="ident">requests</span>: <span class="ident">BTreeMap::new</span>(),
@@ -3739,18 +3739,18 @@
 		<span class="op">&gt;</span> <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
 	{
 		<span class="doccomment">/// New default (empty) pending requests</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">PendingDelegationRequests</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">PendingDelegationRequests::default</span>()
 		}
 		<span class="doccomment">/// Add bond less order to pending requests, only succeeds if returns true</span>
 		<span class="doccomment">/// - limit is the maximum amount allowed that can be subtracted from the delegation</span>
 		<span class="doccomment">/// before it would be below the minimum delegation amount</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bond_less</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">collator</span>: <span class="ident">A</span>,
 			<span class="ident">amount</span>: <span class="ident">B</span>,
 			<span class="ident">when_executable</span>: <span class="ident">RoundIndex</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="macro">ensure!</span>(
 				<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">is_none</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::PendingDelegationRequestAlreadyExists</span>
@@ -3771,11 +3771,11 @@
 		<span class="doccomment">/// - limit is the maximum amount allowed that can be subtracted from the delegation</span>
 		<span class="doccomment">/// before it would be below the minimum delegation amount</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revoke</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 			<span class="ident">collator</span>: <span class="ident">A</span>,
 			<span class="ident">amount</span>: <span class="ident">B</span>,
 			<span class="ident">when_executable</span>: <span class="ident">RoundIndex</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="macro">ensure!</span>(
 				<span class="self">self</span>.<span class="ident">requests</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">is_none</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::PendingDelegationRequestAlreadyExists</span>
@@ -3817,7 +3817,7 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">migrate_nominator_to_delegator_state</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
 		<span class="ident">id</span>: <span class="ident">T::AccountId</span>,
 		<span class="ident">nominator</span>: <span class="ident">Nominator2</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="ident">Delegator</span> {
 			<span class="ident">id</span>,
 			<span class="ident">delegations</span>: <span class="ident">nominator</span>.<span class="ident">delegations</span>,
@@ -3845,7 +3845,7 @@
 				<span class="op">+</span> <span class="ident">PartialOrd</span>,
 		<span class="op">&gt;</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
 	{
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">current</span>: <span class="ident">RoundIndex</span>, <span class="ident">first</span>: <span class="ident">B</span>, <span class="ident">length</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">current</span>: <span class="ident">RoundIndex</span>, <span class="ident">first</span>: <span class="ident">B</span>, <span class="ident">length</span>: <span class="ident">u32</span>) -&gt; <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">RoundInfo</span> {
 				<span class="ident">current</span>,
 				<span class="ident">first</span>,
@@ -3853,11 +3853,11 @@
 			}
 		}
 		<span class="doccomment">/// Check if the round should be updated</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_update</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">now</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_update</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">now</span>: <span class="ident">B</span>) -&gt; <span class="ident">bool</span> {
 			<span class="ident">now</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">first</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">length</span>.<span class="ident">into</span>()
 		}
 		<span class="doccomment">/// New round</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">now</span>: <span class="ident">B</span>) {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">now</span>: <span class="ident">B</span>) {
 			<span class="self">self</span>.<span class="ident">current</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
 			<span class="self">self</span>.<span class="ident">first</span> <span class="op">=</span> <span class="ident">now</span>;
 		}
@@ -3870,7 +3870,7 @@
 				<span class="op">+</span> <span class="ident">PartialOrd</span>,
 		<span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
 	{
-		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="ident">RoundInfo::new</span>(<span class="number">1u32</span>, <span class="number">1u32</span>.<span class="ident">into</span>(), <span class="number">20u32</span>)
 		}
 	}
@@ -3884,7 +3884,7 @@
 		<span class="kw">pub</span> <span class="ident">percent</span>: <span class="ident">Percent</span>,
 	}
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
 			<span class="ident">ParachainBondConfig</span> {
 				<span class="ident">account</span>: <span class="ident">A::default</span>(),
 				<span class="ident">percent</span>: <span class="ident">Percent::zero</span>(),
@@ -4102,7 +4102,7 @@
 
 	<span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">T::BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::WeightInfo::base_on_initialize</span>();
 
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
@@ -4280,7 +4280,7 @@
 
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
 			<span class="self">Self</span> {
 				<span class="ident">candidates</span>: <span class="macro">vec!</span>[],
 				<span class="ident">delegations</span>: <span class="macro">vec!</span>[],
@@ -4385,7 +4385,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_staking_expectations</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">expectations</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">T::MonetaryGovernanceOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="ident">expectations</span>.<span class="ident">is_valid</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::InvalidSchedule</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
@@ -4407,7 +4407,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inflation</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">schedule</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">T::MonetaryGovernanceOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="ident">schedule</span>.<span class="ident">is_valid</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::InvalidSchedule</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
@@ -4430,7 +4430,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_parachain_bond_account</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">T::MonetaryGovernanceOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">ParachainBondConfig</span> {
 				<span class="ident">account</span>: <span class="ident">old</span>,
@@ -4449,7 +4449,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_parachain_bond_reserve_percent</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new</span>: <span class="ident">Percent</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">T::MonetaryGovernanceOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">ParachainBondConfig</span> {
 				<span class="ident">account</span>,
@@ -4466,7 +4466,7 @@
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::set_total_selected</span>())]</span>
 		<span class="doccomment">/// Set the total number of collator candidates selected per round</span>
 		<span class="doccomment">/// - changes are not applied until the start of the next round</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_total_selected</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_total_selected</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">frame_system::ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(
 				<span class="ident">new</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinSelectedCandidates::get</span>(),
@@ -4487,7 +4487,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_collator_commission</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new</span>: <span class="ident">Perbill</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">frame_system::ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
 			<span class="macro">ensure!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NoWritingSameValue</span>);
@@ -4500,7 +4500,7 @@
 		<span class="doccomment">/// - if called with `new` less than length of current round, will transition immediately</span>
 		<span class="doccomment">/// in the next block</span>
 		<span class="doccomment">/// - also updates per-round inflation config</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_blocks_per_round</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_blocks_per_round</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">frame_system::ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(
 				<span class="ident">new</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinBlocksPerRound::get</span>(),
@@ -4536,7 +4536,7 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate_count</span>: <span class="ident">u32</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="op">!</span><span class="ident"><span class="self">Self</span>::is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateExists</span>);
 			<span class="macro">ensure!</span>(<span class="op">!</span><span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorExists</span>);
@@ -4572,7 +4572,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave_candidates</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate_count</span>: <span class="ident">u32</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">when</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">leave</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -4593,7 +4593,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_leave_candidates</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="ident">state</span>.<span class="ident">can_leave</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -4640,7 +4640,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave_candidates</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate_count</span>: <span class="ident">u32</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateNotLeaving</span>);
@@ -4664,7 +4664,7 @@
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::go_offline</span>())]</span>
 		<span class="doccomment">/// Temporarily leave the set of collator candidates without unbonding</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="ident">state</span>.<span class="ident">is_active</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AlreadyOffline</span>);
@@ -4682,7 +4682,7 @@
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::go_online</span>())]</span>
 		<span class="doccomment">/// Rejoin the set of collator candidates if previously had called `go_offline`</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_online</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_online</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_active</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AlreadyActive</span>);
@@ -4709,7 +4709,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="ident">state</span>.<span class="ident">bond_more</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">more</span>)<span class="question-mark">?</span>;
@@ -4721,7 +4721,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_candidate_bond_less</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_bond_less</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">less</span>)<span class="question-mark">?</span>;
@@ -4734,7 +4734,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_candidate_bond_less</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>; <span class="comment">// we may want to reward this if caller != candidate</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">execute_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -4744,7 +4744,7 @@
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_candidate_bond_less</span>())]</span>
 		<span class="doccomment">/// Cancel pending request to adjust the collator candidate self bond</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_candidate_bond_less</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_candidate_bond_less</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cancel_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -4766,7 +4766,7 @@
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate_delegation_count</span>: <span class="ident">u32</span>,
 			<span class="ident">delegation_count</span>: <span class="ident">u32</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">delegator_state</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>) {
 				<span class="macro">ensure!</span>(<span class="ident">state</span>.<span class="ident">is_active</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotDelegateIfLeaving</span>);
@@ -4824,7 +4824,7 @@
 		<span class="doccomment">/// Request to leave the set of delegators. If successful, the caller is scheduled</span>
 		<span class="doccomment">/// to be allowed to exit. Success forbids future delegator actions until the request is</span>
 		<span class="doccomment">/// invoked or cancelled.</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorAlreadyLeaving</span>);
@@ -4839,7 +4839,7 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">delegation_count</span>: <span class="ident">u32</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="ident">state</span>.<span class="ident">can_execute_leave</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">delegation_count</span>)<span class="question-mark">?</span>;
@@ -4860,7 +4860,7 @@
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_leave_delegators</span>())]</span>
 		<span class="doccomment">/// Cancel a pending request to exit the set of delegators. Success clears the pending exit</span>
 		<span class="doccomment">/// request (thereby resetting the delay upon another `leave_delegators` call).</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="comment">// ensure delegator state exists</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
@@ -4878,7 +4878,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_revoke_delegation</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">when</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_revoke</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">collator</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
@@ -4894,7 +4894,7 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="ident">state</span>.<span class="ident">increase_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">more</span>)<span class="question-mark">?</span>;
@@ -4906,7 +4906,7 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">caller</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">caller</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_decrease_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">less</span>)<span class="question-mark">?</span>;
@@ -4922,7 +4922,7 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>; <span class="comment">// we may want to reward caller if caller != delegator</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="ident">state</span>.<span class="ident">execute_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>)<span class="question-mark">?</span>;
@@ -4933,7 +4933,7 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_delegation_request</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cancel_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>)<span class="question-mark">?</span>;
@@ -4944,13 +4944,13 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_delegator</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_delegator</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) -&gt; <span class="ident">bool</span> {
 			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">acc</span>).<span class="ident">is_some</span>()
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) -&gt; <span class="ident">bool</span> {
 			<span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">acc</span>).<span class="ident">is_some</span>()
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(<span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) -&gt; <span class="ident">bool</span> {
 			<span class="op">&lt;</span><span class="ident">SelectedCandidates</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">binary_search</span>(<span class="ident">acc</span>).<span class="ident">is_ok</span>()
 		}
 		<span class="doccomment">/// Caller must ensure candidate is active before calling</span>
@@ -4964,7 +4964,7 @@
 			<span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">candidates</span>);
 		}
 		<span class="doccomment">/// Compute round issuance based on total staked for the given round</span>
-		<span class="kw">fn</span> <span class="ident">compute_issuance</span>(<span class="ident">staked</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">compute_issuance</span>(<span class="ident">staked</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
 			<span class="kw">let</span> <span class="ident">round_issuance</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::inflation::round_issuance_range</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">config</span>.<span class="ident">round</span>);
 			<span class="comment">// TODO: consider interpolation instead of bounded range</span>
@@ -4979,7 +4979,7 @@
 		<span class="kw">fn</span> <span class="ident">delegator_leaves_collator</span>(
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> (<span class="ident">total_changed</span>, <span class="ident">delegator_stake</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">rm_delegator</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">delegator</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
 			<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">delegator_stake</span>);
@@ -5039,7 +5039,7 @@
 		<span class="doccomment">/// * whether or not a payout needs to be made</span>
 		<span class="doccomment">/// * cleaning up when payouts are done</span>
 		<span class="doccomment">/// * returns the weight consumed by pay_one_collator_reward if applicable</span>
-		<span class="kw">fn</span> <span class="ident">handle_delayed_payouts</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+		<span class="kw">fn</span> <span class="ident">handle_delayed_payouts</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) -&gt; <span class="ident">Weight</span> {
 			<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
 
 			<span class="comment">// don&#39;t underflow uint</span>
@@ -5070,7 +5070,7 @@
 		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pay_one_collator_reward</span>(
 			<span class="ident">paid_for_round</span>: <span class="ident">RoundIndex</span>,
 			<span class="ident">payout_info</span>: <span class="ident">DelayedPayout</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>, <span class="ident">Weight</span>) {
+		) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>, <span class="ident">Weight</span>) {
 			<span class="comment">// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item</span>
 			<span class="comment">// so that we do fewer reads each block</span>
 			<span class="kw">let</span> <span class="ident">total_points</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">paid_for_round</span>);
@@ -5132,7 +5132,7 @@
 
 		<span class="doccomment">/// Compute the top `TotalSelected` candidates in the CandidatePool and return</span>
 		<span class="doccomment">/// a vec of their AccountIds (in the order of selection)</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_top_candidates</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_top_candidates</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="number">0</span>;
 			<span class="comment">// order candidates by stake (least to greatest so requires `rev()`)</span>
 			<span class="ident">candidates</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">amount</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">amount</span>).<span class="ident">unwrap</span>());
@@ -5150,7 +5150,7 @@
 		}
 		<span class="doccomment">/// Best as in most cumulatively supported in terms of stake</span>
 		<span class="doccomment">/// Returns [collator_count, delegation_count, total staked]</span>
-		<span class="kw">fn</span> <span class="ident">select_top_candidates</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+		<span class="kw">fn</span> <span class="ident">select_top_candidates</span>(<span class="ident">now</span>: <span class="ident">RoundIndex</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
 			<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">collator_count</span>, <span class="kw-2">mut</span> <span class="ident">delegation_count</span>, <span class="kw-2">mut</span> <span class="ident">total</span>) <span class="op">=</span>
 				(<span class="number">0u32</span>, <span class="number">0u32</span>, <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>());
 			<span class="comment">// choose the top TotalSelected qualified candidates, ordered by stake</span>
@@ -5185,13 +5185,13 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">nimbus_primitives::CanAuthor</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="ident">account</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>, <span class="ident">_slot</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+		<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="ident">account</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>, <span class="ident">_slot</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
 			<span class="ident"><span class="self">Self</span>::is_selected_candidate</span>(<span class="ident">account</span>)
 		}
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">get</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
 			<span class="ident"><span class="self">Self</span>::selected_candidates</span>()
 		}
 	}

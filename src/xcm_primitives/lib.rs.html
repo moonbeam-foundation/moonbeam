@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives&#x2F;xcm&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../xcm_primitives/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives&#x2F;xcm&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../xcm_primitives/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -394,11 +394,11 @@
 	<span class="ident">AssetType</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
 	<span class="ident">AssetIdInfoGetter</span>: <span class="ident">AssetTypeGetter</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">convert_ref</span>(<span class="ident">id</span>: <span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AssetId</span>, ()<span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">convert_ref</span>(<span class="ident">id</span>: <span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AssetId</span>, ()<span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">borrow</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
 		<span class="prelude-val">Ok</span>(<span class="ident">AssetId::from</span>(<span class="ident">asset_type</span>))
 	}
-	<span class="kw">fn</span> <span class="ident">reverse_ref</span>(<span class="ident">what</span>: <span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, ()<span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">reverse_ref</span>(<span class="ident">what</span>: <span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, ()<span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">asset_type</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_asset_type</span>(<span class="ident">what</span>.<span class="ident">borrow</span>().<span class="ident">clone</span>()) {
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">location</span>) <span class="op">=</span> <span class="ident">asset_type</span>.<span class="ident">into</span>() {
 				<span class="prelude-val">Ok</span>(<span class="ident">location</span>)
@@ -418,7 +418,7 @@
 <span class="kw">where</span>
 	<span class="ident">AccountId</span>: <span class="ident">Into</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">20</span>]<span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span> {
+	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="ident">MultiLocation</span> {
 		<span class="ident">MultiLocation</span> {
 			<span class="ident">parents</span>: <span class="number">0</span>,
 			<span class="ident">interior</span>: <span class="ident">X1</span>(<span class="ident">AccountKey20</span> {
@@ -440,15 +440,15 @@
 	<span class="ident">Origin::PalletsOrigin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">frame_system::RawOrigin</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>
 		<span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">frame_system::RawOrigin</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Origin::PalletsOrigin</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">o</span>: <span class="ident">Origin</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">Origin</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">o</span>: <span class="ident">Origin</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">Origin</span><span class="op">&gt;</span> {
 		<span class="ident">o</span>.<span class="ident">try_with_caller</span>(<span class="op">|</span><span class="ident">caller</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">caller</span>.<span class="ident">try_into</span>() {
-			<span class="prelude-val">Ok</span>(<span class="ident">frame_system::RawOrigin::Signed</span>(<span class="ident">who</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AccountKey20</span> {
+			<span class="prelude-val">Ok</span>(<span class="ident">frame_system::RawOrigin::Signed</span>(<span class="ident">who</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AccountKey20</span> {
 				<span class="ident">key</span>: <span class="ident">who</span>.<span class="ident">into</span>(),
 				<span class="ident">network</span>: <span class="ident">Network::get</span>(),
 			}
 			.<span class="ident">into</span>()),
-			<span class="prelude-val">Ok</span>(<span class="ident">other</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Err</span>(<span class="ident">other</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">other</span>),
+			<span class="prelude-val">Ok</span>(<span class="ident">other</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">into</span>()),
+			<span class="prelude-val">Err</span>(<span class="ident">other</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>),
 		})
 	}
 }
@@ -473,14 +473,14 @@
 		<span class="ident">R</span>: <span class="ident">TakeRevenue</span>,
 	<span class="op">&gt;</span> <span class="ident">WeightTrader</span> <span class="kw">for</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetIdInfoGetter</span>, <span class="ident">R</span><span class="op">&gt;</span>
 {
-	<span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
 		<span class="ident">FirstAssetTrader</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">PhantomData</span>)
 	}
 	<span class="kw">fn</span> <span class="ident">buy_weight</span>(
-		<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 		<span class="ident">weight</span>: <span class="ident">Weight</span>,
 		<span class="ident">payment</span>: <span class="ident">xcm_executor::Assets</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">xcm_executor::Assets</span>, <span class="ident">XcmError</span><span class="op">&gt;</span> {
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">xcm_executor::Assets</span>, <span class="ident">XcmError</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">first_asset</span> <span class="op">=</span> <span class="ident">payment</span>
 			.<span class="ident">clone</span>()
 			.<span class="ident">fungible_assets_iter</span>()
@@ -490,7 +490,7 @@
 		<span class="comment">// We are only going to check first asset for now. This should be sufficient for simple token</span>
 		<span class="comment">// transfers. We will see later if we change this.</span>
 		<span class="kw">match</span> (<span class="ident">first_asset</span>.<span class="ident">id</span>, <span class="ident">first_asset</span>.<span class="ident">fun</span>) {
-			(<span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>), <span class="ident">Fungibility::Fungible</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+			(<span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>), <span class="ident">Fungibility::Fungible</span>(<span class="kw">_</span>)) =&gt; {
 				<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
 				<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId::from</span>(<span class="ident">asset_type</span>);
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units_per_second</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_units_per_second</span>(<span class="ident">asset_id</span>) {
@@ -513,14 +513,14 @@
 					<span class="comment">// In short, we only refund on the asset the trader first succesfully was able</span>
 					<span class="comment">// to pay for an execution</span>
 					<span class="kw">let</span> <span class="ident">new_asset</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
-						<span class="prelude-val">Some</span>((<span class="ident">prev_id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-							<span class="kw">if</span> <span class="ident">prev_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>() {
+						<span class="prelude-val">Some</span>((<span class="ident">prev_id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) =&gt; {
+							<span class="kw">if</span> <span class="ident">prev_id</span> <span class="op">==</span> <span class="ident">id</span>.<span class="ident">clone</span>() {
 								<span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>.<span class="ident">saturating_add</span>(<span class="ident">amount</span>), <span class="ident">units_per_second</span>))
 							} <span class="kw">else</span> {
 								<span class="prelude-val">None</span>
 							}
 						}
-						<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">amount</span>, <span class="ident">units_per_second</span>)),
+						<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">amount</span>, <span class="ident">units_per_second</span>)),
 					};
 
 					<span class="comment">// Due to the trait bound, we can only refund one asset.</span>
@@ -533,11 +533,11 @@
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>);
 				};
 			}
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>),
+			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
 			<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">min</span>(<span class="self">self</span>.<span class="number">0</span>);
 			<span class="self">self</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">weight</span>;
@@ -565,7 +565,7 @@
 		<span class="ident">R</span>: <span class="ident">TakeRevenue</span>,
 	<span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetIdInfoGetter</span>, <span class="ident">R</span><span class="op">&gt;</span>
 {
-	<span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+	<span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">amount</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
 			<span class="ident">R::take_revenue</span>((<span class="ident">id</span>, <span class="ident">amount</span>).<span class="ident">into</span>());
 		}
@@ -574,20 +574,20 @@
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reserve</span> {
 	<span class="doccomment">/// Returns assets reserve location.</span>
-	<span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// Takes the chain part of a MultiAsset</span>
 <span class="kw">impl</span> <span class="ident">Reserve</span> <span class="kw">for</span> <span class="ident">MultiAsset</span> {
-	<span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">location</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>() {
 			<span class="kw">let</span> <span class="ident">first_interior</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">first_interior</span>();
 			<span class="kw">let</span> <span class="ident">parents</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">parent_count</span>();
 			<span class="kw">match</span> (<span class="ident">parents</span>, <span class="ident">first_interior</span>.<span class="ident">clone</span>()) {
-				(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">0</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
-				(<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">1</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
-				(<span class="number">1</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::parent</span>()),
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+				(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">0</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
+				(<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::new</span>(<span class="number">1</span>, <span class="ident">X1</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>.<span class="ident">clone</span>())))),
+				(<span class="number">1</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MultiLocation::parent</span>()),
+				<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
 			}
 		} <span class="kw">else</span> {
 			<span class="prelude-val">None</span>
@@ -599,9 +599,9 @@
 <span class="doccomment">/// reserve is same with `origin`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MultiNativeAsset</span>;
 <span class="kw">impl</span> <span class="ident">FilterAssetLocation</span> <span class="kw">for</span> <span class="ident">MultiNativeAsset</span> {
-	<span class="kw">fn</span> <span class="ident">filter_asset_location</span>(<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">MultiAsset</span>, <span class="ident">origin</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">filter_asset_location</span>(<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">MultiAsset</span>, <span class="ident">origin</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">reserve</span>) <span class="op">=</span> <span class="ident">asset</span>.<span class="ident">reserve</span>() {
-			<span class="kw">if</span> <span class="ident">reserve</span> <span class="op">=</span><span class="op">=</span> <span class="ident">origin</span> {
+			<span class="kw">if</span> <span class="ident">reserve</span> <span class="op">==</span> <span class="ident">origin</span> {
 				<span class="kw">return</span> <span class="bool-val">true</span>;
 			}
 		}
@@ -612,14 +612,14 @@
 <span class="comment">// Defines the trait to obtain a generic AssetType from a generic AssetId</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AssetTypeGetter</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span><span class="op">&gt;</span> {
 	<span class="comment">// Get units per second from asset type</span>
-	<span class="kw">fn</span> <span class="ident">get_asset_type</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">get_asset_type</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// Defines the trait to obtain the units per second of a give assetId for local execution</span>
 <span class="comment">// This parameter will be used to charge for fees upon assetId deposit</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
 	<span class="comment">// Get units per second from asset type</span>
-	<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// The utility calls that need to be implemented as part of</span>
@@ -635,7 +635,7 @@
 <span class="comment">// the as_derivative extrinsic, and thus, this call can only be dispatched from the</span>
 <span class="comment">// derivative account</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UtilityEncodeCall</span> {
-	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">UtilityAvailableCalls</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="self">self</span>, <span class="ident">call</span>: <span class="ident">UtilityAvailableCalls</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// Trait to ensure we can retrieve the destination if a given type</span>
@@ -644,16 +644,16 @@
 <span class="comment">// for different runtimes of our choice</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">XcmTransact</span>: <span class="ident">UtilityEncodeCall</span> {
 	<span class="doccomment">/// Encode call from the relay.</span>
-	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MultiLocation</span>;
+	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) -&gt; <span class="ident">MultiLocation</span>;
 	<span class="doccomment">/// Maximum weight for the entire Transact operation</span>
-	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) -&gt; <span class="ident">Weight</span>;
 }
 
 <span class="doccomment">/// This trait ensure we can convert AccountIds to CurrencyIds</span>
 <span class="doccomment">/// We will require Runtime to have this trait implemented</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Account</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> {
 	<span class="comment">// Get assetId from account</span>
-	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">Account</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">account_to_currency_id</span>(<span class="ident">account</span>: <span class="ident">Account</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// XCM fee depositor to which we implement the TakeRevenue trait</span>
@@ -671,13 +671,13 @@
 {
 	<span class="kw">fn</span> <span class="ident">take_revenue</span>(<span class="ident">revenue</span>: <span class="ident">MultiAsset</span>) {
 		<span class="kw">match</span> <span class="ident">Matcher::matches_fungibles</span>(<span class="kw-2">&amp;</span><span class="ident">revenue</span>) {
-			<span class="prelude-val">Ok</span>((<span class="ident">asset_id</span>, <span class="ident">amount</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="prelude-val">Ok</span>((<span class="ident">asset_id</span>, <span class="ident">amount</span>)) =&gt; {
 				<span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() {
 					<span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">Assets::mint_into</span>(<span class="ident">asset_id</span>, <span class="kw-2">&amp;</span><span class="ident">ReceiverAccount::get</span>(), <span class="ident">amount</span>).<span class="ident">is_ok</span>();
 					<span class="macro">debug_assert!</span>(<span class="ident">ok</span>, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
 				}
 			}
-			<span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">log::debug!</span>(
+			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::debug!</span>(
 				<span class="ident">target</span>: <span class="string">&quot;xcm&quot;</span>,
 				<span class="string">&quot;take revenue failed matching fungible&quot;</span>
 			),

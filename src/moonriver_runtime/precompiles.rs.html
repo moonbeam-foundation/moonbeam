@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonriver&#x2F;src&#x2F;precompiles.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>precompiles.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonriver_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonriver&#x2F;src&#x2F;precompiles.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>precompiles.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonriver_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -147,6 +147,26 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -164,9 +184,9 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm::Context</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::kusama::KusamaEncoder</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
@@ -188,17 +208,17 @@
 <span class="doccomment">/// ERC20 metadata for the native token.</span>
 <span class="kw">impl</span> <span class="ident">Erc20Metadata</span> <span class="kw">for</span> <span class="ident">NativeErc20Metadata</span> {
 	<span class="doccomment">/// Returns the name of the token.</span>
-	<span class="kw">fn</span> <span class="ident">name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+	<span class="kw">fn</span> <span class="ident">name</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
 		<span class="string">&quot;MOVR token&quot;</span>
 	}
 
 	<span class="doccomment">/// Returns the symbol of the token.</span>
-	<span class="kw">fn</span> <span class="ident">symbol</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+	<span class="kw">fn</span> <span class="ident">symbol</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
 		<span class="string">&quot;MOVR&quot;</span>
 	}
 
 	<span class="doccomment">/// Returns the decimals places of the token.</span>
-	<span class="kw">fn</span> <span class="ident">decimals</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+	<span class="kw">fn</span> <span class="ident">decimals</span>() -&gt; <span class="ident">u8</span> {
 		<span class="number">18</span>
 	}
 }
@@ -218,9 +238,12 @@
 <span class="kw">where</span>
 	<span class="ident">R</span>: <span class="ident">pallet_evm::Config</span>,
 {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+		<span class="self">Self</span>(<span class="ident">Default::default</span>())
+	}
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
 	<span class="doccomment">/// under the precompile.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
 		<span class="macro">sp_std::vec!</span>[
 			<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2050</span>, <span class="number">2052</span>, <span class="number">2053</span>, <span class="number">2054</span>
 		]
@@ -243,57 +266,74 @@
 	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">RelayEncoderWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">KusamaEncoder</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">XcmTransactorWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">R</span>: <span class="ident">pallet_evm::Config</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">address</span>: <span class="ident">H160</span>,
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">is_static</span>: <span class="ident">bool</span>,
+	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">address</span> {
 			<span class="comment">// Ethereum precompiles :</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ECRecover::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Sha256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">3</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Ripemd160::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">4</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Identity::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">5</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Modexp::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">6</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Add::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">7</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Mul::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Bn128Pairing::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">9</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Blake2F::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">1</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ECRecover::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Sha256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">3</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Ripemd160::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">4</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Identity::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">5</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Modexp::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">6</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bn128Add::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">7</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bn128Mul::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">8</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bn128Pairing::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">9</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Blake2F::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)),
 			<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1024</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Sha3FIPS256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1025</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Dispatch</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1026</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ECRecoverPublicKey::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">1024</span>) =&gt; {
+				<span class="prelude-val">Some</span>(<span class="ident">Sha3FIPS256::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>))
+			}
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">1025</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Dispatch</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
+			)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">1026</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ECRecoverPublicKey::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
+			)),
 			<span class="comment">// Moonbeam specific precompiles :</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2048</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ParachainStakingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2048</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ParachainStakingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2049</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2049</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2050</span>) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2050</span>) =&gt; {
 				<span class="prelude-val">Some</span>(<span class="ident">Erc20BalancesPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-					<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+					<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 				))
 			}
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2052</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">XtokensWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2053</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RelayEncoderWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">KusamaEncoder</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2052</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">XtokensWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2054</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
-				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2053</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">RelayEncoderWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">KusamaEncoder</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
+			)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2054</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)
+			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
+				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::new</span>()
+					.<span class="ident">execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)
 			}
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
 		}
+	}
+	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
+		<span class="ident"><span class="self">Self</span>::used_addresses</span>()
+			.<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">address</span>))
+			.<span class="ident">is_some</span>()
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">a</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H160</span> {
+<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">a</span>: <span class="ident">u64</span>) -&gt; <span class="ident">H160</span> {
 	<span class="ident">H160::from_low_u64_be</span>(<span class="ident">a</span>)
 }
 </code></pre></div>

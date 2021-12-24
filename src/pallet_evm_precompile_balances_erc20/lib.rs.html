@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles&#x2F;balances-erc20&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_evm_precompile_balances_erc20/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles&#x2F;balances-erc20&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_evm_precompile_balances_erc20/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -463,6 +463,24 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -484,7 +502,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">assert_matches</span>))]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
 	<span class="ident">sp_runtime::traits</span>::{<span class="ident">CheckedSub</span>, <span class="ident">StaticLookup</span>},
@@ -498,8 +516,8 @@
 };
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">error</span>, <span class="ident">keccak256</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>,
-	<span class="ident">LogsBuilder</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">keccak256</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">LogsBuilder</span>,
+	<span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
@@ -528,13 +546,13 @@
 
 <span class="comment">// We use a macro to implement the trait for () and the 16 substrate Instance.</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_prefix</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) <span class="op">=</span><span class="op">&gt;</span> {
+	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
 		<span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>;
 
 		<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span> {
 			<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Approves&quot;</span>;
 
-			<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+			<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
 				<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
 			}
 		}
@@ -596,13 +614,13 @@
 <span class="doccomment">/// Metadata of an ERC20 token.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Erc20Metadata</span> {
 	<span class="doccomment">/// Returns the name of the token.</span>
-	<span class="kw">fn</span> <span class="ident">name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+	<span class="kw">fn</span> <span class="ident">name</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
 	<span class="doccomment">/// Returns the symbol of the token.</span>
-	<span class="kw">fn</span> <span class="ident">symbol</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+	<span class="kw">fn</span> <span class="ident">symbol</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
 	<span class="doccomment">/// Returns the decimals places of the token.</span>
-	<span class="kw">fn</span> <span class="ident">decimals</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
+	<span class="kw">fn</span> <span class="ident">decimals</span>() -&gt; <span class="ident">u8</span>;
 }
 
 <span class="doccomment">/// Precompile exposing a pallet_balance as an ERC20.</span>
@@ -627,19 +645,24 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+		<span class="ident">_is_static</span>: <span class="ident">bool</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+		<span class="kw">let</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>;
+
+		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">input</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::TotalSupply</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::total_supply</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::BalanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::balance_of</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::Allowance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::allowance</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>),
-			<span class="ident">Action::Approve</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::approve</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Transfer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
-			<span class="ident">Action::TransferFrom</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::transfer_from</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Name</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::name</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Symbol</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::symbol</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Decimals</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::decimals</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>),
+			<span class="ident">Action::TotalSupply</span> =&gt; <span class="ident"><span class="self">Self</span>::total_supply</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::BalanceOf</span> =&gt; <span class="ident"><span class="self">Self</span>::balance_of</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::Allowance</span> =&gt; <span class="ident"><span class="self">Self</span>::allowance</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::Approve</span> =&gt; <span class="ident"><span class="self">Self</span>::approve</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Transfer</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::TransferFrom</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_from</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Name</span> =&gt; <span class="ident"><span class="self">Self</span>::name</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Symbol</span> =&gt; <span class="ident"><span class="self">Self</span>::symbol</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Decimals</span> =&gt; <span class="ident"><span class="self">Self</span>::decimals</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
 		}
 	}
 }
@@ -654,12 +677,14 @@
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">total_supply</span>(<span class="ident">input</span>: <span class="ident">EvmDataReader</span>, <span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+	<span class="kw">fn</span> <span class="ident">total_supply</span>(
+		<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
 		<span class="comment">// Parse input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Fetch info.</span>
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">pallet_balances::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::total_issuance</span>().<span class="ident">into</span>();
@@ -674,16 +699,15 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">balance_of</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Fetch info.</span>
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> {
@@ -700,15 +724,17 @@
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">allowance</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>, <span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+	<span class="kw">fn</span> <span class="ident">allowance</span>(
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
 		<span class="comment">// Read input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Fetch info.</span>
 		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> {
@@ -730,26 +756,25 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">approve</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_write_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Parse input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Write into storage.</span>
 		{
 			<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span>
 				<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 			<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">spender</span>);
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
 
 			<span class="ident">ApprovesStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">caller</span>, <span class="ident">spender</span>, <span class="ident">amount</span>);
 		}
@@ -771,35 +796,33 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Parse input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		{
 			<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 			<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to</span>);
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
 
 			<span class="comment">// Dispatch call (if enough gas).</span>
-			<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
+			<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 				<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
 				<span class="ident">pallet_balances::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
 					<span class="ident">dest</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
 					<span class="ident">value</span>: <span class="ident">amount</span>,
 				},
-				<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
+				<span class="ident">gasometer</span>,
 			)<span class="question-mark">?</span>;
-			<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
 		}
 
 		<span class="comment">// Build output.</span>
@@ -819,38 +842,37 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer_from</span>(
-		<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">EvmDataReader</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_write_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Parse input.</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">3</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">3</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		{
 			<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span>
 				<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 			<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">from</span>);
 			<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to</span>);
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
 
 			<span class="comment">// If caller is &quot;from&quot;, it can spend as much as it wants.</span>
 			<span class="kw">if</span> <span class="ident">caller</span> <span class="op">!</span><span class="op">=</span> <span class="ident">from</span> {
 				<span class="ident">ApprovesStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="ident">from</span>.<span class="ident">clone</span>(), <span class="ident">caller</span>, <span class="op">|</span><span class="ident">entry</span><span class="op">|</span> {
 					<span class="comment">// Get current value, exit if None.</span>
-					<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">ok_or</span>(<span class="ident">error</span>(<span class="string">&quot;spender not allowed&quot;</span>))<span class="question-mark">?</span>;
+					<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">ok_or</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;spender not allowed&quot;</span>))<span class="question-mark">?</span>;
 
 					<span class="comment">// Remove &quot;amount&quot; from allowed, exit if underflow.</span>
 					<span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">value</span>
 						.<span class="ident">checked_sub</span>(<span class="kw-2">&amp;</span><span class="ident">amount</span>)
-						.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;trying to spend more than allowed&quot;</span>))<span class="question-mark">?</span>;
+						.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;trying to spend more than allowed&quot;</span>))<span class="question-mark">?</span>;
 
 					<span class="comment">// Update value.</span>
 					<span class="kw-2">*</span><span class="ident">entry</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_value</span>);
@@ -861,15 +883,14 @@
 
 			<span class="comment">// Build call with origin. Here origin is the &quot;from&quot;/owner field.</span>
 			<span class="comment">// Dispatch call (if enough gas).</span>
-			<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
+			<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
 				<span class="prelude-val">Some</span>(<span class="ident">from</span>).<span class="ident">into</span>(),
 				<span class="ident">pallet_balances::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
 					<span class="ident">dest</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">to</span>),
 					<span class="ident">value</span>: <span class="ident">amount</span>,
 				},
-				<span class="ident">gasometer</span>.<span class="ident">remaining_gas</span>()<span class="question-mark">?</span>,
+				<span class="ident">gasometer</span>,
 			)<span class="question-mark">?</span>;
-			<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)<span class="question-mark">?</span>;
 		}
 
 		<span class="comment">// Build output.</span>
@@ -888,11 +909,15 @@
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">name</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">name</span>(
+		<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>()
 				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Metadata::name</span>().<span class="ident">into</span>())
 				.<span class="ident">build</span>(),
@@ -900,11 +925,15 @@
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">symbol</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">symbol</span>(
+		<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>()
 				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Metadata::symbol</span>().<span class="ident">into</span>())
 				.<span class="ident">build</span>(),
@@ -912,20 +941,27 @@
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">decimals</span>(<span class="kw">_</span>: <span class="ident">EvmDataReader</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">decimals</span>(
+		<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="number">0</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">Metadata::decimals</span>()).<span class="ident">build</span>(),
 			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">u256_to_amount</span>(<span class="ident">value</span>: <span class="ident">U256</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">u256_to_amount</span>(
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="ident">value</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">error</span>(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))
 	}
 }
 </code></pre></div>

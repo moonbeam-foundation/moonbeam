@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;common&#x2F;src&#x2F;apis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apis.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../runtime_common/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;common&#x2F;src&#x2F;apis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apis.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../runtime_common/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -517,12 +517,12 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_runtime_apis_plus_common</span> {
-	{$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">custom</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>} <span class="op">=</span><span class="op">&gt;</span> {
+	{$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">custom</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>} =&gt; {
 		<span class="macro">impl_runtime_apis!</span> {
 			$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">custom</span>)<span class="op">*</span>
 
 			<span class="kw">impl</span> <span class="ident">sp_api::Core</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RuntimeVersion</span> {
+				<span class="kw">fn</span> <span class="ident">version</span>() -&gt; <span class="ident">RuntimeVersion</span> {
 					<span class="ident">VERSION</span>
 				}
 
@@ -536,30 +536,30 @@
 			}
 
 			<span class="kw">impl</span> <span class="ident">sp_api::Metadata</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">metadata</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OpaqueMetadata</span> {
+				<span class="kw">fn</span> <span class="ident">metadata</span>() -&gt; <span class="ident">OpaqueMetadata</span> {
 					<span class="ident">OpaqueMetadata::new</span>(<span class="ident">Runtime::metadata</span>().<span class="ident">into</span>())
 				}
 			}
 
 			<span class="kw">impl</span> <span class="ident">sp_block_builder::BlockBuilder</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">apply_extrinsic</span>(<span class="ident">extrinsic</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ApplyExtrinsicResult</span> {
+				<span class="kw">fn</span> <span class="ident">apply_extrinsic</span>(<span class="ident">extrinsic</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>) -&gt; <span class="ident">ApplyExtrinsicResult</span> {
 					<span class="ident">Executive::apply_extrinsic</span>(<span class="ident">extrinsic</span>)
 				}
 
-				<span class="kw">fn</span> <span class="ident">finalize_block</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span> {
+				<span class="kw">fn</span> <span class="ident">finalize_block</span>() -&gt; <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span> {
 					<span class="ident">Executive::finalize_block</span>()
 				}
 
 				<span class="kw">fn</span> <span class="ident">inherent_extrinsics</span>(
 					<span class="ident">data</span>: <span class="ident">sp_inherents::InherentData</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span> {
+				) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span> {
 					<span class="ident">data</span>.<span class="ident">create_extrinsics</span>()
 				}
 
 				<span class="kw">fn</span> <span class="ident">check_inherents</span>(
 					<span class="ident">block</span>: <span class="ident">Block</span>,
 					<span class="ident">data</span>: <span class="ident">sp_inherents::InherentData</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_inherents::CheckInherentsResult</span> {
+				) -&gt; <span class="ident">sp_inherents::CheckInherentsResult</span> {
 					<span class="ident">data</span>.<span class="ident">check_extrinsics</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>)
 				}
 			}
@@ -573,17 +573,17 @@
 			<span class="kw">impl</span> <span class="ident">sp_session::SessionKeys</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 				<span class="kw">fn</span> <span class="ident">decode_session_keys</span>(
 					<span class="ident">encoded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">sp_core::crypto::KeyTypeId</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+				) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">sp_core::crypto::KeyTypeId</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
 					<span class="ident">opaque::SessionKeys::decode_into_raw_public_keys</span>(<span class="kw-2">&amp;</span><span class="ident">encoded</span>)
 				}
 
-				<span class="kw">fn</span> <span class="ident">generate_session_keys</span>(<span class="ident">seed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+				<span class="kw">fn</span> <span class="ident">generate_session_keys</span>(<span class="ident">seed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 					<span class="ident">opaque::SessionKeys::generate</span>(<span class="ident">seed</span>)
 				}
 			}
 
 			<span class="kw">impl</span> <span class="ident">frame_system_rpc_runtime_api::AccountNonceApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">account_nonce</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Index</span> {
+				<span class="kw">fn</span> <span class="ident">account_nonce</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="ident">Index</span> {
 					<span class="ident">System::account_nonce</span>(<span class="ident">account</span>)
 				}
 			}
@@ -592,7 +592,7 @@
 				<span class="kw">fn</span> <span class="ident">trace_transaction</span>(
 					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
 					<span class="ident">traced_transaction</span>: <span class="kw-2">&amp;</span><span class="ident">EthereumTransaction</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 					(),
 					<span class="ident">sp_runtime::DispatchError</span>,
 				<span class="op">&gt;</span> {
@@ -603,15 +603,15 @@
 						<span class="comment">// transactions that preceded the requested transaction.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
 							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) <span class="op">=</span><span class="op">&gt;</span> {
-									<span class="kw">if</span> <span class="ident">transaction</span> <span class="op">=</span><span class="op">=</span> <span class="ident">traced_transaction</span> {
+								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; {
+									<span class="kw">if</span> <span class="ident">transaction</span> <span class="op">==</span> <span class="ident">traced_transaction</span> {
 										<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
 										<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
 									} <span class="kw">else</span> {
 										<span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>)
 									}
 								}
-								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>),
+								<span class="kw">_</span> =&gt; <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>),
 							};
 						}
 
@@ -628,7 +628,7 @@
 				<span class="kw">fn</span> <span class="ident">trace_block</span>(
 					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
 					<span class="ident">known_transactions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 					(),
 					<span class="ident">sp_runtime::DispatchError</span>,
 				<span class="op">&gt;</span> {
@@ -643,7 +643,7 @@
 						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
 							<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; {
 									<span class="kw">let</span> <span class="ident">eth_extrinsic_hash</span> <span class="op">=</span>
 										<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">rlp::encode</span>(<span class="ident">transaction</span>)).<span class="ident">as_slice</span>());
 									<span class="kw">if</span> <span class="ident">known_transactions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">eth_extrinsic_hash</span>) {
@@ -654,7 +654,7 @@
 										<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);
 									}
 								}
-								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+								<span class="kw">_</span> =&gt; {
 									<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);
 								}
 							};
@@ -673,20 +673,20 @@
 				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
 					<span class="ident">xts_ready</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
 					<span class="ident">xts_future</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TxPoolResponse</span> {
+				) -&gt; <span class="ident">TxPoolResponse</span> {
 					<span class="ident">TxPoolResponse</span> {
 						<span class="ident">ready</span>: <span class="ident">xts_ready</span>
 							.<span class="ident">into_iter</span>()
 							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
+								<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
 							})
 							.<span class="ident">collect</span>(),
 						<span class="ident">future</span>: <span class="ident">xts_future</span>
 							.<span class="ident">into_iter</span>()
 							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-								<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
+								<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
 							})
 							.<span class="ident">collect</span>(),
 					}
@@ -694,29 +694,29 @@
 			}
 
 			<span class="kw">impl</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">chain_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+				<span class="kw">fn</span> <span class="ident">chain_id</span>() -&gt; <span class="ident">u64</span> {
 					<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::ChainId::get</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">account_basic</span>(<span class="ident">address</span>: <span class="ident">H160</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EVMAccount</span> {
+				<span class="kw">fn</span> <span class="ident">account_basic</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">EVMAccount</span> {
 					<span class="ident">EVM::account_basic</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>)
 				}
 
-				<span class="kw">fn</span> <span class="ident">gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
+				<span class="kw">fn</span> <span class="ident">gas_price</span>() -&gt; <span class="ident">U256</span> {
 					<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::FeeCalculator::min_gas_price</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">account_code_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+				<span class="kw">fn</span> <span class="ident">account_code_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 					<span class="ident">EVM::account_codes</span>(<span class="ident">address</span>)
 				}
 
-				<span class="kw">fn</span> <span class="ident">author</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H160</span> {
+				<span class="kw">fn</span> <span class="ident">author</span>() -&gt; <span class="ident">H160</span> {
 					<span class="op">&lt;</span><span class="ident">pallet_evm::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::find_author</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">storage_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">index</span>: <span class="ident">U256</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H256</span> {
+				<span class="kw">fn</span> <span class="ident">storage_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">index</span>: <span class="ident">U256</span>) -&gt; <span class="ident">H256</span> {
 					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-					<span class="ident">index</span>.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tmp</span>);
+					<span class="ident">index</span>.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tmp</span>);
 					<span class="ident">EVM::account_storages</span>(<span class="ident">address</span>, <span class="ident">H256::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..]))
 				}
 
@@ -726,10 +726,11 @@
 					<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 					<span class="ident">value</span>: <span class="ident">U256</span>,
 					<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-					<span class="ident">gas_price</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+					<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+					<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 					<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 					<span class="ident">estimate</span>: <span class="ident">bool</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CallInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
+				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CallInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
 					<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">estimate</span> {
 						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
 						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -744,13 +745,12 @@
 						<span class="ident">data</span>,
 						<span class="ident">value</span>,
 						<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
-						<span class="ident">gas_price</span>,
+						<span class="ident">max_fee_per_gas</span>,
+						<span class="ident">max_priority_fee_per_gas</span>,
 						<span class="ident">nonce</span>,
-						<span class="ident">config</span>
-							.<span class="ident">as_ref</span>()
-							.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
-					)
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">into</span>())
+						<span class="ident">Vec::new</span>(),
+						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
+					).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">into</span>())
 				}
 
 				<span class="kw">fn</span> <span class="ident">create</span>(
@@ -758,10 +758,11 @@
 					<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 					<span class="ident">value</span>: <span class="ident">U256</span>,
 					<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-					<span class="ident">gas_price</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+					<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+					<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 					<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 					<span class="ident">estimate</span>: <span class="ident">bool</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CreateInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
+				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CreateInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
 					<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">estimate</span> {
 						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
 						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -776,28 +777,27 @@
 						<span class="ident">data</span>,
 						<span class="ident">value</span>,
 						<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
-						<span class="ident">gas_price</span>,
+						<span class="ident">max_fee_per_gas</span>,
+						<span class="ident">max_priority_fee_per_gas</span>,
 						<span class="ident">nonce</span>,
-						<span class="ident">config</span>
-							.<span class="ident">as_ref</span>()
-							.<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
-					)
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">into</span>())
+						<span class="ident">Vec::new</span>(),
+						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
+					).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">into</span>())
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_transaction_statuses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+				<span class="kw">fn</span> <span class="ident">current_transaction_statuses</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 					<span class="ident">Ethereum::current_transaction_statuses</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_block</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Block</span><span class="op">&gt;</span> {
+				<span class="kw">fn</span> <span class="ident">current_block</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Block</span><span class="op">&gt;</span> {
 					<span class="ident">Ethereum::current_block</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_receipts</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Receipt</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+				<span class="kw">fn</span> <span class="ident">current_receipts</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Receipt</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 					<span class="ident">Ethereum::current_receipts</span>()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_all</span>() <span class="op">-</span><span class="op">&gt;</span> (
+				<span class="kw">fn</span> <span class="ident">current_all</span>() -&gt; (
 					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Block</span><span class="op">&gt;</span>,
 					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Receipt</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionStatus</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -811,10 +811,10 @@
 
 				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
 					<span class="ident">xts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span> {
+				) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span> {
 					<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-						<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-						<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+						<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
+						<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
 					}).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span><span class="op">&gt;</span>()
 				}
 			}
@@ -824,14 +824,14 @@
 				<span class="kw">fn</span> <span class="ident">query_info</span>(
 					<span class="ident">uxt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
 					<span class="ident">len</span>: <span class="ident">u32</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+				) -&gt; <span class="ident">pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 					<span class="ident">TransactionPayment::query_info</span>(<span class="ident">uxt</span>, <span class="ident">len</span>)
 				}
 
 				<span class="kw">fn</span> <span class="ident">query_fee_details</span>(
 					<span class="ident">uxt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
 					<span class="ident">len</span>: <span class="ident">u32</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">pallet_transaction_payment::FeeDetails</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+				) -&gt; <span class="ident">pallet_transaction_payment::FeeDetails</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 					<span class="ident">TransactionPayment::query_fee_details</span>(<span class="ident">uxt</span>, <span class="ident">len</span>)
 				}
 			}
@@ -841,7 +841,7 @@
 					<span class="ident">author</span>: <span class="ident">nimbus_primitives::NimbusId</span>,
 					<span class="ident">slot</span>: <span class="ident">u32</span>,
 					<span class="ident">parent_header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+				) -&gt; <span class="ident">bool</span> {
 					<span class="kw">let</span> <span class="ident">block_number</span> <span class="op">=</span> <span class="ident">parent_header</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>;
 
 					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting</span>
@@ -884,13 +884,13 @@
 
 			<span class="comment">// We also implement the old AuthorFilterAPI to meet the trait bounds on the client side.</span>
 			<span class="kw">impl</span> <span class="ident">nimbus_primitives::AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NimbusId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="kw">_</span>: <span class="ident">NimbusId</span>, <span class="kw">_</span>: <span class="ident">u32</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+				<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="kw">_</span>: <span class="ident">NimbusId</span>, <span class="kw">_</span>: <span class="ident">u32</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>) -&gt; <span class="ident">bool</span> {
 					<span class="macro">panic!</span>(<span class="string">&quot;AuthorFilterAPI is no longer supported. Please update your client.&quot;</span>)
 				}
 			}
 
 			<span class="kw">impl</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">collect_collation_info</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cumulus_primitives_core::CollationInfo</span> {
+				<span class="kw">fn</span> <span class="ident">collect_collation_info</span>() -&gt; <span class="ident">cumulus_primitives_core::CollationInfo</span> {
 					<span class="ident">ParachainSystem::collect_collation_info</span>()
 				}
 			}
@@ -898,7 +898,7 @@
 			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
 			<span class="kw">impl</span> <span class="ident">frame_benchmarking::Benchmark</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 
-				<span class="kw">fn</span> <span class="ident">benchmark_metadata</span>(<span class="ident">extra</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> (
+				<span class="kw">fn</span> <span class="ident">benchmark_metadata</span>(<span class="ident">extra</span>: <span class="ident">bool</span>) -&gt; (
 					<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_benchmarking::BenchmarkList</span><span class="op">&gt;</span>,
 					<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_support::traits::StorageInfo</span><span class="op">&gt;</span>,
 				) {
@@ -927,7 +927,7 @@
 
 				<span class="kw">fn</span> <span class="ident">dispatch_benchmark</span>(
 					<span class="ident">config</span>: <span class="ident">frame_benchmarking::BenchmarkConfig</span>,
-				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_benchmarking::BenchmarkBatch</span><span class="op">&gt;</span>, <span class="ident">sp_runtime::RuntimeString</span><span class="op">&gt;</span> {
+				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_benchmarking::BenchmarkBatch</span><span class="op">&gt;</span>, <span class="ident">sp_runtime::RuntimeString</span><span class="op">&gt;</span> {
 					<span class="kw">use</span> <span class="ident">frame_benchmarking</span>::{
 						<span class="ident">add_benchmark</span>, <span class="ident">BenchmarkBatch</span>, <span class="ident">Benchmarking</span>, <span class="ident">TrackedStorageKey</span>,
 					};
@@ -983,7 +983,7 @@
 
 			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 			<span class="kw">impl</span> <span class="ident">frame_try_runtime::TryRuntime</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Weight</span>, <span class="ident">Weight</span>) {
+				<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; (<span class="ident">Weight</span>, <span class="ident">Weight</span>) {
 					<span class="macro">log::info!</span>(<span class="string">&quot;try-runtime::on_runtime_upgrade()&quot;</span>);
 					<span class="comment">// NOTE: intentional expect: we don&#39;t want to propagate the error backwards,</span>
 					<span class="comment">// and want to have a backtrace here. If any of the pre/post migration checks</span>
@@ -993,7 +993,7 @@
 					(<span class="ident">weight</span>, <span class="ident">BlockWeights::get</span>().<span class="ident">max_block</span>)
 				}
 
-				<span class="kw">fn</span> <span class="ident">execute_block_no_check</span>(<span class="ident">block</span>: <span class="ident">Block</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+				<span class="kw">fn</span> <span class="ident">execute_block_no_check</span>(<span class="ident">block</span>: <span class="ident">Block</span>) -&gt; <span class="ident">Weight</span> {
 					<span class="ident">Executive::execute_block_no_check</span>(<span class="ident">block</span>)
 				}
 			}

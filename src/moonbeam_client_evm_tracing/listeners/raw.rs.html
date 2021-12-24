@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client&#x2F;evm-tracing&#x2F;src&#x2F;listeners&#x2F;raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../moonbeam_client_evm_tracing/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client&#x2F;evm-tracing&#x2F;src&#x2F;listeners&#x2F;raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../moonbeam_client_evm_tracing/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -373,7 +373,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Listener</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">disable_storage</span>: <span class="ident">bool</span>, <span class="ident">disable_memory</span>: <span class="ident">bool</span>, <span class="ident">disable_stack</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">disable_storage</span>: <span class="ident">bool</span>, <span class="ident">disable_memory</span>: <span class="ident">bool</span>, <span class="ident">disable_stack</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">disable_storage</span>,
 			<span class="ident">disable_memory</span>,
@@ -388,22 +388,22 @@
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">using</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">using</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span> {
 		<span class="ident">evm_tracing_events::using</span>(<span class="self">self</span>, <span class="ident">f</span>)
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gasometer_event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">GasometerEvent</span>) {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">GasometerEvent</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">GasometerEvent::RecordTransaction</span> { <span class="ident">cost</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">GasometerEvent::RecordTransaction</span> { <span class="ident">cost</span>, .. } =&gt; {
 				<span class="comment">// First event of a transaction.</span>
 				<span class="comment">// Next step will be the first context.</span>
 				<span class="self">self</span>.<span class="ident">new_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
 				<span class="self">self</span>.<span class="ident">final_gas</span> <span class="op">=</span> <span class="ident">cost</span>;
 			}
-			<span class="ident">GasometerEvent::RecordCost</span> { <span class="ident">cost</span>, <span class="ident">snapshot</span> } <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">GasometerEvent::RecordCost</span> { <span class="ident">cost</span>, <span class="ident">snapshot</span> } =&gt; {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
 					<span class="comment">// Register opcode cost. (ignore costs not between Step and StepResult)</span>
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
 						<span class="ident">step</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">gas</span>();
 						<span class="ident">step</span>.<span class="ident">gas_cost</span> <span class="op">=</span> <span class="ident">cost</span>;
 					}
@@ -413,10 +413,10 @@
 			}
 			<span class="ident">GasometerEvent::RecordDynamicCost</span> {
 				<span class="ident">gas_cost</span>, <span class="ident">snapshot</span>, ..
-			} <span class="op">=</span><span class="op">&gt;</span> {
+			} =&gt; {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
 					<span class="comment">// Register opcode cost. (ignore costs not between Step and StepResult)</span>
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">step</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">current_step</span> {
 						<span class="ident">step</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">gas</span>();
 						<span class="ident">step</span>.<span class="ident">gas_cost</span> <span class="op">=</span> <span class="ident">gas_cost</span>;
 					}
@@ -426,11 +426,11 @@
 			}
 			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
 			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+			<span class="kw">_</span> =&gt; (),
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">RuntimeEvent</span>) {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">RuntimeEvent</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
 			<span class="ident">RuntimeEvent::Step</span> {
 				<span class="ident">context</span>,
@@ -438,7 +438,7 @@
 				<span class="ident">position</span>,
 				<span class="ident">stack</span>,
 				<span class="ident">memory</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> {
+			} =&gt; {
 				<span class="comment">// Create a context if needed.</span>
 				<span class="kw">if</span> <span class="self">self</span>.<span class="ident">new_context</span> {
 					<span class="self">self</span>.<span class="ident">new_context</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -487,7 +487,7 @@
 			<span class="ident">RuntimeEvent::StepResult</span> {
 				<span class="ident">result</span>,
 				<span class="ident">return_value</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> {
+			} =&gt; {
 				<span class="comment">// StepResult is expected to be emited after a step (in a context).</span>
 				<span class="comment">// Only case StepResult will occur without a Step before is in a transfer</span>
 				<span class="comment">// transaction to a non-contract address. However it will not contain any</span>
@@ -527,7 +527,7 @@
 
 				<span class="comment">// We match on the capture to handle traps/exits.</span>
 				<span class="kw">match</span> <span class="ident">result</span> {
-					<span class="prelude-val">Err</span>(<span class="ident">Capture::Exit</span>(<span class="ident">reason</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="prelude-val">Err</span>(<span class="ident">Capture::Exit</span>(<span class="ident">reason</span>)) =&gt; {
 						<span class="comment">// Exit = we exit the context (should always be some)</span>
 						<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">pop</span>() {
 							<span class="comment">// If final context is exited, we store gas and return value.</span>
@@ -549,7 +549,7 @@
 										<span class="ident">context</span>.<span class="ident">global_storage_changes</span>.<span class="ident">into_iter</span>()
 									{
 										<span class="comment">// Same address =&gt; We update its cache (only tracked keys)</span>
-										<span class="kw">if</span> <span class="ident">parent_context</span>.<span class="ident">address</span> <span class="op">=</span><span class="op">=</span> <span class="ident">address</span> {
+										<span class="kw">if</span> <span class="ident">parent_context</span>.<span class="ident">address</span> <span class="op">==</span> <span class="ident">address</span> {
 											<span class="kw">for</span> (<span class="ident">cached_key</span>, <span class="ident">cached_value</span>) <span class="kw">in</span>
 												<span class="ident">parent_context</span>.<span class="ident">storage_cache</span>.<span class="ident">iter_mut</span>()
 											{
@@ -564,17 +564,17 @@
 												.<span class="ident">global_storage_changes</span>
 												.<span class="ident">entry</span>(<span class="ident">address</span>)
 												.<span class="ident">or_insert_with</span>(<span class="ident">BTreeMap::new</span>)
-												.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">storage</span>);
+												.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">storage</span>);
 										}
 									}
 								}
 							}
 						}
 					}
-					<span class="prelude-val">Err</span>(<span class="ident">Capture::Trap</span>(<span class="ident">opcode</span>)) <span class="kw">if</span> <span class="ident">ContextType::from</span>(<span class="ident">opcode</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>() <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="prelude-val">Err</span>(<span class="ident">Capture::Trap</span>(<span class="ident">opcode</span>)) <span class="kw">if</span> <span class="ident">ContextType::from</span>(<span class="ident">opcode</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>() =&gt; {
 						<span class="self">self</span>.<span class="ident">new_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
 					}
-					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+					<span class="kw">_</span> =&gt; (),
 				}
 			}
 			<span class="ident">RuntimeEvent::SLoad</span> {
@@ -586,7 +586,7 @@
 				<span class="ident">address</span>: <span class="kw">_</span>,
 				<span class="ident">index</span>,
 				<span class="ident">value</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> {
+			} =&gt; {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
 					<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">disable_storage</span> {
 						<span class="ident">context</span>.<span class="ident">storage_cache</span>.<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">value</span>);
@@ -595,21 +595,21 @@
 			}
 			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
 			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+			<span class="kw">_</span> =&gt; (),
 		}
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">ListenerT</span> <span class="kw">for</span> <span class="ident">Listener</span> {
-	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
+	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">Event::Gasometer</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gasometer_event</span>(<span class="ident">e</span>),
-			<span class="ident">Event::Runtime</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">runtime_event</span>(<span class="ident">e</span>),
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+			<span class="ident">Event::Gasometer</span>(<span class="ident">e</span>) =&gt; <span class="self">self</span>.<span class="ident">gasometer_event</span>(<span class="ident">e</span>),
+			<span class="ident">Event::Runtime</span>(<span class="ident">e</span>) =&gt; <span class="self">self</span>.<span class="ident">runtime_event</span>(<span class="ident">e</span>),
+			<span class="kw">_</span> =&gt; {}
 		};
 	}
 
-	<span class="kw">fn</span> <span class="ident">step_event_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StepEventFilter</span> {
+	<span class="kw">fn</span> <span class="ident">step_event_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StepEventFilter</span> {
 		<span class="ident">StepEventFilter</span> {
 			<span class="ident">enable_memory</span>: <span class="op">!</span><span class="self">self</span>.<span class="ident">disable_memory</span>,
 			<span class="ident">enable_stack</span>: <span class="op">!</span><span class="self">self</span>.<span class="ident">disable_stack</span>,

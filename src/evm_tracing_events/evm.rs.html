@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives&#x2F;rpc&#x2F;evm-tracing-events&#x2F;src&#x2F;evm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evm.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../evm_tracing_events/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives&#x2F;rpc&#x2F;evm-tracing-events&#x2F;src&#x2F;evm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>evm.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../evm_tracing_events/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -262,7 +262,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">evm_runtime::Transfer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Transfer</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::Transfer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::Transfer</span>) -&gt; <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">source</span>: <span class="ident">i</span>.<span class="ident">source</span>,
 			<span class="ident">target</span>: <span class="ident">i</span>.<span class="ident">target</span>,
@@ -292,19 +292,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">evm_runtime::CreateScheme</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CreateScheme</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::CreateScheme</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_runtime::CreateScheme</span>) -&gt; <span class="self">Self</span> {
 		<span class="kw">match</span> <span class="ident">i</span> {
-			<span class="ident">evm_runtime::CreateScheme::Legacy</span> { <span class="ident">caller</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Legacy</span> { <span class="ident">caller</span> },
+			<span class="ident">evm_runtime::CreateScheme::Legacy</span> { <span class="ident">caller</span> } =&gt; <span class="ident"><span class="self">Self</span>::Legacy</span> { <span class="ident">caller</span> },
 			<span class="ident">evm_runtime::CreateScheme::Create2</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">code_hash</span>,
 				<span class="ident">salt</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Create2</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::Create2</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">code_hash</span>,
 				<span class="ident">salt</span>,
 			},
-			<span class="ident">evm_runtime::CreateScheme::Fixed</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Fixed</span>(<span class="ident">address</span>),
+			<span class="ident">evm_runtime::CreateScheme::Fixed</span>(<span class="ident">address</span>) =&gt; <span class="ident"><span class="self">Self</span>::Fixed</span>(<span class="ident">address</span>),
 		}
 	}
 }
@@ -362,7 +362,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">evm::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EvmEvent</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
 		<span class="kw">match</span> <span class="ident">i</span> {
 			<span class="ident">evm::tracing::Event::Call</span> {
 				<span class="ident">code_address</span>,
@@ -371,7 +371,7 @@
 				<span class="ident">target_gas</span>,
 				<span class="ident">is_static</span>,
 				<span class="ident">context</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Call</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::Call</span> {
 				<span class="ident">code_address</span>,
 				<span class="ident">transfer</span>: <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">transfer</span>) <span class="op">=</span> <span class="ident">transfer</span> {
 					<span class="prelude-val">Some</span>(<span class="ident">transfer</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
@@ -390,7 +390,7 @@
 				<span class="ident">value</span>,
 				<span class="ident">init_code</span>,
 				<span class="ident">target_gas</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Create</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::Create</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">address</span>,
 				<span class="ident">scheme</span>: <span class="ident">scheme</span>.<span class="ident">into</span>(),
@@ -402,7 +402,7 @@
 				<span class="ident">address</span>,
 				<span class="ident">target</span>,
 				<span class="ident">balance</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Suicide</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::Suicide</span> {
 				<span class="ident">address</span>,
 				<span class="ident">target</span>,
 				<span class="ident">balance</span>,
@@ -410,7 +410,7 @@
 			<span class="ident">evm::tracing::Event::Exit</span> {
 				<span class="ident">reason</span>,
 				<span class="ident">return_value</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Exit</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::Exit</span> {
 				<span class="ident">reason</span>: <span class="ident">reason</span>.<span class="ident">clone</span>(),
 				<span class="ident">return_value</span>: <span class="ident">return_value</span>.<span class="ident">to_vec</span>(),
 			},
@@ -420,7 +420,7 @@
 				<span class="ident">value</span>,
 				<span class="ident">data</span>,
 				<span class="ident">gas_limit</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::TransactCall</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::TransactCall</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">address</span>,
 				<span class="ident">value</span>,
@@ -433,7 +433,7 @@
 				<span class="ident">init_code</span>,
 				<span class="ident">gas_limit</span>,
 				<span class="ident">address</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::TransactCreate</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::TransactCreate</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">value</span>,
 				<span class="ident">init_code</span>: <span class="ident">init_code</span>.<span class="ident">to_vec</span>(),
@@ -447,7 +447,7 @@
 				<span class="ident">salt</span>,
 				<span class="ident">gas_limit</span>,
 				<span class="ident">address</span>,
-			} <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::TransactCreate2</span> {
+			} =&gt; <span class="ident"><span class="self">Self</span>::TransactCreate2</span> {
 				<span class="ident">caller</span>,
 				<span class="ident">value</span>,
 				<span class="ident">init_code</span>: <span class="ident">init_code</span>.<span class="ident">to_vec</span>(),

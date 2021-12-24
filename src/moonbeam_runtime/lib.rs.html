@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonbeam&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime&#x2F;moonbeam&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1186,6 +1186,44 @@
 <span id="1186">1186</span>
 <span id="1187">1187</span>
 <span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1221,7 +1259,9 @@
 <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
-	<span class="ident">traits</span>::{<span class="ident">Contains</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OnUnbalanced</span>},
+	<span class="ident">traits</span>::{
+		<span class="ident">Contains</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OnUnbalanced</span>,
+	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
 		<span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>,
@@ -1292,7 +1332,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROGLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROGLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Balance</span> {
 		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
 	}
 }
@@ -1340,7 +1380,7 @@
 
 <span class="doccomment">/// The version information used to identify this runtime when compiled natively.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NativeVersion</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_version</span>() -&gt; <span class="ident">NativeVersion</span> {
 	<span class="ident">NativeVersion</span> {
 		<span class="ident">runtime_version</span>: <span class="ident">VERSION</span>,
 		<span class="ident">can_author_with</span>: <span class="ident">Default::default</span>(),
@@ -1406,6 +1446,7 @@
 <span class="kw">impl</span> <span class="ident">pallet_utility::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
+	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_utility::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -1498,10 +1539,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonbeamGasWeightMapping</span>;
 
 <span class="kw">impl</span> <span class="ident">pallet_evm::GasWeightMapping</span> <span class="kw">for</span> <span class="ident">MoonbeamGasWeightMapping</span> {
-	<span class="kw">fn</span> <span class="ident">gas_to_weight</span>(<span class="ident">gas</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+	<span class="kw">fn</span> <span class="ident">gas_to_weight</span>(<span class="ident">gas</span>: <span class="ident">u64</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">gas</span>.<span class="ident">saturating_mul</span>(<span class="ident">WEIGHT_PER_GAS</span>)
 	}
-	<span class="kw">fn</span> <span class="ident">weight_to_gas</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+	<span class="kw">fn</span> <span class="ident">weight_to_gas</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">u64</span> {
 		<span class="ident">u64::try_from</span>(<span class="ident">weight</span>.<span class="ident">wrapping_div</span>(<span class="ident">WEIGHT_PER_GAS</span>)).<span class="ident">unwrap_or</span>(<span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>)
 	}
 }
@@ -1521,11 +1562,12 @@
 	<span class="doccomment">/// This value is currently only used by pallet-transaction-payment as an assertion that the</span>
 	<span class="doccomment">/// next multiplier is always &gt; min value.</span>
 	<span class="kw">pub</span> <span class="ident">MinimumMultiplier</span>: <span class="ident">Multiplier</span> <span class="op">=</span> <span class="ident">Multiplier::saturating_from_rational</span>(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
+	<span class="kw">pub</span> <span class="ident">PrecompilesValue</span>: <span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MoonbeamPrecompiles</span>::<span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::new</span>();
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
-	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
+	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() -&gt; <span class="ident">U256</span> {
 		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>()
 	}
 }
@@ -1556,7 +1598,7 @@
 <span class="kw">where</span>
 	<span class="ident">Inner</span>: <span class="ident">FindAuthor</span><span class="op">&lt;</span><span class="ident">AccountId20</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">find_author</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">digests</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>
+	<span class="kw">fn</span> <span class="ident">find_author</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">digests</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">I</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">sp_runtime::ConsensusEngineId</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span>,
 	{
@@ -1574,7 +1616,8 @@
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Runner</span> <span class="op">=</span> <span class="ident">pallet_evm::runner::stack::Runner</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">Precompiles</span> <span class="op">=</span> <span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">PrecompilesType</span> <span class="op">=</span> <span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">PrecompilesValue</span> <span class="op">=</span> <span class="ident">PrecompilesValue</span>;
 	<span class="kw">type</span> <span class="ident">ChainId</span> <span class="op">=</span> <span class="ident">EthereumChainId</span>;
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">pallet_evm::EVMCurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
@@ -1595,6 +1638,7 @@
 	<span class="kw">type</span> <span class="ident">ScheduleOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">MaxScheduledPerBlock</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_scheduler::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OriginPrivilegeCmp</span> <span class="op">=</span> <span class="ident">EqualPrivilegeOnly</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -1788,7 +1832,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TransactionConverter</span>;
 
 <span class="kw">impl</span> <span class="ident">fp_rpc::ConvertTransaction</span><span class="op">&lt;</span><span class="ident">UncheckedExtrinsic</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TransactionConverter</span> {
-	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UncheckedExtrinsic</span> {
+	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>) -&gt; <span class="ident">UncheckedExtrinsic</span> {
 		<span class="ident">UncheckedExtrinsic::new_unsigned</span>(
 			<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
 		)
@@ -1799,12 +1843,12 @@
 	<span class="kw">fn</span> <span class="ident">convert_transaction</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">opaque::UncheckedExtrinsic</span> {
+	) -&gt; <span class="ident">opaque::UncheckedExtrinsic</span> {
 		<span class="kw">let</span> <span class="ident">extrinsic</span> <span class="op">=</span> <span class="ident">UncheckedExtrinsic::new_unsigned</span>(
 			<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
 		);
 		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">extrinsic</span>.<span class="ident">encode</span>();
-		<span class="ident">opaque::UncheckedExtrinsic::decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..])
+		<span class="ident">opaque::UncheckedExtrinsic::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..])
 			.<span class="ident">expect</span>(<span class="string">&quot;Encoded extrinsic is always valid&quot;</span>)
 	}
 }
@@ -1980,16 +2024,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
 		<span class="ident"><span class="self">Self</span>::Any</span>
 	}
 }
 
 <span class="kw">impl</span> <span class="ident">InstanceFilter</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
-	<span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">ProxyType::Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			<span class="ident">ProxyType::NonTransfer</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::Any</span> =&gt; <span class="bool-val">true</span>,
+			<span class="ident">ProxyType::NonTransfer</span> =&gt; {
 				<span class="macro">matches!</span>(
 					<span class="ident">c</span>,
 					<span class="ident">Call::System</span>(..)
@@ -2001,38 +2045,38 @@
 						<span class="op">|</span> <span class="ident">Call::CrowdloanRewards</span>(<span class="ident">pallet_crowdloan_rewards::Call::claim</span> { .. })
 				)
 			}
-			<span class="ident">ProxyType::Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
+			<span class="ident">ProxyType::Governance</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
 				<span class="ident">Call::Democracy</span>(..)
 					<span class="op">|</span> <span class="ident">Call::CouncilCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call::TechCommitteeCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call::Utility</span>(..)
 			),
-			<span class="ident">ProxyType::Staking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
+			<span class="ident">ProxyType::Staking</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
 				<span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
 			),
-			<span class="ident">ProxyType::CancelProxy</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::CancelProxy</span> =&gt; {
 				<span class="macro">matches!</span>(
 					<span class="ident">c</span>,
 					<span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span> { .. })
 				)
 			}
-			<span class="ident">ProxyType::Balances</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::Balances</span> =&gt; {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..))
 			}
-			<span class="ident">ProxyType::AuthorMapping</span> <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">ProxyType::AuthorMapping</span> =&gt; {
 				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..))
 			}
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">o</span>) {
-			(<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			(<span class="ident">ProxyType::Any</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			(<span class="kw">_</span>, <span class="ident">ProxyType::Any</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+			(<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span> =&gt; <span class="bool-val">true</span>,
+			(<span class="ident">ProxyType::Any</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			(<span class="kw">_</span>, <span class="ident">ProxyType::Any</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -2064,13 +2108,13 @@
 <span class="doccomment">/// Call filter used during Phase 3 of the Moonriver rollout</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceFilter</span>;
 <span class="kw">impl</span> <span class="ident">Contains</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceFilter</span> {
-	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
-			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}
 	}
 }
@@ -2204,7 +2248,7 @@
 			<span class="ident">source</span>: <span class="ident">TransactionSource</span>,
 			<span class="ident">xt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
 			<span class="ident">block_hash</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionValidity</span> {
+		) -&gt; <span class="ident">TransactionValidity</span> {
 			<span class="comment">// Filtered calls should not enter the tx pool as they&#39;ll fail if inserted.</span>
 			<span class="comment">// If this call is not allowed, we return early.</span>
 			<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BaseCallFilter::contains</span>(<span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span>) {
@@ -2233,12 +2277,12 @@
 			<span class="comment">// according to gas price from pallet ethereum. If it is any other kind of transaction,</span>
 			<span class="comment">// we modify its priority.</span>
 			<span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-				<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
-				<span class="kw">_</span> <span class="kw">if</span> <span class="ident">dispatch_info</span>.<span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DispatchClass::Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intermediate_valid</span>,
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { .. }) =&gt; <span class="ident">intermediate_valid</span>,
+				<span class="kw">_</span> <span class="kw">if</span> <span class="ident">dispatch_info</span>.<span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DispatchClass::Normal</span> =&gt; <span class="ident">intermediate_valid</span>,
+				<span class="kw">_</span> =&gt; {
 					<span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">signature</span> {
-						<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">signed_extra</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+						<span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">signed_extra</span>)) =&gt; {
 							<span class="comment">// Yuck, this depends on the index of charge transaction in Signed Extra</span>
 							<span class="kw">let</span> <span class="ident">charge_transaction</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">signed_extra</span>.<span class="number">6</span>;
 							<span class="ident">charge_transaction</span>.<span class="ident">tip</span>()
@@ -2284,7 +2328,7 @@
 	<span class="kw">fn</span> <span class="ident">check_inherents</span>(
 		<span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>,
 		<span class="ident">relay_state_proof</span>: <span class="kw-2">&amp;</span><span class="ident">cumulus_pallet_parachain_system::RelayChainStateProof</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_inherents::CheckInherentsResult</span> {
+	) -&gt; <span class="ident">sp_inherents::CheckInherentsResult</span> {
 		<span class="kw">let</span> <span class="ident">relay_chain_slot</span> <span class="op">=</span> <span class="ident">relay_state_proof</span>
 			.<span class="ident">read_slot</span>()
 			.<span class="ident">expect</span>(<span class="string">&quot;Could not read the relay chain slot from the proof&quot;</span>);
@@ -2313,6 +2357,38 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="comment">// Helps us to identify a Pallet Call in case it exceeds the 1kb limit.</span>
+	<span class="comment">// Hint: this should be a rare case. If that happens, one or more of the dispatchable arguments</span>
+	<span class="comment">// need to be Boxed.</span>
+	<span class="kw">fn</span> <span class="ident">call_max_size</span>() {
+		<span class="kw">const</span> <span class="ident">CALL_ALIGN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1024</span>;
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_ethereum_chain_id::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_evm::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_ethereum::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_inherent::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_slot_filter::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_crowdloan_rewards::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_author_mapping::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_maintenance_mode::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+		<span class="macro">assert!</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_migrations::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>);
+		<span class="macro">assert!</span>(
+			<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">pallet_proxy_genesis_companion::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+				<span class="op">&lt;</span><span class="op">=</span> <span class="ident">CALL_ALIGN</span> <span class="kw">as</span> <span class="ident">usize</span>
+		);
+	}
 
 	<span class="attribute">#[<span class="ident">test</span>]</span>
 	<span class="kw">fn</span> <span class="ident">currency_constants_are_correct</span>() {
