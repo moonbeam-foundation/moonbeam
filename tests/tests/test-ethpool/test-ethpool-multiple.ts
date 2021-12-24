@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 import { Transaction } from "web3-core";
 
@@ -14,13 +14,13 @@ import { Transaction } from "web3-core";
       - We resolve multiple promises in parallel that will read from this collection on the rpc-side
       - We can get the final transaction data once it leaves the pending collection
   */
-describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
+describeDevMoonbeamAllEthTxTypes("EthPool - Multiple pending transactions", (context) => {
   let txHashes: string[];
 
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
-        const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
+        const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
     );
@@ -58,13 +58,13 @@ describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
   });
 });
 
-describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
+describeDevMoonbeamAllEthTxTypes("EthPool - Multiple produced transactions", (context) => {
   let txHashes: string[];
 
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
-        const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
+        const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
     );

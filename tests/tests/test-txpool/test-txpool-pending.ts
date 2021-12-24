@@ -9,7 +9,7 @@ import { customWeb3Request } from "../../util/providers";
 describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
   let txHash;
   before("Setup: Create transaction", async () => {
-    const { rawTx } = await createContract(context.web3, "TestContract", {
+    const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
     });
     txHash = (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
@@ -58,7 +58,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
   let testContract: Contract, txHash;
 
   before("Setup: Create contract block and add call transaction", async () => {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract", {
+    const { contract, rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
     });
     testContract = contract;
@@ -66,7 +66,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
 
     txHash = (
       await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-        await createContractExecution(context.web3, {
+        await createContractExecution(context, {
           contract,
           contractCall: contract.methods.multiply(5),
         }),

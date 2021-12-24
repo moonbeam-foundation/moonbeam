@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createContract, createContractExecution, createTransfer } from "../util/transactions";
 import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
 
-describeDevMoonbeam("Trace filter reorg", (context) => {
+describeDevMoonbeamAllEthTxTypes("Trace filter reorg", (context) => {
   it("succesfully reorg", async function () {
     this.timeout(150000000);
 
@@ -12,7 +12,7 @@ describeDevMoonbeam("Trace filter reorg", (context) => {
     const block1 = await context.createBlock({});
 
     // Create a first branch including a transaction.
-    const tx = await createTransfer(context.web3, TEST_ACCOUNT, "0x200"); // nonce 0
+    const tx = await createTransfer(context, TEST_ACCOUNT, "0x200"); // nonce 0
     const block2 = await context.createBlock({
       parentHash: block1.block.hash,
       finalize: false,
@@ -21,7 +21,7 @@ describeDevMoonbeam("Trace filter reorg", (context) => {
     // Contains nonce 0.
 
     // Create a branch.
-    const tx2 = await createTransfer(context.web3, TEST_ACCOUNT, "0x300", { nonce: 1 }); // nonce 1
+    const tx2 = await createTransfer(context, TEST_ACCOUNT, "0x300", { nonce: 1 }); // nonce 1
     const block2a = await context.createBlock({
       parentHash: block1.block.hash,
       finalize: false,

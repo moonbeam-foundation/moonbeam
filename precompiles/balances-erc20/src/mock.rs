@@ -162,6 +162,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -171,7 +175,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
@@ -212,31 +217,33 @@ impl Erc20Metadata for NativeErc20Metadata {
 	}
 }
 
+#[derive(Default)]
 pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	R: pallet_balances::Config,
-	R: pallet_evm::Config,
-	R::AccountId: From<H160>,
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<pallet_balances::Call<R>>,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	BalanceOf<R>: TryFrom<U256> + Into<U256>,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
-				R,
-				NativeErc20Metadata,
-			>::execute(input, target_gas, context)),
+			a if a == hash(PRECOMPILE_ADDRESS) => {
+				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
+					input, target_gas, context, is_static,
+				))
+			}
 			_ => None,
 		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == hash(PRECOMPILE_ADDRESS)
 	}
 }
 

@@ -185,7 +185,6 @@ pub fn testnet_genesis(
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts

@@ -17,15 +17,15 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 # Frontier
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.12", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 [features]
 std = [

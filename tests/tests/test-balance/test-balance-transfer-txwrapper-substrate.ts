@@ -118,6 +118,6 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
     );
   });
   it("should check fees", async function () {
-    await verifyLatestBlockFees(context.polkadotApi, expect, BigInt(512));
+    await verifyLatestBlockFees(context, expect, BigInt(512));
   });
 });
