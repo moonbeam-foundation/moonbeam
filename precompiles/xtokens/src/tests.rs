@@ -32,7 +32,7 @@ use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocati
 fn test_selector_enum() {
 	let mut buffer = [0u8; 4];
 	buffer.copy_from_slice(
-		&Keccak256::digest(b"transfer(address,uint256,(uint8,bytes[]),uint64)")[0..4],
+		&Keccak256::digest(b"transfer(uint256,address,uint256,(uint8,bytes[]),uint64)")[0..4],
 	);
 	assert_eq!(
 		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
@@ -40,7 +40,7 @@ fn test_selector_enum() {
 	);
 
 	buffer.copy_from_slice(
-		&Keccak256::digest(b"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")
+		&Keccak256::digest(b"transfer_multiasset(uint256,(uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")
 			[0..4],
 	);
 	assert_eq!(
@@ -49,7 +49,7 @@ fn test_selector_enum() {
 	);
 
 	buffer.copy_from_slice(
-		&Keccak256::digest(b"transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)")
+		&Keccak256::digest(b"transfer_with_fee(uint256,address,uint256,uint256,(uint8,bytes[]),uint64)")
 			[0..4],
 	);
 	assert_eq!(
@@ -59,7 +59,7 @@ fn test_selector_enum() {
 
 	buffer.copy_from_slice(
 		&Keccak256::digest(
-			b"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+			b"transfer_multiasset_with_fee(uint256,(uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 		)[0..4],
 	);
 	assert_eq!(
@@ -126,6 +126,7 @@ fn transfer_self_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
+						.write(U256::from(0))
 						.write(Address(SelfReserve.into()))
 						.write(U256::from(500))
 						.write(destination.clone())
@@ -170,6 +171,7 @@ fn transfer_to_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
+						.write(U256::from(0))
 						.write(Address(AssetId(0u128).into()))
 						.write(U256::from(500))
 						.write(destination.clone())
@@ -216,6 +218,7 @@ fn transfer_to_reserve_with_fee_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
+						.write(U256::from(0))
 						.write(Address(AssetId(0u128).into()))
 						.write(U256::from(500))
 						.write(U256::from(50))
@@ -268,6 +271,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
+						.write(U256::from(0))
 						.write(Address(AssetId(1u128).into()))
 						.write(U256::from(500))
 						.write(destination.clone())
@@ -314,6 +318,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
+						.write(U256::from(0))
 						.write(Address(AssetId(1u128).into()))
 						.write(U256::from(500))
 						.write(U256::from(50))
@@ -367,6 +372,7 @@ fn transfer_multi_asset_to_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
+						.write(U256::from(0))
 						.write(asset.clone())
 						.write(U256::from(500))
 						.write(destination)
@@ -420,6 +426,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
+						.write(U256::from(0))
 						.write(self_reserve.clone())
 						.write(U256::from(500))
 						.write(destination)
@@ -473,6 +480,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
+						.write(U256::from(0))
 						.write(self_reserve.clone())
 						.write(U256::from(500))
 						.write(U256::from(50))
@@ -534,6 +542,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
+						.write(U256::from(0))
 						.write(asset_location.clone())
 						.write(U256::from(500))
 						.write(destination.clone())
@@ -590,6 +599,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				Precompiles::execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
+						.write(U256::from(0))
 						.write(asset_location.clone())
 						.write(U256::from(500))
 						.write(U256::from(50))

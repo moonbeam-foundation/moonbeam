@@ -48,11 +48,11 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-	TransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAssetWithFee =
-		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+	Transfer = "transfer(uint256,address,uint256,(uint8,bytes[]),uint64)",
+	TransferWithFee = "transfer_with_fee(uint256,address,uint256,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAsset =
+		"transfer_multiasset(uint256,(uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAssetWithFee = "transfer_multiasset_with_fee(uint256,(uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -72,7 +72,12 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
+
+		let version: u32 = input.read()?;
+		if version != 0 {
+			return Err(error("trying to call invalid version"));
+		}
 
 		match selector {
 			Action::Transfer => Self::transfer(input, target_gas, context),

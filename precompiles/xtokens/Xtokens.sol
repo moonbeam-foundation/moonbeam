@@ -18,21 +18,23 @@ interface Xtokens {
      * Selector b9f813ff
      *
      * @dev The token transfer burns/transfers the corresponding amount before sending
+     * @param version Preoompile version. Should be set to 0, may change in the future.
      * @param currency_address The ERC20 address of the currency we want to transfer
      * @param amount The amount of tokens we want to transfer
      * @param destination The Multilocation to which we want to send the tokens
      * @param weight The weight we want to buy in the destination chain
      */
-    function transfer(address currency_address, uint256 amount, Multilocation memory destination, uint64 weight) external;
+    function transfer(uint version, address currency_address, uint256 amount, Multilocation memory destination, uint64 weight) external;
 
     /** Transfer a token through XCM based on its multiLocation
      * Selector b38c60fa
      *
      * @dev The token transfer burns/transfers the corresponding amount before sending
+     * @param version Preoompile version. Should be set to 0, may change in the future.
      * @param asset The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets
      * @param amount The amount of tokens we want to transfer
      * @param destination The Multilocation to which we want to send the tokens
      * @param weight The weight we want to buy in the destination chain
      */
-    function transfer_multiasset(Multilocation memory asset, uint256 amount, Multilocation memory destination, uint64 weight) external;
+    function transfer_multiasset(uint version, Multilocation memory asset, uint256 amount, Multilocation memory destination, uint64 weight) external;
 }
