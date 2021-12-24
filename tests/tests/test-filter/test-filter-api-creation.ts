@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
-describeDevMoonbeam("Filter API", (context) => {
+describeDevMoonbeamAllEthTxTypes("Filter API", (context) => {
   it("should be able to create a Log filter", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { contract, rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({ transactions: [rawTx] });
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
@@ -23,9 +23,9 @@ describeDevMoonbeam("Filter API", (context) => {
   });
 });
 
-describeDevMoonbeam("Filter API - Creating", (context) => {
+describeDevMoonbeamAllEthTxTypes("Filter API - Creating", (context) => {
   it("should increment filter id", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { contract, rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({ transactions: [rawTx] });
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [

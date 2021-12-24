@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
@@ -107,11 +107,13 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		_is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		if let Some(asset_id) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
@@ -124,29 +126,57 @@ where
 			// this makes the precompiles dependent on such a pallet, which is not ideal
 			if !pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero() {
 				let result = {
-					let (input, selector) = match EvmDataReader::new_with_selector(input) {
-						Ok((input, selector)) => (input, selector),
-						Err(e) => return Some(Err(e)),
-					};
+					let mut gasometer = Gasometer::new(target_gas);
+					let gasometer = &mut gasometer;
+
+					let (mut input, selector) =
+						match EvmDataReader::new_with_selector(gasometer, input) {
+							Ok((input, selector)) => (input, selector),
+							Err(e) => return Some(Err(e)),
+						};
+					let input = &mut input;
 
 					match selector {
-						Action::TotalSupply => Self::total_supply(asset_id, input, target_gas),
-						Action::BalanceOf => Self::balance_of(asset_id, input, target_gas),
-						Action::Allowance => Self::allowance(asset_id, input, target_gas),
-						Action::Approve => Self::approve(asset_id, input, target_gas, context),
-						Action::Transfer => Self::transfer(asset_id, input, target_gas, context),
+						Action::TotalSupply => Self::total_supply(asset_id, input, gasometer),
+						Action::BalanceOf => Self::balance_of(asset_id, input, gasometer),
+						Action::Allowance => Self::allowance(asset_id, input, gasometer),
+						Action::Approve => Self::approve(asset_id, input, gasometer, context),
+						Action::Transfer => Self::transfer(asset_id, input, gasometer, context),
 						Action::TransferFrom => {
-							Self::transfer_from(asset_id, input, target_gas, context)
+							Self::transfer_from(asset_id, input, gasometer, context)
 						}
-						Action::Name => Self::name(asset_id, target_gas),
-						Action::Symbol => Self::symbol(asset_id, target_gas),
-						Action::Decimals => Self::decimals(asset_id, target_gas),
+						Action::Name => Self::name(asset_id, gasometer),
+						Action::Symbol => Self::symbol(asset_id, gasometer),
+						Action::Decimals => Self::decimals(asset_id, gasometer),
 					}
 				};
 				return Some(result);
 			}
 		}
 		None
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		if let Some(asset_id) =
+			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
+		{
+			// If the assetId has non-zero supply
+			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
+			// The assumption I am making here is that a 0 supply asset is not interesting from
+			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
+			// storage we can use another function for this, like check_asset_existence.
+			// The other options is to check the asset existence in pallet-asset-manager, but
+			// this makes the precompiles dependent on such a pallet, which is not ideal
+			!pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero()
+		} else {
+			false
+		}
+	}
+}
+
+impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance> {
+	pub fn new() -> Self {
+		Self(PhantomData)
 	}
 }
 
@@ -163,14 +193,13 @@ where
 {
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Parse input.
-		input.expect_arguments(0)?;
+		input.expect_arguments(gasometer, 0)?;
 
 		// Fetch info.
 		let amount: U256 =
@@ -187,16 +216,15 @@ where
 
 	fn balance_of(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
-		input.expect_arguments(1)?;
+		input.expect_arguments(gasometer, 1)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -215,17 +243,16 @@ where
 
 	fn allowance(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
+		let spender: H160 = input.read::<Address>(gasometer)?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -247,22 +274,20 @@ where
 
 	fn approve(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let spender: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let spender: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
 
 		{
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
 			// Allowance read
@@ -272,27 +297,25 @@ where
 			if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &origin, &spender)
 				!= 0u32.into()
 			{
-				let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(origin.clone()).into(),
 					pallet_assets::Call::<Runtime, Instance>::cancel_approval {
 						id: asset_id,
 						delegate: Runtime::Lookup::unlookup(spender.clone()),
 					},
-					gasometer.remaining_gas()?,
+					gasometer,
 				)?;
-				gasometer.record_cost(used_gas)?;
 			}
 			// Dispatch call (if enough gas).
-			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::approve_transfer {
 					id: asset_id,
 					delegate: Runtime::Lookup::unlookup(spender),
 					amount,
 				},
-				gasometer.remaining_gas()?,
+				gasometer,
 			)?;
-			gasometer.record_cost(used_gas)?;
 		}
 		// Build output.
 		Ok(PrecompileOutput {
@@ -312,18 +335,17 @@ where
 
 	fn transfer(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
 
 		// Build call with origin.
 		{
@@ -331,16 +353,15 @@ where
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
-			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::transfer {
 					id: asset_id,
 					target: Runtime::Lookup::unlookup(to),
 					amount,
 				},
-				gasometer.remaining_gas()?,
+				gasometer,
 			)?;
-			gasometer.record_cost(used_gas)?;
 		}
 
 		// Build output.
@@ -361,25 +382,26 @@ where
 
 	fn transfer_from(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>()?.into();
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		input.expect_arguments(gasometer, 3)?;
+		let from: H160 = input.read::<Address>(gasometer)?.into();
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
 
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			let used_gas = if caller != from {
+
+			// If caller is "from", it can spend as much as it wants from its own balance.
+			if caller != from {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
 					Some(caller).into(),
@@ -389,8 +411,8 @@ where
 						destination: Runtime::Lookup::unlookup(to),
 						amount,
 					},
-					gasometer.remaining_gas()?,
-				)
+					gasometer,
+				)?;
 			} else {
 				// Dispatch call (if enough gas).
 				RuntimeHelper::<Runtime>::try_dispatch(
@@ -400,10 +422,9 @@ where
 						target: Runtime::Lookup::unlookup(to),
 						amount,
 					},
-					gasometer.remaining_gas()?,
-				)
-			}?;
-			gasometer.record_cost(used_gas)?;
+					gasometer,
+				)?;
+			}
 		}
 		// Build output.
 		Ok(PrecompileOutput {
@@ -423,14 +444,14 @@ where
 
 	fn name(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		target_gas: Option<u64>,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write::<Bytes>(
 					pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
@@ -444,14 +465,14 @@ where
 
 	fn symbol(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		target_gas: Option<u64>,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write::<Bytes>(
 					pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
@@ -465,15 +486,14 @@ where
 
 	fn decimals(
 		asset_id: AssetIdOf<Runtime, Instance>,
-		target_gas: Option<u64>,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write::<u8>(pallet_assets::Pallet::<Runtime, Instance>::decimals(
 					asset_id,

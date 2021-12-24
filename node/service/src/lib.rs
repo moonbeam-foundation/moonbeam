@@ -338,7 +338,9 @@ where
 	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
 
 	let telemetry = telemetry.map(|(worker, telemetry)| {
-		task_manager.spawn_handle().spawn("telemetry", worker.run());
+		task_manager
+			.spawn_handle()
+			.spawn("telemetry", None, worker.run());
 		telemetry
 	});
 
@@ -454,7 +456,7 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::TransactionV0,
+		transaction: pallet_ethereum::Transaction,
 	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
@@ -522,7 +524,6 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: import_queue.clone(),
-			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 			warp_sync: None,
 		})?;
@@ -614,8 +615,6 @@ where
 	let skip_prediction = parachain_config.force_authoring;
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		on_demand: None,
-		remote_blockchain: None,
 		rpc_extensions_builder,
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
@@ -765,7 +764,6 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: None,
 		})?;
@@ -843,6 +841,7 @@ where
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
+			Some("block-authoring"),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -972,8 +971,6 @@ where
 		task_manager: &mut task_manager,
 		transaction_pool,
 		rpc_extensions_builder,
-		on_demand: None,
-		remote_blockchain: None,
 		backend,
 		system_rpc_tx,
 		config,
