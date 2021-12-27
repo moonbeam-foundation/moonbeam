@@ -48,6 +48,7 @@
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(destructuring_assignment)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -246,26 +247,46 @@ pub mod pallet {
 		total: Balance,
 	}
 
+	impl<AccountId, Balance: Ord> Delegations<AccountId, Balance> {
+		pub fn sort_greatest_to_least(&mut self) {
+			self.delegations
+				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+		}
+	}
+
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Capacity status for top or bottom delegations
+	pub enum CapacityStatus {
+		/// Reached capacity
+		Full,
+		/// Empty aka contains no delegations
+		Empty,
+		/// Partially full (nonempty and not full)
+		Partial,
+	}
+
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// All candidate info except the top and bottom delegations
 	pub struct CandidateMetadata<Balance> {
 		/// This candidate's self bond amount
 		pub bond: Balance,
+		/// Total number of active delegations to this candidate
+		pub delegation_count: u32,
 		/// Self bond + sum of top delegations
 		pub total_counted: Balance,
-		/// Whether or not the top delegations is full
-		/// If not full => highest_bottom_delegation_amount.is_zero() and it is empty
-		pub top_full: bool,
 		/// The smallest top delegation amount
 		pub lowest_top_delegation_amount: Balance,
-		/// The largest bottom delegation amount
-		pub highest_bottom_delegation_amount: Balance,
+		/// The smallest bottom delegation amount
+		pub lowest_bottom_delegation_amount: Balance,
+		/// Capacity status for top delegations
+		pub top_capacity: CapacityStatus,
+		/// Capacity status for bottom delegations
+		pub bottom_capacity: CapacityStatus,
 		/// Maximum 1 pending request to decrease candidate self bond at any given time
 		pub request: Option<CandidateBondLessRequest<Balance>>,
 		/// Current status of the collator
 		pub status: CollatorStatus,
 	}
-	// TODO: don't forget to add `.bond` to top_delegations.total for the snapshot
 
 	/// Temporary function to migrate CandidateState storage item
 	pub fn migrate_candidate_state<T: Config>(
@@ -281,14 +302,24 @@ pub mod pallet {
 		todo!()
 	}
 
-	impl<Balance: Copy + Zero> CandidateMetadata<Balance> {
+	impl<
+			Balance: Copy
+				+ Zero
+				+ PartialOrd
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::SubAssign
+				+ sp_std::ops::Sub<Output = Balance>,
+		> CandidateMetadata<Balance>
+	{
 		pub fn new(bond: Balance) -> Self {
 			CandidateMetadata {
 				bond,
+				delegation_count: 0u32,
 				total_counted: bond,
-				top_full: false,
 				lowest_top_delegation_amount: Zero::zero(),
-				highest_bottom_delegation_amount: Zero::zero(),
+				lowest_bottom_delegation_amount: Zero::zero(),
+				top_capacity: CapacityStatus::Empty,
+				bottom_capacity: CapacityStatus::Empty,
 				request: None,
 				status: CollatorStatus::Active,
 			}
@@ -324,6 +355,300 @@ pub mod pallet {
 		}
 		pub fn go_online(&mut self) {
 			self.status = CollatorStatus::Active;
+		}
+		pub fn bond_more<T: Config>(&mut self, who: T::AccountId, more: Balance) -> DispatchResult
+		where
+			BalanceOf<T>: From<Balance>,
+		{
+			T::Currency::reserve(&who, more.into())?;
+			let new_total = <Total<T>>::get().saturating_add(more.into());
+			<Total<T>>::put(new_total);
+			self.bond += more;
+			self.total_counted += more;
+			<Pallet<T>>::deposit_event(Event::CandidateBondedMore(
+				who.clone(),
+				more.into(),
+				self.bond.into(),
+			));
+			Ok(())
+		}
+		/// Schedule executable decrease of collator candidate self bond
+		/// Returns the round at which the collator can execute the pending request
+		pub fn schedule_bond_less<T: Config>(
+			&mut self,
+			less: Balance,
+		) -> Result<RoundIndex, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			// ensure no pending request
+			ensure!(
+				self.request.is_none(),
+				Error::<T>::PendingCandidateRequestAlreadyExists
+			);
+			// ensure bond above min after decrease
+			ensure!(self.bond > less, Error::<T>::CandidateBondBelowMin);
+			ensure!(
+				self.bond - less >= T::MinCandidateStk::get().into(),
+				Error::<T>::CandidateBondBelowMin
+			);
+			let when_executable = <Round<T>>::get().current + T::CandidateBondLessDelay::get();
+			self.request = Some(CandidateBondLessRequest {
+				amount: less,
+				when_executable,
+			});
+			Ok(when_executable)
+		}
+		/// Execute pending request to decrease the collator self bond
+		/// Returns the event to be emitted
+		pub fn execute_bond_less<T: Config>(&mut self, who: T::AccountId) -> DispatchResult
+		where
+			BalanceOf<T>: From<Balance>,
+		{
+			let request = self
+				.request
+				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
+			ensure!(
+				request.when_executable <= <Round<T>>::get().current,
+				Error::<T>::PendingCandidateRequestNotDueYet
+			);
+			T::Currency::unreserve(&who, request.amount.into());
+			let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
+			<Total<T>>::put(new_total_staked);
+			// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
+			// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
+			self.bond -= request.amount;
+			self.total_counted -= request.amount;
+			let event = Event::CandidateBondedLess(
+				who.clone().into(),
+				request.amount.into(),
+				self.bond.into(),
+			);
+			// reset s.t. no pending request
+			self.request = None;
+			// update candidate pool value because it must change if self bond changes
+			if self.is_active() {
+				Pallet::<T>::update_active(who.into(), self.total_counted.into());
+			}
+			Pallet::<T>::deposit_event(event);
+			Ok(())
+		}
+		/// Cancel candidate bond less request
+		pub fn cancel_bond_less<T: Config>(&mut self, who: T::AccountId) -> DispatchResult
+		where
+			BalanceOf<T>: From<Balance>,
+		{
+			let request = self
+				.request
+				.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
+			let event = Event::CancelledCandidateBondLess(
+				who.clone().into(),
+				request.amount.into(),
+				request.when_executable,
+			);
+			self.request = None;
+			Pallet::<T>::deposit_event(event);
+			Ok(())
+		}
+		/// Add delegation to top delegation
+		/// Returns (top_full, lowest_top_delegation_amount, total_counted)
+		/// Only call if lowest top delegation is less than delegation.amount || !top_full
+		pub fn add_top_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegation: Bond<T::AccountId, BalanceOf<T>>,
+		) -> DispatchResult
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			let mut top_delegations = <TopDelegations<T>>::get(candidate).expect("TODO proof QED");
+			let max_top_delegations_per_candidate = T::MaxTopDelegationsPerCandidate::get();
+			if top_delegations.delegations.len() as u32 == max_top_delegations_per_candidate {
+				// pop lowest top delegation
+				let new_bottom_delegation = top_delegations.delegations.pop().expect("");
+				top_delegations.total -= new_bottom_delegation.amount;
+				// expect new_bottom_delegation.amount < delegation.amount (checked before call)
+				self.add_bottom_delegation::<T>(candidate, new_bottom_delegation)?;
+			}
+			// TODO: faster sorted insertion than push and resort
+			top_delegations.total += delegation.amount;
+			top_delegations.delegations.push(delegation);
+			top_delegations.sort_greatest_to_least();
+			// update candidate info
+			self.top_capacity =
+				if top_delegations.delegations.len() as u32 == max_top_delegations_per_candidate {
+					CapacityStatus::Full
+				} else if top_delegations.delegations.len().is_zero() {
+					CapacityStatus::Empty
+				} else {
+					CapacityStatus::Partial
+				};
+			self.lowest_top_delegation_amount = top_delegations.delegations
+				[top_delegations.delegations.len() - 1]
+				.amount
+				.into();
+			self.total_counted = top_delegations.total.into();
+			<TopDelegations<T>>::insert(&candidate, top_delegations);
+			Ok(())
+		}
+		/// Add delegation to bottom delegations
+		/// Check before call that if capacity is full, inserted delegation is higher than lowest
+		/// bottom delegation (if not, will cause error)
+		pub fn add_bottom_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegation: Bond<T::AccountId, BalanceOf<T>>,
+		) -> DispatchResult
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			let mut bottom_delegations =
+				<BottomDelegations<T>>::get(candidate).expect("TODO proof QED");
+			// if bottom is full, pop the lowest bottom (which is expected to be lower than input)
+			if bottom_delegations.delegations.len() as u32
+				== T::MaxBottomDelegationsPerCandidate::get()
+			{
+				let lowest_bottom_to_be_kicked = bottom_delegations
+					.delegations
+					.pop()
+					.expect("if at full capacity (>0), then >0 bottom delegations exist; qed");
+				ensure!(
+					lowest_bottom_to_be_kicked.amount < delegation.amount,
+					Error::<T>::MaxBottomDelegationsLimitReached // TODO call it CannotKickIfLowestBottomIsGEQInputDelegation
+				);
+				bottom_delegations.total -= lowest_bottom_to_be_kicked.amount;
+			}
+			bottom_delegations.total += delegation.amount;
+			// TODO: better sorted insertion instead of insert and then sort
+			bottom_delegations.delegations.push(delegation);
+			bottom_delegations.sort_greatest_to_least();
+			self.lowest_bottom_delegation_amount = bottom_delegations.delegations
+				[bottom_delegations.delegations.len() - 1]
+				.amount
+				.into();
+			<BottomDelegations<T>>::insert(candidate, bottom_delegations);
+			Ok(())
+		}
+		/// Remove delegation
+		/// Removes from top if amount is above lowest top or top is not full
+		/// Return Ok(if_total_counted_changed)
+		pub fn rm_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegator: T::AccountId,
+			amount: Balance,
+		) -> Result<bool, DispatchError>
+		where
+			// TODO: can I make these bounds for all methods once in this impl block instead of per method
+			BalanceOf<T>: Into<Balance>,
+		{
+			if amount > self.lowest_top_delegation_amount
+				|| !matches!(self.top_capacity, CapacityStatus::Full)
+			{
+				self.rm_top_delegation::<T>(candidate, delegator, amount)
+			} else {
+				self.rm_bottom_delegation::<T>(candidate, delegator);
+				Ok(false)
+			}
+		}
+		/// Remove top delegation, bumps top bottom delegation if exists
+		pub fn rm_top_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegator: T::AccountId,
+			expected_amount: Balance,
+		) -> Result<bool, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			let old_total_counted = self.total_counted;
+			// remove top delegation
+			let mut top_delegations =
+				<TopDelegations<T>>::get(candidate).expect("existence proof TODO");
+			let mut actual_amount_option: Option<BalanceOf<T>> = None;
+			top_delegations.delegations = top_delegations
+				.delegations
+				.clone()
+				.into_iter()
+				.filter_map(|d| {
+					if d.owner != delegator {
+						Some(d)
+					} else {
+						actual_amount_option = Some(d.amount);
+						None
+					}
+				})
+				.collect();
+			let actual_amount = actual_amount_option.ok_or(Error::<T>::DelegationDNE)?;
+			// TODO debug assert warn for expect vs actual
+			// assert!(
+			// 	actual_amount == expected_amount,
+			// 	"Expected delegation amount {:?} did not equal actual amount {:?}",
+			// 	expected_amount,
+			// 	actual_amount,
+			// );
+			top_delegations.total -= actual_amount;
+			// TODO: faster delete than delete then resort
+			top_delegations.sort_greatest_to_least();
+			self.total_counted -= actual_amount.into();
+			// if bottom nonempty => bump top bottom to top
+			if !matches!(self.bottom_capacity, CapacityStatus::Empty) {
+				let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+					.expect("bottom is nonempty as just checked");
+				let lowest_bottom_delegation = bottom_delegations.delegations.pop().expect("");
+				bottom_delegations.total -= lowest_bottom_delegation.amount;
+				// TODO: reset self fields related to lowest bottom delegation and whether or not is full or empty
+				// TODO: do the logic in this, consider abstracting it out so to ease maintenance burden
+				// self.add_top_delegation::<T>(candidate, lowest_bottom_delegation)?;
+				// would never expect an error above so remove propagation and put expect with proof
+			}
+			// TODO: re-update self fields related to top and/or bottom delegations
+			// return whether total counted changed
+			Ok(old_total_counted == self.total_counted)
+		}
+		/// Remove bottom delegation
+		pub fn rm_bottom_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegator: T::AccountId,
+		) {
+			// TODO: reset relevant self fields
+			todo!()
+		}
+		/// Bond account and add delegation. If successful, the return value indicates whether the
+		/// delegation is top for the candidate.
+		/// MUST ensure no delegation exists for this candidate in the `DelegatorState` before call
+		pub fn add_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegation: Bond<T::AccountId, BalanceOf<T>>,
+		) -> Result<DelegatorAdded<Balance>, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			match self.top_capacity {
+				CapacityStatus::Full => {
+					// top is full, insert into top iff the lowest_top < amount
+					if self.lowest_top_delegation_amount < delegation.amount.into() {
+						// bumps lowest top to the bottom inside this function call
+						self.add_top_delegation::<T>(candidate, delegation)?;
+						Ok(DelegatorAdded::AddedToTop {
+							new_total: self.total_counted,
+						})
+					} else {
+						// insert into bottom
+						self.add_bottom_delegation::<T>(candidate, delegation)?;
+						Ok(DelegatorAdded::AddedToBottom)
+					}
+				}
+				// top is either empty or partially full
+				_ => {
+					self.add_top_delegation::<T>(candidate, delegation)?;
+					Ok(DelegatorAdded::AddedToTop {
+						new_total: self.total_counted,
+					})
+				}
+			}
 		}
 	}
 
@@ -581,7 +906,7 @@ pub mod pallet {
 				Error::<T>::DelegatorExists
 			);
 			self.total_backing += amount;
-			if (self.top_delegations.len() as u32) < T::MaxDelegatorsPerCandidate::get() {
+			if (self.top_delegations.len() as u32) < T::MaxTopDelegationsPerCandidate::get() {
 				self.add_top_delegation(Bond { owner: acc, amount });
 				self.total_counted += amount;
 				Ok(DelegatorAdded::AddedToTop {
@@ -1104,9 +1429,10 @@ pub mod pallet {
 					// remove delegation from delegator state
 					self.rm_delegation(candidate.clone());
 					// remove delegation from collator state delegations
-					Pallet::<T>::delegator_leaves_collator(
-						delegator_id.clone(),
+					Pallet::<T>::delegator_leaves_candidate(
 						candidate_id.clone(),
+						delegator_id.clone(),
+						balance_amt,
 					)?;
 					Pallet::<T>::deposit_event(Event::DelegationRevoked(
 						delegator_id.clone(),
@@ -1456,9 +1782,12 @@ pub mod pallet {
 		/// Minimum number of selected candidates every round
 		#[pallet::constant]
 		type MinSelectedCandidates: Get<u32>;
-		/// Maximum delegators counted per candidate
+		/// Maximum top delegations counted per candidate
 		#[pallet::constant]
-		type MaxDelegatorsPerCandidate: Get<u32>;
+		type MaxTopDelegationsPerCandidate: Get<u32>;
+		/// Maximum bottom delegations (not counted) per candidate
+		#[pallet::constant]
+		type MaxBottomDelegationsPerCandidate: Get<u32>;
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
@@ -1507,6 +1836,7 @@ pub mod pallet {
 		CandidateNotLeaving,
 		CandidateCannotLeaveYet,
 		CannotGoOnlineIfLeaving,
+		MaxBottomDelegationsLimitReached,
 		ExceedMaxDelegationsPerDelegator,
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
@@ -2159,24 +2489,20 @@ pub mod pallet {
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
-			// return all top delegations if there are top delegations
-			if !state.lowest_top_delegation_amount.is_zero() {
-				let top_delegations =
-					<TopDelegations<T>>::get(&candidate).expect("TODO: explain proof of existence");
-				for bond in top_delegations.delegations {
-					return_stake(bond);
-				}
-				total_backing += top_delegations.total;
+			// return all top delegations
+			let top_delegations =
+				<TopDelegations<T>>::take(&candidate).expect("TODO: explain proof of existence");
+			for bond in top_delegations.delegations {
+				return_stake(bond);
 			}
+			total_backing += top_delegations.total;
 			// return all bottom delegations
-			if !state.highest_bottom_delegation_amount.is_zero() {
-				let bottom_delegations = <BottomDelegations<T>>::get(&candidate)
-					.expect("TODO: explain proof of existence");
-				for bond in bottom_delegations.delegations {
-					return_stake(bond);
-				}
-				total_backing += bottom_delegations.total;
+			let bottom_delegations =
+				<BottomDelegations<T>>::take(&candidate).expect("TODO: explain proof of existence");
+			for bond in bottom_delegations.delegations {
+				return_stake(bond);
 			}
+			total_backing += bottom_delegations.total;
 			// return stake to collator
 			T::Currency::unreserve(&candidate, state.bond);
 			<CandidateState<T>>::remove(&candidate);
@@ -2263,9 +2589,9 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			state.bond_more::<T>(more)?;
-			<CandidateState<T>>::insert(&collator, state);
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			state.bond_more::<T>(collator.clone(), more)?;
+			<CandidateInfo<T>>::insert(&collator, state);
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_less())]
@@ -2275,9 +2601,9 @@ pub mod pallet {
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			let when = state.schedule_bond_less::<T>(less)?;
-			<CandidateState<T>>::insert(&collator, state);
+			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBondLessRequested(collator, less, when));
 			Ok(().into())
 		}
@@ -2288,20 +2614,18 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?; // we may want to reward this if caller != candidate
-			let mut state = <CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let event = state.execute_pending_request::<T>()?;
-			<CandidateState<T>>::insert(&candidate, state);
-			Self::deposit_event(event);
+			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			state.execute_bond_less::<T>(candidate.clone())?;
+			<CandidateInfo<T>>::insert(&candidate, state);
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_candidate_bond_less())]
 		/// Cancel pending request to adjust the collator candidate self bond
 		pub fn cancel_candidate_bond_less(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			let event = state.cancel_pending_request::<T>()?;
-			<CandidateState<T>>::insert(&collator, state);
-			Self::deposit_event(event);
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			state.cancel_bond_less::<T>(collator.clone())?;
+			<CandidateInfo<T>>::insert(&collator, state);
 			Ok(().into())
 		}
 		#[pallet::weight(
@@ -2314,13 +2638,13 @@ pub mod pallet {
 		/// If caller is a delegator, then makes delegation to change their delegation state
 		pub fn delegate(
 			origin: OriginFor<T>,
-			collator: T::AccountId,
+			candidate: T::AccountId,
 			amount: BalanceOf<T>,
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
-			let acc = ensure_signed(origin)?;
-			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&acc) {
+			let delegator = ensure_signed(origin)?;
+			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
 				ensure!(state.is_active(), Error::<T>::CannotDelegateIfLeaving);
 				// delegation after first
 				ensure!(
@@ -2337,7 +2661,7 @@ pub mod pallet {
 				);
 				ensure!(
 					state.add_delegation(Bond {
-						owner: collator.clone(),
+						owner: candidate.clone(),
 						amount
 					}),
 					Error::<T>::AlreadyDelegatedCandidate
@@ -2349,27 +2673,37 @@ pub mod pallet {
 					amount >= T::MinDelegatorStk::get(),
 					Error::<T>::DelegatorBondBelowMin
 				);
-				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-				Delegator::new(acc.clone(), collator.clone(), amount)
+				ensure!(!Self::is_candidate(&delegator), Error::<T>::CandidateExists);
+				Delegator::new(delegator.clone(), candidate.clone(), amount)
 			};
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
-				candidate_delegation_count >= state.delegators.0.len() as u32,
+				candidate_delegation_count >= state.delegation_count,
 				Error::<T>::TooLowCandidateDelegationCountToDelegate
 			);
-			let delegator_position = state.add_delegation::<T>(acc.clone(), amount)?;
-			T::Currency::reserve(&acc, amount)?;
+			let delegator_position = state.add_delegation::<T>(
+				&candidate,
+				Bond {
+					owner: delegator.clone(),
+					amount,
+				},
+			)?;
+			T::Currency::reserve(&delegator, amount)?;
 			if let DelegatorAdded::AddedToTop { new_total } = delegator_position {
 				if state.is_active() {
-					// collator in candidate pool
-					Self::update_active(collator.clone(), new_total);
+					Self::update_active(candidate.clone(), new_total);
 				}
 			}
 			let new_total_locked = <Total<T>>::get() + amount;
 			<Total<T>>::put(new_total_locked);
-			<CandidateState<T>>::insert(&collator, state);
-			<DelegatorState<T>>::insert(&acc, delegator_state);
-			Self::deposit_event(Event::Delegation(acc, amount, collator, delegator_position));
+			<CandidateInfo<T>>::insert(&candidate, state);
+			<DelegatorState<T>>::insert(&delegator, delegator_state);
+			Self::deposit_event(Event::Delegation(
+				delegator,
+				amount,
+				candidate,
+				delegator_position,
+			));
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
@@ -2396,9 +2730,11 @@ pub mod pallet {
 			let state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
 			state.can_execute_leave::<T>(delegation_count)?;
 			for bond in state.delegations.0 {
-				if let Err(error) =
-					Self::delegator_leaves_collator(delegator.clone(), bond.owner.clone())
-				{
+				if let Err(error) = Self::delegator_leaves_candidate(
+					bond.owner.clone(),
+					delegator.clone(),
+					bond.amount,
+				) {
 					log::warn!(
 						"STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}",
 						error
@@ -2528,25 +2864,27 @@ pub mod pallet {
 				round_issuance.ideal
 			}
 		}
-		fn delegator_leaves_collator(
+		/// Remove delegation from candidate state
+		/// Amount input should be retrieved from delegator and it informs the storage lookups
+		fn delegator_leaves_candidate(
+			candidate: T::AccountId,
 			delegator: T::AccountId,
-			collator: T::AccountId,
+			amount: BalanceOf<T>,
 		) -> DispatchResult {
-			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			let (total_changed, delegator_stake) = state.rm_delegator::<T>(delegator.clone())?;
-			T::Currency::unreserve(&delegator, delegator_stake);
+			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			// TODO: use amount to determine if in top or bottom, abstract this into its own function
+			// which is called inside rm_delegator(account_id, amount)
+			let total_changed = state.rm_delegation::<T>(&candidate, delegator.clone(), amount)?;
+			T::Currency::unreserve(&delegator, amount);
 			if state.is_active() && total_changed {
-				Self::update_active(collator.clone(), state.total_counted);
+				Self::update_active(candidate.clone(), state.total_counted);
 			}
-			let new_total_locked = <Total<T>>::get() - delegator_stake;
+			let new_total_locked = <Total<T>>::get() - amount;
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
-			<CandidateState<T>>::insert(&collator, state);
+			<CandidateInfo<T>>::insert(&candidate, state);
 			Self::deposit_event(Event::DelegatorLeftCandidate(
-				delegator,
-				collator,
-				delegator_stake,
-				new_total,
+				delegator, candidate, amount, new_total,
 			));
 			Ok(())
 		}

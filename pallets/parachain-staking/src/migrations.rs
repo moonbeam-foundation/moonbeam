@@ -51,7 +51,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 			all_delegations.append(&mut starting_bottom_delegations);
 			// sort all delegations from greatest to least
 			all_delegations.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			let top_n = T::MaxDelegatorsPerCandidate::get() as usize;
+			let top_n = T::MaxTopDelegationsPerCandidate::get() as usize;
 			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
 			let top_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
 				all_delegations.iter().take(top_n).cloned().collect();
