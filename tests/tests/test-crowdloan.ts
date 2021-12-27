@@ -79,7 +79,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    await verifyLatestBlockFees(context.polkadotApi, expect, 3_000_000n);
+    await verifyLatestBlockFees(context, expect, 3_000_000n);
 
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
 
@@ -1047,7 +1047,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
     );
     expect(events[1].toHuman().method).to.eq("ProxyExecuted");
-    expect(events[1].data.toJSON()[0]["err"].hasOwnProperty("badOrigin")).to.eq(true);
+    expect(events[1].data[0].toString()).to.be.eq(`{"err":{"module":{"index":0,"error":5}}}`);
 
     // Genesis account still has the money
     rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);

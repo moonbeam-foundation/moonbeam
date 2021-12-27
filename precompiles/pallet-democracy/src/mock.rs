@@ -19,12 +19,12 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_democracy::VoteThreshold;
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,13 @@ pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
+/// The democracy precompile is available at address one in the mock runtime.
+pub fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
+}
 
 #[derive(
 	Eq,
@@ -62,6 +69,7 @@ pub enum TestAccount {
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
 }
 
 impl Default for TestAccount {
@@ -76,8 +84,15 @@ impl AddressMapping<TestAccount> for TestAccount {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
 			_ => Self::Bogus,
 		}
+	}
+}
+
+impl From<H160> for TestAccount {
+	fn from(x: H160) -> TestAccount {
+		TestAccount::into_account_id(x)
 	}
 }
 
@@ -87,6 +102,7 @@ impl From<TestAccount> for H160 {
 			TestAccount::Alice => H160::repeat_byte(0xAA),
 			TestAccount::Bob => H160::repeat_byte(0xBB),
 			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
 			TestAccount::Bogus => Default::default(),
 		}
 	}
@@ -152,11 +168,9 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// The democracy precompile is available at address 1 in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
+parameter_types! {
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
-pub type Precompiles = (DemocracyWrapper<Runtime>,);
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -167,7 +181,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
@@ -238,6 +253,39 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<TestAccount>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
+}
+
+#[derive(Default)]
+pub struct Precompiles<R>(PhantomData<R>);
+
+impl<R> PrecompileSet for Precompiles<R>
+where
+	DemocracyWrapper<R>: Precompile,
+{
+	fn execute(
+		&self,
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
+		match address {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			_ => None,
+		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == hash(PRECOMPILE_ADDRESS)
+	}
+}
+
+fn hash(a: u64) -> H160 {
+	H160::from_low_u64_be(a)
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles

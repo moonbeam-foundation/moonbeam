@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
 import {
   GENESIS_ACCOUNT,
@@ -34,7 +34,7 @@ async function sendApprove(context, from, fromPrivate, spender, amount) {
   const fromData = from.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
-  const tx = await createTransaction(context.web3, {
+  const tx = await createTransaction(context, {
     from: from,
     privateKey: fromPrivate,
     value: "0x0",
@@ -77,7 +77,7 @@ async function checkAllowance(context, owner, spender, amount) {
   expect(request.result).equals(`0x${amount.padStart(64, "0")}`);
 }
 
-describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to call getBalance", async function () {
     const address = ALITH.slice(2).padStart(64, "0");
 
@@ -116,7 +116,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to approve transfers, and allowance matches", async function () {
     const amount = `1000000000000`.padStart(64, "0");
 
@@ -126,12 +126,12 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to call transfer", async function () {
     const amount = `400000000000`.padStart(64, "0");
 
     const to = CHARLETH.slice(2).padStart(64, "0");
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -159,7 +159,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to approve transfer and use transferFrom", async function () {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `400000000000`.padStart(64, "0");
@@ -171,12 +171,13 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
       const from = ALITH.slice(2).padStart(64, "0").toLowerCase(); // web3 rpc returns lowercase
       const to = CHARLETH.slice(2).padStart(64, "0").toLowerCase();
 
-      const tx = await createTransaction(context.web3, {
+      const gas_price = await context.web3.eth.getGasPrice();
+      const tx = await createTransaction(context, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
         gas: "0x200000",
-        gasPrice: GAS_PRICE,
+        gasPrice: context.web3.utils.toHex(gas_price),
         to: ADDRESS_ERC20,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });
@@ -212,7 +213,7 @@ describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - ERC20", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
   it("refuses to transferFrom more than allowed", async function () {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `1400000000000`.padStart(64, "0");
@@ -224,12 +225,13 @@ describeDevMoonbeam("Precompiles - ERC20", (context) => {
       let from = ALITH.slice(2).padStart(64, "0");
       let to = CHARLETH.slice(2).padStart(64, "0");
 
-      let tx = await createTransaction(context.web3, {
+      const gas_price = await context.web3.eth.getGasPrice();
+      let tx = await createTransaction(context, {
         from: BALTATHAR,
         privateKey: BALTATHAR_PRIV_KEY,
         value: "0x0",
         gas: "0x200000",
-        gasPrice: GAS_PRICE,
+        gasPrice: context.web3.utils.toHex(gas_price),
         to: ADDRESS_ERC20,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });

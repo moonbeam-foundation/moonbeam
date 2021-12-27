@@ -219,6 +219,7 @@ describeDevMoonbeam(
       ).to.eq(0n);
     });
   },
+  "Legacy",
   true
 );
 
@@ -355,6 +356,7 @@ describeDevMoonbeam(
       ).to.eq(true);
     });
   },
+  "Legacy",
   true
 );
 
@@ -525,5 +527,6 @@ describeDevMoonbeam(
       ).to.eq(true);
     });
   },
+  "Legacy",
   true
 );

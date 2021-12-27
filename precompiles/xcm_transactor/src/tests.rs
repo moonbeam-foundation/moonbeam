@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	evm_test_context, ExtBuilder, Origin, Precompiles, TestAccount::*, XcmTransactor,
+	evm_test_context, ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*,
+	TestPrecompiles, XcmTransactor,
 };
-
-use frame_support::assert_ok;
-
 use crate::{Action, PrecompileOutput};
+
+use fp_evm::PrecompileFailure;
+use frame_support::assert_ok;
 use num_enum::TryFromPrimitive;
 use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, Bytes, EvmDataWriter};
+use precompile_utils::{Address, Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
+use sp_std::boxed::Box;
+use std::assert_matches::assert_matches;
 use xcm::v1::MultiLocation;
+
+fn precompiles() -> TestPrecompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn test_selector_enum() {
@@ -66,17 +73,16 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("tried to parse selector out of bounds")));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				Precompile.into(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"tried to parse selector out of bounds",
 		);
 	});
 }
@@ -86,17 +92,16 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(error("unknown selector")));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				Precompile.into(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"unknown selector",
 		);
 	});
 }
@@ -112,9 +117,10 @@ fn take_index_for_account() {
 				.build();
 
 			// Assert that errors since no index is assigned
-			assert_eq!(
-				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
-				Some(Err(error("No index assigned")))
+			assert_matches!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"No index assigned"
 			);
 
 			// register index
@@ -131,7 +137,7 @@ fn take_index_for_account() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 				expected_result
 			);
 		});
@@ -148,15 +154,16 @@ fn take_transact_info() {
 				.build();
 
 			// Assert that errors since no index is assigned
-			assert_eq!(
-				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
-				Some(Err(error("Transact Info not set")))
+			assert_matches!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Transact Info not set"
 			);
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -175,7 +182,7 @@ fn take_transact_info() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(Precompile.into(), &input, None, &evm_test_context()),
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
 				expected_result
 			);
 		});
@@ -193,7 +200,7 @@ fn test_transactor_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				1,
 				10000000
@@ -206,7 +213,7 @@ fn test_transactor_multilocation() {
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			assert_eq!(
-				Precompiles::execute(
+				precompiles().execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(
 						Action::TransactThroughDerivativeMultiLocation
@@ -223,6 +230,7 @@ fn test_transactor_multilocation() {
 						caller: Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -246,7 +254,7 @@ fn test_transactor() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				1,
 				10000000
@@ -256,7 +264,7 @@ fn test_transactor() {
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			assert_eq!(
-				Precompiles::execute(
+				precompiles().execute(
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
 						.write(0u8)
@@ -271,6 +279,7 @@ fn test_transactor() {
 						caller: Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
