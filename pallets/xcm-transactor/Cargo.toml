@@ -42,6 +42,7 @@ std = [
 	"cumulus-primitives-core/std",
 	"frame-support/std",
 	"frame-system/std",
+	"orml-traits/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-io/std",
@@ -50,6 +51,5 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"orml-traits/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]
