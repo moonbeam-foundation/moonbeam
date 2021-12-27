@@ -113,6 +113,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.17.0",
   },
+  "moonbase-0.18.0": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.18.0",
+  },
   local: {
     relay: "rococo-9111",
     chain: "moonbase-local",
@@ -509,7 +514,9 @@ const parachainTemplate = {
       flags: [
         "--unsafe-rpc-external",
         "--unsafe-ws-external",
+        "--rpc-methods=unsafe",
         "--rpc-cors=all",
+        "--node-key=0x0000000000000000000000000000000000000000000000000000000000000100",
         "--",
         "--execution=wasm",
       ],
@@ -522,7 +529,9 @@ const parachainTemplate = {
       flags: [
         "--unsafe-rpc-external",
         "--unsafe-ws-external",
+        "--rpc-methods=unsafe",
         "--rpc-cors=all",
+        "--node-key=0x0000000000000000000000000000000000000000000000000000000000000101",
         "--",
         "--execution=wasm",
       ],

@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = [ "PureStake" ]
 edition = "2018"
-version = "0.17.0"
+version = "0.18.0"
 
 [dependencies]
 log = "0.4.8"
