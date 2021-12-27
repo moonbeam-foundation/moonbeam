@@ -34,8 +34,9 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize,
-		OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
+		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -172,7 +173,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 1001,
+	spec_version: 1100,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -246,6 +247,7 @@ impl frame_system::Config for Runtime {
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
+	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
 }
 
@@ -361,6 +363,7 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	pub PrecompilesValue: MoonriverPrecompiles<Runtime> = MoonriverPrecompiles::<_>::new();
 }
 
 pub struct FixedGasPrice;
@@ -414,7 +417,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = MoonriverPrecompiles<Self>;
+	type PrecompilesType = MoonriverPrecompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
@@ -435,6 +439,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 parameter_types! {
@@ -692,7 +697,7 @@ parameter_types! {
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum delegators counted per candidate
-	pub const MaxDelegatorsPerCandidate: u32 = 500;
+	pub const MaxDelegatorsPerCandidate: u32 = 300;
 	/// Maximum delegations per delegator
 	pub const MaxDelegationsPerDelegator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards
@@ -1184,12 +1189,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetRegistrarMetadata,
+		is_sufficient: bool,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
-			true,
+			is_sufficient,
 			min_balance,
 		)?;
 
@@ -1744,6 +1750,38 @@ mod tests {
 	use super::{currency::*, *};
 
 	#[test]
+	// Helps us to identify a Pallet Call in case it exceeds the 1kb limit.
+	// Hint: this should be a rare case. If that happens, one or more of the dispatchable arguments
+	// need to be Boxed.
+	fn call_max_size() {
+		const CALL_ALIGN: u32 = 1024;
+		assert!(
+			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_author_inherent::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(
+			std::mem::size_of::<pallet_author_slot_filter::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(
+			std::mem::size_of::<pallet_crowdloan_rewards::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_author_mapping::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
+				<= CALL_ALIGN as usize
+		);
+	}
+
+	#[test]
 	fn currency_constants_are_correct() {
 		assert_eq!(SUPPLY_FACTOR, 1);
 
@@ -1800,6 +1838,6 @@ mod tests {
 	// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
-		assert_eq!(MaxDelegatorsPerCandidate::get(), 500);
+		assert_eq!(MaxDelegatorsPerCandidate::get(), 300);
 	}
 }

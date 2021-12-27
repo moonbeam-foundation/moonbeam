@@ -48,4 +48,4 @@ pub type Address = AccountId;
 /// never know...
 pub type AccountIndex = u32;
 /// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
+pub type DigestItem = generic::DigestItem;

@@ -51,6 +51,7 @@ fn receive_relay_asset_from_relay() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -103,6 +104,7 @@ fn send_relay_asset_to_relay() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -185,6 +187,7 @@ fn send_relay_asset_to_para_b() {
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -199,6 +202,7 @@ fn send_relay_asset_to_para_b() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -280,6 +284,7 @@ fn send_para_a_asset_to_para_b() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -346,6 +351,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -360,6 +366,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -456,6 +463,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -556,6 +564,7 @@ fn receive_relay_asset_with_trader() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -620,6 +629,7 @@ fn error_when_not_paying_enough() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -666,6 +676,7 @@ fn transact_through_derivative_multilocation() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -676,7 +687,7 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
 			0,
@@ -776,7 +787,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
 			4000000000,
 			encoded,
@@ -810,6 +821,7 @@ fn transact_through_sovereign() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -820,7 +832,7 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			3000,
 			0,
 			0,
@@ -925,9 +937,9 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::Origin::root(),
-			xcm::VersionedMultiLocation::V1(dest),
+			Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			PARAALICE.into(),
-			xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			4000000000,
 			utility_bytes,
 		));
@@ -960,6 +972,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
@@ -1068,6 +1081,134 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	Relay::execute_with(|| {
 		// Assert that the events vector contains the new version change
 		assert!(relay_chain::relay_events().contains(&expected_supported_version_2));
+	});
+}
+
+#[test]
+fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
+	MockNet::reset();
+
+	let fresh_account = [2u8; 20];
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+			false
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: fresh_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	// parachain should not have received assets
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &fresh_account.into()), 0);
+	});
+
+	// Send native token to fresh_account
+	ParaA::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			fresh_account.into(),
+			100
+		));
+	});
+
+	// Re-send tokens
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	// parachain should have received assets
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &fresh_account.into()), 123);
+	});
+}
+
+#[test]
+fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_assets() {
+	MockNet::reset();
+
+	let fresh_account = [2u8; 20];
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: fresh_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	// parachain should have received assets
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &fresh_account.into()), 123);
 	});
 }
 

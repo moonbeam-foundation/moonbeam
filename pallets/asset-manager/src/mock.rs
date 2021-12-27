@@ -131,7 +131,12 @@ impl From<MockAssetType> for AssetId {
 pub struct MockAssetPalletRegistrar;
 
 impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
-	fn create_asset(_asset: u32, _min_balance: u64, _metadata: u32) -> Result<(), DispatchError> {
+	fn create_asset(
+		_asset: u32,
+		_min_balance: u64,
+		_metadata: u32,
+		_is_sufficient: bool,
+	) -> Result<(), DispatchError> {
 		Ok(())
 	}
 }

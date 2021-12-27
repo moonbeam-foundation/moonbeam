@@ -370,8 +370,10 @@ fn transfer_through_evm_to_stake() {
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
-				gas_price,
-				nonce: None
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
+				nonce: None,
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
@@ -551,14 +553,14 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				})]
 			})
 			.dispatch(root_origin()));
-			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
-				0,
-				DispatchError::Module {
+			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
+				index: 0,
+				error: DispatchError::Module {
 					index: 20,
 					error: 8,
 					message: None,
 				},
-			));
+			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
@@ -770,8 +772,10 @@ fn claim_via_precompile() {
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit,
-				gas_price,
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
@@ -857,11 +861,12 @@ fn is_contributor_via_precompile() {
 
 			// Assert precompile reports Bob is not a contributor
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false
 				),
 				expected_false_result
 			);
@@ -884,11 +889,12 @@ fn is_contributor_via_precompile() {
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&charlie_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false,
 				),
 				expected_true_result
 			);
@@ -969,11 +975,12 @@ fn reward_info_via_precompile() {
 
 			// Assert precompile reports Bob is not a contributor
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					crowdloan_precompile_address,
 					&charlie_input_data,
 					None, // target_gas is not necessary right now because consumed none now
 					&evm_test_context(),
+					false,
 				),
 				expected_result
 			);
@@ -1048,8 +1055,10 @@ fn update_reward_address_via_precompile() {
 				input: call_data,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit,
-				gas_price,
+				max_fee_per_gas: gas_price,
+				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
@@ -1079,6 +1088,7 @@ fn asset_can_be_registered() {
 			source_location,
 			asset_metadata,
 			1u128,
+			true,
 		));
 		assert!(AssetManager::asset_id_type(source_id).is_some());
 	});
@@ -1107,7 +1117,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 
 			// Access totalSupply through precompile. Important that the context is correct
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
 					None,
@@ -1116,13 +1126,14 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
 
 			// Access balanceOf through precompile
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(ALICE.into()))
@@ -1133,6 +1144,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1168,7 +1180,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Transfer tokens from Aice to Bob, 400 unit.
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
 						.write(EvmAddress(BOB.into()))
@@ -1180,6 +1192,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1194,7 +1207,7 @@ fn asset_erc20_precompiles_transfer() {
 
 			// Make sure BOB has 400 unit
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(BOB.into()))
@@ -1205,6 +1218,7 @@ fn asset_erc20_precompiles_transfer() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1240,7 +1254,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Aprove Bob for spending 400 unit from Alice
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::Approve)
 						.write(EvmAddress(BOB.into()))
@@ -1252,6 +1266,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1273,7 +1288,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
 						.write(EvmAddress(ALICE.into()))
@@ -1286,6 +1301,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: BOB.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1300,7 +1316,7 @@ fn asset_erc20_precompiles_approve() {
 
 			// Make sure CHARLIE has 400 unit
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					asset_precompile_address,
 					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
 						.write(EvmAddress(CHARLIE.into()))
@@ -1311,6 +1327,7 @@ fn asset_erc20_precompiles_approve() {
 						caller: CHARLIE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				expected_result
 			);
@@ -1320,16 +1337,17 @@ fn asset_erc20_precompiles_approve() {
 #[test]
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
@@ -1356,7 +1374,7 @@ fn xtokens_precompiles_transfer() {
 
 			// We use the address of the asset as an identifier of the asset we want to transferS
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
 						.write(EvmAddress(asset_precompile_address))
@@ -1370,6 +1388,7 @@ fn xtokens_precompiles_transfer() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1384,16 +1403,17 @@ fn xtokens_precompiles_transfer() {
 #[test]
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
@@ -1415,7 +1435,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			assert_eq!(
-				Precompiles::execute(
+				Precompiles::new().execute(
 					xtokens_precompile_address,
 					&EvmDataWriter::new_with_selector(XtokensAction::TransferMultiAsset)
 						// We want to transfer the relay token
@@ -1430,6 +1450,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						caller: ALICE.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -1556,8 +1577,10 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				gas_price: U256::from(1_000_000_000),
-				nonce: Some(U256::from(0))
+				max_fee_per_gas: U256::from(1_000_000_000),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			// 1 WEI is left in the account
@@ -1584,8 +1607,10 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
-				gas_price: U256::from(1_000_000_000),
-				nonce: Some(U256::from(0))
+				max_fee_per_gas: U256::from(1_000_000_000),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			// ALICE is refunded
@@ -1603,16 +1628,17 @@ fn root_can_change_default_xcm_vers() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.build()
 		.execute_with(|| {
 			let source_location = AssetType::Xcm(MultiLocation::parent());
@@ -1661,16 +1687,17 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_xcm_assets(vec![(
-			AssetType::Xcm(MultiLocation::parent()),
-			AssetRegistrarMetadata {
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
-			vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		)])
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
 		.build()
 		.execute_with(|| {
 			let source_location = AssetType::Xcm(MultiLocation::parent());
@@ -1698,7 +1725,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::Transactors::Relay,
 					0,
-					xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 20000the max
 					17000,
 					vec![],

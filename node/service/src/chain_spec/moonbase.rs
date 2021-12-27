@@ -209,7 +209,6 @@ pub fn testnet_genesis(
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -244,6 +243,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
+		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {

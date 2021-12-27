@@ -20,7 +20,7 @@ use crate::types::{CallResult, CallType, ContextType, CreateResult};
 use ethereum_types::{H160, U256};
 use evm_tracing_events::{
 	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
-	Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent,
+	Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent, StepEventFilter,
 };
 use std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
@@ -636,6 +636,13 @@ impl ListenerT for Listener {
 			}
 		};
 	}
+
+	fn step_event_filter(&self) -> StepEventFilter {
+		StepEventFilter {
+			enable_memory: false,
+			enable_stack: false,
+		}
+	}
 }
 
 #[cfg(test)]
@@ -689,19 +696,12 @@ mod tests {
 		}
 	}
 
-	fn test_stack() -> Stack {
-		Stack {
-			data: Vec::new(),
-			limit: 0u64,
-		}
+	fn test_stack() -> Option<Stack> {
+		None
 	}
 
-	fn test_memory() -> Memory {
-		Memory {
-			data: Vec::new(),
-			effective_len: U256::zero(),
-			limit: 0u64,
-		}
+	fn test_memory() -> Option<Memory> {
+		None
 	}
 
 	fn test_snapshot() -> Snapshot {

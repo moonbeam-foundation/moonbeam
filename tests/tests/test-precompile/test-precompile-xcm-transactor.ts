@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
@@ -22,7 +22,8 @@ async function mockAssetBalance(context, assetBalance, assetDetails, sudoAccount
       context.polkadotApi.tx.assetManager.registerAsset(
         sourceLocationRelayAssetType,
         relayAssetMetadata,
-        new BN(1)
+        new BN(1),
+        true
       )
     )
     .signAndSend(sudoAccount);
@@ -85,7 +86,7 @@ const sourceLocationRelayVersioned = { v1: { parents: 1, interior: "Here" } };
 
 const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
 
-describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   let sudoAccount, iFace, alith;
   before("Setup genesis account and relay accounts", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -112,7 +113,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     const contractData = await getCompiled("XcmTransactorInstance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XcmTransactorInstance");
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -219,7 +220,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       "transact_through_derivative_multilocation",
       [transactor, index, asset, weight, transact_call]
     );
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -247,11 +248,11 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });
 
-describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   let sudoAccount, iFace, alith;
   before("Setup genesis account and relay accounts", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -278,7 +279,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
 
     const contractData = await getCompiled("XcmTransactorInstance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context.web3, "XcmTransactorInstance");
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -328,7 +329,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       [transactor, index, asset, weight, transact_call]
     );
 
-    const tx = await createTransaction(context.web3, {
+    const tx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
       value: "0x0",
@@ -356,6 +357,6 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

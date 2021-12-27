@@ -41,7 +41,7 @@ impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingIncreaseMaxDelegationsPerCandidate<T>
 {
 	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_IncreaseMaxDelegationsPerCandidate"
+		"MM_Parachain_Staking_IncreaseMaxDelegationsPerCandidate_v2"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {

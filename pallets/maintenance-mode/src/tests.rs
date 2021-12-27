@@ -25,7 +25,6 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
 };
-use sp_runtime::DispatchError;
 
 #[test]
 fn can_remark_during_normal_operation() {
@@ -42,7 +41,10 @@ fn cannot_remark_during_maintenance_mode() {
 		.build()
 		.execute_with(|| {
 			let call: OuterCall = frame_system::Call::remark { remark: vec![] }.into();
-			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+			assert_noop!(
+				call.dispatch(Origin::signed(1)),
+				frame_system::Error::<Test>::CallFiltered
+			);
 		})
 }
 
@@ -63,7 +65,10 @@ fn cannot_enter_maintenance_mode_from_wrong_origin() {
 		.build()
 		.execute_with(|| {
 			let call: OuterCall = Call::enter_maintenance_mode {}.into();
-			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+			assert_noop!(
+				call.dispatch(Origin::signed(1)),
+				frame_system::Error::<Test>::CallFiltered
+			);
 		})
 }
 
@@ -101,7 +106,10 @@ fn cannot_resume_normal_operation_from_wrong_origin() {
 		.build()
 		.execute_with(|| {
 			let call: OuterCall = Call::resume_normal_operation {}.into();
-			assert_noop!(call.dispatch(Origin::signed(1)), DispatchError::BadOrigin);
+			assert_noop!(
+				call.dispatch(Origin::signed(1)),
+				frame_system::Error::<Test>::CallFiltered
+			);
 		})
 }
 

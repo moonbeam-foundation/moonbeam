@@ -9,7 +9,7 @@ import { customWeb3Request } from "../../util/providers";
 describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
   let txHash;
   before("Setup: Create transaction", async () => {
-    const { rawTx } = await createContract(context.web3, "TestContract", {
+    const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
       nonce: 1, // future nonce
     });

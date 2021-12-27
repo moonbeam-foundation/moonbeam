@@ -16,7 +16,7 @@
 
 use codec::{Decode, Encode};
 
-#[derive(Debug, Copy, Clone, Encode, Decode, PartialEq, Eq)]
+#[derive(Debug, Default, Copy, Clone, Encode, Decode, PartialEq, Eq)]
 pub struct Snapshot {
 	pub gas_limit: u64,
 	pub memory_gas: u64,
@@ -30,13 +30,17 @@ impl Snapshot {
 	}
 }
 
-impl From<evm_gasometer::Snapshot> for Snapshot {
-	fn from(i: evm_gasometer::Snapshot) -> Self {
-		Self {
-			gas_limit: i.gas_limit,
-			memory_gas: i.memory_gas,
-			used_gas: i.used_gas,
-			refunded_gas: i.refunded_gas,
+impl From<Option<evm_gasometer::Snapshot>> for Snapshot {
+	fn from(i: Option<evm_gasometer::Snapshot>) -> Self {
+		if let Some(i) = i {
+			Self {
+				gas_limit: i.gas_limit,
+				memory_gas: i.memory_gas,
+				used_gas: i.used_gas,
+				refunded_gas: i.refunded_gas,
+			}
+		} else {
+			Default::default()
 		}
 	}
 }
