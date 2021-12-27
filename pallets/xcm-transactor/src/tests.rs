@@ -114,7 +114,7 @@ fn test_transact_through_derivative_errors() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				xcm::VersionedMultiLocation::V1(MultiLocation::parent()),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				1,
 				10000
