@@ -622,12 +622,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetMetadata,
+		is_sufficient: bool,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
-			true,
+			is_sufficient,
 			min_balance,
 		)?;
 

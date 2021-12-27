@@ -188,6 +188,10 @@ pub struct RunCmd {
 	/// Force using Moonriver native runtime.
 	#[structopt(long = "force-moonriver")]
 	pub force_moonriver: bool,
+
+	/// Id of the parachain this collator collates for.
+	#[structopt(long)]
+	pub parachain_id: Option<u32>,
 }
 
 impl std::ops::Deref for RunCmd {

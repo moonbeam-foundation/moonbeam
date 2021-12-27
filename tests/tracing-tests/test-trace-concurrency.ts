@@ -1,17 +1,17 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
 
-describeDevMoonbeam("Trace filter - Concurrency", (context) => {
+describeDevMoonbeamAllEthTxTypes("Trace filter - Concurrency", (context) => {
   before("Setup: Create 50 blocks with 1 contract loop execution each", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "FiniteLoopContract");
+    const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
     for (let i = 0; i < 50; i++) {
       await context.createBlock({
         transactions: [
-          await createContractExecution(context.web3, {
+          await createContractExecution(context, {
             contract,
             contractCall: contract.methods.incr(2000),
           }),

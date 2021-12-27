@@ -28,7 +28,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1))
+        parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1), true)
       )
     );
     // Look for assetId in events
@@ -53,6 +53,6 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const registeredAsset = ((await parachainOne.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

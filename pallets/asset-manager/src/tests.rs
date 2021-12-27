@@ -30,6 +30,7 @@ fn registering_works() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
+			true
 		));
 
 		assert_eq!(
@@ -52,6 +53,7 @@ fn test_asset_exists_error() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
+			true
 		));
 
 		assert_eq!(
@@ -64,6 +66,7 @@ fn test_asset_exists_error() {
 				MockAssetType::MockAsset(1),
 				0u32.into(),
 				1u32.into(),
+				true
 			),
 			Error::<Test>::AssetAlreadyExists
 		);
@@ -78,6 +81,7 @@ fn test_root_can_change_units_per_second() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
+			true
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
