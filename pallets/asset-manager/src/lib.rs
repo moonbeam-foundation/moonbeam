@@ -197,7 +197,7 @@ pub mod pallet {
 		}
 
 		/// Change the amount of units we are charging per execution second for a given AssetId
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::remove_supported_asset())]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
