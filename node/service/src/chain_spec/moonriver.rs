@@ -34,7 +34,7 @@ use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::{Perbill, Permill};
+use sp_runtime::Perbill;
 use std::str::FromStr;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
