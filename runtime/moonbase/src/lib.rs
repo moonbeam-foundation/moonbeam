@@ -910,7 +910,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
