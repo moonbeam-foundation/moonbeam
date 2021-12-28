@@ -398,6 +398,10 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 }
 
+parameter_types! {
+	pub IsActive: bool = false;
+}
+
 pub struct BaseFeeThreshold;
 impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 	fn lower() -> Permill {
@@ -414,6 +418,7 @@ impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
 }
 
 parameter_types! {

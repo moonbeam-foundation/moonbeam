@@ -25,7 +25,7 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
 	Precompiles, Range, SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
@@ -218,11 +218,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
-		base_fee: BaseFeeConfig::new(
-			sp_core::U256::from(1_000_000_000),
-			false,
-			Permill::from_parts(125_000),
-		),
+		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
