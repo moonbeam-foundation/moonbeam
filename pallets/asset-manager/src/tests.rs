@@ -108,6 +108,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
+			true,
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
@@ -144,6 +145,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
+			true,
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
