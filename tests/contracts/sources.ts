@@ -1373,8 +1373,10 @@ export const contractSources: { [key: string]: string } = {
 
     contract AuthorMappingInstance is AuthorMapping {
 
-        /// The Xtokens wrapper at the known pre-compile address.
-        AuthorMapping public author_mapping = AuthorMapping(0x0000000000000000000000000000000000000807);
+        /// The AuthorMapping wrapper at the known pre-compile address.
+        AuthorMapping public author_mapping = AuthorMapping(
+            0x0000000000000000000000000000000000000807
+        );
 
             function add_association(
                 bytes32 nimbus_id
