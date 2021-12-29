@@ -31,8 +31,8 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
