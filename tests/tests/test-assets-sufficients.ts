@@ -170,7 +170,7 @@ describeDevMoonbeam(
 
       // For some reason paymentInfo overestimates by 4358
       await context.polkadotApi.tx.balances
-        .transfer(freshAccount.address, BigInt(fee) - BigInt(4358))
+        .transfer(freshAccount.address, BigInt(fee) - BigInt(4359))
         .signAndSend(alith);
       await context.createBlock();
 
