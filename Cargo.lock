@@ -5141,6 +5141,7 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
+ "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
@@ -6440,6 +6441,33 @@ dependencies = [
  "nimbus-primitives",
  "pallet-balances",
  "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-author-mapping-precompiles"
+version = "0.2.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "nimbus-primitives",
+ "num_enum",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sp-core",
