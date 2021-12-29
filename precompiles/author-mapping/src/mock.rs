@@ -19,7 +19,7 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
+	traits::{EqualPrivilegeOnly, Everything},
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{
@@ -42,11 +42,6 @@ type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
 pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-/// The author mapping precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
-}
 
 #[derive(
 	Eq,
@@ -285,29 +280,6 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-
-pub(crate) fn roll_to(n: u64) {
-	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
-	// We may be able to simulate this by poking its storage directly, but I don't see any value
-	// added from doing that.
-	while System::block_number() < n {
-		Scheduler::on_finalize(System::block_number());
-		AuthorMapping::on_finalize(System::block_number());
-		// Timestamp::on_finalize(System::block_number());
-		Evm::on_finalize(System::block_number());
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-
-		System::set_block_number(System::block_number() + 1);
-
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-		Evm::on_initialize(System::block_number());
-		Timestamp::on_initialize(System::block_number());
-		AuthorMapping::on_initialize(System::block_number());
-		Scheduler::on_initialize(System::block_number());
 	}
 }
 
