@@ -10,8 +10,8 @@ log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 
 # Moonbeam
-precompile-utils = { path = "../utils", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
@@ -28,9 +28,9 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 [dev-dependencies]
 derive_more = "0.99"
 hex-literal = "0.3.4"
-serde = "1.0.100"
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.13"}
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.13" }
+serde = "1.0.100"
 
 # Substrate
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
