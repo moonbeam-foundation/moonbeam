@@ -1335,7 +1335,7 @@ export const contractSources: { [key: string]: string } = {
          */
         function note_imminent_preimage(bytes memory encoded_proposal) external;
     }`,
-    AuthorMapping: `
+  AuthorMapping: `
     pragma solidity >=0.8.0;
 
     /**
