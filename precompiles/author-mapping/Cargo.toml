@@ -4,8 +4,8 @@ authors = [ "PureStake" ]
 description = "A Precompile to make pallet-author-mapping accessible to pallet-evm"
 edition = "2018"
 version = "0.2.0"
-]
-[dependencies
+
+[dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 

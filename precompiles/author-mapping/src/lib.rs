@@ -36,7 +36,7 @@ mod tests;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
-enum Action {
+pub enum Action {
 	AddAssociation = "add_association(bytes32)",
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
@@ -109,7 +109,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
+			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
 			logs: Default::default(),
@@ -143,7 +143,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
+			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
 			logs: Default::default(),
@@ -173,7 +173,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
 		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
+			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
 			logs: Default::default(),
