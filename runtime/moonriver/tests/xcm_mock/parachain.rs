@@ -18,20 +18,20 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
+	traits::{Everything, FindAuthor, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
-	PalletId,
+	ConsensusEngineId, PalletId,
 };
 
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
-use sp_core::H256;
+use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
 	Permill,
 };
-use sp_std::{convert::TryFrom, prelude::*};
+use sp_std::{convert::TryFrom, prelude::*, str::FromStr};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
@@ -91,7 +91,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub ExistentialDeposit: Balance = 1;
+	pub ExistentialDeposit: Balance = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -663,6 +663,54 @@ impl xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 }
 
+parameter_types! {
+	pub const MinimumPeriod: u64 = 1000;
+}
+impl pallet_timestamp::Config for Runtime {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
+
+pub struct FixedGasPrice;
+impl pallet_evm::FeeCalculator for FixedGasPrice {
+	fn min_gas_price() -> U256 {
+		1_000_000_000u128.into()
+	}
+}
+
+pub struct FindAuthorTruncated;
+impl FindAuthor<H160> for FindAuthorTruncated {
+	fn find_author<'a, I>(_digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		Some(H160::from_str("1234500000000000000000000000000000000000").unwrap())
+	}
+}
+
+impl pallet_evm::Config for Runtime {
+	type FeeCalculator = FixedGasPrice;
+	type GasWeightMapping = ();
+
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
+
+	type AddressMapping = runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+
+	type Event = Event;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type ChainId = ();
+	type BlockGasLimit = ();
+	type OnChargeTransaction = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = FindAuthorTruncated;
+}
+
 pub struct NormalFilter;
 impl frame_support::traits::Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
@@ -742,7 +790,10 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call}
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
+		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 	}
 );
 
