@@ -248,12 +248,6 @@ pub mod pallet {
 	}
 
 	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign> Delegations<AccountId, Balance> {
-		// TODO: remove, not necessary
-		#[allow(dead_code)]
-		fn sort_greatest_to_least(&mut self) {
-			self.delegations
-				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-		}
 		/// Insert sorted greatest to least and increase .total accordingly
 		pub fn insert_sorted_greatest_to_least(&mut self, delegation: Bond<AccountId, Balance>) {
 			self.total += delegation.amount;
@@ -290,6 +284,10 @@ pub mod pallet {
 		pub fn lowest_delegation_amount(&self) -> Balance {
 			self.delegations[self.delegations.len() - 1].amount
 		}
+		/// Return highest delegation amount
+		pub fn highest_delegation_amount(&self) -> Balance {
+			self.delegations[0].amount
+		}
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -314,6 +312,8 @@ pub mod pallet {
 		pub total_counted: Balance,
 		/// The smallest top delegation amount
 		pub lowest_top_delegation_amount: Balance,
+		/// The highest bottom delegation amount
+		pub highest_bottom_delegation_amount: Balance,
 		/// The smallest bottom delegation amount
 		pub lowest_bottom_delegation_amount: Balance,
 		/// Capacity status for top delegations
@@ -355,6 +355,7 @@ pub mod pallet {
 				delegation_count: 0u32,
 				total_counted: bond,
 				lowest_top_delegation_amount: Zero::zero(),
+				highest_bottom_delegation_amount: Zero::zero(),
 				lowest_bottom_delegation_amount: Zero::zero(),
 				top_capacity: CapacityStatus::Empty,
 				bottom_capacity: CapacityStatus::Empty,
@@ -506,8 +507,11 @@ pub mod pallet {
 		) where
 			BalanceOf<T>: Into<Balance>,
 		{
+			// if bottom capacity is empty, what happens with these values TODO
 			self.lowest_bottom_delegation_amount =
 				bottom_delegations.lowest_delegation_amount().into();
+			self.highest_bottom_delegation_amount =
+				bottom_delegations.highest_delegation_amount().into();
 			self.bottom_capacity = bottom_delegations.bottom_capacity::<T>();
 		}
 		/// Add delegation
@@ -666,15 +670,22 @@ pub mod pallet {
 		where
 			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
-			// TODO: what if lowest_top_delegation_amount is equal to highest_bottom_delegation_amount?
-			// -> in this case, we need to check top first and then bottom
-			if amount >= self.lowest_top_delegation_amount
-				|| !matches!(self.top_capacity, CapacityStatus::Full)
-			{
+			let amount_geq_lowest_top = amount >= self.lowest_top_delegation_amount;
+			let top_is_not_full = !matches!(self.top_capacity, CapacityStatus::Full);
+			let lowest_top_eq_highest_bottom =
+				self.lowest_top_delegation_amount == self.highest_bottom_delegation_amount;
+			let delegation_dne_err: DispatchError = Error::<T>::DelegationDNE.into();
+			if top_is_not_full || (amount_geq_lowest_top && !lowest_top_eq_highest_bottom) {
 				self.rm_top_delegation::<T>(candidate, delegator)
+			} else if (amount_geq_lowest_top && lowest_top_eq_highest_bottom) {
+				let result = self.rm_top_delegation::<T>(candidate, delegator.clone());
+				if result == Err(delegation_dne_err) {
+					self.rm_bottom_delegation::<T>(candidate, delegator)
+				} else {
+					result
+				}
 			} else {
-				self.rm_bottom_delegation::<T>(candidate, delegator)?;
-				Ok(false)
+				self.rm_bottom_delegation::<T>(candidate, delegator)
 			}
 		}
 		/// Remove top delegation, bumps top bottom delegation if exists
@@ -726,11 +737,12 @@ pub mod pallet {
 			Ok(old_total_counted == self.total_counted)
 		}
 		/// Remove bottom delegation
+		/// Returns if_total_counted_changed: bool
 		pub fn rm_bottom_delegation<T: Config>(
 			&mut self,
 			candidate: &T::AccountId,
 			delegator: T::AccountId,
-		) -> DispatchResult
+		) -> Result<bool, DispatchError>
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
@@ -757,9 +769,52 @@ pub mod pallet {
 			self.reset_bottom_data::<T>(&bottom_delegations);
 			self.delegation_count -= 1u32;
 			<BottomDelegations<T>>::insert(candidate, bottom_delegations);
-			Ok(())
+			Ok(false)
 		}
+		/// TODO: determine if is in_top before call
+		///
 		pub fn increase_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegator: T::AccountId,
+			bond: BalanceOf<T>,
+			more: BalanceOf<T>,
+		) -> Result<bool, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			let lowest_top_eq_highest_bottom =
+				self.lowest_top_delegation_amount == self.highest_bottom_delegation_amount;
+			let bond_geq_lowest_top = bond.into() >= self.lowest_top_delegation_amount;
+			let delegation_dne_err: DispatchError = Error::<T>::DelegationDNE.into();
+			if bond_geq_lowest_top && !lowest_top_eq_highest_bottom {
+				self.increase_top_delegation::<T>(candidate, delegator.clone(), bond, more)
+			} else if bond_geq_lowest_top && lowest_top_eq_highest_bottom {
+				// update top but if error then update bottom
+				let result =
+					self.increase_top_delegation::<T>(candidate, delegator.clone(), bond, more);
+				if result == Err(delegation_dne_err) {
+					self.increase_bottom_delegation::<T>(candidate, delegator, bond, more)
+				} else {
+					result
+				}
+			} else {
+				self.increase_bottom_delegation::<T>(candidate, delegator, bond, more)
+			}
+		}
+		pub fn increase_top_delegation<T: Config>(
+			&mut self,
+			candidate: &T::AccountId,
+			delegator: T::AccountId,
+			bond: BalanceOf<T>,
+			more: BalanceOf<T>,
+		) -> Result<bool, DispatchError>
+		where
+			BalanceOf<T>: Into<Balance>,
+		{
+			todo!()
+		}
+		pub fn increase_bottom_delegation<T: Config>(
 			&mut self,
 			candidate: &T::AccountId,
 			delegator: T::AccountId,
