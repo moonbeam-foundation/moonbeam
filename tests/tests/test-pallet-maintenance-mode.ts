@@ -502,11 +502,13 @@ describeDevMoonbeam(
       // Create a block in which the XCM should be executed
       await context.createBlock();
 
-      // Make sure the state does not have ALITH's to DOT tokens
-      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+      // Make sure the state does not have ALITH's DOT tokens
+      let alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
 
       // Alith balance is 0
-      expect(alithBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(alithBalance).to.eq(BigInt(0));
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -518,10 +520,12 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state has ALITH's to DOT tokens
-      alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+      alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
 
-      // Alith balance is 0
-      expect(alithBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+      // Alith balance is 10 DOT
+      expect(alithBalance).to.eq(BigInt(10000000000000));
     });
   }
 );
@@ -594,11 +598,12 @@ describeDevMoonbeam(
       // Create a block in which the XCM should be executed
       await context.createBlock();
 
-      // Make sure the state does not have ALITH's to foreign asset tokens
-      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-
+      // Make sure the state does not have ALITH's foreign asset tokens
+      let alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
       // Alith balance is 0
-      expect(alithBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(alithBalance).to.eq(BigInt(0));
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -610,10 +615,11 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state has ALITH's to foreign assets tokens
-      alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+      alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
 
-      // Alith balance is 10 Foreign asset units
-      expect(alithBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+      expect(alithBalance).to.eq(BigInt(10000000000000));
     });
   }
 );
