@@ -2917,7 +2917,7 @@ pub mod pallet {
 			total_backing += bottom_delegations.total;
 			// return stake to collator
 			T::Currency::unreserve(&candidate, state.bond);
-			<CandidateState<T>>::remove(&candidate);
+			<CandidateInfo<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -3463,15 +3463,21 @@ pub mod pallet {
 			let collators = Self::compute_top_candidates();
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
-				let state = <CandidateState<T>>::get(&account)
+				let state = <CandidateInfo<T>>::get(account)
+					.expect("all members of CandidateQ must be candidates");
+				let top_delegations = <TopDelegations<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
 				collator_count += 1u32;
-				delegation_count += state.delegators.0.len() as u32;
-				let amount = state.total_counted;
-				total += amount;
-				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
-				<AtStake<T>>::insert(now, account, exposure);
-				Self::deposit_event(Event::CollatorChosen(now, account.clone(), amount));
+				delegation_count += state.delegation_count;
+				total += state.total_counted;
+				let snapshot_total = state.total_counted;
+				let snapshot = CollatorSnapshot {
+					bond: state.bond,
+					delegations: top_delegations.delegations,
+					total: state.total_counted,
+				};
+				<AtStake<T>>::insert(now, account, snapshot);
+				Self::deposit_event(Event::CollatorChosen(now, account.clone(), snapshot_total));
 			}
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);
