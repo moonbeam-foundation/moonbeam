@@ -48,7 +48,6 @@
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(destructuring_assignment)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -145,21 +144,6 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	impl<AccountId, Balance: Copy + sp_std::ops::Add<Output = Balance>>
-		CollatorSnapshot<AccountId, Balance>
-	{
-		pub fn new(
-			collator_bond: Balance,
-			top_delegations: Delegations<AccountId, Balance>,
-		) -> Self {
-			Self {
-				bond: collator_bond,
-				delegations: top_delegations.delegations,
-				total: collator_bond + top_delegations.total,
-			}
-		}
-	}
-
 	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Info needed to make delayed payments to stakers after round end
 	pub struct DelayedPayout<Balance> {
@@ -243,11 +227,13 @@ pub mod pallet {
 	#[derive(Clone, Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Type for top and bottom delegation storage item
 	pub struct Delegations<AccountId, Balance> {
-		delegations: Vec<Bond<AccountId, Balance>>,
-		total: Balance,
+		pub delegations: Vec<Bond<AccountId, Balance>>,
+		pub total: Balance,
 	}
 
-	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign> Delegations<AccountId, Balance> {
+	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero>
+		Delegations<AccountId, Balance>
+	{
 		pub fn sort_greatest_to_least(&mut self) {
 			self.delegations
 				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
@@ -286,11 +272,19 @@ pub mod pallet {
 		}
 		/// Return last delegation amount without popping the delegation
 		pub fn lowest_delegation_amount(&self) -> Balance {
-			self.delegations[self.delegations.len() - 1].amount
+			if self.delegations.is_empty() {
+				Balance::zero()
+			} else {
+				self.delegations[self.delegations.len() - 1].amount
+			}
 		}
 		/// Return highest delegation amount
 		pub fn highest_delegation_amount(&self) -> Balance {
-			self.delegations[0].amount
+			if self.delegations.is_empty() {
+				Balance::zero()
+			} else {
+				self.delegations[0].amount
+			}
 		}
 	}
 
@@ -350,7 +344,8 @@ pub mod pallet {
 				+ PartialOrd
 				+ sp_std::ops::AddAssign
 				+ sp_std::ops::SubAssign
-				+ sp_std::ops::Sub<Output = Balance>,
+				+ sp_std::ops::Sub<Output = Balance>
+				+ sp_std::fmt::Debug,
 		> CandidateMetadata<Balance>
 	{
 		pub fn new(bond: Balance) -> Self {
@@ -544,7 +539,7 @@ pub mod pallet {
 						if matches!(self.bottom_capacity, CapacityStatus::Full) {
 							ensure!(
 								delegation.amount.into() > self.lowest_bottom_delegation_amount,
-								Error::<T>::CandidateDNE // TODO: make error CannotDelegateLessThanLowestBottomWhenBottomIsFull
+								Error::<T>::CannotDelegateLessThanLowestBottomWhenBottomIsFull
 							);
 							// need to subtract from total staked
 							less_total_staked = Some(self.lowest_bottom_delegation_amount);
@@ -865,12 +860,16 @@ pub mod pallet {
 						if d.owner != delegator {
 							Some(d)
 						} else {
-							delegation_option = Some(d);
+							delegation_option = Some(Bond {
+								owner: d.owner,
+								amount: d.amount + more,
+							});
 							None
 						}
 					})
 					.collect();
 				let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
+				bottom_delegations.total -= bond;
 				// add it to top
 				let mut top_delegations =
 					<TopDelegations<T>>::get(candidate).expect("TODO proof QED");
@@ -961,65 +960,70 @@ pub mod pallet {
 		{
 			let bond_after_less_than_highest_bottom =
 				bond - less.into() < self.highest_bottom_delegation_amount;
+			let full_top_and_nonempty_bottom = matches!(self.top_capacity, CapacityStatus::Full)
+				&& !matches!(self.bottom_capacity, CapacityStatus::Empty);
 			let mut top_delegations =
 				<TopDelegations<T>>::get(candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let in_top_after = if bond_after_less_than_highest_bottom {
-				let mut delegation_option: Option<Bond<T::AccountId, BalanceOf<T>>> = None;
-				// take delegation from top
-				top_delegations.delegations = top_delegations
-					.delegations
-					.clone()
-					.into_iter()
-					.filter_map(|d| {
-						if d.owner != delegator {
-							Some(d)
-						} else {
-							let new_amount = d.amount.saturating_sub(less);
-							delegation_option = Some(Bond {
-								owner: d.owner,
-								amount: new_amount,
-							});
-							None
-						}
-					})
-					.collect();
-				let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
-				top_delegations.total -= less;
-				// pop highest bottom by reverse and popping
-				let mut bottom_delegations =
-					<BottomDelegations<T>>::get(candidate).expect("TODO proof of existence");
-				let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
-				bottom_delegations.total -= highest_bottom_delegation.amount;
-				// insert highest bottom into top
-				top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
-				// insert previous top into bottom
-				bottom_delegations.insert_sorted_greatest_to_least(delegation);
-				self.reset_bottom_data::<T>(&bottom_delegations);
-				<BottomDelegations<T>>::insert(candidate, bottom_delegations);
-				false
-			} else {
-				let mut is_in_top = false;
-				top_delegations.delegations = top_delegations
-					.delegations
-					.clone()
-					.into_iter()
-					.map(|d| {
-						if d.owner != delegator {
-							d
-						} else {
-							is_in_top = true;
-							let new_amount = d.amount.saturating_sub(less);
-							Bond {
-								owner: d.owner,
-								amount: new_amount,
+			let in_top_after =
+				if bond_after_less_than_highest_bottom && full_top_and_nonempty_bottom {
+					let mut delegation_option: Option<Bond<T::AccountId, BalanceOf<T>>> = None;
+					// take delegation from top
+					top_delegations.delegations = top_delegations
+						.delegations
+						.clone()
+						.into_iter()
+						.filter_map(|d| {
+							if d.owner != delegator {
+								Some(d)
+							} else {
+								let new_amount = d.amount.saturating_sub(less);
+								top_delegations.total -= d.amount;
+								delegation_option = Some(Bond {
+									owner: d.owner,
+									amount: new_amount,
+								});
+								None
 							}
-						}
-					})
-					.collect();
-				ensure!(is_in_top, Error::<T>::DelegationDNE);
-				top_delegations.sort_greatest_to_least();
-				true
-			};
+						})
+						.collect();
+					let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
+					// pop highest bottom by reverse and popping
+					let mut bottom_delegations =
+						<BottomDelegations<T>>::get(candidate).expect("TODO proof of existence");
+					let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
+					bottom_delegations.total -= highest_bottom_delegation.amount;
+					// insert highest bottom into top
+					top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
+					// insert previous top into bottom
+					bottom_delegations.insert_sorted_greatest_to_least(delegation);
+					self.reset_bottom_data::<T>(&bottom_delegations);
+					<BottomDelegations<T>>::insert(candidate, bottom_delegations);
+					false
+				} else {
+					// keep it in the top
+					let mut is_in_top = false;
+					top_delegations.delegations = top_delegations
+						.delegations
+						.clone()
+						.into_iter()
+						.map(|d| {
+							if d.owner != delegator {
+								d
+							} else {
+								is_in_top = true;
+								let new_amount = d.amount.saturating_sub(less);
+								Bond {
+									owner: d.owner,
+									amount: new_amount,
+								}
+							}
+						})
+						.collect();
+					ensure!(is_in_top, Error::<T>::DelegationDNE);
+					top_delegations.total -= less;
+					top_delegations.sort_greatest_to_least();
+					true
+				};
 			self.reset_top_data::<T>(&top_delegations);
 			<TopDelegations<T>>::insert(candidate, top_delegations);
 			Ok(in_top_after)
@@ -1683,26 +1687,31 @@ pub mod pallet {
 			T::AccountId: From<AccountId>,
 			Delegator<T::AccountId, BalanceOf<T>>: From<Delegator<AccountId, Balance>>,
 		{
-			let delegator_id = self.id.clone().into();
+			let delegator_id: T::AccountId = self.id.clone().into();
 			let candidate_id: T::AccountId = candidate.clone().into();
 			let balance_amt: BalanceOf<T> = amount.into();
 			// increase delegation
 			for x in &mut self.delegations.0 {
 				if x.owner == candidate {
+					let before_amount: BalanceOf<T> = x.amount.into();
 					x.amount += amount;
 					self.total += amount;
 					// update collator state delegation
 					let mut collator_state =
-						<CandidateState<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
+						<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
 					T::Currency::reserve(&self.id.clone().into(), balance_amt)?;
 					let before = collator_state.total_counted;
-					let in_top =
-						collator_state.increase_delegation(self.id.clone().into(), balance_amt);
+					let in_top = collator_state.increase_delegation::<T>(
+						&candidate_id,
+						delegator_id.clone(),
+						before_amount,
+						balance_amt,
+					)?;
 					let after = collator_state.total_counted;
 					if collator_state.is_active() && (before != after) {
 						Pallet::<T>::update_active(candidate_id.clone(), after);
 					}
-					<CandidateState<T>>::insert(&candidate_id, collator_state);
+					<CandidateInfo<T>>::insert(&candidate_id, collator_state);
 					let new_total_staked = <Total<T>>::get().saturating_add(balance_amt);
 					<Total<T>>::put(new_total_staked);
 					let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
@@ -1861,6 +1870,7 @@ pub mod pallet {
 					for x in &mut self.delegations.0 {
 						if x.owner == candidate {
 							if x.amount > amount {
+								let amount_before: BalanceOf<T> = x.amount.into();
 								x.amount -= amount;
 								self.total -= amount;
 								let new_total: BalanceOf<T> = self.total.into();
@@ -1880,7 +1890,7 @@ pub mod pallet {
 								let in_top = collator.decrease_delegation::<T>(
 									&candidate_id,
 									delegator_id.clone(),
-									x.amount.into(),
+									amount_before,
 									balance_amt,
 								)?;
 								let after = collator.total_counted;
@@ -2265,6 +2275,7 @@ pub mod pallet {
 		PendingDelegationRequestDNE,
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
+		CannotDelegateLessThanLowestBottomWhenBottomIsFull,
 	}
 
 	#[pallet::event]

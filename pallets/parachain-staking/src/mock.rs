@@ -106,7 +106,8 @@ parameter_types! {
 	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxDelegatorsPerCandidate: u32 = 4;
+	pub const MaxTopDelegationsPerCandidate: u32 = 4;
+	pub const MaxBottomDelegationsPerCandidate: u32 = 10;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
@@ -127,7 +128,8 @@ impl Config for Test {
 	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
+	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
