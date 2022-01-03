@@ -295,6 +295,41 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -330,7 +365,7 @@
 	<span class="ident">RuntimeApiStorageOverride</span>, <span class="ident">SchemaV1Override</span>, <span class="ident">SchemaV2Override</span>, <span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>,
 	<span class="ident">Web3ApiServer</span>,
 };
-<span class="kw">use</span> <span class="ident">fc_rpc_core::types::FilterPool</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc_core::types</span>::{<span class="ident">FeeHistoryCache</span>, <span class="ident">FilterPool</span>};
 <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub::manager::SubscriptionManager</span>;
 <span class="kw">use</span> <span class="ident">manual_xcm_rpc</span>::{<span class="ident">ManualXcm</span>, <span class="ident">ManualXcmApi</span>};
@@ -387,15 +422,48 @@
 	<span class="kw">pub</span> <span class="ident">command_sink</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">futures::channel::mpsc::Sender</span><span class="op">&lt;</span><span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Maximum number of logs in a query.</span>
 	<span class="kw">pub</span> <span class="ident">max_past_logs</span>: <span class="ident">u32</span>,
+	<span class="doccomment">/// Maximum fee history cache size.</span>
+	<span class="kw">pub</span> <span class="ident">fee_history_limit</span>: <span class="ident">u64</span>,
+	<span class="doccomment">/// Fee history cache.</span>
+	<span class="kw">pub</span> <span class="ident">fee_history_cache</span>: <span class="ident">FeeHistoryCache</span>,
 	<span class="doccomment">/// Ethereum transaction to Extrinsic converter.</span>
 	<span class="kw">pub</span> <span class="ident">transaction_converter</span>: <span class="ident">TransactionConverters</span>,
 	<span class="doccomment">/// Channels for manual xcm messages (downward, hrmp)</span>
 	<span class="kw">pub</span> <span class="ident">xcm_senders</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">flume::Sender</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">flume::Sender</span><span class="op">&lt;</span>(<span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>)<span class="op">&gt;</span>,
 }
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_handle</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
+	<span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span>,
+	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+	<span class="ident">C::Api</span>: <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+	<span class="ident">BE::State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
+{
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overrides_map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
+	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(
+		<span class="ident">EthereumStorageSchema::V1</span>,
+		<span class="ident">Box::new</span>(<span class="ident">SchemaV1Override::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>()))
+			<span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StorageOverride</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
+	);
+	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(
+		<span class="ident">EthereumStorageSchema::V2</span>,
+		<span class="ident">Box::new</span>(<span class="ident">SchemaV2Override::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>()))
+			<span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StorageOverride</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
+	);
+
+	<span class="ident">Arc::new</span>(<span class="ident">OverrideHandle</span> {
+		<span class="ident">schemas</span>: <span class="ident">overrides_map</span>,
+		<span class="ident">fallback</span>: <span class="ident">Box::new</span>(<span class="ident">RuntimeApiStorageOverride::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>())),
+	})
+}
+
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">BE</span>, <span class="ident">A</span><span class="op">&gt;</span>(
 	<span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="ident">subscription_task_executor</span>: <span class="ident">SubscriptionTaskExecutor</span>,
+	<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc::Metadata</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -424,6 +492,8 @@
 		<span class="ident">frontier_backend</span>,
 		<span class="ident">backend</span>: <span class="kw">_</span>,
 		<span class="ident">max_past_logs</span>,
+		<span class="ident">fee_history_limit</span>,
+		<span class="ident">fee_history_cache</span>,
 		<span class="ident">transaction_converter</span>,
 		<span class="ident">xcm_senders</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
@@ -444,23 +514,6 @@
 		<span class="ident">eth_log_block_cache</span>,
 	));
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overrides_map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(
-		<span class="ident">EthereumStorageSchema::V1</span>,
-		<span class="ident">Box::new</span>(<span class="ident">SchemaV1Override::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>()))
-			<span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StorageOverride</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
-	);
-	<span class="ident">overrides_map</span>.<span class="ident">insert</span>(
-		<span class="ident">EthereumStorageSchema::V2</span>,
-		<span class="ident">Box::new</span>(<span class="ident">SchemaV2Override::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>()))
-			<span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StorageOverride</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
-	);
-
-	<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">OverrideHandle</span> {
-		<span class="ident">schemas</span>: <span class="ident">overrides_map</span>,
-		<span class="ident">fallback</span>: <span class="ident">Box::new</span>(<span class="ident">RuntimeApiStorageOverride::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>())),
-	});
-
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthApiServer::to_delegate</span>(<span class="ident">EthApi::new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">pool</span>.<span class="ident">clone</span>(),
@@ -474,6 +527,8 @@
 		<span class="ident">max_past_logs</span>,
 		<span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 		<span class="ident">fc_rpc::format::Geth</span>,
+		<span class="ident">fee_history_limit</span>,
+		<span class="ident">fee_history_cache</span>,
 	)));
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter_pool</span>) <span class="op">=</span> <span class="ident">filter_pool</span> {
@@ -535,6 +590,9 @@
 	<span class="kw">pub</span> <span class="ident">substrate_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">fee_history_limit</span>: <span class="ident">u64</span>,
+	<span class="kw">pub</span> <span class="ident">fee_history_cache</span>: <span class="ident">FeeHistoryCache</span>,
 }
 
 <span class="doccomment">/// Spawn the tasks that are required to run Moonbeam.</span>
@@ -589,6 +647,18 @@
 		<span class="ident">EthTask::ethereum_schema_cache_task</span>(
 			<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">client</span>),
 			<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">frontier_backend</span>),
+		),
+	);
+
+	<span class="comment">// Spawn Frontier FeeHistory cache maintenance task.</span>
+	<span class="ident">params</span>.<span class="ident">task_manager</span>.<span class="ident">spawn_essential_handle</span>().<span class="ident">spawn</span>(
+		<span class="string">&quot;frontier-fee-history&quot;</span>,
+		<span class="prelude-val">Some</span>(<span class="string">&quot;frontier&quot;</span>),
+		<span class="ident">EthTask::fee_history_task</span>(
+			<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">client</span>),
+			<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">overrides</span>),
+			<span class="ident">params</span>.<span class="ident">fee_history_cache</span>,
+			<span class="ident">params</span>.<span class="ident">fee_history_limit</span>,
 		),
 	);
 }

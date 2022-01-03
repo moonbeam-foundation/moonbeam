@@ -1928,6 +1928,11 @@
 <span id="1928">1928</span>
 <span id="1929">1929</span>
 <span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3541,6 +3546,10 @@
 	<span class="kw">type</span> <span class="ident">ProxyType</span> <span class="op">=</span> <span class="ident">ProxyType</span>;
 }
 
+<span class="macro">parameter_types!</span> {
+	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
+}
+
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeeThreshold</span>;
 <span class="kw">impl</span> <span class="ident">pallet_base_fee::BaseFeeThreshold</span> <span class="kw">for</span> <span class="ident">BaseFeeThreshold</span> {
 	<span class="kw">fn</span> <span class="ident">lower</span>() -&gt; <span class="ident">Permill</span> {
@@ -3557,6 +3566,7 @@
 <span class="kw">impl</span> <span class="ident">pallet_base_fee::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Threshold</span> <span class="op">=</span> <span class="ident">BaseFeeThreshold</span>;
+	<span class="kw">type</span> <span class="ident">IsActive</span> <span class="op">=</span> <span class="ident">IsActive</span>;
 }
 
 <span class="macro">construct_runtime!</span> {
