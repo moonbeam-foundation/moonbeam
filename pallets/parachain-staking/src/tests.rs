@@ -27,8 +27,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, Bond, CandidateState, CollatorStatus, DelegationChange, DelegationRequest,
-	DelegatorAdded, Error, Event, Range,
+	assert_tail_eq, Bond, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
+	Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -4399,51 +4399,6 @@ fn deferred_payment_steady_state_event_flow() {
 
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
-
-// TODO: update this migration
-// #[test]
-// fn increase_delegations_per_candidate_migrates_bottom_delegations() {
-// 	ExtBuilder::default()
-// 		.with_balances(vec![
-// 			(1, 100),
-// 			(2, 100),
-// 			(3, 100),
-// 			(4, 100),
-// 			(5, 100),
-// 			(6, 100),
-// 			(7, 100),
-// 			(8, 100),
-// 		])
-// 		.with_candidates(vec![(1, 20)])
-// 		.with_delegations(vec![
-// 			(2, 1, 19),
-// 			(3, 1, 20),
-// 			(4, 1, 21),
-// 			(5, 1, 22),
-// 			(6, 1, 23),
-// 			(7, 1, 24),
-// 			(8, 1, 25),
-// 		])
-// 		.build()
-// 		.execute_with(|| {
-// 			// start by corrupting collator state like the bug -- have some in bottom with open
-// 			// slots in the top
-// 			let mut candidate_state =
-// 				<CandidateState<Test>>::get(&1).expect("set up 1 as candidate");
-// 			// corrupt storage via unhandled pop
-// 			candidate_state.top_delegations.pop();
-// 			candidate_state.top_delegations.pop();
-// 			assert_eq!(candidate_state.top_delegations.len(), 2); // < MaxNominatorsPerCollator = 4
-// 			assert_eq!(candidate_state.bottom_delegations.len(), 3);
-// 			<CandidateState<Test>>::insert(&1, candidate_state);
-// 			// full migration, first cleans delegator set and second cleans other items
-// 			crate::migrations::IncreaseMaxDelegationsPerCandidate::<Test>::on_runtime_upgrade();
-// 			let post_candidate_state =
-// 				<CandidateInfo<Test>>::get(&1).expect("set up 1 as candidate");
-// 			assert_eq!(post_candidate_state.top_delegations.len(), 4);
-// 			assert_eq!(post_candidate_state.bottom_delegations.len(), 1);
-// 		});
-// }
 
 #[test]
 fn remove_exit_queue_migration_migrates_leaving_candidates() {
