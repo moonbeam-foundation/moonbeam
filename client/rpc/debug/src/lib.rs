@@ -105,8 +105,6 @@ impl DebugT for Debug {
 	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
 		let mut requester = self.requester.clone();
 
-		println!("---> Enter {:?}", id);
-
 		async move {
 			let (tx, rx) = oneshot::channel();
 			// Send a message from the rpc handler to the service level task.
@@ -169,15 +167,7 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
-						// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
-						//
-						// Substrate uses the default value for `core_threads` (number of cores of the
-						// machine running the node) and `max_threads` (512 total).
-						//
-						// Task below is spawned in the substrate's built tokio::Runtime, so they share
-						// the same thread pool as the rest of the service-spawned tasks. Additionally,
-						// blocking tasks use a more restrictive permit pool shared by trace modules.
-						// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
+
 						tokio::task::spawn(async move {
 							let _ = response_tx.send(
 								async {
@@ -208,22 +198,12 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
-						// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
-						//
-						// Substrate uses the default value for `core_threads` (number of cores of the
-						// machine running the node) and `max_threads` (512 total).
-						//
-						// Task below is spawned in the substrate's built tokio::Runtime, so they share
-						// the same thread pool as the rest of the service-spawned tasks. Additionally,
-						// blocking tasks use a more restrictive permit pool shared by trace modules.
-						// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
+
 						tokio::task::spawn(async move {
-							println!("--> Request2");
 							let _ = response_tx.send(
 								async {
 									let _permit = permit_pool.acquire().await;
 
-									println!("--> Request3");
 									tokio::task::spawn_blocking(move || {
 										Self::handle_block_request(
 											client.clone(),
@@ -389,7 +369,6 @@ where
 						"Bug: failed to resolve the tracer format."
 					))),
 				}?;
-				println!("---> Response {:?}", response);
 
 				Ok(Response::Block(response))
 			}
