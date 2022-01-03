@@ -192,6 +192,10 @@ pub struct RunCmd {
 	/// Id of the parachain this collator collates for.
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
+
+	/// Maximum fee history cache size.
+	#[structopt(long, default_value = "2048")]
+	pub fee_history_limit: u64,
 }
 
 impl std::ops::Deref for RunCmd {
