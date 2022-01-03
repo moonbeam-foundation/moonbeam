@@ -55,8 +55,8 @@ impl std::fmt::Display for AccountId20 {
 	}
 }
 
-impl std::fmt::Debug for AccountId20 {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for AccountId20 {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		write!(f, "{:?}", H160(self.0))
 	}
 }
