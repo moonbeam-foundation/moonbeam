@@ -75,6 +75,7 @@ sp-version = { git = "https://github.com/purestake/substrate", branch = "moonbea
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
@@ -133,6 +134,7 @@ std = [
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
+	"pallet-base-fee/std",
 	"pallet-collective/std",
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
