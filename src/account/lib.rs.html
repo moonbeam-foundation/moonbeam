@@ -225,10 +225,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -269,20 +265,10 @@
 <span class="doccomment">/// Polkadot JS.</span>
 
 <span class="attribute">#[<span class="ident">derive</span>(
-	<span class="ident">Eq</span>,
-	<span class="ident">PartialEq</span>,
-	<span class="ident">Copy</span>,
-	<span class="ident">Clone</span>,
-	<span class="ident">Encode</span>,
-	<span class="ident">Decode</span>,
-	<span class="ident">Debug</span>,
-	<span class="ident">TypeInfo</span>,
-	<span class="ident">MaxEncodedLen</span>,
-	<span class="ident">Default</span>,
-	<span class="ident">PartialOrd</span>,
-	<span class="ident">Ord</span>,
+	<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>, <span class="ident">MaxEncodedLen</span>, <span class="ident">Default</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>,
 )]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AccountId20</span>(<span class="kw">pub</span> [<span class="ident">u8</span>; <span class="number">20</span>]);
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="macro">impl_serde::impl_fixed_hash_serde!</span>(<span class="ident">AccountId20</span>, <span class="number">20</span>);
 
@@ -293,6 +279,12 @@
 	<span class="comment">// Maybe this one https://github.com/miguelmota/rust-eth-checksum</span>
 	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
 		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">core::fmt::Debug</span> <span class="kw">for</span> <span class="ident">AccountId20</span> {
+	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">core::fmt::Result</span> {
+		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">H160</span>(<span class="self">self</span>.<span class="number">0</span>))
 	}
 }
 
