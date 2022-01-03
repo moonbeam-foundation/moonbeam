@@ -497,27 +497,6 @@
 <span id="497">497</span>
 <span id="498">498</span>
 <span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -625,8 +604,6 @@
 	) -&gt; <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requester</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">clone</span>();
 
-		<span class="macro">println!</span>(<span class="string">&quot;---&gt; Enter {:?}&quot;</span>, <span class="ident">id</span>);
-
 		<span class="kw">async</span> <span class="kw">move</span> {
 			<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
 			<span class="comment">// Send a message from the rpc handler to the service level task.</span>
@@ -689,15 +666,7 @@
 						<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">clone</span>();
 						<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
 						<span class="kw">let</span> <span class="ident">permit_pool</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">clone</span>();
-						<span class="comment">// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.</span>
-						<span class="comment">//</span>
-						<span class="comment">// Substrate uses the default value for `core_threads` (number of cores of the</span>
-						<span class="comment">// machine running the node) and `max_threads` (512 total).</span>
-						<span class="comment">//</span>
-						<span class="comment">// Task below is spawned in the substrate&#39;s built tokio::Runtime, so they share</span>
-						<span class="comment">// the same thread pool as the rest of the service-spawned tasks. Additionally,</span>
-						<span class="comment">// blocking tasks use a more restrictive permit pool shared by trace modules.</span>
-						<span class="comment">// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html</span>
+
 						<span class="ident">tokio::task::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
 							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">response_tx</span>.<span class="ident">send</span>(
 								<span class="kw">async</span> {
@@ -728,22 +697,12 @@
 						<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">clone</span>();
 						<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
 						<span class="kw">let</span> <span class="ident">permit_pool</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">clone</span>();
-						<span class="comment">// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.</span>
-						<span class="comment">//</span>
-						<span class="comment">// Substrate uses the default value for `core_threads` (number of cores of the</span>
-						<span class="comment">// machine running the node) and `max_threads` (512 total).</span>
-						<span class="comment">//</span>
-						<span class="comment">// Task below is spawned in the substrate&#39;s built tokio::Runtime, so they share</span>
-						<span class="comment">// the same thread pool as the rest of the service-spawned tasks. Additionally,</span>
-						<span class="comment">// blocking tasks use a more restrictive permit pool shared by trace modules.</span>
-						<span class="comment">// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html</span>
+
 						<span class="ident">tokio::task::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-							<span class="macro">println!</span>(<span class="string">&quot;--&gt; Request2&quot;</span>);
 							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">response_tx</span>.<span class="ident">send</span>(
 								<span class="kw">async</span> {
 									<span class="kw">let</span> <span class="ident">_permit</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">acquire</span>().<span class="kw">await</span>;
 
-									<span class="macro">println!</span>(<span class="string">&quot;--&gt; Request3&quot;</span>);
 									<span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 										<span class="ident"><span class="self">Self</span>::handle_block_request</span>(
 											<span class="ident">client</span>.<span class="ident">clone</span>(),
@@ -909,7 +868,6 @@
 						<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>
 					))),
 				}<span class="question-mark">?</span>;
-				<span class="macro">println!</span>(<span class="string">&quot;---&gt; Response {:?}&quot;</span>, <span class="ident">response</span>);
 
 				<span class="prelude-val">Ok</span>(<span class="ident">Response::Block</span>(<span class="ident">response</span>))
 			}
