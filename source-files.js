@@ -15,7 +15,6 @@ sourcesIndex["moonbeam_relay_encoder"] = {"name":"","files":["kusama.rs","lib.rs
 sourcesIndex["moonbeam_rpc_core_debug"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_core_trace"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_core_txpool"] = {"name":"","dirs":[{"name":"types","files":["content.rs","inspect.rs","mod.rs"]}],"files":["lib.rs"]};
-sourcesIndex["moonbeam_rpc_core_types"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_debug"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_primitives_debug"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_primitives_txpool"] = {"name":"","files":["lib.rs"]};

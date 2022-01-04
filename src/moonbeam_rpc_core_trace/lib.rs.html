@@ -70,10 +70,10 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">ethereum_types::H160</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc_core::types::BlockNumber</span>;
 <span class="kw">use</span> <span class="ident">futures::future::BoxFuture</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing::types::block::TransactionTrace</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types::RequestBlockId</span>;
 <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rpc_impl_Trace::gen_server::Trace</span> <span class="kw">as</span> <span class="ident">TraceServer</span>;
@@ -91,10 +91,10 @@
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FilterRequest</span> {
 	<span class="doccomment">/// (optional?) From this block.</span>
-	<span class="kw">pub</span> <span class="ident">from_block</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RequestBlockId</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">from_block</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// (optional?) To this block.</span>
-	<span class="kw">pub</span> <span class="ident">to_block</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RequestBlockId</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">to_block</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// (optional) Sent from these addresses.</span>
 	<span class="kw">pub</span> <span class="ident">from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span><span class="op">&gt;</span>,

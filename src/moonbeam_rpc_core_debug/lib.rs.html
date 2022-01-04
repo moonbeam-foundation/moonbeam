@@ -65,11 +65,11 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc_core::types::BlockNumber</span>;
 <span class="kw">use</span> <span class="ident">futures::future::BoxFuture</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_core::Result</span> <span class="kw">as</span> <span class="ident">RpcResult</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing::types::single</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types::RequestBlockId</span>;
 <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rpc_impl_Debug::gen_server::Debug</span> <span class="kw">as</span> <span class="ident">DebugServer</span>;
@@ -96,7 +96,7 @@
 	<span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;debug_traceBlockByNumber&quot;</span>, <span class="ident">alias</span>(<span class="string">&quot;debug_traceBlockByHash&quot;</span>))]</span>
 	<span class="kw">fn</span> <span class="ident">trace_block</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">id</span>: <span class="ident">RequestBlockId</span>,
+		<span class="ident">id</span>: <span class="ident">BlockNumber</span>,
 		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
 	) -&gt; <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
