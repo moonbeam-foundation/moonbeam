@@ -358,7 +358,7 @@ jobs:
           node-version: 14.x
       - name: Get tracing runtimes
         run: |
-          ./scripts/build-last-tracing-runtime.sh
+          ./scripts/build-last-tracing-runtime.sh ${GITHUB_REF#refs/heads/}
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides
       - name: Typescript tracing tests (against dev service)
         env:
