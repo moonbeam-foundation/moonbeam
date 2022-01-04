@@ -488,11 +488,15 @@ where
 		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_log_costs_manual(2, 32)?;
-
 		let caller: Runtime::AccountId = Runtime::AddressMapping::into_account_id(context.caller);
 		let precompile = Runtime::AddressMapping::into_account_id(context.address);
 		let amount = Self::u256_to_amount(gasometer, context.apparent_value)?;
+
+		if amount.into() == U256::from(0u32) {
+			return Err(gasometer.revert("deposited amount must be non-zero"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
 
 		// Send back funds received by the precompile.
 		RuntimeHelper::<Runtime>::try_dispatch(
