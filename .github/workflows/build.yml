@@ -22,6 +22,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
+      git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
@@ -36,10 +37,13 @@ jobs:
         # else (push)
         run: |
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo ::set-env name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
+            echo ::set-env name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
           else 
+            echo ::set-env name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
             echo ::set-output name=git_ref::$GITHUB_REF
           fi
       - uses: actions/checkout@v2
@@ -342,7 +346,7 @@ jobs:
 
   typescript-tracing-tests:
     runs-on: self-hosted
-    needs: build
+    needs: ["set-tags", "build"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -358,7 +362,7 @@ jobs:
           node-version: 14.x
       - name: Get tracing runtimes
         run: |
-          ./scripts/build-last-tracing-runtime.sh ${GITHUB_REF#refs/heads/}
+          ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides
       - name: Typescript tracing tests (against dev service)
         env:
