@@ -24,9 +24,9 @@ use tokio::{
 
 use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
-use fc_rpc_core::types::BlockNumber;
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
+use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sc_utils::mpsc::TracingUnboundedSender;
@@ -40,7 +40,7 @@ use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
 	Transaction(H256),
-	Block(BlockNumber),
+	Block(RequestBlockId),
 }
 
 pub enum Response {
@@ -100,7 +100,7 @@ impl DebugT for Debug {
 
 	fn trace_block(
 		&self,
-		id: BlockNumber,
+		id: RequestBlockId,
 		params: Option<TraceParams>,
 	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
 		let mut requester = self.requester.clone();
@@ -280,18 +280,24 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::Backend<B>>,
-		request_block_id: BlockNumber,
+		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
 		let reference_id: BlockId<B> = match request_block_id {
-			BlockNumber::Num(n) => Ok(BlockId::Number(n.unique_saturated_into())),
-			BlockNumber::Latest => Ok(BlockId::Number(client.info().best_number)),
-			BlockNumber::Earliest => Ok(BlockId::Number(0u32.unique_saturated_into())),
-			BlockNumber::Pending => Err(internal_err("'pending' blocks are not supported")),
-			BlockNumber::Hash { hash, .. } => {
-				match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), hash) {
+			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
+			RequestBlockId::Tag(RequestBlockTag::Latest) => {
+				Ok(BlockId::Number(client.info().best_number))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Earliest) => {
+				Ok(BlockId::Number(0u32.unique_saturated_into()))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Pending) => {
+				Err(internal_err("'pending' blocks are not supported"))
+			}
+			RequestBlockId::Hash(eth_hash) => {
+				match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), eth_hash) {
 					Ok(Some(id)) => Ok(id),
 					Ok(_) => Err(internal_err("Block hash not found".to_string())),
 					Err(e) => Err(e),

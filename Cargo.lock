@@ -5354,12 +5354,12 @@ name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "fc-rpc-core",
  "futures 0.3.17",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "moonbeam-client-evm-tracing",
+ "moonbeam-rpc-core-types",
  "serde",
  "serde_json",
  "sp-core",
@@ -5370,12 +5370,12 @@ name = "moonbeam-rpc-core-trace"
 version = "0.6.0"
 dependencies = [
  "ethereum-types",
- "fc-rpc-core",
  "futures 0.3.17",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "moonbeam-client-evm-tracing",
+ "moonbeam-rpc-core-types",
  "serde",
  "serde_json",
 ]
@@ -5395,6 +5395,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-types"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
@@ -5403,12 +5412,12 @@ dependencies = [
  "fc-consensus",
  "fc-db",
  "fc-rpc",
- "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.17",
  "jsonrpc-core",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
+ "moonbeam-rpc-core-types",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-utils",
@@ -5465,6 +5474,7 @@ dependencies = [
  "jsonrpc-core",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-trace",
+ "moonbeam-rpc-core-types",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-network",
