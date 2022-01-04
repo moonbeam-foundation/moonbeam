@@ -183,9 +183,10 @@ where
 			context,
 			is_static,
 			match selector {
-				Action::Approve | Action::Transfer | Action::TransferFrom => {
+				Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
 					FunctionModifier::NonPayable
 				}
+				Action::Deposit => FunctionModifier::Payable,
 				_ => FunctionModifier::View,
 			},
 		)?;
