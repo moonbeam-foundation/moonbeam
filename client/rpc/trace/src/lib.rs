@@ -44,8 +44,8 @@ use sp_runtime::traits::Block as BlockT;
 
 use ethereum_types::H256;
 use fc_rpc::internal_err;
-use fp_rpc::EthereumRuntimeRPCApi;
 use fc_rpc_core::types::BlockNumber;
+use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
 	formatters::ResponseFormatter,
@@ -94,13 +94,9 @@ where
 	fn block_id(&self, id: Option<BlockNumber>) -> Result<u32> {
 		match id {
 			Some(BlockNumber::Num(n)) => Ok(n as u32),
-			None | Some(BlockNumber::Latest) => {
-				Ok(self.client.info().best_number)
-			}
+			None | Some(BlockNumber::Latest) => Ok(self.client.info().best_number),
 			Some(BlockNumber::Earliest) => Ok(0),
-			Some(BlockNumber::Pending) => {
-				Err(internal_err("'pending' is not supported"))
-			}
+			Some(BlockNumber::Pending) => Err(internal_err("'pending' is not supported")),
 			Some(BlockNumber::Hash { .. }) => Err(internal_err("Block hash not supported")),
 		}
 	}

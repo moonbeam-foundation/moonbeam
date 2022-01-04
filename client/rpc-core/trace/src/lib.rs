@@ -15,10 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H160;
+use fc_rpc_core::types::BlockNumber;
 use futures::future::BoxFuture;
 use jsonrpc_derive::rpc;
 use moonbeam_client_evm_tracing::types::block::TransactionTrace;
-use fc_rpc_core::types::BlockNumber;
 use serde::Deserialize;
 
 pub use rpc_impl_Trace::gen_server::Trace as TraceServer;

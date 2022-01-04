@@ -24,9 +24,9 @@ use tokio::{
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
+use fc_rpc_core::types::BlockNumber;
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
-use fc_rpc_core::types::BlockNumber;
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sc_utils::mpsc::TracingUnboundedSender;
@@ -287,15 +287,9 @@ where
 
 		let reference_id: BlockId<B> = match request_block_id {
 			BlockNumber::Num(n) => Ok(BlockId::Number(n.unique_saturated_into())),
-			BlockNumber::Latest => {
-				Ok(BlockId::Number(client.info().best_number))
-			}
-			BlockNumber::Earliest => {
-				Ok(BlockId::Number(0u32.unique_saturated_into()))
-			}
-			BlockNumber::Pending => {
-				Err(internal_err("'pending' blocks are not supported"))
-			}
+			BlockNumber::Latest => Ok(BlockId::Number(client.info().best_number)),
+			BlockNumber::Earliest => Ok(BlockId::Number(0u32.unique_saturated_into())),
+			BlockNumber::Pending => Err(internal_err("'pending' blocks are not supported")),
 			BlockNumber::Hash { hash, .. } => {
 				match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), hash) {
 					Ok(Some(id)) => Ok(id),
