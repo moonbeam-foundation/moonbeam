@@ -18,7 +18,7 @@ use futures::future::BoxFuture;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 use moonbeam_client_evm_tracing::types::single;
-use moonbeam_rpc_core_types::RequestBlockId;
+use fc_rpc_core::types::BlockNumber;
 use serde::Deserialize;
 
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
@@ -45,7 +45,7 @@ pub trait Debug {
 	#[rpc(name = "debug_traceBlockByNumber", alias("debug_traceBlockByHash"))]
 	fn trace_block(
 		&self,
-		id: RequestBlockId,
+		id: BlockNumber,
 		params: Option<TraceParams>,
 	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>;
 }

@@ -45,13 +45,13 @@ use sp_runtime::traits::Block as BlockT;
 use ethereum_types::H256;
 use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
+use fc_rpc_core::types::BlockNumber;
 
 use moonbeam_client_evm_tracing::{
 	formatters::ResponseFormatter,
 	types::block::{self, TransactionTrace},
 };
 pub use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TraceServer};
-use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
@@ -91,17 +91,17 @@ where
 	}
 
 	/// Convert an optional block ID (number or tag) to a block height.
-	fn block_id(&self, id: Option<RequestBlockId>) -> Result<u32> {
+	fn block_id(&self, id: Option<BlockNumber>) -> Result<u32> {
 		match id {
-			Some(RequestBlockId::Number(n)) => Ok(n),
-			None | Some(RequestBlockId::Tag(RequestBlockTag::Latest)) => {
+			Some(BlockNumber::Num(n)) => Ok(n as u32),
+			None | Some(BlockNumber::Latest) => {
 				Ok(self.client.info().best_number)
 			}
-			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
-			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
+			Some(BlockNumber::Earliest) => Ok(0),
+			Some(BlockNumber::Pending) => {
 				Err(internal_err("'pending' is not supported"))
 			}
-			Some(RequestBlockId::Hash(_)) => Err(internal_err("Block hash not supported")),
+			Some(BlockNumber::Hash { .. }) => Err(internal_err("Block hash not supported")),
 		}
 	}
 
