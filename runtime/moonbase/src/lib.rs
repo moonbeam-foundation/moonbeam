@@ -910,7 +910,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -1611,6 +1611,10 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
 }
 
+parameter_types! {
+	pub IsActive: bool = true;
+}
+
 pub struct BaseFeeThreshold;
 impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 	fn lower() -> Permill {
@@ -1627,6 +1631,7 @@ impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
 }
 
 construct_runtime! {

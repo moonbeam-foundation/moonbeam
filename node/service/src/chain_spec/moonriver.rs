@@ -218,6 +218,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
+		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
