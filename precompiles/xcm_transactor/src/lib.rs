@@ -23,7 +23,8 @@ use evm::{executor::stack::PrecompileOutput, Context, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 
 use sp_core::H160;
@@ -72,12 +73,22 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::TransactThroughDerivativeMultiLocation
+				| Action::TransactThroughDerivative => FunctionModifier::NonPayable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
