@@ -18,20 +18,20 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, FindAuthor, Get, Nothing, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
 	weights::Weight,
-	ConsensusEngineId, PalletId,
+	PalletId,
 };
 
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
-use sp_core::{H160, H256, U256};
+use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{Hash, IdentityLookup},
 	Permill,
 };
-use sp_std::{convert::TryFrom, prelude::*, str::FromStr};
+use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
@@ -690,25 +690,8 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct FixedGasPrice;
-impl pallet_evm::FeeCalculator for FixedGasPrice {
-	fn min_gas_price() -> U256 {
-		1_000_000_000u128.into()
-	}
-}
-
-pub struct FindAuthorTruncated;
-impl FindAuthor<H160> for FindAuthorTruncated {
-	fn find_author<'a, I>(_digests: I) -> Option<H160>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		Some(H160::from_str("1234500000000000000000000000000000000000").unwrap())
-	}
-}
-
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = FixedGasPrice;
+	type FeeCalculator = ();
 	type GasWeightMapping = ();
 
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
@@ -725,7 +708,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
-	type FindAuthor = FindAuthorTruncated;
+	type FindAuthor = ();
 }
 
 pub struct NormalFilter;
