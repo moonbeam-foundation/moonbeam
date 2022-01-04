@@ -481,6 +481,89 @@
 <span id="481">481</span>
 <span id="482">482</span>
 <span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -536,6 +619,12 @@
 
 <span class="doccomment">/// Solidity selector of the Approval log, which is the Keccak of the Log signature.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_APPROVAL</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Approval(address,address,uint256)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_DEPOSIT</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Deposit(address,uint256)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_WITHDRAWAL</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Withdrawal(address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Associates pallet Instance to a prefix used for the Approves storage.</span>
 <span class="doccomment">/// This trait is implemented for () and the 16 substrate Instance.</span>
@@ -609,6 +698,8 @@
 	<span class="ident">Name</span> <span class="op">=</span> <span class="string">&quot;name()&quot;</span>,
 	<span class="ident">Symbol</span> <span class="op">=</span> <span class="string">&quot;symbol()&quot;</span>,
 	<span class="ident">Decimals</span> <span class="op">=</span> <span class="string">&quot;decimals()&quot;</span>,
+	<span class="ident">Deposit</span> <span class="op">=</span> <span class="string">&quot;deposit()&quot;</span>,
+	<span class="ident">Withdraw</span> <span class="op">=</span> <span class="string">&quot;withdraw(uint256)&quot;</span>,
 }
 
 <span class="doccomment">/// Metadata of an ERC20 token.</span>
@@ -650,7 +741,8 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 		<span class="kw">let</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>;
 
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)
+			.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> (<span class="ident">EvmDataReader::new</span>(<span class="ident">input</span>), <span class="ident">Action::Deposit</span>));
 		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">input</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
@@ -663,6 +755,8 @@
 			<span class="ident">Action::Name</span> =&gt; <span class="ident"><span class="self">Self</span>::name</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
 			<span class="ident">Action::Symbol</span> =&gt; <span class="ident"><span class="self">Self</span>::symbol</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
 			<span class="ident">Action::Decimals</span> =&gt; <span class="ident"><span class="self">Self</span>::decimals</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Deposit</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Withdraw</span> =&gt; <span class="ident"><span class="self">Self</span>::withdraw</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
 		}
 	}
 }
@@ -952,6 +1046,78 @@
 			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">Metadata::decimals</span>()).<span class="ident">build</span>(),
 			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">deposit</span>(
+		<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">precompile</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">address</span>);
+		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">context</span>.<span class="ident">apparent_value</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">if</span> <span class="ident">amount</span>.<span class="ident">into</span>() <span class="op">==</span> <span class="ident">U256::from</span>(<span class="number">0u32</span>) {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;deposited amount must be non-zero&quot;</span>));
+		}
+
+		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+
+		<span class="comment">// Send back funds received by the precompile.</span>
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
+			<span class="prelude-val">Some</span>(<span class="ident">precompile</span>).<span class="ident">into</span>(),
+			<span class="ident">pallet_balances::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
+				<span class="ident">dest</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">caller</span>),
+				<span class="ident">value</span>: <span class="ident">amount</span>,
+			},
+			<span class="ident">gasometer</span>,
+		)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">logs</span>: <span class="ident">LogsBuilder::new</span>(<span class="ident">context</span>.<span class="ident">address</span>)
+				.<span class="ident">log2</span>(
+					<span class="ident">SELECTOR_LOG_DEPOSIT</span>,
+					<span class="ident">context</span>.<span class="ident">caller</span>,
+					<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">context</span>.<span class="ident">apparent_value</span>).<span class="ident">build</span>(),
+				)
+				.<span class="ident">build</span>(),
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">withdraw</span>(
+		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
+		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">withdrawn_amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">account_amount</span>: <span class="ident">U256</span> <span class="op">=</span> {
+			<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span>
+				<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+			<span class="ident">pallet_balances::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::usable_balance</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>).<span class="ident">into</span>()
+		};
+
+		<span class="kw">if</span> <span class="ident">withdrawn_amount</span> <span class="op">&gt;</span> <span class="ident">account_amount</span> {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;trying to withdraw more than owned&quot;</span>));
+		}
+
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">logs</span>: <span class="ident">LogsBuilder::new</span>(<span class="ident">context</span>.<span class="ident">address</span>)
+				.<span class="ident">log2</span>(
+					<span class="ident">SELECTOR_LOG_WITHDRAWAL</span>,
+					<span class="ident">context</span>.<span class="ident">caller</span>,
+					<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">withdrawn_amount</span>).<span class="ident">build</span>(),
+				)
+				.<span class="ident">build</span>(),
 		})
 	}
 
