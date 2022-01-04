@@ -33,5 +33,5 @@ ethereum-types = "0.12.0"
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", features = [ "rpc_binary_search_estimate" ] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
