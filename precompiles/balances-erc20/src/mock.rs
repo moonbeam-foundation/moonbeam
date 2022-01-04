@@ -284,3 +284,10 @@ impl ExtBuilder {
 		ext
 	}
 }
+
+pub(crate) fn events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
+}
