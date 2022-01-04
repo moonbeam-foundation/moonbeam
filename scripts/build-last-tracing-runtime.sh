@@ -3,6 +3,8 @@
 CURRENT_GIT_BRANCH="$(git symbolic-ref HEAD 2>/dev/null)"
 CURRENT_GIT_BRANCH=${CURRENT_GIT_BRANCH##refs/heads/}
 
+echo "CURRENT_GIT_BRANCH=$CURRENT_GIT_BRANCH"
+
 rm -rf build/{moonbeam-runtime-overrides,wasm}
 mkdir -p build/wasm
 git clone --depth 1 -b master-without-wasm https://github.com/PureStake/moonbeam-runtime-overrides build/moonbeam-runtime-overrides
