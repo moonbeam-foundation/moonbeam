@@ -37,13 +37,13 @@ jobs:
         # else (push)
         run: |
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
-            echo ::set-env name=git_branch::$(echo ${GITHUB_HEAD_REF})
+            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
-            echo ::set-env name=git_branch::$(echo ${GITHUB_HEAD_REF})
+            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
           else 
-            echo ::set-env name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
+            echo ::set-output name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
             echo ::set-output name=git_ref::$GITHUB_REF
           fi
       - uses: actions/checkout@v2
