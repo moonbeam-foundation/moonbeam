@@ -20,7 +20,6 @@ tracing = "0.1.25"
 # Moonbeam
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
-moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Substrate
