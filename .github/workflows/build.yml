@@ -363,7 +363,8 @@ jobs:
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
-          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides
+          mkdir -p tests/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
           BINARY_PATH: ../build/moonbeam
@@ -377,7 +378,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
+          node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
     runs-on: self-hosted
