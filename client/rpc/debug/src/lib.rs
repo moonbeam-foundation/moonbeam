@@ -22,7 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
-use ethereum_types::{H128, H256};
+use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_rpc_core::types::BlockNumber;
 use fp_rpc::EthereumRuntimeRPCApi;
@@ -36,7 +36,7 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
-use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
 	Transaction(H256),
@@ -239,9 +239,9 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				let tracer = if hash == blockscout_hash {
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [34, 139, 83, 34, 21, 8, 219, 28, 30, 126, 128, 171, 120, 57, 71, 116];
+				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
+				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
 					Some(TracerInput::Blockscout)
 				} else if tracer == "callTracer" {
 					Some(TracerInput::CallTracer)
