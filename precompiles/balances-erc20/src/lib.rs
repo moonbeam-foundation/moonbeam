@@ -493,7 +493,7 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Deposit only makes sense for the native currency.
-		if !Erc20Metadata::is_native_currency() {
+		if !Metadata::is_native_currency() {
 			return Err(gasometer.revert("unknown selector"));
 		}
 
@@ -537,7 +537,7 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Withdraw only makes sense for the native currency.
-		if !Erc20Metadata::is_native_currency() {
+		if !Metadata::is_native_currency() {
 			return Err(gasometer.revert("unknown selector"));
 		}
 
