@@ -83,20 +83,6 @@ interface IERC20 {
   function transferFrom(address from, address to, uint256 value)
     external returns (bool);
 
-  /**
-   * @dev Provide compatibility for contracts that expect wETH design.
-   * Returns funds to sender as this precompile tokens and the native tokens are the same.
-   * Selector: d0e30db0
-   */
-  function deposit() external payable;
-
-  /**
-   * @dev Provide compatibility for contracts that expect wETH design.
-   * Does nothing.
-   * Selector: 2e1a7d4d
-   * @param Amount to withdraw/unwrap.
-   */
-  function withdraw(uint256 value) external;
 
   /**
    * @dev Event emited when a transfer has been performed.
@@ -123,6 +109,29 @@ interface IERC20 {
     address indexed spender,
     uint256 value
   );
+}
+
+/**
+ * @title Native currency wrapper interface.
+ * @dev Allow compatibility with dApps expecting this precompile to be
+ * a WETH-like contract.
+ * Moonbase address : 0x0000000000000000000000000000000000000802
+ */
+interface WrappedNativeCurrency {
+  /**
+   * @dev Provide compatibility for contracts that expect wETH design.
+   * Returns funds to sender as this precompile tokens and the native tokens are the same.
+   * Selector: d0e30db0
+   */
+  function deposit() external payable;
+
+  /**
+   * @dev Provide compatibility for contracts that expect wETH design.
+   * Does nothing.
+   * Selector: 2e1a7d4d
+   * @param Amount to withdraw/unwrap.
+   */
+  function withdraw(uint256 value) external;
 
   /**
    * @dev Event emited when deposit() has been called.
@@ -135,7 +144,7 @@ interface IERC20 {
     uint value
   );
 
-    /**
+  /**
    * @dev Event emited when withdraw(uint256) has been called.
    * Selector: 7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65
    * @param owner address Owner of the tokens
