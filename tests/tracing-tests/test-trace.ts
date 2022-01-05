@@ -67,7 +67,8 @@ describeDevMoonbeam(
     // Previously exhausted Wasm memory allocation:
     // Thread 'tokio-runtime-worker' panicked at 'Failed to allocate memory:
     // "Allocator ran out of space"'.
-    it("should not overflow Wasm memory", async function () {
+    // TODO: raw tracing is temporary disabled
+    it.skip("should not overflow Wasm memory", async function () {
       this.timeout(15000);
       const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [false]);
       const { txResults } = await context.createBlock({
@@ -95,7 +96,8 @@ describeDevMoonbeam(
       expect(trace.result.stepLogs.length).to.equal(58219);
     });
 
-    it("should replay over an intermediate state", async function () {
+    // TODO: raw tracing is temporary disabled
+    it.skip("should replay over an intermediate state", async function () {
       const { contract, rawTx } = await createContract(context, "Incrementer", {}, [false]);
       const { txResults } = await context.createBlock({
         transactions: [rawTx],
@@ -149,7 +151,8 @@ describeDevMoonbeam(
       }
     });
 
-    it("should trace nested contract calls", async function () {
+    // TODO: raw tracing is temporary disabled
+    it.skip("should trace nested contract calls", async function () {
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
