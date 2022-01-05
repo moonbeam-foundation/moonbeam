@@ -324,29 +324,6 @@ pub mod pallet {
 		pub status: CollatorStatus,
 	}
 
-	/// Temporary function to migrate CandidateState storage item
-	pub fn migrate_candidate_state<T: Config>(
-		candidate_id: &T::AccountId,
-		old_state: CollatorCandidate<T::AccountId, BalanceOf<T>>,
-	) {
-		// let metadata = CandidateMetadata {
-		// 	bond: old_state.bond,
-		// 	delegation_count: old_state.delegators.len(),
-		// 	total_counted: old_state.total_counted,
-		// 	lowest_top_delegation_amount: Zero::zero(),
-		// 	highest_bottom_delegation_amount: Zero::zero(),
-		// 	lowest_bottom_delegation_amount: Zero::zero(),
-		// 	top_capacity: CapacityStatus::Empty,
-		// 	bottom_capacity: CapacityStatus::Empty,
-		// 	request: None,
-		// 	status: CollatorStatus::Active,
-		// };
-		// get candidate metadata
-		// insert top delegations
-		// insert bottom delegations
-		todo!()
-	}
-
 	impl<
 			Balance: Copy
 				+ Zero

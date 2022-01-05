@@ -17,81 +17,117 @@
 //! # Migrations
 use crate::{
 	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
-	BalanceOf, Bond, CandidateState, CollatorCandidate, CollatorState2, Config, DelegatorState,
-	ExitQueue2, NominatorState2, Pallet, Points, Round, Staked,
+	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidateState,
+	CapacityStatus, CollatorCandidate, CollatorState2, Config, Delegations, DelegatorState,
+	ExitQueue2, NominatorState2, Pallet, Points, Round, Staked, TopDelegations,
 };
 #[cfg(feature = "try-runtime")]
 use crate::{Collator2, Delegator, Nominator2};
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-#[cfg(feature = "try-runtime")]
 use frame_support::Twox64Concat;
 extern crate alloc;
 #[cfg(feature = "try-runtime")]
 use alloc::format;
 use frame_support::{
+	migration::{remove_storage_prefix, storage_key_iter},
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_runtime::traits::Zero;
+use sp_std::{collections::btree_map::BTreeMap, convert::TryInto, vec::Vec};
 
-/// TODO: migration from CandidateState to CandidateInfo
+/// Migration to split CandidateState and minimize unnecessary storage reads
+/// for PoV optimization
 pub struct SplitCandidateStateToDecreasePoV<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
+impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 	fn on_runtime_upgrade() -> Weight {
-		let (mut reads, mut writes) = (0u64, 0u64);
-		for (account, state) in <CandidateState<T>>::iter() {
-			reads += 1u64;
-			// 1. collect all delegations into single vec and order them
-			let mut all_delegations = state.top_delegations.clone();
-			let mut starting_bottom_delegations = state.bottom_delegations.clone();
-			all_delegations.append(&mut starting_bottom_delegations);
-			// sort all delegations from greatest to least
-			all_delegations.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			let top_n = T::MaxTopDelegationsPerCandidate::get() as usize;
-			// 2. split them into top and bottom using the T::MaxNominatorsPerCollator
-			let top_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
-				all_delegations.iter().take(top_n).cloned().collect();
-			let bottom_delegations = if all_delegations.len() > top_n {
-				let rest = all_delegations.len() - top_n;
-				let bottom: Vec<Bond<T::AccountId, BalanceOf<T>>> =
-					all_delegations.iter().rev().take(rest).cloned().collect();
-				bottom
+		let pallet_prefix: &[u8] = b"ParachainStaking";
+		let storage_item_prefix: &[u8] = b"CandidateState";
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec<_> = storage_key_iter::<
+			T::AccountId,
+			CollatorCandidate<T::AccountId, BalanceOf<T>>,
+			Twox64Concat,
+		>(pallet_prefix, storage_item_prefix)
+		.collect();
+		let migrated_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+		// Now remove the old storage
+		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+		remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
+		// Assert that old storage is empty
+		assert!(storage_key_iter::<
+			T::AccountId,
+			CollatorCandidate<T::AccountId, BalanceOf<T>>,
+			Twox64Concat,
+		>(pallet_prefix, storage_item_prefix)
+		.next()
+		.is_none());
+		for (account, state) in stored_data {
+			let lowest_top_delegation_amount = if state.top_delegations.is_empty() {
+				BalanceOf::<T>::zero()
 			} else {
-				// empty, all nominations are in top
-				Vec::new()
+				state.top_delegations[state.top_delegations.len() - 1].amount
 			};
-			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
-				(0u32.into(), 0u32.into());
-			for Bond { amount, .. } in &top_delegations {
-				total_counted += *amount;
-				total_backing += *amount;
-			}
-			for Bond { amount, .. } in &bottom_delegations {
-				total_backing += *amount;
-			}
-			// update candidate pool with new total counted if it changed
-			if state.total_counted != total_counted && state.is_active() {
-				reads += 1u64;
-				writes += 1u64;
-				<Pallet<T>>::update_active(account.clone(), total_counted);
-			}
-			<CandidateState<T>>::insert(
-				account,
-				CollatorCandidate {
-					top_delegations,
-					bottom_delegations,
-					total_counted,
-					total_backing,
-					..state
-				},
-			);
-			writes += 1u64;
+			let highest_bottom_delegation_amount = if state.bottom_delegations.is_empty() {
+				BalanceOf::<T>::zero()
+			} else {
+				state.bottom_delegations[0].amount
+			};
+			let lowest_bottom_delegation_amount = if state.bottom_delegations.is_empty() {
+				BalanceOf::<T>::zero()
+			} else {
+				state.bottom_delegations[state.bottom_delegations.len() - 1].amount
+			};
+			let top_capacity = match &state.top_delegations {
+				x if x.len() as u32 == T::MaxTopDelegationsPerCandidate::get() => {
+					CapacityStatus::Full
+				}
+				x if x.is_empty() => CapacityStatus::Empty,
+				_ => CapacityStatus::Partial,
+			};
+			let bottom_capacity = match &state.bottom_delegations {
+				x if x.len() as u32 == T::MaxBottomDelegationsPerCandidate::get() => {
+					CapacityStatus::Full
+				}
+				x if x.is_empty() => CapacityStatus::Empty,
+				_ => CapacityStatus::Partial,
+			};
+			let metadata = CandidateMetadata {
+				bond: state.bond,
+				delegation_count: state.delegators.0.len() as u32,
+				total_counted: state.total_counted,
+				lowest_top_delegation_amount,
+				highest_bottom_delegation_amount,
+				lowest_bottom_delegation_amount,
+				top_capacity,
+				bottom_capacity,
+				request: state.request,
+				status: state.state,
+			};
+			<CandidateInfo<T>>::insert(&account, metadata);
+			let top_delegations = Delegations {
+				total: state.total_counted - state.bond,
+				delegations: state.top_delegations,
+			};
+			<TopDelegations<T>>::insert(&account, top_delegations);
+			let bottom_delegations = Delegations {
+				// total_backing = total_counted + sum(bottom_delegation_amounts)
+				// this field is now sum(bottom_delegation_amounts)
+				total: state.total_backing - state.total_counted,
+				// all delegations are stored greatest to least post migration
+				// but bottom delegations were least to greatest pre migration
+				delegations: state.bottom_delegations.into_iter().rev().collect(),
+			};
+			<BottomDelegations<T>>::insert(&account, bottom_delegations);
 		}
 		let weight = T::DbWeight::get();
-		// 20% of the max block weight as safety margin for computation
-		weight.reads(reads) + weight.writes(writes) + 100_000_000_000
+		migrated_count.saturating_mul(3 * weight.write + weight.read)
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
@@ -111,12 +147,11 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		// check that top + bottom are the same as the expected (stored in temp)
-		for (account, state) in <CandidateState<T>>::iter() {
+		for (account, state) in <CandidateInfo<T>>::iter() {
 			let expected_count: u32 =
 				Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
 					.expect("qed");
-			let actual_count =
-				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
+			let actual_count = state.delegation_count;
 			assert_eq!(expected_count, actual_count);
 		}
 		Ok(())
@@ -124,8 +159,8 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 }
 
 /// Migration to properly increase maximum delegations per collator
-/// This migration logic may be used to recompute the top and bottom delegations whenever
-/// MaxDelegatorsPerCandidate changes (works for decrease as well)
+/// The logic may be used to recompute the top and bottom delegations whenever
+/// MaxTopDelegationsPerCandidate changes (works for if decreases as well)
 pub struct IncreaseMaxDelegationsPerCandidate<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 	fn on_runtime_upgrade() -> Weight {
@@ -268,7 +303,7 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::storage::migration::{storage_iter, storage_key_iter};
+		use frame_support::storage::migration::storage_iter;
 
 		let pallet_prefix: &[u8] = b"ParachainStaking";
 		let collator_state_prefix: &[u8] = b"CollatorState2";
