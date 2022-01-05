@@ -6,7 +6,7 @@ BUILD_LAST_TRACING_RUNTIME="no"
 
 if [ -e tests/moonbase-overrides/moonbase-runtime-local-substitute-tracing.wasm ]; then
   if [[ "$1" == "-f" ]]; then
-   BUILD_LAST_TRACING_RUNTIME="yes"
+    BUILD_LAST_TRACING_RUNTIME="yes"
   fi
 else
   BUILD_LAST_TRACING_RUNTIME="yes"
