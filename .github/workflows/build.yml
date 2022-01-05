@@ -345,6 +345,7 @@ jobs:
           fi
 
   typescript-tracing-tests:
+    if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on: self-hosted
     needs: ["set-tags", "build"]
     steps:
