@@ -384,9 +384,6 @@ where
 		};
 		let signed = unsigned.sign(signing_key);
 
-		let transaction_hash =
-			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
-
 		let unchecked_extrinsic = self
 			.transaction_converter
 			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
@@ -401,7 +398,7 @@ where
 
 		let _ = futures::executor::block_on(future);
 
-		Ok(transaction_hash)
+		Ok(signed.hash())
 	}
 
 	/// Author a block through manual sealing
