@@ -240,7 +240,7 @@ where
 				..
 			}) => {
 				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
-					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247
+					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
 				];
 				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
 				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
