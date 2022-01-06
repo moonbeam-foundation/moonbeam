@@ -893,6 +893,10 @@
 <span id="893">893</span>
 <span id="894">894</span>
 <span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -939,7 +943,6 @@
 
 <span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
 <span class="kw">use</span> <span class="ident">fc_rpc::internal_err</span>;
-<span class="kw">use</span> <span class="ident">fc_rpc_core::types::BlockNumber</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
 
 <span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing</span>::{
@@ -947,6 +950,7 @@
 	<span class="ident">types::block</span>::{<span class="self">self</span>, <span class="ident">TransactionTrace</span>},
 };
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_trace</span>::{<span class="ident">FilterRequest</span>, <span class="ident">Trace</span> <span class="kw">as</span> <span class="ident">TraceT</span>, <span class="ident">TraceServer</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types</span>::{<span class="ident">RequestBlockId</span>, <span class="ident">RequestBlockTag</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::DebugRuntimeApi</span>;
 
 <span class="doccomment">/// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.</span>
@@ -986,13 +990,17 @@
 	}
 
 	<span class="doccomment">/// Convert an optional block ID (number or tag) to a block height.</span>
-	<span class="kw">fn</span> <span class="ident">block_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">block_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RequestBlockId</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">id</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">BlockNumber::Num</span>(<span class="ident">n</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>),
-			<span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">BlockNumber::Latest</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_number</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">BlockNumber::Earliest</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">BlockNumber::Pending</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;&#39;pending&#39; is not supported&quot;</span>)),
-			<span class="prelude-val">Some</span>(<span class="ident">BlockNumber::Hash</span> { .. }) =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not supported&quot;</span>)),
+			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Number</span>(<span class="ident">n</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">n</span>),
+			<span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Latest</span>)) =&gt; {
+				<span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_number</span>)
+			}
+			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Earliest</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Pending</span>)) =&gt; {
+				<span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;&#39;pending&#39; is not supported&quot;</span>))
+			}
+			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Hash</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not supported&quot;</span>)),
 		}
 	}
 
