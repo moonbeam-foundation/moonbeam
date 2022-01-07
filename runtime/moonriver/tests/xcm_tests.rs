@@ -1210,6 +1210,168 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	});
 }
 
+#[test]
+fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
+	MockNet::reset();
+
+	let mut sufficient_account = [0u8; 20];
+	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
+
+	let evm_account_id = parachain::AccountId::from(sufficient_account);
+
+	// Evm account is self sufficient
+	ParaA::execute_with(|| {
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
+	});
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: sufficient_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	// Evm account sufficient ref count increased by 1.
+	ParaA::execute_with(|| {
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 2);
+	});
+
+	ParaA::execute_with(|| {
+		// Remove the account from the evm context.
+		parachain::EVM::remove_account(&evm_account());
+		// Evm account sufficient ref count decreased by 1.
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
+	});
+}
+
+#[test]
+fn empty_account_should_not_be_reset() {
+	MockNet::reset();
+
+	// Test account has nonce 1 on genesis.
+	let mut sufficient_account = [0u8; 20];
+	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
+
+	let evm_account_id = parachain::AccountId::from(sufficient_account);
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location,
+			asset_metadata,
+			1u128,
+			false
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	// Send native token to evm_account
+	ParaA::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			evm_account_id,
+			100
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: sufficient_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Empty the assets from the account.
+		// As this makes the account go below the `min_balance`, the account is considered dead
+		// at eyes of pallet-assets, and the consumer reference is decreased by 1 and is now Zero.
+		assert_ok!(parachain::Assets::transfer(
+			parachain::Origin::signed(evm_account_id),
+			source_id,
+			PARAALICE.into(),
+			123
+		));
+		// Verify account asset balance is Zero.
+		assert_eq!(
+			parachain::Assets::balance(source_id, &evm_account_id.into()),
+			0
+		);
+		// Because we no longer have consumer references, we can set the balance to Zero.
+		// This would reset the account if our ED were to be > than Zero.
+		assert_ok!(ParaBalances::set_balance(
+			parachain::Origin::root(),
+			evm_account_id,
+			0,
+			0,
+		));
+		// Verify account native balance is Zero.
+		assert_eq!(ParaBalances::free_balance(&evm_account_id), 0);
+		// Remove the account from the evm context.
+		// This decreases the sufficients reference by 1 and now is Zero.
+		parachain::EVM::remove_account(&evm_account());
+		// Verify reference count.
+		let account = parachain::System::account(evm_account_id);
+		assert_eq!(account.sufficients, 0);
+		assert_eq!(account.consumers, 0);
+		assert_eq!(account.providers, 1);
+		// We expect the account to be alive in a Zero ED context.
+		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
+	});
+}
+
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 

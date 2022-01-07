@@ -21,11 +21,19 @@ use cumulus_primitives_core::ParaId;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
+
+use sp_core::{H160, U256};
+use std::{collections::BTreeMap, str::FromStr};
+
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account()
+}
+
+pub fn evm_account() -> H160 {
+	H160::from_str("1000000000000000000000000000000000000001").unwrap()
 }
 
 decl_test_parachain! {
@@ -76,6 +84,9 @@ decl_test_network! {
 
 pub const INITIAL_BALANCE: u128 = 10_000_000_000_000_000;
 
+pub const INITIAL_EVM_BALANCE: u128 = 0;
+pub const INITIAL_EVM_NONCE: u32 = 1;
+
 pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	use parachain::{MsgQueue, Runtime, System};
 
@@ -87,6 +98,28 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		balances: vec![(PARAALICE.into(), INITIAL_BALANCE)],
 	}
 	.assimilate_storage(&mut t)
+	.unwrap();
+
+	// EVM accounts are self-sufficient.
+	let mut evm_accounts = BTreeMap::new();
+	evm_accounts.insert(
+		evm_account(),
+		pallet_evm::GenesisAccount {
+			nonce: U256::from(INITIAL_EVM_NONCE),
+			balance: U256::from(INITIAL_EVM_BALANCE),
+			storage: Default::default(),
+			code: vec![
+				0x00, // STOP
+			],
+		},
+	);
+
+	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
+		&pallet_evm::GenesisConfig {
+			accounts: evm_accounts,
+		},
+		&mut t,
+	)
 	.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
