@@ -1420,6 +1420,7 @@ impl pallet_asset_manager::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
+	AssetReserve(AssetId),
 	OtherReserve(AssetId),
 }
 
@@ -1447,7 +1448,13 @@ where
 			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
-			}
+			},
+			CurrencyId::AssetReserve(asset) => {	
+				let mut location =  LocalAssetsPalletLocation::get();
+				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+
+			},
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
