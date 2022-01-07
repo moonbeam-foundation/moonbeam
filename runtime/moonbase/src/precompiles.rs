@@ -17,6 +17,7 @@
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
 use moonbeam_relay_encoder::westend::WestendEncoder;
+use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
@@ -77,7 +78,8 @@ where
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -97,6 +99,7 @@ where
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
 	fn execute(
@@ -150,6 +153,9 @@ where
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set

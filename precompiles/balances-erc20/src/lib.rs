@@ -54,6 +54,12 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
+/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_DEPOSIT: [u8; 32] = keccak256!("Deposit(address,uint256)");
+
+/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_WITHDRAWAL: [u8; 32] = keccak256!("Withdrawal(address,uint256)");
+
 /// Associates pallet Instance to a prefix used for the Approves storage.
 /// This trait is implemented for () and the 16 substrate Instance.
 pub trait InstanceToPrefix {
@@ -126,6 +132,8 @@ pub enum Action {
 	Name = "name()",
 	Symbol = "symbol()",
 	Decimals = "decimals()",
+	Deposit = "deposit()",
+	Withdraw = "withdraw(uint256)",
 }
 
 /// Metadata of an ERC20 token.
@@ -167,7 +175,8 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)
+			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
 		let input = &mut input;
 
 		match selector {
@@ -180,6 +189,8 @@ where
 			Action::Name => Self::name(input, gasometer, context),
 			Action::Symbol => Self::symbol(input, gasometer, context),
 			Action::Decimals => Self::decimals(input, gasometer, context),
+			Action::Deposit => Self::deposit(input, gasometer, context),
+			Action::Withdraw => Self::withdraw(input, gasometer, context),
 		}
 	}
 }
@@ -469,6 +480,78 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
 			logs: Default::default(),
+		})
+	}
+
+	fn deposit(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let caller: Runtime::AccountId = Runtime::AddressMapping::into_account_id(context.caller);
+		let precompile = Runtime::AddressMapping::into_account_id(context.address);
+		let amount = Self::u256_to_amount(gasometer, context.apparent_value)?;
+
+		if amount.into() == U256::from(0u32) {
+			return Err(gasometer.revert("deposited amount must be non-zero"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		// Send back funds received by the precompile.
+		RuntimeHelper::<Runtime>::try_dispatch(
+			Some(precompile).into(),
+			pallet_balances::Call::<Runtime, Instance>::transfer {
+				dest: Runtime::Lookup::unlookup(caller),
+				value: amount,
+			},
+			gasometer,
+		)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_DEPOSIT,
+					context.caller,
+					EvmDataWriter::new().write(context.apparent_value).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn withdraw(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		let withdrawn_amount: U256 = input.read(gasometer)?;
+
+		let account_amount: U256 = {
+			let owner: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
+		};
+
+		if withdrawn_amount > account_amount {
+			return Err(gasometer.revert("trying to withdraw more than owned"));
+		}
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_WITHDRAWAL,
+					context.caller,
+					EvmDataWriter::new().write(withdrawn_amount).build(),
+				)
+				.build(),
 		})
 	}
 
