@@ -14,30 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Testing utilities.
-
+//! Test utilities
 use super::*;
-
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{construct_runtime, parameter_types, traits::Everything};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{EqualPrivilegeOnly, Everything},
+};
+use frame_system::EnsureRoot;
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
+};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
+use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-pub type AccountId = Account;
+pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
-pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-pub type Block = frame_system::mocking::MockBlock<Runtime>;
 
-/// A simple account type.
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
 #[derive(
 	Eq,
 	PartialEq,
@@ -53,7 +58,7 @@ pub type Block = frame_system::mocking::MockBlock<Runtime>;
 	derive_more::Display,
 	TypeInfo,
 )]
-pub enum Account {
+pub enum TestAccount {
 	Alice,
 	Bob,
 	Charlie,
@@ -61,14 +66,14 @@ pub enum Account {
 	Precompile,
 }
 
-impl Default for Account {
+impl Default for TestAccount {
 	fn default() -> Self {
 		Self::Bogus
 	}
 }
 
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
+impl AddressMapping<TestAccount> for TestAccount {
+	fn into_account_id(h160_account: H160) -> TestAccount {
 		match h160_account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
@@ -79,36 +84,44 @@ impl AddressMapping<Account> for Account {
 	}
 }
 
-impl From<Account> for H160 {
-	fn from(x: Account) -> H160 {
-		match x {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
+impl From<H160> for TestAccount {
+	fn from(x: H160) -> TestAccount {
+		TestAccount::into_account_id(x)
+	}
+}
+
+impl From<TestAccount> for H160 {
+	fn from(value: TestAccount) -> H160 {
+		match value {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
+			TestAccount::Bogus => Default::default(),
 		}
 	}
 }
 
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
+// Configure a mock runtime to test the pallet.
+construct_runtime!(
+	pub enum Runtime where
+		Block = Block,
+		NodeBlock = Block,
+		UncheckedExtrinsic = UncheckedExtrinsic,
+	{
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		AuthorMapping: pallet_author_mapping::{Pallet, Storage, Config<T>, Event<T>, Call},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
 	}
-}
-
-impl From<Account> for H256 {
-	fn from(x: Account) -> H256 {
-		let x: H160 = x.into();
-		x.into()
-	}
-}
+);
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
-
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
@@ -118,7 +131,7 @@ impl frame_system::Config for Runtime {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = AccountId;
+	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -134,22 +147,9 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 }
-
-parameter_types! {
-	pub const MinimumPeriod: u64 = 5;
-}
-
-impl pallet_timestamp::Config for Runtime {
-	type Moment = u64;
-	type OnTimestampSet = ();
-	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = ();
-}
-
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
-
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
@@ -169,9 +169,9 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<AccountId>;
-	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = AccountId;
+	type CallOrigin = EnsureAddressRoot<TestAccount>;
+	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
+	type AddressMapping = TestAccount;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -180,41 +180,41 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
-	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
 
-// Configure a mock runtime to test the pallet.
-construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
-	}
-);
+parameter_types! {
+	pub const MinimumPeriod: u64 = 5;
+}
+impl pallet_timestamp::Config for Runtime {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
 
-/// ERC20 metadata for the native token.
-pub struct NativeErc20Metadata;
+parameter_types! {
+	pub const DepositAmount: Balance = 10;
+}
 
-impl Erc20Metadata for NativeErc20Metadata {
-	/// Returns the name of the token.
-	fn name() -> &'static str {
-		"Mock token"
-	}
+impl pallet_author_mapping::Config for Runtime {
+	type Event = Event;
+	type DepositCurrency = Balances;
+	type DepositAmount = DepositAmount;
+	type WeightInfo = ();
+}
 
-	/// Returns the symbol of the token.
-	fn symbol() -> &'static str {
-		"MOCK"
-	}
-
-	/// Returns the decimals places of the token.
-	fn decimals() -> u8 {
-		18
-	}
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = ();
+	type ScheduleOrigin = EnsureRoot<TestAccount>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
 }
 
 #[derive(Default)]
@@ -222,7 +222,7 @@ pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
 {
 	fn execute(
 		&self,
@@ -233,11 +233,9 @@ where
 		is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
-				))
-			}
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(AuthorMappingWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
 			_ => None,
 		}
 	}
@@ -290,4 +288,53 @@ pub(crate) fn events() -> Vec<Event> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
+}
+
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
+}
+
+#[test]
+fn test_account_id_mapping_works() {
+	// Bidirectional conversions for normal accounts
+	assert_eq!(
+		TestAccount::Alice,
+		TestAccount::into_account_id(TestAccount::Alice.into())
+	);
+	assert_eq!(
+		TestAccount::Bob,
+		TestAccount::into_account_id(TestAccount::Bob.into())
+	);
+	assert_eq!(
+		TestAccount::Charlie,
+		TestAccount::into_account_id(TestAccount::Charlie.into())
+	);
+
+	// Bidirectional conversion between bogus and default H160
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::default())
+	);
+	assert_eq!(H160::default(), TestAccount::Bogus.into());
+
+	// All other H160s map to bogus
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::zero())
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0x12))
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0xFF))
+	);
 }

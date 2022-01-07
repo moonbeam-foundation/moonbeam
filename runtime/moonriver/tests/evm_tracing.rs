@@ -24,8 +24,7 @@ mod tests {
 	use super::common::*;
 
 	use pallet_evm::AddressMapping;
-	use sha3::{Digest, Keccak256};
-	use sp_core::{H160, H256};
+	use sp_core::H160;
 
 	use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 	use std::str::FromStr;
@@ -84,8 +83,7 @@ mod tests {
 				);
 				let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 				let eth_tx = ethereum_transaction(VALID_ETH_TX);
-				let eth_extrinsic_hash =
-					H256::from_slice(Keccak256::digest(&rlp::encode(&eth_tx)).as_slice());
+				let eth_extrinsic_hash = eth_tx.hash();
 				assert!(Runtime::trace_block(
 					vec![non_eth_uxt.clone(), eth_uxt.clone(), non_eth_uxt, eth_uxt],
 					vec![eth_extrinsic_hash, eth_extrinsic_hash]

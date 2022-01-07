@@ -42,7 +42,7 @@ async function main() {
   - [ ] Add new substitute in alphanet configuration 
   - [ ] Upgrade alphanet
   - [ ] Create new tracing image for partners: start the github action Publish Docker
-  with v${lastClientVersion} and master
+  with ${lastClientVersion} and master
   - [ ] When everything is ok, publish the draft release
   `;
 
