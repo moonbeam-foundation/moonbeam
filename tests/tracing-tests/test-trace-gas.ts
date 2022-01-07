@@ -11,8 +11,8 @@ describeDevMoonbeamAllEthTxTypes("Trace filter - Gas Loop", (context) => {
     expectedGas: number;
   }[] = [
     { count: 0, expectedGas: 21630 },
-    { count: 100, expectedGas: 245542 },
-    { count: 1000, expectedGas: 2068654 },
+    { count: 100, expectedGas: 108242 },
+    { count: 1000, expectedGas: 670654 },
   ];
 
   before("Setup: Create 4 blocks with 1 contract loop execution each", async function () {
