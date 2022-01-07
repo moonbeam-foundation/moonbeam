@@ -92,7 +92,7 @@ where
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 	// We require PrecompileSet here because indeed we are dealing with a set of precompiles
 	// This precompile set does additional checks, e.g., total supply not being 0
-	Erc20AssetsPrecompileSet<R>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, pallet_assets::Instance1>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
@@ -154,7 +154,7 @@ where
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::new()
+				Erc20AssetsPrecompileSet::<R, pallet_assets::Instance1>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -163,7 +163,8 @@ where
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses()
 			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+			.is_some() || Erc20AssetsPrecompileSet::<R, pallet_assets::Instance1>::new()
+			.is_precompile(address)
 	}
 }
 

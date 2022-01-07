@@ -1010,9 +1010,10 @@ pub type LocationToAccountId = (
 
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
+// This is intended to match FOREIGN ASSETS
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
-	Assets,
+	ForeignAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
@@ -1106,7 +1107,7 @@ parameter_types! {
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
 pub type XcmFeesToAccount_ = XcmFeesToAccount<
-	Assets,
+	ForeignAssets,
 	(
 		ConvertedConcreteAssetId<
 			AssetId,
@@ -1205,6 +1206,9 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
+type ForeignAssetInstance = pallet_assets::Instance1;
+type LocalAssetInstance = pallet_assets::Instance2;
+
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
 parameter_types! {
@@ -1223,7 +1227,24 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = AssetsForceOrigin;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+// Local assets
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -1292,7 +1313,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		metadata: AssetRegistrarMetadata,
 		is_sufficient: bool,
 	) -> DispatchResult {
-		Assets::force_create(
+		ForeignAssets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
@@ -1310,7 +1331,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		);*/
 
 		// Lastly, the metadata
-		Assets::force_set_metadata(
+		ForeignAssets::force_set_metadata(
 			Origin::root(),
 			asset,
 			metadata.name,
@@ -1471,7 +1492,7 @@ pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
-			Call::Assets(_) => false,
+			Call::ForeignAssets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
@@ -1493,7 +1514,7 @@ pub struct NormalFilter;
 impl Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
-			Call::Assets(method) => match method {
+			Call::ForeignAssets(method) => match method {
 				pallet_assets::Call::transfer { .. } => true,
 				pallet_assets::Call::transfer_keep_alive { .. } => true,
 				pallet_assets::Call::approve_transfer { .. } => true,
@@ -1671,13 +1692,15 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 28,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		ForeignAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
+		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>} = 36,
+
 	}
 }
 
