@@ -15,10 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H160;
-use fc_rpc_core::types::BlockNumber;
 use futures::future::BoxFuture;
 use jsonrpc_derive::rpc;
 use moonbeam_client_evm_tracing::types::block::TransactionTrace;
+use moonbeam_rpc_core_types::RequestBlockId;
 use serde::Deserialize;
 
 pub use rpc_impl_Trace::gen_server::Trace as TraceServer;
@@ -36,10 +36,10 @@ pub trait Trace {
 #[serde(rename_all = "camelCase")]
 pub struct FilterRequest {
 	/// (optional?) From this block.
-	pub from_block: Option<BlockNumber>,
+	pub from_block: Option<RequestBlockId>,
 
 	/// (optional?) To this block.
-	pub to_block: Option<BlockNumber>,
+	pub to_block: Option<RequestBlockId>,
 
 	/// (optional) Sent from these addresses.
 	pub from_address: Option<Vec<H160>>,

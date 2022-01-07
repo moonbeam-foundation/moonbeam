@@ -134,7 +134,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
-						use sha3::{Digest, Keccak256};
 
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
@@ -143,9 +142,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
 								Call::Ethereum(transact { transaction }) => {
-									let eth_extrinsic_hash =
-										H256::from_slice(Keccak256::digest(&rlp::encode(transaction)).as_slice());
-									if known_transactions.contains(&eth_extrinsic_hash) {
+									if known_transactions.contains(&transaction.hash()) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
