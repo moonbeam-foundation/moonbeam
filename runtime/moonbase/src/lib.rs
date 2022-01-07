@@ -40,7 +40,7 @@ use frame_support::{
 	traits::{
 		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
 		Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
-		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait, PalletInfoAccess
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -55,7 +55,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, AsPrefixedGeneralIndex
 };
 
 use xcm_executor::traits::JustTry;
@@ -994,6 +994,8 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
+	pub LocalAssetsPalletLocation: MultiLocation =
+		PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8).into();
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -1011,7 +1013,7 @@ pub type LocationToAccountId = (
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
 // This is intended to match FOREIGN ASSETS
-pub type FungiblesTransactor = FungiblesAdapter<
+pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	ForeignAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -1047,8 +1049,30 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
+/// Means for transacting assets besides the native currency on this chain.
+pub type LocalFungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	ConvertedConcreteAssetId<
+		AssetId,
+		Balance,
+		AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
+		JustTry,
+	>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+/// M
+
 // We use both transactors
-pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
+pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor, LocalFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
