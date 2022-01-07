@@ -59,7 +59,15 @@ pub mod pallet {
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
 		// How to create an asset
-		fn create_asset(
+		fn create_foreign_asset(
+			asset: T::AssetId,
+			min_balance: T::Balance,
+			metadata: T::AssetRegistrarMetadata,
+			// Wether or not an asset-receiving account increments the sufficient counter
+			is_sufficient: bool,
+		) -> DispatchResult;
+
+		fn create_local_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
 			metadata: T::AssetRegistrarMetadata,
@@ -69,8 +77,8 @@ pub mod pallet {
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
-	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::AssetType> for Pallet<T> {
-		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
+	impl<T: Config> xcm_primitives::AssetTypeGetter<T::AssetId, T::ForeignAssetType> for Pallet<T> {
+		fn get_asset_type(asset_id: T::AssetId) -> Option<T::ForeignAssetType> {
 			AssetIdType::<T>::get(asset_id)
 		}
 	}
@@ -92,7 +100,7 @@ pub mod pallet {
 		type AssetRegistrarMetadata: Member + Parameter + Default;
 
 		/// The Asset Kind.
-		type AssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
+		type ForeignAssetType: Parameter + Member + Ord + PartialOrd + Into<Self::AssetId> + Default;
 
 		/// The units in which we record balances.
 		type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy + MaxEncodedLen;
@@ -117,14 +125,16 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
+		ForeignAssetRegistered(T::AssetId, T::ForeignAssetType, T::AssetRegistrarMetadata),
+		LocalAssetRegistered(T::AssetId, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
 	}
 
 	/// Stores the asset TYPE
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_type)]
-	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
+	pub type AssetIdType<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AssetId, T::ForeignAssetType>;
 
 	// Stores the units per second for local execution.
 	// Not all assets might contain units per second, hence the different storage
@@ -136,9 +146,9 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
 		#[pallet::weight(T::WeightInfo::register_asset())]
-		pub fn register_asset(
+		pub fn register_foreign_asset(
 			origin: OriginFor<T>,
-			asset: T::AssetType,
+			asset: T::ForeignAssetType,
 			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
 			is_sufficient: bool,
@@ -150,12 +160,35 @@ pub mod pallet {
 				AssetIdType::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
-			T::AssetRegistrar::create_asset(asset_id, min_amount, metadata.clone(), is_sufficient)
-				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+			T::AssetRegistrar::create_foreign_asset(
+				asset_id,
+				min_amount,
+				metadata.clone(),
+				is_sufficient,
+			)
+			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			AssetIdType::<T>::insert(&asset_id, &asset);
 
-			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
+			Self::deposit_event(Event::ForeignAssetRegistered(asset_id, asset, metadata));
+			Ok(())
+		}
+
+		/// Register new asset with the asset manager
+		#[pallet::weight(T::WeightInfo::register_asset())]
+		pub fn register_local_asset(
+			origin: OriginFor<T>,
+			id: T::AssetId,
+			metadata: T::AssetRegistrarMetadata,
+			min_amount: T::Balance,
+			is_sufficient: bool,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			T::AssetRegistrar::create_local_asset(id, min_amount, metadata.clone(), is_sufficient)
+				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+
+			Self::deposit_event(Event::LocalAssetRegistered(id, metadata));
 			Ok(())
 		}
 
