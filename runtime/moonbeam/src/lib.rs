@@ -902,7 +902,7 @@ impl pallet_migrations::Config for Runtime {
 	>;
 }
 
-/// Call filter used during Phase 3 of the Moonriver rollout
+/// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
@@ -911,6 +911,9 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::Identity(_) => false,
+			Call::ParachainStaking(_) => false,
+			Call::Treasury(_) => false,
 			_ => true,
 		}
 	}
