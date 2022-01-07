@@ -1307,7 +1307,7 @@ use frame_support::{pallet_prelude::DispatchResult, transactional};
 
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
-	fn create_asset(
+	fn create_foreign_asset(
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetRegistrarMetadata,
@@ -1340,6 +1340,36 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			metadata.is_frozen,
 		)
 	}
+
+	#[transactional]
+	fn create_local_asset(
+		asset: AssetId,
+		min_balance: Balance,
+		metadata: AssetRegistrarMetadata,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -> DispatchResult {
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+
+		// TODO uncomment when we feel comfortable
+		/*
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/
+
+		// Lastly, the metadata
+		LocalAssets::force_set_metadata(
+			Origin::root(),
+			asset,
+			metadata.name,
+			metadata.symbol,
+			metadata.decimals,
+			metadata.is_frozen,
+		)
+	}
 }
 
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -1355,9 +1385,10 @@ impl pallet_asset_manager::Config for Runtime {
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type AssetType = AssetType;
+	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 

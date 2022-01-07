@@ -73,6 +73,7 @@ pub mod pallet {
 			metadata: T::AssetRegistrarMetadata,
 			// Wether or not an asset-receiving account increments the sufficient counter
 			is_sufficient: bool,
+			owner: T::AccountId,
 		) -> DispatchResult;
 	}
 
@@ -108,8 +109,11 @@ pub mod pallet {
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
 
-		/// Origin that is allowed to create and modify asset information
-		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		/// Origin that is allowed to create and modify asset information for foreign assets
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+
+		/// Origin that is allowed to create and modify asset information for local assets
+		type LocalAssetModifierOrigin: EnsureOrigin<Self::Origin>;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -153,7 +157,7 @@ pub mod pallet {
 			min_amount: T::Balance,
 			is_sufficient: bool,
 		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
+			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
@@ -182,11 +186,18 @@ pub mod pallet {
 			metadata: T::AssetRegistrarMetadata,
 			min_amount: T::Balance,
 			is_sufficient: bool,
+			owner: T::AccountId,
 		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
-			T::AssetRegistrar::create_local_asset(id, min_amount, metadata.clone(), is_sufficient)
-				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+			T::AssetRegistrar::create_local_asset(
+				id,
+				min_amount,
+				metadata.clone(),
+				is_sufficient,
+				owner,
+			)
+			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			Self::deposit_event(Event::LocalAssetRegistered(id, metadata));
 			Ok(())
@@ -199,7 +210,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			units_per_second: u128,
 		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_some(),
