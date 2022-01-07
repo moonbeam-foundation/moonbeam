@@ -80,8 +80,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
-	/// Size of the LRU cache for block data and their transaction statuses.
-	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -98,6 +96,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<EthBlockDataCache<Block>>,
 }
 
 pub fn overrides_handle<C, BE>(client: Arc<C>) -> Arc<OverrideHandle<Block>>
@@ -155,7 +155,6 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
-		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
@@ -164,6 +163,7 @@ where
 		fee_history_cache,
 		transaction_converter,
 		xcm_senders,
+		block_data_cache,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -176,11 +176,6 @@ where
 	)));
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
-
-	let block_data_cache = Arc::new(EthBlockDataCache::new(
-		eth_log_block_cache,
-		eth_log_block_cache,
-	));
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
@@ -205,7 +200,6 @@ where
 			frontier_backend,
 			filter_pool,
 			500_usize, // max stored filters
-			overrides.clone(),
 			max_past_logs,
 			block_data_cache.clone(),
 		)));

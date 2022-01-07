@@ -1,3 +1,5 @@
+paths = ["../frontier"]
+
 [alias]
 moonbase = " build --release -p moonbeam --no-default-features --features moonbase-native"
 moonbase-benchmarks = " build --release -p moonbeam --no-default-features --features moonbase-runtime-benchmarks"

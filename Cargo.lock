@@ -7906,6 +7906,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "ethereum",
  "fc-consensus",
+ "fc-rpc",
  "fp-evm",
  "fp-rpc",
  "futures 0.3.17",

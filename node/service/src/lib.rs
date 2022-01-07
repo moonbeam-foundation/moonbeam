@@ -576,6 +576,13 @@ where
 			}
 		};
 
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache,
+	));
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -587,6 +594,7 @@ where
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
+		let block_data_cache = block_data_cache.clone();
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
@@ -606,7 +614,6 @@ where
 				command_sink: None,
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -618,6 +625,7 @@ where
 				network: network.clone(),
 				transaction_converter,
 				xcm_senders: None,
+				block_data_cache: block_data_cache.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
@@ -950,6 +958,13 @@ where
 			}
 		};
 
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache,
+	));
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -959,6 +974,7 @@ where
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
+		let block_data_cache = block_data_cache.clone();
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
@@ -978,7 +994,6 @@ where
 				command_sink: command_sink.clone(),
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -990,6 +1005,7 @@ where
 				network: network.clone(),
 				transaction_converter,
 				xcm_senders: xcm_senders.clone(),
+				block_data_cache: block_data_cache.clone(),
 			};
 			#[allow(unused_mut)]
 			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
