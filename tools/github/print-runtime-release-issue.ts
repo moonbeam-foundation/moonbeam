@@ -30,6 +30,8 @@ async function main() {
 
   const template = `
   - [ ] Create a PR that increment spec version (like #1051)
+  - [ ] Cleanup previous migrations (only for major release,
+  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
   - [ ] Get that PR approved and merged
   - [ ] Tag master with runtime-${newVersion} and push to github
   - [ ] Start the github action Publish Runtime Draft
