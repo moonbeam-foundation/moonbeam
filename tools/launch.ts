@@ -406,13 +406,14 @@ async function start() {
 
     // Two relay nodes per para
     relayNodeConfig[0].name = validatorNames[i * 2];
-    relayNodeConfig[0].port = startingPort + i * 10;
-    relayNodeConfig[0].rpcPort = startingPort + 1 + i * 10;
-    relayNodeConfig[0].wsPort = startingPort + 2 + i * 10;
+    relayNodeConfig[0].port = startingPort + i * 20;
+    relayNodeConfig[0].rpcPort = startingPort + i * 20 + 1;
+    relayNodeConfig[0].wsPort = startingPort + i * 20 + 2;
+
     relayNodeConfig[1].name = validatorNames[i * 2 + 1];
-    relayNodeConfig[1].port = startingPort + i * 10;
-    relayNodeConfig[1].rpcPort = startingPort + 1 + i * 10;
-    relayNodeConfig[1].wsPort = startingPort + 1 + i * 10;
+    relayNodeConfig[1].port = startingPort + i * 20 + 10;
+    relayNodeConfig[1].rpcPort = startingPort + i * 20 + 11;
+    relayNodeConfig[1].wsPort = startingPort + i * 20 + 12;
     relay_nodes.push(relayNodeConfig[0]);
     relay_nodes.push(relayNodeConfig[1]);
   }
