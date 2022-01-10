@@ -246,7 +246,20 @@ pub mod pallet {
 				.delegations
 				.binary_search_by(|x| delegation.amount.cmp(&x.amount))
 			{
-				Ok(i) => self.delegations.insert(i, delegation),
+				// sorted insertion on sorted vec
+				// enforces first come first serve for equal bond amounts
+				Ok(i) => {
+					let mut new_index = i + 1;
+					while new_index < (self.delegations.len() - 1) {
+						if self.delegations[new_index].amount == delegation.amount {
+							new_index += 1;
+						} else {
+							self.delegations.insert(new_index, delegation);
+							return;
+						}
+					}
+					self.delegations.insert(new_index, delegation)
+				}
 				Err(i) => self.delegations.insert(i, delegation),
 			}
 		}

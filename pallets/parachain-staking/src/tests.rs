@@ -4446,7 +4446,27 @@ fn split_candidate_state_migrates_full_top_delegations_correctly() {
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 40);
-				assert_eq!(top_delegations.delegations.len(), 4);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 10
+						},
+						Bond {
+							owner: 4,
+							amount: 10
+						},
+						Bond {
+							owner: 5,
+							amount: 10
+						},
+						Bond {
+							owner: 6,
+							amount: 10
+						}
+					]
+				);
 				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(bottom_delegations.total, 0);
 				assert!(bottom_delegations.delegations.is_empty());
