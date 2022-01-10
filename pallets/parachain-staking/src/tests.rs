@@ -27,8 +27,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, Bond, CollatorStatus, DelegationChange, DelegationRequest, DelegatorAdded,
-	Error, Event, Range,
+	assert_tail_eq, pallet::CapacityStatus, Bond, BottomDelegations, CandidateInfo, CollatorStatus,
+	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range, TopDelegations,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -4399,6 +4399,120 @@ fn deferred_payment_steady_state_event_flow() {
 
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
+
+#[test]
+fn split_candidate_state_migrates_empty_delegations_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.build()
+		.execute_with(|| {
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			for i in 1..5 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 0);
+				assert!(top_delegations.delegations.is_empty());
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 0);
+				assert!(bottom_delegations.delegations.is_empty());
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Empty);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 0);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
+			}
+		});
+}
+
+#[test]
+fn split_candidate_state_migrates_full_top_delegations_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(3, 2, 10),
+			(4, 2, 10),
+			(5, 2, 10),
+			(6, 2, 10),
+		])
+		.build()
+		.execute_with(|| {
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 40);
+				assert_eq!(top_delegations.delegations.len(), 4);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 0);
+				assert!(bottom_delegations.delegations.is_empty());
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
+			}
+		});
+}
+
+#[test]
+fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 38),
+			(4, 36),
+			(5, 34),
+			(6, 32),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![
+			(3, 1, 19),
+			(4, 1, 18),
+			(5, 1, 17),
+			(6, 1, 16),
+			(7, 1, 15),
+			(8, 1, 14),
+			(9, 1, 13),
+			(10, 1, 12),
+			(3, 2, 19),
+			(4, 2, 18),
+			(5, 2, 17),
+			(6, 2, 16),
+			(7, 2, 15),
+			(8, 2, 14),
+			(9, 2, 13),
+			(10, 2, 12),
+		])
+		.build()
+		.execute_with(|| {
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 40);
+				assert_eq!(top_delegations.delegations.len(), 4);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 40);
+				assert_eq!(bottom_delegations.delegations.len(), 4);
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 10);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 10);
+			}
+		});
+}
 
 #[test]
 fn remove_exit_queue_migration_migrates_leaving_candidates() {

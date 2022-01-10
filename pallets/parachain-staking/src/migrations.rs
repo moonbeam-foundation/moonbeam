@@ -85,14 +85,14 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 				state.bottom_delegations[state.bottom_delegations.len() - 1].amount
 			};
 			let top_capacity = match &state.top_delegations {
-				x if x.len() as u32 == T::MaxTopDelegationsPerCandidate::get() => {
+				x if x.len() as u32 >= T::MaxTopDelegationsPerCandidate::get() => {
 					CapacityStatus::Full
 				}
 				x if x.is_empty() => CapacityStatus::Empty,
 				_ => CapacityStatus::Partial,
 			};
 			let bottom_capacity = match &state.bottom_delegations {
-				x if x.len() as u32 == T::MaxBottomDelegationsPerCandidate::get() => {
+				x if x.len() as u32 >= T::MaxBottomDelegationsPerCandidate::get() => {
 					CapacityStatus::Full
 				}
 				x if x.is_empty() => CapacityStatus::Empty,

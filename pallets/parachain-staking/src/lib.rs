@@ -253,7 +253,7 @@ pub mod pallet {
 		/// Return the capacity status for top delegations
 		pub fn top_capacity<T: Config>(&self) -> CapacityStatus {
 			match &self.delegations {
-				x if x.len() as u32 == T::MaxTopDelegationsPerCandidate::get() => {
+				x if x.len() as u32 >= T::MaxTopDelegationsPerCandidate::get() => {
 					CapacityStatus::Full
 				}
 				x if x.is_empty() => CapacityStatus::Empty,
@@ -263,7 +263,7 @@ pub mod pallet {
 		/// Return the capacity status for bottom delegations
 		pub fn bottom_capacity<T: Config>(&self) -> CapacityStatus {
 			match &self.delegations {
-				x if x.len() as u32 == T::MaxBottomDelegationsPerCandidate::get() => {
+				x if x.len() as u32 >= T::MaxBottomDelegationsPerCandidate::get() => {
 					CapacityStatus::Full
 				}
 				x if x.is_empty() => CapacityStatus::Empty,
@@ -288,7 +288,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Capacity status for top or bottom delegations
 	pub enum CapacityStatus {
 		/// Reached capacity
@@ -492,7 +492,6 @@ pub mod pallet {
 		) where
 			BalanceOf<T>: Into<Balance>,
 		{
-			// if bottom capacity is empty, what happens with these values TODO
 			self.lowest_bottom_delegation_amount =
 				bottom_delegations.lowest_delegation_amount().into();
 			self.highest_bottom_delegation_amount =
@@ -665,6 +664,7 @@ pub mod pallet {
 			} else if amount_geq_lowest_top && lowest_top_eq_highest_bottom {
 				let result = self.rm_top_delegation::<T>(candidate, delegator.clone());
 				if result == Err(delegation_dne_err) {
+					// worst case removal
 					self.rm_bottom_delegation::<T>(candidate, delegator)
 				} else {
 					result
@@ -3049,6 +3049,8 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
+			// will_be_in_top: bool // weight hint
+			// look into returning weight in DispatchResult
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
