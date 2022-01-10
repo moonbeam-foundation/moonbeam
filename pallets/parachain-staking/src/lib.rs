@@ -250,7 +250,7 @@ pub mod pallet {
 				// enforces first come first serve for equal bond amounts
 				Ok(i) => {
 					let mut new_index = i + 1;
-					while new_index < (self.delegations.len() - 1) {
+					while new_index <= (self.delegations.len() - 1) {
 						if self.delegations[new_index].amount == delegation.amount {
 							new_index += 1;
 						} else {
@@ -258,7 +258,7 @@ pub mod pallet {
 							return;
 						}
 					}
-					self.delegations.insert(new_index, delegation)
+					self.delegations.push(delegation)
 				}
 				Err(i) => self.delegations.insert(i, delegation),
 			}
