@@ -31,6 +31,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
+pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 
 # Moonbeam tracing
@@ -131,6 +132,7 @@ std = [
 	"moonbeam-rpc-primitives-txpool/std",
 	"nimbus-primitives/std",
 	"pallet-author-inherent/std",
+	"pallet-author-mapping-precompiles/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
