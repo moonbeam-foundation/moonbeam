@@ -28,7 +28,8 @@ use frame_support::{
 use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
 use precompile_utils::{
-	Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -91,14 +92,16 @@ where
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
-		_context: &Context,
-		_is_static: bool,
+		context: &Context,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(context, is_static, FunctionModifier::View)?;
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the RelayEncoder.sol

@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	Gasometer, LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -170,7 +170,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
@@ -178,6 +178,18 @@ where
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)
 			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
+					FunctionModifier::NonPayable
+				}
+				Action::Deposit => FunctionModifier::Payable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			Action::TotalSupply => Self::total_supply(input, gasometer),

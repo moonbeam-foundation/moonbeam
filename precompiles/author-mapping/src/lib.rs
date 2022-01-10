@@ -24,7 +24,7 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
-use precompile_utils::{EvmDataReader, EvmResult, Gasometer, RuntimeHelper};
+use precompile_utils::{EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -57,7 +57,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "author-mapping-precompile", "In author mapping wrapper");
 
@@ -66,6 +66,8 @@ where
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
 
 		match selector {
 			// Dispatchables
