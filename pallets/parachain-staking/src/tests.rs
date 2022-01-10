@@ -3026,9 +3026,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(4, 5, 10),
 				Event::NewRound(15, 4, 5, 140),
 				Event::Rewarded(1, 20),
+				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
-				Event::Rewarded(6, 5),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -3057,9 +3057,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
 				Event::Rewarded(1, 21),
+				Event::Rewarded(6, 5),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(10, 5),
-				Event::Rewarded(6, 5),
 				Event::ReservedForParachainBond(11, 16),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
@@ -3068,9 +3068,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
 				Event::Rewarded(1, 22),
+				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
 				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 				Event::ReservedForParachainBond(11, 17),
@@ -3081,9 +3081,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
 				Event::Rewarded(1, 24),
+				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
@@ -3109,9 +3109,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
 				Event::Rewarded(1, 20),
+				Event::Rewarded(6, 4),
 				Event::Rewarded(7, 4),
 				Event::Rewarded(10, 4),
-				Event::Rewarded(6, 4),
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
@@ -3185,8 +3185,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Event::NewRound(55, 12, 5, 140),
 				Event::Rewarded(1, 24),
 				Event::Rewarded(7, 4),
-				Event::Rewarded(8, 4),
 				Event::Rewarded(10, 4),
+				Event::Rewarded(8, 4),
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
@@ -3247,8 +3247,8 @@ fn paid_collator_commission_matches_config() {
 				Event::CollatorChosen(5, 4, 40),
 				Event::NewRound(20, 5, 2, 80),
 				Event::Rewarded(4, 18),
-				Event::Rewarded(6, 6),
 				Event::Rewarded(5, 6),
+				Event::Rewarded(6, 6),
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected);
@@ -3673,9 +3673,9 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(4, 5, 10),
 				Event::NewRound(15, 4, 5, 140),
 				Event::Rewarded(1, 26),
+				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
-				Event::Rewarded(6, 8),
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
@@ -3703,9 +3703,9 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 140),
 				Event::Rewarded(1, 27),
+				Event::Rewarded(6, 8),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),
-				Event::Rewarded(6, 8),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 2, 40),
 				Event::CollatorChosen(6, 3, 20),
@@ -3713,9 +3713,9 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(6, 5, 10),
 				Event::NewRound(25, 6, 5, 140),
 				Event::Rewarded(1, 29),
+				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
-				Event::Rewarded(6, 9),
 				Event::DelegatorLeftCandidate(6, 1, 10, 40),
 				Event::DelegatorLeft(6, 10),
 			];
@@ -3733,9 +3733,9 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(7, 5, 10),
 				Event::NewRound(30, 7, 5, 130),
 				Event::Rewarded(1, 30),
+				Event::Rewarded(6, 9),
 				Event::Rewarded(7, 9),
 				Event::Rewarded(10, 9),
-				Event::Rewarded(6, 9),
 				Event::CollatorChosen(8, 1, 40),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 3, 20),
@@ -3743,9 +3743,9 @@ fn payouts_follow_delegation_changes() {
 				Event::CollatorChosen(8, 5, 10),
 				Event::NewRound(35, 8, 5, 130),
 				Event::Rewarded(1, 32),
+				Event::Rewarded(6, 10),
 				Event::Rewarded(7, 10),
 				Event::Rewarded(10, 10),
-				Event::Rewarded(6, 10),
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
@@ -3811,8 +3811,8 @@ fn payouts_follow_delegation_changes() {
 				Event::NewRound(55, 12, 5, 140),
 				Event::Rewarded(1, 39),
 				Event::Rewarded(7, 12),
-				Event::Rewarded(8, 12),
 				Event::Rewarded(10, 12),
+				Event::Rewarded(8, 12),
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
@@ -3820,7 +3820,6 @@ fn payouts_follow_delegation_changes() {
 }
 
 #[test]
-// MaxDelegatorsPerCandidate = 4
 fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 10), (4, 10), (5, 10)])
@@ -3860,7 +3859,6 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 }
 
 #[test]
-// MaxDelegatorsPerCandidate = 4
 fn candidate_pool_updates_when_total_counted_changes() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -3928,7 +3926,6 @@ fn candidate_pool_updates_when_total_counted_changes() {
 }
 
 #[test]
-// MaxDelegatorsPerCandidate = 4
 fn only_top_collators_are_counted() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -4343,8 +4340,8 @@ fn deferred_payment_steady_state_event_flow() {
 					Event::NewRound((round - 1) * 5, round as u32, 4, 1600),
 					// first payout should occur on round change
 					Event::Rewarded(3, 19),
-					Event::Rewarded(33, 6),
 					Event::Rewarded(22, 6),
+					Event::Rewarded(33, 6),
 				];
 				assert_eq_last_events!(expected);
 
@@ -4353,31 +4350,31 @@ fn deferred_payment_steady_state_event_flow() {
 				roll_one_block();
 				let expected = vec![
 					Event::Rewarded(4, 19),
-					Event::Rewarded(44, 6),
 					Event::Rewarded(33, 6),
+					Event::Rewarded(44, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
 					Event::Rewarded(1, 19),
-					Event::Rewarded(44, 6),
 					Event::Rewarded(11, 6),
+					Event::Rewarded(44, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
 					Event::Rewarded(2, 19),
-					Event::Rewarded(22, 6),
 					Event::Rewarded(11, 6),
+					Event::Rewarded(22, 6),
 				];
 				assert_eq_last_events!(expected);
 
 				roll_one_block();
 				let expected = vec![
 					// we paid everyone out by now, should repeat last event
-					Event::Rewarded(11, 6),
+					Event::Rewarded(22, 6),
 				];
 				assert_eq_last_events!(expected);
 
@@ -4419,6 +4416,44 @@ fn split_candidate_state_migrates_empty_delegations_correctly() {
 				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Empty);
 				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
 				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 0);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
+			}
+		});
+}
+
+#[test]
+fn split_candidate_state_migrates_partial_top_delegations_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (3, 2, 10), (4, 2, 10)])
+		.build()
+		.execute_with(|| {
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 20);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 10
+						},
+						Bond {
+							owner: 4,
+							amount: 10
+						}
+					]
+				);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 0);
+				assert!(bottom_delegations.delegations.is_empty());
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Partial);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
 				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
 				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
 			}
@@ -4481,6 +4516,86 @@ fn split_candidate_state_migrates_full_top_delegations_correctly() {
 }
 
 #[test]
+fn split_candidate_state_migrates_full_top_partial_bottom_delegations_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 38),
+			(4, 36),
+			(5, 34),
+			(6, 32),
+			(7, 30),
+			(8, 28),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![
+			(3, 1, 19),
+			(4, 1, 18),
+			(5, 1, 17),
+			(6, 1, 16),
+			(7, 1, 15),
+			(8, 1, 14),
+			(3, 2, 19),
+			(4, 2, 18),
+			(5, 2, 17),
+			(6, 2, 16),
+			(7, 2, 15),
+			(8, 2, 14),
+		])
+		.build()
+		.execute_with(|| {
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 70);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 19
+						},
+						Bond {
+							owner: 4,
+							amount: 18
+						},
+						Bond {
+							owner: 5,
+							amount: 17
+						},
+						Bond {
+							owner: 6,
+							amount: 16
+						}
+					]
+				);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 29);
+				assert_eq!(
+					bottom_delegations.delegations,
+					vec![
+						Bond {
+							owner: 7,
+							amount: 15
+						},
+						Bond {
+							owner: 8,
+							amount: 14
+						}
+					]
+				);
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Partial);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 14);
+			}
+		});
+}
+
+#[test]
 fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -4490,10 +4605,10 @@ fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 			(4, 36),
 			(5, 34),
 			(6, 32),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-			(10, 20),
+			(7, 30),
+			(8, 28),
+			(9, 26),
+			(10, 24),
 		])
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.with_delegations(vec![
@@ -4519,17 +4634,57 @@ fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 40);
-				assert_eq!(top_delegations.delegations.len(), 4);
+				assert_eq!(top_delegations.total, 70);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 19
+						},
+						Bond {
+							owner: 4,
+							amount: 18
+						},
+						Bond {
+							owner: 5,
+							amount: 17
+						},
+						Bond {
+							owner: 6,
+							amount: 16
+						}
+					]
+				);
 				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 40);
-				assert_eq!(bottom_delegations.delegations.len(), 4);
+				assert_eq!(bottom_delegations.total, 54);
+				assert_eq!(
+					bottom_delegations.delegations,
+					vec![
+						Bond {
+							owner: 7,
+							amount: 15
+						},
+						Bond {
+							owner: 8,
+							amount: 14
+						},
+						Bond {
+							owner: 9,
+							amount: 13
+						},
+						Bond {
+							owner: 10,
+							amount: 12
+						}
+					]
+				);
 				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
 				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
 				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 10);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 10);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
 			}
 		});
 }

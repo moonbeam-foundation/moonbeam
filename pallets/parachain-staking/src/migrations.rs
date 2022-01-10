@@ -68,6 +68,8 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.next()
 		.is_none());
+		// TODO: expect bottom delegations to have more than MaxBottomDelegationsPerCandidate
+		// so revoke for the bottom Actual - MaxBottomDelegationsPerCandidate
 		for (account, state) in stored_data {
 			let lowest_top_delegation_amount = if state.top_delegations.is_empty() {
 				BalanceOf::<T>::zero()
