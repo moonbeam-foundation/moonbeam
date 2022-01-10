@@ -1428,23 +1428,10 @@ fn test_statemine_like() {
 			statemine_like::Origin::signed(RELAYALICE),
 			0,
 			RELAYALICE,
-			100000000000000
+			300000000000000
 		));
 
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			100000000000000
-		));
-
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			100000000000000
-		));
-
+		// This is needed, since the asset is created as non-sufficient
 		assert_ok!(StatemineBalances::transfer(
 			statemine_like::Origin::signed(RELAYALICE),
 			sov,
@@ -1539,25 +1526,12 @@ fn test_statemine_like_prefix_change() {
 			1
 		));
 
+		// This is needed, since the asset is created as non-sufficient
 		assert_ok!(StatemineAssets::mint(
 			statemine_like::Origin::signed(RELAYALICE),
 			8,
 			RELAYALICE,
-			100000000000000
-		));
-
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			8,
-			RELAYALICE,
-			100000000000000
-		));
-
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			8,
-			RELAYALICE,
-			100000000000000
+			300000000000000
 		));
 
 		assert_ok!(StatemineBalances::transfer(
