@@ -31,8 +31,8 @@ use xcm::latest::{
 	Junctions::*,
 	MultiLocation, NetworkId, Response, Xcm,
 };
+use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
-
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
@@ -1658,6 +1658,126 @@ fn empty_account_should_not_be_reset() {
 		assert_eq!(account.providers, 1);
 		// We expect the account to be alive in a Zero ED context.
 		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
+	});
+}
+
+#[test]
+fn test_statemine_like() {
+	MockNet::reset();
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemine_like::AccountId,
+	>::convert_ref(dest_para)
+	.unwrap();
+
+	let statemine_asset_a_balances = MultiLocation::new(
+		1,
+		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(0u128)),
+	);
+	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemineToken".to_vec(),
+		symbol: b"StatemineToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	Statemine::execute_with(|| {
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemintBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
+			0,
+		));
+	});
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(4),
+			AccountId32 {
+				network: NetworkId::Any,
+				id: RELAYALICE.into(),
+			},
+		),
+	};
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::OtherReserve(source_id),
+			123,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			8000
+		));
+	});
+
+	Statemine::execute_with(|| {
+		// Asset has been transferred back, so we should receive full amount
+		assert_eq!(StatemineAssets::balance(0, RELAYALICE), 300000000000000);
 	});
 }
 
