@@ -17,7 +17,9 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
-use frame_support::{assert_noop, assert_ok, traits::{PalletInfo, PalletInfoAccess}
+use frame_support::{
+	assert_noop, assert_ok,
+	traits::{PalletInfo, PalletInfoAccess},
 };
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
