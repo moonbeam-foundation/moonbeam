@@ -5760,6 +5760,7 @@ dependencies = [
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
+ "pallet-democracy-precompiles",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
