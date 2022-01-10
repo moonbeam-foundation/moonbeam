@@ -1083,10 +1083,6 @@ parameter_types! {
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
-
-	pub StatemineParaId: u32 = 1001;
-	pub StatemineAssetPalletInstance: u8 = 50;
-	pub StatemineAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
@@ -1243,6 +1239,15 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	// Statemint ParaId in Alphanet
+	pub StatemintParaId: u32 = 1001;
+	// Assets Pallet instance in Statemint alphanet
+	pub StatemintAssetPalletInstance: u8 = 50;
+	// AssetIds from Statemint already registered, these will retain
+	// the previous prefix assetId and we will map new one to previous ones
+	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
+}
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -1264,9 +1269,9 @@ impl From<MultiLocation> for AssetType {
 			MultiLocation {
 				parents: 1,
 				interior: X3(Parachain(id), PalletInstance(instance), GeneralIndex(index)),
-			} if id == StatemineParaId::get()
-				&& instance == StatemineAssetPalletInstance::get()
-				&& StatemineAssetIdExceptions::get().contains(&index) =>
+			} if id == StatemintParaId::get()
+				&& instance == StatemintAssetPalletInstance::get()
+				&& StatemintAssetIdExceptions::get().contains(&index) =>
 			{
 				Self::Xcm(MultiLocation {
 					parents: 1,

@@ -170,9 +170,6 @@ pub type XcmOriginToTransactDispatchOrigin = (
 parameter_types! {
 	pub const UnitWeightCost: Weight = 1;
 	pub MaxInstructions: u32 = 100;
-	pub StatemineParaId: u32 = 4;
-	pub StatemineAssetPalletInstance: u8 = 5;
-	pub StatemineAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
 }
 
 // Instructing how incoming xcm assets will be handled
@@ -576,6 +573,12 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = XcmVersioner;
 }
 
+parameter_types! {
+	pub StatemintParaId: u32 = 4;
+	pub StatemintAssetPalletInstance: u8 = 5;
+	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
+}
+
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -597,9 +600,9 @@ impl From<MultiLocation> for AssetType {
 			MultiLocation {
 				parents: 1,
 				interior: X3(Parachain(id), PalletInstance(instance), GeneralIndex(index)),
-			} if id == StatemineParaId::get()
-				&& instance == StatemineAssetPalletInstance::get()
-				&& StatemineAssetIdExceptions::get().contains(&index) =>
+			} if id == StatemintParaId::get()
+				&& instance == StatemintAssetPalletInstance::get()
+				&& StatemintAssetIdExceptions::get().contains(&index) =>
 			{
 				Self::Xcm(MultiLocation {
 					parents: 1,
