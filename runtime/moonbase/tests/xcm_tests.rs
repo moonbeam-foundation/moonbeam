@@ -17,7 +17,10 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
-use frame_support::{assert_ok, traits::PalletInfo};
+use frame_support::{
+	assert_ok,
+	traits::{PalletInfo, PalletInfoAccess},
+};
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
@@ -1774,10 +1777,136 @@ fn test_statemine_like() {
 			8000
 		));
 	});
+}
+
+#[test]
+fn test_statemine_like_prefix_change() {
+	MockNet::reset();
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemine_like::AccountId,
+	>::convert_ref(dest_para)
+	.unwrap();
+
+	let statemine_asset_a_balances = MultiLocation::new(
+		1,
+		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(0u128)),
+	);
+	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemineToken".to_vec(),
+		symbol: b"StatemineToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
 
 	Statemine::execute_with(|| {
-		// Asset has been transferred back, so we should receive full amount
-		assert_eq!(StatemineAssets::balance(0, RELAYALICE), 300000000000000);
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			100000000000000
+		));
+
+		assert_ok!(StatemintBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+
+	Statemine::execute_with(|| {
+		statemine_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemineAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new(
+				(
+					X2(
+						xcm::latest::prelude::PalletInstance(
+							<StatemineAssets as PalletInfoAccess>::index() as u8
+						),
+						xcm::latest::prelude::GeneralIndex(0),
+					),
+					123
+				)
+					.into()
+			),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
 	});
 }
 

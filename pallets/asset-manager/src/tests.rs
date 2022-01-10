@@ -98,6 +98,30 @@ fn test_root_can_change_units_per_second() {
 }
 
 #[test]
+fn test_root_can_change_asset_id_type() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
+		assert_ok!(AssetManager::change_existing_asset_type(
+			Origin::root(),
+			1,
+			MockAssetType::MockAsset(2),
+		));
+
+		expect_events(vec![
+			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::AssetTypeChanged(1, MockAssetType::MockAsset(2)),
+		])
+	});
+}
+
+#[test]
 fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(

@@ -119,6 +119,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetId, u128),
+		AssetTypeChanged(T::AssetId, T::AssetType),
 	}
 
 	/// Stores the asset TYPE
@@ -176,6 +177,26 @@ pub mod pallet {
 			AssetIdUnitsPerSecond::<T>::insert(&asset_id, &units_per_second);
 
 			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
+			Ok(())
+		}
+
+		/// Change the xcm type mapping for a given assetId
+		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
+		pub fn change_existing_asset_type(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			new_asset_type: T::AssetType,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			ensure!(
+				AssetIdType::<T>::get(&asset_id).is_some(),
+				Error::<T>::AssetDoesNotExist
+			);
+
+			AssetIdType::<T>::insert(&asset_id, &new_asset_type);
+
+			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
 			Ok(())
 		}
 	}

@@ -170,6 +170,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 parameter_types! {
 	pub const UnitWeightCost: Weight = 1;
 	pub MaxInstructions: u32 = 100;
+	pub StatemineParaId: u32 = 4;
+	pub StatemineAssetPalletInstance: u8 = 5;
+	pub StatemineAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
 }
 
 // Instructing how incoming xcm assets will be handled
@@ -586,7 +589,25 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map to the previous location so that the assetId is well calculated
+			// TODO: this is quite hacky, but the change itself is quite painful to cover
+			MultiLocation {
+				parents: 1,
+				interior: X3(Parachain(id), PalletInstance(instance), GeneralIndex(index)),
+			} if id == StatemineParaId::get()
+				&& instance == StatemineAssetPalletInstance::get()
+				&& StatemineAssetIdExceptions::get().contains(&index) =>
+			{
+				Self::Xcm(MultiLocation {
+					parents: 1,
+					interior: X2(Parachain(id), GeneralIndex(index)),
+				})
+			}
+			_ => Self::Xcm(location),
+		}
 	}
 }
 
