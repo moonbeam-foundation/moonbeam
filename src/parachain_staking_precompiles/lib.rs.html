@@ -821,6 +821,27 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -853,7 +874,8 @@
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm::Precompile</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">Gasometer</span>,
+	<span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
@@ -939,13 +961,33 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-		<span class="ident">_is_static</span>: <span class="ident">bool</span>,
+		<span class="ident">is_static</span>: <span class="ident">bool</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 		<span class="kw">let</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>;
 
 		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">input</span>;
+
+		<span class="ident">gasometer</span>.<span class="ident">check_function_modifier</span>(
+			<span class="ident">context</span>,
+			<span class="ident">is_static</span>,
+			<span class="kw">match</span> <span class="ident">selector</span> {
+				<span class="ident">Action::IsNominator</span>
+				<span class="op">|</span> <span class="ident">Action::IsDelegator</span>
+				<span class="op">|</span> <span class="ident">Action::IsCandidate</span>
+				<span class="op">|</span> <span class="ident">Action::IsSelectedCandidate</span>
+				<span class="op">|</span> <span class="ident">Action::Points</span>
+				<span class="op">|</span> <span class="ident">Action::MinNomination</span>
+				<span class="op">|</span> <span class="ident">Action::MinDelegation</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateCount</span>
+				<span class="op">|</span> <span class="ident">Action::CollatorNominationCount</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateDelegationCount</span>
+				<span class="op">|</span> <span class="ident">Action::NominatorNominationCount</span>
+				<span class="op">|</span> <span class="ident">Action::DelegatorDelegationCount</span> =&gt; <span class="ident">FunctionModifier::View</span>,
+				<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			},
+		)<span class="question-mark">?</span>;
 
 		<span class="comment">// Return early if storage getter; return (origin, call) if dispatchable</span>
 		<span class="kw">let</span> (<span class="ident">origin</span>, <span class="ident">call</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">selector</span> {

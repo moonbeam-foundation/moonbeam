@@ -228,6 +228,15 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -256,7 +265,7 @@
 };
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
 };
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
@@ -300,10 +309,19 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-		<span class="ident">_is_static</span>: <span class="ident">bool</span>,
+		<span class="ident">is_static</span>: <span class="ident">bool</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
 		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
+
+		<span class="ident">gasometer</span>.<span class="ident">check_function_modifier</span>(
+			<span class="ident">context</span>,
+			<span class="ident">is_static</span>,
+			<span class="kw">match</span> <span class="ident">selector</span> {
+				<span class="ident">Action::Claim</span> <span class="op">|</span> <span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+				<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
+			},
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Check for accessor methods first. These return results immediately</span>
