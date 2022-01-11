@@ -43,7 +43,7 @@ impl<T: Config> OnRuntimeUpgrade for UpdateCandidatePoolWithTotalCounted<T> {
 		let (mut reads, mut writes) = (0u64, 0u64);
 		for (account, state) in <CandidateState<T>>::iter() {
 			reads += 1u64;
-			Pallet::<T>::update_active(&account, state.total_counted);
+			Pallet::<T>::update_active(account.clone(), state.total_counted);
 			writes += 1u64;
 		}
 		let weight = T::DbWeight::get();
