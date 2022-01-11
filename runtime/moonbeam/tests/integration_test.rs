@@ -311,7 +311,7 @@ fn join_collator_candidates() {
 			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
 			assert_eq!(candidates.0[1].amount, 105_000 * GLMR);
 			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
-			assert_eq!(candidates.0[2].owner, 100_000 * GLMR);
+			assert_eq!(candidates.0[2].amount, 100_000 * GLMR);
 		});
 }
 
