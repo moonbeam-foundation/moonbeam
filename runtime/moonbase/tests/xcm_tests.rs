@@ -1884,6 +1884,126 @@ fn test_statemint_like_prefix_change() {
 	});
 }
 
+#[test]
+fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_assets() {
+	MockNet::reset();
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_ref(dest_para)
+	.unwrap();
+
+	let statemint_asset_a_balances = MultiLocation::new(
+		1,
+		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(3u128)),
+	);
+	let source_location = parachain::AssetType::Xcm(statemint_asset_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemintToken".to_vec(),
+		symbol: b"StatemintToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_id,
+			0u128
+		));
+	});
+
+	Statemint::execute_with(|| {
+		assert_ok!(StatemintAssets::create(
+			statemint_like::Origin::signed(RELAYALICE),
+			3,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::Origin::signed(RELAYALICE),
+			3,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemintBalances::transfer(
+			statemint_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+
+		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
+			statemint_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(3)), 123).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+
+	Statemint::execute_with(|| {
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
+			statemint_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new(
+				(
+					X2(
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						xcm::latest::prelude::GeneralIndex(3),
+					),
+					123
+				)
+					.into()
+			),
+			0,
+		));
+	});
+
+	// for asset 3, since it does not have the re-routing in the runtime, last transfer
+	// did not work
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+}
+
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 
