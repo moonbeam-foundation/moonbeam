@@ -7,11 +7,11 @@ import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
-import type { XcmVersionedXcm } from '@polkadot/types/lookup';
+import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { VersionedXcm, XcmpMessageFormat } from "@polkadot/types/interfaces";
 
-import DepositAsset from '@polkadot/types-augment/lookup/definitions';
+import DepositAsset from "@polkadot/types-augment/lookup/definitions";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -28,10 +28,9 @@ const assetMetadata = {
 };
 
 const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: foreign_para_id } } } };
-const statemintLocation = { XCM: { parents: 1, interior: { X2: [
-  { Parachain: statemint_para_id },
-  { GeneralIndex: 0 },
-], } } };
+const statemintLocation = {
+  XCM: { parents: 1, interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] } },
+};
 
 describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   let assetId: string;
@@ -145,52 +144,70 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 
   it("Should receive a 10 Statemine tokens to Alith with prefix 1", async function () {
+    // We are going to test that, using the prefix prior to https://github.com/paritytech/cumulus/pull/831
+    // we can receive the tokens on the assetId registed with the old prefix
 
-    let xcmMessage = { V2: [
-      { ReserveAssetDeposited: [
-          { id: 
-            { Concrete: 
-              { parents: 1, interior: 
-                { X2: [
-                  { Parachain: statemint_para_id },
-                  { GeneralIndex: 0 },
-                  ]
-                } 
-              }
-            },
-            fun: { Fungible: new BN(10000000000000) }
-          }
-      ]},
-      { ClearOrigin: null },
-      { BuyExecution:  {
-          fees:
-              { id: { Concrete: { parents: new BN(1), interior: { X2: [
-                { Parachain: statemint_para_id },
-                { GeneralIndex: 0 },
-                ]
-              }} },
-              fun: { Fungible: new BN(10000000000000) }
+    // Old prefix:
+    // Parachain(Statemint parachain)
+    // GeneralIndex(assetId being transferred)
+    let xcmMessage = {
+      V2: [
+        {
+          ReserveAssetDeposited: [
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                },
               },
-          weightLimit: { Limited: new BN(4000000000)}
-          }
-      },
-      { DepositAsset:  {
-        assets: {Wild: "All"},
-        maxAssets: new BN(1),
-        beneficiary: {parents: 0,
-          interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } }, }
-        }
-      },
-      ]
+              fun: { Fungible: new BN(10000000000000) },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: new BN(1),
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(1),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+            },
+          },
+        },
+      ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType("XcmpMessageFormat", "ConcatenatedVersionedXcm")
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType("XcmVersionedXcm", xcmMessage);
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    );
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    );
 
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()]
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [statemint_para_id, totalMessage]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      statemint_para_id,
+      totalMessage,
+    ]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
@@ -252,54 +269,83 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 
   it("Should receive a 10 Statemine tokens to Alith with prefix 2", async function () {
+    // We are going to test that, using the prefix after https://github.com/paritytech/cumulus/pull/831
+    // we can receive the tokens on the assetId registed with the old prefix
 
-    let xcmMessage = { V2: [
-      { ReserveAssetDeposited: [
-          { id: 
-            { Concrete: 
-              { parents: 1, interior: 
-                { X3: [
-                  { Parachain: statemint_para_id },
-                  { PalletInstance: statemint_assets_pallet_instance },
-                  { GeneralIndex: 0 },
-                  ]
-                } 
-              }
-            },
-            fun: { Fungible: new BN(10000000000000) }
-          }
-      ]},
-      { ClearOrigin: null },
-      { BuyExecution:  {
-          fees:
-              { id: { Concrete: { parents: new BN(1), interior: { X3: [
-                { Parachain: statemint_para_id },
-                { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 0 },
-                ]
-              }} },
-              fun: { Fungible: new BN(10000000000000) }
+    // New prefix:
+    // Parachain(Statemint parachain)
+    // PalletInstance(Statemint assets pallet instance)
+    // GeneralIndex(assetId being transferred)
+    let xcmMessage = {
+      V2: [
+        {
+          ReserveAssetDeposited: [
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 0 },
+                    ],
+                  },
+                },
               },
-          weightLimit: { Limited: new BN(4000000000)}
-          }
-      },
-      { DepositAsset:  {
-        assets: {Wild: "All"},
-        maxAssets: new BN(1),
-        beneficiary: {parents: 0,
-          interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } }, }
-        }
-      },
-      ]
+              fun: { Fungible: new BN(10000000000000) },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: new BN(1),
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 0 },
+                    ],
+                  },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(1),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+            },
+          },
+        },
+      ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType("XcmpMessageFormat", "ConcatenatedVersionedXcm")
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType("XcmVersionedXcm", xcmMessage);
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    );
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    );
 
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()]
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [statemint_para_id, totalMessage]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      statemint_para_id,
+      totalMessage,
+    ]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
