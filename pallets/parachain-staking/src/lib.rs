@@ -514,7 +514,8 @@ pub mod pallet {
 			self.bottom_capacity = bottom_delegations.bottom_capacity::<T>();
 		}
 		/// Add delegation
-		/// Returns whether delegator was added and an optional negative total counted remainder for if a bottom delegation was kicked
+		/// Returns whether delegator was added and an optional negative total counted remainder
+		/// for if a bottom delegation was kicked
 		/// MUST ensure no delegation exists for this candidate in the `DelegatorState` before call
 		pub fn add_delegation<T: Config>(
 			&mut self,
@@ -535,7 +536,8 @@ pub mod pallet {
 							new_total: self.total_counted,
 						}
 					} else {
-						// if bottom is full, only insert if greater than lowest bottom (which will be bumped out)
+						// if bottom is full, only insert if greater than lowest bottom (which will
+						// be bumped out)
 						if matches!(self.bottom_capacity, CapacityStatus::Full) {
 							ensure!(
 								delegation.amount.into() > self.lowest_bottom_delegation_amount,
@@ -604,7 +606,8 @@ pub mod pallet {
 		{
 			let mut bottom_delegations =
 				<BottomDelegations<T>>::get(candidate).expect("TODO proof QED");
-			// if bottom is full, kick the lowest bottom (which is expected to be lower than input as per check)
+			// if bottom is full, kick the lowest bottom (which is expected to be lower than input
+			// as per check)
 			let increase_delegation_count = if bottom_delegations.delegations.len() as u32
 				== T::MaxBottomDelegationsPerCandidate::get()
 			{
@@ -2131,7 +2134,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
 	/// Total capital locked by this staking pallet
-	type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	pub(crate) type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]

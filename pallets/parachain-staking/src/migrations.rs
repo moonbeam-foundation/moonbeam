@@ -16,9 +16,9 @@
 
 //! # Migrations
 use crate::{
-	pallet::{migrate_nominator_to_delegator_state, RoundIndex},
+	pallet::{migrate_nominator_to_delegator_state, RoundIndex, Total},
 	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidateState,
-	CapacityStatus, CollatorCandidate, CollatorState2, Config, Delegations, DelegatorState,
+	CapacityStatus, CollatorCandidate, CollatorState2, Config, Delegations, DelegatorState, Event,
 	ExitQueue2, NominatorState2, Pallet, Points, Round, Staked, TopDelegations,
 };
 #[cfg(feature = "try-runtime")]
@@ -32,7 +32,7 @@ use alloc::format;
 use frame_support::{
 	migration::{remove_storage_prefix, storage_key_iter},
 	pallet_prelude::PhantomData,
-	traits::{Get, OnRuntimeUpgrade},
+	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
 use sp_runtime::traits::Zero;
@@ -40,6 +40,7 @@ use sp_std::{collections::btree_map::BTreeMap, convert::TryInto, vec::Vec};
 
 /// Migration to split CandidateState and minimize unnecessary storage reads
 /// for PoV optimization
+/// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate
 pub struct SplitCandidateStateToDecreasePoV<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 	fn on_runtime_upgrade() -> Weight {
@@ -68,23 +69,70 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.next()
 		.is_none());
-		// TODO: expect bottom delegations to have more than MaxBottomDelegationsPerCandidate
-		// so revoke for the bottom Actual - MaxBottomDelegationsPerCandidate
 		for (account, state) in stored_data {
+			// all delegations are stored greatest to least post migration
+			// but bottom delegations were least to greatest pre migration
+			let new_bottom_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
+				if state.bottom_delegations.len()
+					> T::MaxBottomDelegationsPerCandidate::get() as usize
+				{
+					// if actual length > max bottom delegations, revoke the bottom actual - max
+					// TODO: add test for this path to ensure valid revocation
+					let rest = state.bottom_delegations.len()
+						- T::MaxBottomDelegationsPerCandidate::get() as usize;
+					let mut total_less = BalanceOf::<T>::zero();
+					state.bottom_delegations.iter().take(rest).for_each(
+						|Bond { owner, amount }| {
+							total_less += *amount;
+							// update delegator state
+							// unreserve kicked bottom
+							T::Currency::unreserve(&owner, *amount);
+							let mut delegator_state =
+								<DelegatorState<T>>::get(&owner).expect("TODO proof");
+							let leaving = delegator_state.delegations.0.len() == 1usize;
+							delegator_state.rm_delegation(&account);
+							Pallet::<T>::deposit_event(Event::DelegationKicked(
+								owner.clone(),
+								account.clone(),
+								*amount,
+							));
+							if leaving {
+								<DelegatorState<T>>::remove(&owner);
+								Pallet::<T>::deposit_event(Event::DelegatorLeft(
+									owner.clone(),
+									*amount,
+								));
+							} else {
+								<DelegatorState<T>>::insert(&owner, delegator_state);
+							}
+						},
+					);
+					let new_total = <Total<T>>::get() - total_less;
+					<Total<T>>::put(new_total);
+					state
+						.bottom_delegations
+						.into_iter()
+						.rev()
+						.take(T::MaxBottomDelegationsPerCandidate::get() as usize)
+						.collect()
+				} else {
+					state.bottom_delegations.into_iter().rev().collect()
+				};
 			let lowest_top_delegation_amount = if state.top_delegations.is_empty() {
 				BalanceOf::<T>::zero()
 			} else {
 				state.top_delegations[state.top_delegations.len() - 1].amount
 			};
-			let highest_bottom_delegation_amount = if state.bottom_delegations.is_empty() {
+			let highest_bottom_delegation_amount = if new_bottom_delegations.is_empty() {
 				BalanceOf::<T>::zero()
 			} else {
-				state.bottom_delegations[0].amount
+				new_bottom_delegations[0].amount
 			};
-			let lowest_bottom_delegation_amount = if state.bottom_delegations.is_empty() {
+			// start here,
+			let lowest_bottom_delegation_amount = if new_bottom_delegations.is_empty() {
 				BalanceOf::<T>::zero()
 			} else {
-				state.bottom_delegations[state.bottom_delegations.len() - 1].amount
+				new_bottom_delegations[new_bottom_delegations.len() - 1].amount
 			};
 			let top_capacity = match &state.top_delegations {
 				x if x.len() as u32 >= T::MaxTopDelegationsPerCandidate::get() => {
@@ -93,7 +141,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 				x if x.is_empty() => CapacityStatus::Empty,
 				_ => CapacityStatus::Partial,
 			};
-			let bottom_capacity = match &state.bottom_delegations {
+			let bottom_capacity = match &new_bottom_delegations {
 				x if x.len() as u32 >= T::MaxBottomDelegationsPerCandidate::get() => {
 					CapacityStatus::Full
 				}
@@ -102,7 +150,8 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 			};
 			let metadata = CandidateMetadata {
 				bond: state.bond,
-				delegation_count: state.delegators.0.len() as u32,
+				delegation_count: state.top_delegations.len() as u32
+					+ new_bottom_delegations.len() as u32,
 				total_counted: state.total_counted,
 				lowest_top_delegation_amount,
 				highest_bottom_delegation_amount,
@@ -119,12 +168,10 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 			};
 			<TopDelegations<T>>::insert(&account, top_delegations);
 			let bottom_delegations = Delegations {
-				// total_backing = total_counted + sum(bottom_delegation_amounts)
-				// this field is now sum(bottom_delegation_amounts)
-				total: state.total_backing - state.total_counted,
-				// all delegations are stored greatest to least post migration
-				// but bottom delegations were least to greatest pre migration
-				delegations: state.bottom_delegations.into_iter().rev().collect(),
+				total: new_bottom_delegations
+					.iter()
+					.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount),
+				delegations: new_bottom_delegations,
 			};
 			<BottomDelegations<T>>::insert(&account, bottom_delegations);
 		}
