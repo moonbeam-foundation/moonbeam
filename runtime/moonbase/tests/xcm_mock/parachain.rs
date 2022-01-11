@@ -596,7 +596,8 @@ impl From<MultiLocation> for AssetType {
 			// Change https://github.com/paritytech/cumulus/pull/831
 			// This avoids interrumption once they upgrade
 			// We map to the previous location so that the assetId is well calculated
-			// TODO: this is quite hacky, but the change itself is quite painful to cover
+			// TODO: we might want to do a migration after statemine has upgraded
+			// as this is quite hacky, but the change itself is quite painful to cover
 			MultiLocation {
 				parents: 1,
 				interior: X3(Parachain(id), PalletInstance(instance), GeneralIndex(index)),
