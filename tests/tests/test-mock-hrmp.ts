@@ -144,7 +144,8 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 
   it("Should receive a 10 Statemine tokens to Alith with prefix 1", async function () {
-    // We are going to test that, using the prefix prior to https://github.com/paritytech/cumulus/pull/831
+    // We are going to test that, using the prefix prior to
+    // https://github.com/paritytech/cumulus/pull/831
     // we can receive the tokens on the assetId registed with the old prefix
 
     // Old prefix:
@@ -269,7 +270,8 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 
   it("Should receive a 10 Statemine tokens to Alith with prefix 2", async function () {
-    // We are going to test that, using the prefix after https://github.com/paritytech/cumulus/pull/831
+    // We are going to test that, using the prefix after
+    // https://github.com/paritytech/cumulus/pull/831
     // we can receive the tokens on the assetId registed with the old prefix
 
     // New prefix:
