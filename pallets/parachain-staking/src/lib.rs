@@ -26,12 +26,11 @@
 //! At the start of every round,
 //! * issuance is calculated for collators (and their delegators) for block authoring
 //! `T::RewardPaymentDelay` rounds ago
-//! * queued collator and delegator exits are executed
 //! * a new set of collators is chosen from the candidates
 //!
 //! Immediately following a round change, payments are made once-per-block until all payments have
 //! been made. In each such block, one collator is chosen for a rewards payment and is paid along
-//! with each of its "top" delegators.
+//! with each of its top `T::MaxTopDelegationsPerCandidate` delegators.
 //!
 //! To join the set of candidates, call `join_candidates` with `bond >= MinCandidateStk`.
 //! To leave the set of candidates, call `schedule_leave_candidates`. If the call succeeds,
@@ -626,7 +625,8 @@ pub mod pallet {
 					&lowest_bottom_to_be_kicked.owner,
 					lowest_bottom_to_be_kicked.amount,
 				);
-				// total staked is updated via propagation of lowest bottom delegation amount prior to call
+				// total staked is updated via propagation of lowest bottom delegation amount prior
+				// to call
 				let mut delegator_state =
 					<DelegatorState<T>>::get(&lowest_bottom_to_be_kicked.owner)
 						.expect("TODO proof");
@@ -3024,8 +3024,8 @@ pub mod pallet {
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout<BalanceOf<T>>,
 		) -> (Option<(T::AccountId, BalanceOf<T>)>, Weight) {
-			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage item
-			// so that we do fewer reads each block
+			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage
+			// item so that we do fewer reads each block
 			let total_points = <Points<T>>::get(paid_for_round);
 			if total_points.is_zero() {
 				// TODO: this case is obnoxious... it's a value query, so it could mean one of two
@@ -3078,7 +3078,8 @@ pub mod pallet {
 					T::WeightInfo::pay_one_collator_reward(num_delegators as u32),
 				);
 			} else {
-				// Note that we don't clean up storage here; it is cleaned up in handle_delayed_payouts()
+				// Note that we don't clean up storage here; it is cleaned up in
+				// handle_delayed_payouts()
 				return (None, 0u64.into());
 			}
 		}

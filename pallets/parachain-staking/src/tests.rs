@@ -4398,6 +4398,12 @@ fn deferred_payment_steady_state_event_flow() {
 use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
+fn split_candidate_state_kicks_extra_bottom_delegations() {
+	// create state in which there is excessive bottom delegations like unbounded
+	todo!()
+} // OTHER TESTS NEED TO START WITH CORRUPTED CANDIDATE_INFO AS WELL
+
+#[test]
 fn split_candidate_state_migrates_empty_delegations_correctly() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
