@@ -1752,10 +1752,12 @@ fn test_statemint_like() {
 		),
 	};
 
+	// We can transfer back from the parachain perspective
+	// But statemint wont receive them because of the reanchoring logic
+	// and because we are not sending KSM
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 
-		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::OtherReserve(source_id),
@@ -1835,6 +1837,7 @@ fn test_statemint_like_prefix_change() {
 		}
 		.into();
 
+		// Send asset with previous prefix
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::Origin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
@@ -1849,6 +1852,7 @@ fn test_statemint_like_prefix_change() {
 	});
 
 	Statemint::execute_with(|| {
+		// Set new prefix
 		statemint_like::PrefixChanger::set_prefix(
 			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
 		);
@@ -1859,6 +1863,7 @@ fn test_statemint_like_prefix_change() {
 			key: PARAALICE,
 		}
 		.into();
+		// Send with new prefix
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::Origin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
@@ -1879,6 +1884,7 @@ fn test_statemint_like_prefix_change() {
 		));
 	});
 
+	// Make sure that balance increases, as both prefixes are supported
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
 	});
@@ -1896,6 +1902,8 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 	>::convert_ref(dest_para)
 	.unwrap();
 
+	// Our filter is for assetIds 0,1,2
+	// We are gonna prove that for another Id, we dont support both prefixes
 	let statemint_asset_a_balances = MultiLocation::new(
 		1,
 		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(3u128)),
@@ -1953,6 +1961,7 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 		}
 		.into();
 
+		// Sending with previous prefix will mint assets in the dest parachain
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::Origin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
@@ -1962,11 +1971,13 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 		));
 	});
 
+	// Assets have been minted
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 
 	Statemint::execute_with(|| {
+		// Set new prefix
 		statemint_like::PrefixChanger::set_prefix(
 			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
 		);
@@ -1997,7 +2008,7 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 		));
 	});
 
-	// for asset 3, since it does not have the re-routing in the runtime, last transfer
+	// for asset 3, since we dont support both prefixes, last transfer
 	// did not work
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
