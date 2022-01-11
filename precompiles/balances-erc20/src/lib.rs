@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	Gasometer, LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -146,6 +146,10 @@ pub trait Erc20Metadata {
 
 	/// Returns the decimals places of the token.
 	fn decimals() -> u8;
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
@@ -170,7 +174,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
@@ -178,6 +182,18 @@ where
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)
 			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
+					FunctionModifier::NonPayable
+				}
+				Action::Deposit => FunctionModifier::Payable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			Action::TotalSupply => Self::total_supply(input, gasometer),
@@ -488,6 +504,11 @@ where
 		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		// Deposit only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
 		let caller: Runtime::AccountId = Runtime::AddressMapping::into_account_id(context.caller);
 		let precompile = Runtime::AddressMapping::into_account_id(context.address);
 		let amount = Self::u256_to_amount(gasometer, context.apparent_value)?;
@@ -527,6 +548,11 @@ where
 		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		// Withdraw only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
 		gasometer.record_log_costs_manual(2, 32)?;
 
 		let withdrawn_amount: U256 = input.read(gasometer)?;
