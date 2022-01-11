@@ -36,6 +36,33 @@ use frame_support::{
 };
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
+/// Migration to patch increase candidate bond not updating candidate pool
+pub struct UpdateCandidatePoolWithTotalCounted<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for UpdateCandidatePoolWithTotalCounted<T> {
+	fn on_runtime_upgrade() -> Weight {
+		let (mut reads, mut writes) = (0u64, 0u64);
+		for (account, state) in <CandidateState<T>>::iter() {
+			reads += 1u64;
+			Pallet::<T>::update_active(&account, state.total_counted);
+			writes += 1u64;
+		}
+		let weight = T::DbWeight::get();
+		// 10% of the max block weight as safety margin for computation
+		weight.reads(reads) + weight.writes(writes) + 50_000_000_000
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// trivial
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// trivial
+		Ok(())
+	}
+}
+
 /// Migration to properly increase maximum delegations per collator
 /// This migration can be used to recompute the top and bottom delegations whenever
 /// MaxDelegatorsPerCandidate changes (works for decrease as well)

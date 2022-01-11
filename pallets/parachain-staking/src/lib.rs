@@ -2114,7 +2114,11 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			state.bond_more::<T>(more)?;
+			let total_counted = state.total_counted;
 			<CandidateState<T>>::insert(&collator, state);
+			if state.is_active() {
+				Self::update_active(collator.clone(), total_counted);
+			}
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_less())]
