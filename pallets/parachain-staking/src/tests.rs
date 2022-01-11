@@ -629,13 +629,8 @@ fn join_candidates_adds_to_candidate_pool() {
 			assert!(Stake::candidate_pool().0.is_empty());
 			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 0u32));
 			let candidate_pool = Stake::candidate_pool();
-			assert_eq!(
-				candidate_pool.0[0],
-				Bond {
-					owner: 1,
-					amount: 10u128
-				}
-			);
+			assert_eq!(candidate_pool.0[0].owner, 1);
+			assert_eq!(candidate_pool.0[0].amount, 10);
 		});
 }
 
@@ -960,13 +955,8 @@ fn cancel_leave_candidates_adds_to_candidate_pool() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_ok!(Stake::cancel_leave_candidates(Origin::signed(1), 1));
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 10
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 10);
 		});
 }
 
@@ -1062,13 +1052,8 @@ fn go_online_adds_to_candidate_pool() {
 			assert_ok!(Stake::go_offline(Origin::signed(1)));
 			assert!(Stake::candidate_pool().0.is_empty());
 			assert_ok!(Stake::go_online(Origin::signed(1)));
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 20
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 20);
 		});
 }
 
@@ -1192,21 +1177,11 @@ fn candidate_bond_more_updates_candidate_pool() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 20
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 20);
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 50
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 50);
 		});
 }
 
@@ -1367,23 +1342,13 @@ fn execute_candidate_bond_less_updates_candidate_pool() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 30
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 30);
 			assert_ok!(Stake::schedule_candidate_bond_less(Origin::signed(1), 10));
 			roll_to(10);
 			assert_ok!(Stake::execute_candidate_bond_less(Origin::signed(1), 1));
-			assert_eq!(
-				Stake::candidate_pool().0[0],
-				Bond {
-					owner: 1,
-					amount: 20
-				}
-			);
+			assert_eq!(Stake::candidate_pool().0[0].owner, 1);
+			assert_eq!(Stake::candidate_pool().0[0].amount, 20);
 		});
 }
 
@@ -1477,13 +1442,8 @@ fn delegate_updates_delegator_state() {
 			assert_ok!(Stake::delegate(Origin::signed(2), 1, 10, 0, 0));
 			let delegator_state = Stake::delegator_state(2).expect("just delegated => exists");
 			assert_eq!(delegator_state.total, 10);
-			assert_eq!(
-				delegator_state.delegations.0[0],
-				Bond {
-					owner: 1,
-					amount: 10
-				}
-			);
+			assert_eq!(delegator_state.delegations.0[0].owner, 1);
+			assert_eq!(delegator_state.delegations.0[0].amount, 10);
 		});
 }
 
@@ -1502,13 +1462,8 @@ fn delegate_updates_collator_state() {
 			let candidate_state = Stake::candidate_state(1).expect("just delegated => exists");
 			assert_eq!(candidate_state.total_backing, 40);
 			assert_eq!(candidate_state.total_counted, 40);
-			assert_eq!(
-				candidate_state.top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
-			);
+			assert_eq!(candidate_state.top_delegations[0].owner, 2);
+			assert_eq!(candidate_state.top_delegations[0].amount, 10);
 		});
 }
 
@@ -1794,13 +1749,8 @@ fn execute_leave_delegators_removes_delegations_from_collator_state() {
 			for i in 2..6 {
 				let candidate_state =
 					Stake::candidate_state(i).expect("initialized in ext builder");
-				assert_eq!(
-					candidate_state.top_delegations[0],
-					Bond {
-						owner: 1,
-						amount: 10
-					}
-				);
+				assert_eq!(candidate_state.top_delegations[0].owner, 1);
+				assert_eq!(candidate_state.top_delegations[0].amount, 10);
 				assert_eq!(candidate_state.delegators.0[0], 1);
 				assert_eq!(candidate_state.total_backing, 30);
 			}
@@ -2051,19 +2001,21 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
+				Stake::candidate_state(1).expect("exists").top_delegations[0].owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0].amount,
+				10
 			);
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 15
-				}
+				Stake::candidate_state(1).expect("exists").top_delegations[0].owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0].amount,
+				15
 			);
 		});
 }
@@ -2085,22 +2037,32 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 			assert_eq!(
 				Stake::candidate_state(1)
 					.expect("exists")
-					.bottom_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
+					.bottom_delegations[0]
+					.owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1)
+					.expect("exists")
+					.bottom_delegations[0]
+					.amount,
+				10
 			);
 			assert_ok!(Stake::delegator_bond_more(Origin::signed(2), 1, 5));
 			assert_last_event!(MetaEvent::Stake(Event::DelegationIncreased(2, 1, 5, false)));
 			assert_eq!(
 				Stake::candidate_state(1)
 					.expect("exists")
-					.bottom_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 15
-				}
+					.bottom_delegations[0]
+					.owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1)
+					.expect("exists")
+					.bottom_delegations[0]
+					.amount,
+				15
 			);
 		});
 }
@@ -2624,21 +2586,23 @@ fn execute_delegator_bond_less_updates_candidate_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 10
-				}
+				Stake::candidate_state(1).expect("exists").top_delegations[0].owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0].amount,
+				10
 			);
 			assert_ok!(Stake::schedule_delegator_bond_less(Origin::signed(2), 1, 5));
 			roll_to(10);
 			assert_ok!(Stake::execute_delegation_request(Origin::signed(2), 2, 1));
 			assert_eq!(
-				Stake::candidate_state(1).expect("exists").top_delegations[0],
-				Bond {
-					owner: 2,
-					amount: 5
-				}
+				Stake::candidate_state(1).expect("exists").top_delegations[0].owner,
+				2
+			);
+			assert_eq!(
+				Stake::candidate_state(1).expect("exists").top_delegations[0].amount,
+				5
 			);
 		});
 }
