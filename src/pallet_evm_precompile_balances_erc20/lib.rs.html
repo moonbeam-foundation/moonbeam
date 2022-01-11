@@ -576,6 +576,20 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -724,6 +738,10 @@
 
 	<span class="doccomment">/// Returns the decimals places of the token.</span>
 	<span class="kw">fn</span> <span class="ident">decimals</span>() -&gt; <span class="ident">u8</span>;
+
+	<span class="doccomment">/// Must return `true` only if it represents the main native currency of</span>
+	<span class="doccomment">/// the network. It must be the currency used in `pallet_evm`.</span>
+	<span class="kw">fn</span> <span class="ident">is_native_currency</span>() -&gt; <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Precompile exposing a pallet_balance as an ERC20.</span>
@@ -1078,6 +1096,11 @@
 		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Deposit only makes sense for the native currency.</span>
+		<span class="kw">if</span> <span class="op">!</span><span class="ident">Metadata::is_native_currency</span>() {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;unknown selector&quot;</span>));
+		}
+
 		<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">precompile</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">address</span>);
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">context</span>.<span class="ident">apparent_value</span>)<span class="question-mark">?</span>;
@@ -1117,6 +1140,11 @@
 		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Withdraw only makes sense for the native currency.</span>
+		<span class="kw">if</span> <span class="op">!</span><span class="ident">Metadata::is_native_currency</span>() {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;unknown selector&quot;</span>));
+		}
+
 		<span class="ident">gasometer</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">withdrawn_amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;

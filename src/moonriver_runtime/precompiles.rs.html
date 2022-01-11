@@ -172,6 +172,12 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -226,6 +232,12 @@
 	<span class="doccomment">/// Returns the decimals places of the token.</span>
 	<span class="kw">fn</span> <span class="ident">decimals</span>() -&gt; <span class="ident">u8</span> {
 		<span class="number">18</span>
+	}
+
+	<span class="doccomment">/// Must return `true` only if it represents the main native currency of</span>
+	<span class="doccomment">/// the network. It must be the currency used in `pallet_evm`.</span>
+	<span class="kw">fn</span> <span class="ident">is_native_currency</span>() -&gt; <span class="ident">bool</span> {
+		<span class="bool-val">true</span>
 	}
 }
 
