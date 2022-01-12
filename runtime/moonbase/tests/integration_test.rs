@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@ use moonbase_runtime::{
 	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
+use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
@@ -46,7 +47,7 @@ use parachain_staking::Bond;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{crypto::UncheckedFrom, Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
@@ -1750,4 +1751,113 @@ fn account_id_32_encodes_like_32_byte_u8_slice() {
 	let account_as_account_id_32: sp_runtime::AccountId32 = [1u8; 32].into();
 	let account_as_slice = [1u8; 32];
 	assert_eq!(account_as_account_id_32.encode(), account_as_slice.encode());
+}
+
+#[test]
+fn author_mapping_precompile_associate_update_and_clear() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let author_mapping_precompile_address = H160::from_low_u64_be(2055);
+			let first_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+			let second_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
+
+			let associate_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 23761u64,
+				logs: Default::default(),
+			}));
+
+			// Associate it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::AddAssociation)
+						.write(sp_core::H256::from([1u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				associate_expected_result
+			);
+
+			let expected_associate_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
+					first_nimbus_id.clone(),
+					AccountId::from(ALICE),
+				));
+			assert_eq!(last_event(), expected_associate_event);
+
+			let update_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 22098u64,
+				logs: Default::default(),
+			}));
+
+			// Update it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::UpdateAssociation)
+						.write(sp_core::H256::from([1u8; 32]))
+						.write(sp_core::H256::from([2u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				update_expected_result
+			);
+
+			let expected_update_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
+					second_nimbus_id.clone(),
+					AccountId::from(ALICE),
+				));
+			assert_eq!(last_event(), expected_update_event);
+
+			let clear_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 23784u64,
+				logs: Default::default(),
+			}));
+
+			// Clear it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::ClearAssociation)
+						.write(sp_core::H256::from([2u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				clear_expected_result
+			);
+
+			let expected_clear_event = Event::AuthorMapping(
+				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
+			);
+			assert_eq!(last_event(), expected_clear_event);
+		});
 }

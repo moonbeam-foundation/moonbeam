@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -16,6 +16,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
+use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -45,7 +46,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2055]
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
@@ -60,6 +61,7 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
 	fn execute(
@@ -96,6 +98,9 @@ where
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
 			_ => None,

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -90,7 +90,14 @@ where
 			select_chain: maybe_select_chain,
 			transaction_pool,
 			other:
-				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
+				(
+					block_import,
+					filter_pool,
+					telemetry,
+					_telemetry_worker_handle,
+					frontier_backend,
+					fee_history_cache,
+				),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		// TODO: review -- we don't need any actual networking
@@ -183,13 +190,18 @@ where
 
 		let subscription_task_executor =
 			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+		let overrides = rpc::overrides_handle(client.clone());
 
+		let fee_history_limit = 2048;
 		service::rpc::spawn_essential_tasks(service::rpc::SpawnTasksParams {
 			task_manager: &task_manager,
 			client: client.clone(),
 			substrate_backend: backend.clone(),
 			frontier_backend: frontier_backend.clone(),
 			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
 		});
 
 		let command_sink_for_deps = command_sink.clone();
@@ -202,6 +214,8 @@ where
 			let network = network.clone();
 			let max_past_logs = 1000;
 			let runtime_variant = runtime_variant.clone();
+			let fee_history_cache = fee_history_cache.clone();
+			let overrides = overrides.clone();
 
 			Box::new(move |deny_unsafe, _| {
 				let runtime_variant = runtime_variant.clone();
@@ -219,13 +233,15 @@ where
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 					transaction_converter: TransactionConverters::for_runtime_variant(
 						runtime_variant,
 					),
 					xcm_senders: None,
 				};
 				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 				Ok(io)
 			})
 		};

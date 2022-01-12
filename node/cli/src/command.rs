@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -601,6 +601,7 @@ pub fn run() -> Result<()> {
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
 					eth_log_block_cache: cli.run.eth_log_block_cache,
 					max_past_logs: cli.run.max_past_logs,
+					fee_history_limit: cli.run.fee_history_limit,
 				};
 
 				// If dev service was requested, start up manual or instant seal.

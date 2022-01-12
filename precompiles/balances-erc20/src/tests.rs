@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,55 +24,9 @@ use pallet_evm::PrecompileSet;
 use precompile_utils::{Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 
+// No test of invalid selectors since we have a fallback behavior (deposit).
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
-}
-
-#[test]
-fn selector_less_than_four_bytes() {
-	ExtBuilder::default().build().execute_with(|| {
-		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Account::Precompile.into(),
-				&bogus_selector,
-				None,
-				&Context {
-					address: Account::Precompile.into(),
-					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
-				},
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds",
-		);
-	});
-}
-
-#[test]
-fn no_selector_exists_but_length_is_right() {
-	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Account::Precompile.into(),
-				&bogus_selector,
-				None,
-				&Context {
-					address: Account::Precompile.into(),
-					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
-				},
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
-	});
 }
 
 #[test]
@@ -85,7 +39,8 @@ fn selectors() {
 	assert_eq!(Action::TransferFrom as u32, 0x23b872dd);
 	assert_eq!(Action::Name as u32, 0x06fdde03);
 	assert_eq!(Action::Symbol as u32, 0x95d89b41);
-	assert_eq!(Action::Decimals as u32, 0x313ce567);
+	assert_eq!(Action::Deposit as u32, 0xd0e30db0);
+	assert_eq!(Action::Withdraw as u32, 0x2e1a7d4d);
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
@@ -95,6 +50,16 @@ fn selectors() {
 	assert_eq!(
 		crate::SELECTOR_LOG_APPROVAL,
 		&Keccak256::digest(b"Approval(address,address,uint256)")[..]
+	);
+
+	assert_eq!(
+		crate::SELECTOR_LOG_DEPOSIT,
+		&Keccak256::digest(b"Deposit(address,uint256)")[..]
+	);
+
+	assert_eq!(
+		crate::SELECTOR_LOG_WITHDRAWAL,
+		&Keccak256::digest(b"Withdrawal(address,uint256)")[..]
 	);
 }
 
@@ -739,6 +704,406 @@ fn get_metadata_decimals() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(18u8).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+		});
+}
+
+fn deposit(data: Vec<u8>) {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Check precompile balance is 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Deposit
+			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
+			// to the precompile.
+			Evm::call(
+				Origin::root(),
+				Account::Alice.into(),
+				Account::Precompile.into(),
+				data,
+				From::from(500), // amount sent
+				u64::MAX,        // gas limit
+				0u32.into(),     // gas price
+				None,            // max priority
+				None,            // nonce
+				vec![],          // access list
+			)
+			.expect("it works");
+
+			assert_eq!(
+				events(),
+				vec![
+					Event::System(frame_system::Event::NewAccount(Account::Precompile)),
+					Event::Balances(pallet_balances::Event::Endowed {
+						account: Account::Precompile,
+						free_balance: 500
+					}),
+					// EVM make a transfer because some value is provided.
+					Event::Balances(pallet_balances::Event::Transfer {
+						from: Account::Alice,
+						to: Account::Precompile,
+						amount: 500
+					}),
+					// Precompile send it back since deposit should be a no-op.
+					Event::Balances(pallet_balances::Event::Transfer {
+						from: Account::Precompile,
+						to: Account::Alice,
+						amount: 500
+					}),
+					// Log is correctly emited.
+					Event::Evm(pallet_evm::Event::Log(
+						LogsBuilder::new(Account::Precompile.into())
+							.log2(
+								SELECTOR_LOG_DEPOSIT,
+								Account::Alice,
+								EvmDataWriter::new().write(U256::from(500)).build(),
+							)
+							.build()[0]
+							.clone()
+					)),
+					Event::Evm(pallet_evm::Event::Executed(Account::Precompile.into())),
+				]
+			);
+
+			// Check precompile balance is still 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Check Alice balance is still 1000.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1000)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+		});
+}
+
+#[test]
+fn deposit_function() {
+	deposit(EvmDataWriter::new_with_selector(Action::Deposit).build())
+}
+
+#[test]
+fn deposit_fallback() {
+	deposit(EvmDataWriter::new_with_selector(0x01234567u32).build())
+}
+
+#[test]
+fn deposit_receive() {
+	deposit(vec![])
+}
+
+#[test]
+fn deposit_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Check precompile balance is 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Deposit
+			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
+			// to the precompile.
+			Evm::call(
+				Origin::root(),
+				Account::Alice.into(),
+				Account::Precompile.into(),
+				EvmDataWriter::new_with_selector(Action::Deposit).build(),
+				From::from(0), // amount sent
+				u64::MAX,      // gas limit
+				0u32.into(),   // gas price
+				None,          // max priority
+				None,          // nonce
+				vec![],        // access list
+			)
+			.expect("it works");
+
+			assert_eq!(
+				events(),
+				vec![Event::Evm(pallet_evm::Event::ExecutedFailed(
+					Account::Precompile.into()
+				)),]
+			);
+
+			// Check precompile balance is still 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Check Alice balance is still 1000.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1000)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+		});
+}
+
+#[test]
+fn withdraw() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Check precompile balance is 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Withdraw
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Withdraw)
+						.write(U256::from(500))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().build(),
+					cost: 1381,
+					logs: LogsBuilder::new(Account::Precompile.into())
+						.log2(
+							SELECTOR_LOG_WITHDRAWAL,
+							Account::Alice,
+							EvmDataWriter::new().write(U256::from(500)).build(),
+						)
+						.build(),
+				}))
+			);
+
+			// Check Alice balance is still 1000.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1000)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+		});
+}
+
+#[test]
+fn withdraw_more_than_owned() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Check precompile balance is 0.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Precompile.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0u32),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0)).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
+			);
+
+			// Withdraw
+			assert_matches!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Withdraw)
+						.write(U256::from(1001))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0u32),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output: str, .. }))
+					if str == b"trying to withdraw more than owned"
+			);
+
+			// Check Alice balance is still 1000.
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0u32),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),
 					logs: Default::default(),
 				}))

@@ -92,7 +92,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub ExistentialDeposit: Balance = 1;
+	pub ExistentialDeposit: Balance = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -680,6 +680,37 @@ impl xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 }
 
+parameter_types! {
+	pub const MinimumPeriod: u64 = 1000;
+}
+impl pallet_timestamp::Config for Runtime {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
+
+impl pallet_evm::Config for Runtime {
+	type FeeCalculator = ();
+	type GasWeightMapping = ();
+
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
+
+	type AddressMapping = runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+
+	type Event = Event;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type ChainId = ();
+	type BlockGasLimit = ();
+	type OnChargeTransaction = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
+}
+
 pub struct NormalFilter;
 impl frame_support::traits::Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
@@ -751,7 +782,10 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call}
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
+		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 	}
 );
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -396,6 +396,29 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
+}
+
+parameter_types! {
+	pub IsActive: bool = false;
+}
+
+pub struct BaseFeeThreshold;
+impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
+	fn lower() -> Permill {
+		Permill::zero()
+	}
+	fn ideal() -> Permill {
+		Permill::from_parts(500_000)
+	}
+	fn upper() -> Permill {
+		Permill::from_parts(1_000_000)
+	}
+}
+
+impl pallet_base_fee::Config for Runtime {
+	type Event = Event;
+	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
 }
 
 parameter_types! {
@@ -813,7 +836,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -879,7 +902,7 @@ impl pallet_migrations::Config for Runtime {
 	>;
 }
 
-/// Call filter used during Phase 3 of the Moonriver rollout
+/// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
@@ -888,6 +911,9 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::Identity(_) => false,
+			Call::ParachainStaking(_) => false,
+			Call::Treasury(_) => false,
 			_ => true,
 		}
 	}
@@ -956,6 +982,7 @@ construct_runtime! {
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
+		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 53,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,

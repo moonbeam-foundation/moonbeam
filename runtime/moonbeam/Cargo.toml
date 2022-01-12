@@ -31,6 +31,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
+pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 
 # Moonbeam tracing
@@ -75,6 +76,7 @@ sp-version = { git = "https://github.com/purestake/substrate", branch = "moonbea
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
@@ -130,9 +132,11 @@ std = [
 	"moonbeam-rpc-primitives-txpool/std",
 	"nimbus-primitives/std",
 	"pallet-author-inherent/std",
+	"pallet-author-mapping-precompiles/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
+	"pallet-base-fee/std",
 	"pallet-collective/std",
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",

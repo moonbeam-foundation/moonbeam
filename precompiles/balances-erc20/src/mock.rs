@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -215,6 +215,12 @@ impl Erc20Metadata for NativeErc20Metadata {
 	fn decimals() -> u8 {
 		18
 	}
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool {
+		true
+	}
 }
 
 #[derive(Default)]
@@ -283,4 +289,11 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }

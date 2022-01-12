@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,13 +19,13 @@
 extern crate alloc;
 
 use crate::alloc::borrow::ToOwned;
-use fp_evm::{ExitError, ExitRevert, PrecompileFailure};
+use fp_evm::{Context, ExitError, ExitRevert, PrecompileFailure};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
 use pallet_evm::{GasWeightMapping, Log};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
@@ -228,9 +228,24 @@ where
 	}
 }
 
+/// Represents modifiers a Solidity function can be annotated with.
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum FunctionModifier {
+	/// Function that doesn't modify the state.
+	View,
+	/// Function that modifies the state but refuse receiving funds.
+	/// Correspond to a Solidity function with no modifiers.
+	NonPayable,
+	/// Function that modifies the state and accept funds.
+	Payable,
+}
+
 /// Custom Gasometer to record costs in precompiles.
 /// It is advised to record known costs as early as possible to
 /// avoid unecessary computations if there is an Out of Gas.
+///
+/// Provides functions related to reverts, as reverts takes the recorded amount
+/// of gas into account.
 #[derive(Clone, Copy, Debug)]
 pub struct Gasometer {
 	target_gas: Option<u64>,
@@ -253,6 +268,7 @@ impl Gasometer {
 	}
 
 	/// Record cost, and return error if it goes out of gas.
+	#[must_use]
 	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
 		self.used_gas = self
 			.used_gas
@@ -271,6 +287,7 @@ impl Gasometer {
 
 	/// Record cost of a log manualy.
 	/// This can be useful to record log costs early when their content have static size.
+	#[must_use]
 	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
 		// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
 		// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
@@ -299,6 +316,7 @@ impl Gasometer {
 	}
 
 	/// Record cost of logs.
+	#[must_use]
 	pub fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
 		for log in logs {
 			self.record_log_costs_manual(log.topics.len(), log.data.len())?;
@@ -310,6 +328,7 @@ impl Gasometer {
 	/// Compute remaining gas.
 	/// Returns error if out of gas.
 	/// Returns None if no gas limit.
+	#[must_use]
 	pub fn remaining_gas(&self) -> EvmResult<Option<u64>> {
 		Ok(match self.target_gas {
 			None => None,
@@ -328,11 +347,32 @@ impl Gasometer {
 	///
 	/// TODO : Record cost of the input based on its size and handle Out of Gas ?
 	/// This might be required if we format revert messages using user data.
+	#[must_use]
 	pub fn revert(&self, output: impl AsRef<[u8]>) -> PrecompileFailure {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
 			output: output.as_ref().to_owned(),
 			cost: self.used_gas,
 		}
+	}
+
+	#[must_use]
+	/// Check that a function call is compatible with the context it is
+	/// called into.
+	pub fn check_function_modifier(
+		&self,
+		context: &Context,
+		is_static: bool,
+		modifier: FunctionModifier,
+	) -> EvmResult {
+		if is_static && modifier != FunctionModifier::View {
+			return Err(self.revert("can't call non-static function in static context"));
+		}
+
+		if modifier != FunctionModifier::Payable && context.apparent_value > U256::zero() {
+			return Err(self.revert("function is not payable"));
+		}
+
+		Ok(())
 	}
 }

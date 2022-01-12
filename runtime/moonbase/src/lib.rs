@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -910,7 +910,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -1461,7 +1461,7 @@ impl xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 }
 
-/// Call filter used during Phase 3 of the Moonriver rollout
+/// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
@@ -1471,9 +1471,12 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::Identity(_) => false,
 			Call::XTokens(_) => false,
-			Call::XcmTransactor(_) => false,
+			Call::ParachainStaking(_) => false,
 			Call::PolkadotXcm(_) => false,
+			Call::Treasury(_) => false,
+			Call::XcmTransactor(_) => false,
 			_ => true,
 		}
 	}
@@ -1606,6 +1609,10 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
 }
 
+parameter_types! {
+	pub IsActive: bool = true;
+}
+
 pub struct BaseFeeThreshold;
 impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 	fn lower() -> Permill {
@@ -1622,6 +1629,7 @@ impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
 }
 
 construct_runtime! {
