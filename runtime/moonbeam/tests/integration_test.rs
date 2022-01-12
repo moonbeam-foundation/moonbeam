@@ -1251,3 +1251,31 @@ fn refund_ed_0_evm() {
 			);
 		});
 }
+
+#[test]
+fn precompile_existance() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let precompile_addresses = vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2055,
+		]
+		.into_iter()
+		.map(H160::from_low_u64_be);
+
+		for address in precompile_addresses {
+			assert!(precompiles
+				.execute(
+					address,
+					&vec![],
+					None,
+					&Context {
+						address,
+						caller: H160::zero(),
+						apparent_value: U256::zero()
+					},
+					false
+				)
+				.is_some())
+		}
+	});
+}
