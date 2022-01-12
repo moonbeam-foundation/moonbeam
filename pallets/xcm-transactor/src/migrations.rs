@@ -81,7 +81,7 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 			.is_none()
 		);
 
-		// Write the mappings back to storage with the new secure hasher
+		// Write to the new storage with removed and added fields
 		for (location, info) in stored_data {
 			TransactInfoWithWeightLimit::<T>::insert(location, {
 				RemoteTransactInfoWithMaxWeight {
