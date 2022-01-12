@@ -1,7 +1,7 @@
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { TransactionReceipt } from "web3-core";
 import { getCompiled } from "../../util/contracts";
@@ -12,11 +12,11 @@ import { Contract } from "web3-eth-contract";
 
 chaiUse(chaiAsPromised);
 
-describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
   let multContract: Contract;
 
   before("Setup: Create simple context", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context, "TestContract");
     await context.createBlock({ transactions: [rawTx] });
     multContract = contract;
   });
@@ -58,7 +58,7 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
   });
 });
 
-describeDevMoonbeam("Estimate Gas - Supplied estimate is sufficient", (context) => {
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Supplied estimate is sufficient", (context) => {
   it("should estimate sufficient gas for creation", async function () {
     const contract = await getCompiled("Incrementer");
     // ask RPC for an gas estimate of deploying this contract
@@ -68,7 +68,7 @@ describeDevMoonbeam("Estimate Gas - Supplied estimate is sufficient", (context) 
     });
 
     // attempt a transaction with our estimated gas
-    const { rawTx } = await createContract(context.web3, "Incrementer", { gas: estimate });
+    const { rawTx } = await createContract(context, "Incrementer", { gas: estimate });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
       txResults[0].result

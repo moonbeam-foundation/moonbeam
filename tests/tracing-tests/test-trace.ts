@@ -9,14 +9,14 @@ const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 async function createContracts(context) {
   let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
   const { contract: callee, rawTx: rawTx1 } = await createContract(
-    context.web3,
+    context,
     "Callee",
     { nonce: nonce++ },
     []
   );
 
   const { contract: caller, rawTx: rawTx2 } = await createContract(
-    context.web3,
+    context,
     "Caller",
     { nonce: nonce++ },
     []
@@ -67,11 +67,10 @@ describeDevMoonbeam(
     // Previously exhausted Wasm memory allocation:
     // Thread 'tokio-runtime-worker' panicked at 'Failed to allocate memory:
     // "Allocator ran out of space"'.
-    it("should not overflow Wasm memory", async function () {
+    // TODO: raw tracing is temporary disabled
+    it.skip("should not overflow Wasm memory", async function () {
       this.timeout(15000);
-      const { contract, rawTx } = await createContract(context.web3, "OverflowingTrace", {}, [
-        false,
-      ]);
+      const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [false]);
       const { txResults } = await context.createBlock({
         transactions: [rawTx],
       });
@@ -97,8 +96,9 @@ describeDevMoonbeam(
       expect(trace.result.stepLogs.length).to.equal(58219);
     });
 
-    it("should replay over an intermediate state", async function () {
-      const { contract, rawTx } = await createContract(context.web3, "Incrementer", {}, [false]);
+    // TODO: raw tracing is temporary disabled
+    it.skip("should replay over an intermediate state", async function () {
+      const { contract, rawTx } = await createContract(context, "Incrementer", {}, [false]);
       const { txResults } = await context.createBlock({
         transactions: [rawTx],
       });
@@ -151,7 +151,8 @@ describeDevMoonbeam(
       }
     });
 
-    it("should trace nested contract calls", async function () {
+    // TODO: raw tracing is temporary disabled
+    it.skip("should trace nested contract calls", async function () {
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
@@ -208,6 +209,7 @@ describeDevMoonbeam(
       expect(resCallee.traceAddress[0]).to.be.eq(0);
     });
   },
+  "Legacy",
   true
 );
 
@@ -215,7 +217,7 @@ describeDevMoonbeam("Trace", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
     this.timeout(10000);
 
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
     let callTx = await context.web3.eth.accounts.signTransaction(
@@ -324,7 +326,7 @@ describeDevMoonbeam("Trace", (context) => {
   it("should format as request (callTrace Create)", async function () {
     let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     const { contract: callee, rawTx: rawTx1 } = await createContract(
-      context.web3,
+      context,
       "Callee",
       { nonce: nonce++ },
       []

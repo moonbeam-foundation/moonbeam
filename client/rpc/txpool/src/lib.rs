@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -26,13 +26,15 @@ use sc_transaction_pool::test_helpers::{ChainApi, Pool};
 use sc_transaction_pool_api::InPoolTransaction;
 use serde::Serialize;
 use sha3::{Digest, Keccak256};
-use sp_api::{BlockId, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_runtime::traits::Block as BlockT;
 use std::collections::HashMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use moonbeam_rpc_primitives_txpool::{TxPoolResponse, TxPoolRuntimeApi};
+use moonbeam_rpc_primitives_txpool::{
+	Transaction as TransactionV2, TxPoolResponse, TxPoolRuntimeApi,
+};
 
 pub struct TxPool<B: BlockT, C, A: ChainApi> {
 	client: Arc<C>,
@@ -74,17 +76,49 @@ where
 
 		// Use the runtime to match the (here) opaque extrinsics against ethereum transactions.
 		let best_block: BlockId<B> = BlockId::Hash(self.client.info().best_hash);
-		let ethereum_txns: TxPoolResponse = self
-			.client
-			.runtime_api()
-			.extrinsic_filter(&best_block, txs_ready, txs_future)
-			.map_err(|err| {
-				internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
-			})?;
+		let api = self.client.runtime_api();
+		let api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn TxPoolRuntimeApi<B>>(&best_block)
+		{
+			api_version
+		} else {
+			return Err(internal_err(format!(
+				"failed to retrieve Runtime Api version"
+			)));
+		};
+		let ethereum_txns: TxPoolResponse = if api_version == 1 {
+			#[allow(deprecated)]
+			let res = api.extrinsic_filter_before_version_2(&best_block, txs_ready, txs_future)
+				.map_err(|err| {
+					internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
+				})?;
+			TxPoolResponse {
+				ready: res
+					.ready
+					.iter()
+					.map(|t| TransactionV2::Legacy(t.clone()))
+					.collect(),
+				future: res
+					.future
+					.iter()
+					.map(|t| TransactionV2::Legacy(t.clone()))
+					.collect(),
+			}
+		} else {
+			api.extrinsic_filter(&best_block, txs_ready, txs_future)
+				.map_err(|err| {
+					internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
+				})?
+		};
 		// Build the T response.
 		let mut pending = TransactionMap::<T>::new();
 		for txn in ethereum_txns.ready.iter() {
-			let hash = H256::from_slice(Keccak256::digest(&rlp::encode(txn)).as_slice());
+			let hash = txn.hash();
+			let nonce = match txn {
+				TransactionV2::Legacy(t) => t.nonce,
+				TransactionV2::EIP2930(t) => t.nonce,
+				TransactionV2::EIP1559(t) => t.nonce,
+			};
 			let from_address = match public_key(txn) {
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),
@@ -92,11 +126,16 @@ where
 			pending
 				.entry(from_address)
 				.or_insert_with(HashMap::new)
-				.insert(txn.nonce, T::get(hash, from_address, txn));
+				.insert(nonce, T::get(hash, from_address, txn));
 		}
 		let mut queued = TransactionMap::<T>::new();
 		for txn in ethereum_txns.future.iter() {
-			let hash = H256::from_slice(Keccak256::digest(&rlp::encode(txn)).as_slice());
+			let hash = txn.hash();
+			let nonce = match txn {
+				TransactionV2::Legacy(t) => t.nonce,
+				TransactionV2::EIP2930(t) => t.nonce,
+				TransactionV2::EIP1559(t) => t.nonce,
+			};
 			let from_address = match public_key(txn) {
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),
@@ -104,7 +143,7 @@ where
 			queued
 				.entry(from_address)
 				.or_insert_with(HashMap::new)
-				.insert(txn.nonce, T::get(hash, from_address, txn));
+				.insert(nonce, T::get(hash, from_address, txn));
 		}
 		Ok(TxPoolResult { pending, queued })
 	}

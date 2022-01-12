@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use fp_evm::{Context, ExitError, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{CheckedSub, StaticLookup},
@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
-	LogsBuilder, RuntimeHelper,
+	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	Gasometer, LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -53,6 +53,12 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
+
+/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_DEPOSIT: [u8; 32] = keccak256!("Deposit(address,uint256)");
+
+/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_WITHDRAWAL: [u8; 32] = keccak256!("Withdrawal(address,uint256)");
 
 /// Associates pallet Instance to a prefix used for the Approves storage.
 /// This trait is implemented for () and the 16 substrate Instance.
@@ -126,6 +132,8 @@ pub enum Action {
 	Name = "name()",
 	Symbol = "symbol()",
 	Decimals = "decimals()",
+	Deposit = "deposit()",
+	Withdraw = "withdraw(uint256)",
 }
 
 /// Metadata of an ERC20 token.
@@ -138,6 +146,10 @@ pub trait Erc20Metadata {
 
 	/// Returns the decimals places of the token.
 	fn decimals() -> u8;
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
@@ -162,19 +174,39 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<PrecompileOutput, ExitError> {
-		let (input, selector) = EvmDataReader::new_with_selector(input)?;
+		is_static: bool,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		let gasometer = &mut gasometer;
+
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)
+			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
+		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
+					FunctionModifier::NonPayable
+				}
+				Action::Deposit => FunctionModifier::Payable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
-			Action::TotalSupply => Self::total_supply(input, target_gas),
-			Action::BalanceOf => Self::balance_of(input, target_gas),
-			Action::Allowance => Self::allowance(input, target_gas),
-			Action::Approve => Self::approve(input, target_gas, context),
-			Action::Transfer => Self::transfer(input, target_gas, context),
-			Action::TransferFrom => Self::transfer_from(input, target_gas, context),
-			Action::Name => Self::name(input, target_gas, context),
-			Action::Symbol => Self::symbol(input, target_gas, context),
-			Action::Decimals => Self::decimals(input, target_gas, context),
+			Action::TotalSupply => Self::total_supply(input, gasometer),
+			Action::BalanceOf => Self::balance_of(input, gasometer),
+			Action::Allowance => Self::allowance(input, gasometer),
+			Action::Approve => Self::approve(input, gasometer, context),
+			Action::Transfer => Self::transfer(input, gasometer, context),
+			Action::TransferFrom => Self::transfer_from(input, gasometer, context),
+			Action::Name => Self::name(input, gasometer, context),
+			Action::Symbol => Self::symbol(input, gasometer, context),
+			Action::Decimals => Self::decimals(input, gasometer, context),
+			Action::Deposit => Self::deposit(input, gasometer, context),
+			Action::Withdraw => Self::withdraw(input, gasometer, context),
 		}
 	}
 }
@@ -189,12 +221,14 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 {
-	fn total_supply(input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
+	fn total_supply(
+		input: &EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Parse input.
-		input.expect_arguments(0)?;
+		input.expect_arguments(gasometer, 0)?;
 
 		// Fetch info.
 		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
@@ -209,16 +243,15 @@ where
 	}
 
 	fn balance_of(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
-		input.expect_arguments(1)?;
+		input.expect_arguments(gasometer, 1)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -235,15 +268,17 @@ where
 		})
 	}
 
-	fn allowance(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
+	fn allowance(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
+		let spender: H160 = input.read::<Address>(gasometer)?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -265,26 +300,25 @@ where
 	}
 
 	fn approve(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let spender: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let spender: H160 = input.read::<Address>(gasometer)?.into();
+		let amount: U256 = input.read(gasometer)?;
 
 		// Write into storage.
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
-			let amount = Self::u256_to_amount(amount)?;
+			let amount = Self::u256_to_amount(gasometer, amount)?;
 
 			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
 		}
@@ -306,35 +340,33 @@ where
 	}
 
 	fn transfer(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(2)?;
+		input.expect_arguments(gasometer, 2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount: U256 = input.read(gasometer)?;
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
+			let amount = Self::u256_to_amount(gasometer, amount)?;
 
 			// Dispatch call (if enough gas).
-			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			RuntimeHelper::<Runtime>::try_dispatch(
 				Some(origin).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer {
 					dest: Runtime::Lookup::unlookup(to),
 					value: amount,
 				},
-				gasometer.remaining_gas()?,
+				gasometer,
 			)?;
-			gasometer.record_cost(used_gas)?;
 		}
 
 		// Build output.
@@ -354,38 +386,37 @@ where
 	}
 
 	fn transfer_from(
-		mut input: EvmDataReader,
-		target_gas: Option<u64>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
-		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>()?.into();
-		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		input.expect_arguments(gasometer, 3)?;
+		let from: H160 = input.read::<Address>(gasometer)?.into();
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount: U256 = input.read(gasometer)?;
 
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
+			let amount = Self::u256_to_amount(gasometer, amount)?;
 
 			// If caller is "from", it can spend as much as it wants.
 			if caller != from {
 				ApprovesStorage::<Runtime, Instance>::mutate(from.clone(), caller, |entry| {
 					// Get current value, exit if None.
-					let value = entry.ok_or(error("spender not allowed"))?;
+					let value = entry.ok_or(gasometer.revert("spender not allowed"))?;
 
 					// Remove "amount" from allowed, exit if underflow.
 					let new_value = value
 						.checked_sub(&amount)
-						.ok_or_else(|| error("trying to spend more than allowed"))?;
+						.ok_or_else(|| gasometer.revert("trying to spend more than allowed"))?;
 
 					// Update value.
 					*entry = Some(new_value);
@@ -396,15 +427,14 @@ where
 
 			// Build call with origin. Here origin is the "from"/owner field.
 			// Dispatch call (if enough gas).
-			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			RuntimeHelper::<Runtime>::try_dispatch(
 				Some(from).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer {
 					dest: Runtime::Lookup::unlookup(to),
 					value: amount,
 				},
-				gasometer.remaining_gas()?,
+				gasometer,
 			)?;
-			gasometer.record_cost(used_gas)?;
 		}
 
 		// Build output.
@@ -423,11 +453,15 @@ where
 		})
 	}
 
-	fn name(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+	fn name(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		_: &Context,
+	) -> EvmResult<PrecompileOutput> {
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write::<Bytes>(Metadata::name().into())
 				.build(),
@@ -435,11 +469,15 @@ where
 		})
 	}
 
-	fn symbol(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+	fn symbol(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		_: &Context,
+	) -> EvmResult<PrecompileOutput> {
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write::<Bytes>(Metadata::symbol().into())
 				.build(),
@@ -447,19 +485,108 @@ where
 		})
 	}
 
-	fn decimals(_: EvmDataReader, _: Option<u64>, _: &Context) -> EvmResult<PrecompileOutput> {
+	fn decimals(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		_: &Context,
+	) -> EvmResult<PrecompileOutput> {
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: 0,
+			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
 			logs: Default::default(),
 		})
 	}
 
-	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {
+	fn deposit(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		// Deposit only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		let caller: Runtime::AccountId = Runtime::AddressMapping::into_account_id(context.caller);
+		let precompile = Runtime::AddressMapping::into_account_id(context.address);
+		let amount = Self::u256_to_amount(gasometer, context.apparent_value)?;
+
+		if amount.into() == U256::from(0u32) {
+			return Err(gasometer.revert("deposited amount must be non-zero"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		// Send back funds received by the precompile.
+		RuntimeHelper::<Runtime>::try_dispatch(
+			Some(precompile).into(),
+			pallet_balances::Call::<Runtime, Instance>::transfer {
+				dest: Runtime::Lookup::unlookup(caller),
+				value: amount,
+			},
+			gasometer,
+		)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_DEPOSIT,
+					context.caller,
+					EvmDataWriter::new().write(context.apparent_value).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn withdraw(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		// Withdraw only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		let withdrawn_amount: U256 = input.read(gasometer)?;
+
+		let account_amount: U256 = {
+			let owner: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
+		};
+
+		if withdrawn_amount > account_amount {
+			return Err(gasometer.revert("trying to withdraw more than owned"));
+		}
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_WITHDRAWAL,
+					context.caller,
+					EvmDataWriter::new().write(withdrawn_amount).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn u256_to_amount(
+		gasometer: &mut Gasometer,
+		value: U256,
+	) -> EvmResult<BalanceOf<Runtime, Instance>> {
 		value
 			.try_into()
-			.map_err(|_| error("amount is too large for provided balance type"))
+			.map_err(|_| gasometer.revert("amount is too large for provided balance type"))
 	}
 }

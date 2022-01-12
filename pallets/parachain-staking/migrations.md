@@ -1,5 +1,10 @@
 # Migration History
 
+## Increase max delegations per candidate
+
+- [Migration PR `#1096`](https://github.com/PureStake/moonbeam/pull/1096)
+- [Migratio bugfix `#1112`](https://github.com/PureStake/moonbeam/pull/1112)
+
 ## Manual Exits and Patch Lack of Delay for bond\_{more, less}
 
 - [Migration PR `#810`](https://github.com/PureStake/moonbeam/pull/810)

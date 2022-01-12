@@ -54,7 +54,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
     await context.createBlock({
       transactions: [
         await createTransfer(
-          context.web3,
+          context,
           TEST_ACCOUNT,
           BigInt(initBalance) - 1n - 21000n * 1_000_000_000n,
           {
@@ -135,6 +135,6 @@ describeDevMoonbeam("Sudo - Only sudo account - test gas", (context) => {
       )
     );
 
-    await verifyLatestBlockFees(context.polkadotApi, expect);
+    await verifyLatestBlockFees(context, expect);
   });
 });

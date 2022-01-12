@@ -19,6 +19,7 @@ import { createBlockWithExtrinsic, createBlockWithExtrinsicParachain } from "../
 import { createTransfer } from "../util/transactions";
 import { VESTING_PERIOD } from "./test-crowdloan";
 import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20";
+import { customWeb3Request } from "../util/providers";
 import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
 
 const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
@@ -134,7 +135,7 @@ describeDevMoonbeam(
 
       //try transfer
       await context.createBlock({
-        transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+        transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
       });
     });
 
@@ -184,7 +185,7 @@ describeDevMoonbeam(
       );
 
       await context.createBlock({
-        transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+        transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
       });
     });
 
@@ -218,7 +219,9 @@ describeDevMoonbeam(
             100_000_000_000_000_000_000n,
             12_000_000n,
             1_000_000_000n,
-            undefined
+            0n,
+            undefined,
+            []
           )
         )
       ));
@@ -431,6 +434,192 @@ describeDevMoonbeam(
         );
       });
       expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+    });
+  }
+);
+
+describeDevMoonbeam(
+  "Pallet Maintenance Mode - dmp messages should queue in maintenance mode",
+  (context) => {
+    let sudoAccount, assetId;
+    before("Register asset and go to maintenance", async function () {
+      const assetMetadata = {
+        name: "DOT",
+        symbol: "DOT",
+        decimals: new BN(12),
+        isFrozen: false,
+      };
+
+      const sourceLocation = { XCM: { parents: 1, interior: "Here" } };
+
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+      // registerAsset
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.registerAsset(
+            sourceLocation,
+            assetMetadata,
+            new BN(1),
+            true
+          )
+        )
+      );
+      // Look for assetId in events
+      eventsRegister.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetId = e.data[0].toHex();
+        }
+      });
+      assetId = assetId.replace(/,/g, "");
+
+      // setAssetUnitsPerSecond
+      const { events } = await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        )
+      );
+      expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
+      expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+
+      // turn maintenance on
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
+      );
+    });
+
+    it("should queue xcm with maintenance mode and execute when off", async function () {
+      // Send RPC call to inject DMP message
+      // You can provide a message, but if you don't a downward transfer is the default
+      await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [[]]);
+
+      // Create a block in which the XCM should be executed
+      await context.createBlock();
+
+      // Make sure the state does not have ALITH's DOT tokens
+      let alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
+
+      // Alith balance is 0
+      expect(alithBalance).to.eq(BigInt(0));
+
+      // turn maintenance off
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
+      );
+
+      // Create a block in which the XCM will be executed
+      await context.createBlock();
+
+      // Make sure the state has ALITH's to DOT tokens
+      alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
+
+      // Alith balance is 10 DOT
+      expect(alithBalance).to.eq(BigInt(10000000000000));
+    });
+  }
+);
+
+describeDevMoonbeam(
+  "Pallet Maintenance Mode - xcmp messages should queue in maintenance mode",
+  (context) => {
+    let sudoAccount, assetId, foreignParaId;
+    before("Register asset and go to maintenance", async function () {
+      foreignParaId = 2000;
+
+      const assetMetadata = {
+        name: "FOREIGN",
+        symbol: "FOREIGN",
+        decimals: new BN(12),
+        isFrozen: false,
+      };
+
+      const sourceLocation = {
+        XCM: { parents: 1, interior: { X1: { Parachain: foreignParaId } } },
+      };
+
+      const keyring = new Keyring({ type: "ethereum" });
+      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+      // registerAsset
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.registerAsset(
+            sourceLocation,
+            assetMetadata,
+            new BN(1),
+            true
+          )
+        )
+      );
+      // Look for assetId in events
+      eventsRegister.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetId = e.data[0].toHex();
+        }
+      });
+      assetId = assetId.replace(/,/g, "");
+
+      // setAssetUnitsPerSecond
+      const { events } = await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        )
+      );
+      expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
+      expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+
+      // turn maintenance on
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
+      );
+    });
+
+    it("should queue xcm with maintenance mode and execute when off", async function () {
+      // Send RPC call to inject XCMP message
+      // You can provide a message, but if you don't a downward transfer is the default
+      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreignParaId, []]);
+
+      // Create a block in which the XCM should be executed
+      await context.createBlock();
+
+      // Make sure the state does not have ALITH's foreign asset tokens
+      let alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
+      // Alith balance is 0
+      expect(alithBalance).to.eq(BigInt(0));
+
+      // turn maintenance off
+      await execFromAllMembersOfTechCommittee(
+        context,
+        context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
+      );
+
+      // Create a block in which the XCM will be executed
+      await context.createBlock();
+
+      // Make sure the state has ALITH's to foreign assets tokens
+      alithBalance = (
+        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
+      ).balance.toBigInt();
+
+      expect(alithBalance).to.eq(BigInt(10000000000000));
     });
   }
 );

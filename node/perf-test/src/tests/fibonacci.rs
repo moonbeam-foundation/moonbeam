@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -93,6 +93,7 @@ where
 				0.into(),
 				EXTRINSIC_GAS_LIMIT.into(),
 				Some(MIN_GAS_PRICE.into()),
+				None, // max_priority_fee_per_gas
 				Some(alice_nonce),
 			)
 			.expect("EVM create failed while estimating contract address");
@@ -138,6 +139,7 @@ where
 					0.into(),
 					EXTRINSIC_GAS_LIMIT.into(),
 					Some(MIN_GAS_PRICE.into()),
+					None, // max_priority_fee_per_gas
 					Some(alice_nonce),
 				)
 				.expect("EVM call failed while trying to invoke Fibonacci contract");

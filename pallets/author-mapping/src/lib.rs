@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -142,6 +142,10 @@ pub mod pallet {
 			ensure!(
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
+			);
+			ensure!(
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+				Error::<T>::AlreadyAssociated
 			);
 
 			MappingWithDeposit::<T>::remove(&old_author_id);
