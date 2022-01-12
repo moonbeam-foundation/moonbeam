@@ -19,7 +19,7 @@ use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::{remove_storage_prefix, storage_key_iter},
 	traits::{Get, OnRuntimeUpgrade},
-	weights::Weight,
+	weights::{constants::WEIGHT_PER_SECOND, Weight},
 	Blake2_128Concat,
 };
 use parity_scale_codec::{Decode, Encode};
@@ -87,7 +87,10 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 				RemoteTransactInfoWithMaxWeight {
 					transact_extra_weight: info.transact_extra_weight,
 					/// Fee per weight in the destination chain
-					fee_per_weight: info.fee_per_weight,
+					/// Make sure the new one reflects per second, and not per weight unit
+					fee_per_second: info
+						.fee_per_weight
+						.saturating_mul(WEIGHT_PER_SECOND as u128),
 					/// Max destination weight
 					max_weight: 20000000000,
 				}

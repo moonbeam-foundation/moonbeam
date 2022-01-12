@@ -60,7 +60,7 @@ pub mod migrations;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
@@ -141,7 +141,7 @@ pub mod pallet {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
 		/// Fee per weight in the destination chain
-		pub fee_per_weight: u128,
+		pub fee_per_second: u128,
 		/// Max destination weight
 		pub max_weight: Weight,
 	}
@@ -382,7 +382,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			location: Box<VersionedMultiLocation>,
 			transact_extra_weight: Weight,
-			fee_per_weight: u128,
+			fee_per_second: u128,
 			max_weight: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
@@ -390,7 +390,7 @@ pub mod pallet {
 				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
 			let remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
-				fee_per_weight,
+				fee_per_second,
 				max_weight,
 			};
 
@@ -427,7 +427,7 @@ pub mod pallet {
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
 			let amount =
-				Self::calculate_fee_per_weight(total_weight, transactor_info.fee_per_weight);
+				Self::calculate_fee_per_second(total_weight, transactor_info.fee_per_second);
 
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -635,9 +635,9 @@ pub mod pallet {
 		}
 
 		/// Returns the fee for a given set of parameters
-		pub fn calculate_fee_per_weight(weight: Weight, fee_per_weight: u128) -> u128 {
-			let weight_fee = fee_per_weight.saturating_mul(weight as u128);
-
+		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
+			let weight_fee =
+				fee_per_second.saturating_mul(weight as u128) / (WEIGHT_PER_SECOND as u128);
 			return weight_fee;
 		}
 	}
