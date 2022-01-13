@@ -24,7 +24,6 @@ describeDevMoonbeam("Subscription", (context) => {
 describeDevMoonbeam("Subscription - Block headers", (context) => {
   let web3Ws;
   before("Setup: Create empty block", async () => {
-    
     web3Ws = await context.createWeb3("ws");
   });
 
