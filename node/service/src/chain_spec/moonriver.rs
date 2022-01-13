@@ -55,6 +55,15 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		ChainType::Development,
 		move || {
 			testnet_genesis(
+				vec![
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
+					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+				],
+				vec![
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+				],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
@@ -97,6 +106,15 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
+				vec![
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
+					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+				],
+				vec![
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
@@ -167,6 +185,8 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
+	council_members: Vec<AccountId>,
+	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
