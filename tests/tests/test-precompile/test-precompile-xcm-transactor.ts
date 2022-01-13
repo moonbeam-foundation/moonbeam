@@ -102,7 +102,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(1),
+          new BN(1000000000000),
           new BN(20000000000)
         )
       )
@@ -264,7 +264,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(1),
+          new BN(1000000000000),
           new BN(20000000000)
         )
       )
