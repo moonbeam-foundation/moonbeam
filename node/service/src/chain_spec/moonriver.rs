@@ -252,11 +252,11 @@ pub fn testnet_genesis(
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
-			members: vec![], // TODO : Set members
+			members: council_members, // TODO : Set members
 		},
 		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
-			members: vec![], // TODO : Set members
+			members: tech_comittee_members, // TODO : Set members
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_ratio: sp_runtime::Percent::from_percent(50),
