@@ -793,7 +793,8 @@ pub mod pallet {
 				// definitely in top
 				self.increase_top_delegation::<T>(candidate, delegator.clone(), more)
 			} else if bond_geq_lowest_top && lowest_top_eq_highest_bottom {
-				// update top but if error then update bottom (because could be in bottom because lowest_top_eq_highest_bottom)
+				// update top but if error then update bottom (because could be in bottom because
+				// lowest_top_eq_highest_bottom)
 				let result = self.increase_top_delegation::<T>(candidate, delegator.clone(), more);
 				if result == Err(delegation_dne_err) {
 					self.increase_bottom_delegation::<T>(candidate, delegator, bond, more)
@@ -939,7 +940,8 @@ pub mod pallet {
 				// definitely in top
 				self.decrease_top_delegation::<T>(candidate, delegator.clone(), bond, less)
 			} else if bond_geq_lowest_top && lowest_top_eq_highest_bottom {
-				// update top but if error then update bottom (because could be in bottom because lowest_top_eq_highest_bottom)
+				// update top but if error then update bottom (because could be in bottom because
+				// lowest_top_eq_highest_bottom)
 				let result =
 					self.decrease_top_delegation::<T>(candidate, delegator.clone(), bond, less);
 				if result == Err(delegation_dne_err) {
