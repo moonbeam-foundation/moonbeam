@@ -3,15 +3,13 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import { BN } from "@polkadot/util";
 
-import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
+import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
-import { VersionedXcm, XcmpMessageFormat } from "@polkadot/types/interfaces";
-
-import DepositAsset from "@polkadot/types-augment/lookup/definitions";
+import {XcmpMessageFormat } from "@polkadot/types/interfaces";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
