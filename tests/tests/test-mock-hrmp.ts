@@ -9,7 +9,7 @@ import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
-import {XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
