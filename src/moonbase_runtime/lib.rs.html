@@ -1931,11 +1931,6 @@
 <span id="1931">1931</span>
 <span id="1932">1932</span>
 <span id="1933">1933</span>
-<span id="1934">1934</span>
-<span id="1935">1935</span>
-<span id="1936">1936</span>
-<span id="1937">1937</span>
-<span id="1938">1938</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2908,11 +2903,14 @@
 <span class="kw">impl</span> <span class="ident">pallet_migrations::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="comment">//TODO wire up our correct list of migrations here. Maybe this shouldn&#39;t be in `runtime_common`.</span>
-	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> <span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
-		<span class="ident">Runtime</span>,
-		<span class="ident">CouncilCollective</span>,
-		<span class="ident">TechCommitteeCollective</span>,
-	<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> (
+		<span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
+			<span class="ident">Runtime</span>,
+			<span class="ident">CouncilCollective</span>,
+			<span class="ident">TechCommitteeCollective</span>,
+		<span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	);
 }
 
 <span class="macro">parameter_types!</span> {
@@ -3373,14 +3371,6 @@
 	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) -&gt; <span class="ident">MultiLocation</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="ident">Transactors::Relay</span> =&gt; <span class="ident">MultiLocation::parent</span>(),
-		}
-	}
-	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="comment">// Westend is 20,000,000,000</span>
-			<span class="comment">// This needs to take into account the rest of the message</span>
-			<span class="comment">// We use 12,000,000,000 to be safe</span>
-			<span class="ident">Transactors::Relay</span> =&gt; <span class="number">12_000_000_000</span>,
 		}
 	}
 }

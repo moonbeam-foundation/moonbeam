@@ -293,6 +293,24 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -327,6 +345,8 @@
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">environmental</span>;
 
+<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
+
 <span class="doccomment">/// A Migration that must happen on-chain upon a runtime-upgrade</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Migration</span> {
 	<span class="doccomment">/// A human-readable name for this migration. Also used as storage key.</span>
@@ -353,12 +373,28 @@
 	}
 }
 
+<span class="comment">// The migration trait</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">GetMigrations</span> {
+	<span class="comment">// Migration list Getter</span>
+	<span class="kw">fn</span> <span class="ident">get_migrations</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+}
+
+<span class="attribute">#[<span class="ident">impl_trait_for_tuples::impl_for_tuples</span>(<span class="number">30</span>)]</span>
+<span class="kw">impl</span> <span class="ident">GetMigrations</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
+	<span class="kw">fn</span> <span class="ident">get_migrations</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">migrations</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+
+		<span class="macro">for_tuples!</span>( #( <span class="ident">migrations</span>.<span class="ident">extend</span>(<span class="ident">Tuple::get_migrations</span>()); )<span class="op">*</span> );
+
+		<span class="ident">migrations</span>
+	}
+}
+
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
 
 	<span class="doccomment">/// Pallet for migrations</span>
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
@@ -370,7 +406,7 @@
 		<span class="doccomment">/// Overarching event type</span>
 		<span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// The list of migrations that will be performed</span>
-		<span class="kw">type</span> <span class="ident">MigrationsList</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="kw">type</span> <span class="ident">MigrationsList</span>: <span class="ident">GetMigrations</span>;
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
@@ -416,7 +452,7 @@
 			<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
 
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">failed</span> <span class="op">=</span> <span class="bool-val">false</span>;
-			<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get</span>() {
+			<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get_migrations</span>() {
 				<span class="kw">let</span> <span class="ident">migration_name</span> <span class="op">=</span> <span class="ident">migration</span>.<span class="ident">friendly_name</span>();
 				<span class="kw">let</span> <span class="ident">migration_name_as_bytes</span> <span class="op">=</span> <span class="ident">migration_name</span>.<span class="ident">as_bytes</span>();
 
@@ -459,7 +495,7 @@
 			<span class="comment">// TODO: my desire to DRY all the things feels like this code is very repetitive...</span>
 
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">failed</span> <span class="op">=</span> <span class="bool-val">false</span>;
-			<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get</span>() {
+			<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get_migrations</span>() {
 				<span class="kw">let</span> <span class="ident">migration_name</span> <span class="op">=</span> <span class="ident">migration</span>.<span class="ident">friendly_name</span>();
 
 				<span class="comment">// we can&#39;t query MigrationState because on_runtime_upgrade() would have</span>
@@ -520,7 +556,7 @@
 		<span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="comment">// When building a new genesis, all listed migrations should be considered as already</span>
 			<span class="comment">// applied, they only make sense for networks that had been launched in the past.</span>
-			<span class="kw">for</span> <span class="ident">migration_name</span> <span class="kw">in</span> <span class="ident">T::MigrationsList::get</span>()
+			<span class="kw">for</span> <span class="ident">migration_name</span> <span class="kw">in</span> <span class="ident">T::MigrationsList::get_migrations</span>()
 				.<span class="ident">into_iter</span>()
 				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">migration</span><span class="op">|</span> <span class="ident">migration</span>.<span class="ident">friendly_name</span>().<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>())
 			{
@@ -532,7 +568,7 @@
 	<span class="kw">fn</span> <span class="ident">perform_runtime_upgrades</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="ident">available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">into</span>();
 
-		<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get</span>() {
+		<span class="kw">for</span> <span class="ident">migration</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">T::MigrationsList::get_migrations</span>() {
 			<span class="kw">let</span> <span class="ident">migration_name</span> <span class="op">=</span> <span class="ident">migration</span>.<span class="ident">friendly_name</span>();
 			<span class="kw">let</span> <span class="ident">migration_name_as_bytes</span> <span class="op">=</span> <span class="ident">migration_name</span>.<span class="ident">as_bytes</span>();
 			<span class="macro">log::debug!</span>( <span class="ident">target</span>: <span class="string">&quot;pallet-migrations&quot;</span>, <span class="string">&quot;evaluating migration {}&quot;</span>, <span class="ident">migration_name</span>);

@@ -1869,15 +1869,6 @@
 <span id="1869">1869</span>
 <span id="1870">1870</span>
 <span id="1871">1871</span>
-<span id="1872">1872</span>
-<span id="1873">1873</span>
-<span id="1874">1874</span>
-<span id="1875">1875</span>
-<span id="1876">1876</span>
-<span id="1877">1877</span>
-<span id="1878">1878</span>
-<span id="1879">1879</span>
-<span id="1880">1880</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3265,15 +3256,6 @@
 	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) -&gt; <span class="ident">MultiLocation</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="ident">Transactors::Relay</span> =&gt; <span class="ident">MultiLocation::parent</span>(),
-		}
-	}
-
-	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="comment">// Kusama is 20,000,000,000</span>
-			<span class="comment">// This needs to take into account the rest of the message</span>
-			<span class="comment">// We use 12,000,000,000 to be safe</span>
-			<span class="ident">Transactors::Relay</span> =&gt; <span class="number">12_000_000_000</span>,
 		}
 	}
 }

@@ -642,35 +642,6 @@
 <span id="642">642</span>
 <span id="643">643</span>
 <span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -728,10 +699,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migrations</span>;
+
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
 
-	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
+	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>, <span class="ident">weights::constants::WEIGHT_PER_SECOND</span>};
 	<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">ensure_signed</span>, <span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>};
 	<span class="kw">use</span> <span class="ident">orml_traits::location</span>::{<span class="ident">Parse</span>, <span class="ident">Reserve</span>};
 	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Convert</span>};
@@ -808,17 +781,13 @@
 	<span class="doccomment">/// Stores the information to be able to issue a transact operation in another chain use an</span>
 	<span class="doccomment">/// asset as fee payer.</span>
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">PartialEq</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteTransactInfo</span> {
+	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteTransactInfoWithMaxWeight</span> {
 		<span class="doccomment">/// Extra weight that transacting a call in a destination chain adds</span>
 		<span class="kw">pub</span> <span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
-		<span class="doccomment">/// Fee per call byte</span>
-		<span class="kw">pub</span> <span class="ident">fee_per_byte</span>: <span class="ident">u128</span>,
-		<span class="doccomment">/// Size of the tx metadata of a transaction in the destination chain</span>
-		<span class="kw">pub</span> <span class="ident">metadata_size</span>: <span class="ident">u64</span>,
-		<span class="doccomment">/// Minimum weight the destination chain charges for a transaction</span>
-		<span class="kw">pub</span> <span class="ident">base_weight</span>: <span class="ident">Weight</span>,
 		<span class="doccomment">/// Fee per weight in the destination chain</span>
-		<span class="kw">pub</span> <span class="ident">fee_per_weight</span>: <span class="ident">u128</span>,
+		<span class="kw">pub</span> <span class="ident">fee_per_second</span>: <span class="ident">u128</span>,
+		<span class="doccomment">/// Max destination weight</span>
+		<span class="kw">pub</span> <span class="ident">max_weight</span>: <span class="ident">Weight</span>,
 	}
 
 	<span class="comment">// Since we are using pallet-utility for account derivation (through AsDerivative),</span>
@@ -828,13 +797,13 @@
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">index_to_account</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IndexToAccount</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">u16</span>, <span class="ident">T::AccountId</span><span class="op">&gt;</span>;
 
-	<span class="comment">// Stores the transact info of a MULTIlOCAITON. This defines how much extra weight we need to</span>
+	<span class="comment">// Stores the transact info of a MultiLocation. This defines how much extra weight we need to</span>
 	<span class="comment">// add when we want to transact in the destination chain and how we convert weight to units</span>
 	<span class="comment">// in the destination chain</span>
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">transact_info</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransactInfo</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">MultiLocation</span>, <span class="ident">RemoteTransactInfo</span><span class="op">&gt;</span>;
+	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransactInfoWithWeightLimit</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
+		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">MultiLocation</span>, <span class="ident">RemoteTransactInfoWithMaxWeight</span><span class="op">&gt;</span>;
 
 	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.</span>
 	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
@@ -868,7 +837,7 @@
 		<span class="ident">TransactedSovereign</span>(<span class="ident">T::AccountId</span>, <span class="ident">MultiLocation</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
 		<span class="ident">RegisterdDerivative</span>(<span class="ident">T::AccountId</span>, <span class="ident">u16</span>),
 		<span class="ident">TransactFailed</span>(<span class="ident">XcmError</span>),
-		<span class="ident">TransactInfoChanged</span>(<span class="ident">MultiLocation</span>, <span class="ident">RemoteTransactInfo</span>),
+		<span class="ident">TransactInfoChanged</span>(<span class="ident">MultiLocation</span>, <span class="ident">RemoteTransactInfoWithMaxWeight</span>),
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
@@ -921,12 +890,6 @@
 			<span class="ident">inner_call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-
-			<span class="comment">// Ensure the specified destination transact_weight is not reached</span>
-			<span class="macro">ensure!</span>(
-				<span class="ident">dest_weight</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">max_transact_weight</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
-			);
 
 			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span>
 				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">fee_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
@@ -983,12 +946,6 @@
 			<span class="ident">inner_call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-
-			<span class="comment">// Ensure the specified destination transact_weight is not reached</span>
-			<span class="macro">ensure!</span>(
-				<span class="ident">dest_weight</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">max_transact_weight</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
-			);
 
 			<span class="kw">let</span> <span class="ident">fee_location</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">T::CurrencyIdToMultiLocation::convert</span>(<span class="ident">currency_id</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransferableCurrency</span>)<span class="question-mark">?</span>;
@@ -1069,23 +1026,19 @@
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
 			<span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">fee_per_byte</span>: <span class="ident">u128</span>,
-			<span class="ident">base_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">fee_per_weight</span>: <span class="ident">u128</span>,
-			<span class="ident">metadata_size</span>: <span class="ident">u64</span>,
+			<span class="ident">fee_per_second</span>: <span class="ident">u128</span>,
+			<span class="ident">max_weight</span>: <span class="ident">u64</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span>
 				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">remote_info</span> <span class="op">=</span> <span class="ident">RemoteTransactInfo</span> {
+			<span class="kw">let</span> <span class="ident">remote_info</span> <span class="op">=</span> <span class="ident">RemoteTransactInfoWithMaxWeight</span> {
 				<span class="ident">transact_extra_weight</span>,
-				<span class="ident">fee_per_byte</span>,
-				<span class="ident">base_weight</span>,
-				<span class="ident">fee_per_weight</span>,
-				<span class="ident">metadata_size</span>,
+				<span class="ident">fee_per_second</span>,
+				<span class="ident">max_weight</span>,
 			};
 
-			<span class="ident">TransactInfo</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>, <span class="kw-2">&amp;</span><span class="ident">remote_info</span>);
+			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>, <span class="kw-2">&amp;</span><span class="ident">remote_info</span>);
 
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::TransactInfoChanged</span>(<span class="ident">location</span>, <span class="ident">remote_info</span>));
 			<span class="prelude-val">Ok</span>(())
@@ -1101,8 +1054,8 @@
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="comment">// Grab transact info for the fee loation provided</span>
-			<span class="kw">let</span> <span class="ident">transactor_info</span> <span class="op">=</span>
-				<span class="ident">TransactInfo</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">fee_location</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactorInfoNotSet</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">transactor_info</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">fee_location</span>)
+				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactorInfoNotSet</span>)<span class="question-mark">?</span>;
 
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the</span>
 			<span class="comment">// destination chain</span>
@@ -1110,16 +1063,15 @@
 				.<span class="ident">checked_add</span>(<span class="ident">transactor_info</span>.<span class="ident">transact_extra_weight</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::WeightOverflow</span>)<span class="question-mark">?</span>;
 
+			<span class="macro">ensure!</span>(
+				<span class="ident">total_weight</span> <span class="op">&lt;</span> <span class="ident">transactor_info</span>.<span class="ident">max_weight</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
+			);
+
 			<span class="comment">// Multiply weight*destination_units_per_second to see how much we should charge for</span>
 			<span class="comment">// this weight execution</span>
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::calculate_fee_per_weight</span>(
-				<span class="ident">call</span>.<span class="ident">clone</span>(),
-				<span class="ident">total_weight</span>,
-				<span class="ident">transactor_info</span>.<span class="ident">fee_per_byte</span>,
-				<span class="ident">transactor_info</span>.<span class="ident">base_weight</span>,
-				<span class="ident">transactor_info</span>.<span class="ident">fee_per_weight</span>,
-				<span class="ident">transactor_info</span>.<span class="ident">metadata_size</span>,
-			);
+			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span>
+				<span class="ident"><span class="self">Self</span>::calculate_fee_per_second</span>(<span class="ident">total_weight</span>, <span class="ident">transactor_info</span>.<span class="ident">fee_per_second</span>);
 
 			<span class="comment">// Construct MultiAsset</span>
 			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
@@ -1327,20 +1279,10 @@
 		}
 
 		<span class="doccomment">/// Returns the fee for a given set of parameters</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_fee_per_weight</span>(
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="ident">weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">fee_per_byte</span>: <span class="ident">u128</span>,
-			<span class="ident">base_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">fee_per_weight</span>: <span class="ident">u128</span>,
-			<span class="ident">metadata_size</span>: <span class="ident">u64</span>,
-		) -&gt; <span class="ident">u128</span> {
-			<span class="kw">let</span> <span class="ident">tx_byte_fee</span> <span class="op">=</span> ((<span class="ident">call</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u128</span>).<span class="ident">saturating_add</span>(<span class="ident">metadata_size</span> <span class="kw">as</span> <span class="ident">u128</span>))
-				.<span class="ident">saturating_mul</span>(<span class="ident">fee_per_byte</span>);
-			<span class="kw">let</span> <span class="ident">weight_fee</span> <span class="op">=</span> <span class="ident">fee_per_weight</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>);
-			<span class="kw">let</span> <span class="ident">base_fee</span> <span class="op">=</span> <span class="ident">fee_per_weight</span>.<span class="ident">saturating_mul</span>(<span class="ident">base_weight</span> <span class="kw">as</span> <span class="ident">u128</span>);
-
-			<span class="kw">return</span> <span class="ident">base_fee</span>.<span class="ident">saturating_add</span>(<span class="ident">weight_fee</span>.<span class="ident">saturating_add</span>(<span class="ident">tx_byte_fee</span>));
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_fee_per_second</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>, <span class="ident">fee_per_second</span>: <span class="ident">u128</span>) -&gt; <span class="ident">u128</span> {
+			<span class="kw">let</span> <span class="ident">weight_fee</span> <span class="op">=</span>
+				<span class="ident">fee_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
+			<span class="kw">return</span> <span class="ident">weight_fee</span>;
 		}
 	}
 }

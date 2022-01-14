@@ -260,8 +260,6 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -300,7 +298,7 @@
 };
 <span class="kw">use</span> <span class="ident">xcm::latest::MultiLocation</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives::AccountIdToCurrencyId</span>;
-<span class="kw">use</span> <span class="ident">xcm_transactor::RemoteTransactInfo</span>;
+<span class="kw">use</span> <span class="ident">xcm_transactor::RemoteTransactInfoWithMaxWeight</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -410,7 +408,7 @@
 		<span class="kw">let</span> <span class="ident">multilocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// fetch data from pallet</span>
-		<span class="kw">let</span> <span class="ident">remote_transact_info</span>: <span class="ident">RemoteTransactInfo</span> <span class="op">=</span>
+		<span class="kw">let</span> <span class="ident">remote_transact_info</span>: <span class="ident">RemoteTransactInfoWithMaxWeight</span> <span class="op">=</span>
 			<span class="ident">xcm_transactor::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_info</span>(<span class="ident">multilocation</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Transact Info not set&quot;</span>))<span class="question-mark">?</span>;
 
@@ -419,10 +417,8 @@
 			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>()
 				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">transact_extra_weight</span>)
-				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">fee_per_byte</span>)
-				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">metadata_size</span>)
-				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">base_weight</span>)
-				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">fee_per_weight</span>)
+				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">fee_per_second</span>)
+				.<span class="ident">write</span>(<span class="ident">remote_transact_info</span>.<span class="ident">max_weight</span>)
 				.<span class="ident">build</span>(),
 			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
 		})

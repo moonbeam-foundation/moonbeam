@@ -339,8 +339,6 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -645,8 +643,6 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">XcmTransact</span>: <span class="ident">UtilityEncodeCall</span> {
 	<span class="doccomment">/// Encode call from the relay.</span>
 	<span class="kw">fn</span> <span class="ident">destination</span>(<span class="self">self</span>) -&gt; <span class="ident">MultiLocation</span>;
-	<span class="doccomment">/// Maximum weight for the entire Transact operation</span>
-	<span class="kw">fn</span> <span class="ident">max_transact_weight</span>(<span class="self">self</span>) -&gt; <span class="ident">Weight</span>;
 }
 
 <span class="doccomment">/// This trait ensure we can convert AccountIds to CurrencyIds</span>
