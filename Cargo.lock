@@ -7167,6 +7167,7 @@ dependencies = [
  "environmental",
  "frame-support",
  "frame-system",
+ "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "scale-info",
@@ -10047,6 +10048,7 @@ version = "0.8.0-dev"
 dependencies = [
  "frame-support",
  "frame-system",
+ "impl-trait-for-tuples",
  "log",
  "pallet-asset-manager",
  "pallet-author-mapping",
@@ -10057,6 +10059,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-std",
+ "xcm-transactor",
 ]
 
 [[package]]
@@ -13938,12 +13941,12 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
+ "log",
  "orml-traits",
  "pallet-balances",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
- "polkadot-runtime-common",
  "scale-info",
  "serde",
  "sp-core",

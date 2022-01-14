@@ -36,7 +36,7 @@ use sp_std::{
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
-use xcm_transactor::RemoteTransactInfo;
+use xcm_transactor::RemoteTransactInfoWithMaxWeight;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -146,7 +146,7 @@ where
 		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 
 		// fetch data from pallet
-		let remote_transact_info: RemoteTransactInfo =
+		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(gasometer.revert("Transact Info not set"))?;
 
@@ -155,10 +155,8 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
-				.write(remote_transact_info.fee_per_byte)
-				.write(remote_transact_info.metadata_size)
-				.write(remote_transact_info.base_weight)
-				.write(remote_transact_info.fee_per_weight)
+				.write(remote_transact_info.fee_per_second)
+				.write(remote_transact_info.max_weight)
 				.build(),
 			logs: Default::default(),
 		})

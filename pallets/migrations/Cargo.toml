@@ -6,6 +6,7 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
+impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Substrate

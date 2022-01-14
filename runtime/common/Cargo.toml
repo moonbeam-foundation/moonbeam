@@ -8,6 +8,7 @@ license = "GPL-3.0-only"
 version = "0.8.0-dev"
 
 [dependencies]
+impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
@@ -15,6 +16,7 @@ pallet-asset-manager = { path = "../../pallets/asset-manager", optional = true, 
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+xcm-transactor = { path = "../../pallets/xcm-transactor", optional = true, default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
@@ -38,4 +40,6 @@ std = [
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"xcm-transactor/std",
 ]
+xcm-support = [ "xcm-transactor" ]
