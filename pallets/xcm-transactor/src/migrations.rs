@@ -107,7 +107,6 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::storage::migration::{storage_iter, storage_key_iter};
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 		let pallet_prefix: &[u8] = b"XcmTransactor";
@@ -121,8 +120,6 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 		// There are no entries in the old storage afterward
 
 		// Assert new storage is empty
-		// Because the pallet and item prefixes are the same, the old storage is still at this
-		// key. However, the values can't be decoded so the assertion passes.
 		assert!(TransactInfoWithWeightLimit::<T>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
@@ -168,7 +165,7 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 				original_info.transact_extra_weight,
 				migrated_info.transact_extra_weight
 			);
-			assert_eq!(original_info.fee_per_weight, migrated_info.fee_per_weight);
+			assert_eq!(original_info.fee_per_weight.saturating_mul(WEIGHT_PER_SECOND as u128), migrated_info.fee_per_second);
 			assert_eq!(migrated_info.max_weight, 20000000000)
 		}
 
