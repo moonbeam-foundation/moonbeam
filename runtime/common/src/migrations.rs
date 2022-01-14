@@ -25,40 +25,13 @@ use frame_support::{
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::Migration;
 use parachain_staking::{
-	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue,
-		UpdateCandidatePoolWithTotalCounted,
-	},
+	migrations::{IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue},
 	Config as ParachainStakingConfig,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
-
-/// Staking increase max counted delegations per collator candidate
-pub struct ParachainStakingUpdateCandidatePool<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration for ParachainStakingUpdateCandidatePool<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_UpdateCandidatePoolWithTotalCounted"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		UpdateCandidatePoolWithTotalCounted::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		UpdateCandidatePoolWithTotalCounted::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		UpdateCandidatePoolWithTotalCounted::<T>::post_upgrade()
-	}
-}
 
 /// Staking increase max counted delegations per collator candidate
 pub struct ParachainStakingIncreaseMaxDelegationsPerCandidate<T>(PhantomData<T>);
@@ -217,8 +190,6 @@ where
 		// 	ParachainStakingManualExits::<Runtime>(Default::default());
 		let migration_parachain_staking_increase_max_delegations_per_candidate =
 			ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
-		let migration_parachain_staking_update_candidate_pool =
-			ParachainStakingUpdateCandidatePool::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -233,7 +204,6 @@ where
 			// completed in runtime 1000
 			// Box::new(migration_parachain_staking_manual_exits),
 			Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
-			Box::new(migration_parachain_staking_update_candidate_pool),
 		]
 	}
 }

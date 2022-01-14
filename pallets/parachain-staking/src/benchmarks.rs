@@ -123,6 +123,22 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
+	// HOTFIX BENCHMARK
+	hotfix_update_candidate_pool_value {
+		let mut candidates: Vec<T::AccountId> = Vec::new();
+		for i in 1..200 {
+			let account = create_funded_collator::<T>(
+				"candidate",
+				i + 100,
+				0u32.into(),
+				true,
+				i
+			)?;
+			candidates.push(account);
+		}
+	}: _(RawOrigin::Root, candidates)
+	verify { }
+
 	// MONETARY ORIGIN DISPATCHABLES
 
 	set_staking_expectations {
@@ -1043,6 +1059,13 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
+	}
+
+	#[test]
+	fn bench_hotfix_update_candidate_pool_value() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_update_candidate_pool_value());
+		});
 	}
 
 	#[test]
