@@ -29,23 +29,25 @@ async function main() {
   const lastClientVersion = argv.client;
 
   const template = `
-  - [ ] Create a PR that increment spec version (like #1051)
   - [ ] Cleanup previous migrations (only for major release,
-  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
-  - [ ] Get that PR approved and merged
-  - [ ] Tag master with runtime-${newVersion} and push to github
-  - [ ] Start the github action Publish Runtime Draft
-  with runtime-${previousVersion} => runtime-${newVersion}
+  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs).
+  - [ ] Create a PR that increment spec version (like #1051).
+  - [ ] Get that PR approved and merged.
+  - [ ] Tag master with runtime-${newVersion} and push to github.
+  - [ ] Start the github action \`Publish Runtime Draft\`.
+  with params \`runtime-${previousVersion}\` and \`runtime-${newVersion}\`.
+  - [ ] Create the tracing runtime PR on git repo \`purestake/moonbeam-runtime-overrides\`.
+  - [ ] Get the tracing runtime PR approved and merged.
   - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
-  - [ ] Create the tracing runtime on moonbeam-runtime-overrides
-  (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
-  - [ ] Add new substitute in stagenet configuration 
-  - [ ] Upgrade stagenet
-  - [ ] Add new substitute in alphanet configuration 
-  - [ ] Upgrade alphanet
-  - [ ] Create new tracing image for partners: start the github action Publish Docker
-  with ${lastClientVersion} and master
-  - [ ] When everything is ok, publish the draft release
+  (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md).
+  - [ ] Try the runtime upgrade in a local network (with launch script).
+  - [ ] Add new tracing substitute in stagenet/moonsama/moonlama configuration.
+  - [ ] Upgrade stagenet.
+  - [ ] Add new tracing substitute in alphanet configuration.
+  - [ ] Upgrade alphanet.
+  - [ ] Create new tracing image for partners: start the github action \`Publish Docker\`
+  with params \`${lastClientVersion}\` and \`master\` on git repo \`purestake/moonbeam-runtime-overrides\`.
+  - [ ] When everything is ok, publish the draft release.
   `;
 
   console.log(template);
