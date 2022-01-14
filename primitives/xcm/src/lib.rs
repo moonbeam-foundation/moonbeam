@@ -151,7 +151,8 @@ impl<
 				let asset_type: AssetType = id.clone().into();
 				let asset_id: AssetId = AssetId::from(asset_type);
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
-					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
+					let amount = units_per_second.saturating_mul(weight as u128)
+						/ (WEIGHT_PER_SECOND as u128);
 					let required = MultiAsset {
 						fun: Fungibility::Fungible(amount),
 						id: xcmAssetId::Concrete(id.clone()),
