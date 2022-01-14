@@ -156,6 +156,7 @@ fn ethereum_runtime_rpc_api_call() {
 				None,                  // max_priority_fee_per_gas
 				None,                  // nonce
 				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -176,6 +177,7 @@ fn ethereum_runtime_rpc_api_create() {
 				None,                  // max_priority_fee_per_gas
 				None,                  // nonce
 				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
