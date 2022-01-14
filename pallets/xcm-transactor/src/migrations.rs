@@ -165,7 +165,12 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 				original_info.transact_extra_weight,
 				migrated_info.transact_extra_weight
 			);
-			assert_eq!(original_info.fee_per_weight.saturating_mul(WEIGHT_PER_SECOND as u128), migrated_info.fee_per_second);
+			assert_eq!(
+				original_info
+					.fee_per_weight
+					.saturating_mul(WEIGHT_PER_SECOND as u128),
+				migrated_info.fee_per_second
+			);
 			assert_eq!(migrated_info.max_weight, 20000000000)
 		}
 
