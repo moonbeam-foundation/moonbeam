@@ -28,6 +28,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
   });
 
   it("should send notification on new block", async function () {
+    this.timeout(10000);
     const subscription = web3Subscribe(web3Ws, "newBlockHeaders");
     await new Promise((resolve) => subscription.once("connected", resolve));
     // TODO this should not be needed. test seems to fail when the block is created to quickly
