@@ -125,8 +125,9 @@ const USER_SEED: u32 = 999666;
 benchmarks! {
 	// HOTFIX BENCHMARK
 	hotfix_update_candidate_pool_value {
+		let x in 5..200;
 		let mut candidates: Vec<T::AccountId> = Vec::new();
-		for i in 1..200 {
+		for i in 1..x {
 			let account = create_funded_collator::<T>(
 				"candidate",
 				i + 100,

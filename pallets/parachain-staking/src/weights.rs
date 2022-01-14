@@ -51,6 +51,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
+	fn hotfix_update_candidate_pool_value() -> Weight;
 	fn set_staking_expectations() -> Weight;
 	fn set_inflation() -> Weight;
 	fn set_parachain_bond_account() -> Weight;
@@ -87,6 +88,11 @@ pub trait WeightInfo {
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn hotfix_update_candidate_pool_value() -> Weight {
+		(5_417_498_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(200 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
@@ -263,6 +269,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
+	fn hotfix_update_candidate_pool_value() -> Weight {
+		(5_417_498_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(200 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))

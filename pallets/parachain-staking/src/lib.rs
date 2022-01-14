@@ -1780,7 +1780,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)] // TODO: update weight
+		#[pallet::weight(<T as Config>::WeightInfo::hotfix_update_candidate_pool_value())]
 		/// Hotfix patch to correct and update CandidatePool value for candidates that have
 		/// called candidate_bond_more when it did not update the CandidatePool value
 		pub fn hotfix_update_candidate_pool_value(
