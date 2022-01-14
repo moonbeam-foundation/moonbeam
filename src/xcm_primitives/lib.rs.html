@@ -339,6 +339,7 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -492,7 +493,8 @@
 				<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
 				<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId::from</span>(<span class="ident">asset_type</span>);
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units_per_second</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_units_per_second</span>(<span class="ident">asset_id</span>) {
-					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span> <span class="op">*</span> (<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
+					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>)
+						<span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
 					<span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
 						<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
 						<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>.<span class="ident">clone</span>()),
