@@ -1615,7 +1615,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	type CandidatePool<T: Config> =
+	pub(crate) type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]

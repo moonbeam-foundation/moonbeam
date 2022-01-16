@@ -27,8 +27,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, Bond, CandidateState, CollatorStatus, DelegationChange, DelegationRequest,
-	DelegatorAdded, Error, Event, Range,
+	assert_tail_eq, set::OrderedSet, Bond, CandidatePool, CandidateState, CollatorStatus,
+	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -4403,6 +4403,53 @@ fn deferred_payment_steady_state_event_flow() {
 			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
 			for _ in 1..5 {
 				round = roll_through_steady_state_round(round);
+			}
+		});
+}
+
+// HOTFIX UNIT TEST for hotfix_update_candidate_pool_value
+#[test]
+fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			// corrupt CandidatePool
+			<CandidatePool<Test>>::put(OrderedSet::from(vec![
+				Bond {
+					owner: 1,
+					amount: 15,
+				},
+				Bond {
+					owner: 2,
+					amount: 16,
+				},
+				Bond {
+					owner: 3,
+					amount: 17,
+				},
+				Bond {
+					owner: 4,
+					amount: 18,
+				},
+				Bond {
+					owner: 5,
+					amount: 19,
+				},
+			]));
+			// run migration and pass in 6 even though not a candidate
+			assert_ok!(Stake::hotfix_update_candidate_pool_value(
+				Origin::root(),
+				vec![1, 2, 3, 4, 5, 6]
+			));
+			// CandidatePool is now fixed for all input accounts
+			let pool = <CandidatePool<Test>>::get();
+			for Bond { owner, amount } in pool.0 {
+				// 6 is not in the candidate pool despite being passed in
+				assert!(owner <= 5 && owner >= 1);
+				// all amounts are fixed
+				assert_eq!(amount, 20);
 			}
 		});
 }
