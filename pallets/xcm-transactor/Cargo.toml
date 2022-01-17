@@ -5,6 +5,7 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
+log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
@@ -24,7 +25,6 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch
 
 # Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
@@ -42,8 +42,8 @@ std = [
 	"cumulus-primitives-core/std",
 	"frame-support/std",
 	"frame-system/std",
+	"orml-traits/std",
 	"parity-scale-codec/std",
-	"polkadot-runtime-common/std",
 	"serde",
 	"sp-io/std",
 	"sp-runtime/std",
@@ -52,3 +52,4 @@ std = [
 	"xcm-primitives/std",
 	"xcm/std",
 ]
+try-runtime = [ "frame-support/try-runtime" ]

@@ -685,16 +685,17 @@ impl pallet_base_fee::Config for Runtime {
 
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
+	type DmpMessageHandler = MaintenanceMode;
+	type ReservedDmpWeight = ReservedDmpWeight;
+	type OutboundXcmpMessageSource = XcmpQueue;
+	type XcmpMessageHandler = MaintenanceMode;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -1412,15 +1413,6 @@ impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
-		}
-	}
-
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			// Kusama is 20,000,000,000
-			// This needs to take into account the rest of the message
-			// We use 12,000,000,000 to be safe
-			Transactors::Relay => 12_000_000_000,
 		}
 	}
 }
