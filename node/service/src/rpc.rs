@@ -30,8 +30,8 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride, Web3Api,
-	Web3ApiServer,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
+	StorageOverride, Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
@@ -118,6 +118,11 @@ where
 	overrides_map.insert(
 		EthereumStorageSchema::V2,
 		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V3,
+		Box::new(SchemaV3Override::new(client.clone()))
 			as Box<dyn StorageOverride<_> + Send + Sync>,
 	);
 

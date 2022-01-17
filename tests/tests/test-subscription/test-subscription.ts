@@ -52,7 +52,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
       extraData: "0x",
       logsBloom: `0x${"0".repeat(512)}`,
       miner: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
-      receiptsRoot: "0xb641ad10026d278e29908b40c13ab496f2d9b719fc9b788c0504a8e5a2347bf3",
+      receiptsRoot: "0x056b23fbba480696b65fe5a59b8f2148a1299103c4f57df839233af2cf4ca2d2",
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       transactionsRoot: "0xf04aada99f08ad276fb593633bcb320bbbaf4499e9bfa8d59a7385e1772c6bcd",
     });

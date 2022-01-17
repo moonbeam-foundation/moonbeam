@@ -970,11 +970,14 @@ impl pallet_proxy::Config for Runtime {
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
-	type MigrationsList = runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		runtime_common::migrations::XcmMigrations<Runtime>,
+	);
 }
 
 parameter_types! {
@@ -1435,14 +1438,6 @@ impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
-		}
-	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			// Westend is 20,000,000,000
-			// This needs to take into account the rest of the message
-			// We use 12,000,000,000 to be safe
-			Transactors::Relay => 12_000_000_000,
 		}
 	}
 }
