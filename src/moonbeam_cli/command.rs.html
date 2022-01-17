@@ -1023,7 +1023,7 @@
 		<span class="kw">match</span> <span class="ident">id</span> {
 			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;westend-native&quot;</span>)]</span>
 			<span class="string">&quot;westend_moonbase_relay_testnet&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Box::new</span>(<span class="ident">WestendChainSpec::from_json_bytes</span>(
-				<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/alphanet/rococo-embedded-specs-v8.json&quot;</span>)[..],
+				<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/alphanet/westend-embedded-specs-v8.json&quot;</span>)[..],
 			)<span class="question-mark">?</span>)),
 			<span class="comment">// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the</span>
 			<span class="comment">// Polkadot service to interpret the id.</span>
