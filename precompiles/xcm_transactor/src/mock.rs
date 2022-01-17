@@ -465,11 +465,6 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => MultiLocation::parent(),
 		}
 	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			MockTransactors::Relay => 20000000000,
-		}
-	}
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {

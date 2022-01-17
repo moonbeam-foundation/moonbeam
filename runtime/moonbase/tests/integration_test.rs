@@ -1687,6 +1687,15 @@ fn transactor_cannot_use_more_than_max_weight() {
 				AccountId::from(ALICE),
 				0,
 			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				1,
+				20000
+			));
 
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
@@ -1694,8 +1703,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					// 12000000000 is the max
-					13000000000,
+					// 20000the max
+					17000,
 					vec![],
 				),
 				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
@@ -1706,8 +1715,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::Transactors::Relay,
 					0,
 					moonbase_runtime::CurrencyId::OtherReserve(source_id),
-					// 12000000000 is the max
-					13000000000,
+					// 20000 is the max
+					17000,
 					vec![],
 				),
 				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached

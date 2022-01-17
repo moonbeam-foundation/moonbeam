@@ -17,7 +17,7 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
-use frame_support::{assert_ok, traits::PalletInfo};
+use frame_support::{assert_ok, traits::PalletInfo, weights::constants::WEIGHT_PER_SECOND};
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
@@ -818,10 +818,8 @@ fn transact_through_derivative_multilocation() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
-			0,
-			0,
-			1,
-			0
+			1 * WEIGHT_PER_SECOND as u128,
+			20000000000
 		));
 	});
 
@@ -972,10 +970,8 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			3000,
-			0,
-			0,
-			1,
-			0
+			1 * WEIGHT_PER_SECOND as u128,
+			20000000000
 		));
 	});
 

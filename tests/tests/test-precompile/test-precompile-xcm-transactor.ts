@@ -102,10 +102,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(0),
-          new BN(0),
-          new BN(1),
-          new BN(0)
+          new BN(1000000000000),
+          new BN(20000000000)
         )
       )
       .signAndSend(sudoAccount);
@@ -167,10 +165,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     expect(tx_call.result).to.equal(
       "0x0000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000000000000001"
+        "000000000000000000000000000000000000000000000000000000e8d4a51000" +
+        "00000000000000000000000000000000000000000000000000000004a817c800"
     );
   });
 
@@ -268,10 +264,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(0),
-          new BN(0),
-          new BN(1),
-          new BN(0)
+          new BN(1000000000000),
+          new BN(20000000000)
         )
       )
       .signAndSend(sudoAccount);
