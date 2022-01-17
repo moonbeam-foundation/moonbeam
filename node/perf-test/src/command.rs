@@ -457,11 +457,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(
-		&self,
-		cmd: &PerfCmd,
-		config: Configuration,
-	) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
