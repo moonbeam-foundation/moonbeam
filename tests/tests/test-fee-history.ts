@@ -81,11 +81,10 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     let block_count = 11;
     let reward_percentiles = [20, 50, 70, 85, 100];
     let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    await createBlocks(block_count, reward_percentiles, priority_fees, "0x3B9ACA00");
+    await createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas);
     let result = (
       await customWeb3Request(context.web3, "eth_feeHistory", ["0xA", "latest", reward_percentiles])
     ).result;
-    console.log(result);
 
     // Calculate the percentiles in javascript.
     let local_rewards = [];
