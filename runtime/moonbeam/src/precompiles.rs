@@ -16,8 +16,10 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
+use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
+use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -25,9 +27,12 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
+use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use xcm_transactor_precompiles::XcmTransactorWrapper;
+use xtokens_precompiles::XtokensWrapper;
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
@@ -46,11 +51,15 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2055]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055]
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
+
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet
+pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
@@ -61,6 +70,10 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20AssetsPrecompileSet<R>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
@@ -100,16 +113,30 @@ where
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
 			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
 			_ => None,
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses()
 			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some()
+			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
 	}
 }
 
