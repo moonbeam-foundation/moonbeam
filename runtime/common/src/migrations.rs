@@ -210,8 +210,8 @@ where
 		// 	ParachainStakingPurgeStaleStorage::<Runtime>(Default::default());
 		// let migration_parachain_staking_manual_exits =
 		// 	ParachainStakingManualExits::<Runtime>(Default::default());
-		let migration_parachain_staking_increase_max_delegations_per_candidate =
-			ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
+		// let migration_parachain_staking_increase_max_delegations_per_candidate =
+		//	ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -224,7 +224,8 @@ where
 			// Box::new(migration_parachain_staking_purge_stale_storage),
 			// completed in runtime 1000
 			// Box::new(migration_parachain_staking_manual_exits),
-			Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
+			// completed in runtime 1101
+			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
 		]
 	}
 }
