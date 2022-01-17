@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
@@ -35,7 +34,7 @@ use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, Transact
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{fs::File, io::prelude::*, marker::PhantomData, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -460,7 +459,6 @@ impl PerfCmd {
 	// taking a different approach and starting a full dev service
 	pub fn run<RuntimeApi, Executor>(
 		&self,
-		path: &PathBuf,
 		cmd: &PerfCmd,
 		config: Configuration,
 	) -> CliResult<()>
@@ -503,29 +501,13 @@ impl PerfCmd {
 			all_test_results.append(&mut results);
 		}
 
-		let (system_info, partition_info) = if cmd.disable_sysinfo {
-			(None, None)
-		} else {
-			let sys = query_system_info()?;
-			let part = query_partition_info(path).unwrap_or_else(|_| {
-				// TODO: this is inconsistent with behavior of query_system_info...
-				eprintln!("query_partition_info() failed, ignoring...");
-				Default::default()
-			});
-			(Some(sys), Some(part))
-		};
-
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: Option<SystemInfo>,
-			partition_info: Option<PartitionInfo>,
 		}
 
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
-			system_info,
-			partition_info,
 		};
 		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
 

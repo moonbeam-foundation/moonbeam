@@ -16,7 +16,6 @@
 // limitations under the License.
 
 mod command;
-pub mod sysinfo;
 mod tests;
 mod txn_signer;
 
@@ -44,12 +43,6 @@ pub struct PerfCmd {
 
 	#[structopt(long, value_name = "CHAIN_SPEC", default_value = "dev")]
 	pub chain: String,
-
-	#[structopt(
-		long = "disable-sysinfo",
-		help = "Do not attempt to query system info."
-	)]
-	pub disable_sysinfo: bool,
 
 	#[structopt(
 		long = "tests",
