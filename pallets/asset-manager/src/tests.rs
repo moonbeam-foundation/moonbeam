@@ -128,5 +128,13 @@ fn test_asset_id_non_existent_error() {
 			AssetManager::set_asset_units_per_second(Origin::root(), 1, 200u128.into()),
 			Error::<Test>::AssetDoesNotExist
 		);
+		assert_noop!(
+			AssetManager::change_existing_asset_type(
+				Origin::root(),
+				1,
+				MockAssetType::MockAsset(2),
+			),
+			Error::<Test>::AssetDoesNotExist
+		);
 	});
 }
