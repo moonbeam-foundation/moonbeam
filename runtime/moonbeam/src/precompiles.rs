@@ -51,9 +51,11 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055]
-			.into_iter()
-			.map(|x| R::AddressMapping::into_account_id(hash(x)))
+		sp_std::vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055
+		]
+		.into_iter()
+		.map(|x| R::AddressMapping::into_account_id(hash(x)))
 	}
 }
 

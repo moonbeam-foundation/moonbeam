@@ -27,8 +27,8 @@ use moonbeam_runtime::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
 	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
 	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
-	SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;

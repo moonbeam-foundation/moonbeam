@@ -34,8 +34,8 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, OnUnbalanced, Nothing,
-		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
+		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
+		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -46,8 +46,8 @@ use frame_support::{
 };
 use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
-	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header, Index,
-	Signature,
+	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
+	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
@@ -67,7 +67,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, Hash as THash, PostDispatchInfoOf},
+	traits::{
+		BlakeTwo256, Block as BlockT, Dispatchable, Hash as THash, IdentityLookup,
+		PostDispatchInfoOf,
+	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
