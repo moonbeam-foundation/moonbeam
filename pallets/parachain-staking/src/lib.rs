@@ -200,7 +200,7 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// DEPRECATED
+	/// DEPRECATED, replaced by `CandidateMetadata` and two storage instances of `Delegations`
 	/// Collator candidate state with self bond + delegations
 	pub struct CollatorCandidate<AccountId, Balance> {
 		/// The account of this collator
@@ -530,7 +530,7 @@ pub mod pallet {
 					// top is full, insert into top iff the lowest_top < amount
 					if self.lowest_top_delegation_amount < delegation.amount.into() {
 						// bumps lowest top to the bottom inside this function call
-						less_total_staked = self.add_top_delegation::<T>(candidate, delegation)?;
+						less_total_staked = self.add_top_delegation::<T>(candidate, delegation);
 						DelegatorAdded::AddedToTop {
 							new_total: self.total_counted,
 						}
@@ -546,13 +546,13 @@ pub mod pallet {
 							less_total_staked = Some(self.lowest_bottom_delegation_amount);
 						}
 						// insert into bottom
-						self.add_bottom_delegation::<T>(false, candidate, delegation)?;
+						self.add_bottom_delegation::<T>(false, candidate, delegation);
 						DelegatorAdded::AddedToBottom
 					}
 				}
 				// top is either empty or partially full
 				_ => {
-					self.add_top_delegation::<T>(candidate, delegation)?;
+					self.add_top_delegation::<T>(candidate, delegation);
 					DelegatorAdded::AddedToTop {
 						new_total: self.total_counted,
 					}
@@ -561,13 +561,13 @@ pub mod pallet {
 			Ok((delegator_added, less_total_staked))
 		}
 		/// Add delegation to top delegation
-		/// Returns (Option<negative_total_staked_remainder>)
+		/// Returns Option<negative_total_staked_remainder>
 		/// Only call if lowest top delegation is less than delegation.amount || !top_full
 		pub fn add_top_delegation<T: Config>(
 			&mut self,
 			candidate: &T::AccountId,
 			delegation: Bond<T::AccountId, BalanceOf<T>>,
-		) -> Result<Option<Balance>, DispatchError>
+		) -> Option<Balance>
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
@@ -581,7 +581,7 @@ pub mod pallet {
 				if matches!(self.bottom_capacity, CapacityStatus::Full) {
 					less_total_staked = Some(self.lowest_bottom_delegation_amount);
 				}
-				self.add_bottom_delegation::<T>(true, candidate, new_bottom_delegation)?;
+				self.add_bottom_delegation::<T>(true, candidate, new_bottom_delegation);
 			}
 			// insert into top
 			top_delegations.insert_sorted_greatest_to_least(delegation);
@@ -589,7 +589,7 @@ pub mod pallet {
 			self.reset_top_data::<T>(&top_delegations);
 			self.delegation_count += 1u32;
 			<TopDelegations<T>>::insert(&candidate, top_delegations);
-			Ok(less_total_staked)
+			less_total_staked
 		}
 		/// Add delegation to bottom delegations
 		/// Check before call that if capacity is full, inserted delegation is higher than lowest
@@ -599,8 +599,7 @@ pub mod pallet {
 			bumped_from_top: bool,
 			candidate: &T::AccountId,
 			delegation: Bond<T::AccountId, BalanceOf<T>>,
-		) -> DispatchResult
-		where
+		) where
 			BalanceOf<T>: Into<Balance>,
 		{
 			let mut bottom_delegations =
@@ -614,9 +613,10 @@ pub mod pallet {
 					.delegations
 					.pop()
 					.expect("if at full capacity (>0), then >0 bottom delegations exist; qed");
-				ensure!(
+				assert!(
 					lowest_bottom_to_be_kicked.amount < delegation.amount,
-					Error::<T>::MaxBottomDelegationsLimitReached // TODO call it CannotKickIfLowestBottomIsGEQInputDelegation
+					"Cannot kick the lowest bottom delegation if the input delegation amount is
+					less than or equal to the current lowest bottom delegation"
 				);
 				bottom_delegations.total -= lowest_bottom_to_be_kicked.amount;
 				// update delegator state
@@ -658,7 +658,6 @@ pub mod pallet {
 			bottom_delegations.insert_sorted_greatest_to_least(delegation);
 			self.reset_bottom_data::<T>(&bottom_delegations);
 			<BottomDelegations<T>>::insert(candidate, bottom_delegations);
-			Ok(())
 		}
 		/// Remove delegation
 		/// Removes from top if amount is above lowest top or top is not full
@@ -1892,7 +1891,6 @@ pub mod pallet {
 		CandidateNotLeaving,
 		CandidateCannotLeaveYet,
 		CannotGoOnlineIfLeaving,
-		MaxBottomDelegationsLimitReached,
 		ExceedMaxDelegationsPerDelegator,
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
@@ -3075,14 +3073,14 @@ pub mod pallet {
 					}
 				}
 
-				return (
+				(
 					Some((collator, total_paid)),
 					T::WeightInfo::pay_one_collator_reward(num_delegators as u32),
-				);
+				)
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				return (None, 0u64.into());
+				(None, 0u64.into())
 			}
 		}
 

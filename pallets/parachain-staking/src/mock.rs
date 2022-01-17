@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate as stake;
+use crate as parachain_staking;
 use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -46,7 +46,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Stake: stake::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -215,7 +215,7 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		stake::GenesisConfig::<Test> {
+		parachain_staking::GenesisConfig::<Test> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
@@ -231,13 +231,13 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 pub(crate) fn roll_one_block() -> u64 {
-	Stake::on_finalize(System::block_number());
+	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
-	Stake::on_initialize(System::block_number());
+	ParachainStaking::on_initialize(System::block_number());
 
 	System::block_number()
 }
@@ -277,7 +277,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::Stake(inner) = e {
+			if let Event::ParachainStaking(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -393,19 +393,19 @@ fn geneses() {
 			// collators
 			assert_eq!(Balances::reserved_balance(&1), 500);
 			assert_eq!(Balances::free_balance(&1), 500);
-			assert!(Stake::is_candidate(&1));
+			assert!(ParachainStaking::is_candidate(&1));
 			assert_eq!(Balances::reserved_balance(&2), 200);
 			assert_eq!(Balances::free_balance(&2), 100);
-			assert!(Stake::is_candidate(&2));
+			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
-				assert!(Stake::is_delegator(&x));
+				assert!(ParachainStaking::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 0);
 				assert_eq!(Balances::reserved_balance(&x), 100);
 			}
 			// uninvolved
 			for x in 7..10 {
-				assert!(!Stake::is_delegator(&x));
+				assert!(!ParachainStaking::is_delegator(&x));
 			}
 			assert_eq!(Balances::free_balance(&7), 100);
 			assert_eq!(Balances::reserved_balance(&7), 0);
@@ -440,16 +440,16 @@ fn geneses() {
 			assert!(System::events().is_empty());
 			// collators
 			for x in 1..5 {
-				assert!(Stake::is_candidate(&x));
+				assert!(ParachainStaking::is_candidate(&x));
 				assert_eq!(Balances::free_balance(&x), 80);
 				assert_eq!(Balances::reserved_balance(&x), 20);
 			}
-			assert!(Stake::is_candidate(&5));
+			assert!(ParachainStaking::is_candidate(&5));
 			assert_eq!(Balances::free_balance(&5), 90);
 			assert_eq!(Balances::reserved_balance(&5), 10);
 			// delegators
 			for x in 6..11 {
-				assert!(Stake::is_delegator(&x));
+				assert!(ParachainStaking::is_delegator(&x));
 				assert_eq!(Balances::free_balance(&x), 90);
 				assert_eq!(Balances::reserved_balance(&x), 10);
 			}
