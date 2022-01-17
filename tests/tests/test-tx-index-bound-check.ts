@@ -7,9 +7,8 @@ describeDevMoonbeam("Transaction Index", (context) => {
     const block = 1;
     const index = 0;
     const testAccount = "0x1111111111111111111111111111111111111111";
-    const hash = await createTransfer(context, testAccount, 0);
     await context.createBlock({
-      transactions: [hash],
+      transactions: [await createTransfer(context, testAccount, 0)],
     });
     let result = await context.web3.eth.getTransactionFromBlock(block, index);
     expect(result.transactionIndex).to.equal(index);
