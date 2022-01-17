@@ -257,6 +257,7 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -469,8 +470,8 @@
 		<span class="comment">// 	ParachainStakingPurgeStaleStorage::&lt;Runtime&gt;(Default::default());</span>
 		<span class="comment">// let migration_parachain_staking_manual_exits =</span>
 		<span class="comment">// 	ParachainStakingManualExits::&lt;Runtime&gt;(Default::default());</span>
-		<span class="kw">let</span> <span class="ident">migration_parachain_staking_increase_max_delegations_per_candidate</span> <span class="op">=</span>
-			<span class="ident">ParachainStakingIncreaseMaxDelegationsPerCandidate</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let migration_parachain_staking_increase_max_delegations_per_candidate =</span>
+		<span class="comment">//	ParachainStakingIncreaseMaxDelegationsPerCandidate::&lt;Runtime&gt;(Default::default());</span>
 
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
@@ -483,7 +484,8 @@
 			<span class="comment">// Box::new(migration_parachain_staking_purge_stale_storage),</span>
 			<span class="comment">// completed in runtime 1000</span>
 			<span class="comment">// Box::new(migration_parachain_staking_manual_exits),</span>
-			<span class="ident">Box::new</span>(<span class="ident">migration_parachain_staking_increase_max_delegations_per_candidate</span>),
+			<span class="comment">// completed in runtime 1101</span>
+			<span class="comment">// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),</span>
 		]
 	}
 }
