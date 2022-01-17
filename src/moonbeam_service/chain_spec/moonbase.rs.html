@@ -323,6 +323,11 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -350,7 +355,7 @@
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">moonbase_runtime</span>::{
 	<span class="ident">currency::UNIT</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
-	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
+	<span class="ident">BaseFeeConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
 	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>,
 	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>,
@@ -360,7 +365,8 @@
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">use</span> <span class="ident">sp_core::ecdsa</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::Perbill</span>;
+<span class="kw">use</span> <span class="ident">sp_core::U256</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">Permill</span>};
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.</span>
@@ -568,7 +574,11 @@
 				.<span class="ident">collect</span>(),
 		},
 		<span class="ident">ethereum</span>: <span class="ident">EthereumConfig</span> {},
-		<span class="ident">base_fee</span>: <span class="ident">Default::default</span>(),
+		<span class="ident">base_fee</span>: <span class="ident">BaseFeeConfig::new</span>(
+			<span class="ident">U256::from</span>(<span class="number">1_000_000_000</span>),
+			<span class="bool-val">false</span>,
+			<span class="ident">Permill::from_parts</span>(<span class="number">125_000</span>),
+		),
 		<span class="ident">democracy</span>: <span class="ident">DemocracyConfig::default</span>(),
 		<span class="ident">scheduler</span>: <span class="ident">SchedulerConfig</span> {},
 		<span class="ident">parachain_staking</span>: <span class="ident">ParachainStakingConfig</span> {

@@ -1869,6 +1869,7 @@
 <span id="1869">1869</span>
 <span id="1870">1870</span>
 <span id="1871">1871</span>
+<span id="1872">1872</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2532,6 +2533,7 @@
 }
 
 <span class="macro">parameter_types!</span> {
+	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.</span>
 	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 }
 

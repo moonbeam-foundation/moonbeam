@@ -1931,6 +1931,7 @@
 <span id="1931">1931</span>
 <span id="1932">1932</span>
 <span id="1933">1933</span>
+<span id="1934">1934</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2408,7 +2409,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_evm::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> <span class="ident">BaseFee</span>;
+	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> <span class="ident">FixedGasPrice</span>;
 	<span class="kw">type</span> <span class="ident">GasWeightMapping</span> <span class="op">=</span> <span class="ident">MoonbeamGasWeightMapping</span>;
 	<span class="kw">type</span> <span class="ident">BlockHashMapping</span> <span class="op">=</span> <span class="ident">pallet_ethereum::EthereumBlockHashMapping</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">CallOrigin</span> <span class="op">=</span> <span class="ident">EnsureAddressRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
@@ -3543,7 +3544,8 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
+	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.</span>
+	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeeThreshold</span>;
