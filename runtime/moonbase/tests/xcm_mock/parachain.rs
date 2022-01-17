@@ -576,7 +576,7 @@ impl pallet_xcm::Config for Runtime {
 parameter_types! {
 	pub StatemintParaId: u32 = 4;
 	pub StatemintAssetPalletInstance: u8 = 5;
-	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
+	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2, 3].to_vec();
 }
 
 // Our AssetType. For now we only handle Xcm Assets

@@ -1899,11 +1899,11 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 	>::convert_ref(dest_para)
 	.unwrap();
 
-	// Our filter is for assetIds 0,1,2
+	// Our filter is for assetIds 0,1,2, 3
 	// We are gonna prove that for another Id, we dont support both prefixes
 	let statemint_asset_a_balances = MultiLocation::new(
 		1,
-		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(3u128)),
+		X2(Parachain(4), xcm::latest::prelude::GeneralIndex(4u128)),
 	);
 	let source_location = parachain::AssetType::Xcm(statemint_asset_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -1932,14 +1932,14 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 	Statemint::execute_with(|| {
 		assert_ok!(StatemintAssets::create(
 			statemint_like::Origin::signed(RELAYALICE),
-			3,
+			4,
 			RELAYALICE,
 			1
 		));
 
 		assert_ok!(StatemintAssets::mint(
 			statemint_like::Origin::signed(RELAYALICE),
-			3,
+			4,
 			RELAYALICE,
 			300000000000000
 		));
@@ -1963,7 +1963,7 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 			statemint_like::Origin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
-			Box::new((X1(xcm::latest::prelude::GeneralIndex(3)), 123).into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(4)), 123).into()),
 			0,
 		));
 	});
@@ -1995,7 +1995,7 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 						xcm::latest::prelude::PalletInstance(
 							<StatemintAssets as PalletInfoAccess>::index() as u8
 						),
-						xcm::latest::prelude::GeneralIndex(3),
+						xcm::latest::prelude::GeneralIndex(4),
 					),
 					123
 				)
@@ -2005,7 +2005,7 @@ fn test_statemint_like_prefix_change_does_not_work_for_not_already_registered_as
 		));
 	});
 
-	// for asset 3, since we dont support both prefixes, last transfer
+	// for asset 4, since we dont support both prefixes, last transfer
 	// did not work
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);

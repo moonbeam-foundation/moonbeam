@@ -1249,7 +1249,7 @@ parameter_types! {
 	pub StatemintAssetPalletInstance: u8 = 50;
 	// AssetIds from Statemint already registered, these will retain
 	// the previous prefix assetId and we will map new one to previous ones
-	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2].to_vec();
+	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2, 3].to_vec();
 }
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
