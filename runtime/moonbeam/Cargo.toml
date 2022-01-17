@@ -193,7 +193,7 @@ std = [
 	"parachain-staking-precompiles/std",
 	"parachain-staking/std",
 	"parity-scale-codec/std",
-	"precompile-utils/std",	
+	"precompile-utils/std",
 	"relay-encoder-precompiles/std",
 	"runtime-common/std",
 	"scale-info/std",
