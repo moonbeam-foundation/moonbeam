@@ -21,6 +21,7 @@ use mock::*;
 use frame_support::{
 	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
 };
+use xcm::latest::prelude::*;
 
 #[test]
 fn registering_works() {
@@ -212,6 +213,54 @@ fn test_asset_manager_populate_asset_type_id_storage_migration_works() {
 		assert_eq!(
 			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
 			1
+		);
+	});
+}
+
+#[test]
+fn test_asset_manager_change_statemine_prefixes() {
+	new_test_ext().execute_with(|| {
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use frame_support::StorageHasher;
+		use parity_scale_codec::Encode;
+
+		let (statemine_para_id, statemine_assets_pallet) = mock::StatemineInfo::get();
+
+		let statemine_multilocation = MockAssetType::Xcm(MultiLocation{
+			parents: 1,
+			interior: X2(Parachain(statemine_para_id), GeneralIndex(1))
+		});
+
+		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
+
+		// We populate AssetIdType manually
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&asset_id.encode()),
+			statemine_multilocation.clone()
+		);
+
+		// Assert the storage item is well populated
+			assert_eq!(
+				AssetManager::asset_id_type(asset_id).unwrap(),
+				statemine_multilocation
+		);
+
+		// We run the migration
+		crate::migrations::AssetManagerChangeStateminePrefixes::<Test, mock::StatemineInfo>::on_runtime_upgrade();
+
+		let expected_statemine_multilocation = MockAssetType::Xcm(MultiLocation{
+			parents: 1,
+			interior: X3(Parachain(statemine_para_id), PalletInstance(statemine_assets_pallet), GeneralIndex(1))
+		});
+
+		// After migration, the storage item should have been upgraded
+		assert_eq!(
+			AssetManager::asset_id_type(asset_id).unwrap(),
+			expected_statemine_multilocation
 		);
 	});
 }

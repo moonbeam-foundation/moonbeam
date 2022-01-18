@@ -150,7 +150,8 @@ impl<
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
-				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type) {
+				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
+				{
 					let amount = units_per_second.saturating_mul(weight as u128)
 						/ (WEIGHT_PER_SECOND as u128);
 					let required = MultiAsset {

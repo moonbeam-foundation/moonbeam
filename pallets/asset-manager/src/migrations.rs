@@ -25,6 +25,7 @@ use frame_support::{
 use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
+use xcm::latest::prelude::*;
 
 pub struct AssetManagerUnitsWithAssetType<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for AssetManagerUnitsWithAssetType<T> {
@@ -237,6 +238,156 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
 
 			// Check assetIds are identical
 			assert_eq!(asset_id, stored_asset_id);
+		}
+
+		Ok(())
+	}
+}
+pub struct AssetManagerChangeStateminePrefixes<T, StatemineInfo>(PhantomData<(T, StatemineInfo)>);
+impl<T, StatemineInfo> OnRuntimeUpgrade for AssetManagerChangeStateminePrefixes<T, StatemineInfo>
+where
+	T: Config,
+	StatemineInfo: Get<(u32, u8)>,
+	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
+{
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "AssetManagerChangeStateminePrefixes", "actually running it");
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
+		.collect();
+
+		let read_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+
+		log::info!(target: "AssetManagerChangeStateminePrefixes", "Evaluating {:?} elements", read_count);
+
+		let db_weights = T::DbWeight::get();
+
+		let mut used_weight = read_count.saturating_mul(db_weights.read);
+		let (statemine_para_id, statemine_assets_pallet) = StatemineInfo::get();
+		// Write to the new storage
+		for (asset_id, asset_type) in stored_data {
+			let location: Option<MultiLocation> = asset_type.into();
+			match location {
+				Some(MultiLocation {
+					parents: 1,
+					interior: X2(Parachain(para_id), GeneralIndex(index)),
+				}) if para_id == statemine_para_id => {
+					let new_location = MultiLocation {
+						parents: 1,
+						interior: X3(
+							Parachain(para_id),
+							PalletInstance(statemine_assets_pallet),
+							GeneralIndex(index),
+						),
+					};
+					let new_asset_type: T::AssetType = new_location.into();
+					// Insert new asset type previous asset type
+					AssetIdType::<T>::insert(&asset_id, new_asset_type);
+
+					// Update used weight
+					used_weight = used_weight.saturating_add(db_weights.write);
+				}
+				_ => continue,
+			}
+		}
+
+		log::info!(target: "AssetManagerChangeStateminePrefixes", "almost done");
+
+		// Return the weight used.
+		used_weight
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+
+		// We want to test that:
+		// If there exists an assetType matching the Statemine, it gets overwritten
+
+		// Check number of entries, and set it aside in temp storage
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
+		.collect();
+
+		let (statemine_para_id, _) = StatemineInfo::get();
+
+		let mut found = false;
+
+		for (asset_id, asset_type) in stored_data {
+			let location: Option<MultiLocation> = asset_type.clone().into();
+			match location {
+				Some(MultiLocation {
+					parents: 1,
+					interior: X2(Parachain(para_id), GeneralIndex(_)),
+				}) if para_id == statemine_para_id => {
+					// We are going to note that we found at least one entry matching
+					found = true;
+					// And we are going to record its data
+					Self::set_temp_storage((asset_id, asset_type), "example_pair");
+					break;
+				}
+				_ => continue,
+			}
+		}
+		Self::set_temp_storage(found, "matching_type_found");
+
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		// Check if we found a matching type
+		let found: bool = Self::get_temp_storage("matching_type_found")
+			.expect("We stored a matching_type_found and should be here; qed");
+
+		let (statemine_para_id, statemine_assets_pallet) = StatemineInfo::get();
+
+		// Check that our example pair suffered the correct migration
+		if found {
+			let (asset_id, asset_type): (T::AssetId, T::AssetType) =
+				Self::get_temp_storage("example_pair").expect("qed");
+			let location: Option<MultiLocation> = asset_type.into();
+
+			match location {
+				Some(MultiLocation {
+					parents: 1,
+					interior: X2(Parachain(para_id), GeneralIndex(index)),
+				}) if para_id == statemine_para_id => {
+					let stored_asset_type =
+						AssetIdType::<T>::get(asset_id).expect("We should have updated this entry");
+
+					let expected_new_asset_type: T::AssetType = MultiLocation {
+						parents: 1,
+						interior: X3(
+							Parachain(para_id),
+							PalletInstance(statemine_assets_pallet),
+							GeneralIndex(index),
+						),
+					}
+					.into();
+
+					// Check assetTypes are identical
+					assert_eq!(stored_asset_type, expected_new_asset_type);
+				}
+				_ => panic!("This should never have entered this path"),
+			}
 		}
 
 		Ok(())
