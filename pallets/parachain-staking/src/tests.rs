@@ -28,10 +28,10 @@ use crate::mock::{
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
 	assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, Bond, BottomDelegations,
-	CandidateInfo, CandidateState, CollatorCandidate, CollatorStatus, DelegationChange,
+	CandidateInfo, CandidateState, CollatorCandidate, CollatorStatus, Config, DelegationChange,
 	DelegationRequest, DelegatorAdded, Error, Event, Range, TopDelegations,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -5157,11 +5157,135 @@ fn deferred_payment_steady_state_event_flow() {
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
 
-// #[test]
-// fn split_candidate_state_kicks_extra_bottom_delegations() {
-// 	// create state in which there is excessive bottom delegations like unbounded
-// 	todo!()
-// } // OTHER TESTS NEED TO START WITH SET CANDIDATE_INFO AS WELL
+#[test]
+fn split_candidate_state_kicks_extra_bottom_delegations() {
+	ExtBuilder::default()
+		.with_balances(vec![(11, 10), (12, 10)])
+		.build()
+		.execute_with(|| {
+			// TODO: need to spoof the DelegatorState too for 11 and 12 in particular
+			// make them only delegate 1 and also check events for the DelegationKicked
+			// reserve for 11 and 12 to test unreserve
+			assert_ok!(<Test as Config>::Currency::reserve(&11, 10));
+			assert_ok!(<Test as Config>::Currency::reserve(&12, 10));
+			assert_eq!(Balances::reserved_balance(&11), 10);
+			assert_eq!(Balances::reserved_balance(&12), 10);
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 19,
+						},
+						Bond {
+							owner: 4,
+							amount: 18,
+						},
+						Bond {
+							owner: 5,
+							amount: 17,
+						},
+						Bond {
+							owner: 6,
+							amount: 16,
+						},
+					],
+					bottom_delegations: vec![
+						Bond {
+							owner: 12,
+							amount: 10,
+						},
+						Bond {
+							owner: 11,
+							amount: 11,
+						},
+						Bond {
+							owner: 10,
+							amount: 12,
+						},
+						Bond {
+							owner: 9,
+							amount: 13,
+						},
+						Bond {
+							owner: 8,
+							amount: 14,
+						},
+						Bond {
+							owner: 7,
+							amount: 15,
+						},
+					],
+					total_counted: 90,
+					total_backing: 165,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// kicked 11 and 12 and revoked them
+			assert_eq!(Balances::free_balance(&11), 10);
+			assert_eq!(Balances::free_balance(&12), 10);
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 70);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 19
+						},
+						Bond {
+							owner: 4,
+							amount: 18
+						},
+						Bond {
+							owner: 5,
+							amount: 17
+						},
+						Bond {
+							owner: 6,
+							amount: 16
+						}
+					]
+				);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 54);
+				assert_eq!(
+					bottom_delegations.delegations,
+					vec![
+						Bond {
+							owner: 7,
+							amount: 15
+						},
+						Bond {
+							owner: 8,
+							amount: 14
+						},
+						Bond {
+							owner: 9,
+							amount: 13
+						},
+						Bond {
+							owner: 10,
+							amount: 12
+						}
+					]
+				);
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
+			}
+		});
+}
 
 #[test]
 fn split_candidate_state_migrates_empty_delegations_correctly() {
@@ -5206,12 +5330,35 @@ fn split_candidate_state_migrates_empty_delegations_correctly() {
 #[test]
 fn split_candidate_state_migrates_partial_top_delegations_correctly() {
 	ExtBuilder::default()
-		// TODO: comment out and set CandidateState manually
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (3, 2, 10), (4, 2, 10)])
+		// .with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		// .with_candidates(vec![(1, 20), (2, 20)])
+		// .with_delegations(vec![(3, 1, 10), (4, 1, 10), (3, 2, 10), (4, 2, 10)])
 		.build()
 		.execute_with(|| {
+			// set up candidate state as per commented out lines above
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 10,
+						},
+						Bond {
+							owner: 4,
+							amount: 10,
+						},
+					],
+					bottom_delegations: Vec::new(),
+					total_counted: 40,
+					total_backing: 40,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
@@ -5245,21 +5392,52 @@ fn split_candidate_state_migrates_partial_top_delegations_correctly() {
 #[test]
 fn split_candidate_state_migrates_full_top_delegations_correctly() {
 	ExtBuilder::default()
-		// TODO: comment out and set CandidateState manually
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_delegations(vec![
-			(3, 1, 10),
-			(4, 1, 10),
-			(5, 1, 10),
-			(6, 1, 10),
-			(3, 2, 10),
-			(4, 2, 10),
-			(5, 2, 10),
-			(6, 2, 10),
-		])
+		// .with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		// .with_candidates(vec![(1, 20), (2, 20)])
+		// .with_delegations(vec![
+		// 	(3, 1, 10),
+		// 	(4, 1, 10),
+		// 	(5, 1, 10),
+		// 	(6, 1, 10),
+		// 	(3, 2, 10),
+		// 	(4, 2, 10),
+		// 	(5, 2, 10),
+		// 	(6, 2, 10),
+		// ])
 		.build()
 		.execute_with(|| {
+			// set up candidate state as per commented out lines
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4, 5, 6]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 10,
+						},
+						Bond {
+							owner: 4,
+							amount: 10,
+						},
+						Bond {
+							owner: 5,
+							amount: 10,
+						},
+						Bond {
+							owner: 6,
+							amount: 10,
+						},
+					],
+					bottom_delegations: Vec::new(),
+					total_counted: 60,
+					total_backing: 60,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
@@ -5301,34 +5479,74 @@ fn split_candidate_state_migrates_full_top_delegations_correctly() {
 #[test]
 fn split_candidate_state_migrates_full_top_partial_bottom_delegations_correctly() {
 	ExtBuilder::default()
-		// TODO: comment out and set CandidateState manually
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 38),
-			(4, 36),
-			(5, 34),
-			(6, 32),
-			(7, 30),
-			(8, 28),
-		])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_delegations(vec![
-			(3, 1, 19),
-			(4, 1, 18),
-			(5, 1, 17),
-			(6, 1, 16),
-			(7, 1, 15),
-			(8, 1, 14),
-			(3, 2, 19),
-			(4, 2, 18),
-			(5, 2, 17),
-			(6, 2, 16),
-			(7, 2, 15),
-			(8, 2, 14),
-		])
+		// .with_balances(vec![
+		// 	(1, 20),
+		// 	(2, 20),
+		// 	(3, 38),
+		// 	(4, 36),
+		// 	(5, 34),
+		// 	(6, 32),
+		// 	(7, 30),
+		// 	(8, 28),
+		// ])
+		// .with_candidates(vec![(1, 20), (2, 20)])
+		// .with_delegations(vec![
+		// 	(3, 1, 19),
+		// 	(4, 1, 18),
+		// 	(5, 1, 17),
+		// 	(6, 1, 16),
+		// 	(7, 1, 15),
+		// 	(8, 1, 14),
+		// 	(3, 2, 19),
+		// 	(4, 2, 18),
+		// 	(5, 2, 17),
+		// 	(6, 2, 16),
+		// 	(7, 2, 15),
+		// 	(8, 2, 14),
+		// ])
 		.build()
 		.execute_with(|| {
+			// set up candidate state as per commented out lines
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 19,
+						},
+						Bond {
+							owner: 4,
+							amount: 18,
+						},
+						Bond {
+							owner: 5,
+							amount: 17,
+						},
+						Bond {
+							owner: 6,
+							amount: 16,
+						},
+					],
+					bottom_delegations: vec![
+						Bond {
+							owner: 8,
+							amount: 14,
+						},
+						Bond {
+							owner: 7,
+							amount: 15,
+						},
+					],
+					total_counted: 90,
+					total_backing: 119,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
@@ -5382,40 +5600,88 @@ fn split_candidate_state_migrates_full_top_partial_bottom_delegations_correctly(
 #[test]
 fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 	ExtBuilder::default()
-		// TODO: comment out and set CandidateState manually
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 38),
-			(4, 36),
-			(5, 34),
-			(6, 32),
-			(7, 30),
-			(8, 28),
-			(9, 26),
-			(10, 24),
-		])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_delegations(vec![
-			(3, 1, 19),
-			(4, 1, 18),
-			(5, 1, 17),
-			(6, 1, 16),
-			(7, 1, 15),
-			(8, 1, 14),
-			(9, 1, 13),
-			(10, 1, 12),
-			(3, 2, 19),
-			(4, 2, 18),
-			(5, 2, 17),
-			(6, 2, 16),
-			(7, 2, 15),
-			(8, 2, 14),
-			(9, 2, 13),
-			(10, 2, 12),
-		])
+		// .with_balances(vec![
+		// 	(1, 20),
+		// 	(2, 20),
+		// 	(3, 38),
+		// 	(4, 36),
+		// 	(5, 34),
+		// 	(6, 32),
+		// 	(7, 30),
+		// 	(8, 28),
+		// 	(9, 26),
+		// 	(10, 24),
+		// ])
+		// .with_candidates(vec![(1, 20), (2, 20)])
+		// .with_delegations(vec![
+		// 	(3, 1, 19),
+		// 	(4, 1, 18),
+		// 	(5, 1, 17),
+		// 	(6, 1, 16),
+		// 	(7, 1, 15),
+		// 	(8, 1, 14),
+		// 	(9, 1, 13),
+		// 	(10, 1, 12),
+		// 	(3, 2, 19),
+		// 	(4, 2, 18),
+		// 	(5, 2, 17),
+		// 	(6, 2, 16),
+		// 	(7, 2, 15),
+		// 	(8, 2, 14),
+		// 	(9, 2, 13),
+		// 	(10, 2, 12),
+		// ])
 		.build()
 		.execute_with(|| {
+			// set up candidate state as per commented out lines
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 19,
+						},
+						Bond {
+							owner: 4,
+							amount: 18,
+						},
+						Bond {
+							owner: 5,
+							amount: 17,
+						},
+						Bond {
+							owner: 6,
+							amount: 16,
+						},
+					],
+					bottom_delegations: vec![
+						Bond {
+							owner: 10,
+							amount: 12,
+						},
+						Bond {
+							owner: 9,
+							amount: 13,
+						},
+						Bond {
+							owner: 8,
+							amount: 14,
+						},
+						Bond {
+							owner: 7,
+							amount: 15,
+						},
+					],
+					total_counted: 90,
+					total_backing: 144,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();

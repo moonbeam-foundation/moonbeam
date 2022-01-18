@@ -70,7 +70,6 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		.next()
 		.is_none());
 		for (account, state) in stored_data {
-			println!("Doing migration for {:?}", account);
 			// all delegations are stored greatest to least post migration
 			// but bottom delegations were least to greatest pre migration
 			let new_bottom_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> =
