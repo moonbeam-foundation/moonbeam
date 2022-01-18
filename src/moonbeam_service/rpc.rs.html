@@ -335,6 +335,12 @@
 <span id="335">335</span>
 <span id="336">336</span>
 <span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -375,6 +381,7 @@
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub::manager::SubscriptionManager</span>;
 <span class="kw">use</span> <span class="ident">manual_xcm_rpc</span>::{<span class="ident">ManualXcm</span>, <span class="ident">ManualXcmApi</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{<span class="ident">Block</span>, <span class="ident">Hash</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_finality_rpc</span>::{<span class="ident">MoonbeamFinality</span>, <span class="ident">MoonbeamFinalityApi</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_txpool</span>::{<span class="ident">TxPool</span>, <span class="ident">TxPoolServer</span>};
 <span class="kw">use</span> <span class="ident">pallet_ethereum::EthereumStorageSchema</span>;
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
@@ -544,7 +551,7 @@
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter_pool</span>) <span class="op">=</span> <span class="ident">filter_pool</span> {
 		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthFilterApiServer::to_delegate</span>(<span class="ident">EthFilterApi::new</span>(
 			<span class="ident">client</span>.<span class="ident">clone</span>(),
-			<span class="ident">frontier_backend</span>,
+			<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">filter_pool</span>,
 			<span class="number">500_usize</span>, <span class="comment">// max stored filters</span>
 			<span class="ident">overrides</span>.<span class="ident">clone</span>(),
@@ -575,6 +582,11 @@
 			<span class="ident">graph</span>,
 		)));
 	}
+
+	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">MoonbeamFinalityApi::to_delegate</span>(<span class="ident">MoonbeamFinality::new</span>(
+		<span class="ident">client</span>.<span class="ident">clone</span>(),
+		<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
+	)));
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command_sink</span>) <span class="op">=</span> <span class="ident">command_sink</span> {
 		<span class="ident">io</span>.<span class="ident">extend_with</span>(

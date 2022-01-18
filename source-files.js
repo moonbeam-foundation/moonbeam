@@ -10,6 +10,7 @@ sourcesIndex["moonbeam_cli_opt"] = {"name":"","files":["account_key.rs","lib.rs"
 sourcesIndex["moonbeam_client_evm_tracing"] = {"name":"","dirs":[{"name":"formatters","files":["blockscout.rs","call_tracer.rs","mod.rs","raw.rs","trace_filter.rs"]},{"name":"listeners","files":["call_list.rs","mod.rs","raw.rs"]},{"name":"types","files":["block.rs","mod.rs","serialization.rs","single.rs"]}],"files":["lib.rs"]};
 sourcesIndex["moonbeam_core_primitives"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_evm_tracer"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["moonbeam_finality_rpc"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_primitives_ext"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_relay_encoder"] = {"name":"","files":["kusama.rs","lib.rs","polkadot.rs","westend.rs"]};
 sourcesIndex["moonbeam_rpc_core_debug"] = {"name":"","files":["lib.rs"]};
