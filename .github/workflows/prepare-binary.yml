@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: 8-digit sha (ex. d1fdc903) to build the binary from
+        description: full sha to build the binary from
         required: true
 
 jobs:
@@ -61,7 +61,8 @@ docker-moonbeam:
       id: prep
       run: |
         DOCKER_IMAGE=purestake/moonbeam
-        TAGS="${DOCKER_IMAGE}:sha-${{ github.event.inputs.sha }}-opt"
+        SHA8="$(git log -1 --format="%H" | cut -c1-8)"
+        TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
         echo ::set-output name=tags::${TAGS}
         echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
     - name: Set up QEMU
