@@ -576,7 +576,6 @@ impl pallet_xcm::Config for Runtime {
 parameter_types! {
 	pub StatemintParaId: u32 = 4;
 	pub StatemintAssetPalletInstance: u8 = 5;
-	pub StatemintAssetIdExceptions: Vec<u128> = [0, 1, 2, 3].to_vec();
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -595,21 +594,18 @@ impl From<MultiLocation> for AssetType {
 		match location {
 			// Change https://github.com/paritytech/cumulus/pull/831
 			// This avoids interrumption once they upgrade
-			// We map to the previous location so that the assetId is well calculated
-			// TODO: we might want to do a migration after statemine has upgraded
-			// as this is quite hacky, but the change itself is quite painful to cover
+			// We map the previous location to the new one so that the assetId is well retrieved
 			MultiLocation {
 				parents: 1,
-				interior: X3(Parachain(id), PalletInstance(instance), GeneralIndex(index)),
-			} if id == StatemintParaId::get()
-				&& instance == StatemintAssetPalletInstance::get()
-				&& StatemintAssetIdExceptions::get().contains(&index) =>
-			{
-				Self::Xcm(MultiLocation {
-					parents: 1,
-					interior: X2(Parachain(id), GeneralIndex(index)),
-				})
-			}
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemintParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemintAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
 			_ => Self::Xcm(location),
 		}
 	}
