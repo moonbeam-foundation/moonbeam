@@ -95,8 +95,7 @@ use xcm::latest::prelude::*;
 
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
-	XcmFeesToAccount, XcmTransact,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use cumulus_primitives_core::{
