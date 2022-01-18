@@ -205,8 +205,10 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::{Percent, traits::BlakeTwo256};
 use sp_trie::PrefixedMemoryDB;
+
+pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
 /// Builds a new object suitable for chain operations.
 #[allow(clippy::type_complexity)]
@@ -654,13 +656,14 @@ where
 	};
 
 	if collator {
-		let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+		let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 		);
+		proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 
 		let relay_chain_backend = relay_chain_full_node.backend.clone();
 		let relay_chain_client = relay_chain_full_node.client.clone();
@@ -816,13 +819,14 @@ where
 	let collator = config.role.is_authority();
 
 	if collator {
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {
