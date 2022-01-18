@@ -38,7 +38,6 @@ use pallet_evm_precompile_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::Bond;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
@@ -307,27 +306,12 @@ fn join_collator_candidates() {
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(ALICE),
-					amount: 1_050 * MOVR
-				}
-			);
-			assert_eq!(
-				candidates.0[1],
-				Bond {
-					owner: AccountId::from(BOB),
-					amount: 1_050 * MOVR
-				}
-			);
-			assert_eq!(
-				candidates.0[2],
-				Bond {
-					owner: AccountId::from(DAVE),
-					amount: 1_000 * MOVR
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
+			assert_eq!(candidates.0[0].amount, 1_050 * MOVR);
+			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
+			assert_eq!(candidates.0[1].amount, 1_050 * MOVR);
+			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
+			assert_eq!(candidates.0[2].amount, 1_000 * MOVR);
 		});
 }
 
@@ -385,13 +369,8 @@ fn transfer_through_evm_to_stake() {
 				2u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * MOVR
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
+			assert_eq!(candidates.0[0].amount, 1_000 * MOVR);
 		});
 }
 
