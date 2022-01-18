@@ -117,21 +117,19 @@ where
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
-	AssetId: From<AssetType> + Clone,
 	AssetType: From<MultiLocation> + Clone,
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
 	Weight,
 	Option<(MultiLocation, u128, u128)>,
-	PhantomData<(AssetId, AssetType, AssetIdInfoGetter, R)>,
+	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
 impl<
-		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
-	> WeightTrader for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+	> WeightTrader for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn new() -> Self {
 		FirstAssetTrader(0, None, PhantomData)
@@ -219,11 +217,10 @@ impl<
 
 /// Deal with spent fees, deposit them as dictated by R
 impl<
-		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
-	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+	> Drop for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn drop(&mut self) {
 		if let Some((id, amount, _)) = self.1.clone() {
