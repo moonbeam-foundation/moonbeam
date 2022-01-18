@@ -35,6 +35,7 @@ use frame_support::pallet;
 pub use pallet::*;
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
+pub mod migrations;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -136,8 +137,9 @@ pub mod pallet {
 	// Not all assets might contain units per second, hence the different storage
 	// AssetType as key
 	#[pallet::storage]
-	#[pallet::getter(fn asset_id_units_per_second)]
-	pub type AssetTypeUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetType, u128>;
+	#[pallet::getter(fn asset_type_units_per_second)]
+	pub type AssetTypeUnitsPerSecond<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AssetType, u128>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -196,7 +198,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
-			let previous_asset_type = AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let previous_asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Insert new asset type info
 			AssetIdType::<T>::insert(&asset_id, &new_asset_type);

@@ -18,7 +18,9 @@
 use crate::*;
 use mock::*;
 
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{
+	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
+};
 
 #[test]
 fn registering_works() {
@@ -92,7 +94,10 @@ fn test_root_can_change_units_per_second() {
 			200u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_units_per_second(MockAssetType::MockAsset(1)).unwrap(), 200);
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
+		);
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
@@ -129,7 +134,11 @@ fn test_root_can_change_asset_id_type() {
 fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::set_asset_units_per_second(Origin::root(), MockAssetType::MockAsset(1), 200u128.into()),
+			AssetManager::set_asset_units_per_second(
+				Origin::root(),
+				MockAssetType::MockAsset(1),
+				200u128.into()
+			),
 			Error::<Test>::AssetDoesNotExist
 		);
 		assert_noop!(
@@ -139,6 +148,42 @@ fn test_asset_id_non_existent_error() {
 				MockAssetType::MockAsset(2),
 			),
 			Error::<Test>::AssetDoesNotExist
+		);
+	});
+}
+
+#[test]
+fn test_asset_manager_units_with_asset_type_migration_works() {
+	new_test_ext().execute_with(|| {
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use frame_support::StorageHasher;
+		use parity_scale_codec::Encode;
+
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
+		// We populate the previous storage with assetId as key
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&1u32.encode()),
+			200u128,
+		);
+
+		// We run the migration
+		crate::migrations::AssetManagerUnitsWithAssetType::<Test>::on_runtime_upgrade();
+
+		// After migration, units per second should be indexed by AssetType
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
 		);
 	});
 }

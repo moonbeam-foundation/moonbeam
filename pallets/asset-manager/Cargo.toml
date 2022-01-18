@@ -6,6 +6,7 @@ version = "0.1.0"
 
 [dependencies]
 serde = { version = "1.0.124", optional = true }
+log = { version = "0.4", default-features = false }
 
 # Moonbeam
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -47,3 +48,4 @@ std = [
 runtime-benchmarks = [
 	"frame-benchmarking",
 ]
+try-runtime = [ "frame-support/try-runtime" ]
