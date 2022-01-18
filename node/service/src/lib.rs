@@ -205,7 +205,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-use sp_runtime::{Percent, traits::BlakeTwo256};
+use sp_runtime::{traits::BlakeTwo256, Percent};
 use sp_trie::PrefixedMemoryDB;
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
