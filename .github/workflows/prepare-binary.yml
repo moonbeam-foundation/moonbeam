@@ -45,53 +45,53 @@ jobs:
           path: build
 
   ####### Prepare the release draft #######
-docker-moonbeam:
-  runs-on: ubuntu-latest
-  needs: ["build"]
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.inputs.sha }}
-    - uses: actions/download-artifact@v2
-      with:
-        name: moonbeam
-        path: build
-    - name: Prepare
-      id: prep
-      run: |
-        DOCKER_IMAGE=purestake/moonbeam
-        SHA8="$(git log -1 --format="%H" | cut -c1-8)"
-        TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
-        echo ::set-output name=tags::${TAGS}
-        echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-      with:
-        version: latest
-        driver-opts: |
-          image=moby/buildkit:master
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build and push moonbeam
-      id: docker_build
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./docker/moonbeam.Dockerfile
-        platforms: linux/amd64
-        push: true
-        tags: ${{ steps.prep.outputs.tags }}
-        labels: |
-          org.opencontainers.image.title=${{ github.event.repository.name }}
-          org.opencontainers.image.description=${{ github.event.repository.description }}
-          org.opencontainers.image.url=${{ github.event.repository.html_url }}
-          org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-          org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-          org.opencontainers.image.revision=${{ github.sha }}
-          org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+  docker-moonbeam:
+    runs-on: ubuntu-latest
+    needs: ["build"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.sha }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Prepare
+        id: prep
+        run: |
+          DOCKER_IMAGE=purestake/moonbeam
+          SHA8="$(git log -1 --format="%H" | cut -c1-8)"
+          TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
+          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push moonbeam
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
