@@ -36,30 +36,30 @@ moonbase-runtime = { path = "../../runtime/moonbase" }
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 
 # Substrate
-sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
 
 # Frontier
 ethereum = { version = "0.11.1" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
 
 # Cumulus / Nimbus
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.13" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.15" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.15-1" }
