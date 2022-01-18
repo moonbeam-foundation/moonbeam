@@ -660,6 +660,7 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
+	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	pub IsActive: bool = false;
 }
 

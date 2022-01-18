@@ -474,7 +474,7 @@ where
 }
 
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = BaseFee;
+	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
@@ -1609,7 +1609,8 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 }
 
 parameter_types! {
-	pub IsActive: bool = true;
+	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
+	pub IsActive: bool = false;
 }
 
 pub struct BaseFeeThreshold;

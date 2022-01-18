@@ -5330,6 +5330,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-finality-rpc"
+version = "0.1.0"
+dependencies = [
+ "fc-db",
+ "fc-rpc",
+ "futures 0.3.17",
+ "jsonrpc-core",
+ "jsonrpc-derive",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "tokio",
+]
+
+[[package]]
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
@@ -5671,6 +5688,7 @@ dependencies = [
  "moonbase-runtime",
  "moonbeam-cli-opt",
  "moonbeam-core-primitives",
+ "moonbeam-finality-rpc",
  "moonbeam-primitives-ext",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
