@@ -1913,6 +1913,8 @@ fn call_xtokens_with_fee() {
 			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
 		});
 }
+
+#[test]
 fn precompile_existance() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
