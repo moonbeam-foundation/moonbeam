@@ -1039,7 +1039,7 @@ parameter_types! {
 /// This is the struct that will handle the revenue from xcm fees
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
-pub type XcmFeesToAccount_ = XcmFeesToAccount<
+pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	Assets,
 	(
 		ConvertedConcreteAssetId<
@@ -1068,7 +1068,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type Weigher = XcmWeigher;
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>;
+	type Trader = FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -1509,7 +1509,7 @@ impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	}
 }
 
-/// The hooks we wantt to run in Maintenance Mode
+/// The hooks we want to run in Maintenance Mode
 pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
