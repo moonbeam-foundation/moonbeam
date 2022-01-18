@@ -74,6 +74,10 @@ pub mod pallet {
 		fn get_asset_type(asset_id: T::AssetId) -> Option<T::AssetType> {
 			AssetIdType::<T>::get(asset_id)
 		}
+
+		fn get_asset_id(asset_type: T::AssetType) -> Option<T::AssetId> {
+			AssetTypeId::<T>::get(asset_type)
+		}
 	}
 
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
