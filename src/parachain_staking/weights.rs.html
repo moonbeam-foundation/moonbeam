@@ -437,6 +437,19 @@
 <span id="437">437</span>
 <span id="438">438</span>
 <span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -490,6 +503,7 @@
 
 <span class="doccomment">/// Weight functions needed for parachain_staking.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WeightInfo</span> {
+	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">set_inflation</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">set_parachain_bond_account</span>() -&gt; <span class="ident">Weight</span>;
@@ -526,6 +540,12 @@
 <span class="doccomment">/// Weights for parachain_staking using the Substrate node and recommended hardware.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 147_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">26_825_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	}
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span> {
 		(<span class="number">20_719_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">5</span> <span class="kw">as</span> <span class="ident">Weight</span>))
@@ -702,6 +722,12 @@
 
 <span class="comment">// For backwards compatibility and tests</span>
 <span class="kw">impl</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> () {
+	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 147_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">26_825_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	}
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span> {
 		(<span class="number">20_719_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">5</span> <span class="kw">as</span> <span class="ident">Weight</span>))
