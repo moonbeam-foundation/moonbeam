@@ -22,7 +22,7 @@
 //! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
 //!
 //! This pallet has two storage items: AssetIdType, which holds a mapping from AssetId->AssetType
-//! AssetIdUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetId should be
+//! AssetTypeUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetType should be
 //! charged per unit of second, in the case such an Asset is received as a XCM asset.
 //!
 //! This pallet has two extrinsics: register_asset, which registers an Asset in this pallet and
@@ -75,9 +75,9 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetId> for Pallet<T> {
-		fn get_units_per_second(asset_id: T::AssetId) -> Option<u128> {
-			AssetIdUnitsPerSecond::<T>::get(asset_id)
+	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
+		fn get_units_per_second(asset_type: T::AssetType) -> Option<u128> {
+			AssetTypeUnitsPerSecond::<T>::get(asset_type)
 		}
 	}
 
@@ -118,20 +118,26 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
-		UnitsPerSecondChanged(T::AssetId, u128),
+		UnitsPerSecondChanged(T::AssetType, u128),
 		AssetTypeChanged(T::AssetId, T::AssetType),
 	}
 
-	/// Stores the asset TYPE
+	/// Stores the asset Type with assetId as key
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
 
+	/// Stores the asset Id with Asset Type as key
+	#[pallet::storage]
+	#[pallet::getter(fn asset_type_id)]
+	pub type AssetTypeId<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetType, T::AssetId>;
+
 	// Stores the units per second for local execution.
 	// Not all assets might contain units per second, hence the different storage
+	// AssetType as key
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_units_per_second)]
-	pub type AssetIdUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, u128>;
+	pub type AssetTypeUnitsPerSecond<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetType, u128>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -155,6 +161,7 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			AssetIdType::<T>::insert(&asset_id, &asset);
+			AssetTypeId::<T>::insert(&asset, &asset_id);
 
 			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
 			Ok(())
@@ -164,19 +171,19 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
-			asset_id: T::AssetId,
+			asset_type: T::AssetType,
 			units_per_second: u128,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				AssetIdType::<T>::get(&asset_id).is_some(),
+				AssetTypeId::<T>::get(&asset_type).is_some(),
 				Error::<T>::AssetDoesNotExist
 			);
 
-			AssetIdUnitsPerSecond::<T>::insert(&asset_id, &units_per_second);
+			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &units_per_second);
 
-			Self::deposit_event(Event::UnitsPerSecondChanged(asset_id, units_per_second));
+			Self::deposit_event(Event::UnitsPerSecondChanged(asset_type, units_per_second));
 			Ok(())
 		}
 
@@ -189,12 +196,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
-			ensure!(
-				AssetIdType::<T>::get(&asset_id).is_some(),
-				Error::<T>::AssetDoesNotExist
-			);
+			let previous_asset_type = AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
+			// Insert new asset type info
 			AssetIdType::<T>::insert(&asset_id, &new_asset_type);
+			AssetTypeId::<T>::insert(&new_asset_type, &asset_id);
+
+			// Remove previous asset type info
+			AssetTypeId::<T>::remove(&previous_asset_type);
 
 			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
 			Ok(())

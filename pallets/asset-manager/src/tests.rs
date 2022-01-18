@@ -35,6 +35,10 @@ fn registering_works() {
 			AssetManager::asset_id_type(1).unwrap(),
 			MockAssetType::MockAsset(1)
 		);
+		assert_eq!(
+			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
+			1
+		);
 		expect_events(vec![crate::Event::AssetRegistered(
 			1,
 			MockAssetType::MockAsset(1),
@@ -84,15 +88,15 @@ fn test_root_can_change_units_per_second() {
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
-			1,
+			MockAssetType::MockAsset(1),
 			200u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
+		assert_eq!(AssetManager::asset_id_units_per_second(MockAssetType::MockAsset(1)).unwrap(), 200);
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(1, 200),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
 		])
 	});
 }
@@ -125,7 +129,7 @@ fn test_root_can_change_asset_id_type() {
 fn test_asset_id_non_existent_error() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::set_asset_units_per_second(Origin::root(), 1, 200u128.into()),
+			AssetManager::set_asset_units_per_second(Origin::root(), MockAssetType::MockAsset(1), 200u128.into()),
 			Error::<Test>::AssetDoesNotExist
 		);
 		assert_noop!(
