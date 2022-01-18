@@ -29,12 +29,12 @@ use sp_runtime::traits::Block;
 /// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
 #[rpc(server)]
 pub trait MoonbeamFinalityApi {
-	/// Reports whether a Moonbeam or Ethereum block is finalized.
+	/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
 	#[rpc(name = "moon_isBlockFinalized")]
 	fn is_block_finalized(&self, block_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
 
-	/// Reports whether a Moonbeam or Ethereum transaction is finalized.
+	/// Reports whether an Ethereum transaction is finalized.
 	/// Returns false if the transaction is not found
 	#[rpc(name = "moon_isTxFinalized")]
 	fn is_tx_finalized(&self, tx_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
