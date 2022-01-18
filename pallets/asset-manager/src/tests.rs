@@ -187,3 +187,31 @@ fn test_asset_manager_units_with_asset_type_migration_works() {
 		);
 	});
 }
+
+#[test]
+fn test_asset_manager_populate_asset_type_id_storage_migration_works() {
+	new_test_ext().execute_with(|| {
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use frame_support::StorageHasher;
+		use parity_scale_codec::Encode;
+
+		// We populate AssetIdType manually
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&1u32.encode()),
+			MockAssetType::MockAsset(1),
+		);
+
+		// We run the migration
+		crate::migrations::AssetManagerPopulateAssetTypeIdStorage::<Test>::on_runtime_upgrade();
+
+		// After migration, the new storage item should be populated
+		assert_eq!(
+			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
+			1
+		);
+	});
+}
