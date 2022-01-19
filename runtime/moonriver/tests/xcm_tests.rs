@@ -957,7 +957,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -1226,7 +1225,6 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	});
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
