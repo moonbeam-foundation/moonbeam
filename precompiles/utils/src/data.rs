@@ -273,9 +273,8 @@ impl EvmDataWriter {
 
 	/// Write arbitrary bytes.
 	/// Doesn't handle any alignement checks, prefer using `write` instead if possible.
-	fn write_raw_bytes(mut self, value: &[u8]) -> Self {
+	pub fn write_raw_bytes(&mut self, value: &[u8]) {
 		self.data.extend_from_slice(value);
-		self
 	}
 
 	/// Write data of requested type.
@@ -475,7 +474,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 			let shift = inner_writer.data.len();
 			let item_writer = EvmDataWriter::new().write(inner);
 
-			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
+			inner_writer.write_raw_bytes(&item_writer.data);
 			for mut offset_datum in item_writer.offset_data {
 				offset_datum.offset_shift += 32;
 				offset_datum.offset_position += shift;
@@ -526,11 +525,9 @@ impl EvmData for Bytes {
 		let mut value = value.0.to_vec();
 		value.resize(padded_size, 0);
 
-		writer.write_pointer(
-			EvmDataWriter::new()
-				.write(U256::from(length))
-				.write_raw_bytes(&value)
-				.build(),
-		);
+		let mut inner_writer = EvmDataWriter::new().write(U256::from(length));
+		inner_writer.write_raw_bytes(&value);
+
+		writer.write_pointer(inner_writer.build());
 	}
 }

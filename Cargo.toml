@@ -10,6 +10,7 @@ members = [
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
 	"precompiles/utils/macro",
+	"precompiles/pallet-identity",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
