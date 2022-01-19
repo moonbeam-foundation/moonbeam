@@ -18,3 +18,6 @@ members = [
 
 [profile.release]
 panic = "unwind"
+
+[patch.crates-io]
+ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1-typeinfo-patch" }
