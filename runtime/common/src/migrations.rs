@@ -318,7 +318,7 @@ where
 	}
 }
 
-//TODO: Once the statemine prefix migration is applied, 
+//TODO: Once the statemine prefix migration is applied,
 // we can remove StatemineParaIdInfo and StatemineAssetsInstanceInfo
 // but for now we need a way to pass these parameters, which are distinct for each of the runtimes
 #[cfg(feature = "xcm-support")]
