@@ -265,7 +265,11 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::on_runtime_upgrade()
+		ChangeStateminePrefixes::<
+			T,
+			StatemineParaIdInfo,
+			StatemineAssetsPalletInfo
+		>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
