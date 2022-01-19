@@ -242,7 +242,8 @@ fn test_asset_manager_change_statemine_prefixes() {
 		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
 
 		// We are gonna test two cases:
-		// Case 1: AssetManagerPopulateAssetTypeIdStorage has not executed yet (only AssetIdType is populated)
+		// Case 1: AssetManagerPopulateAssetTypeIdStorage has not executed yet
+		// (only AssetIdType is populated)
 		// Case 2: AssetManagerPopulateAssetTypeIdStorage has already executed
 
 		// To mimic case 1, we populate AssetIdType manually but not AssetTypeId
