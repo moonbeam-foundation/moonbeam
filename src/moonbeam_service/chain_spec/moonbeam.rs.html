@@ -311,6 +311,8 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -340,8 +342,8 @@
 	<span class="ident">currency::GLMR</span>, <span class="ident">currency::SUPPLY_FACTOR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>,
 	<span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>,
 	<span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
-	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>,
-	<span class="ident">SchedulerConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>,
+	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
@@ -582,6 +584,8 @@
 		<span class="ident">maintenance_mode</span>: <span class="ident">MaintenanceModeConfig</span> {
 			<span class="ident">start_in_maintenance_mode</span>: <span class="bool-val">false</span>,
 		},
+		<span class="comment">// This should initialize it to whatever we have set in the pallet</span>
+		<span class="ident">polkadot_xcm</span>: <span class="ident">PolkadotXcmConfig::default</span>(),
 	}
 }
 

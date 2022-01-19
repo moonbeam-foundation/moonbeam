@@ -1931,7 +1931,6 @@
 <span id="1931">1931</span>
 <span id="1932">1932</span>
 <span id="1933">1933</span>
-<span id="1934">1934</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2040,8 +2039,7 @@
 
 <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
 	<span class="ident">AccountIdToCurrencyId</span>, <span class="ident">AccountIdToMultiLocation</span>, <span class="ident">AsAssetType</span>, <span class="ident">FirstAssetTrader</span>,
-	<span class="ident">MultiNativeAsset</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>,
-	<span class="ident">XcmFeesToAccount</span>, <span class="ident">XcmTransact</span>,
+	<span class="ident">MultiNativeAsset</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
@@ -3042,7 +3040,7 @@
 <span class="doccomment">/// This is the struct that will handle the revenue from xcm fees</span>
 <span class="doccomment">/// We do not burn anything because we want to mimic exactly what</span>
 <span class="doccomment">/// the sovereign account has</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmFeesToAccount_</span> <span class="op">=</span> <span class="ident">XcmFeesToAccount</span><span class="op">&lt;</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmFeesToAccount</span> <span class="op">=</span> <span class="ident">xcm_primitives::XcmFeesToAccount</span><span class="op">&lt;</span>
 	<span class="ident">Assets</span>,
 	(
 		<span class="ident">ConvertedConcreteAssetId</span><span class="op">&lt;</span>
@@ -3081,7 +3079,7 @@
 			<span class="ident">Balances</span>,
 			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 		<span class="op">&gt;</span>,
-		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount_</span><span class="op">&gt;</span>,
+		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
 	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
