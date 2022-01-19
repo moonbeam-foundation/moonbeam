@@ -30,7 +30,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", optional = true, branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", optional = true, default-features = false }
 
 [features]
 std = [
@@ -43,7 +43,7 @@ std = [
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"xcm/std",
 	"xcm-transactor/std",
+	"xcm/std",
 ]
-xcm-support = [ "xcm-transactor", "pallet-asset-manager", "xcm"]
+xcm-support = [ "pallet-asset-manager", "xcm", "xcm-transactor" ]
