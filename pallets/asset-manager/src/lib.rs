@@ -139,7 +139,6 @@ pub mod pallet {
 
 	// Stores the units per second for local execution.
 	// Not all assets might contain units per second, hence the different storage
-	// AssetType as key
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_units_per_second)]
 	pub type AssetTypeUnitsPerSecond<T: Config> =
