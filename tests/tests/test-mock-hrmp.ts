@@ -27,7 +27,16 @@ const assetMetadata = {
 
 const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: foreign_para_id } } } };
 const statemintLocation = {
-  XCM: { parents: 1, interior: { X3: [{ Parachain: statemint_para_id }, { PalletInstance: statemint_assets_pallet_instance }, { GeneralIndex: 0 }] } },
+  XCM: {
+    parents: 1,
+    interior: {
+      X3: [
+        { Parachain: statemint_para_id },
+        { PalletInstance: statemint_assets_pallet_instance },
+        { GeneralIndex: 0 },
+      ],
+    },
+  },
 };
 
 describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {

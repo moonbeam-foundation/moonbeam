@@ -44,7 +44,9 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      parachainOne.tx.sudo.sudo(parachainOne.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0))
+      parachainOne.tx.sudo.sudo(
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0)
+      )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
