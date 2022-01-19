@@ -165,7 +165,11 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "PopulateAssetTypeIdStorage", "Migrating {:?} elements", migrated_count);
+		log::info!(
+			target: "PopulateAssetTypeIdStorage",
+			"Migrating {:?} elements",
+			migrated_count
+		);
 
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
@@ -191,7 +195,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		// We want to test that:
 		// The new storage item is empty
 		// The same number of mappings exist before and after
-		// As long as there are some mappings stored, there will exist the reserve mapping in the new storage
+		// As long as there are some mappings stored,
+		// there will exist the reserve mapping in the new storage
 
 		// Assert new storage is empty
 		assert!(AssetTypeId::<T>::iter().next().is_none());
@@ -387,7 +392,7 @@ where
 					interior: X2(Parachain(para_id), GeneralIndex(index)),
 				}) if para_id == statemine_para_id => {
 					let stored_asset_type =
-						AssetIdType::<T>::get(asset_id).expect("We should have updated this entry");
+						AssetIdType::<T>::get(asset_id).expect("This entry should be updated");
 
 					let expected_new_asset_type: T::AssetType = MultiLocation {
 						parents: 1,
