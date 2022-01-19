@@ -276,7 +276,7 @@ where
 		let (statemine_para_id, statemine_assets_pallet) = StatemineInfo::get();
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
-			let location: Option<MultiLocation> = asset_type.into();
+			let location: Option<MultiLocation> = asset_type.clone().into();
 			match location {
 				Some(MultiLocation {
 					parents: 1,
@@ -292,10 +292,20 @@ where
 					};
 					let new_asset_type: T::AssetType = new_location.into();
 					// Insert new asset type previous asset type
-					AssetIdType::<T>::insert(&asset_id, new_asset_type);
+					AssetIdType::<T>::insert(&asset_id, &new_asset_type);
+
+					// This is checked in case AssetManagerPopulateAssetTypeIdStorage runs first
+					if AssetTypeId::<T>::get(&asset_type) == Some(asset_id) {
+						// We need to update AssetTypeId too
+						AssetTypeId::<T>::remove(&asset_type);
+						AssetTypeId::<T>::insert(&new_asset_type, asset_id);
+
+						// Update weight due to this branch
+						used_weight = used_weight.saturating_add(2 * db_weights.write);
+					}
 
 					// Update used weight
-					used_weight = used_weight.saturating_add(db_weights.write);
+					used_weight = used_weight.saturating_add(db_weights.write + db_weights.read);
 				}
 				_ => continue,
 			}

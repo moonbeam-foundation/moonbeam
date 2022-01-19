@@ -233,9 +233,18 @@ fn test_asset_manager_change_statemine_prefixes() {
 			interior: X2(Parachain(statemine_para_id), GeneralIndex(1))
 		});
 
+		let statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation{
+			parents: 1,
+			interior: X2(Parachain(statemine_para_id), GeneralIndex(2))
+		});
+
 		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
 
-		// We populate AssetIdType manually
+		// We are gonna test two cases:
+		// Case 1: AssetManagerPopulateAssetTypeIdStorage has not executed yet (only AssetIdType is populated)
+		// Case 2: AssetManagerPopulateAssetTypeIdStorage has already executed
+
+		// To mimic case 1, we populate AssetIdType manually but not AssetTypeId
 		put_storage_value(
 			pallet_prefix,
 			storage_item_prefix,
@@ -249,9 +258,19 @@ fn test_asset_manager_change_statemine_prefixes() {
 				statemine_multilocation
 		);
 
+		// To mimic case 2, we can simply register the asset trough the extrinsic
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			statemine_multilocation_2.clone(),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
 		// We run the migration
 		crate::migrations::AssetManagerChangeStateminePrefixes::<Test, mock::StatemineInfo>::on_runtime_upgrade();
 
+		// Check case 1
 		let expected_statemine_multilocation = MockAssetType::Xcm(MultiLocation{
 			parents: 1,
 			interior: X3(Parachain(statemine_para_id), PalletInstance(statemine_assets_pallet), GeneralIndex(1))
@@ -261,6 +280,29 @@ fn test_asset_manager_change_statemine_prefixes() {
 		assert_eq!(
 			AssetManager::asset_id_type(asset_id).unwrap(),
 			expected_statemine_multilocation
+		);
+
+		// Check case 2
+		let expected_statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation{
+			parents: 1,
+			interior: X3(Parachain(statemine_para_id), PalletInstance(statemine_assets_pallet), GeneralIndex(2))
+		});
+
+		let asset_id_2: mock::AssetId = statemine_multilocation_2.clone().into();
+
+		// After migration, both storage items should have been upgraded
+		assert_eq!(
+			AssetManager::asset_id_type(asset_id_2).unwrap(),
+			expected_statemine_multilocation_2
+		);
+
+		assert_eq!(
+			AssetManager::asset_type_id(expected_statemine_multilocation_2).unwrap(),
+			asset_id_2
+		);
+
+		assert!(
+			AssetManager::asset_type_id(&statemine_multilocation_2).is_none()
 		);
 	});
 }
