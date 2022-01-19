@@ -292,7 +292,7 @@ pub mod pallet {
 				));
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
-				weight += consumed_weight;
+				weight = weight.saturating_add(consumed_weight);
 				if weight > available_weight {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
