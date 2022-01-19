@@ -179,7 +179,7 @@ fn test_asset_manager_units_with_asset_type_migration_works() {
 		);
 
 		// We run the migration
-		crate::migrations::AssetManagerUnitsWithAssetType::<Test>::on_runtime_upgrade();
+		crate::migrations::UnitsWithAssetType::<Test>::on_runtime_upgrade();
 
 		// After migration, units per second should be indexed by AssetType
 		assert_eq!(
@@ -207,7 +207,7 @@ fn test_asset_manager_populate_asset_type_id_storage_migration_works() {
 		);
 
 		// We run the migration
-		crate::migrations::AssetManagerPopulateAssetTypeIdStorage::<Test>::on_runtime_upgrade();
+		crate::migrations::PopulateAssetTypeIdStorage::<Test>::on_runtime_upgrade();
 
 		// After migration, the new storage item should be populated
 		assert_eq!(
@@ -269,7 +269,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		));
 
 		// We run the migration
-		crate::migrations::AssetManagerChangeStateminePrefixes::<
+		crate::migrations::ChangeStateminePrefixes::<
 			Test,
 			mock::StatemineParaIdInfo,
 			mock::StatemineAssetsInstanceInfo,

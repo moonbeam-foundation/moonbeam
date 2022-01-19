@@ -27,10 +27,10 @@ use sp_std::convert::TryInto;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
-pub struct AssetManagerUnitsWithAssetType<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for AssetManagerUnitsWithAssetType<T> {
+pub struct UnitsWithAssetType<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "AssetManagerUnitsWithAssetType", "actually running it");
+		log::info!(target: "UnitsWithAssetType", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
 
@@ -47,7 +47,7 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerUnitsWithAssetType<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "AssetManagerUnitsWithAssetType", "Migrating {:?} elements", migrated_count);
+		log::info!(target: "UnitsWithAssetType", "Migrating {:?} elements", migrated_count);
 
 		// Now remove the old storage
 		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
@@ -70,7 +70,7 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerUnitsWithAssetType<T> {
 			}
 		}
 
-		log::info!(target: "AssetManagerUnitsWithAssetType", "almost done");
+		log::info!(target: "UnitsWithAssetType", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a read to get it into
 		// memory, a read to get assetType and
@@ -145,10 +145,10 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerUnitsWithAssetType<T> {
 	}
 }
 
-pub struct AssetManagerPopulateAssetTypeIdStorage<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
+pub struct PopulateAssetTypeIdStorage<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "AssetManagerPopulateAssetTypeIdStorage", "actually running it");
+		log::info!(target: "PopulateAssetTypeIdStorage", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdType";
 
@@ -165,7 +165,7 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "AssetManagerPopulateAssetTypeIdStorage", "Migrating {:?} elements", migrated_count);
+		log::info!(target: "PopulateAssetTypeIdStorage", "Migrating {:?} elements", migrated_count);
 
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
@@ -173,7 +173,7 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
 			AssetTypeId::<T>::insert(&asset_type, asset_id)
 		}
 
-		log::info!(target: "AssetManagerPopulateAssetTypeIdStorage", "almost done");
+		log::info!(target: "PopulateAssetTypeIdStorage", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a read to get it into
 		// memory,  and a write to populate the new storage.
@@ -243,11 +243,11 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
 		Ok(())
 	}
 }
-pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
+pub struct ChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
 	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
 );
 impl<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo> OnRuntimeUpgrade
-	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
+	for ChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
 	T: Config,
 	StatemineParaIdInfo: Get<u32>,
@@ -255,7 +255,7 @@ where
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "AssetManagerChangeStateminePrefixes", "actually running it");
+		log::info!(target: "ChangeStateminePrefixes", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdType";
 
@@ -272,7 +272,7 @@ where
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "AssetManagerChangeStateminePrefixes", "Evaluating {:?} elements", read_count);
+		log::info!(target: "ChangeStateminePrefixes", "Evaluating {:?} elements", read_count);
 
 		let db_weights = T::DbWeight::get();
 
@@ -316,7 +316,7 @@ where
 			}
 		}
 
-		log::info!(target: "AssetManagerChangeStateminePrefixes", "almost done");
+		log::info!(target: "ChangeStateminePrefixes", "almost done");
 
 		// Return the weight used.
 		used_weight
