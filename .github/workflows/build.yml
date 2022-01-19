@@ -7,6 +7,7 @@ name: Build
 
 on:
   pull_request:
+    types: [labeled, opened, reopened, synchronize]
   push:
     branches:
       - master
@@ -20,6 +21,7 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
+    if: github.event.label.name || github.event.label.name == 'A10-evmtracing'
     runs-on: ubuntu-latest
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
