@@ -243,11 +243,15 @@ impl<T: Config> OnRuntimeUpgrade for AssetManagerPopulateAssetTypeIdStorage<T> {
 		Ok(())
 	}
 }
-pub struct AssetManagerChangeStateminePrefixes<T, StatemineInfo>(PhantomData<(T, StatemineInfo)>);
-impl<T, StatemineInfo> OnRuntimeUpgrade for AssetManagerChangeStateminePrefixes<T, StatemineInfo>
+pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
+	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
+);
+impl<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo> OnRuntimeUpgrade
+	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
 	T: Config,
-	StatemineInfo: Get<(u32, u8)>,
+	StatemineParaIdInfo: Get<u32>,
+	StatemineAssetsInstanceInfo: Get<u8>,
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn on_runtime_upgrade() -> Weight {
@@ -273,7 +277,8 @@ where
 		let db_weights = T::DbWeight::get();
 
 		let mut used_weight = read_count.saturating_mul(db_weights.read);
-		let (statemine_para_id, statemine_assets_pallet) = StatemineInfo::get();
+		let statemine_para_id = StatemineParaIdInfo::get();
+		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
 			let location: Option<MultiLocation> = asset_type.clone().into();
@@ -334,7 +339,7 @@ where
 		)
 		.collect();
 
-		let (statemine_para_id, _) = StatemineInfo::get();
+		let statemine_para_id = StatemineParaIdInfo::get();
 
 		let mut found = false;
 
@@ -367,7 +372,8 @@ where
 		let found: bool = Self::get_temp_storage("matching_type_found")
 			.expect("We stored a matching_type_found and should be here; qed");
 
-		let (statemine_para_id, statemine_assets_pallet) = StatemineInfo::get();
+		let statemine_para_id = StatemineParaIdInfo::get();
+		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 
 		// Check that our example pair suffered the correct migration
 		if found {

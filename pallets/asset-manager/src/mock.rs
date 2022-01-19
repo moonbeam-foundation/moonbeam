@@ -99,7 +99,8 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const StatemineInfo: (u32, u8) = (1000u32, 50u8);
+	pub const StatemineParaIdInfo: u32 = 1000u32;
+	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
 }
 
 pub type AssetId = u32;

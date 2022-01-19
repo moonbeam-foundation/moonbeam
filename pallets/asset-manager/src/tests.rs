@@ -226,16 +226,17 @@ fn test_asset_manager_change_statemine_prefixes() {
 		use frame_support::StorageHasher;
 		use parity_scale_codec::Encode;
 
-		let (statemine_para_id, statemine_assets_pallet) = mock::StatemineInfo::get();
+		let statemine_para_id = mock::StatemineParaIdInfo::get();
+		let statemine_assets_pallet = mock::StatemineAssetsInstanceInfo::get();
 
-		let statemine_multilocation = MockAssetType::Xcm(MultiLocation{
+		let statemine_multilocation = MockAssetType::Xcm(MultiLocation {
 			parents: 1,
-			interior: X2(Parachain(statemine_para_id), GeneralIndex(1))
+			interior: X2(Parachain(statemine_para_id), GeneralIndex(1)),
 		});
 
-		let statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation{
+		let statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation {
 			parents: 1,
-			interior: X2(Parachain(statemine_para_id), GeneralIndex(2))
+			interior: X2(Parachain(statemine_para_id), GeneralIndex(2)),
 		});
 
 		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
@@ -249,13 +250,13 @@ fn test_asset_manager_change_statemine_prefixes() {
 			pallet_prefix,
 			storage_item_prefix,
 			&Blake2_128Concat::hash(&asset_id.encode()),
-			statemine_multilocation.clone()
+			statemine_multilocation.clone(),
 		);
 
 		// Assert the storage item is well populated
-			assert_eq!(
-				AssetManager::asset_id_type(asset_id).unwrap(),
-				statemine_multilocation
+		assert_eq!(
+			AssetManager::asset_id_type(asset_id).unwrap(),
+			statemine_multilocation
 		);
 
 		// To mimic case 2, we can simply register the asset trough the extrinsic
@@ -268,12 +269,20 @@ fn test_asset_manager_change_statemine_prefixes() {
 		));
 
 		// We run the migration
-		crate::migrations::AssetManagerChangeStateminePrefixes::<Test, mock::StatemineInfo>::on_runtime_upgrade();
+		crate::migrations::AssetManagerChangeStateminePrefixes::<
+			Test,
+			mock::StatemineParaIdInfo,
+			mock::StatemineAssetsInstanceInfo,
+		>::on_runtime_upgrade();
 
 		// Check case 1
-		let expected_statemine_multilocation = MockAssetType::Xcm(MultiLocation{
+		let expected_statemine_multilocation = MockAssetType::Xcm(MultiLocation {
 			parents: 1,
-			interior: X3(Parachain(statemine_para_id), PalletInstance(statemine_assets_pallet), GeneralIndex(1))
+			interior: X3(
+				Parachain(statemine_para_id),
+				PalletInstance(statemine_assets_pallet),
+				GeneralIndex(1),
+			),
 		});
 
 		// After migration, the storage item should have been upgraded
@@ -283,9 +292,13 @@ fn test_asset_manager_change_statemine_prefixes() {
 		);
 
 		// Check case 2
-		let expected_statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation{
+		let expected_statemine_multilocation_2 = MockAssetType::Xcm(MultiLocation {
 			parents: 1,
-			interior: X3(Parachain(statemine_para_id), PalletInstance(statemine_assets_pallet), GeneralIndex(2))
+			interior: X3(
+				Parachain(statemine_para_id),
+				PalletInstance(statemine_assets_pallet),
+				GeneralIndex(2),
+			),
 		});
 
 		let asset_id_2: mock::AssetId = statemine_multilocation_2.clone().into();
@@ -301,8 +314,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 			asset_id_2
 		);
 
-		assert!(
-			AssetManager::asset_type_id(&statemine_multilocation_2).is_none()
-		);
+		// And the previous one should be cleaned
+		assert!(AssetManager::asset_type_id(&statemine_multilocation_2).is_none());
 	});
 }
