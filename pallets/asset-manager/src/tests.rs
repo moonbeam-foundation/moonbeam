@@ -108,6 +108,40 @@ fn test_root_can_change_units_per_second() {
 }
 
 #[test]
+fn test_regular_user_cannot_call_extrinsics() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			AssetManager::register_asset(
+				Origin::signed(1),
+				MockAssetType::MockAsset(1),
+				0u32.into(),
+				1u32.into(),
+				true
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+
+		assert_noop!(
+			AssetManager::set_asset_units_per_second(
+				Origin::signed(1),
+				MockAssetType::MockAsset(1),
+				200u128.into()
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+
+		assert_noop!(
+			AssetManager::change_existing_asset_type(
+				Origin::signed(1),
+				1,
+				MockAssetType::MockAsset(2),
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+	});
+}
+
+#[test]
 fn test_root_can_change_asset_id_type() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
