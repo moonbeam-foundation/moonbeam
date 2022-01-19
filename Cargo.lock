@@ -2241,8 +2241,7 @@ dependencies = [
 [[package]]
 name = "ethereum"
 version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34c90e0a755da706ce0970ec0fa8cc48aabcc8e8efa1245336acf718dab06ffe"
+source = "git+https://github.com/purestake/ethereum?branch=tgm-0.11.1-typeinfo-patch#90fd8599616b349ac615e681422c26d77d6d2c0d"
 dependencies = [
  "bytes 1.0.1",
  "ethereum-types",
