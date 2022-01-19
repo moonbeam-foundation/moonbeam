@@ -255,9 +255,12 @@ pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, Statemine
 	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsPalletInfo)>,
 );
 #[cfg(feature = "xcm-support")]
-impl<T: AssetManagerConfig, StatemineParaIdInfo: Get<u32>, StatemineAssetsPalletInfo: Get<u8>>
-	Migration for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>
+impl<T, StatemineParaIdInfo, StatemineAssetsPalletInfo> Migration
+	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>
 where
+	T: AssetManagerConfig,
+	StatemineParaIdInfo: Get<u32>,
+	StatemineAssetsPalletInfo: Get<u8>,
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn friendly_name(&self) -> &str {
