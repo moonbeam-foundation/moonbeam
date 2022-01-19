@@ -27,7 +27,7 @@ const assetMetadata = {
 
 const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: foreign_para_id } } } };
 const statemintLocation = {
-  XCM: { parents: 1, interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] } },
+  XCM: { parents: 1, interior: { X3: [{ Parachain: statemint_para_id }, { PalletInstance: statemint_assets_pallet_instance }, { GeneralIndex: 0 }] } },
 };
 
 describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
@@ -64,7 +64,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -103,6 +103,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
     // registerAsset
+    // We register statemine with the new prefix
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
@@ -128,7 +129,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocation, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -141,7 +142,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should receive a 10 Statemine tokens to Alith with prefix 1", async function () {
+  it("Should receive a 10 Statemine tokens to Alith with old prefix", async function () {
     // We are going to test that, using the prefix prior to
     // https://github.com/paritytech/cumulus/pull/831
     // we can receive the tokens on the assetId registed with the old prefix
@@ -254,7 +255,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocation, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -267,7 +268,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should receive a 10 Statemine tokens to Alith with prefix 2", async function () {
+  it("Should receive a 10 Statemine tokens to Alith with new prefix", async function () {
     // We are going to test that, using the prefix after
     // https://github.com/paritytech/cumulus/pull/831
     // we can receive the tokens on the assetId registed with the old prefix

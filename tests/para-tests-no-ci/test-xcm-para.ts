@@ -108,7 +108,7 @@ async function registerAssetToParachain(
   const { events } = await createBlockWithExtrinsicParachain(
     parachainApi,
     sudoKeyring,
-    parachainApi.tx.sudo.sudo(parachainApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
+    parachainApi.tx.sudo.sudo(parachainApi.tx.assetManager.setAssetUnitsPerSecond(assetLocation, 0))
   );
   return { events, assetId };
 }
