@@ -41,9 +41,9 @@ benchmarks! {
 		let asset_id: T::AssetId = asset_type.clone().into();
 		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 
-	}: _(RawOrigin::Root, asset_id, 1)
+	}: _(RawOrigin::Root, asset_type.clone(), 1)
 	verify {
-		assert_eq!(Pallet::<T>::asset_id_units_per_second(asset_id), Some(1));
+		assert_eq!(Pallet::<T>::asset_type_units_per_second(asset_type), Some(1));
 	}
 
 	change_existing_asset_type {
