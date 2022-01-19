@@ -55,7 +55,7 @@ describeDevMoonbeam("Nonce - Pending transaction", (context) => {
 });
 
 describeDevMoonbeam("Nonce - Transferring", (context) => {
-  it("Setup: Sending token", async function () {
+  before("Setup: Sending token", async function () {
     await context.createBlock({
       transactions: [
         await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
