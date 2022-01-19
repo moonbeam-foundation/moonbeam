@@ -572,7 +572,8 @@ pub mod pallet {
 			BalanceOf<T>: Into<Balance>,
 		{
 			let mut less_total_staked = None;
-			let mut top_delegations = <TopDelegations<T>>::get(candidate).expect("TODO proof QED");
+			let mut top_delegations = <TopDelegations<T>>::get(candidate)
+				.expect("CandidateInfo existence => TopDelegations existence");
 			let max_top_delegations_per_candidate = T::MaxTopDelegationsPerCandidate::get();
 			if top_delegations.delegations.len() as u32 == max_top_delegations_per_candidate {
 				// pop lowest top delegation
@@ -602,8 +603,8 @@ pub mod pallet {
 		) where
 			BalanceOf<T>: Into<Balance>,
 		{
-			let mut bottom_delegations =
-				<BottomDelegations<T>>::get(candidate).expect("TODO proof QED");
+			let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+				.expect("CandidateInfo existence => BottomDelegations existence");
 			// if bottom is full, kick the lowest bottom (which is expected to be lower than input
 			// as per check)
 			let increase_delegation_count = if bottom_delegations.delegations.len() as u32
@@ -629,7 +630,7 @@ pub mod pallet {
 				// to call
 				let mut delegator_state =
 					<DelegatorState<T>>::get(&lowest_bottom_to_be_kicked.owner)
-						.expect("TODO proof");
+						.expect("Delegation existence => DelegatorState existence");
 				let leaving = delegator_state.delegations.0.len() == 1usize;
 				delegator_state.rm_delegation(candidate);
 				Pallet::<T>::deposit_event(Event::DelegationKicked(
@@ -875,15 +876,15 @@ pub mod pallet {
 				let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
 				bottom_delegations.total -= bond;
 				// add it to top
-				let mut top_delegations =
-					<TopDelegations<T>>::get(candidate).expect("TODO proof QED");
+				let mut top_delegations = <TopDelegations<T>>::get(candidate)
+					.expect("CandidateInfo existence => TopDelegations existence");
 				// if top is full, pop lowest top
 				if matches!(top_delegations.top_capacity::<T>(), CapacityStatus::Full) {
 					// pop lowest top delegation
 					let new_bottom_delegation = top_delegations
 						.delegations
 						.pop()
-						.expect("TODO proof of existence");
+						.expect("Top capacity full => Exists at least 1 top delegation");
 					top_delegations.total -= new_bottom_delegation.amount;
 					bottom_delegations.insert_sorted_greatest_to_least(new_bottom_delegation);
 				}
@@ -993,8 +994,8 @@ pub mod pallet {
 						.collect();
 					let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
 					// pop highest bottom by reverse and popping
-					let mut bottom_delegations =
-						<BottomDelegations<T>>::get(candidate).expect("TODO proof of existence");
+					let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+						.expect("CandidateInfo existence => BottomDelegations existence");
 					let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
 					bottom_delegations.total -= highest_bottom_delegation.amount;
 					// insert highest bottom into top
@@ -2548,14 +2549,14 @@ pub mod pallet {
 			let mut total_backing = state.bond;
 			// return all top delegations
 			let top_delegations =
-				<TopDelegations<T>>::take(&candidate).expect("TODO: explain proof of existence");
+				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
 				return_stake(bond);
 			}
 			total_backing += top_delegations.total;
 			// return all bottom delegations
 			let bottom_delegations =
-				<BottomDelegations<T>>::take(&candidate).expect("TODO: explain proof of existence");
+				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
 				return_stake(bond);
 			}

@@ -26,10 +26,11 @@ use crate::mock::{
 	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
-	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, Bond, BottomDelegations,
-	CandidateInfo, CandidateState, CollatorCandidate, CollatorStatus, Config, DelegationChange,
-	DelegationRequest, DelegatorAdded, Error, Event, Range, TopDelegations,
+	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
+	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, Bond,
+	BottomDelegations, CandidateInfo, CandidateState, CollatorCandidate, CollatorStatus, Config,
+	DelegationChange, DelegationRequest, Delegator, DelegatorAdded, DelegatorState,
+	DelegatorStatus, Error, Event, PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -5158,18 +5159,35 @@ fn deferred_payment_steady_state_event_flow() {
 use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
-fn split_candidate_state_kicks_extra_bottom_delegations() {
+/// Kicks extra bottom delegations to force leave delegators if last delegation
+fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 	ExtBuilder::default()
-		.with_balances(vec![(11, 10), (12, 10)])
+		.with_balances(vec![(11, 22), (12, 20)])
 		.build()
 		.execute_with(|| {
-			// TODO: need to spoof the DelegatorState too for 11 and 12 in particular
-			// make them only delegate 1 and also check events for the DelegationKicked
-			// reserve for 11 and 12 to test unreserve
-			assert_ok!(<Test as Config>::Currency::reserve(&11, 10));
-			assert_ok!(<Test as Config>::Currency::reserve(&12, 10));
-			assert_eq!(Balances::reserved_balance(&11), 10);
-			assert_eq!(Balances::reserved_balance(&12), 10);
+			for i in 11..13 {
+				let old_delegator_state = Delegator {
+					id: i,
+					delegations: OrderedSet::from(vec![
+						Bond {
+							owner: 1,
+							amount: 10,
+						},
+						Bond {
+							owner: 2,
+							amount: 10,
+						},
+					]),
+					total: 20,
+					requests: PendingDelegationRequests::new(),
+					status: DelegatorStatus::Active,
+				};
+				<DelegatorState<Test>>::insert(&i, old_delegator_state);
+			}
+			assert_ok!(<Test as Config>::Currency::reserve(&11, 22));
+			assert_ok!(<Test as Config>::Currency::reserve(&12, 20));
+			assert_eq!(Balances::reserved_balance(&11), 22);
+			assert_eq!(Balances::reserved_balance(&12), 20);
 			for i in 1..3 {
 				let old_candidate_state = CollatorCandidate {
 					id: i,
@@ -5226,10 +5244,187 @@ fn split_candidate_state_kicks_extra_bottom_delegations() {
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
+			// total is 165 * 2 = 330
+			<Total<Test>>::put(330);
+			assert!(ParachainStaking::is_delegator(&11));
+			assert!(ParachainStaking::is_delegator(&12));
 			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			assert_event_emitted!(Event::DelegationKicked(11, 1, 11));
+			assert_event_emitted!(Event::DelegationKicked(11, 2, 11));
+			assert_event_emitted!(Event::DelegationKicked(12, 1, 10));
+			assert_event_emitted!(Event::DelegationKicked(12, 2, 10));
+			assert_event_emitted!(Event::DelegatorLeft(12, 10));
+			assert_event_emitted!(Event::DelegatorLeft(11, 11));
 			// kicked 11 and 12 and revoked them
-			assert_eq!(Balances::free_balance(&11), 10);
-			assert_eq!(Balances::free_balance(&12), 10);
+			assert_eq!(Balances::free_balance(&11), 22);
+			assert_eq!(Balances::free_balance(&12), 20);
+			assert!(!ParachainStaking::is_delegator(&11));
+			assert!(!ParachainStaking::is_delegator(&12));
+			for i in 1..3 {
+				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(top_delegations.total, 70);
+				assert_eq!(
+					top_delegations.delegations,
+					vec![
+						Bond {
+							owner: 3,
+							amount: 19
+						},
+						Bond {
+							owner: 4,
+							amount: 18
+						},
+						Bond {
+							owner: 5,
+							amount: 17
+						},
+						Bond {
+							owner: 6,
+							amount: 16
+						}
+					]
+				);
+				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
+				assert_eq!(bottom_delegations.total, 54);
+				assert_eq!(
+					bottom_delegations.delegations,
+					vec![
+						Bond {
+							owner: 7,
+							amount: 15
+						},
+						Bond {
+							owner: 8,
+							amount: 14
+						},
+						Bond {
+							owner: 9,
+							amount: 13
+						},
+						Bond {
+							owner: 10,
+							amount: 12
+						}
+					]
+				);
+				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
+				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
+				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
+				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
+				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
+			}
+		});
+}
+
+#[test]
+/// Force revokes candidate state
+fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(11, 32), (12, 30)])
+		.build()
+		.execute_with(|| {
+			for i in 11..13 {
+				let old_delegator_state = Delegator {
+					id: i,
+					delegations: OrderedSet::from(vec![
+						Bond {
+							owner: 1,
+							amount: 10,
+						},
+						Bond {
+							owner: 2,
+							amount: 10,
+						},
+						Bond {
+							owner: 3,
+							amount: 10,
+						},
+					]),
+					total: 30,
+					requests: PendingDelegationRequests::new(),
+					status: DelegatorStatus::Active,
+				};
+				<DelegatorState<Test>>::insert(&i, old_delegator_state);
+			}
+			assert_ok!(<Test as Config>::Currency::reserve(&11, 32));
+			assert_ok!(<Test as Config>::Currency::reserve(&12, 30));
+			assert_eq!(Balances::reserved_balance(&11), 32);
+			assert_eq!(Balances::reserved_balance(&12), 30);
+			for i in 1..3 {
+				let old_candidate_state = CollatorCandidate {
+					id: i,
+					bond: 20,
+					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+					top_delegations: vec![
+						Bond {
+							owner: 3,
+							amount: 19,
+						},
+						Bond {
+							owner: 4,
+							amount: 18,
+						},
+						Bond {
+							owner: 5,
+							amount: 17,
+						},
+						Bond {
+							owner: 6,
+							amount: 16,
+						},
+					],
+					bottom_delegations: vec![
+						Bond {
+							owner: 12,
+							amount: 10,
+						},
+						Bond {
+							owner: 11,
+							amount: 11,
+						},
+						Bond {
+							owner: 10,
+							amount: 12,
+						},
+						Bond {
+							owner: 9,
+							amount: 13,
+						},
+						Bond {
+							owner: 8,
+							amount: 14,
+						},
+						Bond {
+							owner: 7,
+							amount: 15,
+						},
+					],
+					total_counted: 90,
+					total_backing: 165,
+					request: None,
+					state: CollatorStatus::Active,
+				};
+				<CandidateState<Test>>::insert(&i, old_candidate_state);
+			}
+			// total is 165 * 2 + 20 = 330
+			<Total<Test>>::put(350);
+			assert!(ParachainStaking::is_delegator(&11));
+			assert!(ParachainStaking::is_delegator(&12));
+			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			assert_event_emitted!(Event::DelegationKicked(11, 1, 11));
+			assert_event_emitted!(Event::DelegationKicked(11, 2, 11));
+			assert_event_emitted!(Event::DelegationKicked(12, 1, 10));
+			assert_event_emitted!(Event::DelegationKicked(12, 2, 10));
+			assert_event_not_emitted!(Event::DelegatorLeft(12, 10));
+			assert_event_not_emitted!(Event::DelegatorLeft(11, 10));
+			// kicked 11 and 12 and revoked them
+			assert_eq!(Balances::free_balance(&11), 22);
+			assert_eq!(Balances::free_balance(&12), 20);
+			assert_eq!(Balances::reserved_balance(&11), 10);
+			assert_eq!(Balances::reserved_balance(&12), 10);
+			assert!(ParachainStaking::is_delegator(&11));
+			assert!(ParachainStaking::is_delegator(&12));
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 70);

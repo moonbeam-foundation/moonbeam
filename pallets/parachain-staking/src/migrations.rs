@@ -77,7 +77,6 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 					> T::MaxBottomDelegationsPerCandidate::get() as usize
 				{
 					// if actual length > max bottom delegations, revoke the bottom actual - max
-					// TODO: add test for this path to ensure valid revocation
 					let rest = state.bottom_delegations.len()
 						- T::MaxBottomDelegationsPerCandidate::get() as usize;
 					let mut total_less = BalanceOf::<T>::zero();
@@ -87,8 +86,8 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 							// update delegator state
 							// unreserve kicked bottom
 							T::Currency::unreserve(&owner, *amount);
-							let mut delegator_state =
-								<DelegatorState<T>>::get(&owner).expect("TODO proof");
+							let mut delegator_state = <DelegatorState<T>>::get(&owner)
+								.expect("Delegation existence => DelegatorState existence");
 							let leaving = delegator_state.delegations.0.len() == 1usize;
 							delegator_state.rm_delegation(&account);
 							Pallet::<T>::deposit_event(Event::DelegationKicked(

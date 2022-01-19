@@ -365,6 +365,23 @@ macro_rules! assert_event_emitted {
 	};
 }
 
+/// Panics if an event is found in the system log of events
+#[macro_export]
+macro_rules! assert_event_not_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_none(),
+					"Event {:?} was found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
+
 // Same storage changes as EventHandler::note_author impl
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
