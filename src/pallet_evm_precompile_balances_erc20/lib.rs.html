@@ -590,6 +590,19 @@
 <span id="590">590</span>
 <span id="591">591</span>
 <span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -614,7 +627,7 @@
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
-	<span class="ident">sp_runtime::traits</span>::{<span class="ident">CheckedSub</span>, <span class="ident">StaticLookup</span>},
+	<span class="ident">sp_runtime::traits</span>::{<span class="ident">Bounded</span>, <span class="ident">CheckedSub</span>, <span class="ident">StaticLookup</span>},
 	<span class="ident">storage::types::StorageDoubleMap</span>,
 	<span class="ident">traits::StorageInstance</span>,
 	<span class="ident">Blake2_128Concat</span>,
@@ -661,40 +674,51 @@
 
 <span class="comment">// We use a macro to implement the trait for () and the 16 substrate Instance.</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_prefix</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
-		<span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>;
+	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
+		<span class="comment">// Generate unique UUID to have unique module names.</span>
+		<span class="macro">gensym::gensym!</span> { <span class="macro">_impl_prefix!</span>{ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> }}
+	};
+}
 
-		<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span> {
-			<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Approves&quot;</span>;
+<span class="macro">macro_rules!</span> <span class="ident">_impl_prefix</span> {
+	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">module</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
+		<span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">module</span> {
+			<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-			<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-				<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+			<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Approves</span>;
+
+			<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="ident">Approves</span> {
+				<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Approves&quot;</span>;
+
+				<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+					<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+				}
 			}
-		}
 
-		<span class="kw">impl</span> <span class="ident">InstanceToPrefix</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span> {
-			<span class="kw">type</span> <span class="ident">ApprovesPrefix</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prefix</span>;
+			<span class="kw">impl</span> <span class="ident">InstanceToPrefix</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span> {
+				<span class="kw">type</span> <span class="ident">ApprovesPrefix</span> <span class="op">=</span> <span class="ident">Approves</span>;
+			}
 		}
 	};
 }
 
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix0</span>, (), <span class="string">&quot;Erc20Instance0Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix1</span>, <span class="ident">Instance1</span>, <span class="string">&quot;Erc20Instance1Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix2</span>, <span class="ident">Instance2</span>, <span class="string">&quot;Erc20Instance2Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix3</span>, <span class="ident">Instance3</span>, <span class="string">&quot;Erc20Instance3Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix4</span>, <span class="ident">Instance4</span>, <span class="string">&quot;Erc20Instance4Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix5</span>, <span class="ident">Instance5</span>, <span class="string">&quot;Erc20Instance5Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix6</span>, <span class="ident">Instance6</span>, <span class="string">&quot;Erc20Instance6Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix7</span>, <span class="ident">Instance7</span>, <span class="string">&quot;Erc20Instance7Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix8</span>, <span class="ident">Instance8</span>, <span class="string">&quot;Erc20Instance8Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix9</span>, <span class="ident">Instance9</span>, <span class="string">&quot;Erc20Instance9Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix10</span>, <span class="ident">Instance10</span>, <span class="string">&quot;Erc20Instance10Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix11</span>, <span class="ident">Instance11</span>, <span class="string">&quot;Erc20Instance11Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix12</span>, <span class="ident">Instance12</span>, <span class="string">&quot;Erc20Instance12Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix13</span>, <span class="ident">Instance13</span>, <span class="string">&quot;Erc20Instance13Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix14</span>, <span class="ident">Instance14</span>, <span class="string">&quot;Erc20Instance14Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix15</span>, <span class="ident">Instance15</span>, <span class="string">&quot;Erc20Instance15Balances&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">ApprovesPrefix16</span>, <span class="ident">Instance16</span>, <span class="string">&quot;Erc20Instance16Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>((), <span class="string">&quot;Erc20Instance0Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance1</span>, <span class="string">&quot;Erc20Instance1Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance2</span>, <span class="string">&quot;Erc20Instance2Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance3</span>, <span class="string">&quot;Erc20Instance3Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance4</span>, <span class="string">&quot;Erc20Instance4Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance5</span>, <span class="string">&quot;Erc20Instance5Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance6</span>, <span class="string">&quot;Erc20Instance6Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance7</span>, <span class="string">&quot;Erc20Instance7Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance8</span>, <span class="string">&quot;Erc20Instance8Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance9</span>, <span class="string">&quot;Erc20Instance9Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance10</span>, <span class="string">&quot;Erc20Instance10Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance11</span>, <span class="string">&quot;Erc20Instance11Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance12</span>, <span class="string">&quot;Erc20Instance12Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance13</span>, <span class="string">&quot;Erc20Instance13Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance14</span>, <span class="string">&quot;Erc20Instance14Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance15</span>, <span class="string">&quot;Erc20Instance15Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance16</span>, <span class="string">&quot;Erc20Instance16Balances&quot;</span>);
 
 <span class="doccomment">/// Alias for the Balance type for the provided Runtime and Instance.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span>
@@ -910,7 +934,9 @@
 			<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span>
 				<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
 			<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">spender</span>);
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">gasometer</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Amount saturate if too high.</span>
+			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)
+				.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Bounded::max_value</span>());
 
 			<span class="ident">ApprovesStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">caller</span>, <span class="ident">spender</span>, <span class="ident">amount</span>);
 		}
