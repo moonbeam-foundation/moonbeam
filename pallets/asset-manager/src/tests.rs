@@ -286,12 +286,18 @@ fn test_asset_manager_change_statemine_prefixes() {
 			interior: X2(Parachain(statemine_para_id), GeneralIndex(2)),
 		});
 
+		let statemine_multilocation_3 = MockAssetType::Xcm(MultiLocation {
+			parents: 1,
+			interior: X2(Parachain(statemine_para_id), GeneralIndex(3)),
+		});
+
 		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
 
-		// We are gonna test two cases:
+		// We are gonna test thre cases:
 		// Case 1: AssetManagerPopulateAssetTypeIdStorage has not executed yet
 		// (only AssetIdType is populated)
 		// Case 2: AssetManagerPopulateAssetTypeIdStorage has already executed
+		// Case 3: AssetManagerUnitsWithAssetType has already executed
 
 		// To mimic case 1, we populate AssetIdType manually but not AssetTypeId
 		put_storage_value(
@@ -314,6 +320,22 @@ fn test_asset_manager_change_statemine_prefixes() {
 			0u32.into(),
 			1u32.into(),
 			true
+		));
+
+		// To mimic case 3, we can simply register the asset trough the extrinsic
+		// But we also need to set units per second
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			statemine_multilocation_3.clone(),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			statemine_multilocation_3.clone(),
+			1u128
 		));
 
 		// We run the migration
@@ -364,5 +386,38 @@ fn test_asset_manager_change_statemine_prefixes() {
 
 		// And the previous one should be cleaned
 		assert!(AssetManager::asset_type_id(&statemine_multilocation_2).is_none());
+
+		// Check case 3
+		let expected_statemine_multilocation_3 = MockAssetType::Xcm(MultiLocation {
+			parents: 1,
+			interior: X3(
+				Parachain(statemine_para_id),
+				PalletInstance(statemine_assets_pallet),
+				GeneralIndex(3),
+			),
+		});
+
+		let asset_id_3: mock::AssetId = statemine_multilocation_3.clone().into();
+
+		// After migration, both storage items should have been upgraded
+		assert_eq!(
+			AssetManager::asset_id_type(asset_id_3).unwrap(),
+			expected_statemine_multilocation_3
+		);
+
+		assert_eq!(
+			AssetManager::asset_type_id(&expected_statemine_multilocation_3).unwrap(),
+			asset_id_3
+		);
+
+		// The previous one should be cleaned
+		assert!(AssetManager::asset_type_id(&statemine_multilocation_3).is_none());
+
+		// Units per second updated
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(&expected_statemine_multilocation_3).unwrap(),
+			1
+		);
+		assert!(AssetManager::asset_type_units_per_second(&statemine_multilocation_3).is_none());
 	});
 }
