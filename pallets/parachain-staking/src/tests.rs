@@ -3621,33 +3621,41 @@ fn multiple_delegations() {
 #[test]
 fn execute_leave_candidate_removes_delegations() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-		])
+		.with_balances(vec![(1, 100), (2, 100), (3, 100), (4, 100)])
 		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_delegations(vec![
-			(3, 1, 10),
-			(3, 2, 10),
-			(4, 1, 10),
-			(4, 2, 10),
-		])
+		.with_delegations(vec![(3, 1, 10), (3, 2, 10), (4, 1, 10), (4, 2, 10)])
 		.build()
 		.execute_with(|| {
 			// Verifies the revocation count is originally at 0
-			assert_eq!(Stake::delegator_state(3).unwrap().requests.revocations_count, 0);
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
 
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 2));
-			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(3), 1));
+			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(3), 2));
 			// Verifies the revocation count has been updated to 1
-			assert_eq!(Stake::delegator_state(3).unwrap().requests.revocations_count, 1);
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				1
+			);
 
 			roll_to(16);
 			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
 			// Verifies the revocation count has been reduced to 0
-			assert_eq!(Stake::delegator_state(3).unwrap().requests.revocations_count, 0);
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
 		});
 }
 

@@ -2010,6 +2010,12 @@ pub mod pallet {
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
+						if let Some(request) = delegator.requests.requests.remove(&candidate) {
+							delegator.requests.less_total -= request.amount;
+							if matches!(request.action, DelegationChange::Revoke) {
+								delegator.requests.revocations_count -= 1u32;
+							}
+						}
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}
