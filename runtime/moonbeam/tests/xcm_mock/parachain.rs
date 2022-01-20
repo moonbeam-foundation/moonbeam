@@ -43,11 +43,10 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
+	FungiblesAdapter, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
+	SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -195,22 +194,8 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// The transactor for our own chain currency.
-pub type LocalAssetTransactor = XcmCurrencyAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<SelfReserve>,
-	// We can convert the MultiLocations with our converter above:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We track our teleports in/out to keep total issuance correct.
-	(),
->;
-
 // These will be our transactors
-pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
+pub type AssetTransactors = FungiblesTransactor;
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
@@ -271,10 +256,7 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = (
-		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
-	);
+	type Trader = (xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,);
 
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;

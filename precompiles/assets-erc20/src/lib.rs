@@ -31,10 +31,14 @@ use precompile_utils::{
 	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
 	Gasometer, LogsBuilder, RuntimeHelper,
 };
-use sp_runtime::traits::Zero;
+use sp_runtime::traits::{Bounded, Zero};
 
 use sp_core::{H160, U256};
-use sp_std::{convert::TryFrom, marker::PhantomData, vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+	vec,
+};
 
 #[cfg(test)]
 mod mock;
@@ -297,11 +301,14 @@ where
 		input.expect_arguments(gasometer, 2)?;
 
 		let spender: H160 = input.read::<Address>(gasometer)?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
+		let amount: U256 = input.read(gasometer)?;
 
 		{
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+			// Amount saturate if too high.
+			let amount: BalanceOf<Runtime, Instance> =
+				amount.try_into().unwrap_or_else(|_| Bounded::max_value());
 
 			// Allowance read
 			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;

@@ -22,7 +22,7 @@
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::{CheckedSub, StaticLookup},
+	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
 	storage::types::StorageDoubleMap,
 	traits::StorageInstance,
 	Blake2_128Concat,
@@ -69,40 +69,51 @@ pub trait InstanceToPrefix {
 
 // We use a macro to implement the trait for () and the 16 substrate Instance.
 macro_rules! impl_prefix {
-	($prefix:ident, $instance:ty, $name:literal) => {
-		pub struct $prefix;
+	($instance:ty, $name:literal) => {
+		// Generate unique UUID to have unique module names.
+		gensym::gensym! { _impl_prefix!{ $instance, $name }}
+	};
+}
 
-		impl StorageInstance for $prefix {
-			const STORAGE_PREFIX: &'static str = "Approves";
+macro_rules! _impl_prefix {
+	($module:ident, $instance:ty, $name:literal) => {
+		mod $module {
+			use super::*;
 
-			fn pallet_prefix() -> &'static str {
-				$name
+			pub struct Approves;
+
+			impl StorageInstance for Approves {
+				const STORAGE_PREFIX: &'static str = "Approves";
+
+				fn pallet_prefix() -> &'static str {
+					$name
+				}
 			}
-		}
 
-		impl InstanceToPrefix for $instance {
-			type ApprovesPrefix = $prefix;
+			impl InstanceToPrefix for $instance {
+				type ApprovesPrefix = Approves;
+			}
 		}
 	};
 }
 
-impl_prefix!(ApprovesPrefix0, (), "Erc20Instance0Balances");
-impl_prefix!(ApprovesPrefix1, Instance1, "Erc20Instance1Balances");
-impl_prefix!(ApprovesPrefix2, Instance2, "Erc20Instance2Balances");
-impl_prefix!(ApprovesPrefix3, Instance3, "Erc20Instance3Balances");
-impl_prefix!(ApprovesPrefix4, Instance4, "Erc20Instance4Balances");
-impl_prefix!(ApprovesPrefix5, Instance5, "Erc20Instance5Balances");
-impl_prefix!(ApprovesPrefix6, Instance6, "Erc20Instance6Balances");
-impl_prefix!(ApprovesPrefix7, Instance7, "Erc20Instance7Balances");
-impl_prefix!(ApprovesPrefix8, Instance8, "Erc20Instance8Balances");
-impl_prefix!(ApprovesPrefix9, Instance9, "Erc20Instance9Balances");
-impl_prefix!(ApprovesPrefix10, Instance10, "Erc20Instance10Balances");
-impl_prefix!(ApprovesPrefix11, Instance11, "Erc20Instance11Balances");
-impl_prefix!(ApprovesPrefix12, Instance12, "Erc20Instance12Balances");
-impl_prefix!(ApprovesPrefix13, Instance13, "Erc20Instance13Balances");
-impl_prefix!(ApprovesPrefix14, Instance14, "Erc20Instance14Balances");
-impl_prefix!(ApprovesPrefix15, Instance15, "Erc20Instance15Balances");
-impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
+impl_prefix!((), "Erc20Instance0Balances");
+impl_prefix!(Instance1, "Erc20Instance1Balances");
+impl_prefix!(Instance2, "Erc20Instance2Balances");
+impl_prefix!(Instance3, "Erc20Instance3Balances");
+impl_prefix!(Instance4, "Erc20Instance4Balances");
+impl_prefix!(Instance5, "Erc20Instance5Balances");
+impl_prefix!(Instance6, "Erc20Instance6Balances");
+impl_prefix!(Instance7, "Erc20Instance7Balances");
+impl_prefix!(Instance8, "Erc20Instance8Balances");
+impl_prefix!(Instance9, "Erc20Instance9Balances");
+impl_prefix!(Instance10, "Erc20Instance10Balances");
+impl_prefix!(Instance11, "Erc20Instance11Balances");
+impl_prefix!(Instance12, "Erc20Instance12Balances");
+impl_prefix!(Instance13, "Erc20Instance13Balances");
+impl_prefix!(Instance14, "Erc20Instance14Balances");
+impl_prefix!(Instance15, "Erc20Instance15Balances");
+impl_prefix!(Instance16, "Erc20Instance16Balances");
 
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> =
@@ -318,7 +329,9 @@ where
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
-			let amount = Self::u256_to_amount(gasometer, amount)?;
+			// Amount saturate if too high.
+			let amount = Self::u256_to_amount(&mut gasometer.clone(), amount)
+				.unwrap_or_else(|_| Bounded::max_value());
 
 			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
 		}
