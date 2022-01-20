@@ -17,7 +17,7 @@
 use crate::{AssetIdType, AssetTypeId, AssetTypeUnitsPerSecond, Config};
 use frame_support::{
 	pallet_prelude::PhantomData,
-	storage::migration::{remove_storage_prefix, storage_key_iter},
+	storage::migration::storage_key_iter,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 	Blake2_128Concat,
@@ -29,56 +29,6 @@ use xcm::latest::prelude::*;
 
 pub struct UnitsWithAssetType<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
-	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "UnitsWithAssetType", "actually running it");
-		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
-
-		// Read all the data into memory.
-		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
-			pallet_prefix,
-			storage_item_prefix,
-		)
-		.collect();
-
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
-
-		log::info!(target: "UnitsWithAssetType", "Migrating {:?} elements", migrated_count);
-
-		// Now remove the old storage
-		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
-		remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
-
-		// Assert that old storage is empty
-		assert!(storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
-			pallet_prefix,
-			storage_item_prefix
-		)
-		.next()
-		.is_none());
-
-		// Write to the new storage with removed and added fields
-		for (asset_id, units) in stored_data {
-			// Read the assetType for the assetId
-			if let Some(asset_type) = AssetIdType::<T>::get(&asset_id) {
-				// Populate with assetType as key
-				AssetTypeUnitsPerSecond::<T>::insert(&asset_type, units)
-			}
-		}
-
-		log::info!(target: "UnitsWithAssetType", "almost done");
-
-		// Return the weight used. For each migrated mapping there is a read to get it into
-		// memory, a read to get assetType and
-		// a write to clear the old stored value, and a write to re-store it.
-		let db_weights = T::DbWeight::get();
-		migrated_count.saturating_mul(2 * db_weights.write + 2 * db_weights.read)
-	}
-
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
@@ -118,9 +68,58 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		Ok(())
 	}
 
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "UnitsWithAssetType", "actually running it");
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
+		.drain()
+		.collect();
+
+		let migrated_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+
+		log::info!(target: "UnitsWithAssetType", "Migrating {:?} elements", migrated_count);
+
+		// Write to the new storage with removed and added fields
+		for (asset_id, units) in stored_data {
+			// Read the assetType for the assetId
+			if let Some(asset_type) = AssetIdType::<T>::get(&asset_id) {
+				// Populate with assetType as key
+				AssetTypeUnitsPerSecond::<T>::insert(&asset_type, units)
+			}
+		}
+
+		log::info!(target: "UnitsWithAssetType", "almost done");
+
+		// Return the weight used. For each migrated mapping there is a read to get it into
+		// memory, a read to get assetType and
+		// a write to clear the old stored value, and a write to re-store it.
+		let db_weights = T::DbWeight::get();
+		migrated_count.saturating_mul(2 * db_weights.write + 2 * db_weights.read)
+	}
+
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		// Assert that old storage is empty
+		assert!(storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix
+		)
+		.next()
+		.is_none());
 
 		// Check number of entries matches what was set aside in pre_upgrade
 		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
@@ -147,6 +146,44 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 
 pub struct PopulateAssetTypeIdStorage<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+
+		// We want to test that:
+		// The new storage item is empty
+		// The same number of mappings exist before and after
+		// As long as there are some mappings stored,
+		// there will exist the reserve mapping in the new storage
+
+		// Assert new storage is empty
+		assert!(AssetTypeId::<T>::iter().next().is_none());
+
+		// Check number of entries, and set it aside in temp storage
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
+		.collect();
+		let mapping_count = stored_data.len();
+		Self::set_temp_storage(mapping_count as u32, "mapping_count");
+
+		// Read an example pair from old storage and set it aside in temp storage
+		if mapping_count > 0 {
+			let example_pair = stored_data
+				.iter()
+				.next()
+				.expect("We already confirmed that there was at least one item stored");
+
+			Self::set_temp_storage(example_pair, "example_pair");
+		}
+
+		Ok(())
+	}
+
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "PopulateAssetTypeIdStorage", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
@@ -186,44 +223,6 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdType";
-
-		// We want to test that:
-		// The new storage item is empty
-		// The same number of mappings exist before and after
-		// As long as there are some mappings stored,
-		// there will exist the reserve mapping in the new storage
-
-		// Assert new storage is empty
-		assert!(AssetTypeId::<T>::iter().next().is_none());
-
-		// Check number of entries, and set it aside in temp storage
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
-			pallet_prefix,
-			storage_item_prefix,
-		)
-		.collect();
-		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u32, "mapping_count");
-
-		// Read an example pair from old storage and set it aside in temp storage
-		if mapping_count > 0 {
-			let example_pair = stored_data
-				.iter()
-				.next()
-				.expect("We already confirmed that there was at least one item stored");
-
-			Self::set_temp_storage(example_pair, "example_pair");
-		}
-
-		Ok(())
-	}
-
-	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
@@ -259,6 +258,48 @@ where
 	StatemineAssetsInstanceInfo: Get<u8>,
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+
+		// We want to test that:
+		// If there exists an assetType matching the Statemine, it gets overwritten
+
+		// Check number of entries, and set it aside in temp storage
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
+		.collect();
+
+		let statemine_para_id = StatemineParaIdInfo::get();
+
+		let mut found = false;
+
+		for (asset_id, asset_type) in stored_data {
+			let location: Option<MultiLocation> = asset_type.clone().into();
+			match location {
+				Some(MultiLocation {
+					parents: 1,
+					interior: X2(Parachain(para_id), GeneralIndex(_)),
+				}) if para_id == statemine_para_id => {
+					// We are going to note that we found at least one entry matching
+					found = true;
+					// And we are going to record its data
+					Self::set_temp_storage((asset_id, asset_type), "example_pair");
+					break;
+				}
+				_ => continue,
+			}
+		}
+		Self::set_temp_storage(found, "matching_type_found");
+
+		Ok(())
+	}
+
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "ChangeStateminePrefixes", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
@@ -325,48 +366,6 @@ where
 
 		// Return the weight used.
 		used_weight
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdType";
-
-		// We want to test that:
-		// If there exists an assetType matching the Statemine, it gets overwritten
-
-		// Check number of entries, and set it aside in temp storage
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, T::AssetType, Blake2_128Concat>(
-			pallet_prefix,
-			storage_item_prefix,
-		)
-		.collect();
-
-		let statemine_para_id = StatemineParaIdInfo::get();
-
-		let mut found = false;
-
-		for (asset_id, asset_type) in stored_data {
-			let location: Option<MultiLocation> = asset_type.clone().into();
-			match location {
-				Some(MultiLocation {
-					parents: 1,
-					interior: X2(Parachain(para_id), GeneralIndex(_)),
-				}) if para_id == statemine_para_id => {
-					// We are going to note that we found at least one entry matching
-					found = true;
-					// And we are going to record its data
-					Self::set_temp_storage((asset_id, asset_type), "example_pair");
-					break;
-				}
-				_ => continue,
-			}
-		}
-		Self::set_temp_storage(found, "matching_type_found");
-
-		Ok(())
 	}
 
 	#[cfg(feature = "try-runtime")]

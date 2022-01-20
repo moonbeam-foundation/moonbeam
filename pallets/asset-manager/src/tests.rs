@@ -19,7 +19,9 @@ use crate::*;
 use mock::*;
 
 use frame_support::{
-	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
+	assert_noop, assert_ok,
+	storage::migration::{put_storage_value, storage_key_iter},
+	Blake2_128Concat,
 };
 use xcm::latest::prelude::*;
 
@@ -220,6 +222,17 @@ fn test_asset_manager_units_with_asset_type_migration_works() {
 			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
 			200
 		);
+
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetIdType";
+
+		// Assert that old storage is empty
+		assert!(storage_key_iter::<mock::AssetId, u128, Blake2_128Concat>(
+			pallet_prefix,
+			storage_item_prefix
+		)
+		.next()
+		.is_none());
 	});
 }
 
