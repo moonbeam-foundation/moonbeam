@@ -1869,6 +1869,35 @@
 <span id="1869">1869</span>
 <span id="1870">1870</span>
 <span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2795,11 +2824,18 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_migrations::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> <span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
-		<span class="ident">Runtime</span>,
-		<span class="ident">CouncilCollective</span>,
-		<span class="ident">TechCommitteeCollective</span>,
-	<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> (
+		<span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
+			<span class="ident">Runtime</span>,
+			<span class="ident">CouncilCollective</span>,
+			<span class="ident">TechCommitteeCollective</span>,
+		<span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span>
+			<span class="ident">Runtime</span>,
+			<span class="ident">StatemineParaId</span>,
+			<span class="ident">StatemineAssetPalletInstance</span>,
+		<span class="op">&gt;</span>,
+	);
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2939,7 +2975,7 @@
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
-	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -3033,6 +3069,13 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
+<span class="macro">parameter_types!</span> {
+	<span class="comment">// Statemine ParaId in kusama</span>
+	<span class="kw">pub</span> <span class="ident">StatemineParaId</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1000</span>;
+	<span class="comment">// Assets Pallet instance in Statemine kusama</span>
+	<span class="kw">pub</span> <span class="ident">StatemineAssetPalletInstance</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">50</span>;
+}
+
 <span class="comment">// Our AssetType. For now we only handle Xcm Assets</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssetType</span> {
@@ -3046,10 +3089,25 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>)
+		<span class="kw">match</span> <span class="ident">location</span> {
+			<span class="comment">// Change https://github.com/paritytech/cumulus/pull/831</span>
+			<span class="comment">// This avoids interrumption once they upgrade</span>
+			<span class="comment">// We map the previous location to the new one so that the assetId is well retrieved</span>
+			<span class="ident">MultiLocation</span> {
+				<span class="ident">parents</span>: <span class="number">1</span>,
+				<span class="ident">interior</span>: <span class="ident">X2</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
+			} <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">StatemineParaId::get</span>() =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation</span> {
+				<span class="ident">parents</span>: <span class="number">1</span>,
+				<span class="ident">interior</span>: <span class="ident">X3</span>(
+					<span class="ident">Parachain</span>(<span class="ident">id</span>),
+					<span class="ident">PalletInstance</span>(<span class="ident">StatemineAssetPalletInstance::get</span>()),
+					<span class="ident">GeneralIndex</span>(<span class="ident">index</span>),
+				),
+			}),
+			<span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>),
+		}
 	}
 }
-
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
 	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="self">self</span> {

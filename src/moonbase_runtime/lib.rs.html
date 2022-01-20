@@ -1931,6 +1931,32 @@
 <span id="1931">1931</span>
 <span id="1932">1932</span>
 <span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
+<span id="1953">1953</span>
+<span id="1954">1954</span>
+<span id="1955">1955</span>
+<span id="1956">1956</span>
+<span id="1957">1957</span>
+<span id="1958">1958</span>
+<span id="1959">1959</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2908,7 +2934,11 @@
 			<span class="ident">CouncilCollective</span>,
 			<span class="ident">TechCommitteeCollective</span>,
 		<span class="op">&gt;</span>,
-		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span>
+			<span class="ident">Runtime</span>,
+			<span class="ident">StatemintParaId</span>,
+			<span class="ident">StatemintAssetPalletInstance</span>,
+		<span class="op">&gt;</span>,
 	);
 }
 
@@ -3079,7 +3109,7 @@
 			<span class="ident">Balances</span>,
 			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 		<span class="op">&gt;</span>,
-		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
+		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
 	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -3174,6 +3204,12 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
+<span class="macro">parameter_types!</span> {
+	<span class="comment">// Statemint ParaId in Alphanet</span>
+	<span class="kw">pub</span> <span class="ident">StatemintParaId</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1001</span>;
+	<span class="comment">// Assets Pallet instance in Statemint alphanet</span>
+	<span class="kw">pub</span> <span class="ident">StatemintAssetPalletInstance</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">50</span>;
+}
 <span class="comment">// Our AssetType. For now we only handle Xcm Assets</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssetType</span> {
@@ -3187,7 +3223,23 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>)
+		<span class="kw">match</span> <span class="ident">location</span> {
+			<span class="comment">// Change https://github.com/paritytech/cumulus/pull/831</span>
+			<span class="comment">// This avoids interrumption once they upgrade</span>
+			<span class="comment">// We map the previous location to the new one so that the assetId is well retrieved</span>
+			<span class="ident">MultiLocation</span> {
+				<span class="ident">parents</span>: <span class="number">1</span>,
+				<span class="ident">interior</span>: <span class="ident">X2</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
+			} <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">StatemintParaId::get</span>() =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation</span> {
+				<span class="ident">parents</span>: <span class="number">1</span>,
+				<span class="ident">interior</span>: <span class="ident">X3</span>(
+					<span class="ident">Parachain</span>(<span class="ident">id</span>),
+					<span class="ident">PalletInstance</span>(<span class="ident">StatemintAssetPalletInstance::get</span>()),
+					<span class="ident">GeneralIndex</span>(<span class="ident">index</span>),
+				),
+			}),
+			<span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>),
+		}
 	}
 }
 
@@ -3200,7 +3252,7 @@
 }
 
 <span class="comment">// Implementation on how to retrieve the AssetId from an AssetType</span>
-<span class="comment">// We simply hash the AssetType and take the lowest 128 bits</span>
+<span class="comment">// We take it</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetId</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">asset</span>: <span class="ident">AssetType</span>) -&gt; <span class="ident">AssetId</span> {
 		<span class="kw">match</span> <span class="ident">asset</span> {

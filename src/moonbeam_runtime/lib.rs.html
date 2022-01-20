@@ -1892,12 +1892,6 @@
 <span id="1892">1892</span>
 <span id="1893">1893</span>
 <span id="1894">1894</span>
-<span id="1895">1895</span>
-<span id="1896">1896</span>
-<span id="1897">1897</span>
-<span id="1898">1898</span>
-<span id="1899">1899</span>
-<span id="1900">1900</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2968,7 +2962,7 @@
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
-	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -3063,13 +3057,10 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="comment">// Statemine ParaId in Alphanet</span>
+	<span class="comment">// Statemint ParaId in Polkadot</span>
 	<span class="kw">pub</span> <span class="ident">StatemineParaId</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1000</span>;
-	<span class="comment">// Assets Pallet instance in Statemine alphanet</span>
+	<span class="comment">// Assets Pallet instance in Statemint</span>
 	<span class="kw">pub</span> <span class="ident">StatemineAssetPalletInstance</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="comment">// AssetIds from Statemine already registered, these will retain</span>
-	<span class="comment">// the previous prefix assetId and we will map new one to previous ones</span>
-	<span class="kw">pub</span> <span class="ident">StatemineAssetIdExceptions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> [<span class="number">8</span>].<span class="ident">to_vec</span>();
 }
 
 <span class="comment">// Our AssetType. For now we only handle Xcm Assets</span>
@@ -3088,21 +3079,18 @@
 		<span class="kw">match</span> <span class="ident">location</span> {
 			<span class="comment">// Change https://github.com/paritytech/cumulus/pull/831</span>
 			<span class="comment">// This avoids interrumption once they upgrade</span>
-			<span class="comment">// We map to the previous location so that the assetId is well calculated</span>
-			<span class="comment">// TODO: we might want to do a migration after statemine has upgraded</span>
-			<span class="comment">// as this is quite hacky, but the change itself is quite painful to cover</span>
+			<span class="comment">// We map the previous location to the new one so that the assetId is well retrieved</span>
 			<span class="ident">MultiLocation</span> {
 				<span class="ident">parents</span>: <span class="number">1</span>,
-				<span class="ident">interior</span>: <span class="ident">X3</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">PalletInstance</span>(<span class="ident">instance</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
-			} <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">StatemineParaId::get</span>()
-				<span class="op">&amp;&amp;</span> <span class="ident">instance</span> <span class="op">==</span> <span class="ident">StatemineAssetPalletInstance::get</span>()
-				<span class="op">&amp;&amp;</span> <span class="ident">StatemineAssetIdExceptions::get</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>) =&gt;
-			{
-				<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation</span> {
-					<span class="ident">parents</span>: <span class="number">1</span>,
-					<span class="ident">interior</span>: <span class="ident">X2</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
-				})
-			}
+				<span class="ident">interior</span>: <span class="ident">X2</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
+			} <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">StatemineParaId::get</span>() =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation</span> {
+				<span class="ident">parents</span>: <span class="number">1</span>,
+				<span class="ident">interior</span>: <span class="ident">X3</span>(
+					<span class="ident">Parachain</span>(<span class="ident">id</span>),
+					<span class="ident">PalletInstance</span>(<span class="ident">StatemineAssetPalletInstance::get</span>()),
+					<span class="ident">GeneralIndex</span>(<span class="ident">index</span>),
+				),
+			}),
 			<span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>),
 		}
 	}
