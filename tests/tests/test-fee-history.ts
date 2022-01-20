@@ -30,7 +30,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     }
   }
 
-  async function createBlocks(block_count, reward_percentiles, priority_fees) {
+  async function createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas) {
     const contractData = await getCompiled("TestContract");
     let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     for (var b = 0; b < block_count; b++) {
@@ -39,7 +39,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
           from: GENESIS_ACCOUNT,
           data: contractData.byteCode,
           value: "0x00",
-          maxFeePerGas: "0x3B9ACA00",
+          maxFeePerGas: max_fee_per_gas,
           maxPriorityFeePerGas: context.web3.utils.numberToHex(priority_fees[p]),
           accessList: [],
           nonce: nonce,
@@ -54,10 +54,11 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
 
   it("result length should match spec", async function () {
     this.timeout(100000);
+    let max_fee_per_gas = "0x3B9ACA00";
     let block_count = 2;
     let reward_percentiles = [20, 50, 70];
     let priority_fees = [1, 2, 3];
-    await createBlocks(block_count, reward_percentiles, priority_fees);
+    await createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas);
     let result = (
       await customWeb3Request(context.web3, "eth_feeHistory", ["0x2", "latest", reward_percentiles])
     ).result;
@@ -76,10 +77,11 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
 
   it("should calculate percentiles", async function () {
     this.timeout(100000);
+    let max_fee_per_gas = "0x3B9ACA00";
     let block_count = 11;
     let reward_percentiles = [20, 50, 70, 85, 100];
     let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    await createBlocks(block_count, reward_percentiles, priority_fees);
+    await createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas);
     let result = (
       await customWeb3Request(context.web3, "eth_feeHistory", ["0xA", "latest", reward_percentiles])
     ).result;
@@ -91,9 +93,22 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     }
     // Compare the rpc result with the javascript percentiles.
     for (let i = 0; i < result.reward.length; i++) {
-      expect(result.reward[i].length).to.be.eq(local_rewards.length);
-      for (let j = 0; j < local_rewards.length; j++) {
-        expect(context.web3.utils.hexToNumber(result.reward[i][j])).to.be.eq(local_rewards[j]);
+      // We only test if BaseFee update is enabled.
+      //
+      // If BaseFee is a constant 1GWEI, that means that there is no effective reward using the
+      // specs formula MIN(tx.maxPriorityFeePerGas, tx.maxFeePerGas-block.baseFee).
+      //
+      // In other words, for this tip oracle there would be no need to provide a priority fee
+      // when the block fullness is considered ideal in an EIP-1559 chain.
+      if (
+        context.web3.utils.hexToNumber(max_fee_per_gas) -
+          context.web3.utils.hexToNumber(result.baseFeePerGas[i]) >
+        0
+      ) {
+        expect(result.reward[i].length).to.be.eq(local_rewards.length);
+        for (let j = 0; j < local_rewards.length; j++) {
+          expect(context.web3.utils.hexToNumber(result.reward[i][j])).to.be.eq(local_rewards[j]);
+        }
       }
     }
   });

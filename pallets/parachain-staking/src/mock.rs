@@ -238,7 +238,6 @@ pub(crate) fn roll_one_block() -> u64 {
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
 	ParachainStaking::on_initialize(System::block_number());
-
 	System::block_number()
 }
 

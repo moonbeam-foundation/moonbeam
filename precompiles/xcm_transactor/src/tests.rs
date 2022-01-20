@@ -165,10 +165,8 @@ fn take_transact_info() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				0,
-				0,
 				1,
-				0
+				10000
 			));
 
 			// Expected result is zero
@@ -176,10 +174,8 @@ fn take_transact_info() {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(0u64)
-					.write(0u128)
-					.write(0u64)
-					.write(0u64)
 					.write(1u128)
+					.write(10000u64)
 					.build(),
 				cost: 1,
 				logs: Default::default(),
@@ -206,10 +202,8 @@ fn test_transactor_multilocation() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				0,
-				0,
 				1,
-				0
+				10000000
 			));
 
 			// we pay with our current self reserve.
@@ -262,10 +256,8 @@ fn test_transactor() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				0,
-				0,
 				1,
-				0
+				10000000
 			));
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();

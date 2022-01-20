@@ -269,11 +269,6 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => MultiLocation::parent(),
 		}
 	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			Transactors::Relay => 20000000000,
-		}
-	}
 }
 
 impl UtilityEncodeCall for Transactors {

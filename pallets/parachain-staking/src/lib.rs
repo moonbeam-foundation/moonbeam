@@ -2140,7 +2140,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	type CandidatePool<T: Config> =
+	pub(crate) type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
@@ -2305,6 +2305,23 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(
+			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
+		)]
+		/// Hotfix patch to correct and update CandidatePool value for candidates that have
+		/// called candidate_bond_more when it did not update the CandidatePool value
+		pub fn hotfix_update_candidate_pool_value(
+			origin: OriginFor<T>,
+			candidates: Vec<T::AccountId>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			for candidate in candidates {
+				if let Some(state) = <CandidateInfo<T>>::get(&candidate) {
+					Self::update_active(candidate, state.total_counted);
+				} // else candidate is not a candidate so no update needed
+			}
+			Ok(().into())
+		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
@@ -2649,7 +2666,11 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			state.bond_more::<T>(collator.clone(), more)?;
+			let (is_active, total_counted) = (state.is_active(), state.total_counted);
 			<CandidateInfo<T>>::insert(&collator, state);
+			if is_active {
+				Self::update_active(collator, total_counted);
+			}
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_candidate_bond_less())]

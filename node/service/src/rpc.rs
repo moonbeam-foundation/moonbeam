@@ -30,14 +30,15 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride, Web3Api,
-	Web3ApiServer,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
+	StorageOverride, Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -118,6 +119,11 @@ where
 	overrides_map.insert(
 		EthereumStorageSchema::V2,
 		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V3,
+		Box::new(SchemaV3Override::new(client.clone()))
 			as Box<dyn StorageOverride<_> + Send + Sync>,
 	);
 
@@ -202,7 +208,7 @@ where
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
-			frontier_backend,
+			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
 			overrides.clone(),
@@ -233,6 +239,11 @@ where
 			graph,
 		)));
 	}
+
+	io.extend_with(MoonbeamFinalityApi::to_delegate(MoonbeamFinality::new(
+		client.clone(),
+		frontier_backend.clone(),
+	)));
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(

@@ -25,7 +25,7 @@ pragma solidity >=0.8.0;
          * @param index The index of which we want to retrieve the account
          */
         function transact_info(Multilocation memory multilocation) external view 
-            returns(uint64, uint256, uint64, uint64, uint256);
+            returns(uint64, uint256, uint64);
 
         /** Transact through XCM using fee based on its multilocation
         * Selector 9f89f03e

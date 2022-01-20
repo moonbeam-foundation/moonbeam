@@ -37,7 +37,6 @@ use moonbeam_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::Bond;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::Pair;
@@ -306,27 +305,12 @@ fn join_collator_candidates() {
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(ALICE),
-					amount: 105_000 * GLMR
-				}
-			);
-			assert_eq!(
-				candidates.0[1],
-				Bond {
-					owner: AccountId::from(BOB),
-					amount: 105_000 * GLMR
-				}
-			);
-			assert_eq!(
-				candidates.0[2],
-				Bond {
-					owner: AccountId::from(DAVE),
-					amount: 100_000 * GLMR
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
+			assert_eq!(candidates.0[0].amount, 105_000 * GLMR);
+			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
+			assert_eq!(candidates.0[1].amount, 105_000 * GLMR);
+			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
+			assert_eq!(candidates.0[2].amount, 100_000 * GLMR);
 		});
 }
 
@@ -384,13 +368,8 @@ fn transfer_through_evm_to_stake() {
 				2u32
 			),);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(CHARLIE),
-					amount: 100_000 * GLMR
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
+			assert_eq!(candidates.0[0].amount, 100_000 * GLMR);
 		});
 }
 
@@ -1250,4 +1229,71 @@ fn refund_ed_0_evm() {
 				777 * (100 * GIGAWEI),
 			);
 		});
+}
+
+#[test]
+fn precompile_existance() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let precompile_addresses: std::collections::BTreeSet<_> = vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2055,
+		]
+		.into_iter()
+		.map(H160::from_low_u64_be)
+		.collect();
+
+		for i in 0..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if precompile_addresses.contains(&address) {
+				assert!(
+					precompiles.is_precompile(address),
+					"is_precompile({}) should return true",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_some(),
+					"execute({},..) should return Some(_)",
+					i
+				);
+			} else {
+				assert!(
+					!precompiles.is_precompile(address),
+					"is_precompile({}) should return false",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_none(),
+					"execute({},..) should return None",
+					i
+				);
+			}
+		}
+	});
 }

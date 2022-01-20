@@ -32,6 +32,7 @@ trie-root = "0.15.2"
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 manual-xcm-rpc = { path = "../../client/rpc/manual-xcm" }
 moonbeam-core-primitives = { path = "../../core-primitives" }
+moonbeam-finality-rpc = { path = "../../client/rpc/finality" }
 moonbeam-primitives-ext = { path = "../../primitives/ext" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
