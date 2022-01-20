@@ -975,7 +975,11 @@ impl pallet_migrations::Config for Runtime {
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
-		runtime_common::migrations::XcmMigrations<Runtime>,
+		runtime_common::migrations::XcmMigrations<
+			Runtime,
+			StatemintParaId,
+			StatemintAssetPalletInstance,
+		>,
 	);
 }
 
@@ -1146,7 +1150,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 			Balances,
 			DealWithFees<Runtime>,
 		>,
-		FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount>,
+		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -1241,6 +1245,12 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	// Statemint ParaId in Alphanet
+	pub StatemintParaId: u32 = 1001;
+	// Assets Pallet instance in Statemint alphanet
+	pub StatemintAssetPalletInstance: u8 = 50;
+}
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -1254,7 +1264,23 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map the previous location to the new one so that the assetId is well retrieved
+			MultiLocation {
+				parents: 1,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemintParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemintAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
+			_ => Self::Xcm(location),
+		}
 	}
 }
 
@@ -1267,7 +1293,7 @@ impl Into<Option<MultiLocation>> for AssetType {
 }
 
 // Implementation on how to retrieve the AssetId from an AssetType
-// We simply hash the AssetType and take the lowest 128 bits
+// We take it
 impl From<AssetType> for AssetId {
 	fn from(asset: AssetType) -> AssetId {
 		match asset {
