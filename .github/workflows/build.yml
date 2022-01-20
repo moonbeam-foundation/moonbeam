@@ -317,7 +317,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
+          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -415,7 +415,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
+          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest

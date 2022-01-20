@@ -2241,8 +2241,7 @@ dependencies = [
 [[package]]
 name = "ethereum"
 version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34c90e0a755da706ce0970ec0fa8cc48aabcc8e8efa1245336acf718dab06ffe"
+source = "git+https://github.com/purestake/ethereum?branch=tgm-0.11.1-typeinfo-patch#90fd8599616b349ac615e681422c26d77d6d2c0d"
 dependencies = [
  "bytes 1.0.1",
  "ethereum-types",
@@ -5257,7 +5256,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.17.0"
+version = "0.19.0"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
@@ -5286,7 +5285,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.17.0"
+version = "0.19.0"
 dependencies = [
  "account",
  "libsecp256k1 0.6.0",
@@ -5664,7 +5663,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.17.0"
+version = "0.19.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
