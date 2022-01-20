@@ -1780,6 +1780,36 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(0)] // TODO update weight
+		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
+		pub fn hotfix_remove_unexecutable_delegation_requests(
+			origin: OriginFor<T>,
+			delegators: Vec<T::AccountId>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			for delegator in delegators {
+				if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+					// go through all requests and remove ones without corresponding delegation
+					for (candidate, request) in state.requests.requests.clone().into_iter() {
+						if state
+							.delegations
+							.0
+							.iter()
+							.find(|x| x.owner == candidate)
+							.is_none()
+						{
+							state.requests.requests.remove(&candidate);
+							state.requests.less_total -= request.amount;
+							if matches!(request.action, DelegationChange::Revoke) {
+								state.requests.revocations_count -= 1u32;
+							}
+						}
+					}
+					<DelegatorState<T>>::insert(&delegator, state);
+				} // else delegator is not a delegator so no update needed
+			}
+			Ok(().into())
+		}
 		#[pallet::weight(
 			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
 		)]
