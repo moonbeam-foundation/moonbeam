@@ -18,8 +18,13 @@
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	traits::{OnRuntimeUpgrade, PalletInfoAccess},
+	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
+};
+#[cfg(feature = "xcm-support")]
+use pallet_asset_manager::{
+	migrations::{ChangeStateminePrefixes, PopulateAssetTypeIdStorage, UnitsWithAssetType},
+	Config as AssetManagerConfig,
 };
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::{GetMigrations, Migration};
@@ -28,6 +33,8 @@ use parachain_staking::{
 	Config as ParachainStakingConfig,
 };
 use sp_std::{marker::PhantomData, prelude::*};
+#[cfg(feature = "xcm-support")]
+use xcm::latest::MultiLocation;
 #[cfg(feature = "xcm-support")]
 use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
 
@@ -193,6 +200,94 @@ impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
 	}
 }
 
+#[cfg(feature = "xcm-support")]
+pub struct AssetManagerUnitsWithAssetType<T>(PhantomData<T>);
+#[cfg(feature = "xcm-support")]
+impl<T: AssetManagerConfig> Migration for AssetManagerUnitsWithAssetType<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Asset_Manager_UnitsWithAssetType"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		UnitsWithAssetType::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		UnitsWithAssetType::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		UnitsWithAssetType::<T>::post_upgrade()
+	}
+}
+
+#[cfg(feature = "xcm-support")]
+pub struct AssetManagerPopulateAssetTypeIdStorage<T>(PhantomData<T>);
+#[cfg(feature = "xcm-support")]
+impl<T: AssetManagerConfig> Migration for AssetManagerPopulateAssetTypeIdStorage<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Asset_Manager_PopulateAssetTypeIdStorage"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PopulateAssetTypeIdStorage::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PopulateAssetTypeIdStorage::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PopulateAssetTypeIdStorage::<T>::post_upgrade()
+	}
+}
+
+#[cfg(feature = "xcm-support")]
+pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>(
+	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsPalletInfo)>,
+);
+#[cfg(feature = "xcm-support")]
+impl<T, StatemineParaIdInfo, StatemineAssetsPalletInfo> Migration
+	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>
+where
+	T: AssetManagerConfig,
+	StatemineParaIdInfo: Get<u32>,
+	StatemineAssetsPalletInfo: Get<u8>,
+	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Asset_Manager_ChangeStateminePrefixes"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		ChangeStateminePrefixes::<
+			T,
+			StatemineParaIdInfo,
+			StatemineAssetsPalletInfo
+		>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -230,31 +325,48 @@ where
 	}
 }
 
+//TODO: Once the statemine prefix migration is applied,
+// we can remove StatemineParaIdInfo and StatemineAssetsInstanceInfo
+// but for now we need a way to pass these parameters, which are distinct for each of the runtimes
 #[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
+pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
+	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
+);
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime> GetMigrations for XcmMigrations<Runtime>
+impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
+	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config,
+	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
+	StatemineParaIdInfo: Get<u32> + 'static,
+	StatemineAssetsInstanceInfo: Get<u8> + 'static,
+	<Runtime as pallet_asset_manager::Config>::AssetType:
+		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let xcm_transactor_max_weight =
 			XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
 
+		let asset_manager_units_with_asset_type =
+			AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
+
+		let asset_manager_populate_asset_type_id_storage =
+			AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
+
+		let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
+			Runtime,
+			StatemineParaIdInfo,
+			StatemineAssetsInstanceInfo,
+		>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
 		vec![
-			// completed in runtime 800
-			// Box::new(migration_author_mapping_twox_to_blake),
-			// completed in runtime 900
-			// Box::new(migration_collectives),
-			// completed in runtime 1000
-			// Box::new(migration_parachain_staking_purge_stale_storage),
-			// completed in runtime 1000
-			// Box::new(migration_parachain_staking_manual_exits),
 			Box::new(xcm_transactor_max_weight),
+			Box::new(asset_manager_units_with_asset_type),
+			Box::new(asset_manager_change_statemine_prefixes),
+			Box::new(asset_manager_populate_asset_type_id_storage),
 		]
 	}
 }

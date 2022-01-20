@@ -29,6 +29,9 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 # Frontier
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
+# Polkadot
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", optional = true, default-features = false }
+
 [features]
 std = [
 	"frame-support/std",
@@ -41,5 +44,6 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-transactor/std",
+	"xcm/std",
 ]
-xcm-support = [ "xcm-transactor" ]
+xcm-support = [ "pallet-asset-manager", "xcm", "xcm-transactor" ]
