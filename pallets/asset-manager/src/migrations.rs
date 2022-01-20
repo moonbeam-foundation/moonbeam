@@ -27,6 +27,10 @@ use sp_std::convert::TryInto;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
+/// Migration that changes the mapping AssetId -> units_per_second to
+/// a mapping of the form AssetType -> units_per_second
+/// It does so by removing the AssetTypeUnitsPerSecond storage and
+/// populating the new AssetTypeUnitsPerSecond
 pub struct UnitsWithAssetType<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	#[cfg(feature = "try-runtime")]
@@ -144,6 +148,8 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	}
 }
 
+/// Migration that reads data from the AssetIdType mapping (AssetId -> AssetType)
+/// and populates the reverse mapping AssetTypeId (AssetType -> AssetId)
 pub struct PopulateAssetTypeIdStorage<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	#[cfg(feature = "try-runtime")]
@@ -247,6 +253,10 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		Ok(())
 	}
 }
+
+/// Migration that reads the existing AssetTypes looking for old Statemine prefixes of
+/// the form (Parachain, GeneralIndex) and changes them for the new prefix
+/// (Parachain, PalletInstance, GeneralIndex)
 pub struct ChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
 	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
 );
