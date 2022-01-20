@@ -35,7 +35,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1))
+        context.polkadotApi.tx.assetManager.registerAsset(
+          sourceLocation,
+          assetMetadata,
+          new BN(1),
+          true
+        )
       )
     );
     // Look for assetId in events
@@ -51,7 +56,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");

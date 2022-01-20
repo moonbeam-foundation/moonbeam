@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -34,8 +34,9 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Everything, Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize,
-		OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
+		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -93,8 +94,7 @@ use xcm::latest::prelude::*;
 
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
-	XcmFeesToAccount, XcmTransact,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use cumulus_primitives_core::{
@@ -246,6 +246,7 @@ impl frame_system::Config for Runtime {
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
+	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
 }
 
@@ -361,6 +362,7 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	pub PrecompilesValue: MoonriverPrecompiles<Runtime> = MoonriverPrecompiles::<_>::new();
 }
 
 pub struct FixedGasPrice;
@@ -414,7 +416,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = MoonriverPrecompiles<Self>;
+	type PrecompilesType = MoonriverPrecompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
@@ -435,6 +438,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 parameter_types! {
@@ -656,6 +660,30 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
+	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
+	pub IsActive: bool = false;
+}
+
+pub struct BaseFeeThreshold;
+impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
+	fn lower() -> Permill {
+		Permill::zero()
+	}
+	fn ideal() -> Permill {
+		Permill::from_parts(500_000)
+	}
+	fn upper() -> Permill {
+		Permill::from_parts(1_000_000)
+	}
+}
+
+impl pallet_base_fee::Config for Runtime {
+	type Event = Event;
+	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
+}
+
+parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 }
@@ -837,7 +865,7 @@ impl InstanceFilter<Call> for ProxyType {
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
 						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -896,11 +924,18 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		runtime_common::migrations::XcmMigrations<
+			Runtime,
+			StatemineParaId,
+			StatemineAssetPalletInstance,
+		>,
+	);
 }
 
 parameter_types! {
@@ -1011,7 +1046,7 @@ parameter_types! {
 /// This is the struct that will handle the revenue from xcm fees
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
-pub type XcmFeesToAccount_ = XcmFeesToAccount<
+pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	Assets,
 	(
 		ConvertedConcreteAssetId<
@@ -1040,7 +1075,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type Weigher = XcmWeigher;
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>;
+	type Trader = FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -1134,6 +1169,13 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	// Statemine ParaId in kusama
+	pub StatemineParaId: u32 = 1000;
+	// Assets Pallet instance in Statemine kusama
+	pub StatemineAssetPalletInstance: u8 = 50;
+}
+
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -1147,10 +1189,25 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map the previous location to the new one so that the assetId is well retrieved
+			MultiLocation {
+				parents: 1,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemineParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemineAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
+			_ => Self::Xcm(location),
+		}
 	}
 }
-
 impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
@@ -1185,12 +1242,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetRegistrarMetadata,
+		is_sufficient: bool,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
-			true,
+			is_sufficient,
 			min_balance,
 		)?;
 
@@ -1358,15 +1416,6 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => MultiLocation::parent(),
 		}
 	}
-
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			// Kusama is 20,000,000,000
-			// This needs to take into account the rest of the message
-			// We use 12,000,000,000 to be safe
-			Transactors::Relay => 12_000_000_000,
-		}
-	}
 }
 
 impl xcm_transactor::Config for Runtime {
@@ -1388,9 +1437,9 @@ impl xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 }
 
-/// Call filter used during Phase 3 of the Moonriver rollout
-pub struct PhaseThreeFilter;
-impl Contains<Call> for PhaseThreeFilter {
+/// Maintenance mode Call filter
+pub struct MaintenanceFilter;
+impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Assets(_) => false,
@@ -1398,9 +1447,12 @@ impl Contains<Call> for PhaseThreeFilter {
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
+			Call::Identity(_) => false,
 			Call::XTokens(_) => false,
-			Call::XcmTransactor(_) => false,
+			Call::ParachainStaking(_) => false,
 			Call::PolkadotXcm(_) => false,
+			Call::Treasury(_) => false,
+			Call::XcmTransactor(_) => false,
 			_ => true,
 		}
 	}
@@ -1514,7 +1566,7 @@ impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
-	type MaintenanceCallFilter = PhaseThreeFilter;
+	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type NormalDmpHandler = DmpQueue;
@@ -1567,6 +1619,7 @@ construct_runtime! {
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
+		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 53,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
@@ -1752,6 +1805,38 @@ runtime_common::impl_self_contained_call!();
 #[cfg(test)]
 mod tests {
 	use super::{currency::*, *};
+
+	#[test]
+	// Helps us to identify a Pallet Call in case it exceeds the 1kb limit.
+	// Hint: this should be a rare case. If that happens, one or more of the dispatchable arguments
+	// need to be Boxed.
+	fn call_max_size() {
+		const CALL_ALIGN: u32 = 1024;
+		assert!(
+			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_author_inherent::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(
+			std::mem::size_of::<pallet_author_slot_filter::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(
+			std::mem::size_of::<pallet_crowdloan_rewards::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_author_mapping::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
+		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
+				<= CALL_ALIGN as usize
+		);
+	}
 
 	#[test]
 	fn currency_constants_are_correct() {

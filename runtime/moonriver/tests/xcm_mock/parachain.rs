@@ -91,7 +91,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub ExistentialDeposit: Balance = 1;
+	pub ExistentialDeposit: Balance = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -256,8 +256,7 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader =
-		(xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,);
+	type Trader = (xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,);
 
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -556,6 +555,11 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = XcmVersioner;
 }
 
+parameter_types! {
+	pub StatemineParaId: u32 = 4;
+	pub StatemineAssetPalletInstance: u8 = 5;
+}
+
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -569,7 +573,23 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map the previous location to the new one so that the assetId is well retrieved
+			MultiLocation {
+				parents: 1,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemineParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemineAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
+			_ => Self::Xcm(location),
+		}
 	}
 }
 
@@ -605,12 +625,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetMetadata,
+		is_sufficient: bool,
 	) -> DispatchResult {
 		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
-			true,
+			is_sufficient,
 			min_balance,
 		)?;
 
@@ -662,6 +683,37 @@ impl xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 }
 
+parameter_types! {
+	pub const MinimumPeriod: u64 = 1000;
+}
+impl pallet_timestamp::Config for Runtime {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
+
+impl pallet_evm::Config for Runtime {
+	type FeeCalculator = ();
+	type GasWeightMapping = ();
+
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
+
+	type AddressMapping = runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+
+	type Event = Event;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type ChainId = ();
+	type BlockGasLimit = ();
+	type OnChargeTransaction = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
+}
+
 pub struct NormalFilter;
 impl frame_support::traits::Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
@@ -694,14 +746,6 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
-		}
-	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			// Kusama is 20,000,000,000
-			// This needs to take into account the rest of the message
-			// We use 12,000,000,000 to be safe
-			MockTransactors::Relay => 12_000_000_000,
 		}
 	}
 }
@@ -741,7 +785,10 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call}
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
+		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 	}
 );
 

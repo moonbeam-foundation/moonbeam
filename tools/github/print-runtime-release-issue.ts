@@ -30,6 +30,8 @@ async function main() {
 
   const template = `
   - [ ] Create a PR that increment spec version (like #1051)
+  - [ ] Cleanup previous migrations (only for major release,
+  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
   - [ ] Get that PR approved and merged
   - [ ] Tag master with runtime-${newVersion} and push to github
   - [ ] Start the github action Publish Runtime Draft
@@ -42,7 +44,7 @@ async function main() {
   - [ ] Add new substitute in alphanet configuration 
   - [ ] Upgrade alphanet
   - [ ] Create new tracing image for partners: start the github action Publish Docker
-  with v${lastClientVersion} and master
+  with ${lastClientVersion} and master
   - [ ] When everything is ok, publish the draft release
   `;
 

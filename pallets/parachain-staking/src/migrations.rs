@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -104,7 +104,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
 			Self::set_temp_storage(
 				total_delegation_count,
-				&format!("Candidate{}DelegationCount", account)[..],
+				&format!("Candidate{:?}DelegationCount", account)[..],
 			);
 		}
 		Ok(())
@@ -115,7 +115,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 		// check that top + bottom are the same as the expected (stored in temp)
 		for (account, state) in <CandidateState<T>>::iter() {
 			let expected_count: u32 =
-				Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
+				Self::get_temp_storage(&format!("Candidate{:?}DelegationCount", account)[..])
 					.expect("qed");
 			let actual_count =
 				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;

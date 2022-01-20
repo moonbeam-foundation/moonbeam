@@ -2,6 +2,7 @@
 exclude = [ "bin/utils/moonkey" ]
 members = [
 	"bin/utils/moonkey",
+	"client/rpc/finality",
 	"client/rpc/manual-xcm",
 	"node",
 	"node/cli",
@@ -16,10 +17,7 @@ members = [
 ]
 
 [patch.crates-io]
-ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
+ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1-typeinfo-patch" }
 
 [profile.release]
 panic = "unwind"

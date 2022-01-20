@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
@@ -13,7 +13,7 @@ const BOB_HEX = "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
-describeDevMoonbeam("Precompiles - relay-encoder", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
   let iFace;
   let contractData;
   before("Deploy contract", async () => {

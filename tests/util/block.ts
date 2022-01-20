@@ -11,6 +11,7 @@ import type { Block } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import Debug from "debug";
 import { WEIGHT_PER_GAS } from "./constants";
+import { DevTestContext } from "./setup-dev-tests";
 const debug = Debug("blocks");
 
 export async function createAndFinalizeBlock(
@@ -125,12 +126,13 @@ export const exploreBlockRange = async (
 };
 
 export const verifyBlockFees = async (
-  api: ApiPromise,
+  context: DevTestContext,
   fromBlockNumber: number,
   toBlockNumber: number,
   expect,
   expectedBalanceDiff: bigint
 ) => {
+  const api = context.polkadotApi;
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
   let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
@@ -194,8 +196,26 @@ export const verifyBlockFees = async (
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
+                let ethTxWrapper = extrinsic.method.args[0] as any;
+                let gasPrice;
+                // Transaction is an enum now with as many variants as supported transaction types.
+                if (ethTxWrapper.isLegacy) {
+                  gasPrice = ethTxWrapper.asLegacy.gasPrice.toBigInt();
+                } else if (ethTxWrapper.isEip2930) {
+                  gasPrice = ethTxWrapper.asEip2930.gasPrice.toBigInt();
+                } else if (ethTxWrapper.isEip1559) {
+                  let number = blockDetails.block.header.number.toNumber();
+                  // The on-chain base fee used by the transaction. Aka the parent block's base fee.
+                  //
+                  // Note on 1559 fees: no matter what the user was willing to pay (maxFeePerGas),
+                  // the transaction fee is ultimately computed using the onchain base fee. The
+                  // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
+                  // prioritization component: the EVM is not aware of it and thus not part of the
+                  // weight cost of the extrinsic.
+                  gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+                }
                 // And then multiplying by gasPrice
-                txFees = gasFee * (extrinsic.method.args[0] as any).gasPrice.toBigInt();
+                txFees = gasFee * gasPrice;
               } else {
                 // For a regular substrate tx, we use the partialFee
                 txFees = fee.partialFee.toBigInt();
@@ -267,11 +287,11 @@ export const verifyBlockFees = async (
 };
 
 export const verifyLatestBlockFees = async (
-  api: ApiPromise,
+  context: DevTestContext,
   expect,
   expectedBalanceDiff: bigint = BigInt(0)
 ) => {
-  const signedBlock = await api.rpc.chain.getBlock();
+  const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
-  return verifyBlockFees(api, blockNumber, blockNumber, expect, expectedBalanceDiff);
+  return verifyBlockFees(context, blockNumber, blockNumber, expect, expectedBalanceDiff);
 };

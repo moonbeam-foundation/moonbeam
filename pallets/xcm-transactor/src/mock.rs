@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -267,11 +267,6 @@ impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
-		}
-	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			Transactors::Relay => 20000000000,
 		}
 	}
 }

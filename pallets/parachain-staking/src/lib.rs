@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1615,7 +1615,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	type CandidatePool<T: Config> =
+	pub(crate) type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
@@ -1780,6 +1780,23 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(
+			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
+		)]
+		/// Hotfix patch to correct and update CandidatePool value for candidates that have
+		/// called candidate_bond_more when it did not update the CandidatePool value
+		pub fn hotfix_update_candidate_pool_value(
+			origin: OriginFor<T>,
+			candidates: Vec<T::AccountId>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			for candidate in candidates {
+				if let Some(state) = <CandidateState<T>>::get(&candidate) {
+					Self::update_active(candidate, state.total_counted);
+				} // else candidate is not a candidate so no update needed
+			}
+			Ok(().into())
+		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
@@ -2120,6 +2137,9 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CandidateState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			state.bond_more::<T>(more)?;
+			if state.is_active() {
+				Self::update_active(collator.clone(), state.total_counted);
+			}
 			<CandidateState<T>>::insert(&collator, state);
 			Ok(().into())
 		}

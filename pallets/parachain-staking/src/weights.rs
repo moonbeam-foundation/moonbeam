@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight;
 	fn set_staking_expectations() -> Weight;
 	fn set_inflation() -> Weight;
 	fn set_parachain_bond_account() -> Weight;
@@ -87,6 +88,12 @@ pub trait WeightInfo {
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 147_000
+			.saturating_add((26_825_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
@@ -263,6 +270,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 147_000
+			.saturating_add((26_825_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))

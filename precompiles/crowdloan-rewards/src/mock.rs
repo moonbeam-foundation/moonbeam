@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -183,28 +183,32 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: pallet_crowdloan_rewards::Config + pallet_evm::Config,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
+	CrowdloanRewardsWrapper<R>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context,
+				input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
 	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == precompile_address()
+	}
 }
 
-pub type Precompiles = TestPrecompiles<Runtime>;
+parameter_types! {
+	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+}
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -215,7 +219,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesValue = PrecompilesValue;
+	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();

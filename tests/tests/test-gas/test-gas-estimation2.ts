@@ -1,15 +1,15 @@
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { createContract } from "../../util/transactions";
 
 chaiUse(chaiAsPromised);
 
-describeDevMoonbeam("Estimate Gas - infinite loop", (context) => {
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - infinite loop", (context) => {
   it("Should be able to estimate gas of infinite loop call", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
     await expect(
