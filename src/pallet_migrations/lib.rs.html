@@ -605,7 +605,7 @@
 				));
 				<span class="op">&lt;</span><span class="ident">MigrationState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">migration_name_as_bytes</span>, <span class="bool-val">true</span>);
 
-				<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">consumed_weight</span>;
+				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">consumed_weight</span>);
 				<span class="kw">if</span> <span class="ident">weight</span> <span class="op">&gt;</span> <span class="ident">available_weight</span> {
 					<span class="macro">log::error!</span>(
 						<span class="string">&quot;Migration {} consumed more weight than it was given! ({} &gt; {})&quot;</span>,
