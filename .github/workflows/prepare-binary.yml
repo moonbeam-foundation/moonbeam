@@ -47,7 +47,7 @@ jobs:
   ####### Prepare the release draft #######
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs: ["build"]
+    needs: ["build-binary"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
