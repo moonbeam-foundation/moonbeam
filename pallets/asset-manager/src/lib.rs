@@ -21,13 +21,16 @@
 //! The main goal of this pallet is to allow moonbeam to register XCM assets
 //! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
 //!
-//! This pallet has two storage items: AssetIdType, which holds a mapping from AssetId->AssetType
-//! AssetTypeUnitsPerSecond: an AssetId->u128 mapping that holds how much each AssetType should be
-//! charged per unit of second, in the case such an Asset is received as a XCM asset.
+//! This pallet has three storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should be
+//! charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
+//! AssetTypeId holds a mapping from AssetType -> AssetId.
 //!
-//! This pallet has two extrinsics: register_asset, which registers an Asset in this pallet and
+//! This pallet has three extrinsics: register_asset, which registers an Asset in this pallet and
 //! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
 //! sets the unit per second that should be charged for a particular asset.
+//! change_existing_asset_type: which allows to update the correspondence between AssetId and
+//! AssetType
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -127,18 +130,24 @@ pub mod pallet {
 		AssetTypeChanged(T::AssetId, T::AssetType),
 	}
 
-	/// Stores the asset Type with assetId as key
+	/// Mapping from an asset id to asset type.
+	/// This is mostly used when receiving transaction specifying an asset directly,
+	/// like transferring an asset from this chain to another.
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_type)]
 	pub type AssetIdType<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, T::AssetType>;
 
-	/// Stores the asset Id with Asset Type as key
+	/// Reverse mapping of AssetIdType. Mapping from an asset type to an asset id.
+	/// This is mostly used when receiving a multilocation XCM message to retrieve
+	/// the corresponding asset in which tokens should me minted.
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_id)]
 	pub type AssetTypeId<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetType, T::AssetId>;
 
-	// Stores the units per second for local execution.
-	// Not all assets might contain units per second, hence the different storage
+	/// Stores the units per second for local execution for a AssetType.
+	/// This is used to know how to charge for XCM execution in a particular
+	/// asset
+	/// Not all assets might contain units per second, hence the different storage
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_units_per_second)]
 	pub type AssetTypeUnitsPerSecond<T: Config> =
