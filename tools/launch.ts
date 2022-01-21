@@ -224,7 +224,7 @@ async function start() {
       },
       "parachain-runtime": {
         type: "string",
-        describe: "overrides parachain runtime",
+        describe: "<git-tag> to use for runtime specs",
         conflicts: ["parachain-chain"],
       },
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
