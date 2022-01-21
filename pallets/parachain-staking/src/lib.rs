@@ -1780,7 +1780,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::hotfix_remove_delegation_requests(delegators.len() as u32)
+		)]
 		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
 		pub fn hotfix_remove_delegation_requests(
 			origin: OriginFor<T>,
