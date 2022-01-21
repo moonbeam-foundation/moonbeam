@@ -1801,7 +1801,8 @@ pub mod pallet {
 							.is_none()
 						{
 							state.requests.requests.remove(&candidate);
-							state.requests.less_total -= request.amount;
+							state.requests.less_total =
+								state.requests.less_total.saturating_sub(request.amount);
 							if matches!(request.action, DelegationChange::Revoke) {
 								state.requests.revocations_count -= 1u32;
 							}
@@ -2060,7 +2061,8 @@ pub mod pallet {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
 						if let Some(request) = delegator.requests.requests.remove(&candidate) {
-							delegator.requests.less_total -= request.amount;
+							delegator.requests.less_total =
+								delegator.requests.less_total.saturating_sub(request.amount);
 							if matches!(request.action, DelegationChange::Revoke) {
 								delegator.requests.revocations_count -= 1u32;
 							}
