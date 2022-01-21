@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use frame_system::InitKind;
 pub use moonbase_runtime::{
 	currency::{UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
@@ -29,10 +30,10 @@ pub use moonbase_runtime::{
 	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
-use nimbus_primitives::NimbusId;
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
-use sp_core::H160;
-use sp_runtime::Perbill;
+use sp_core::{Encode, H160};
+use sp_runtime::{Digest, DigestItem, Perbill};
 
 use std::collections::BTreeMap;
 
@@ -50,11 +51,33 @@ pub const INVALID_ETH_TX: &str =
 	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
 	ecec29011f6f5bf0b1a552c55ea348df35f";
 
-pub fn run_to_block(n: u32) {
+/// Utility function that advances the chain to the desired block number.
+/// If an author is provided, that author information is injected to all the blocks in the meantime.
+pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 	while System::block_number() < n {
+		// Finalize the previous block
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
+
+		// Set the new block number and author
+		match author {
+			Some(ref author) => {
+				let pre_digest = Digest {
+					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
+				};
+				System::initialize(
+					&(System::block_number() + 1),
+					&System::parent_hash(),
+					&pre_digest,
+					InitKind::Full,
+				);
+			}
+			None => {
+				System::set_block_number(System::block_number() + 1);
+			}
+		}
+
+		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
@@ -75,6 +98,16 @@ pub fn evm_test_context() -> fp_evm::Context {
 		apparent_value: From::from(0),
 	}
 }
+
+// Test struct with the purpose of initializing xcm assets
+#[derive(Clone)]
+pub struct XcmAssetInitialization {
+	pub asset_type: AssetType,
+	pub metadata: AssetRegistrarMetadata,
+	pub balances: Vec<(AccountId, Balance)>,
+	pub is_sufficient: bool,
+}
+
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
@@ -95,7 +128,7 @@ pub struct ExtBuilder {
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance>]
-	xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
+	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
 }
 
@@ -161,10 +194,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_xcm_assets(
-		mut self,
-		xcm_assets: Vec<(AssetType, AssetRegistrarMetadata, Vec<(AccountId, Balance)>)>,
-	) -> Self {
+	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
 		self.xcm_assets = xcm_assets;
 		self
 	}
@@ -264,13 +294,20 @@ impl ExtBuilder {
 				}
 			}
 			// If any xcm assets specified, we register them here
-			for (asset_type, metadata, balances) in xcm_assets.clone() {
-				AssetManager::register_asset(root_origin(), asset_type.clone(), metadata, 1)
-					.unwrap();
-				for (account, balance) in balances {
+			for xcm_asset_initialization in xcm_assets {
+				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
+				AssetManager::register_asset(
+					root_origin(),
+					xcm_asset_initialization.asset_type,
+					xcm_asset_initialization.metadata,
+					1,
+					xcm_asset_initialization.is_sufficient,
+				)
+				.unwrap();
+				for (account, balance) in xcm_asset_initialization.balances {
 					Assets::mint(
 						origin_of(AssetManager::account_id()),
-						asset_type.clone().into(),
+						asset_id,
 						account,
 						balance,
 					)
@@ -301,14 +338,6 @@ pub fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 
 pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-pub fn set_author(a: NimbusId) {
-	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author { author: a })
-			.dispatch(inherent_origin())
-	);
 }
 
 /// Mock the inherent that sets validation data in ParachainSystem, which

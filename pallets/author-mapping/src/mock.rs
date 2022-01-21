@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,11 +21,12 @@ use frame_support::{
 	traits::{Everything, GenesisBuild},
 	weights::Weight,
 };
+use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{Public, H256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -39,14 +40,22 @@ pub enum TestAuthor {
 	Alice,
 	Bob,
 	Charlie,
-	Dave,
-	Eve,
 }
 impl Default for TestAuthor {
 	fn default() -> TestAuthor {
 		TestAuthor::Alice
 	}
 }
+impl Into<NimbusId> for TestAuthor {
+	fn into(self) -> NimbusId {
+		match self {
+			Self::Alice => NimbusId::from_slice(&[0u8; 32]),
+			Self::Bob => NimbusId::from_slice(&[1u8; 32]),
+			Self::Charlie => NimbusId::from_slice(&[2u8; 32]),
+		}
+	}
+}
+
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -118,7 +127,6 @@ parameter_types! {
 }
 impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
-	type AuthorId = TestAuthor;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = ();
@@ -130,7 +138,7 @@ pub(crate) struct ExtBuilder {
 	/// Accounts endowed with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// AuthorId -> AccoutId mappings
-	mappings: Vec<(TestAuthor, AccountId)>,
+	mappings: Vec<(NimbusId, AccountId)>,
 }
 
 impl Default for ExtBuilder {
@@ -148,7 +156,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_mappings(mut self, mappings: Vec<(TestAuthor, AccountId)>) -> Self {
+	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
 		self
 	}

@@ -21,7 +21,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       subscription.once("data", resolve);
     });
 
-    const { rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({
       transactions: [rawTx],
     });
@@ -146,7 +146,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     subTopicMultiCondPromise = subData(subTopicMultiCond);
     subTopicWildAndCondPromise = subData(subTopicWildAndCond);
 
-    const { rawTx } = await createContract(context.web3, "SingleEventContract");
+    const { rawTx } = await createContract(context, "SingleEventContract");
     await context.createBlock({
       transactions: [rawTx],
     });
@@ -203,7 +203,7 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
     });
 
     // Expected to fail because of not enough fund to pay the deployment
-    const { rawTx } = await createContract(context.web3, "SingleEventContract", {
+    const { rawTx } = await createContract(context, "SingleEventContract", {
       from: "0x1111111111111111111111111111111111111111",
     });
     await context.createBlock({

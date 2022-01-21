@@ -7,8 +7,12 @@ import { getCommitAndLabels, getCompareLink } from "./github-utils";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
-// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 3.
-const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0603";
+// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
+const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
+// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
+const MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
+// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
+const MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -36,8 +40,16 @@ function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
       MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
     );
+  } else if (runtimeName == "moonriver") {
+    return blake2AsHex(
+      MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
   } else {
-    return srtool.runtimes.compressed.subwasm.parachain_authorize_upgrade_hash;
+    return blake2AsHex(
+      MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
   }
 }
 
@@ -104,7 +116,6 @@ ${runtimes
 🏋 size                        : ${runtime.srtool.runtimes.compressed.size}
 #️⃣ sha256                      : ${runtime.srtool.runtimes.compressed.sha256}
 #️⃣ blake2-256                  : ${runtime.srtool.runtimes.compressed.blake2_256}
-🗳️ proposal (setCode)          : ${runtime.srtool.runtimes.compressed.prop}
 🗳️ proposal (authorizeUpgrade) : ${authorizeUpgradeHash(runtime.name, runtime.srtool)}
 \`\`\``
   )

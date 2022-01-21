@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,11 +24,11 @@ use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pa
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, Precompiles, Range,
-	SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
+	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -55,18 +55,20 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		ChainType::Development,
 		move || {
 			testnet_genesis(
-				// Alith is Sudo
-				accounts[0],
+				// Council members: Baltathar, Charleth and Dorothy
+				vec![accounts[1], accounts[2], accounts[3]],
+				// Tech comitee members: Alith and Baltathar
+				vec![accounts[0], accounts[1]],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					accounts[0],
 					get_from_seed::<NimbusId>("Alice"),
-					1_000 * GLMR,
+					1_000 * GLMR * SUPPLY_FACTOR,
 				)],
 				// Delegations
 				vec![],
 				accounts.clone(),
-				3_000_000 * GLMR,
+				1_500_000 * GLMR * SUPPLY_FACTOR,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -99,21 +101,28 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				// Alith is Sudo
-				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				vec![
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
+					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+				],
+				vec![
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
 					(
 						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 						get_from_seed::<NimbusId>("Alice"),
-						1_000 * GLMR,
+						1_000 * GLMR * SUPPLY_FACTOR,
 					),
 					// Bob -> Baltithar
 					(
 						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 						get_from_seed::<NimbusId>("Bob"),
-						1_000 * GLMR,
+						1_000 * GLMR * SUPPLY_FACTOR,
 					),
 				],
 				// Delegations
@@ -122,7 +131,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 				],
-				3_000_000 * GLMR,
+				1_500_000 * GLMR * SUPPLY_FACTOR,
 				para_id,
 				1280, //ChainId
 			)
@@ -160,9 +169,9 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		// staking expectations
 		expect: Range {
-			min: 100_000 * GLMR,
-			ideal: 200_000 * GLMR,
-			max: 500_000 * GLMR,
+			min: 100_000 * GLMR * SUPPLY_FACTOR,
+			ideal: 200_000 * GLMR * SUPPLY_FACTOR,
+			max: 500_000 * GLMR * SUPPLY_FACTOR,
 		},
 		// annual inflation
 		annual,
@@ -171,7 +180,8 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
+	council_members: Vec<AccountId>,
+	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
@@ -190,7 +200,6 @@ pub fn testnet_genesis(
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -202,7 +211,6 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
@@ -225,6 +233,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
+		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
 		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
@@ -238,11 +247,11 @@ pub fn testnet_genesis(
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
-			members: vec![], // TODO : Set members
+			members: council_members,
 		},
 		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
-			members: vec![], // TODO : Set members
+			members: tech_comittee_members,
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_ratio: sp_runtime::Percent::from_percent(50),
@@ -260,6 +269,8 @@ pub fn testnet_genesis(
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 		},
+		// This should initialize it to whatever we have set in the pallet
+		polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 

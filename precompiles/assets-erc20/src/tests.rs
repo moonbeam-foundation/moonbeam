@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,15 +15,19 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::assert_ok;
-use std::assert_matches::assert_matches;
+use std::{assert_matches::assert_matches, str::from_utf8};
 
 use crate::mock::*;
 use crate::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, PrecompileFailure};
 use pallet_evm::PrecompileSet;
-use precompile_utils::{error, EvmDataWriter, LogsBuilder};
+use precompile_utils::{EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
+
+fn precompiles() -> Erc20AssetsPrecompileSet<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -44,18 +48,20 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		assert_eq!(
-			Erc20AssetsPrecompileSet::<Runtime>::execute(
+		assert_matches!(
+			precompiles().execute(
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
+					apparent_value: From::from(0u32),
 				},
+				false,
 			),
-			Some(Err(error("tried to parse selector out of bounds")))
+			Some(Err(PrecompileFailure::Revert { output, .. }))
+			if output == b"tried to parse selector out of bounds"
 		);
 	});
 }
@@ -78,18 +84,20 @@ fn no_selector_exists_but_length_is_right() {
 		));
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		assert_eq!(
-			Erc20AssetsPrecompileSet::<Runtime>::execute(
+		assert_matches!(
+			precompiles().execute(
 				Account::AssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&Context {
 					address: Account::AssetId(1u128).into(),
 					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
+					apparent_value: From::from(0u32),
 				},
+				false,
 			),
-			Some(Err(error("unknown selector")))
+			Some(Err(PrecompileFailure::Revert { output, .. }))
+			if output == b"unknown selector"
 		);
 	});
 }
@@ -137,7 +145,7 @@ fn get_total_supply() {
 				1000
 			));
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
@@ -146,6 +154,7 @@ fn get_total_supply() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -177,7 +186,7 @@ fn get_balances_known_user() {
 				1000
 			));
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -188,6 +197,7 @@ fn get_balances_known_user() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -219,7 +229,7 @@ fn get_balances_unknown_user() {
 				1000
 			));
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -230,6 +240,7 @@ fn get_balances_unknown_user() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -262,7 +273,7 @@ fn approve() {
 			));
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
@@ -274,6 +285,7 @@ fn approve() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -287,6 +299,81 @@ fn approve() {
 							EvmDataWriter::new().write(U256::from(500)).build(),
 						)
 						.build(),
+				}))
+			);
+		});
+}
+
+#[test]
+fn approve_saturating() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Assets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(Assets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			assert_eq!(
+				precompiles().execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::MAX)
+						.build(),
+					None,
+					&Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(true).build(),
+					cost: 56999756u64,
+					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::MAX).build(),
+						)
+						.build(),
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::AssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::AssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(u128::MAX)).build(),
+					cost: 0u64,
+					logs: vec![],
 				}))
 			);
 		});
@@ -312,7 +399,7 @@ fn check_allowance_existing() {
 				1000
 			));
 
-			Erc20AssetsPrecompileSet::<Runtime>::execute(
+			precompiles().execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -324,10 +411,11 @@ fn check_allowance_existing() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
@@ -339,6 +427,7 @@ fn check_allowance_existing() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -370,7 +459,7 @@ fn check_allowance_not_existing() {
 				1000
 			));
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
@@ -382,6 +471,7 @@ fn check_allowance_not_existing() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -414,7 +504,7 @@ fn transfer() {
 			));
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
@@ -426,6 +516,7 @@ fn transfer() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -443,7 +534,7 @@ fn transfer() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -454,6 +545,7 @@ fn transfer() {
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -464,7 +556,7 @@ fn transfer() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -475,6 +567,7 @@ fn transfer() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -507,7 +600,7 @@ fn transfer_not_enough_founds() {
 			));
 
 			assert_matches!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Charlie.into()))
@@ -519,10 +612,12 @@ fn transfer_not_enough_founds() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
-				Some(Err(ExitError::Other(str)))
-					if str.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
-					&& str.contains("BalanceLow")
+				Some(Err(PrecompileFailure::Revert { output: str, ..}))
+					if from_utf8(&str).unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+					&& from_utf8(&str).unwrap().contains("BalanceLow")
 			);
 		});
 }
@@ -547,7 +642,7 @@ fn transfer_from() {
 				1000
 			));
 
-			Erc20AssetsPrecompileSet::<Runtime>::execute(
+			precompiles().execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -559,10 +654,11 @@ fn transfer_from() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -575,6 +671,7 @@ fn transfer_from() {
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -592,7 +689,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -603,6 +700,7 @@ fn transfer_from() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -613,7 +711,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -624,6 +722,7 @@ fn transfer_from() {
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -634,7 +733,7 @@ fn transfer_from() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Charlie.into()))
@@ -645,6 +744,7 @@ fn transfer_from() {
 						caller: Account::Charlie.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -678,7 +778,7 @@ fn transfer_from_non_incremental_approval() {
 
 			// We first approve 500
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
@@ -690,6 +790,7 @@ fn transfer_from_non_incremental_approval() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -711,7 +812,7 @@ fn transfer_from_non_incremental_approval() {
 			// Additionally, the gas used in this approval is higher because we
 			// need to clear the previous one
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
@@ -723,6 +824,7 @@ fn transfer_from_non_incremental_approval() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -740,8 +842,8 @@ fn transfer_from_non_incremental_approval() {
 			);
 
 			// This should fail, as now the new approved quantity is 300
-			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+			assert_matches!(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -754,12 +856,12 @@ fn transfer_from_non_incremental_approval() {
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
+					false,
 				),
-				Some(Err(error(
-					"Dispatched call failed with error: DispatchErrorWithPostInfo { \
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }"
-				))),
+					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }",
 			);
 		});
 }
@@ -784,7 +886,7 @@ fn transfer_from_above_allowance() {
 				1000
 			));
 
-			Erc20AssetsPrecompileSet::<Runtime>::execute(
+			precompiles().execute(
 				Account::AssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
@@ -796,10 +898,11 @@ fn transfer_from_above_allowance() {
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
+				false,
 			);
 
-			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+			assert_matches!(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -812,12 +915,12 @@ fn transfer_from_above_allowance() {
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
+					false,
 				),
-				Some(Err(error(
-					"Dispatched call failed with error: DispatchErrorWithPostInfo { \
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
 					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }"
-				))),
 			);
 		});
 }
@@ -843,7 +946,7 @@ fn transfer_from_self() {
 			));
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
@@ -857,6 +960,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -874,7 +978,7 @@ fn transfer_from_self() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
@@ -885,6 +989,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -895,7 +1000,7 @@ fn transfer_from_self() {
 			);
 
 			assert_eq!(
-				Erc20AssetsPrecompileSet::<Runtime>::execute(
+				precompiles().execute(
 					Account::AssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
@@ -906,6 +1011,7 @@ fn transfer_from_self() {
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
+					false,
 				),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
@@ -946,7 +1052,7 @@ fn get_metadata() {
 			));
 			{
 				assert_eq!(
-					Erc20AssetsPrecompileSet::<Runtime>::execute(
+					precompiles().execute(
 						Account::AssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Name).build(),
 						None,
@@ -956,6 +1062,7 @@ fn get_metadata() {
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
 						},
+						false,
 					),
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
@@ -968,7 +1075,7 @@ fn get_metadata() {
 				);
 
 				assert_eq!(
-					Erc20AssetsPrecompileSet::<Runtime>::execute(
+					precompiles().execute(
 						Account::AssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
 						None,
@@ -978,6 +1085,7 @@ fn get_metadata() {
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
 						},
+						false,
 					),
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
@@ -988,7 +1096,7 @@ fn get_metadata() {
 				);
 
 				assert_eq!(
-					Erc20AssetsPrecompileSet::<Runtime>::execute(
+					precompiles().execute(
 						Account::AssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
 						None,
@@ -998,6 +1106,7 @@ fn get_metadata() {
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
 						},
+						false,
 					),
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,

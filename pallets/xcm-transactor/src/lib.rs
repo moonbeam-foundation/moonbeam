@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -55,18 +55,21 @@ pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod migrations;
+
 #[pallet]
 pub mod pallet {
 
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
+	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
-	use xcm_executor::traits::{InvertLocation, WeightBounds};
+	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
@@ -93,6 +96,10 @@ pub mod pallet {
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
 		type Transactor: Parameter + Member + Clone + XcmTransact;
+
+		/// AssetTransactor allows us to withdraw asset without being trapped
+		/// This should change in xcm v3, which allows us to burn assets
+		type AssetTransactor: TransactAsset;
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
@@ -130,17 +137,13 @@ pub mod pallet {
 	/// Stores the information to be able to issue a transact operation in another chain use an
 	/// asset as fee payer.
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
-	pub struct RemoteTransactInfo {
+	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
 		pub transact_extra_weight: Weight,
-		/// Fee per call byte
-		pub fee_per_byte: u128,
-		/// Size of the tx metadata of a transaction in the destination chain
-		pub metadata_size: u64,
-		/// Minimum weight the destination chain charges for a transaction
-		pub base_weight: Weight,
 		/// Fee per weight in the destination chain
-		pub fee_per_weight: u128,
+		pub fee_per_second: u128,
+		/// Max destination weight
+		pub max_weight: Weight,
 	}
 
 	// Since we are using pallet-utility for account derivation (through AsDerivative),
@@ -150,13 +153,13 @@ pub mod pallet {
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
 
-	// Stores the transact info of a MULTIlOCAITON. This defines how much extra weight we need to
+	// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
 	// add when we want to transact in the destination chain and how we convert weight to units
 	// in the destination chain
 	#[pallet::storage]
 	#[pallet::getter(fn transact_info)]
-	pub type TransactInfo<T: Config> =
-		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfo>;
+	pub type TransactInfoWithWeightLimit<T: Config> =
+		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -179,6 +182,8 @@ pub mod pallet {
 		NotCrossChainTransferableCurrency,
 		XcmExecuteError,
 		BadVersion,
+		MaxWeightTransactReached,
+		UnableToWithdrawAsset,
 	}
 
 	#[pallet::event]
@@ -188,7 +193,7 @@ pub mod pallet {
 		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
 		RegisterdDerivative(T::AccountId, u16),
 		TransactFailed(XcmError),
-		TransactInfoChanged(MultiLocation, RemoteTransactInfo),
+		TransactInfoChanged(MultiLocation, RemoteTransactInfoWithMaxWeight),
 	}
 
 	#[pallet::call]
@@ -236,14 +241,14 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
-			fee_location: VersionedMultiLocation,
+			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			inner_call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let fee_location =
-				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
+				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
 			// The derivative index is owned by the origin
@@ -344,18 +349,18 @@ pub mod pallet {
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
-			dest: VersionedMultiLocation,
+			dest: Box<VersionedMultiLocation>,
 			fee_payer: T::AccountId,
-			fee_location: VersionedMultiLocation,
+			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
 			let fee_location =
-				MultiLocation::try_from(fee_location).map_err(|()| Error::<T>::BadVersion)?;
+				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			let dest = MultiLocation::try_from(dest).map_err(|()| Error::<T>::BadVersion)?;
+			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 			// Grab the destination
 			Self::transact_in_dest_chain_asset(
 				dest.clone(),
@@ -375,25 +380,21 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
-			location: VersionedMultiLocation,
+			location: Box<VersionedMultiLocation>,
 			transact_extra_weight: Weight,
-			fee_per_byte: u128,
-			base_weight: Weight,
-			fee_per_weight: u128,
-			metadata_size: u64,
+			fee_per_second: u128,
+			max_weight: u64,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let location =
-				MultiLocation::try_from(location).map_err(|()| Error::<T>::BadVersion)?;
-			let remote_info = RemoteTransactInfo {
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+			let remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
-				fee_per_byte,
-				base_weight,
-				fee_per_weight,
-				metadata_size,
+				fee_per_second,
+				max_weight,
 			};
 
-			TransactInfo::<T>::insert(&location, &remote_info);
+			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
 			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
 			Ok(())
@@ -409,8 +410,8 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
-			let transactor_info =
-				TransactInfo::<T>::get(&fee_location).ok_or(Error::<T>::TransactorInfoNotSet)?;
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&fee_location)
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -418,16 +419,15 @@ pub mod pallet {
 				.checked_add(transactor_info.transact_extra_weight)
 				.ok_or(Error::<T>::WeightOverflow)?;
 
+			ensure!(
+				total_weight < transactor_info.max_weight,
+				Error::<T>::MaxWeightTransactReached
+			);
+
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = Self::calculate_fee_per_weight(
-				call.clone(),
-				total_weight,
-				transactor_info.fee_per_byte,
-				transactor_info.base_weight,
-				transactor_info.fee_per_weight,
-				transactor_info.metadata_size,
-			);
+			let amount =
+				Self::calculate_fee_per_second(total_weight, transactor_info.fee_per_second);
 
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -443,28 +443,8 @@ pub mod pallet {
 
 			// Construct the local withdraw message with the previous calculated amount
 			// This message deducts and burns "amount" from the caller when executed
-			let mut withdraw_message = Xcm(vec![WithdrawAsset(fee.clone().into())]);
-
-			// Calculate weight of message
-			let weight = T::Weigher::weight(&mut withdraw_message)
-				.map_err(|()| Error::<T>::UnweighableMessage)?;
-
-			// This execution ensures we withdraw assets from the calling account
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(
-				origin_as_mult,
-				withdraw_message,
-				weight,
-				weight,
-			);
-
-			// Let's check if the execution was succesful
-			let maybe_xcm_err: Option<XcmError> = match outcome {
-				Outcome::Complete(_w) => Option::None,
-				Outcome::Incomplete(_w, err) => Some(err),
-				Outcome::Error(err) => Some(err),
-			};
-
-			ensure!(maybe_xcm_err.is_none(), Error::<T>::XcmExecuteError);
+			T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult)
+				.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
@@ -655,20 +635,10 @@ pub mod pallet {
 		}
 
 		/// Returns the fee for a given set of parameters
-		pub fn calculate_fee_per_weight(
-			call: Vec<u8>,
-			weight: Weight,
-			fee_per_byte: u128,
-			base_weight: Weight,
-			fee_per_weight: u128,
-			metadata_size: u64,
-		) -> u128 {
-			let tx_byte_fee = ((call.len() as u128).saturating_add(metadata_size as u128))
-				.saturating_mul(fee_per_byte);
-			let weight_fee = fee_per_weight.saturating_mul(weight as u128);
-			let base_fee = fee_per_weight.saturating_mul(base_weight as u128);
-
-			return base_fee.saturating_add(weight_fee.saturating_add(tx_byte_fee));
+		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
+			let weight_fee =
+				fee_per_second.saturating_mul(weight as u128) / (WEIGHT_PER_SECOND as u128);
+			return weight_fee;
 		}
 	}
 }

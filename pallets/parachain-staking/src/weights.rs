@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight;
 	fn set_staking_expectations() -> Weight;
 	fn set_inflation() -> Weight;
 	fn set_parachain_bond_account() -> Weight;
@@ -79,13 +80,20 @@ pub trait WeightInfo {
 	fn execute_delegator_bond_less() -> Weight;
 	fn cancel_revoke_delegation() -> Weight;
 	fn cancel_delegator_bond_less() -> Weight;
-	fn active_on_initialize(x: u32, y: u32) -> Weight;
-	fn passive_on_initialize() -> Weight;
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight;
+	fn base_on_initialize() -> Weight;
+	fn pay_one_collator_reward(y: u32) -> Weight;
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 147_000
+			.saturating_add((26_825_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
@@ -237,27 +245,37 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
-	// If this takes up too much block space, run again on code
-	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
-	// 15x lower per nominator
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 299_000
-			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 27_000
-			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads(26 as Weight))
-			.saturating_add(T::DbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(T::DbWeight::get().writes(16 as Weight))
-			.saturating_add(T::DbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
+			// Standard Error: 1_378_000
+			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 12_000
+			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn passive_on_initialize() -> Weight {
+	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
+	}
+	fn pay_one_collator_reward(y: u32) -> Weight {
+		(0 as Weight)
+			// Standard Error: 6_000
+			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads(11 as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
+	fn hotfix_update_candidate_pool_value(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 147_000
+			.saturating_add((26_825_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
 	fn set_staking_expectations() -> Weight {
 		(20_719_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
@@ -410,21 +428,25 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
-	// If this takes up too much block space, run again on code
-	// - #743 benchmarks post reward payout optimization were 3x lower per collator,
-	// 15x lower per nominator
-	fn active_on_initialize(x: u32, y: u32) -> Weight {
+	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
 		(0 as Weight)
-			// Standard Error: 299_000
-			.saturating_add((208_550_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 27_000
-			.saturating_add((15_580_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(RocksDbWeight::get().reads(26 as Weight))
-			.saturating_add(RocksDbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(16 as Weight))
-			.saturating_add(RocksDbWeight::get().writes((4 as Weight).saturating_mul(x as Weight)))
+			// Standard Error: 1_378_000
+			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
+			// Standard Error: 12_000
+			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn passive_on_initialize() -> Weight {
+	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
+	}
+	fn pay_one_collator_reward(y: u32) -> Weight {
+		(0 as Weight)
+			// Standard Error: 6_000
+			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
+			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -38,20 +38,10 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// Polkadot JS.
 
 #[derive(
-	Eq,
-	PartialEq,
-	Copy,
-	Clone,
-	Encode,
-	Decode,
-	sp_core::RuntimeDebug,
-	TypeInfo,
-	MaxEncodedLen,
-	Default,
-	PartialOrd,
-	Ord,
+	Eq, PartialEq, Copy, Clone, Encode, Decode, TypeInfo, MaxEncodedLen, Default, PartialOrd, Ord,
 )]
 pub struct AccountId20(pub [u8; 20]);
+
 #[cfg(feature = "std")]
 impl_serde::impl_fixed_hash_serde!(AccountId20, 20);
 
@@ -62,6 +52,12 @@ impl std::fmt::Display for AccountId20 {
 	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{:?}", self.0)
+	}
+}
+
+impl core::fmt::Debug for AccountId20 {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		write!(f, "{:?}", H160(self.0))
 	}
 }
 

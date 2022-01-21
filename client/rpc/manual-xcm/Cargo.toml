@@ -1,0 +1,20 @@
+[package]
+name = "manual-xcm-rpc"
+authors = [ "PureStake" ]
+edition = "2018"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = "https://github.com/PureStake/moonbeam/"
+version = "0.1.0"
+
+[dependencies]
+flume = "0.10.9"
+futures = { version = "0.3", features = [ "compat" ] }
+hex-literal = "0.3.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-derive = "18.0.0"
+parity-scale-codec = "2.2"
+tokio = { version = "1.12.0", features = [ "sync", "time" ] }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }

@@ -82,6 +82,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
       baltathar,
       context.polkadotApi.tx.authorMapping.addAssociation(aliceAuthorId)
     );
+
     // should check events for failure
     expect(events.length === 6);
     expect(context.polkadotApi.events.system.NewAccount.is(events[2])).to.be.true;
@@ -96,6 +97,31 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     expect(
       (await context.polkadotApi.query.system.account(BALTATHAR)).data.reserved.toBigInt()
     ).to.eq(0n);
+    expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
+  });
+
+  it("should fail to take someone else association", async function () {
+    const keyring = new Keyring({ type: "ethereum" });
+    const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+
+    await createBlockWithExtrinsic(
+      context,
+      baltathar,
+      context.polkadotApi.tx.authorMapping.addAssociation(charlieAuthorId)
+    );
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      baltathar,
+      context.polkadotApi.tx.authorMapping.updateAssociation(charlieAuthorId, aliceAuthorId)
+    );
+
+    // should check events for failure
+    expect(
+      events.find((e) => e.section == "system" && e.method == "ExtrinsicFailed"),
+      "ExtrinsicFailed is missing"
+    ).to.not.be.undefined;
+
+    //check state
     expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
   });
 });
