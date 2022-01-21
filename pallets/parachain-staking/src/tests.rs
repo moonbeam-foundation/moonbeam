@@ -27,11 +27,13 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, set::OrderedSet, Bond, CandidatePool, CandidateState, CollatorStatus,
-	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range,
+	assert_tail_eq, set::OrderedSet, BalanceOf, Bond, CandidatePool, CandidateState,
+	CollatorStatus, DelegationChange, DelegationRequest, Delegator, DelegatorAdded, DelegatorState,
+	DelegatorStatus, Error, Event, PendingDelegationRequests, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
+use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
 
@@ -4448,7 +4450,63 @@ fn deferred_payment_steady_state_event_flow() {
 		});
 }
 
-// HOTFIX UNIT TEST for hotfix_update_candidate_pool_value
+// HOTFIX UNIT TESTs
+
+#[test]
+fn hotfix_remove_unexecutable_delegation_requests_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut requests: BTreeMap<
+				<Test as frame_system::Config>::AccountId,
+				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
+			> = BTreeMap::new();
+			requests.insert(
+				3,
+				DelegationRequest {
+					collator: 3,
+					amount: 5,
+					when_executable: 0,
+					action: DelegationChange::Decrease,
+				},
+			);
+			requests.insert(
+				4,
+				DelegationRequest {
+					collator: 4,
+					amount: 20,
+					when_executable: 0,
+					action: DelegationChange::Revoke,
+				},
+			);
+			let corrupted_delegator_state = Delegator {
+				id: 2,
+				delegations: OrderedSet::from(vec![Bond {
+					owner: 1,
+					amount: 20,
+				}]),
+				total: 20,
+				requests: PendingDelegationRequests {
+					revocations_count: 1,
+					requests,
+					less_total: 25,
+				},
+				status: DelegatorStatus::Active,
+			};
+			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
+			assert_ok!(Stake::hotfix_remove_unexecutable_delegation_requests(
+				Origin::root(),
+				vec![2, 5]
+			));
+			assert!(Stake::delegator_state(&5).is_none());
+			let fixed_delegator_state = Stake::delegator_state(&2).expect("inserted => exists");
+			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
+			assert_eq!(fixed_delegator_state.requests.less_total, 0);
+		});
+}
+
 #[test]
 fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 	ExtBuilder::default()
@@ -4629,7 +4687,7 @@ fn remove_exit_queue_migration_migrates_leaving_delegators() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i).unwrap().status,
+					Stake::delegator_state(i).unwrap().status,
 					DelegatorStatus::Leaving(3)
 				);
 			}
@@ -4681,11 +4739,7 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i)
-						.unwrap()
-						.requests
-						.requests
-						.get(&1),
+					Stake::delegator_state(i).unwrap().requests.requests.get(&1),
 					Some(&DelegationRequest {
 						collator: 1,
 						amount: 10,
