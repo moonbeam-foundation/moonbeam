@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 /**
  * @title Xcm Transactor Interface
  * The interface through which solidity contracts will interact with xcm transactor pallet
- * Moonbase address :    0x0000000000000000000000000000000000000806
+ * Address :    0x0000000000000000000000000000000000000806
  */
 
 interface XcmTransactor {

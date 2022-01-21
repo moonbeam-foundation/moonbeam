@@ -6,8 +6,7 @@ pragma solidity >=0.8.0;
  * @title The interface through which solidity contracts will interact with Parachain Staking
  * We follow this same interface including four-byte function selectors, in the precompile that
  * wraps the pallet
- * Moonbase address :    0x0000000000000000000000000000000000000800
- * Moonriver address :   0x0000000000000000000000000000000000000800
+ * Address :    0x0000000000000000000000000000000000000800
  */
 
 interface ParachainStaking {
