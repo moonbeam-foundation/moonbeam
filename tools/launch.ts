@@ -289,7 +289,8 @@ async function start() {
     retrieveBinaryFromDocker(parachainBinary, `purestake/moonbeam:sha-${sha8}`);
 
     child_process.execSync(
-      `${parachainBinary} build-spec --chain moonbase-local --raw > moonbase-${argv["parachain-runtime"]}-raw-spec.json`
+      `${parachainBinary} build-spec --chain moonbase-local --raw > ` +
+        `moonbase-${argv["parachain-runtime"]}-raw-spec.json`
     );
   }
 
