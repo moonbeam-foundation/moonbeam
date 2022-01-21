@@ -3585,6 +3585,8 @@ fn multiple_delegations() {
 }
 
 #[test]
+// The test verifies that the pending revoke request is removed by 2's exit so there is no dangling
+// revoke request after 2 exits
 fn execute_leave_candidate_removes_delegations() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100), (2, 100), (3, 100), (4, 100)])
