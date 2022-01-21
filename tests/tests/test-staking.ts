@@ -29,7 +29,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     const collator = await context.polkadotApi.query.parachainStaking.candidateInfo(
       COLLATOR_ACCOUNT
     );
-    expect(collator.toHuman()["state"]).equal("Active");
+    expect(collator.toHuman()["status"]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
