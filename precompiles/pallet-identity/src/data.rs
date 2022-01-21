@@ -58,17 +58,17 @@ impl<T: RawEvmData> EvmData for Wrapped<T> {
 
 /// Allow to encode/decode raw `pallet_identity::Data` Solidity encoding.
 /// It doesn't follow the general Solidity encoding, and is thus a building block
-/// of more complex data structures: `IdentityInfo`, which contains many `RawIdentityData`
+/// of more complex data structures: `IdentityInfo`, which contains many `IdentityData`
 /// in a packed format, or `WrappedIdentityData` which wraps this data in a Solidity `bytes`
 /// to make it usable from Solidity.
-pub struct RawIdentityData(pub pallet_identity::Data);
+pub struct IdentityData(pub pallet_identity::Data);
 
-impl RawEvmData for RawIdentityData {
+impl RawEvmData for IdentityData {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
 		use pallet_identity::Data;
 
 		let discriminant = reader.read_raw_bytes(gasometer, 1).map_err(|_| {
-			gasometer.revert("tried to read RawIdentityData discriminant out of bounds")
+			gasometer.revert("tried to read IdentityData discriminant out of bounds")
 		})?[0];
 
 		match discriminant {
@@ -77,7 +77,7 @@ impl RawEvmData for RawIdentityData {
 				let data = reader
 					.read_raw_bytes(gasometer, x as usize)
 					.map_err(|_| {
-						gasometer.revert("tried to read RawIdentityData::Raw data out of bounds")
+						gasometer.revert("tried to read IdentityData::Raw data out of bounds")
 					})?
 					.to_vec();
 
@@ -89,7 +89,7 @@ impl RawEvmData for RawIdentityData {
 				let data = reader
 					.read_raw_bytes(gasometer, 32)
 					.map_err(|_| {
-						gasometer.revert("tried to read RawIdentityData hash data out of bounds")
+						gasometer.revert("tried to read IdentityData hash data out of bounds")
 					})?
 					.to_vec();
 
@@ -103,7 +103,7 @@ impl RawEvmData for RawIdentityData {
 					_ => unreachable!("x can only be in range 0xfb..=0xfe"),
 				}
 			}
-			x => Err(gasometer.revert(format!("unknown RawIdentityData discriminant {}", x))),
+			x => Err(gasometer.revert(format!("unknown IdentityData discriminant {}", x))),
 		}
 	}
 
@@ -155,18 +155,18 @@ impl<FieldLimit: Get<u32>> RawEvmData for IdentityInfo<FieldLimit> {
 
 		let mut additional = BoundedVec::default();
 		for _ in 0..array_size {
-			let item0 = RawIdentityData::read(reader, gasometer)?.0;
-			let item1 = RawIdentityData::read(reader, gasometer)?.0;
+			let item0 = IdentityData::read(reader, gasometer)?.0;
+			let item1 = IdentityData::read(reader, gasometer)?.0;
 			additional
 				.try_push((item0, item1))
 				.expect("size is below FieldLimit");
 		}
 
-		let display = RawIdentityData::read(reader, gasometer)?.0;
-		let legal = RawIdentityData::read(reader, gasometer)?.0;
-		let web = RawIdentityData::read(reader, gasometer)?.0;
-		let riot = RawIdentityData::read(reader, gasometer)?.0;
-		let email = RawIdentityData::read(reader, gasometer)?.0;
+		let display = IdentityData::read(reader, gasometer)?.0;
+		let legal = IdentityData::read(reader, gasometer)?.0;
+		let web = IdentityData::read(reader, gasometer)?.0;
+		let riot = IdentityData::read(reader, gasometer)?.0;
+		let email = IdentityData::read(reader, gasometer)?.0;
 
 		let some_pgp: u8 = reader.read(gasometer)?;
 
@@ -180,8 +180,8 @@ impl<FieldLimit: Get<u32>> RawEvmData for IdentityInfo<FieldLimit> {
 			_ => return Err(gasometer.revert("unknown 'pgp_fingerprint' discriminant")),
 		};
 
-		let image = RawIdentityData::read(reader, gasometer)?.0;
-		let twitter = RawIdentityData::read(reader, gasometer)?.0;
+		let image = IdentityData::read(reader, gasometer)?.0;
+		let twitter = IdentityData::read(reader, gasometer)?.0;
 
 		Ok(IdentityInfo(pallet_identity::IdentityInfo::<FieldLimit> {
 			additional,
@@ -199,15 +199,15 @@ impl<FieldLimit: Get<u32>> RawEvmData for IdentityInfo<FieldLimit> {
 		U256::write(writer, value.0.additional.len().into());
 
 		for item in value.0.additional {
-			RawIdentityData::write(writer, RawIdentityData(item.0));
-			RawIdentityData::write(writer, RawIdentityData(item.1));
+			IdentityData::write(writer, IdentityData(item.0));
+			IdentityData::write(writer, IdentityData(item.1));
 		}
 
-		RawIdentityData::write(writer, RawIdentityData(value.0.display));
-		RawIdentityData::write(writer, RawIdentityData(value.0.legal));
-		RawIdentityData::write(writer, RawIdentityData(value.0.web));
-		RawIdentityData::write(writer, RawIdentityData(value.0.riot));
-		RawIdentityData::write(writer, RawIdentityData(value.0.email));
+		IdentityData::write(writer, IdentityData(value.0.display));
+		IdentityData::write(writer, IdentityData(value.0.legal));
+		IdentityData::write(writer, IdentityData(value.0.web));
+		IdentityData::write(writer, IdentityData(value.0.riot));
+		IdentityData::write(writer, IdentityData(value.0.email));
 
 		match value.0.pgp_fingerprint {
 			None => writer.write_raw_bytes(&[0x00]),
@@ -217,8 +217,8 @@ impl<FieldLimit: Get<u32>> RawEvmData for IdentityInfo<FieldLimit> {
 			}
 		}
 
-		RawIdentityData::write(writer, RawIdentityData(value.0.image));
-		RawIdentityData::write(writer, RawIdentityData(value.0.twitter));
+		IdentityData::write(writer, IdentityData(value.0.image));
+		IdentityData::write(writer, IdentityData(value.0.twitter));
 	}
 }
 

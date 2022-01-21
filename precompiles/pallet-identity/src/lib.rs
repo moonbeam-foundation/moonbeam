@@ -24,6 +24,7 @@ use sp_std::{convert::TryFrom, marker::PhantomData};
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod data;
+use data::*;
 
 pub type CurrencyOf<Runtime> = <Runtime as pallet_identity::Config>::Currency;
 pub type AccountIdOf<Runtime> = <Runtime as frame_system::Config>::AccountId;
@@ -74,7 +75,7 @@ where
 		gasometer.check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
 
 		match selector {
-			Action::SetIdentity => todo!(),
+			Action::SetIdentity => Self::set_identity(input, gasometer, context),
 			_ => todo!(),
 		}
 	}
@@ -82,13 +83,21 @@ where
 
 impl<Runtime> IdentityWrapper<Runtime>
 where
-	Self: Precompile,
+	Runtime: pallet_identity::Config + pallet_evm::Config + frame_system::Config,
+	Runtime::AccountId: From<H160>,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::Call: From<pallet_identity::Call<Runtime>>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 {
-	fn setIdentity(
+	fn set_identity(
 		input: &mut EvmDataReader,
 		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let info: Wrapped<RawIdentityInfo> = input.read(gasometer)?;
+		let info: Wrapped<IdentityInfo<Runtime::MaxAdditionalFields>> = input.read(gasometer)?;
+		let info = info.0.0;
+
+		todo!()
 	}
 }
