@@ -678,7 +678,23 @@ export const contractSources: { [key: string]: string } = {
             uint64 weight
         ) external;
 
-        /** Transfer a token through XCM based on its currencyId
+        /** Transfer a token through XCM based on its currencyId specifying fee
+         *
+         * @dev The token transfer burns/transfers the corresponding amount before sending
+         * @param currency_address The ERC20 address of the currency we want to transfer
+         * @param amount The amount of tokens we want to transfer
+         * @param destination The Multilocation to which we want to send the tokens
+         * @param destination The weight we want to buy in the destination chain
+         */
+        function transfer_with_fee(
+            address currency_address,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) external;
+
+        /** Transfer a token through XCM based on its MultiLocation
          *
          * @dev The token transfer burns/transfers the corresponding amount before sending
          * @param asset The asset we want to transfer, defined by its multilocation. 
@@ -690,6 +706,21 @@ export const contractSources: { [key: string]: string } = {
         function transfer_multiasset(
             Multilocation memory asset,
             uint256 amount,
+            Multilocation memory destination, uint64 weight) external;
+        
+        /** Transfer a token through XCM based on its MultiLocation specifying fee
+         *
+         * @dev The token transfer burns/transfers the corresponding amount before sending
+         * @param asset The asset we want to transfer, defined by its multilocation. 
+         * Currently only Concrete Fungible assets
+         * @param amount The amount of tokens we want to transfer
+         * @param destination The Multilocation to which we want to send the tokens
+         * @param destination The weight we want to buy in the destination chain
+         */
+        function transfer_multiasset_with_fee(
+            Multilocation memory asset,
+            uint256 amount,
+            uint256 fee,
             Multilocation memory destination, uint64 weight) external;
     }
 
@@ -713,6 +744,16 @@ export const contractSources: { [key: string]: string } = {
             // We nominate our target collator with all the tokens provided
             xtokens.transfer(currency_address, amount, destination, weight);
         }
+        function transfer_with_fee(
+            address currency_address,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
+            // We nominate our target collator with all the tokens provided
+            xtokens.transfer_with_fee(currency_address, amount, fee, destination, weight);
+        }
         function transfer_multiasset(
             Multilocation memory asset,
             uint256 amount,
@@ -720,6 +761,15 @@ export const contractSources: { [key: string]: string } = {
             uint64 weight
         ) override external {
             xtokens.transfer_multiasset(asset, amount, destination, weight);
+        }
+        function transfer_multiasset_with_fee(
+            Multilocation memory asset,
+            uint256 amount,
+            uint256 fee,
+            Multilocation memory destination,
+            uint64 weight
+        ) override external {
+            xtokens.transfer_multiasset_with_fee(asset, amount, fee, destination, weight);
         }
     }`,
   XcmTransactorInstance: `
@@ -751,7 +801,7 @@ export const contractSources: { [key: string]: string } = {
          */
         function transact_info(
             Multilocation memory multilocation) 
-        external view  returns(uint64, uint256, uint64, uint64, uint256);
+        external view  returns(uint64, uint256, uint64);
 
         /** Transact through XCM using fee based on its multilocation
          *
@@ -802,7 +852,7 @@ export const contractSources: { [key: string]: string } = {
 
         function transact_info(
             Multilocation memory multilocation
-        ) external view override returns(uint64, uint256, uint64, uint64, uint256) {
+        ) external view override returns(uint64, uint256, uint64) {
             // We nominate our target collator with all the tokens provided
             return xcmtransactor.transact_info(multilocation);
         }
@@ -1084,6 +1134,265 @@ export const contractSources: { [key: string]: string } = {
             (bool result, bytes memory data) = erc20address.delegatecall(
                 abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, value));
             return result;
+            }
+    }`,
+  Democracy: `
+    pragma solidity >=0.8.0;
+    interface Democracy {
+        // First some simple accessors
+    
+        /**
+         * Get The total number of public proposals past and present
+         * Selector: 56fdf547
+         *
+         * @return The total number of public proposals past and present
+         */
+        function public_prop_count() external view returns (uint256);
+    
+        /**
+         * Get details about all public porposals.
+         * Selector:
+         * @return (prop index, proposal hash, proposer)
+         * TODO This is supposed to be a vec. Let's save this one for later.
+         */
+        // function public_props()
+        //     external
+        //     view
+        //     returns (
+        //         uint256,
+        //         bytes32,
+        //         address
+        //     );
+    
+        /**
+         * Get the total amount locked behind a proposal.
+         * Selector: a30305e9
+         *
+         * @dev Unlike the similarly-named Rust function this one only returns the value, not the
+         * complete list of backers.
+         * @param prop_index The index of the proposal you are interested in
+         * @return The amount of tokens locked behind the proposal
+         */
+        function deposit_of(uint256 prop_index) external view returns (uint256);
+    
+        /**
+         * Get the index of the lowest unbaked referendum
+         * Selector: 0388f282
+         *
+         * @return The lowest referendum index representing an unbaked referendum.
+         */
+        function lowest_unbaked() external view returns (uint256);
+    
+        /**
+         * Get the details about an ongoing referendum.
+         * Selector: 8b93d11a
+         *
+         * @dev This, along with "finished_referendum_info", wraps the pallet's "referendum_info"
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
+         * @param ref_index The index of the referendum you are interested in
+         * @return A tuple including:
+         * * The block in which the referendum ended
+         * * The proposal hash
+         * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority
+         * * The delay between passing and launching
+         * * The total aye vote (including conviction)
+         * * The total nay vote (including conviction)
+         * * The total turnout (not including conviction)
+         */
+        function ongoing_referendum_info(uint256 ref_index)
+            external
+            view
+            returns (
+                uint256,
+                bytes32,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256
+            );
+    
+        /**
+         * Get the details about a finished referendum.
+         * Selector: b1fd383f
+         *
+         * @dev This, along with "ongoing_referendum_info", wraps the pallet's "referendum_info"
+    * function. It is necessary to split it into two here because Solidity only has c-style enums.
+         * @param ref_index The index of the referendum you are interested in
+    * @return A tuple including whether the referendum passed, and the block at which it finished.
+         */
+        function finished_referendum_info(uint256 ref_index)
+            external
+            view
+            returns (bool, uint256);
+    
+        // Now the dispatchables
+    
+        /**
+         * Make a new proposal
+         * Selector: 7824e7d1
+         *
+         * @param proposal_hash The hash of the proposal you are making
+         * @param value The number of tokens to be locked behind this proposal.
+         */
+        function propose(bytes32 proposal_hash, uint256 value) external;
+    
+        /**
+         * Signal agreement with a proposal
+         * Selector: c7a76601
+         *
+        * @dev No amount is necessary here. Seconds are always for the same amount that the original
+         * proposer locked. You may second multiple times.
+         *
+         * @param prop_index index of the proposal you want to second
+    * @param seconds_upper_bound A number greater than or equal to the current number of seconds.
+         * This is necessary for calculating the weight of the call.
+         */
+        function second(uint256 prop_index, uint256 seconds_upper_bound) external;
+    
+    //TODO should we have an alternative "simple_second" where the upper bound is read from storage?
+    
+        /**
+         * Vote in a referendum.
+         * Selector: 3f3c21cc
+         *
+         * @param ref_index index of the referendum you want to vote in
+    * @param aye "true" is a vote to enact the proposal; "false" is a vote to keep the status quo.
+         * @param vote_amount The number of tokens you are willing to lock if you get your way
+        * @param conviction How strongly you want to vote. Higher conviction means longer lock time.
+         * This must be an interget in the range 0 to 6
+         *
+         * @dev This function only supposrts "Standard" votes where you either vote aye xor nay.
+         * It does not support "Split" votes where you vote on both sides. If such a need
+         * arises, we should add an additional function to this interface called "split_vote".
+         */
+        function standard_vote(
+            uint256 ref_index,
+            bool aye,
+            uint256 vote_amount,
+            uint256 conviction
+        ) external;
+    
+        /** Remove a vote for a referendum.
+         * Selector: 2042f50b
+         *
+         * @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.
+         * @param ref_index The index of the referendum you are interested in
+         */
+        function remove_vote(uint256 ref_index) external;
+    
+        /**
+         * Delegate voting power to another account.
+         * Selector: 0185921e
+         *
+    * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the
+         * time appropriate for the conviction's lock period.
+         * @param representative The account to whom the vote shall be delegated.
+    * @param conviction The conviction with which you are delegating. This conviction is used for
+         * _all_ delegated votes.
+         * @param amount The number of tokens whose voting power shall be delegated.
+         */
+        function delegate(
+            address representative,
+            uint256 conviction,
+            uint256 amount
+        ) external;
+    
+        /**
+         * Undelegatehe voting power
+         * Selector: cb37b8ea
+         *
+    * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which
+         * the delegation was issued has elapsed.
+         */
+        function un_delegate() external;
+    
+        /**
+         * Unlock tokens that have an expired lock.
+         * Selector: 2f6c493c
+         *
+         * @param target The account whose tokens should be unlocked. This may be any account.
+         */
+        function unlock(address target) external;
+    
+        /**
+         * Register the preimage for an upcoming proposal. This doesn't require the proposal to be
+         * in the dispatch queue but does require a deposit, returned once enacted.
+         * Selector: 200881f5
+         *
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+         */
+        function note_preimage(bytes memory encoded_proposal) external;
+    
+        /**
+         * Register the preimage for an upcoming proposal. This requires the proposal to be
+         * in the dispatch queue. No deposit is needed. When this call is successful, i.e.
+         * the preimage has not been uploaded before and matches some imminent proposal,
+         * no fee is paid.
+         * Selector: cf205f96
+         *
+        * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
+         */
+        function note_imminent_preimage(bytes memory encoded_proposal) external;
+    }`,
+  AuthorMapping: `
+    pragma solidity >=0.8.0;
+
+    /**
+     * @title Pallet AuthorMapping Interface
+     *
+     * The interface through which solidity contracts will interact with pallet-author.mapping
+     */
+    interface AuthorMapping {
+        /**
+         * Add association
+         * Selector: aa5ac585   
+         *
+         * @param nimbus_id The nimbusId to be associated
+         */
+        function add_association(bytes32 nimbus_id) external;
+
+        /**
+         * Update existing association
+         * Selector: d9cef879
+         *
+         * @param old_nimbus_id The old nimbusId to be replaced
+         * @param new_nimbus_id The new nimbusId to be associated
+         */
+        function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id) external;
+
+        /**
+         * Clear existing associationg
+         * Selector: 7354c91d
+         *
+         * @param nimbus_id The nimbusId to be cleared
+         */
+        function clear_association(bytes32 nimbus_id) external;
+    }
+
+
+    contract AuthorMappingInstance is AuthorMapping {
+
+        /// The AuthorMapping wrapper at the known pre-compile address.
+        AuthorMapping public author_mapping = AuthorMapping(
+            0x0000000000000000000000000000000000000807
+        );
+
+            function add_association(
+                bytes32 nimbus_id
+            ) override external {
+                author_mapping.add_association(nimbus_id);
+            }
+            function update_association(
+                bytes32 old_nimbus_id,
+                bytes32 new_nimbus_id
+            ) override external {
+                author_mapping.update_association(old_nimbus_id, new_nimbus_id);
+            }
+            function clear_association(
+                bytes32 nimbus_id
+            ) override external {
+                author_mapping.clear_association(nimbus_id);
             }
     }`,
 };

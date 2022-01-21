@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -102,7 +102,7 @@ fn ethereum_runtime_rpc_api_author() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
@@ -147,14 +147,16 @@ fn ethereum_runtime_rpc_api_call() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::call(
-				H160::from(ALICE),  // from
-				H160::from(BOB),    // to
-				Vec::new(),         // data
-				U256::from(1000),   // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				H160::from(BOB),       // to
+				Vec::new(),            // data
+				U256::from(1000u64),   // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -167,13 +169,15 @@ fn ethereum_runtime_rpc_api_create() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::create(
-				H160::from(ALICE),  // from
-				vec![0, 1, 1, 0],   // data
-				U256::zero(),       // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				vec![0, 1, 1, 0],      // data
+				U256::zero(),          // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -204,9 +208,8 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
-			run_to_block(2);
+			run_to_block(2, None);
 			let statuses =
 				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
 			assert_eq!(statuses.len(), 1);
@@ -233,8 +236,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2);
+			run_to_block(2, None);
 			let block = Runtime::current_block().expect("Block result.");
 			assert_eq!(block.header.number, U256::from(1));
 		});
@@ -265,9 +267,8 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
-			run_to_block(2);
+			run_to_block(2, None);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
 			assert_eq!(receipts.len(), 1);
 		});

@@ -103,6 +103,21 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.15.1",
   },
+  "moonbase-0.16.0": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.16.0",
+  },
+  "moonbase-0.17.0": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.17.0",
+  },
+  "moonbase-0.19.0": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.19.0",
+  },
   local: {
     relay: "rococo-9111",
     chain: "moonbase-local",
@@ -150,6 +165,10 @@ const relays: { [name: string]: NetworkConfig } = {
   },
   "rococo-9111": {
     docker: "purestake/moonbase-relay-testnet:sha-7da182da",
+    chain: "rococo-local",
+  },
+  "rococo-9130": {
+    docker: "purestake/moonbase-relay-testnet:sha-45c0f1f3",
     chain: "rococo-local",
   },
   "westend-9030": {
@@ -392,13 +411,14 @@ async function start() {
 
     // Two relay nodes per para
     relayNodeConfig[0].name = validatorNames[i * 2];
-    relayNodeConfig[0].port = startingPort + i * 10;
-    relayNodeConfig[0].rpcPort = startingPort + 1 + i * 10;
-    relayNodeConfig[0].wsPort = startingPort + 2 + i * 10;
+    relayNodeConfig[0].port = startingPort + i * 20;
+    relayNodeConfig[0].rpcPort = startingPort + i * 20 + 1;
+    relayNodeConfig[0].wsPort = startingPort + i * 20 + 2;
+
     relayNodeConfig[1].name = validatorNames[i * 2 + 1];
-    relayNodeConfig[1].port = startingPort + i * 10;
-    relayNodeConfig[1].rpcPort = startingPort + 1 + i * 10;
-    relayNodeConfig[1].wsPort = startingPort + 1 + i * 10;
+    relayNodeConfig[1].port = startingPort + i * 20 + 10;
+    relayNodeConfig[1].rpcPort = startingPort + i * 20 + 11;
+    relayNodeConfig[1].wsPort = startingPort + i * 20 + 12;
     relay_nodes.push(relayNodeConfig[0]);
     relay_nodes.push(relayNodeConfig[1]);
   }

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ use sp_runtime_interface::runtime_interface;
 use codec::Decode;
 use sp_std::vec::Vec;
 
-use evm_tracing_events::{Event, EvmEvent, GasometerEvent, RuntimeEvent};
+use evm_tracing_events::{Event, EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
@@ -65,6 +65,13 @@ pub trait MoonbeamExt {
 		if let Ok(event) = RuntimeEvent::decode(&mut &event[..]) {
 			Event::Runtime(event).emit();
 		}
+	}
+
+	/// Allow the tracing module in the runtime to know how to filter Step event
+	/// content, as cloning the entire data is expensive and most of the time
+	/// not necessary.
+	fn step_event_filter(&self) -> StepEventFilter {
+		evm_tracing_events::step_event_filter().unwrap_or_default()
 	}
 
 	/// An event to create a new CallList (currently a new transaction when tracing a block).

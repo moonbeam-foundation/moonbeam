@@ -82,7 +82,7 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
         );
 
         expect(events2[1].method).to.be.eq("ProxyExecuted");
-        expect(events2[1].data[0].toString()).to.be.eq(`{"err":{"badOrigin":null}}`);
+        expect(events2[1].data[0].toString()).to.be.eq(`{"err":{"module":{"index":0,"error":5}}}`);
         expect(events2[4].method).to.be.eq("ExtrinsicSuccess");
 
         // // check association failed

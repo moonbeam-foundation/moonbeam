@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,7 +21,9 @@ use crate::{
 	PerfCmd,
 };
 
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, MockXcmConfig,
+};
 use ethereum::TransactionAction;
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
@@ -88,7 +90,14 @@ where
 			select_chain: maybe_select_chain,
 			transaction_pool,
 			other:
-				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
+				(
+					block_import,
+					filter_pool,
+					telemetry,
+					_telemetry_worker_handle,
+					frontier_backend,
+					fee_history_cache,
+				),
 		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 		// TODO: review -- we don't need any actual networking
@@ -99,7 +108,6 @@ where
 				transaction_pool: transaction_pool.clone(),
 				spawn_handle: task_manager.spawn_handle(),
 				import_queue,
-				on_demand: None,
 				block_announce_validator_builder: None,
 				warp_sync: None,
 			})?;
@@ -137,6 +145,7 @@ where
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
+			Some("block-authoring"),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -152,6 +161,8 @@ where
 						.expect("Header passed in as parent should be present in backend.");
 					let author_id = author_id.clone();
 
+					let client_for_xcm = client_set_aside_for_cidp.clone();
+
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -159,6 +170,14 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							raw_downward_messages: Vec::new(),
+							raw_horizontal_messages: Vec::new(),
+							xcm_config: MockXcmConfig::new(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+								Default::default(),
+							),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
@@ -171,13 +190,18 @@ where
 
 		let subscription_task_executor =
 			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+		let overrides = rpc::overrides_handle(client.clone());
 
+		let fee_history_limit = 2048;
 		service::rpc::spawn_essential_tasks(service::rpc::SpawnTasksParams {
 			task_manager: &task_manager,
 			client: client.clone(),
 			substrate_backend: backend.clone(),
 			frontier_backend: frontier_backend.clone(),
 			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
 		});
 
 		let command_sink_for_deps = command_sink.clone();
@@ -190,6 +214,8 @@ where
 			let network = network.clone();
 			let max_past_logs = 1000;
 			let runtime_variant = runtime_variant.clone();
+			let fee_history_cache = fee_history_cache.clone();
+			let overrides = overrides.clone();
 
 			Box::new(move |deny_unsafe, _| {
 				let runtime_variant = runtime_variant.clone();
@@ -207,12 +233,15 @@ where
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 					transaction_converter: TransactionConverters::for_runtime_variant(
 						runtime_variant,
 					),
+					xcm_senders: None,
 				};
 				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 				Ok(io)
 			})
 		};
@@ -224,8 +253,6 @@ where
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
 			rpc_extensions_builder,
-			on_demand: None,
-			remote_blockchain: None,
 			backend,
 			system_rpc_tx,
 			config,
@@ -277,7 +304,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -290,9 +318,11 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -304,7 +334,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -316,9 +347,11 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -356,7 +389,9 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let unchecked_extrinsic = self.transaction_converter.convert_transaction(signed);
+		let unchecked_extrinsic = self
+			.transaction_converter
+			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
 
 		let hash = self.client.info().best_hash;
 		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);

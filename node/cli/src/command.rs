@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -40,9 +40,6 @@ fn load_spec(
 	para_id: ParaId,
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	if id.is_empty() {
-		return Err("Not specific which chain to run.".into());
-	}
 	Ok(match id {
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
@@ -66,14 +63,9 @@ fn load_spec(
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonbeam networks
-		"moonbeam" => {
-			return Err(
-				"You chosen the moonbeam mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonbeam.json")[..],
-			// )?)
-		}
+		"moonbeam" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonbeam/parachain-embedded-specs.json")[..],
+		)?),
 		#[cfg(feature = "moonbeam-native")]
 		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
 		#[cfg(feature = "moonbeam-native")]
@@ -187,7 +179,7 @@ impl SubstrateCli for RelayChainCli {
 		match id {
 			#[cfg(feature = "westend-native")]
 			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v8.json")[..],
+				&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -609,6 +601,7 @@ pub fn run() -> Result<()> {
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
 					eth_log_block_cache: cli.run.eth_log_block_cache,
 					max_past_logs: cli.run.max_past_logs,
+					fee_history_limit: cli.run.fee_history_limit,
 				};
 
 				// If dev service was requested, start up manual or instant seal.

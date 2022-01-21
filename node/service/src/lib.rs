@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::FilterPool;
+use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
@@ -39,10 +39,13 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, ParachainInherentData,
+	MockValidationDataInherentDataProvider, MockXcmConfig, ParachainInherentData,
 };
-use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
+use nimbus_consensus::{
+	build_nimbus_consensus, BuildNimbusConsensusParams, NimbusManualSealConsensusDataProvider,
+};
 use nimbus_primitives::NimbusId;
 
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
@@ -295,6 +298,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
 			Arc<fc_db::Backend<Block>>,
+			FeeHistoryCache,
 		),
 	>,
 	ServiceError,
@@ -335,7 +339,9 @@ where
 	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
 
 	let telemetry = telemetry.map(|(worker, telemetry)| {
-		task_manager.spawn_handle().spawn("telemetry", worker.run());
+		task_manager
+			.spawn_handle()
+			.spawn("telemetry", None, worker.run());
 		telemetry
 	});
 
@@ -354,6 +360,7 @@ where
 	);
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
+	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
 	let frontier_backend = open_frontier_backend(config)?;
 
@@ -361,27 +368,18 @@ where
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
 
 	// Depending whether we are
-	let import_queue = if dev_service {
-		// There is a bug in this import queue where it doesn't properly check inherents:
-		// https://github.com/paritytech/substrate/issues/8164
-		sc_consensus_manual_seal::import_queue(
-			Box::new(frontier_block_import.clone()),
-			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
-		)
-	} else {
-		nimbus_consensus::import_queue(
-			client.clone(),
-			frontier_block_import.clone(),
-			move |_, _| async move {
-				let time = sp_timestamp::InherentDataProvider::from_system_time();
+	let import_queue = nimbus_consensus::import_queue(
+		client.clone(),
+		frontier_block_import.clone(),
+		move |_, _| async move {
+			let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-				Ok((time,))
-			},
-			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
-		)?
-	};
+			Ok((time,))
+		},
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		!dev_service,
+	)?;
 
 	Ok(PartialComponents {
 		backend,
@@ -397,6 +395,7 @@ where
 			telemetry,
 			telemetry_worker_handle,
 			frontier_backend,
+			fee_history_cache,
 		),
 	})
 }
@@ -460,7 +459,7 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::TransactionV0,
+		transaction: pallet_ethereum::Transaction,
 	) -> moonbeam_core_primitives::OpaqueExtrinsic {
 		match &self {
 			#[cfg(feature = "moonbeam-native")]
@@ -497,8 +496,14 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config, false)?;
-	let (block_import, filter_pool, mut telemetry, telemetry_worker_handle, frontier_backend) =
-		params.other;
+	let (
+		block_import,
+		filter_pool,
+		mut telemetry,
+		telemetry_worker_handle,
+		frontier_backend,
+		fee_history_cache,
+	) = params.other;
 
 	let relay_chain_full_node =
 		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle)
@@ -528,13 +533,14 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: import_queue.clone(),
-			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 			warp_sync: None,
 		})?;
 
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let fee_history_limit = rpc_config.fee_history_limit;
 
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
@@ -542,6 +548,9 @@ where
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
 		filter_pool: filter_pool.clone(),
+		overrides: overrides.clone(),
+		fee_history_limit,
+		fee_history_cache: fee_history_cache.clone(),
 	});
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
@@ -555,6 +564,9 @@ where
 					substrate_backend: backend.clone(),
 					frontier_backend: frontier_backend.clone(),
 					filter_pool: filter_pool.clone(),
+					overrides: overrides.clone(),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 				},
 			)
 		} else {
@@ -573,6 +585,8 @@ where
 		let backend = backend.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let overrides = overrides.clone();
+		let fee_history_cache = fee_history_cache.clone();
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
@@ -599,11 +613,14 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				fee_history_limit,
+				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: None,
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
@@ -619,8 +636,6 @@ where
 	let skip_prediction = parachain_config.force_authoring;
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		on_demand: None,
-		remote_blockchain: None,
 		rpc_extensions_builder,
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
@@ -760,7 +775,15 @@ where
 		keystore_container,
 		select_chain: maybe_select_chain,
 		transaction_pool,
-		other: (block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
+		other:
+			(
+				block_import,
+				filter_pool,
+				telemetry,
+				_telemetry_worker_handle,
+				frontier_backend,
+				fee_history_cache,
+			),
 	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
@@ -770,7 +793,6 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: None,
 		})?;
@@ -787,19 +809,13 @@ where
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
+	let mut xcm_senders = None;
 	let collator = config.role.is_authority();
 
 	if collator {
-		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
-		// This could and perhaps should be made more flexible. Here are some options:
-		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
-		// 2. restore the old --author-id` and also allow it to force a secific key
-		//    in the parachain context
-		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
-		//    be exported as a helper function from nimbus.
-		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
-
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -849,8 +865,14 @@ where
 
 		let client_set_aside_for_cidp = client.clone();
 
+		// Create channels for mocked XCM messages.
+		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
+		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
+			Some("block-authoring"),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -858,14 +880,20 @@ where
 				pool: transaction_pool.clone(),
 				commands_stream,
 				select_chain,
-				consensus_data_provider: None,
+				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
+					keystore: keystore_container.sync_keystore(),
+					client: client.clone(),
+				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
-					let author_id = author_id.clone();
 
+					let downward_xcm_receiver = downward_xcm_receiver.clone();
+					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+
+					let client_for_xcm = client_set_aside_for_cidp.clone();
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -873,11 +901,17 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							xcm_config: MockXcmConfig::new(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+								Default::default(),
+							),
+							raw_downward_messages: downward_xcm_receiver.drain().collect(),
+							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-						Ok((time, mocked_parachain, author))
+						Ok((time, mocked_parachain))
 					}
 				},
 			}),
@@ -889,6 +923,9 @@ where
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
 		filter_pool: filter_pool.clone(),
+		overrides: overrides.clone(),
+		fee_history_limit,
+		fee_history_cache: fee_history_cache.clone(),
 	});
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
@@ -901,6 +938,9 @@ where
 					substrate_backend: backend.clone(),
 					frontier_backend: frontier_backend.clone(),
 					filter_pool: filter_pool.clone(),
+					overrides: overrides.clone(),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 				},
 			)
 		} else {
@@ -917,6 +957,8 @@ where
 		let network = network.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let overrides = overrides.clone();
+		let fee_history_cache = fee_history_cache.clone();
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
@@ -943,11 +985,14 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				fee_history_limit,
+				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				transaction_converter,
+				xcm_senders: xcm_senders.clone(),
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
@@ -967,8 +1012,6 @@ where
 		task_manager: &mut task_manager,
 		transaction_pool,
 		rpc_extensions_builder,
-		on_demand: None,
-		remote_blockchain: None,
 		backend,
 		system_rpc_tx,
 		config,

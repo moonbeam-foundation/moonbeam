@@ -16,16 +16,14 @@ import {
   ALITH_PRIV_KEY,
   ALITH,
   BALTATHAR_PRIVATE_KEY,
+  relayChainAddress,
+  relayChainAddress_2,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { verifyLatestBlockFees } from "../util/block";
-const relayChainAddress: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const relayChainAddress_2: string =
-  "0x2222222222222222222222222222222222222222222222222222222222222222";
 
 // 5 blocks per minute, 4 weeks
-const VESTING_PERIOD = 201600n;
+export const VESTING_PERIOD = 201600n;
 async function calculate_vested_amount(context, totalReward, initialPayment, numberOfBlocks) {
   const amountToVest = BigInt(totalReward) - BigInt(initialPayment);
   // On average a parachain only gets a candidate into every other relay chain block.
@@ -37,7 +35,7 @@ async function calculate_vested_amount(context, totalReward, initialPayment, num
 }
 
 // Return the unwrapped accountsPayable or null otherwise
-const getAccountPayable = async (
+export const getAccountPayable = async (
   context: DevTestContext,
   address: string
 ): Promise<{
@@ -81,7 +79,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    await verifyLatestBlockFees(context.polkadotApi, expect, 3_000_000n);
+    await verifyLatestBlockFees(context, expect, 3_000_000n);
 
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
 
@@ -693,9 +691,15 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // toAssociateAccount should not be in accounts payable
     expect(await getAccountPayable(context, toAssociateAccount.address)).to.be.null;
 
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
+      ...toAssociateAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
     // Construct the signature
     let signature = {};
-    signature["Ed25519"] = relayAccount.sign(toAssociateAccount.address);
+    signature["Ed25519"] = relayAccount.sign(message);
 
     // Associate the identity
     await context.polkadotApi.tx.crowdloanRewards
@@ -794,6 +798,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let message = new Uint8Array([
       ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
       ...toAssociateAccount.addressRaw,
       ...firstAccount.addressRaw,
       ...stringToU8a("</Bytes>"),
@@ -1042,7 +1047,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
     );
     expect(events[1].toHuman().method).to.eq("ProxyExecuted");
-    expect(events[1].data.toJSON()[0]["err"].hasOwnProperty("badOrigin")).to.eq(true);
+    expect(events[1].data[0].toString()).to.be.eq(`{"err":{"module":{"index":0,"error":5}}}`);
 
     // Genesis account still has the money
     rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
