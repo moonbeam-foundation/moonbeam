@@ -5,7 +5,9 @@ pragma solidity >=0.8.0;
  * @title Pallet AuthorMapping Interface
  *
  * The interface through which solidity contracts will interact with pallet-author.mapping
+ * Moonbase address :    0x0000000000000000000000000000000000000807
  */
+ 
 interface AuthorMapping {
     /**
      * Add association
