@@ -4453,7 +4453,7 @@ fn deferred_payment_steady_state_event_flow() {
 // HOTFIX UNIT TESTs
 
 #[test]
-fn hotfix_remove_unexecutable_delegation_requests_works() {
+fn hotfix_remove_delegation_requests_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20)])
 		.with_candidates(vec![(1, 20)])
@@ -4496,7 +4496,7 @@ fn hotfix_remove_unexecutable_delegation_requests_works() {
 				status: DelegatorStatus::Active,
 			};
 			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
-			assert_ok!(Stake::hotfix_remove_unexecutable_delegation_requests(
+			assert_ok!(Stake::hotfix_remove_delegation_requests(
 				Origin::root(),
 				vec![2, 5]
 			));

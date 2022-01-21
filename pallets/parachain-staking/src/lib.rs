@@ -1780,9 +1780,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)] // TODO update weight
+		#[pallet::weight(0)]
 		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
-		pub fn hotfix_remove_unexecutable_delegation_requests(
+		pub fn hotfix_remove_delegation_requests(
 			origin: OriginFor<T>,
 			delegators: Vec<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
