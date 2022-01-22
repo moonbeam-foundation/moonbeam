@@ -276,21 +276,60 @@ benchmarks! {
 	}
 
 	execute_leave_candidates {
-		let caller: T::AccountId = create_funded_collator::<T>(
+		let candidate: T::AccountId = create_funded_collator::<T>(
 			"unique_caller",
 			USER_SEED - 100,
 			0u32.into(),
 			true,
 			1u32,
 		)?;
-		Pallet::<T>::schedule_leave_candidates(
-			RawOrigin::Signed(caller.clone()).into(),
-			2u32
+		// 2nd delegation required for all delegators to ensure DelegatorState updated not removed
+		let second_candidate: T::AccountId = create_funded_collator::<T>(
+			"unique__caller",
+			USER_SEED - 99,
+			0u32.into(),
+			true,
+			2u32,
 		)?;
-		roll_to_and_author::<T>(2, caller.clone());
-	}: _(RawOrigin::Signed(caller.clone()), caller.clone())
+		let mut delegators: Vec<T::AccountId> = Vec::new();
+		let mut col_del_count = 0u32;
+		// max_top.len() + max_bottom.len = 300 + 10
+		for i in 1..310 {
+			let seed = USER_SEED + i;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed,
+				min_delegator_stk::<T>(),
+				candidate.clone(),
+				true,
+				col_del_count,
+			)?;
+			Pallet::<T>::delegate(
+				RawOrigin::Signed(delegator.clone()).into(),
+				second_candidate.clone(),
+				min_delegator_stk::<T>(),
+				col_del_count,
+				1u32,
+			)?;
+			Pallet::<T>::schedule_revoke_delegation(
+				RawOrigin::Signed(delegator.clone()).into(),
+				candidate.clone()
+			)?;
+			delegators.push(delegator);
+			col_del_count += 1u32;
+		}
+		Pallet::<T>::schedule_leave_candidates(
+			RawOrigin::Signed(candidate.clone()).into(),
+			3u32
+		)?;
+		roll_to_and_author::<T>(2, candidate.clone());
+	}: _(RawOrigin::Signed(candidate.clone()), candidate.clone())
 	verify {
-		assert!(Pallet::<T>::candidate_state(&caller).is_none());
+		assert!(Pallet::<T>::candidate_state(&candidate).is_none());
+		assert!(Pallet::<T>::candidate_state(&second_candidate).is_some());
+		for delegator in delegators {
+			assert!(Pallet::<T>::is_delegator(&delegator));
+		}
 	}
 
 	cancel_leave_candidates {
