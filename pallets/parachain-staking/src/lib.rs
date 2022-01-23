@@ -1410,6 +1410,7 @@ pub mod pallet {
 		TooLowCandidateCountToLeaveCandidates,
 		TooLowDelegationCountToDelegate,
 		TooLowCandidateDelegationCountToDelegate,
+		TooLowCandidateDelegationCountToLeaveCandidates,
 		TooLowDelegationCountToLeaveDelegators,
 		PendingCandidateRequestsDNE,
 		PendingCandidateRequestAlreadyExists,
@@ -2039,14 +2040,20 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
 		}
+		// TODO: update weight fn to take hint
 		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_candidates())]
 		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
+			candidate_delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let state = <CandidateState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(
+				state.delegators.0.len() as u32 <= candidate_delegation_count,
+				Error::<T>::TooLowCandidateDelegationCountToLeaveCandidates
+			);
 			state.can_leave::<T>()?;
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);

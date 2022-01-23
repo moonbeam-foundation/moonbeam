@@ -760,12 +760,14 @@ fn execute_leave_candidates_works() {
 				1
 			));
 			roll_to(10);
-			let selector = &Keccak256::digest(b"execute_leave_candidates(address)")[0..4];
+			let selector = &Keccak256::digest(b"execute_leave_candidates(address,uint256)")[0..4];
 
 			// Construct data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let candidate_delegation_count = U256::zero();
+			candidate_delegation_count.to_big_endian(&mut input_data[36..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));

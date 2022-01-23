@@ -276,6 +276,8 @@ benchmarks! {
 	}
 
 	execute_leave_candidates {
+		// x is total number of delegations for the candidate
+		let x in 2..310;
 		let candidate: T::AccountId = create_funded_collator::<T>(
 			"unique_caller",
 			USER_SEED - 100,
@@ -293,8 +295,7 @@ benchmarks! {
 		)?;
 		let mut delegators: Vec<T::AccountId> = Vec::new();
 		let mut col_del_count = 0u32;
-		// max_top.len() + max_bottom.len = 300 + 10
-		for i in 1..310 {
+		for i in 1..x {
 			let seed = USER_SEED + i;
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
@@ -323,7 +324,7 @@ benchmarks! {
 			3u32
 		)?;
 		roll_to_and_author::<T>(2, candidate.clone());
-	}: _(RawOrigin::Signed(candidate.clone()), candidate.clone())
+	}: _(RawOrigin::Signed(candidate.clone()), candidate.clone(), col_del_count)
 	verify {
 		assert!(Pallet::<T>::candidate_state(&candidate).is_none());
 		assert!(Pallet::<T>::candidate_state(&second_candidate).is_some());

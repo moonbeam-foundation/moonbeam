@@ -830,7 +830,7 @@ fn execute_leave_candidates_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateLeft(1, 10, 0)));
 		});
 }
@@ -844,7 +844,7 @@ fn execute_leave_candidates_callable_by_any_signed() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1, 0));
 		});
 }
 
@@ -859,7 +859,7 @@ fn execute_leave_candidates_unreserves_balance() {
 			assert_eq!(Balances::free_balance(&1), 0);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_eq!(Balances::reserved_balance(&1), 0);
 			assert_eq!(Balances::free_balance(&1), 10);
 		});
@@ -875,7 +875,7 @@ fn execute_leave_candidates_decreases_total_staked() {
 			assert_eq!(Stake::total(), 10);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_eq!(Stake::total(), 0);
 		});
 }
@@ -892,7 +892,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 			let candidate_state = Stake::candidate_state(1).expect("just left => still exists");
 			assert_eq!(candidate_state.bond, 10u128);
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert!(Stake::candidate_state(1).is_none());
 		});
 }
@@ -906,16 +906,16 @@ fn cannot_execute_leave_candidates_before_delay() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_noop!(
-				Stake::execute_leave_candidates(Origin::signed(3), 1),
+				Stake::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(9);
 			assert_noop!(
-				Stake::execute_leave_candidates(Origin::signed(3), 1),
+				Stake::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(3), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(3), 1, 0));
 		});
 }
 
@@ -1263,7 +1263,7 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_noop!(
 				Stake::schedule_candidate_bond_less(Origin::signed(1), 10),
 				Error::<Test>::CandidateDNE
@@ -2475,7 +2475,7 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			// revocation executes during execute leave candidates (callable by anyone)
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 1));
 			assert!(!Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
@@ -3243,7 +3243,7 @@ fn collator_exit_executes_after_delay() {
 			let info = Stake::candidate_state(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
 			roll_to(21);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 2));
 			// we must exclude leaving collators from rewards while
 			// holding them retroactively accountable for previous faults
 			// (within the last T::SlashingWindow blocks)
@@ -3296,7 +3296,7 @@ fn collator_selection_chooses_top_candidates() {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(6), 6));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateScheduledExit(2, 6, 4)));
 			roll_to(21);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6, 0));
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_last_event!(MetaEvent::Stake(Event::JoinedCollatorCandidates(
 				6, 69u128, 469u128,
@@ -3566,7 +3566,7 @@ fn multiple_delegations() {
 			assert_eq!(Balances::free_balance(&6), 60);
 			assert_eq!(Balances::free_balance(&7), 10);
 			roll_to(40);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 5));
 			assert_eq!(Stake::delegator_state(7).unwrap().total, 10);
 			assert_eq!(Stake::delegator_state(6).unwrap().total, 30);
 			assert_eq!(
@@ -3615,7 +3615,7 @@ fn execute_leave_candidate_removes_delegations() {
 			);
 
 			roll_to(16);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 2));
 			// Verifies the revocation count has been reduced to 0
 			assert_eq!(
 				Stake::delegator_state(3)
