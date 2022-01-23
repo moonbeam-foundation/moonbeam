@@ -71,7 +71,7 @@ interface ParachainStaking {
         returns (uint256);
 
     /// @dev Get the CandidateDelegationCount weight hint
-    /// Selector: 075bf970
+    /// Selector: 815b796c
     /// @param candidate The address for which we are querying the nomination count
     /// @return The number of nominations backing the collator
     function candidate_delegation_count(address candidate)
@@ -117,8 +117,9 @@ interface ParachainStaking {
     function schedule_leave_candidates(uint256 candidateCount) external;
 
     /// @dev Execute due request to leave the set of collator candidates
-    /// Selector: b10d6643
-    function execute_leave_candidates() external;
+    /// Selector: b0b95649
+    /// @param candidate The candidate to exit if call is successful
+    function execute_leave_candidates(address candidate) external;
 
     /// @dev Cancel request to leave the set of collator candidates
     /// Selector: 0880b3e2
@@ -198,10 +199,13 @@ interface ParachainStaking {
     function schedule_leave_delegators() external;
 
     /// @dev Execute request to leave the set of delegators and revoke all delegations
-    /// Selector: 4f7cfb20
-    /// @param delegatorDelegationCount The number of active delegations to be revoked by caller
-    function execute_leave_delegators(uint256 delegatorDelegationCount)
-        external;
+    /// Selector: a84a7468
+    /// @param delegator The leaving delegator
+    /// @param delegatorDelegationCount The number of active delegations to be revoked by delegator
+    function execute_leave_delegators(
+        address delegator,
+        uint256 delegatorDelegationCount
+    ) external;
 
     /// @dev Cancel request to leave the set of delegators
     /// Selector: 2a987643
@@ -219,16 +223,15 @@ interface ParachainStaking {
     /// @param candidate The address of the collator candidate which will no longer be supported
     function schedule_revoke_delegation(address candidate) external;
 
-    /// DEPRECATED, replaced by schedule_delegator_bond_more, execute_delegation_request,
-    /// cancel_delegation_request
+    /// DEPRECATED, replaced by delegator_bond_more
     /// @dev Request to bond more for nominators with respect to a specific collator candidate
     /// Selector: 971d44c8
     /// @param candidate The address of the collator candidate for which nomination is increased
     /// @param more The amount by which the nomination is increased
     function nominator_bond_more(address candidate, uint256 more) external;
 
-    /// @dev Bond more for nominators with respect to a specific collator candidate
-    /// Selector: 6d988413
+    /// @dev Bond more for delegators with respect to a specific collator candidate
+    /// Selector: f8331108
     /// @param candidate The address of the collator candidate for which delegation shall increase
     /// @param more The amount by which the delegation is increased
     function delegator_bond_more(address candidate, uint256 more) external;
