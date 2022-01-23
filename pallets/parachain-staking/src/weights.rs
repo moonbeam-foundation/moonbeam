@@ -62,7 +62,7 @@ pub trait WeightInfo {
 	fn set_blocks_per_round() -> Weight;
 	fn join_candidates(x: u32) -> Weight;
 	fn schedule_leave_candidates(x: u32) -> Weight;
-	fn execute_leave_candidates() -> Weight;
+	fn execute_leave_candidates(x: u32) -> Weight;
 	fn cancel_leave_candidates(x: u32) -> Weight;
 	fn go_offline() -> Weight;
 	fn go_online() -> Weight;
@@ -150,10 +150,13 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(8 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn execute_leave_candidates() -> Weight {
-		(56_478_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+	fn execute_leave_candidates(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 8_000
+			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn cancel_leave_candidates(x: u32) -> Weight {
 		(48_521_000 as Weight)
@@ -338,10 +341,13 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
-	fn execute_leave_candidates() -> Weight {
-		(56_478_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+	fn execute_leave_candidates(x: u32) -> Weight {
+		(0 as Weight) // Standard Error: 8_000
+			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn cancel_leave_candidates(x: u32) -> Weight {
 		(48_521_000 as Weight)

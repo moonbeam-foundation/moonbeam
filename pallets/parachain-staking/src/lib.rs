@@ -2040,8 +2040,9 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
 		}
-		// TODO: update weight fn to take hint
-		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_candidates())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::execute_leave_candidates(*candidate_delegation_count)
+		)]
 		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,
