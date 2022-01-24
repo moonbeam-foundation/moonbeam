@@ -366,9 +366,8 @@ where
 					}
 
 					// This is checked in case UnitsWithAssetType runs first
-					if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&asset_type) {
+					if let Some(units) = AssetTypeUnitsPerSecond::<T>::take(&asset_type) {
 						// We need to update AssetTypeUnitsPerSecond too
-						AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
 						AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 
 						// Update weight due to this branch

@@ -293,7 +293,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 
 		let asset_id: mock::AssetId = statemine_multilocation.clone().into();
 
-		// We are gonna test thre cases:
+		// We are gonna test three cases:
 		// Case 1: AssetManagerPopulateAssetTypeIdStorage has not executed yet
 		// (only AssetIdType is populated)
 		// Case 2: AssetManagerPopulateAssetTypeIdStorage has already executed
@@ -313,7 +313,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 			statemine_multilocation
 		);
 
-		// To mimic case 2, we can simply register the asset trough the extrinsic
+		// To mimic case 2, we can simply register the asset through the extrinsic
 		assert_ok!(AssetManager::register_asset(
 			Origin::root(),
 			statemine_multilocation_2.clone(),
@@ -322,7 +322,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 			true
 		));
 
-		// To mimic case 3, we can simply register the asset trough the extrinsic
+		// To mimic case 3, we can simply register the asset through the extrinsic
 		// But we also need to set units per second
 		assert_ok!(AssetManager::register_asset(
 			Origin::root(),
