@@ -158,7 +158,7 @@ impl<
 					// We dont need to proceed if the amount is 0
 					// For cases (specially tests) where the asset is very cheap with respect
 					// to the weight needed
-					if amount == 0 {
+					if amount.is_zero() {
 						return Ok(payment);
 					}
 
