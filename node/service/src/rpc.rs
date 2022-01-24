@@ -23,7 +23,7 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
-use crate::{client::RuntimeApiCollection, TransactionConverters};
+use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
@@ -89,8 +89,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
-	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 }
@@ -158,7 +156,13 @@ where
 		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
 	});
 
-	let convert_transaction: Option<TransactionConverters> = None;
+	struct FakeTransactionConverter;
+	impl<T> fp_rpc::ConvertTransaction<T> for FakeTransactionConverter {
+		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			unreachable!()
+		}
+	}
+	let convert_transaction: Option<FakeTransactionConverter> = None;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),

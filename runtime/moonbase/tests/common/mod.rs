@@ -27,7 +27,7 @@ pub use moonbase_runtime::{
 	currency::{UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
-	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	Range, Runtime, System, UncheckedExtrinsic, WEEKS,
 };
 use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
@@ -36,8 +36,6 @@ use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
 use std::collections::BTreeMap;
-
-use fp_rpc::ConvertTransaction;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
@@ -354,11 +352,15 @@ pub fn set_parachain_inherent_data() {
 }
 
 pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {
-	let converter = TransactionConverter;
-	converter.convert_transaction(ethereum_transaction(raw_hex_tx))
+	UncheckedExtrinsic::new_unsigned(
+		pallet_ethereum::Call::<Runtime>::transact {
+			transaction: ethereum_transaction(raw_hex_tx),
+		}
+		.into(),
+	)
 }
 
-pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
+fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let bytes = hex::decode(raw_hex_tx).expect("Transaction bytes.");
 	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
 	assert!(transaction.is_ok());
