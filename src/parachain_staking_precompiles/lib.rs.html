@@ -842,6 +842,10 @@
 <span id="842">842</span>
 <span id="843">843</span>
 <span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -909,7 +913,7 @@
 	<span class="comment">// DEPRECATED</span>
 	<span class="ident">LeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;leave_candidates(uint256)&quot;</span>,
 	<span class="ident">ScheduleLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>,
-	<span class="ident">ExecuteLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;execute_leave_candidates(address)&quot;</span>,
+	<span class="ident">ExecuteLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;execute_leave_candidates(address,uint256)&quot;</span>,
 	<span class="ident">CancelLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>,
 	<span class="ident">GoOffline</span> <span class="op">=</span> <span class="string">&quot;go_offline()&quot;</span>,
 	<span class="ident">GoOnline</span> <span class="op">=</span> <span class="string">&quot;go_online()&quot;</span>,
@@ -1359,10 +1363,14 @@
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
 		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>);
+		<span class="kw">let</span> <span class="ident">candidate_delegation_count</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_leave_candidates</span> { <span class="ident">candidate</span> };
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_leave_candidates</span> {
+			<span class="ident">candidate</span>,
+			<span class="ident">candidate_delegation_count</span>,
+		};
 
 		<span class="comment">// Return call information</span>
 		<span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>))
