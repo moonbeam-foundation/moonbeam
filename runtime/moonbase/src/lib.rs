@@ -43,7 +43,8 @@ use frame_support::{
 		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND, WEIGHT_PER_MICROS},
+		WeightToFeeCoefficients, WeightToFeeCoefficient, WeightToFeePolynomial,
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
@@ -60,7 +61,10 @@ use xcm_builder::{
 
 use xcm_executor::traits::JustTry;
 
-use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
+use frame_system::{
+	limits::BlockWeights,
+	EnsureOneOf, EnsureRoot, EnsureSigned,
+};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -101,6 +105,8 @@ use xcm::latest::prelude::*;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
+use smallvec::smallvec;
+
 mod precompiles;
 use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
@@ -132,6 +138,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = MEGAWEI;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNIT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -188,14 +195,32 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
+// Here we assume Ethereum's base fee of 21000 gas and convert to weight
+// TODO: measure EXTRINSIC_BASE_WEIGHT properly
+const EXTRINSIC_BASE_WEIGHT: Weight = 21000 * WEIGHT_PER_GAS;
+
+pub struct RuntimeBlockWeights;
+impl Get<BlockWeights> for RuntimeBlockWeights {
+	fn get() -> BlockWeights {
+		BlockWeights::builder()
+			.for_class(DispatchClass::Normal, |weights| {
+				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
+				weights.max_total = NORMAL_WEIGHT.into();
+			})
+			.for_class(DispatchClass::Operational, |weights| {
+				weights.max_total = MAXIMUM_BLOCK_WEIGHT.into();
+				weights.reserved = (MAXIMUM_BLOCK_WEIGHT - NORMAL_WEIGHT).into();
+			})
+			.avg_block_initialization(Perbill::from_percent(10))
+			.build()
+			.expect("Should work")
+	}
+}
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 256;
 	pub const Version: RuntimeVersion = VERSION;
-	/// We allow for one half second of compute with a 6 second average block time.
-	/// These values are dictated by Polkadot for the parachain.
-	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
@@ -226,7 +251,7 @@ impl frame_system::Config for Runtime {
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = BlockHashCount;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
-	type BlockWeights = BlockWeights;
+	type BlockWeights = RuntimeBlockWeights;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	type BlockLength = BlockLength;
 	/// Runtime version.
@@ -314,11 +339,25 @@ parameter_types! {
 	pub OperationalFeeMultiplier: u8 = 5;
 }
 
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			coeff_frac: Perbill::zero(),
+			coeff_integer: currency::WEIGHT_FEE,
+			negative: false,
+		}]
+	}
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
-	type WeightToFee = IdentityFee<Balance>;
+	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
@@ -492,7 +531,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 	pub const MaxScheduledPerBlock: u32 = 50;
 }
 
