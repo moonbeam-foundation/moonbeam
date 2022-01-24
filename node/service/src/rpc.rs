@@ -162,7 +162,7 @@ where
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		transaction_converter,
+		None, // No transaction converter, use the ConvertTransactionRuntimeApi instead.
 		network.clone(),
 		signers,
 		overrides.clone(),

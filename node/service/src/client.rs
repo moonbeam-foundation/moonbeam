@@ -40,6 +40,7 @@ pub trait RuntimeApiCollection:
 	+ sp_offchain::OffchainWorkerApi<Block>
 	+ sp_session::SessionKeys<Block>
 	+ fp_rpc::EthereumRuntimeRPCApi<Block>
+	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 	+ nimbus_primitives::NimbusApi<Block>
@@ -61,6 +62,7 @@ where
 		+ sp_offchain::OffchainWorkerApi<Block>
 		+ sp_session::SessionKeys<Block>
 		+ fp_rpc::EthereumRuntimeRPCApi<Block>
+		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
