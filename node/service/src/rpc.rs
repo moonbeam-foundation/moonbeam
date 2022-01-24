@@ -126,8 +126,8 @@ where
 		frontier_backend,
 		backend: _,
 		max_past_logs,
-		transaction_converter,
 		xcm_senders,
+		..
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -158,11 +158,13 @@ where
 		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
 	});
 
+	let convert_transaction: Option<TransactionConverters> = None;
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		None, // No transaction converter, use the ConvertTransactionRuntimeApi instead.
+		convert_transaction, // No transaction converter, use the ConvertTransactionRuntimeApi instead.
 		network.clone(),
 		signers,
 		overrides.clone(),
