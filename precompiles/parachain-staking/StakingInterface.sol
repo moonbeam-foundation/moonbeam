@@ -117,9 +117,13 @@ interface ParachainStaking {
     function schedule_leave_candidates(uint256 candidateCount) external;
 
     /// @dev Execute due request to leave the set of collator candidates
-    /// Selector: b0b95649
-    /// @param candidate The candidate to exit if call is successful
-    function execute_leave_candidates(address candidate) external;
+    /// Selector: 3fdc4c30
+    /// @param candidate The candidate address for which the pending exit request will be executed
+    /// @param candidateDelegationCount The number of delegations for the candidate to be revoked
+    function execute_leave_candidates(
+        address candidate,
+        uint256 candidateDelegationCount
+    ) external;
 
     /// @dev Cancel request to leave the set of collator candidates
     /// Selector: 0880b3e2

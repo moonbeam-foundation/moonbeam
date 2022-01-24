@@ -27,11 +27,13 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, set::OrderedSet, Bond, CandidatePool, CandidateState, CollatorStatus,
-	DelegationChange, DelegationRequest, DelegatorAdded, Error, Event, Range,
+	assert_tail_eq, set::OrderedSet, BalanceOf, Bond, CandidatePool, CandidateState,
+	CollatorStatus, DelegationChange, DelegationRequest, Delegator, DelegatorAdded, DelegatorState,
+	DelegatorStatus, Error, Event, PendingDelegationRequests, Range,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
+use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
 
@@ -828,7 +830,7 @@ fn execute_leave_candidates_emits_event() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateLeft(1, 10, 0)));
 		});
 }
@@ -842,7 +844,7 @@ fn execute_leave_candidates_callable_by_any_signed() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 1, 0));
 		});
 }
 
@@ -857,7 +859,7 @@ fn execute_leave_candidates_unreserves_balance() {
 			assert_eq!(Balances::free_balance(&1), 0);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_eq!(Balances::reserved_balance(&1), 0);
 			assert_eq!(Balances::free_balance(&1), 10);
 		});
@@ -873,7 +875,7 @@ fn execute_leave_candidates_decreases_total_staked() {
 			assert_eq!(Stake::total(), 10);
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_eq!(Stake::total(), 0);
 		});
 }
@@ -890,7 +892,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 			let candidate_state = Stake::candidate_state(1).expect("just left => still exists");
 			assert_eq!(candidate_state.bond, 10u128);
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert!(Stake::candidate_state(1).is_none());
 		});
 }
@@ -904,16 +906,16 @@ fn cannot_execute_leave_candidates_before_delay() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1u32));
 			assert_noop!(
-				Stake::execute_leave_candidates(Origin::signed(3), 1),
+				Stake::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(9);
 			assert_noop!(
-				Stake::execute_leave_candidates(Origin::signed(3), 1),
+				Stake::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(3), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(3), 1, 0));
 		});
 }
 
@@ -1261,7 +1263,7 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 		.execute_with(|| {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(1), 1));
 			roll_to(10);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 0));
 			assert_noop!(
 				Stake::schedule_candidate_bond_less(Origin::signed(1), 10),
 				Error::<Test>::CandidateDNE
@@ -2473,7 +2475,7 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(2), 1));
 			roll_to(10);
 			// revocation executes during execute leave candidates (callable by anyone)
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(1), 1, 1));
 			assert!(!Stake::is_delegator(&2));
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
@@ -3241,7 +3243,7 @@ fn collator_exit_executes_after_delay() {
 			let info = Stake::candidate_state(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
 			roll_to(21);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 2));
 			// we must exclude leaving collators from rewards while
 			// holding them retroactively accountable for previous faults
 			// (within the last T::SlashingWindow blocks)
@@ -3294,7 +3296,7 @@ fn collator_selection_chooses_top_candidates() {
 			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(6), 6));
 			assert_last_event!(MetaEvent::Stake(Event::CandidateScheduledExit(2, 6, 4)));
 			roll_to(21);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(6), 6, 0));
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_last_event!(MetaEvent::Stake(Event::JoinedCollatorCandidates(
 				6, 69u128, 469u128,
@@ -3564,7 +3566,7 @@ fn multiple_delegations() {
 			assert_eq!(Balances::free_balance(&6), 60);
 			assert_eq!(Balances::free_balance(&7), 10);
 			roll_to(40);
-			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 5));
 			assert_eq!(Stake::delegator_state(7).unwrap().total, 10);
 			assert_eq!(Stake::delegator_state(6).unwrap().total, 30);
 			assert_eq!(
@@ -3579,6 +3581,49 @@ fn multiple_delegations() {
 			assert_eq!(Balances::reserved_balance(&7), 10);
 			assert_eq!(Balances::free_balance(&6), 70);
 			assert_eq!(Balances::free_balance(&7), 90);
+		});
+}
+
+#[test]
+// The test verifies that the pending revoke request is removed by 2's exit so there is no dangling
+// revoke request after 2 exits
+fn execute_leave_candidate_removes_delegations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100), (3, 100), (4, 100)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![(3, 1, 10), (3, 2, 10), (4, 1, 10), (4, 2, 10)])
+		.build()
+		.execute_with(|| {
+			// Verifies the revocation count is originally at 0
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
+
+			assert_ok!(Stake::schedule_leave_candidates(Origin::signed(2), 2));
+			assert_ok!(Stake::schedule_revoke_delegation(Origin::signed(3), 2));
+			// Verifies the revocation count has been updated to 1
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				1
+			);
+
+			roll_to(16);
+			assert_ok!(Stake::execute_leave_candidates(Origin::signed(2), 2, 2));
+			// Verifies the revocation count has been reduced to 0
+			assert_eq!(
+				Stake::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
 		});
 }
 
@@ -4407,7 +4452,63 @@ fn deferred_payment_steady_state_event_flow() {
 		});
 }
 
-// HOTFIX UNIT TEST for hotfix_update_candidate_pool_value
+// HOTFIX UNIT TESTs
+
+#[test]
+fn hotfix_remove_delegation_requests_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut requests: BTreeMap<
+				<Test as frame_system::Config>::AccountId,
+				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
+			> = BTreeMap::new();
+			requests.insert(
+				3,
+				DelegationRequest {
+					collator: 3,
+					amount: 5,
+					when_executable: 0,
+					action: DelegationChange::Decrease,
+				},
+			);
+			requests.insert(
+				4,
+				DelegationRequest {
+					collator: 4,
+					amount: 20,
+					when_executable: 0,
+					action: DelegationChange::Revoke,
+				},
+			);
+			let corrupted_delegator_state = Delegator {
+				id: 2,
+				delegations: OrderedSet::from(vec![Bond {
+					owner: 1,
+					amount: 20,
+				}]),
+				total: 20,
+				requests: PendingDelegationRequests {
+					revocations_count: 1,
+					requests,
+					less_total: 25,
+				},
+				status: DelegatorStatus::Active,
+			};
+			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
+			assert_ok!(Stake::hotfix_remove_delegation_requests(
+				Origin::root(),
+				vec![2, 5]
+			));
+			assert!(Stake::delegator_state(&5).is_none());
+			let fixed_delegator_state = Stake::delegator_state(&2).expect("inserted => exists");
+			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
+			assert_eq!(fixed_delegator_state.requests.less_total, 0);
+		});
+}
+
 #[test]
 fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 	ExtBuilder::default()
@@ -4588,7 +4689,7 @@ fn remove_exit_queue_migration_migrates_leaving_delegators() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i).unwrap().status,
+					Stake::delegator_state(i).unwrap().status,
 					DelegatorStatus::Leaving(3)
 				);
 			}
@@ -4640,11 +4741,7 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i)
-						.unwrap()
-						.requests
-						.requests
-						.get(&1),
+					Stake::delegator_state(i).unwrap().requests.requests.get(&1),
 					Some(&DelegationRequest {
 						collator: 1,
 						amount: 10,
