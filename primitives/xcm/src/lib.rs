@@ -154,7 +154,7 @@ impl<
 				{
 					let amount = units_per_second.saturating_mul(weight as u128)
 						/ (WEIGHT_PER_SECOND as u128);
-					
+
 					// We dont need to proceed if the amount is 0
 					// For cases (specially tests) where the asset is very cheap with respect
 					// to the weight needed
