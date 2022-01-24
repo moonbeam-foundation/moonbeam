@@ -191,7 +191,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the amount of units we are charging per execution second for a given AssetId
+		/// Change the amount of units we are charging per execution second for a given AssetType
 		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
@@ -243,7 +243,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the amount of units we are charging per execution second for a given AssetId
+		/// Remove a given assetType from the supported assets for fee payment
 		#[pallet::weight(T::WeightInfo::remove_supported_asset())]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,

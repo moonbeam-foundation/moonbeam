@@ -444,7 +444,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "AssetTypeUnitsPerSecond", "Migrating {:?} elements", migrated_count);
+		log::info!(target: "PopulateSupportedFeePaymentAssets", "Migrating {:?} elements", migrated_count);
 
 		// Collect in a vec
 		let mut supported_assets: Vec<T::AssetType> = Vec::new();
@@ -455,7 +455,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		// Push value
 		SupportedFeePaymentAssets::<T>::put(supported_assets);
 
-		log::info!(target: "AssetTypeUnitsPerSecond", "almost done");
+		log::info!(target: "PopulateSupportedFeePaymentAssets", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a red to get it into
 		// memory
