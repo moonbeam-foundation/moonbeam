@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -236,7 +236,6 @@ pub(crate) fn roll_one_block() -> u64 {
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
 	Stake::on_initialize(System::block_number());
-
 	System::block_number()
 }
 

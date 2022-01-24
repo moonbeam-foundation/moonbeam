@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -70,10 +70,19 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Claim | Action::UpdateRewardAddress => FunctionModifier::NonPayable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately

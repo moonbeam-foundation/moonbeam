@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::FilterPool;
+use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
@@ -298,6 +298,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
 			Arc<fc_db::Backend<Block>>,
+			FeeHistoryCache,
 		),
 	>,
 	ServiceError,
@@ -359,6 +360,7 @@ where
 	);
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
+	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
 	let frontier_backend = open_frontier_backend(config)?;
 
@@ -393,6 +395,7 @@ where
 			telemetry,
 			telemetry_worker_handle,
 			frontier_backend,
+			fee_history_cache,
 		),
 	})
 }
@@ -493,8 +496,14 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config, false)?;
-	let (block_import, filter_pool, mut telemetry, telemetry_worker_handle, frontier_backend) =
-		params.other;
+	let (
+		block_import,
+		filter_pool,
+		mut telemetry,
+		telemetry_worker_handle,
+		frontier_backend,
+		fee_history_cache,
+	) = params.other;
 
 	let relay_chain_full_node =
 		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle)
@@ -530,6 +539,8 @@ where
 
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let fee_history_limit = rpc_config.fee_history_limit;
 
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
 		task_manager: &task_manager,
@@ -537,6 +548,9 @@ where
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
 		filter_pool: filter_pool.clone(),
+		overrides: overrides.clone(),
+		fee_history_limit,
+		fee_history_cache: fee_history_cache.clone(),
 	});
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
@@ -550,6 +564,9 @@ where
 					substrate_backend: backend.clone(),
 					frontier_backend: frontier_backend.clone(),
 					filter_pool: filter_pool.clone(),
+					overrides: overrides.clone(),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 				},
 			)
 		} else {
@@ -568,6 +585,8 @@ where
 		let backend = backend.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let overrides = overrides.clone();
+		let fee_history_cache = fee_history_cache.clone();
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
@@ -594,12 +613,14 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				fee_history_limit,
+				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				transaction_converter,
 				xcm_senders: None,
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
@@ -754,7 +775,15 @@ where
 		keystore_container,
 		select_chain: maybe_select_chain,
 		transaction_pool,
-		other: (block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
+		other:
+			(
+				block_import,
+				filter_pool,
+				telemetry,
+				_telemetry_worker_handle,
+				frontier_backend,
+				fee_history_cache,
+			),
 	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
@@ -780,6 +809,8 @@ where
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
 	let mut xcm_senders = None;
 	let collator = config.role.is_authority();
@@ -892,6 +923,9 @@ where
 		substrate_backend: backend.clone(),
 		frontier_backend: frontier_backend.clone(),
 		filter_pool: filter_pool.clone(),
+		overrides: overrides.clone(),
+		fee_history_limit,
+		fee_history_cache: fee_history_cache.clone(),
 	});
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
@@ -904,6 +938,9 @@ where
 					substrate_backend: backend.clone(),
 					frontier_backend: frontier_backend.clone(),
 					filter_pool: filter_pool.clone(),
+					overrides: overrides.clone(),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
 				},
 			)
 		} else {
@@ -920,6 +957,8 @@ where
 		let network = network.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let overrides = overrides.clone();
+		let fee_history_cache = fee_history_cache.clone();
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
@@ -946,12 +985,14 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				fee_history_limit,
+				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				transaction_converter,
 				xcm_senders: xcm_senders.clone(),
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),

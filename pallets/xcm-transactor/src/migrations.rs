@@ -19,7 +19,7 @@ use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::{remove_storage_prefix, storage_key_iter},
 	traits::{Get, OnRuntimeUpgrade},
-	weights::Weight,
+	weights::{constants::WEIGHT_PER_SECOND, Weight},
 	Blake2_128Concat,
 };
 use parity_scale_codec::{Decode, Encode};
@@ -81,13 +81,16 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 			.is_none()
 		);
 
-		// Write the mappings back to storage with the new secure hasher
+		// Write to the new storage with removed and added fields
 		for (location, info) in stored_data {
 			TransactInfoWithWeightLimit::<T>::insert(location, {
 				RemoteTransactInfoWithMaxWeight {
 					transact_extra_weight: info.transact_extra_weight,
 					/// Fee per weight in the destination chain
-					fee_per_weight: info.fee_per_weight,
+					/// Make sure the new one reflects per second, and not per weight unit
+					fee_per_second: info
+						.fee_per_weight
+						.saturating_mul(WEIGHT_PER_SECOND as u128),
 					/// Max destination weight
 					max_weight: 20000000000,
 				}
@@ -104,7 +107,6 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::storage::migration::{storage_iter, storage_key_iter};
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 		let pallet_prefix: &[u8] = b"XcmTransactor";
@@ -118,8 +120,6 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 		// There are no entries in the old storage afterward
 
 		// Assert new storage is empty
-		// Because the pallet and item prefixes are the same, the old storage is still at this
-		// key. However, the values can't be decoded so the assertion passes.
 		assert!(TransactInfoWithWeightLimit::<T>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
@@ -165,7 +165,12 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 				original_info.transact_extra_weight,
 				migrated_info.transact_extra_weight
 			);
-			assert_eq!(original_info.fee_per_weight, migrated_info.fee_per_weight);
+			assert_eq!(
+				original_info
+					.fee_per_weight
+					.saturating_mul(WEIGHT_PER_SECOND as u128),
+				migrated_info.fee_per_second
+			);
 			assert_eq!(migrated_info.max_weight, 20000000000)
 		}
 

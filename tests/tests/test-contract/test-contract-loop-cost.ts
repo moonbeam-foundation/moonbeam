@@ -5,15 +5,15 @@ import { createContract, createContractExecution } from "../../util/transactions
 [
   {
     loop: 1,
-    gas: 42889,
+    gas: 44189,
   },
   {
     loop: 500,
-    gas: 1064354,
+    gas: 367054,
   },
   {
     loop: 600,
-    gas: 1269054,
+    gas: 431754,
   },
 ].forEach(({ loop, gas }) => {
   describeDevMoonbeamAllEthTxTypes("Contract loop", (context) => {

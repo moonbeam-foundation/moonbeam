@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -30,7 +30,8 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
@@ -116,13 +117,33 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::IsNominator
+				| Action::IsDelegator
+				| Action::IsCandidate
+				| Action::IsSelectedCandidate
+				| Action::Points
+				| Action::MinNomination
+				| Action::MinDelegation
+				| Action::CandidateCount
+				| Action::CollatorNominationCount
+				| Action::CandidateDelegationCount
+				| Action::NominatorNominationCount
+				| Action::DelegatorDelegationCount => FunctionModifier::View,
+				_ => FunctionModifier::NonPayable,
+			},
+		)?;
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {

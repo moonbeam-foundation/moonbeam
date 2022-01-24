@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
-use ethereum_types::{H128, H256};
+use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
@@ -36,7 +36,7 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
-use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
 	Transaction(H256),
@@ -105,8 +105,6 @@ impl DebugT for Debug {
 	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
 		let mut requester = self.requester.clone();
 
-		println!("---> Enter {:?}", id);
-
 		async move {
 			let (tx, rx) = oneshot::channel();
 			// Send a message from the rpc handler to the service level task.
@@ -169,15 +167,7 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
-						// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
-						//
-						// Substrate uses the default value for `core_threads` (number of cores of the
-						// machine running the node) and `max_threads` (512 total).
-						//
-						// Task below is spawned in the substrate's built tokio::Runtime, so they share
-						// the same thread pool as the rest of the service-spawned tasks. Additionally,
-						// blocking tasks use a more restrictive permit pool shared by trace modules.
-						// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
+
 						tokio::task::spawn(async move {
 							let _ = response_tx.send(
 								async {
@@ -208,22 +198,12 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
-						// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
-						//
-						// Substrate uses the default value for `core_threads` (number of cores of the
-						// machine running the node) and `max_threads` (512 total).
-						//
-						// Task below is spawned in the substrate's built tokio::Runtime, so they share
-						// the same thread pool as the rest of the service-spawned tasks. Additionally,
-						// blocking tasks use a more restrictive permit pool shared by trace modules.
-						// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
+
 						tokio::task::spawn(async move {
-							println!("--> Request2");
 							let _ = response_tx.send(
 								async {
 									let _permit = permit_pool.acquire().await;
 
-									println!("--> Request3");
 									tokio::task::spawn_blocking(move || {
 										Self::handle_block_request(
 											client.clone(),
@@ -259,9 +239,11 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				let tracer = if hash == blockscout_hash {
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
+					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
+				];
+				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
+				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
 					Some(TracerInput::Blockscout)
 				} else if tracer == "callTracer" {
 					Some(TracerInput::CallTracer)
@@ -389,7 +371,6 @@ where
 						"Bug: failed to resolve the tracer format."
 					))),
 				}?;
-				println!("---> Response {:?}", response);
 
 				Ok(Response::Block(response))
 			}

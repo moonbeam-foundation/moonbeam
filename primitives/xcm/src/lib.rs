@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -47,13 +47,16 @@ pub struct AsAssetType<AssetId, AssetType, AssetIdInfoGetter>(
 impl<AssetId, AssetType, AssetIdInfoGetter> xcm_executor::traits::Convert<MultiLocation, AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
-	AssetId: From<AssetType> + Clone,
+	AssetId: Clone,
 	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		let asset_type: AssetType = id.borrow().clone().into();
-		Ok(AssetId::from(asset_type))
+		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(id.borrow().clone().into()) {
+			Ok(asset_id)
+		} else {
+			Err(())
+		}
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
 		if let Some(asset_type) = AssetIdInfoGetter::get_asset_type(what.borrow().clone()) {
@@ -114,21 +117,19 @@ where
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
-	AssetId: From<AssetType> + Clone,
 	AssetType: From<MultiLocation> + Clone,
-	AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
+	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
 	Weight,
 	Option<(MultiLocation, u128, u128)>,
-	PhantomData<(AssetId, AssetType, AssetIdInfoGetter, R)>,
+	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
 impl<
-		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
-		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
+		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
-	> WeightTrader for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+	> WeightTrader for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn new() -> Self {
 		FirstAssetTrader(0, None, PhantomData)
@@ -156,8 +157,10 @@ impl<
 				if !AssetIdInfoGetter::payment_is_supported(asset_id.clone()) {
 					return Err(XcmError::TooExpensive);
 				}
-				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_id) {
-					let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
+				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
+				{
+					let amount = units_per_second.saturating_mul(weight as u128)
+						/ (WEIGHT_PER_SECOND as u128);
 					let required = MultiAsset {
 						fun: Fungibility::Fungible(amount),
 						id: xcmAssetId::Concrete(id.clone()),
@@ -222,11 +225,10 @@ impl<
 
 /// Deal with spent fees, deposit them as dictated by R
 impl<
-		AssetId: From<AssetType> + Clone,
 		AssetType: From<MultiLocation> + Clone,
-		AssetIdInfoGetter: UnitsToWeightRatio<AssetId>,
+		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
-	> Drop for FirstAssetTrader<AssetId, AssetType, AssetIdInfoGetter, R>
+	> Drop for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn drop(&mut self) {
 		if let Some((id, amount, _)) = self.1.clone() {
@@ -272,10 +274,13 @@ impl FilterAssetLocation for MultiNativeAsset {
 	}
 }
 
-// Defines the trait to obtain a generic AssetType from a generic AssetId
+// Defines the trait to obtain a generic AssetType from a generic AssetId and viceversa
 pub trait AssetTypeGetter<AssetId, AssetType> {
-	// Get units per second from asset type
+	// Get asset type from assetId
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;
+
+	// Get assetId from assetType
+	fn get_asset_id(asset_type: AssetType) -> Option<AssetId>;
 }
 
 // Defines the trait to obtain the units per second of a give assetId for local execution
@@ -284,7 +289,7 @@ pub trait UnitsToWeightRatio<AssetId> {
 	// Whether payment in a particular assetId is suppotrted
 	fn payment_is_supported(asset_id: AssetId) -> bool;
 	// Get units per second from asset type
-	fn get_units_per_second(asset_id: AssetId) -> Option<u128>;
+	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
 }
 
 // The utility calls that need to be implemented as part of

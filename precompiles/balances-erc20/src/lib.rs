@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::{CheckedSub, StaticLookup},
+	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
 	storage::types::StorageDoubleMap,
 	traits::StorageInstance,
 	Blake2_128Concat,
@@ -33,8 +33,8 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder,
-	RuntimeHelper,
+	keccak256, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	Gasometer, LogsBuilder, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -54,6 +54,12 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
+/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_DEPOSIT: [u8; 32] = keccak256!("Deposit(address,uint256)");
+
+/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_WITHDRAWAL: [u8; 32] = keccak256!("Withdrawal(address,uint256)");
+
 /// Associates pallet Instance to a prefix used for the Approves storage.
 /// This trait is implemented for () and the 16 substrate Instance.
 pub trait InstanceToPrefix {
@@ -63,40 +69,51 @@ pub trait InstanceToPrefix {
 
 // We use a macro to implement the trait for () and the 16 substrate Instance.
 macro_rules! impl_prefix {
-	($prefix:ident, $instance:ty, $name:literal) => {
-		pub struct $prefix;
+	($instance:ty, $name:literal) => {
+		// Generate unique UUID to have unique module names.
+		gensym::gensym! { _impl_prefix!{ $instance, $name }}
+	};
+}
 
-		impl StorageInstance for $prefix {
-			const STORAGE_PREFIX: &'static str = "Approves";
+macro_rules! _impl_prefix {
+	($module:ident, $instance:ty, $name:literal) => {
+		mod $module {
+			use super::*;
 
-			fn pallet_prefix() -> &'static str {
-				$name
+			pub struct Approves;
+
+			impl StorageInstance for Approves {
+				const STORAGE_PREFIX: &'static str = "Approves";
+
+				fn pallet_prefix() -> &'static str {
+					$name
+				}
 			}
-		}
 
-		impl InstanceToPrefix for $instance {
-			type ApprovesPrefix = $prefix;
+			impl InstanceToPrefix for $instance {
+				type ApprovesPrefix = Approves;
+			}
 		}
 	};
 }
 
-impl_prefix!(ApprovesPrefix0, (), "Erc20Instance0Balances");
-impl_prefix!(ApprovesPrefix1, Instance1, "Erc20Instance1Balances");
-impl_prefix!(ApprovesPrefix2, Instance2, "Erc20Instance2Balances");
-impl_prefix!(ApprovesPrefix3, Instance3, "Erc20Instance3Balances");
-impl_prefix!(ApprovesPrefix4, Instance4, "Erc20Instance4Balances");
-impl_prefix!(ApprovesPrefix5, Instance5, "Erc20Instance5Balances");
-impl_prefix!(ApprovesPrefix6, Instance6, "Erc20Instance6Balances");
-impl_prefix!(ApprovesPrefix7, Instance7, "Erc20Instance7Balances");
-impl_prefix!(ApprovesPrefix8, Instance8, "Erc20Instance8Balances");
-impl_prefix!(ApprovesPrefix9, Instance9, "Erc20Instance9Balances");
-impl_prefix!(ApprovesPrefix10, Instance10, "Erc20Instance10Balances");
-impl_prefix!(ApprovesPrefix11, Instance11, "Erc20Instance11Balances");
-impl_prefix!(ApprovesPrefix12, Instance12, "Erc20Instance12Balances");
-impl_prefix!(ApprovesPrefix13, Instance13, "Erc20Instance13Balances");
-impl_prefix!(ApprovesPrefix14, Instance14, "Erc20Instance14Balances");
-impl_prefix!(ApprovesPrefix15, Instance15, "Erc20Instance15Balances");
-impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
+impl_prefix!((), "Erc20Instance0Balances");
+impl_prefix!(Instance1, "Erc20Instance1Balances");
+impl_prefix!(Instance2, "Erc20Instance2Balances");
+impl_prefix!(Instance3, "Erc20Instance3Balances");
+impl_prefix!(Instance4, "Erc20Instance4Balances");
+impl_prefix!(Instance5, "Erc20Instance5Balances");
+impl_prefix!(Instance6, "Erc20Instance6Balances");
+impl_prefix!(Instance7, "Erc20Instance7Balances");
+impl_prefix!(Instance8, "Erc20Instance8Balances");
+impl_prefix!(Instance9, "Erc20Instance9Balances");
+impl_prefix!(Instance10, "Erc20Instance10Balances");
+impl_prefix!(Instance11, "Erc20Instance11Balances");
+impl_prefix!(Instance12, "Erc20Instance12Balances");
+impl_prefix!(Instance13, "Erc20Instance13Balances");
+impl_prefix!(Instance14, "Erc20Instance14Balances");
+impl_prefix!(Instance15, "Erc20Instance15Balances");
+impl_prefix!(Instance16, "Erc20Instance16Balances");
 
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> =
@@ -126,6 +143,8 @@ pub enum Action {
 	Name = "name()",
 	Symbol = "symbol()",
 	Decimals = "decimals()",
+	Deposit = "deposit()",
+	Withdraw = "withdraw(uint256)",
 }
 
 /// Metadata of an ERC20 token.
@@ -138,6 +157,10 @@ pub trait Erc20Metadata {
 
 	/// Returns the decimals places of the token.
 	fn decimals() -> u8;
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool;
 }
 
 /// Precompile exposing a pallet_balance as an ERC20.
@@ -162,13 +185,26 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)
+			.unwrap_or_else(|_| (EvmDataReader::new(input), Action::Deposit));
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
+					FunctionModifier::NonPayable
+				}
+				Action::Deposit => FunctionModifier::Payable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			Action::TotalSupply => Self::total_supply(input, gasometer),
@@ -180,6 +216,8 @@ where
 			Action::Name => Self::name(input, gasometer, context),
 			Action::Symbol => Self::symbol(input, gasometer, context),
 			Action::Decimals => Self::decimals(input, gasometer, context),
+			Action::Deposit => Self::deposit(input, gasometer, context),
+			Action::Withdraw => Self::withdraw(input, gasometer, context),
 		}
 	}
 }
@@ -291,7 +329,9 @@ where
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
-			let amount = Self::u256_to_amount(gasometer, amount)?;
+			// Amount saturate if too high.
+			let amount = Self::u256_to_amount(&mut gasometer.clone(), amount)
+				.unwrap_or_else(|_| Bounded::max_value());
 
 			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
 		}
@@ -469,6 +509,88 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
 			logs: Default::default(),
+		})
+	}
+
+	fn deposit(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		// Deposit only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		let caller: Runtime::AccountId = Runtime::AddressMapping::into_account_id(context.caller);
+		let precompile = Runtime::AddressMapping::into_account_id(context.address);
+		let amount = Self::u256_to_amount(gasometer, context.apparent_value)?;
+
+		if amount.into() == U256::from(0u32) {
+			return Err(gasometer.revert("deposited amount must be non-zero"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		// Send back funds received by the precompile.
+		RuntimeHelper::<Runtime>::try_dispatch(
+			Some(precompile).into(),
+			pallet_balances::Call::<Runtime, Instance>::transfer {
+				dest: Runtime::Lookup::unlookup(caller),
+				value: amount,
+			},
+			gasometer,
+		)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_DEPOSIT,
+					context.caller,
+					EvmDataWriter::new().write(context.apparent_value).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn withdraw(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		// Withdraw only makes sense for the native currency.
+		if !Metadata::is_native_currency() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		gasometer.record_log_costs_manual(2, 32)?;
+
+		let withdrawn_amount: U256 = input.read(gasometer)?;
+
+		let account_amount: U256 = {
+			let owner: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
+		};
+
+		if withdrawn_amount > account_amount {
+			return Err(gasometer.revert("trying to withdraw more than owned"));
+		}
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: LogsBuilder::new(context.address)
+				.log2(
+					SELECTOR_LOG_WITHDRAWAL,
+					context.caller,
+					EvmDataWriter::new().write(withdrawn_amount).build(),
+				)
+				.build(),
 		})
 	}
 

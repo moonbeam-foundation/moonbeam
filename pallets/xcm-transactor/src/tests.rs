@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,7 +18,8 @@ use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
 use frame_support::{
-	assert_noop, assert_ok, storage::migration::put_storage_value, Blake2_128Concat,
+	assert_noop, assert_ok, storage::migration::put_storage_value,
+	weights::constants::WEIGHT_PER_SECOND, Blake2_128Concat,
 };
 use sp_std::boxed::Box;
 use xcm::latest::{Junction, Junctions, MultiLocation};
@@ -168,7 +169,7 @@ fn test_transact_through_derivative_multilocation_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_weight: 1,
+						fee_per_second: 1,
 						max_weight: 10000,
 					},
 				),
@@ -217,7 +218,7 @@ fn test_transact_through_derivative_success() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_weight: 1,
+						fee_per_second: 1,
 						max_weight: 10000,
 					},
 				),
@@ -276,7 +277,7 @@ fn test_root_can_transact_through_sovereign() {
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
-						fee_per_weight: 1,
+						fee_per_second: 1,
 						max_weight: 10000,
 					},
 				),
@@ -293,7 +294,7 @@ fn test_fee_calculation_works() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				XcmTransactor::calculate_fee_per_weight(1000000000, 8),
+				XcmTransactor::calculate_fee_per_second(1000000000, 8 * WEIGHT_PER_SECOND as u128),
 				8000000000
 			);
 		})
@@ -322,7 +323,7 @@ fn test_max_transact_weight_migration_works() {
 			// This is the new struct
 			let expected_transacted_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight: 0,
-				fee_per_weight: 1,
+				fee_per_second: 1 * WEIGHT_PER_SECOND as u128,
 				max_weight: 20000000000,
 			};
 
