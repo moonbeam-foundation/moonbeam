@@ -319,7 +319,9 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
-				fn convert_transaction(transaction: pallet_ethereum::Transaction) -> <Block as BlockT>::Extrinsic {
+				fn convert_transaction(
+					transaction: pallet_ethereum::Transaction
+				) -> <Block as BlockT>::Extrinsic {
 					UncheckedExtrinsic::new_unsigned(
 						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 					)
