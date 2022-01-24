@@ -23,7 +23,10 @@ use frame_support::{
 };
 #[cfg(feature = "xcm-support")]
 use pallet_asset_manager::{
-	migrations::{ChangeStateminePrefixes, PopulateAssetTypeIdStorage, UnitsWithAssetType, PopulateSupportedFeePaymentAssets},
+	migrations::{
+		ChangeStateminePrefixes, PopulateAssetTypeIdStorage, PopulateSupportedFeePaymentAssets,
+		UnitsWithAssetType,
+	},
 	Config as AssetManagerConfig,
 };
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
