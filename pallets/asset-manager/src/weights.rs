@@ -70,12 +70,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		(24_348_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-
+	}
 	fn remove_supported_asset() -> Weight {
 		(27_820_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
 	}
 	fn change_existing_asset_type() -> Weight {
 		(28_306_000 as Weight)
@@ -95,11 +94,11 @@ impl WeightInfo for () {
 		(24_348_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
 	fn remove_supported_asset() -> Weight {
 		(27_820_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
 	}
 	fn change_existing_asset_type() -> Weight {
 		(28_306_000 as Weight)

@@ -101,7 +101,7 @@ fn test_root_can_change_units_per_second() {
 			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
 			200
 		);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
@@ -181,26 +181,32 @@ fn test_change_units_per_second_after_setting_it_once() {
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
-			1,
+			MockAssetType::MockAsset(1),
 			200u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
-			1,
+			MockAssetType::MockAsset(1),
 			100u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 100);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			100
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(1, 200),
-			crate::Event::UnitsPerSecondChanged(1, 100),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 100),
 		]);
 	});
 }
@@ -218,19 +224,25 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
-			1,
+			MockAssetType::MockAsset(1),
 			200u128.into()
 		));
 
-		assert_eq!(AssetManager::asset_id_units_per_second(1).unwrap(), 200);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
-		assert_ok!(AssetManager::remove_supported_asset(Origin::root(), 1,));
+		assert_ok!(AssetManager::remove_supported_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+		));
 
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(1, 200),
-			crate::Event::SupportedAssetRemoved(1),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
+			crate::Event::SupportedAssetRemoved(MockAssetType::MockAsset(1)),
 		]);
 	});
 }
@@ -256,7 +268,7 @@ fn test_asset_id_non_existent_error() {
 		);
 
 		assert_noop!(
-			AssetManager::remove_supported_asset(Origin::root(), 1),
+			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1)),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});
@@ -267,19 +279,23 @@ fn test_populate_supported_fee_payment_assets_works() {
 	new_test_ext().execute_with(|| {
 		use frame_support::StorageHasher;
 		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
 		use frame_support::traits::OnRuntimeUpgrade;
 		use parity_scale_codec::Encode;
 
 		put_storage_value(
 			pallet_prefix,
 			storage_item_prefix,
-			&Blake2_128Concat::hash(&1u32.encode()),
+			&Blake2_128Concat::hash(&MockAssetType::MockAsset(1).encode()),
 			10u128,
 		);
 
 		assert_noop!(
-			AssetManager::set_asset_units_per_second(Origin::root(), 1, 200u128.into()),
+			AssetManager::set_asset_units_per_second(
+				Origin::root(),
+				MockAssetType::MockAsset(1),
+				200u128.into()
+			),
 			Error::<Test>::AssetDoesNotExist
 		);
 
@@ -289,7 +305,7 @@ fn test_populate_supported_fee_payment_assets_works() {
 		crate::migrations::PopulateSupportedFeePaymentAssets::<Test>::on_runtime_upgrade();
 
 		assert!(AssetManager::supported_fee_payment_assets().len() == 1);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&1));
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 	});
 }
 

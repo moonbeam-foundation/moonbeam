@@ -23,7 +23,7 @@ use frame_support::{
 };
 #[cfg(feature = "xcm-support")]
 use pallet_asset_manager::{
-	migrations::{ChangeStateminePrefixes, PopulateAssetTypeIdStorage, UnitsWithAssetType},
+	migrations::{ChangeStateminePrefixes, PopulateAssetTypeIdStorage, UnitsWithAssetType, PopulateSupportedFeePaymentAssets},
 	Config as AssetManagerConfig,
 };
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
@@ -288,6 +288,31 @@ where
 	}
 }
 
+#[cfg(feature = "xcm-support")]
+pub struct XcmPaymentSupportedAssets<T>(PhantomData<T>);
+#[cfg(feature = "xcm-support")]
+impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Xcm_Payment_Supported_Assets"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PopulateSupportedFeePaymentAssets::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PopulateSupportedFeePaymentAssets::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PopulateSupportedFeePaymentAssets::<T>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -359,6 +384,8 @@ where
 			StatemineAssetsInstanceInfo,
 		>(Default::default());
 
+		let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -367,6 +394,7 @@ where
 			Box::new(asset_manager_units_with_asset_type),
 			Box::new(asset_manager_change_statemine_prefixes),
 			Box::new(asset_manager_populate_asset_type_id_storage),
+			Box::new(xcm_supported_assets),
 		]
 	}
 }

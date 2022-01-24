@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{AssetIdType, AssetTypeId, AssetTypeUnitsPerSecond, Config};
+use crate::{AssetIdType, AssetTypeId, AssetTypeUnitsPerSecond, Config, SupportedFeePaymentAssets};
 use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::storage_key_iter,
@@ -429,11 +429,11 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "PopulateSupportedFeePaymentAssets", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
 
 		// Read all the data into memory.
 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetType, u128, Blake2_128Concat>(
 			pallet_prefix,
 			storage_item_prefix,
 		)
@@ -444,18 +444,18 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "AssetIdUnitsPerSecond", "Migrating {:?} elements", migrated_count);
+		log::info!(target: "AssetTypeUnitsPerSecond", "Migrating {:?} elements", migrated_count);
 
 		// Collect in a vec
-		let mut supported_assets: Vec<T::AssetId> = Vec::new();
-		for (asset_id, _) in stored_data {
-			supported_assets.push(asset_id);
+		let mut supported_assets: Vec<T::AssetType> = Vec::new();
+		for (asset_type, _) in stored_data {
+			supported_assets.push(asset_type);
 		}
 
 		// Push value
 		SupportedFeePaymentAssets::<T>::put(supported_assets);
 
-		log::info!(target: "AssetIdUnitsPerSecond", "almost done");
+		log::info!(target: "AssetTypeUnitsPerSecond", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a red to get it into
 		// memory

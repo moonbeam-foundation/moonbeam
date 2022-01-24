@@ -85,8 +85,8 @@ pub mod pallet {
 	}
 
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
-		fn payment_is_supported(asset_id: T::AssetId) -> bool {
-			SupportedFeePaymentAssets::<T>::get().contains(&asset_id)
+		fn payment_is_supported(asset_type: T::AssetType) -> bool {
+			SupportedFeePaymentAssets::<T>::get().contains(&asset_type)
 		}
 		fn get_units_per_second(asset_type: T::AssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
@@ -132,7 +132,7 @@ pub mod pallet {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetType, u128),
 		AssetTypeChanged(T::AssetId, T::AssetType),
-		SupportedAssetRemoved(T::AssetId),
+		SupportedAssetRemoved(T::AssetType),
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -161,7 +161,7 @@ pub mod pallet {
 	// Supported fee asset payments
 	#[pallet::storage]
 	#[pallet::getter(fn supported_fee_payment_assets)]
-	pub type SupportedFeePaymentAssets<T: Config> = StorageValue<_, Vec<T::AssetId>, ValueQuery>;
+	pub type SupportedFeePaymentAssets<T: Config> = StorageValue<_, Vec<T::AssetType>, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -209,8 +209,8 @@ pub mod pallet {
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
 
 			// If not in our supported asset list, then put it
-			if !supported_assets.contains(&asset_id) {
-				supported_assets.push(asset_id);
+			if !supported_assets.contains(&asset_type) {
+				supported_assets.push(asset_type.clone());
 				SupportedFeePaymentAssets::<T>::put(supported_assets);
 			}
 
@@ -247,11 +247,9 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::remove_supported_asset())]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
-			asset_id: T::AssetId,
+			asset_type: T::AssetType,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
-
-			AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Grab supported assets
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
@@ -260,7 +258,7 @@ pub mod pallet {
 				.iter()
 				.enumerate()
 				.find_map(|(index, asset)| {
-					if asset_id == asset.clone() {
+					if asset_type == asset.clone() {
 						Some(index)
 					} else {
 						None
@@ -275,9 +273,9 @@ pub mod pallet {
 			SupportedFeePaymentAssets::<T>::put(supported_assets);
 
 			// Remove
-			AssetIdUnitsPerSecond::<T>::remove(&asset_id);
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
 
-			Self::deposit_event(Event::SupportedAssetRemoved(asset_id));
+			Self::deposit_event(Event::SupportedAssetRemoved(asset_type));
 			Ok(())
 		}
 	}
