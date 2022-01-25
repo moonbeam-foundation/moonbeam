@@ -27,7 +27,7 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, Bond,
+	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, BalanceOf, Bond,
 	BottomDelegations, CandidateInfo, CandidatePool, CandidateState, CollatorCandidate,
 	CollatorStatus, Config, DelegationChange, DelegationRequest, Delegator, DelegatorAdded,
 	DelegatorState, DelegatorStatus, Error, Event, PendingDelegationRequests, Range,
@@ -35,6 +35,7 @@ use crate::{
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
+use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
 
@@ -920,7 +921,8 @@ fn execute_leave_candidates_emits_event() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
-				1
+				1,
+				0
 			));
 			assert_last_event!(MetaEvent::ParachainStaking(Event::CandidateLeft(1, 10, 0)));
 		});
@@ -940,7 +942,8 @@ fn execute_leave_candidates_callable_by_any_signed() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(2),
-				1
+				1,
+				0
 			));
 		});
 }
@@ -961,7 +964,8 @@ fn execute_leave_candidates_unreserves_balance() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
-				1
+				1,
+				0
 			));
 			assert_eq!(Balances::reserved_balance(&1), 0);
 			assert_eq!(Balances::free_balance(&1), 10);
@@ -983,7 +987,8 @@ fn execute_leave_candidates_decreases_total_staked() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
-				1
+				1,
+				0
 			));
 			assert_eq!(ParachainStaking::total(), 0);
 		});
@@ -1007,9 +1012,10 @@ fn execute_leave_candidates_removes_candidate_state() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
-				1
+				1,
+				0
 			));
-			assert!(ParachainStaking::candidate_info(1).is_none());
+			assert!(ParachainStaking::candidate_state(1).is_none());
 		});
 }
 
@@ -1025,18 +1031,19 @@ fn cannot_execute_leave_candidates_before_delay() {
 				1u32
 			));
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1),
+				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(9);
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1),
+				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(3),
-				1
+				1,
+				0
 			));
 		});
 }
@@ -1430,7 +1437,8 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
-				1
+				1,
+				0
 			));
 			assert_noop!(
 				ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 10),
@@ -2949,6 +2957,7 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 			// revocation executes during execute leave candidates (callable by anyone)
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(1),
+				1,
 				1
 			));
 			assert!(!ParachainStaking::is_delegator(&2));
@@ -3896,6 +3905,7 @@ fn collator_exit_executes_after_delay() {
 			roll_to(21);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(2),
+				2,
 				2
 			));
 			// we must exclude leaving collators from rewards while
@@ -3957,7 +3967,8 @@ fn collator_selection_chooses_top_candidates() {
 			roll_to(21);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(6),
-				6
+				6,
+				0
 			));
 			assert_ok!(ParachainStaking::join_candidates(
 				Origin::signed(6),
@@ -4253,7 +4264,8 @@ fn multiple_delegations() {
 			roll_to(40);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(2),
-				2
+				2,
+				5
 			));
 			assert_eq!(ParachainStaking::delegator_state(7).unwrap().total, 10);
 			assert_eq!(ParachainStaking::delegator_state(6).unwrap().total, 30);
@@ -4277,6 +4289,59 @@ fn multiple_delegations() {
 			assert_eq!(Balances::reserved_balance(&7), 10);
 			assert_eq!(Balances::free_balance(&6), 70);
 			assert_eq!(Balances::free_balance(&7), 90);
+		});
+}
+
+#[test]
+// The test verifies that the pending revoke request is removed by 2's exit so there is no dangling
+// revoke request after 2 exits
+fn execute_leave_candidate_removes_delegations() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100), (3, 100), (4, 100)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_delegations(vec![(3, 1, 10), (3, 2, 10), (4, 1, 10), (4, 2, 10)])
+		.build()
+		.execute_with(|| {
+			// Verifies the revocation count is originally at 0
+			assert_eq!(
+				ParachainStaking::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
+
+			assert_ok!(ParachainStaking::schedule_leave_candidates(
+				Origin::signed(2),
+				2
+			));
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(3),
+				2
+			));
+			// Verifies the revocation count has been updated to 1
+			assert_eq!(
+				ParachainStaking::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				1
+			);
+
+			roll_to(16);
+			assert_ok!(ParachainStaking::execute_leave_candidates(
+				Origin::signed(2),
+				2,
+				2
+			));
+			// Verifies the revocation count has been reduced to 0
+			assert_eq!(
+				ParachainStaking::delegator_state(3)
+					.unwrap()
+					.requests
+					.revocations_count,
+				0
+			);
 		});
 }
 
@@ -5121,7 +5186,64 @@ fn deferred_payment_steady_state_event_flow() {
 		});
 }
 
-// HOTFIX UNIT TEST for hotfix_update_candidate_pool_value
+// HOTFIX UNIT TESTs
+
+#[test]
+fn hotfix_remove_delegation_requests_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut requests: BTreeMap<
+				<Test as frame_system::Config>::AccountId,
+				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
+			> = BTreeMap::new();
+			requests.insert(
+				3,
+				DelegationRequest {
+					collator: 3,
+					amount: 5,
+					when_executable: 0,
+					action: DelegationChange::Decrease,
+				},
+			);
+			requests.insert(
+				4,
+				DelegationRequest {
+					collator: 4,
+					amount: 20,
+					when_executable: 0,
+					action: DelegationChange::Revoke,
+				},
+			);
+			let corrupted_delegator_state = Delegator {
+				id: 2,
+				delegations: OrderedSet::from(vec![Bond {
+					owner: 1,
+					amount: 20,
+				}]),
+				total: 20,
+				requests: PendingDelegationRequests {
+					revocations_count: 1,
+					requests,
+					less_total: 25,
+				},
+				status: DelegatorStatus::Active,
+			};
+			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
+			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
+				Origin::root(),
+				vec![2, 5]
+			));
+			assert!(ParachainStaking::delegator_state(&5).is_none());
+			let fixed_delegator_state =
+				ParachainStaking::delegator_state(&2).expect("inserted => exists");
+			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
+			assert_eq!(fixed_delegator_state.requests.less_total, 0);
+		});
+}
+
 #[test]
 fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 	ExtBuilder::default()
@@ -6035,7 +6157,7 @@ fn remove_exit_queue_migration_migrates_leaving_delegators() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i).unwrap().status,
+					ParachainStaking::delegator_state(i).unwrap().status,
 					DelegatorStatus::Leaving(3)
 				);
 			}
@@ -6087,7 +6209,7 @@ fn remove_exit_queue_migration_migrates_delegator_revocations() {
 			for i in 3..7 {
 				assert!(<NominatorState2<Test>>::get(i).is_none());
 				assert_eq!(
-					<DelegatorState<Test>>::get(i)
+					ParachainStaking::delegator_state(i)
 						.unwrap()
 						.requests
 						.requests

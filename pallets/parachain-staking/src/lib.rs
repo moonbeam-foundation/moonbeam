@@ -1902,6 +1902,7 @@ pub mod pallet {
 		TooLowCandidateCountToLeaveCandidates,
 		TooLowDelegationCountToDelegate,
 		TooLowCandidateDelegationCountToDelegate,
+		TooLowCandidateDelegationCountToLeaveCandidates,
 		TooLowDelegationCountToLeaveDelegators,
 		PendingCandidateRequestsDNE,
 		PendingCandidateRequestAlreadyExists,
@@ -2305,6 +2306,39 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(
+			<T as Config>::WeightInfo::hotfix_remove_delegation_requests(delegators.len() as u32)
+		)]
+		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
+		pub fn hotfix_remove_delegation_requests(
+			origin: OriginFor<T>,
+			delegators: Vec<T::AccountId>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			for delegator in delegators {
+				if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+					// go through all requests and remove ones without corresponding delegation
+					for (candidate, request) in state.requests.requests.clone().into_iter() {
+						if state
+							.delegations
+							.0
+							.iter()
+							.find(|x| x.owner == candidate)
+							.is_none()
+						{
+							state.requests.requests.remove(&candidate);
+							state.requests.less_total =
+								state.requests.less_total.saturating_sub(request.amount);
+							if matches!(request.action, DelegationChange::Revoke) {
+								state.requests.revocations_count -= 1u32;
+							}
+						}
+					}
+					<DelegatorState<T>>::insert(&delegator, state);
+				} // else delegator is not a delegator so no update needed
+			}
+			Ok(().into())
+		}
+		#[pallet::weight(
 			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
 		)]
 		/// Hotfix patch to correct and update CandidatePool value for candidates that have
@@ -2535,14 +2569,21 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateScheduledExit(now, collator, when));
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_candidates())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::execute_leave_candidates(*candidate_delegation_count)
+		)]
 		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
+			candidate_delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(
+				state.delegation_count <= candidate_delegation_count,
+				Error::<T>::TooLowCandidateDelegationCountToLeaveCandidates
+			);
 			state.can_leave::<T>()?;
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				T::Currency::unreserve(&bond.owner, bond.amount);
@@ -2556,6 +2597,13 @@ pub mod pallet {
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
+						if let Some(request) = delegator.requests.requests.remove(&candidate) {
+							delegator.requests.less_total =
+								delegator.requests.less_total.saturating_sub(request.amount);
+							if matches!(request.action, DelegationChange::Revoke) {
+								delegator.requests.revocations_count -= 1u32;
+							}
+						}
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}

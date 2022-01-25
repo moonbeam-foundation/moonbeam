@@ -18,7 +18,7 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
 	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
-use crate::PrecompileOutput;
+use crate::{Action, PrecompileOutput};
 use fp_evm::PrecompileFailure;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
@@ -44,6 +44,62 @@ fn evm_call(source: TestAccount, input: Vec<u8>) -> EvmCall<Runtime> {
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),
 	}
+}
+
+#[test]
+fn selectors() {
+	// DEPRECATED
+	assert_eq!(Action::IsNominator as u32, 0x8e5080e7);
+	assert_eq!(Action::IsDelegator as u32, 0x1f030587);
+	assert_eq!(Action::IsCandidate as u32, 0x8545c833);
+	assert_eq!(Action::IsSelectedCandidate as u32, 0x8f6d27c7);
+	assert_eq!(Action::Points as u32, 0x9799b4e7);
+	// DEPRECATED
+	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
+	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
+	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
+	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
+	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
+	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
+	// DEPRECATED
+	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);
+	assert_eq!(Action::ScheduleLeaveCandidates as u32, 0x60afbac6);
+	assert_eq!(Action::ExecuteLeaveCandidates as u32, 0x3fdc4c30);
+	assert_eq!(Action::CancelLeaveCandidates as u32, 0x0880b3e2);
+	assert_eq!(Action::GoOffline as u32, 0x767e0450);
+	assert_eq!(Action::GoOnline as u32, 0xd2f73ceb);
+	assert_eq!(Action::CandidateBondMore as u32, 0xc57bd3a8);
+	// DEPRECATED
+	assert_eq!(Action::CandidateBondLess as u32, 0x289b6ba7);
+	assert_eq!(Action::ScheduleCandidateBondLess as u32, 0x034c47bc);
+	assert_eq!(Action::ExecuteCandidateBondLess as u32, 0xa9a2b8b7);
+	assert_eq!(Action::CancelCandidateBondLess as u32, 0x583d0fdc);
+	// DEPRECATED
+	assert_eq!(Action::Nominate as u32, 0x49df6eb3);
+	assert_eq!(Action::Delegate as u32, 0x829f5ee3);
+	// DEPRECATED
+	assert_eq!(Action::LeaveNominators as u32, 0xb71d2153);
+	assert_eq!(Action::ScheduleLeaveDelegators as u32, 0x65a5bbd0);
+	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
+	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
+	// DEPRECATED
+	assert_eq!(Action::RevokeNomination as u32, 0x4b65c34b);
+	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
+	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
+	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
+	// DEPRECATED
+	assert_eq!(Action::RevokeNomination as u32, 0x4b65c34b);
+	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
+	// DEPRECATED
+	assert_eq!(Action::NominatorBondMore as u32, 0x971d44c8);
+	assert_eq!(Action::DelegatorBondMore as u32, 0xf8331108);
+	// DEPRECATED
+	assert_eq!(Action::NominatorBondLess as u32, 0xf6a52569);
+	assert_eq!(Action::ScheduleDelegatorBondLess as u32, 0x00043acf);
+	assert_eq!(Action::ExecuteDelegationRequest as u32, 0xe42366a6);
+	assert_eq!(Action::CancelDelegationRequest as u32, 0x7284cf50);
 }
 
 #[test]
@@ -760,12 +816,14 @@ fn execute_leave_candidates_works() {
 				1
 			));
 			roll_to(10);
-			let selector = &Keccak256::digest(b"execute_leave_candidates(address)")[0..4];
+			let selector = &Keccak256::digest(b"execute_leave_candidates(address,uint256)")[0..4];
 
 			// Construct data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let candidate_delegation_count = U256::zero();
+			candidate_delegation_count.to_big_endian(&mut input_data[36..]);
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));

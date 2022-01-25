@@ -65,7 +65,7 @@ enum Action {
 	// DEPRECATED
 	LeaveCandidates = "leave_candidates(uint256)",
 	ScheduleLeaveCandidates = "schedule_leave_candidates(uint256)",
-	ExecuteLeaveCandidates = "execute_leave_candidates(address)",
+	ExecuteLeaveCandidates = "execute_leave_candidates(address,uint256)",
 	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
 	GoOffline = "go_offline()",
 	GoOnline = "go_online()",
@@ -515,10 +515,14 @@ where
 		input.expect_arguments(gasometer, 1)?;
 		let candidate = input.read::<Address>(gasometer)?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		let candidate_delegation_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates { candidate };
+		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates {
+			candidate,
+			candidate_delegation_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
