@@ -444,7 +444,11 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "PopulateSupportedFeePaymentAssets", "Migrating {:?} elements", migrated_count);
+		log::info!(
+			target: "PopulateSupportedFeePaymentAssets",
+			"Migrating {:?} elements",
+			migrated_count
+		);
 
 		// Collect in a vec
 		let mut supported_assets: Vec<T::AssetType> = Vec::new();
