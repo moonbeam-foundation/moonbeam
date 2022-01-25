@@ -44,67 +44,25 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{
-	traits::Get,
-	weights::{constants::RocksDbWeight, Weight},
-};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_asset_manager.
-pub trait WeightInfo {
-	fn register_asset() -> Weight;
-	fn set_asset_units_per_second() -> Weight;
-	fn change_existing_asset_type() -> Weight;
-	fn remove_supported_asset(x: u32) -> Weight;
-}
+pub trait WeightInfo {	fn register_asset() -> Weight;	fn set_asset_units_per_second() -> Weight;	fn change_existing_asset_type() -> Weight;	fn remove_supported_asset(x: u32, ) -> Weight;}
 
 /// Weights for pallet_asset_manager using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	fn register_asset() -> Weight {
-		(53_553_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
-	}
-	fn set_asset_units_per_second() -> Weight {
-		(29_136_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
-	fn change_existing_asset_type() -> Weight {
-		(29_659_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
-	}
-	fn remove_supported_asset(x: u32) -> Weight {
-		(29_143_000 as Weight) // Standard Error: 4_000
-			.saturating_add((1_370_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
-}
+impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {	fn register_asset() -> Weight {
+		(53_300_000 as Weight)			.saturating_add(T::DbWeight::get().reads(7 as Weight))			.saturating_add(T::DbWeight::get().writes(6 as Weight))	}	fn set_asset_units_per_second() -> Weight {
+		(28_811_000 as Weight)			.saturating_add(T::DbWeight::get().reads(6 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}	fn change_existing_asset_type() -> Weight {
+		(29_674_000 as Weight)			.saturating_add(T::DbWeight::get().reads(5 as Weight))			.saturating_add(T::DbWeight::get().writes(5 as Weight))	}	fn remove_supported_asset(x: u32, ) -> Weight {
+		(30_516_000 as Weight)			// Standard Error: 4_000
+			.saturating_add((1_330_000 as Weight).saturating_mul(x as Weight))			.saturating_add(T::DbWeight::get().reads(5 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}}
 
 // For backwards compatibility and tests
-impl WeightInfo for () {
-	fn register_asset() -> Weight {
-		(53_553_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
-	}
-	fn set_asset_units_per_second() -> Weight {
-		(29_136_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-	fn change_existing_asset_type() -> Weight {
-		(29_659_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
-	}
-	fn remove_supported_asset(x: u32) -> Weight {
-		(29_143_000 as Weight) // Standard Error: 4_000
-			.saturating_add((1_370_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-}
+impl WeightInfo for () {	fn register_asset() -> Weight {
+		(53_300_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(7 as Weight))			.saturating_add(RocksDbWeight::get().writes(6 as Weight))	}	fn set_asset_units_per_second() -> Weight {
+		(28_811_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(6 as Weight))			.saturating_add(RocksDbWeight::get().writes(4 as Weight))	}	fn change_existing_asset_type() -> Weight {
+		(29_674_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(5 as Weight))			.saturating_add(RocksDbWeight::get().writes(5 as Weight))	}	fn remove_supported_asset(x: u32, ) -> Weight {
+		(30_516_000 as Weight)			// Standard Error: 4_000
+			.saturating_add((1_330_000 as Weight).saturating_mul(x as Weight))			.saturating_add(RocksDbWeight::get().reads(5 as Weight))			.saturating_add(RocksDbWeight::get().writes(4 as Weight))	}}
