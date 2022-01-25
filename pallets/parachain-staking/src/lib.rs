@@ -577,7 +577,9 @@ pub mod pallet {
 			if top_delegations.delegations.len() as u32 == max_top_delegations_per_candidate {
 				// pop lowest top delegation
 				let new_bottom_delegation = top_delegations.delegations.pop().expect("");
-				top_delegations.total -= new_bottom_delegation.amount;
+				top_delegations.total = top_delegations
+					.total
+					.saturating_sub(new_bottom_delegation.amount);
 				if matches!(self.bottom_capacity, CapacityStatus::Full) {
 					less_total_staked = Some(self.lowest_bottom_delegation_amount);
 				}
@@ -618,7 +620,9 @@ pub mod pallet {
 					"Cannot kick the lowest bottom delegation if the input delegation amount is
 					less than or equal to the current lowest bottom delegation"
 				);
-				bottom_delegations.total -= lowest_bottom_to_be_kicked.amount;
+				bottom_delegations.total = bottom_delegations
+					.total
+					.saturating_sub(lowest_bottom_to_be_kicked.amount);
 				// update delegator state
 				// unreserve kicked bottom
 				T::Currency::unreserve(
@@ -701,8 +705,8 @@ pub mod pallet {
 		{
 			let old_total_counted = self.total_counted;
 			// remove top delegation
-			let mut top_delegations =
-				<TopDelegations<T>>::get(candidate).expect("existence proof TODO");
+			let mut top_delegations = <TopDelegations<T>>::get(candidate)
+				.expect("CandidateInfo exists => TopDelegations exists");
 			let mut actual_amount_option: Option<BalanceOf<T>> = None;
 			top_delegations.delegations = top_delegations
 				.delegations
@@ -725,7 +729,9 @@ pub mod pallet {
 					.expect("bottom is nonempty as just checked");
 				// expect already stored greatest to least by bond amount
 				let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
-				bottom_delegations.total -= highest_bottom_delegation.amount;
+				bottom_delegations.total = bottom_delegations
+					.total
+					.saturating_sub(highest_bottom_delegation.amount);
 				self.reset_bottom_data::<T>(&bottom_delegations);
 				<BottomDelegations<T>>::insert(candidate, bottom_delegations);
 				// insert highest bottom into top delegations
@@ -749,8 +755,8 @@ pub mod pallet {
 			BalanceOf<T>: Into<Balance>,
 		{
 			// remove bottom delegation
-			let mut bottom_delegations =
-				<BottomDelegations<T>>::get(candidate).expect("existence proof TODO");
+			let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+				.expect("CandidateInfo exists => BottomDelegations exists");
 			let mut actual_amount_option: Option<BalanceOf<T>> = None;
 			bottom_delegations.delegations = bottom_delegations
 				.delegations
@@ -766,10 +772,10 @@ pub mod pallet {
 				})
 				.collect();
 			let actual_amount = actual_amount_option.ok_or(Error::<T>::DelegationDNE)?;
-			bottom_delegations.total -= actual_amount;
+			bottom_delegations.total = bottom_delegations.total.saturating_sub(actual_amount);
 			// update candidate info
 			self.reset_bottom_data::<T>(&bottom_delegations);
-			self.delegation_count -= 1u32;
+			self.delegation_count = self.delegation_count.saturating_sub(1u32);
 			<BottomDelegations<T>>::insert(candidate, bottom_delegations);
 			Ok(false)
 		}
@@ -814,8 +820,8 @@ pub mod pallet {
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
-			let mut top_delegations =
-				<TopDelegations<T>>::get(candidate).expect("existence proof TODO");
+			let mut top_delegations = <TopDelegations<T>>::get(candidate)
+				.expect("CandidateInfo exists => TopDelegations exists");
 			let mut in_top = false;
 			top_delegations.delegations = top_delegations
 				.delegations
@@ -854,68 +860,70 @@ pub mod pallet {
 			let mut bottom_delegations =
 				<BottomDelegations<T>>::get(candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let mut delegation_option: Option<Bond<T::AccountId, BalanceOf<T>>> = None;
-			let in_top_after = if (bond + more).into() > self.lowest_top_delegation_amount {
-				// bump it from bottom
-				bottom_delegations.delegations = bottom_delegations
-					.delegations
-					.clone()
-					.into_iter()
-					.filter_map(|d| {
-						if d.owner != delegator {
-							Some(d)
-						} else {
-							delegation_option = Some(Bond {
-								owner: d.owner,
-								amount: d.amount + more,
-							});
-							None
-						}
-					})
-					.collect();
-				let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
-				bottom_delegations.total -= bond;
-				// add it to top
-				let mut top_delegations = <TopDelegations<T>>::get(candidate)
-					.expect("CandidateInfo existence => TopDelegations existence");
-				// if top is full, pop lowest top
-				if matches!(top_delegations.top_capacity::<T>(), CapacityStatus::Full) {
-					// pop lowest top delegation
-					let new_bottom_delegation = top_delegations
+			let in_top_after =
+				if (bond.saturating_add(more)).into() > self.lowest_top_delegation_amount {
+					// bump it from bottom
+					bottom_delegations.delegations = bottom_delegations
 						.delegations
-						.pop()
-						.expect("Top capacity full => Exists at least 1 top delegation");
-					top_delegations.total -= new_bottom_delegation.amount;
-					bottom_delegations.insert_sorted_greatest_to_least(new_bottom_delegation);
-				}
-				// insert into top
-				top_delegations.insert_sorted_greatest_to_least(delegation);
-				self.reset_top_data::<T>(&top_delegations);
-				<TopDelegations<T>>::insert(candidate, top_delegations);
-				true
-			} else {
-				let mut in_bottom = false;
-				// just increase the delegation
-				bottom_delegations.delegations = bottom_delegations
-					.delegations
-					.clone()
-					.into_iter()
-					.map(|d| {
-						if d.owner != delegator {
-							d
-						} else {
-							in_bottom = true;
-							let new_amount = d.amount.saturating_add(more);
-							Bond {
-								owner: d.owner,
-								amount: new_amount,
+						.clone()
+						.into_iter()
+						.filter_map(|d| {
+							if d.owner != delegator {
+								Some(d)
+							} else {
+								delegation_option = Some(Bond {
+									owner: d.owner,
+									amount: d.amount.saturating_add(more),
+								});
+								None
 							}
-						}
-					})
-					.collect();
-				ensure!(in_bottom, Error::<T>::DelegationDNE);
-				bottom_delegations.sort_greatest_to_least();
-				false
-			};
+						})
+						.collect();
+					let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
+					bottom_delegations.total = bottom_delegations.total.saturating_sub(bond);
+					// add it to top
+					let mut top_delegations = <TopDelegations<T>>::get(candidate)
+						.expect("CandidateInfo existence => TopDelegations existence");
+					// if top is full, pop lowest top
+					if matches!(top_delegations.top_capacity::<T>(), CapacityStatus::Full) {
+						// pop lowest top delegation
+						let new_bottom_delegation = top_delegations
+							.delegations
+							.pop()
+							.expect("Top capacity full => Exists at least 1 top delegation");
+						top_delegations.total = top_delegations
+							.total
+							.saturating_sub(new_bottom_delegation.amount);
+						bottom_delegations.insert_sorted_greatest_to_least(new_bottom_delegation);
+					}
+					// insert into top
+					top_delegations.insert_sorted_greatest_to_least(delegation);
+					self.reset_top_data::<T>(&top_delegations);
+					<TopDelegations<T>>::insert(candidate, top_delegations);
+					true
+				} else {
+					let mut in_bottom = false;
+					// just increase the delegation
+					bottom_delegations.delegations = bottom_delegations
+						.delegations
+						.clone()
+						.into_iter()
+						.map(|d| {
+							if d.owner != delegator {
+								d
+							} else {
+								in_bottom = true;
+								Bond {
+									owner: d.owner,
+									amount: d.amount.saturating_add(more),
+								}
+							}
+						})
+						.collect();
+					ensure!(in_bottom, Error::<T>::DelegationDNE);
+					bottom_delegations.sort_greatest_to_least();
+					false
+				};
 			self.reset_bottom_data::<T>(&bottom_delegations);
 			<BottomDelegations<T>>::insert(candidate, bottom_delegations);
 			Ok(in_top_after)
@@ -929,7 +937,7 @@ pub mod pallet {
 			less: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let lowest_top_eq_highest_bottom =
 				self.lowest_top_delegation_amount == self.highest_bottom_delegation_amount;
@@ -937,12 +945,16 @@ pub mod pallet {
 			let delegation_dne_err: DispatchError = Error::<T>::DelegationDNE.into();
 			if bond_geq_lowest_top && !lowest_top_eq_highest_bottom {
 				// definitely in top
-				self.decrease_top_delegation::<T>(candidate, delegator.clone(), bond, less)
+				self.decrease_top_delegation::<T>(candidate, delegator.clone(), bond.into(), less)
 			} else if bond_geq_lowest_top && lowest_top_eq_highest_bottom {
 				// update top but if error then update bottom (because could be in bottom because
 				// lowest_top_eq_highest_bottom)
-				let result =
-					self.decrease_top_delegation::<T>(candidate, delegator.clone(), bond, less);
+				let result = self.decrease_top_delegation::<T>(
+					candidate,
+					delegator.clone(),
+					bond.into(),
+					less,
+				);
 				if result == Err(delegation_dne_err) {
 					self.decrease_bottom_delegation::<T>(candidate, delegator, less)
 				} else {
@@ -957,78 +969,82 @@ pub mod pallet {
 			&mut self,
 			candidate: &T::AccountId,
 			delegator: T::AccountId,
-			bond: Balance,
+			bond: BalanceOf<T>,
 			less: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
+			// The delegation after the `decrease-delegation` will be strictly less than the
+			// highest bottom delegation
 			let bond_after_less_than_highest_bottom =
-				bond - less.into() < self.highest_bottom_delegation_amount;
+				bond.saturating_sub(less).into() < self.highest_bottom_delegation_amount;
+			// The top delegations is full and the bottom delegations has at least one delegation
 			let full_top_and_nonempty_bottom = matches!(self.top_capacity, CapacityStatus::Full)
 				&& !matches!(self.bottom_capacity, CapacityStatus::Empty);
 			let mut top_delegations =
 				<TopDelegations<T>>::get(candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let in_top_after =
-				if bond_after_less_than_highest_bottom && full_top_and_nonempty_bottom {
-					let mut delegation_option: Option<Bond<T::AccountId, BalanceOf<T>>> = None;
-					// take delegation from top
-					top_delegations.delegations = top_delegations
-						.delegations
-						.clone()
-						.into_iter()
-						.filter_map(|d| {
-							if d.owner != delegator {
-								Some(d)
-							} else {
-								let new_amount = d.amount.saturating_sub(less);
-								top_delegations.total -= d.amount;
-								delegation_option = Some(Bond {
-									owner: d.owner,
-									amount: new_amount,
-								});
-								None
+			let in_top_after = if bond_after_less_than_highest_bottom
+				&& full_top_and_nonempty_bottom
+			{
+				let mut delegation_option: Option<Bond<T::AccountId, BalanceOf<T>>> = None;
+				// take delegation from top
+				top_delegations.delegations = top_delegations
+					.delegations
+					.clone()
+					.into_iter()
+					.filter_map(|d| {
+						if d.owner != delegator {
+							Some(d)
+						} else {
+							top_delegations.total = top_delegations.total.saturating_sub(d.amount);
+							delegation_option = Some(Bond {
+								owner: d.owner,
+								amount: d.amount.saturating_sub(less),
+							});
+							None
+						}
+					})
+					.collect();
+				let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
+				// pop highest bottom by reverse and popping
+				let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+					.expect("CandidateInfo existence => BottomDelegations existence");
+				let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
+				bottom_delegations.total = bottom_delegations
+					.total
+					.saturating_sub(highest_bottom_delegation.amount);
+				// insert highest bottom into top
+				top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
+				// insert previous top into bottom
+				bottom_delegations.insert_sorted_greatest_to_least(delegation);
+				self.reset_bottom_data::<T>(&bottom_delegations);
+				<BottomDelegations<T>>::insert(candidate, bottom_delegations);
+				false
+			} else {
+				// keep it in the top
+				let mut is_in_top = false;
+				top_delegations.delegations = top_delegations
+					.delegations
+					.clone()
+					.into_iter()
+					.map(|d| {
+						if d.owner != delegator {
+							d
+						} else {
+							is_in_top = true;
+							Bond {
+								owner: d.owner,
+								amount: d.amount.saturating_sub(less),
 							}
-						})
-						.collect();
-					let delegation = delegation_option.ok_or(Error::<T>::DelegationDNE)?;
-					// pop highest bottom by reverse and popping
-					let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
-						.expect("CandidateInfo existence => BottomDelegations existence");
-					let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
-					bottom_delegations.total -= highest_bottom_delegation.amount;
-					// insert highest bottom into top
-					top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
-					// insert previous top into bottom
-					bottom_delegations.insert_sorted_greatest_to_least(delegation);
-					self.reset_bottom_data::<T>(&bottom_delegations);
-					<BottomDelegations<T>>::insert(candidate, bottom_delegations);
-					false
-				} else {
-					// keep it in the top
-					let mut is_in_top = false;
-					top_delegations.delegations = top_delegations
-						.delegations
-						.clone()
-						.into_iter()
-						.map(|d| {
-							if d.owner != delegator {
-								d
-							} else {
-								is_in_top = true;
-								let new_amount = d.amount.saturating_sub(less);
-								Bond {
-									owner: d.owner,
-									amount: new_amount,
-								}
-							}
-						})
-						.collect();
-					ensure!(is_in_top, Error::<T>::DelegationDNE);
-					top_delegations.total -= less;
-					top_delegations.sort_greatest_to_least();
-					true
-				};
+						}
+					})
+					.collect();
+				ensure!(is_in_top, Error::<T>::DelegationDNE);
+				top_delegations.total = top_delegations.total.saturating_sub(less);
+				top_delegations.sort_greatest_to_least();
+				true
+			};
 			self.reset_top_data::<T>(&top_delegations);
 			<TopDelegations<T>>::insert(candidate, top_delegations);
 			Ok(in_top_after)
@@ -1043,8 +1059,8 @@ pub mod pallet {
 		where
 			BalanceOf<T>: Into<Balance>,
 		{
-			let mut bottom_delegations =
-				<BottomDelegations<T>>::get(candidate).expect("existence proof TODO");
+			let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
+				.expect("CandidateInfo exists => BottomDelegations exists");
 			let mut in_bottom = false;
 			bottom_delegations.delegations = bottom_delegations
 				.delegations
@@ -1055,10 +1071,9 @@ pub mod pallet {
 						d
 					} else {
 						in_bottom = true;
-						let new_amount = d.amount.saturating_sub(less);
 						Bond {
 							owner: d.owner,
-							amount: new_amount,
+							amount: d.amount.saturating_sub(less),
 						}
 					}
 				})
