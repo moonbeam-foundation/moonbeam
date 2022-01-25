@@ -234,8 +234,7 @@ pub mod pallet {
 		Delegations<AccountId, Balance>
 	{
 		pub fn sort_greatest_to_least(&mut self) {
-			self.delegations
-				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
+			self.delegations.sort_by(|a, b| b.amount.cmp(&a.amount));
 		}
 		/// Insert sorted greatest to least and increase .total accordingly
 		/// Insertion respects first come first serve so new delegations are pushed after existing
@@ -3110,7 +3109,7 @@ pub mod pallet {
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
-			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+			candidates.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
 			let mut collators = candidates
