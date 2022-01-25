@@ -43,7 +43,7 @@ use frame_support::{
 		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_PER_SECOND, WEIGHT_PER_MICROS},
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		WeightToFeeCoefficients, WeightToFeeCoefficient, WeightToFeePolynomial,
 		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
@@ -136,9 +136,12 @@ pub mod currency {
 	pub const UNIT: Balance = 1_000_000_000_000_000_000;
 	pub const KILOUNIT: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT * SUPPLY_FACTOR;
+	// NOTE: Kusama sets this to 40000 (their supply is 10^10*12 though)
+	//       Ethereum charges 4 or 16 (right?) gas per byte (0 byte or non-zero byte)
+	//       An avg of this is 10.
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * GIGAWEI * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT * SUPPLY_FACTOR;
-	pub const WEIGHT_FEE: Balance = MEGAWEI;
+	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNIT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -196,9 +199,10 @@ pub fn native_version() -> NativeVersion {
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
-// Here we assume Ethereum's base fee of 21000 gas and convert to weight
-// TODO: measure EXTRINSIC_BASE_WEIGHT properly
-const EXTRINSIC_BASE_WEIGHT: Weight = 21000 * WEIGHT_PER_GAS;
+// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
+// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
+// and some cost to account for per-byte-fee.
+pub const EXTRINSIC_BASE_WEIGHT: Weight = 10000 * WEIGHT_PER_GAS;
 
 pub struct RuntimeBlockWeights;
 impl Get<BlockWeights> for RuntimeBlockWeights {
@@ -343,6 +347,14 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 
+	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
+	/// modifier in order to closely match Ethereum-based fees.
+	///
+	/// Calculation, per the documentation in `frame_support`:
+	///
+	/// ```ignore
+	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
+	/// ```
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -1987,6 +1999,13 @@ mod tests {
 			AnnouncementDepositFactor::get(),
 			Balance::from(5600 * MICROUNIT)
 		);
+	}
+
+	#[test]
+	fn weight_to_fee_is_constant() {
+		assert_eq!(WeightToFee::calc(&1u64), MEGAWEI);
+		assert_eq!(WeightToFee::calc(&10u64), 10u128 * MEGAWEI);
+		assert_eq!(WeightToFee::calc(&1_000u64), 1_000u128 * MEGAWEI);
 	}
 
 	#[test]
