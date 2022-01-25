@@ -724,12 +724,12 @@ pub mod pallet {
 				let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
 					.expect("bottom is nonempty as just checked");
 				// expect already stored greatest to least by bond amount
-				let lowest_bottom_delegation = bottom_delegations.delegations.pop().expect("");
-				bottom_delegations.total -= lowest_bottom_delegation.amount;
+				let highest_bottom_delegation = bottom_delegations.delegations.remove(0);
+				bottom_delegations.total -= highest_bottom_delegation.amount;
 				self.reset_bottom_data::<T>(&bottom_delegations);
 				<BottomDelegations<T>>::insert(candidate, bottom_delegations);
-				// insert lowest bottom into top delegations
-				top_delegations.insert_sorted_greatest_to_least(lowest_bottom_delegation);
+				// insert highest bottom into top delegations
+				top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
 			}
 			// update candidate info
 			self.reset_top_data::<T>(&top_delegations);
