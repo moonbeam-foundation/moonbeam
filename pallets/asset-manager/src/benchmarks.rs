@@ -75,7 +75,7 @@ benchmarks! {
 		}
 		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(0, X1(GeneralIndex((x-1) as u128))).into();
 		// We try to remove the last asset type
-	}: _(RawOrigin::Root, asset_type_to_be_removed.clone())
+	}: _(RawOrigin::Root, asset_type_to_be_removed.clone(), x)
 	verify {
 		assert!(!Pallet::<T>::supported_fee_payment_assets().contains(&asset_type_to_be_removed));
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(asset_type_to_be_removed), None);

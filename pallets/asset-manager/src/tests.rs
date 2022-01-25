@@ -237,6 +237,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		assert_ok!(AssetManager::remove_supported_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
+			1,
 		));
 
 		expect_events(vec![
@@ -244,6 +245,30 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
 			crate::Event::SupportedAssetRemoved(MockAssetType::MockAsset(1)),
 		]);
+	});
+}
+
+#[test]
+fn test_weight_hint_error() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true,
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into()
+		));
+
+		assert_noop!(
+			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1), 0),
+			Error::<Test>::TooLowNumAssetsWeightHint
+		);
 	});
 }
 
@@ -268,7 +293,7 @@ fn test_asset_id_non_existent_error() {
 		);
 
 		assert_noop!(
-			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1)),
+			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1), 0),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});

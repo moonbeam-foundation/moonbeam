@@ -124,6 +124,7 @@ pub mod pallet {
 		ErrorCreatingAsset,
 		AssetAlreadyExists,
 		AssetDoesNotExist,
+		TooLowNumAssetsWeightHint,
 	}
 
 	#[pallet::event]
@@ -244,16 +245,21 @@ pub mod pallet {
 		}
 
 		/// Remove a given assetType from the supported assets for fee payment
-		#[pallet::weight(T::WeightInfo::remove_supported_asset())]
+		#[pallet::weight(T::WeightInfo::remove_supported_asset(*num_assets_weight_hint))]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
 			asset_type: T::AssetType,
+			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
 			// Grab supported assets
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
 
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
 			let index = supported_assets
 				.iter()
 				.enumerate()
