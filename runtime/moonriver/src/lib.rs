@@ -723,7 +723,7 @@ parameter_types! {
 	/// Maximum top delegations per candidate
 	pub const MaxTopDelegationsPerCandidate: u32 = 300;
 	/// Maximum bottom delegations per candidate
-	pub const MaxBottomDelegationsPerCandidate: u32 = 10;
+	pub const MaxBottomDelegationsPerCandidate: u32 = 50;
 	/// Maximum delegations per delegator
 	pub const MaxDelegationsPerDelegator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards
@@ -1899,5 +1899,6 @@ mod tests {
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
 		assert_eq!(MaxTopDelegationsPerCandidate::get(), 300);
+		assert_eq!(MaxBottomDelegationsPerCandidate::get(), 50);
 	}
 }
