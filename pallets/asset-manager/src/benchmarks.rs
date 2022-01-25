@@ -19,8 +19,10 @@
 use crate::{Call, Config, Pallet};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
+use xcm::latest::MultiLocation;
 
 benchmarks! {
+	where_clause { where T::AssetType: From<MultiLocation> }
 	register_asset {
 		// does not really matter what we register
 		let asset_type = T::AssetType::default();
