@@ -19,8 +19,11 @@
 use crate::{Call, Config, Pallet};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
+use xcm::latest::prelude::*;
 
 benchmarks! {
+	// This where clause allows us to create assetTypes
+	where_clause { where T::AssetType: From<MultiLocation> }
 	register_asset {
 		// does not really matter what we register
 		let asset_type = T::AssetType::default();
@@ -49,14 +52,22 @@ benchmarks! {
 	change_existing_asset_type {
 		// does not really matter what we register
 		let asset_type = T::AssetType::default();
+		let new_asset_type: T::AssetType = MultiLocation::new(
+			0,
+			X1(GeneralIndex(0))
+		).into();
+
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
 		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+		// Worst case: we also set assets units per second
+		Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
 
-	}: _(RawOrigin::Root, asset_id, asset_type.clone())
+	}: _(RawOrigin::Root, asset_id, new_asset_type.clone())
 	verify {
-		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(asset_type));
+		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(new_asset_type.clone()));
+		assert_eq!(Pallet::<T>::asset_type_units_per_second(&new_asset_type), Some(1));
 	}
 }
 

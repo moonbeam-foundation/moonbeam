@@ -202,7 +202,9 @@ pub mod pallet {
 		}
 
 		/// Change the xcm type mapping for a given assetId
-		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
+		/// We also change this if the previous units per second where pointing at the old
+		/// assetType
+		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
@@ -219,6 +221,12 @@ pub mod pallet {
 
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
+
+			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
+				// Remove previous asset type info
+				AssetTypeUnitsPerSecond::<T>::remove(&previous_asset_type);
+				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
+			}
 
 			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
 			Ok(())
