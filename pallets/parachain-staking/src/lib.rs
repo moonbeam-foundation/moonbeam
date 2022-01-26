@@ -230,7 +230,7 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
-	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero>
+	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero + Saturating>
 		Delegations<AccountId, Balance>
 	{
 		pub fn sort_greatest_to_least(&mut self) {
@@ -240,7 +240,7 @@ pub mod pallet {
 		/// Insertion respects first come first serve so new delegations are pushed after existing
 		/// delegations if the amount is the same
 		pub fn insert_sorted_greatest_to_least(&mut self, delegation: Bond<AccountId, Balance>) {
-			self.total += delegation.amount;
+			self.total = self.total.saturating_add(delegation.amount);
 			// if delegations nonempty && last_element == delegation.amount => push input and return
 			if !self.delegations.is_empty() {
 				// if last_element == delegation.amount => push the delegation and return early
@@ -294,19 +294,17 @@ pub mod pallet {
 		}
 		/// Return last delegation amount without popping the delegation
 		pub fn lowest_delegation_amount(&self) -> Balance {
-			if self.delegations.is_empty() {
-				Balance::zero()
-			} else {
-				self.delegations[self.delegations.len() - 1].amount
-			}
+			self.delegations
+				.last()
+				.map(|x| x.amount)
+				.unwrap_or(Balance::zero())
 		}
 		/// Return highest delegation amount
 		pub fn highest_delegation_amount(&self) -> Balance {
-			if self.delegations.is_empty() {
-				Balance::zero()
-			} else {
-				self.delegations[0].amount
-			}
+			self.delegations
+				.first()
+				.map(|x| x.amount)
+				.unwrap_or(Balance::zero())
 		}
 	}
 
@@ -598,7 +596,10 @@ pub mod pallet {
 			top_delegations.insert_sorted_greatest_to_least(delegation);
 			// update candidate info
 			self.reset_top_data::<T>(&top_delegations);
-			self.delegation_count += 1u32;
+			if less_total_staked.is_none() {
+				// only increment delegation count if we are not kicking a bottom delegation
+				self.delegation_count += 1u32;
+			}
 			<TopDelegations<T>>::insert(&candidate, top_delegations);
 			less_total_staked
 		}
@@ -2795,6 +2796,11 @@ pub mod pallet {
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
+			// check that caller can reserve the amount before any changes to storage
+			ensure!(
+				T::Currency::can_reserve(&delegator, amount),
+				Error::<T>::InsufficientBalance
+			);
 			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
 				ensure!(state.is_active(), Error::<T>::CannotDelegateIfLeaving);
 				// delegation after first
@@ -2839,7 +2845,8 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			T::Currency::reserve(&delegator, amount)?;
+			T::Currency::reserve(&delegator, amount)
+				.expect("verified can reserve at top of this extrinsic body");
 			if let DelegatorAdded::AddedToTop { new_total } = delegator_position {
 				if state.is_active() {
 					Self::update_active(candidate.clone(), new_total);
@@ -3034,7 +3041,7 @@ pub mod pallet {
 			if state.is_active() && total_changed {
 				Self::update_active(candidate.clone(), state.total_counted);
 			}
-			let new_total_locked = <Total<T>>::get() - amount;
+			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
 			<CandidateInfo<T>>::insert(&candidate, state);

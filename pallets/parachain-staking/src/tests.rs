@@ -1775,7 +1775,7 @@ fn cannot_delegate_if_leaving() {
 #[test]
 fn cannot_delegate_if_candidate() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20)])
+		.with_balances(vec![(1, 20), (2, 30)])
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {

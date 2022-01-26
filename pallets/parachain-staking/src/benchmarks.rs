@@ -280,8 +280,6 @@ benchmarks! {
 
 	execute_leave_candidates {
 		// x is total number of delegations for the candidate
-		let max_delegations = <<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-			+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
 		let x in 2..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
 		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get());
 		let candidate: T::AccountId = create_funded_collator::<T>(
