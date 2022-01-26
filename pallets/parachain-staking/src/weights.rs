@@ -137,88 +137,85 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn join_candidates(x: u32) -> Weight {
-		(84_807_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((333_000 as Weight).saturating_mul(x as Weight))
+		(80_619_000 as Weight) // Standard Error: 1_000
+			.saturating_add((107_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(9 as Weight))
+			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+	}
+	fn schedule_leave_candidates(x: u32) -> Weight {
+		(50_933_000 as Weight) // Standard Error: 1_000
+			.saturating_add((108_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(7 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn execute_leave_candidates(x: u32) -> Weight {
+		(8_634_000 as Weight) // Standard Error: 6_000
+			.saturating_add((26_979_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(8 as Weight))
+			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
+	}
+	fn cancel_leave_candidates(x: u32) -> Weight {
+		(43_482_000 as Weight) // Standard Error: 0
+			.saturating_add((111_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn go_offline() -> Weight {
+		(30_778_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn go_online() -> Weight {
+		(31_178_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn candidate_bond_more() -> Weight {
+		(53_492_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(8 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
+	fn schedule_candidate_bond_less() -> Weight {
+		(29_393_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn execute_candidate_bond_less() -> Weight {
+		(62_395_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-	fn schedule_leave_candidates(x: u32) -> Weight {
-		(64_426_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((332_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+	fn cancel_candidate_bond_less() -> Weight {
+		(25_564_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn execute_leave_candidates(x: u32) -> Weight {
-		(0 as Weight) // Standard Error: 8_000
-			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
+	fn delegate(x: u32, y: u32) -> Weight {
+		(103_760_000 as Weight) // Standard Error: 12_000
+			.saturating_add((198_000 as Weight).saturating_mul(x as Weight)) // Standard Error: 3000
+			.saturating_add((112_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads(10 as Weight))
+			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+	}
+	fn schedule_leave_delegators() -> Weight {
+		(30_908_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn execute_leave_delegators(x: u32) -> Weight {
+		(1_091_000 as Weight) // Standard Error: 14_000
+			.saturating_add((37_192_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn cancel_leave_candidates(x: u32) -> Weight {
-		(48_521_000 as Weight)
-			.saturating_add((347_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
-	}
-	fn go_offline() -> Weight {
-		(36_577_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
-	fn go_online() -> Weight {
-		(36_134_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
-	fn candidate_bond_more() -> Weight {
-		(58_445_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
-	}
-	fn schedule_candidate_bond_less() -> Weight {
-		(59_421_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
-	}
-	fn execute_candidate_bond_less() -> Weight {
-		(58_228_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
-	}
-	fn cancel_candidate_bond_less() -> Weight {
-		(58_327_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
-	}
-	fn delegate(x: u32, y: u32) -> Weight {
-		(71_656_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((1_049_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 5_000
-			.saturating_add((947_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
-	}
-	fn schedule_leave_delegators() -> Weight {
-		(33_227_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
-	fn execute_leave_delegators(x: u32) -> Weight {
-		(36_354_000 as Weight)
-			// Standard Error: 2_000
-			.saturating_add((694_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
 	fn cancel_leave_delegators() -> Weight {
-		(32_992_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		(26_796_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn schedule_revoke_delegation() -> Weight {
 		(37_580_000 as Weight)
@@ -226,7 +223,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn delegator_bond_more() -> Weight {
-		(71_021_000 as Weight)
+		(65_757_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
@@ -236,14 +233,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
 	fn execute_revoke_delegation() -> Weight {
-		(36_912_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		(87_836_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(10 as Weight))
+			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
 	fn execute_delegator_bond_less() -> Weight {
-		(71_419_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		(80_983_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(11 as Weight))
+			.saturating_add(T::DbWeight::get().writes(8 as Weight))
 	}
 	fn cancel_revoke_delegation() -> Weight {
 		(37_923_000 as Weight)
@@ -256,13 +253,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
 	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
-		(0 as Weight)
-			// Standard Error: 1_378_000
-			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
+		(0 as Weight) // Standard Error: 4_087_000
 			// Standard Error: 12_000
-			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add((100_164_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add((1_202_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(T::DbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(T::DbWeight::get().writes((3 as Weight).saturating_mul(x as Weight)))
 	}
 	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -328,89 +324,85 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	fn join_candidates(x: u32) -> Weight {
-		(84_807_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((333_000 as Weight).saturating_mul(x as Weight))
+		(80_619_000 as Weight) // Standard Error: 1_000
+			.saturating_add((107_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(8 as Weight))
+	}
+	fn schedule_leave_candidates(x: u32) -> Weight {
+		(50_933_000 as Weight) // Standard Error: 1_000
+			.saturating_add((108_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn execute_leave_candidates(x: u32) -> Weight {
+		(8_634_000 as Weight) // Standard Error: 6_000
+			.saturating_add((26_979_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
+			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
+	}
+	fn cancel_leave_candidates(x: u32) -> Weight {
+		(43_482_000 as Weight) // Standard Error: 0
+			.saturating_add((111_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn go_offline() -> Weight {
+		(30_778_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn go_online() -> Weight {
+		(31_178_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn candidate_bond_more() -> Weight {
+		(53_492_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn schedule_candidate_bond_less() -> Weight {
+		(29_393_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn execute_candidate_bond_less() -> Weight {
+		(62_395_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
-	fn schedule_leave_candidates(x: u32) -> Weight {
-		(64_426_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((332_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+	fn cancel_candidate_bond_less() -> Weight {
+		(25_564_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
-	fn execute_leave_candidates(x: u32) -> Weight {
-		(0 as Weight) // Standard Error: 8_000
-			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
+	fn delegate(x: u32, y: u32) -> Weight {
+		(103_760_000 as Weight) // Standard Error: 12_000
+			.saturating_add((198_000 as Weight).saturating_mul(x as Weight)) // Standard Error: 3000
+			.saturating_add((112_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads(10 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(8 as Weight))
+	}
+	fn schedule_leave_delegators() -> Weight {
+		(30_908_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn execute_leave_delegators(x: u32) -> Weight {
+		(1_091_000 as Weight) // Standard Error: 14_000
+			.saturating_add((37_192_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
 			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
-	fn cancel_leave_candidates(x: u32) -> Weight {
-		(48_521_000 as Weight)
-			.saturating_add((347_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
-	}
-	fn go_offline() -> Weight {
-		(36_577_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-	fn go_online() -> Weight {
-		(36_134_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-	fn candidate_bond_more() -> Weight {
-		(58_445_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
-	}
-	fn schedule_candidate_bond_less() -> Weight {
-		(59_421_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
-	}
-	fn execute_candidate_bond_less() -> Weight {
-		(58_228_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
-	}
-	fn cancel_candidate_bond_less() -> Weight {
-		(58_327_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
-	}
-	// execute cancel
-	fn delegate(x: u32, y: u32) -> Weight {
-		(71_656_000 as Weight)
-			// Standard Error: 1_000
-			.saturating_add((1_049_000 as Weight).saturating_mul(x as Weight))
-			// Standard Error: 5_000
-			.saturating_add((947_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
-	}
-	fn schedule_leave_delegators() -> Weight {
-		(33_227_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-	fn execute_leave_delegators(x: u32) -> Weight {
-		(36_354_000 as Weight)
-			// Standard Error: 2_000
-			.saturating_add((692_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
 	fn cancel_leave_delegators() -> Weight {
-		(32_992_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		(26_796_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	fn schedule_revoke_delegation() -> Weight {
 		(37_580_000 as Weight)
@@ -418,9 +410,9 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	fn delegator_bond_more() -> Weight {
-		(71_021_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		(65_757_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
 	fn schedule_delegator_bond_less() -> Weight {
 		(70_859_000 as Weight)
@@ -428,14 +420,14 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
 	fn execute_revoke_delegation() -> Weight {
-		(36_912_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		(87_836_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(10 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
 	}
 	fn execute_delegator_bond_less() -> Weight {
-		(71_419_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		(80_983_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(8 as Weight))
 	}
 	fn cancel_revoke_delegation() -> Weight {
 		(37_923_000 as Weight)
@@ -448,13 +440,12 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	fn round_transition_on_initialize(x: u32, y: u32) -> Weight {
-		(0 as Weight)
-			// Standard Error: 1_378_000
-			.saturating_add((47_519_000 as Weight).saturating_mul(x as Weight))
+		(0 as Weight) // Standard Error: 4_087_000
 			// Standard Error: 12_000
-			.saturating_add((1_275_000 as Weight).saturating_mul(y as Weight))
-			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
+			.saturating_add((100_164_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add((1_202_000 as Weight).saturating_mul(y as Weight))
+			.saturating_add(RocksDbWeight::get().reads((4 as Weight).saturating_mul(x as Weight)))
+			.saturating_add(RocksDbWeight::get().writes((3 as Weight).saturating_mul(x as Weight)))
 	}
 	fn base_on_initialize() -> Weight {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))

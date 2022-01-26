@@ -884,7 +884,7 @@ fn go_online_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CandidateBackOnline(1, TestAccount::Alice).into();
+				StakingEvent::CandidateBackOnline(TestAccount::Alice).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -907,7 +907,7 @@ fn go_offline_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				StakingEvent::CandidateWentOffline(1, TestAccount::Alice).into();
+				StakingEvent::CandidateWentOffline(TestAccount::Alice).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});

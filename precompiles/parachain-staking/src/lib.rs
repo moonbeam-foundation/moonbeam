@@ -321,8 +321,8 @@ where
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_state(&address) {
-				let candidate_delegation_count: u32 = state.delegators.0.len() as u32;
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&address) {
+				let candidate_delegation_count: u32 = state.delegation_count;
 
 				log::trace!(
 					target: "staking-precompile",
@@ -661,8 +661,8 @@ where
 	)> {
 		// Read input.
 		input.expect_arguments(gasometer, 4)?;
-		let collator = input.read::<Address>(gasometer)?.0;
-		let collator = Runtime::AddressMapping::into_account_id(collator);
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
 		let amount: BalanceOf<Runtime> = input.read(gasometer)?;
 		let candidate_delegation_count = input.read(gasometer)?;
 		let delegation_count = input.read(gasometer)?;
@@ -670,7 +670,7 @@ where
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::delegate {
-			collator,
+			candidate,
 			amount,
 			candidate_delegation_count,
 			delegation_count,
