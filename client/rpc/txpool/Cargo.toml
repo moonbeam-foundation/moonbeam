@@ -29,4 +29,4 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 ethereum-types = "0.12.1"
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "mb-v0.9.13-elois-client-v0.19", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", features = [ "rpc_binary_search_estimate" ] }

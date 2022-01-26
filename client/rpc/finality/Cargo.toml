@@ -15,8 +15,8 @@ jsonrpc-derive = "18.0.0"
 parity-scale-codec = "2.2"
 tokio = { version = "1.12.0", features = [ "sync", "time" ] }
 
-fc-db = { git = "https://github.com/purestake/frontier", branch = "mb-v0.9.13-elois-client-v0.19" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "mb-v0.9.13-elois-client-v0.19" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
 sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }

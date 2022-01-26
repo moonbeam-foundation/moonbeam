@@ -22,8 +22,8 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "mb-v0.9.13-elois-client-v0.19", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "mb-v0.9.13-elois-client-v0.19", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
 
 # Polkadot / XCM
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
