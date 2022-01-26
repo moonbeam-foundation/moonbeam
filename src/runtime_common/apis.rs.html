@@ -502,6 +502,16 @@
 <span id="502">502</span>
 <span id="503">503</span>
 <span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -822,6 +832,16 @@
 
 				<span class="kw">fn</span> <span class="ident">elasticity</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span> {
 					<span class="prelude-val">Some</span>(<span class="ident">BaseFee::elasticity</span>())
+				}
+			}
+
+			<span class="kw">impl</span> <span class="ident">fp_rpc::ConvertTransactionRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+				<span class="kw">fn</span> <span class="ident">convert_transaction</span>(
+					<span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>
+				) -&gt; <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span> {
+					<span class="ident">UncheckedExtrinsic::new_unsigned</span>(
+						<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
+					)
 				}
 			}
 
