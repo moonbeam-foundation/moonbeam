@@ -73,7 +73,10 @@ benchmarks! {
 			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
 		}
-		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(0, X1(GeneralIndex((x-1) as u128))).into();
+		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(
+			0,
+			X1(GeneralIndex((x-1) as u128))
+		).into();
 		// We try to remove the last asset type
 	}: _(RawOrigin::Root, asset_type_to_be_removed.clone(), x)
 	verify {
