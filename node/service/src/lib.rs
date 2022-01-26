@@ -400,78 +400,6 @@ where
 	})
 }
 
-/// `fp_rpc::ConvertTransaction` is implemented for an arbitrary struct that lives in each runtime.
-/// It receives a ethereum::Transaction and returns a pallet-ethereum transact Call wrapped in an
-/// UncheckedExtrinsic.
-///
-/// Although the implementation should be the same in each runtime, this might change at some point.
-/// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
-/// each runtime implementation.
-pub enum TransactionConverters {
-	#[cfg(feature = "moonbeam-native")]
-	Moonbeam(moonbeam_runtime::TransactionConverter),
-	#[cfg(feature = "moonbase-native")]
-	Moonbase(moonbase_runtime::TransactionConverter),
-	#[cfg(feature = "moonriver-native")]
-	Moonriver(moonriver_runtime::TransactionConverter),
-}
-
-impl TransactionConverters {
-	#[cfg(feature = "moonbeam-native")]
-	fn moonbeam() -> Self {
-		TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonbeam-native"))]
-	fn moonbeam() -> Self {
-		unimplemented!()
-	}
-	#[cfg(feature = "moonriver-native")]
-	fn moonriver() -> Self {
-		TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonriver-native"))]
-	fn moonriver() -> Self {
-		unimplemented!()
-	}
-	#[cfg(feature = "moonbase-native")]
-	fn moonbase() -> Self {
-		TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonbase-native"))]
-	fn moonbase() -> Self {
-		unimplemented!()
-	}
-	pub fn for_runtime_variant(runtime: RuntimeVariant) -> Self {
-		match runtime {
-			#[cfg(feature = "moonbeam-native")]
-			RuntimeVariant::Moonbeam => Self::moonbeam(),
-			#[cfg(feature = "moonriver-native")]
-			RuntimeVariant::Moonriver => Self::moonriver(),
-			#[cfg(feature = "moonbase-native")]
-			RuntimeVariant::Moonbase => Self::moonbase(),
-			_ => panic!("invalid chain spec"),
-		}
-	}
-}
-
-impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
-	for TransactionConverters
-{
-	fn convert_transaction(
-		&self,
-		transaction: pallet_ethereum::Transaction,
-	) -> moonbeam_core_primitives::OpaqueExtrinsic {
-		match &self {
-			#[cfg(feature = "moonbeam-native")]
-			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonriver-native")]
-			Self::Moonriver(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonbase-native")]
-			Self::Moonbase(inner) => inner.convert_transaction(transaction),
-		}
-	}
-}
-
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
@@ -588,18 +516,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 
-		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
-		let is_moonriver = parachain_config.chain_spec.is_moonriver();
-
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::moonbeam()
-			} else if is_moonriver {
-				TransactionConverters::moonriver()
-			} else {
-				TransactionConverters::moonbase()
-			};
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -616,7 +533,6 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
-				transaction_converter,
 				xcm_senders: None,
 			};
 			#[allow(unused_mut)]
@@ -960,18 +876,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 
-		let is_moonbeam = config.chain_spec.is_moonbeam();
-		let is_moonriver = config.chain_spec.is_moonriver();
-
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::moonbeam()
-			} else if is_moonriver {
-				TransactionConverters::moonriver()
-			} else {
-				TransactionConverters::moonbase()
-			};
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -988,7 +893,6 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
-				transaction_converter,
 				xcm_senders: xcm_senders.clone(),
 			};
 			#[allow(unused_mut)]
