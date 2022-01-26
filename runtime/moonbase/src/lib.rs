@@ -1192,7 +1192,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// units per second we should charge
 	type Trader = (
 		UsingComponents<
-			IdentityFee<Balance>,
+			WeightToFee,
 			SelfReserve,
 			AccountId,
 			Balances,
