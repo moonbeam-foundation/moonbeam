@@ -35,7 +35,7 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
-use sp_runtime::traits::Zero;
+use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{collections::btree_map::BTreeMap, convert::TryInto, vec::Vec};
 
 /// Migration to split CandidateState and minimize unnecessary storage reads
@@ -82,7 +82,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 					let mut total_less = BalanceOf::<T>::zero();
 					state.bottom_delegations.iter().take(rest).for_each(
 						|Bond { owner, amount }| {
-							total_less += *amount;
+							total_less = total_less.saturating_add(*amount);
 							// update delegator state
 							// unreserve kicked bottom
 							T::Currency::unreserve(&owner, *amount);
@@ -214,7 +214,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let (mut reads, mut writes) = (0u64, 0u64);
 		for (account, state) in <CandidateState<T>>::iter() {
-			reads += 1u64;
+			reads = reads.saturating_add(1u64);
 			// 1. collect all delegations into single vec and order them
 			let mut all_delegations = state.top_delegations.clone();
 			let mut starting_bottom_delegations = state.bottom_delegations.clone();
@@ -237,16 +237,16 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 			let (mut total_counted, mut total_backing): (BalanceOf<T>, BalanceOf<T>) =
 				(state.bond.into(), state.bond.into());
 			for Bond { amount, .. } in &top_delegations {
-				total_counted += *amount;
-				total_backing += *amount;
+				total_counted = total_counted.saturating_add(*amount);
+				total_backing = total_backing.saturating_add(*amount);
 			}
 			for Bond { amount, .. } in &bottom_delegations {
-				total_backing += *amount;
+				total_backing = total_backing.saturating_add(*amount);
 			}
 			// update candidate pool with new total counted if it changed
 			if state.total_counted != total_counted && state.is_active() {
-				reads += 1u64;
-				writes += 1u64;
+				reads = reads.saturating_add(1u64);
+				writes = writes.saturating_add(1u64);
 				<Pallet<T>>::update_active(account.clone(), total_counted);
 			}
 			<CandidateState<T>>::insert(
@@ -259,7 +259,7 @@ impl<T: Config> OnRuntimeUpgrade for IncreaseMaxDelegationsPerCandidate<T> {
 					..state
 				},
 			);
-			writes += 1u64;
+			writes = writes.saturating_add(1u64);
 		}
 		let weight = T::DbWeight::get();
 		// 20% of the max block weight as safety margin for computation
@@ -320,8 +320,8 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 			let candidate_state: CollatorCandidate<T::AccountId, BalanceOf<T>> =
 				collator_state.into();
 			<CandidateState<T>>::insert(candidate_id, candidate_state);
-			reads += 1u64;
-			writes += 1u64;
+			reads = reads.saturating_add(1u64);
+			writes = writes.saturating_add(1u64);
 		}
 		// execute delegator migration
 		for (delegator_id, nominator_state) in <NominatorState2<T>>::drain() {
@@ -336,8 +336,8 @@ impl<T: Config> OnRuntimeUpgrade for RemoveExitQueue<T> {
 				delegator_state.hotfix_set_revoke::<T>(candidate.clone(), *when);
 			}
 			<DelegatorState<T>>::insert(delegator_id, delegator_state);
-			reads += 1u64;
-			writes += 1u64;
+			reads = reads.saturating_add(1u64);
+			writes = writes.saturating_add(1u64);
 		}
 		let db_weight = T::DbWeight::get();
 		if reads > 1u64 {
@@ -463,7 +463,7 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		// already paid out at the beginning of current round
 		let most_recent_round_to_kill = current_round - payment_delay;
 		for i in 1..=most_recent_round_to_kill {
-			writes += 2u64;
+			writes = writes.saturating_add(2u64);
 			<Staked<T>>::remove(i);
 			<Points<T>>::remove(i);
 		}
