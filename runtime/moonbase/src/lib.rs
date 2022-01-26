@@ -44,8 +44,8 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		WeightToFeeCoefficients, WeightToFeeCoefficient, WeightToFeePolynomial,
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -61,10 +61,7 @@ use xcm_builder::{
 
 use xcm_executor::traits::JustTry;
 
-use frame_system::{
-	limits::BlockWeights,
-	EnsureOneOf, EnsureRoot, EnsureSigned,
-};
+use frame_system::{limits::BlockWeights, EnsureOneOf, EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,

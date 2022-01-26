@@ -31,8 +31,8 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, RuntimeBlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, TransactionPayment,
+	Balances, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
@@ -1915,7 +1915,7 @@ fn precompile_existance() {
 
 #[test]
 fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
-	use frame_support::weights::{Pays, DispatchInfo};
+	use frame_support::weights::{DispatchInfo, Pays};
 	use moonbase_runtime::{currency::MEGAWEI, EXTRINSIC_BASE_WEIGHT};
 
 	ExtBuilder::default().build().execute_with(|| {
@@ -1933,4 +1933,3 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		);
 	});
 }
-
