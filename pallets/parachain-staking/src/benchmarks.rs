@@ -125,7 +125,8 @@ const USER_SEED: u32 = 999666;
 benchmarks! {
 	// HOTFIX BENCHMARK
 	hotfix_remove_delegation_requests {
-		let x in 5..200;
+		let x in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
 		let mut delegators: Vec<T::AccountId> = Vec::new();
 		let collator = create_funded_collator::<T>(
 			"candidate",
@@ -279,7 +280,10 @@ benchmarks! {
 
 	execute_leave_candidates {
 		// x is total number of delegations for the candidate
-		let x in 2..310;
+		let max_delegations = <<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
+			+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
+		let x in 2..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get());
 		let candidate: T::AccountId = create_funded_collator::<T>(
 			"unique_caller",
 			USER_SEED - 100,

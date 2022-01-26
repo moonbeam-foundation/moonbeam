@@ -949,6 +949,33 @@ fn execute_leave_candidates_callable_by_any_signed() {
 }
 
 #[test]
+fn execute_leave_candidates_requires_correct_weight_hint() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 10), (3, 1, 10), (4, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_candidates(
+				Origin::signed(1),
+				1u32
+			));
+			roll_to(10);
+			for i in 0..3 {
+				assert_noop!(
+					ParachainStaking::execute_leave_candidates(Origin::signed(1), 1, i),
+					Error::<Test>::TooLowCandidateDelegationCountToLeaveCandidates
+				);
+			}
+			assert_ok!(ParachainStaking::execute_leave_candidates(
+				Origin::signed(2),
+				1,
+				3
+			));
+		});
+}
+
+#[test]
 fn execute_leave_candidates_unreserves_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])

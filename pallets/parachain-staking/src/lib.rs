@@ -241,7 +241,16 @@ pub mod pallet {
 		/// delegations if the amount is the same
 		pub fn insert_sorted_greatest_to_least(&mut self, delegation: Bond<AccountId, Balance>) {
 			self.total += delegation.amount;
-			// binary search insertion
+			// if delegations nonempty && last_element == delegation.amount => push input and return
+			if !self.delegations.is_empty() {
+				// if last_element == delegation.amount => push the delegation and return early
+				if self.delegations[self.delegations.len() - 1].amount == delegation.amount {
+					self.delegations.push(delegation);
+					// early return
+					return;
+				}
+			}
+			// else binary search insertion
 			match self
 				.delegations
 				.binary_search_by(|x| delegation.amount.cmp(&x.amount))
