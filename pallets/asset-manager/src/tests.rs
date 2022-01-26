@@ -154,14 +154,43 @@ fn test_root_can_change_asset_id_type() {
 			true
 		));
 
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into()
+		));
+
 		assert_ok!(AssetManager::change_existing_asset_type(
 			Origin::root(),
 			1,
 			MockAssetType::MockAsset(2),
 		));
 
+		// New one contains the new asset type units per second
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(2)).unwrap(),
+			200
+		);
+
+		// Old one does not contain units per second
+		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
+
+		// New associations are stablished
+		assert_eq!(
+			AssetManager::asset_id_type(1).unwrap(),
+			MockAssetType::MockAsset(2)
+		);
+		assert_eq!(
+			AssetManager::asset_type_id(MockAssetType::MockAsset(2)).unwrap(),
+			1
+		);
+
+		// Old ones are deleted
+		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
+
 		expect_events(vec![
 			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
 			crate::Event::AssetTypeChanged(1, MockAssetType::MockAsset(2)),
 		])
 	});

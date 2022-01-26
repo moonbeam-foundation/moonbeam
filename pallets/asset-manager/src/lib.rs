@@ -220,6 +220,12 @@ pub mod pallet {
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
 
+			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
+				// Remove previous asset type info
+				AssetTypeUnitsPerSecond::<T>::remove(&previous_asset_type);
+				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
+			}
+
 			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
 			Ok(())
 		}
