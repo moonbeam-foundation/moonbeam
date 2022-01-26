@@ -1,3 +1,5 @@
+import "../../moonbeam-types-bundle/packages/api-augment/src/alphanet/interfaces/augment-api";
+import "../../moonbeam-types-bundle/packages/api-augment/src/alphanet/interfaces/augment-types";
 import { ApiPromise } from "@polkadot/api";
 import { JsonRpcResponse } from "web3-core-helpers";
 import type { BlockHash } from "@polkadot/types/interfaces/chain/types";

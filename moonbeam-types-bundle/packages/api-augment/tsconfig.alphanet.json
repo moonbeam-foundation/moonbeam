@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@moonbeam/api-augment/*": ["src/alphanet/interfaces/*"],
+      "@polkadot/api/augment": ["src/alphanet/interfaces/augment-api.ts"],
+      "@polkadot/types/augment": ["src/alphanet/interfaces/augment-types.ts"]
+    }
+  }
+}

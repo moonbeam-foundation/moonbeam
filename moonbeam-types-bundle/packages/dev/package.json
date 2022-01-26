@@ -25,13 +25,13 @@
     "load:meta:moonbeam": "curl -s -H \"Content-Type: application/json\"   -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}'   https://rpc.api.moonbeam.network > metadata-moonbeam.json",
     "build": "npm run load:meta && npm run generate:defs && npm run generate:meta",
     "generate:defs": "npm run generate:defs:alphanet && npm run generate:defs:moonriver && npm run generate:defs:moonbeam",
-    "generate:defs:alphanet": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/alphanet --endpoint ./metadata-alphanet.json",
-    "generate:defs:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/moonriver --endpoint ./metadata-moonriver.json",
-    "generate:defs:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/moonbeam --endpoint ./metadata-moonbeam.json",
+    "generate:defs:alphanet": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/alphanet/interfaces --endpoint ./metadata-alphanet.json",
+    "generate:defs:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/moonriver/interfaces --endpoint ./metadata-moonriver.json",
+    "generate:defs:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/interfaces --input ../api-augment/src/moonbeam/interfaces --endpoint ./metadata-moonbeam.json",
     "generate:meta": "npm run generate:meta:alphanet && npm run generate:meta:moonriver && npm run generate:meta:moonbeam",
-    "generate:meta:alphanet": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-alphanet.json --output ../api-augment/src/alphanet",
-    "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --output ../api-augment/src/moonriver",
-    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --output ../api-augment/src/moonbeam",
+    "generate:meta:alphanet": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-alphanet.json --output ../api-augment/src/alphanet/interfaces",
+    "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --output ../api-augment/src/moonriver/interfaces",
+    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --output ../api-augment/src/moonbeam/interfaces",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "keywords": [
@@ -42,10 +42,10 @@
     "api"
   ],
   "dependencies": {
-    "@polkadot/api": "^7.4.1"
+    "@polkadot/api": "^7.5.1"
   },
   "devDependencies": {
-    "@polkadot/typegen": "^7.4.1",
+    "@polkadot/typegen": "^7.5.1",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5"
   }

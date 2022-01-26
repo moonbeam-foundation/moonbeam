@@ -1,4 +1,6 @@
 import Web3 from "web3";
+import "../../moonbeam-types-bundle/packages/api-augment/src/alphanet/interfaces/augment-api";
+import "../../moonbeam-types-bundle/packages/api-augment/src/alphanet/interfaces/augment-types";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundlePre900 } from "../../moonbeam-types-bundle";
 import { JsonRpcResponse } from "web3-core-helpers";
