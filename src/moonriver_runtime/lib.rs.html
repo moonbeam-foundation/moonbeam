@@ -1898,6 +1898,10 @@
 <span id="1898">1898</span>
 <span id="1899">1899</span>
 <span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2620,8 +2624,10 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RewardPaymentDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Minimum collators selected per round, default at genesis and minimum forever after</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
-	<span class="doccomment">/// Maximum delegators counted per candidate</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxDelegatorsPerCandidate</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
+	<span class="doccomment">/// Maximum top delegations per candidate</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxTopDelegationsPerCandidate</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
+	<span class="doccomment">/// Maximum bottom delegations per candidate</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxBottomDelegationsPerCandidate</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
 	<span class="doccomment">/// Maximum delegations per delegator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxDelegationsPerDelegator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="doccomment">/// Default fixed percent a collator takes off the top of due rewards</span>
@@ -2648,7 +2654,8 @@
 	<span class="kw">type</span> <span class="ident">DelegationBondLessDelay</span> <span class="op">=</span> <span class="ident">DelegationBondLessDelay</span>;
 	<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span> <span class="op">=</span> <span class="ident">RewardPaymentDelay</span>;
 	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
-	<span class="kw">type</span> <span class="ident">MaxDelegatorsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxDelegatorsPerCandidate</span>;
+	<span class="kw">type</span> <span class="ident">MaxTopDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxTopDelegationsPerCandidate</span>;
+	<span class="kw">type</span> <span class="ident">MaxBottomDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxBottomDelegationsPerCandidate</span>;
 	<span class="kw">type</span> <span class="ident">MaxDelegationsPerDelegator</span> <span class="op">=</span> <span class="ident">MaxDelegationsPerDelegator</span>;
 	<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span> <span class="op">=</span> <span class="ident">DefaultCollatorCommission</span>;
 	<span class="kw">type</span> <span class="ident">DefaultParachainBondReservePercent</span> <span class="op">=</span> <span class="ident">DefaultParachainBondReservePercent</span>;
@@ -3792,10 +3799,11 @@
 	}
 
 	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="comment">// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate</span>
+	<span class="comment">// Required migration is parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate</span>
 	<span class="comment">// Purpose of this test is to remind of required migration if constant is ever changed</span>
 	<span class="kw">fn</span> <span class="ident">updating_maximum_delegators_per_candidate_requires_configuring_required_migration</span>() {
-		<span class="macro">assert_eq!</span>(<span class="ident">MaxDelegatorsPerCandidate::get</span>(), <span class="number">300</span>);
+		<span class="macro">assert_eq!</span>(<span class="ident">MaxTopDelegationsPerCandidate::get</span>(), <span class="number">300</span>);
+		<span class="macro">assert_eq!</span>(<span class="ident">MaxBottomDelegationsPerCandidate::get</span>(), <span class="number">50</span>);
 	}
 }
 </code></pre></div>
