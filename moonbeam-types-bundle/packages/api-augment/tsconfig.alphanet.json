@@ -6,5 +6,6 @@
       "@polkadot/types/augment": ["src/alphanet/interfaces/augment-types.ts"],
       "@polkadot/types/lookup": ["src/alphanet/interfaces/types-lookup.ts"]
     }
-  }
+  },
+  "include": ["**/alphanet/*.ts"]
 }
