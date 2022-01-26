@@ -605,7 +605,8 @@ pub mod pallet {
 		}
 		/// Add delegation to bottom delegations
 		/// Check before call that if capacity is full, inserted delegation is higher than lowest
-		/// bottom delegation (and if so, need to adjust the total storage item accordingly fuck)
+		/// bottom delegation (and if so, need to adjust the total storage item)
+		/// CALLER MUST ensure(lowest_bottom_to_be_kicked.amount < delegation.amount)
 		pub fn add_bottom_delegation<T: Config>(
 			&mut self,
 			bumped_from_top: bool,
@@ -625,11 +626,9 @@ pub mod pallet {
 					.delegations
 					.pop()
 					.expect("if at full capacity (>0), then >0 bottom delegations exist; qed");
-				assert!(
-					lowest_bottom_to_be_kicked.amount < delegation.amount,
-					"Cannot kick the lowest bottom delegation if the input delegation amount is
-					less than or equal to the current lowest bottom delegation"
-				);
+				// EXPECT lowest_bottom_to_be_kicked.amount < delegation.amount enforced by caller
+				// if lowest_bottom_to_be_kicked.amount == delegation.amount, we will still kick
+				// the lowest bottom to enforce first come first served
 				bottom_delegations.total = bottom_delegations
 					.total
 					.saturating_sub(lowest_bottom_to_be_kicked.amount);
@@ -676,7 +675,7 @@ pub mod pallet {
 		/// Remove delegation
 		/// Removes from top if amount is above lowest top or top is not full
 		/// Return Ok(if_total_counted_changed)
-		pub fn rm_delegation<T: Config>(
+		pub fn rm_delegation_if_exists<T: Config>(
 			&mut self,
 			candidate: &T::AccountId,
 			delegator: T::AccountId,
@@ -3036,7 +3035,8 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let total_changed = state.rm_delegation::<T>(&candidate, delegator.clone(), amount)?;
+			let total_changed =
+				state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
 			T::Currency::unreserve(&delegator, amount);
 			if state.is_active() && total_changed {
 				Self::update_active(candidate.clone(), state.total_counted);
