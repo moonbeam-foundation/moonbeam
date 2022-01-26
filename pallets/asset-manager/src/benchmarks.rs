@@ -22,6 +22,7 @@ use frame_system::RawOrigin;
 use xcm::latest::prelude::*;
 
 benchmarks! {
+	// This where clause allows us to create assetTypes
 	where_clause { where T::AssetType: From<MultiLocation> }
 	register_asset {
 		// does not really matter what we register
@@ -60,7 +61,7 @@ benchmarks! {
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
 		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
-		// Worst Case: we als set assets units per second
+		// Worst case: we also set assets units per second
 		Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
 
 	}: _(RawOrigin::Root, asset_id, new_asset_type.clone())
