@@ -202,7 +202,9 @@ pub mod pallet {
 		}
 
 		/// Change the xcm type mapping for a given assetId
-		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
+		/// We also change this if the previous units per second where pointing at the old
+		/// assetType
+		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
