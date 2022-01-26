@@ -30,7 +30,7 @@ describeDevMoonbeam("Polkadot API", (context) => {
 });
 
 describeDevMoonbeam("Polkadot API - Transfers", (context) => {
-  const testAccount = "0x1111111111111111111111111111111111111111";
+  const testAccount = TEST_ACCOUNT;
   before("Setup: Create empty block with balance.transfer", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");

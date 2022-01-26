@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE, TEST_ACCOUNT } from "../util/constants";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on 0 balance)", async function () {
@@ -9,7 +9,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
       transactions: [
         await createTransfer(
           context,
-          "0x1111111111111111111111111111111111111111",
+          TEST_ACCOUNT,
           GENESIS_ACCOUNT_BALANCE - 21000n * 1_000_000_000n,
           {
             from: GENESIS_ACCOUNT,
@@ -29,7 +29,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
       transactions: [
         await createTransfer(
           context,
-          "0x1111111111111111111111111111111111111111",
+          TEST_ACCOUNT,
           GENESIS_ACCOUNT_BALANCE - 1n - 21000n * 1_000_000_000n,
           {
             from: GENESIS_ACCOUNT,

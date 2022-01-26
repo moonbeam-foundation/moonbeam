@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { createContract, createTransfer } from "../../util/transactions";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
+import { TEST_ACCOUNT } from "../../util/constants";
 
 describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (context) => {
   let txHash;
@@ -41,7 +42,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
     // Create block including transaction with nonce 0
     await context.createBlock({
       transactions: [
-        await createTransfer(context, "0x1111111111111111111111111111111111111111", 512, {
+        await createTransfer(context, TEST_ACCOUNT, 512, {
           nonce: 0,
         }),
       ],

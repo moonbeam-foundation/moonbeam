@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { TEST_ACCOUNT } from "../../util/constants";
 import { web3Subscribe } from "../../util/providers";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -204,7 +205,7 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
 
     // Expected to fail because of not enough fund to pay the deployment
     const { rawTx } = await createContract(context, "SingleEventContract", {
-      from: "0x1111111111111111111111111111111111111111",
+      from: TEST_ACCOUNT,
     });
     await context.createBlock({
       transactions: [rawTx],

@@ -5,7 +5,7 @@ import { EXTRINSIC_GAS_LIMIT } from "../util/constants";
 import { createTransfer } from "../util/transactions";
 import { customWeb3Request } from "../util/providers";
 
-const testAccount = "0x1111111111111111111111111111111111111111";
+const testAccount = TEST_ACCOUNT;
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it.skip("should allow resubmitting with higher gas", async function () {

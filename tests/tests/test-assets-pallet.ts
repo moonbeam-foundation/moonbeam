@@ -7,8 +7,6 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20";
 
-const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-
 describeDevMoonbeam("Pallet Assets Pallet - assets transfer", (context) => {
   let sudoAccount, assetId;
   before("Try turning maintenance mode on", async () => {

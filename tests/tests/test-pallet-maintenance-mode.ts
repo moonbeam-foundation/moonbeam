@@ -22,7 +22,7 @@ import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20
 import { customWeb3Request } from "../util/providers";
 import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
 
-const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
+const TEST_ACCOUNT = TEST_ACCOUNT;
 
 export const expectError = (fun): Promise<string> => {
   return new Promise(async (resolve) => {

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
@@ -7,9 +7,8 @@ describeDevMoonbeam(
   "Ethereum Extrinsic (Legacy)",
   (context) => {
     it("should contain valid legacy Ethereum data", async function () {
-      const testAddress = "0x1111111111111111111111111111111111111111";
       await context.createBlock({
-        transactions: [await createTransfer(context, testAddress, 512)],
+        transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
       });
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
@@ -20,7 +19,7 @@ describeDevMoonbeam(
         nonce: 0,
         gasPrice: 1000000000,
         gasLimit: 12000000,
-        action: { call: "0x1111111111111111111111111111111111111111" },
+        action: { call: TEST_ACCOUNT },
         value: 512,
         input: "0x",
         signature: {
@@ -39,11 +38,10 @@ describeDevMoonbeam(
   "Ethereum Extrinsic (EIP2930)",
   (context) => {
     it("should contain valid EIP2930 Ethereum data", async function () {
-      const testAddress = "0x1111111111111111111111111111111111111111";
       // Accesslist mock data, it doesn't matter.
       await context.createBlock({
         transactions: [
-          await createTransfer(context, testAddress, 512, {
+          await createTransfer(context, TEST_ACCOUNT, 512, {
             accessList: [
               [
                 "0x0000000000000000000000000000000000000000",
@@ -64,7 +62,7 @@ describeDevMoonbeam(
         gasPrice: 1000000000,
         gasLimit: 12000000,
         action: {
-          call: "0x1111111111111111111111111111111111111111",
+          call: TEST_ACCOUNT,
         },
         value: 512,
         input: "0x",
@@ -88,11 +86,10 @@ describeDevMoonbeam(
   "Ethereum Extrinsic (EIP1559)",
   (context) => {
     it("should contain valid EIP1559 Ethereum data", async function () {
-      const testAddress = "0x1111111111111111111111111111111111111111";
       // Accesslist mock data, it doesn't matter.
       await context.createBlock({
         transactions: [
-          await createTransfer(context, testAddress, 512, {
+          await createTransfer(context, TEST_ACCOUNT, 512, {
             accessList: [
               [
                 "0x0000000000000000000000000000000000000000",
@@ -114,7 +111,7 @@ describeDevMoonbeam(
         maxFeePerGas: 1000000000,
         gasLimit: 12000000,
         action: {
-          call: "0x1111111111111111111111111111111111111111",
+          call: TEST_ACCOUNT,
         },
         value: 512,
         input: "0x",

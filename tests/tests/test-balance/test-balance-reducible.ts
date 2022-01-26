@@ -4,13 +4,13 @@ import {
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_BALANCE,
   GENESIS_ACCOUNT_PRIVATE_KEY,
+  TEST_ACCOUNT,
 } from "../../util/constants";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeDevMoonbeam("Reducible Balance", (context) => {
-  const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   it("should show the reducible balanced when some amount is locked", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
