@@ -149,11 +149,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn execute_leave_candidates(x: u32) -> Weight {
-		(0 as Weight) // Standard Error: 8_000
-			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+		(8_634_000 as Weight) // Standard Error: 6_000
+			.saturating_add((26_979_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(8 as Weight))
 			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn cancel_leave_candidates(x: u32) -> Weight {
@@ -193,11 +193,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn delegate(x: u32, y: u32) -> Weight {
-		// Standard Error: 12_000
-		(94_346_000 as Weight)
-			// Standard Error: 3_000
-			.saturating_add((250_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add((145_000 as Weight).saturating_mul(y as Weight))
+		(103_760_000 as Weight) // Standard Error: 12_000
+			.saturating_add((198_000 as Weight).saturating_mul(x as Weight)) // Standard Error: 3000
+			.saturating_add((112_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(T::DbWeight::get().reads(10 as Weight))
 			.saturating_add(T::DbWeight::get().writes(8 as Weight))
 	}
@@ -338,11 +336,11 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	fn execute_leave_candidates(x: u32) -> Weight {
-		(0 as Weight) // Standard Error: 8_000
-			.saturating_add((27_557_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+		(8_634_000 as Weight) // Standard Error: 6_000
+			.saturating_add((26_979_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
 			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	fn cancel_leave_candidates(x: u32) -> Weight {
@@ -382,11 +380,9 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	fn delegate(x: u32, y: u32) -> Weight {
-		// Standard Error: 12_000
-		(94_346_000 as Weight)
-			// Standard Error: 3_000
-			.saturating_add((250_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add((145_000 as Weight).saturating_mul(y as Weight))
+		(103_760_000 as Weight) // Standard Error: 12_000
+			.saturating_add((198_000 as Weight).saturating_mul(x as Weight)) // Standard Error: 3000
+			.saturating_add((112_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(RocksDbWeight::get().reads(10 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(8 as Weight))
 	}
