@@ -185,13 +185,16 @@ where
 		eth_log_block_cache,
 	));
 
-	struct FakeTransactionConverter;
-	impl<T> fp_rpc::ConvertTransaction<T> for FakeTransactionConverter {
+	enum Never {}
+	impl<T> fp_rpc::ConvertTransaction<T> for Never {
 		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			// The Never type is not instantiable, but this method requires the type to be
+			// instantiated to be called (`&self` parameter), so if the code compiles we have the
+			// guarantee that this function will never be called.
 			unreachable!()
 		}
 	}
-	let convert_transaction: Option<FakeTransactionConverter> = None;
+	let convert_transaction: Option<Never> = None;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
