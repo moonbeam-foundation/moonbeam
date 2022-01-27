@@ -40,12 +40,12 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 
-use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
+use xcm_builder::FixedWeightBounds;
 
 use scale_info::TypeInfo;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
-	Assets, XcmExecutor,
+	Assets,
 };
 
 pub type AccountId = TestAccount;
@@ -68,7 +68,6 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
 
@@ -321,8 +320,6 @@ impl SendXcm for DoNothingRouter {
 	}
 }
 
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
 	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
@@ -352,42 +349,6 @@ impl InvertLocation for InvertNothing {
 	}
 }
 
-impl pallet_xcm::Config for Runtime {
-	// The config types here are entirely configurable, since the only one that is sorely needed
-	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
-	type Event = Event;
-	type ExecuteXcmOrigin = ConvertOriginToLocal;
-	type LocationInverter = InvertNothing;
-	type SendXcmOrigin = ConvertOriginToLocal;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type XcmRouter = DoNothingRouter;
-	type XcmExecuteFilter = frame_support::traits::Everything;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = frame_support::traits::Everything;
-	type XcmReserveTransferFilter = frame_support::traits::Everything;
-	type Origin = Origin;
-	type Call = Call;
-	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-}
-
-pub struct XcmConfig;
-impl xcm_executor::Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = DoNothingRouter;
-	type AssetTransactor = DummyAssetTransactor;
-	type OriginConverter = pallet_xcm::XcmPassthrough<Origin>;
-	type IsReserve = ();
-	type IsTeleporter = ();
-	type LocationInverter = InvertNothing;
-	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = DummyWeightTrader;
-	type ResponseHandler = ();
-	type SubscriptionService = ();
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
-}
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
@@ -420,7 +381,6 @@ impl xcm_transactor::Config for Runtime {
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = InvertNothing;
