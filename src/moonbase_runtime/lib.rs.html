@@ -1961,6 +1961,25 @@
 <span id="1961">1961</span>
 <span id="1962">1962</span>
 <span id="1963">1963</span>
+<span id="1964">1964</span>
+<span id="1965">1965</span>
+<span id="1966">1966</span>
+<span id="1967">1967</span>
+<span id="1968">1968</span>
+<span id="1969">1969</span>
+<span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2007,7 +2026,8 @@
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
-		<span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>,
+		<span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>, <span class="ident">WeightToFeeCoefficient</span>,
+		<span class="ident">WeightToFeeCoefficients</span>, <span class="ident">WeightToFeePolynomial</span>,
 	},
 	<span class="ident">PalletId</span>,
 };
@@ -2067,6 +2087,7 @@
 <span class="kw">mod</span> <span class="ident">precompiles</span>;
 <span class="kw">use</span> <span class="ident">precompiles</span>::{<span class="ident">MoonbasePrecompiles</span>, <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>};
 
+<span class="kw">use</span> <span class="ident">smallvec::smallvec</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
 	<span class="ident">AccountIdToCurrencyId</span>, <span class="ident">AccountIdToMultiLocation</span>, <span class="ident">AsAssetType</span>, <span class="ident">FirstAssetTrader</span>,
 	<span class="ident">MultiNativeAsset</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>,
@@ -2095,6 +2116,7 @@
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROUNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEIGHT_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">50</span> <span class="op">*</span> <span class="ident">KILOWEI</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Balance</span> {
 		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
@@ -2275,6 +2297,28 @@
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::TRANSACTION_BYTE_FEE</span>;
 	<span class="kw">pub</span> <span class="ident">OperationalFeeMultiplier</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">5</span>;
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WeightToFee</span>;
+<span class="kw">impl</span> <span class="ident">WeightToFeePolynomial</span> <span class="kw">for</span> <span class="ident">WeightToFee</span> {
+	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
+
+	<span class="doccomment">/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant</span>
+	<span class="doccomment">/// modifier in order to closely match Ethereum-based fees.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Calculation, per the documentation in `frame_support`:</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// ```ignore</span>
+	<span class="doccomment">/// coeff_integer * x^(degree) + coeff_frac * x^(degree)</span>
+	<span class="doccomment">/// ```</span>
+	<span class="kw">fn</span> <span class="ident">polynomial</span>() -&gt; <span class="ident">WeightToFeeCoefficients</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Balance</span><span class="op">&gt;</span> {
+		<span class="macro">smallvec!</span>[<span class="ident">WeightToFeeCoefficient</span> {
+			<span class="ident">degree</span>: <span class="number">1</span>,
+			<span class="ident">coeff_frac</span>: <span class="ident">Perbill::zero</span>(),
+			<span class="ident">coeff_integer</span>: <span class="ident">currency::WEIGHT_FEE</span>,
+			<span class="ident">negative</span>: <span class="bool-val">false</span>,
+		}]
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -3109,13 +3153,7 @@
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
 	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
-		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
-			<span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
-			<span class="ident">SelfReserve</span>,
-			<span class="ident">AccountId</span>,
-			<span class="ident">Balances</span>,
-			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		<span class="op">&gt;</span>,
+		<span class="ident">UsingComponents</span><span class="op">&lt;</span><span class="ident">WeightToFee</span>, <span class="ident">SelfReserve</span>, <span class="ident">AccountId</span>, <span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
 	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
