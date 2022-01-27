@@ -484,7 +484,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     ).data.free.toBigInt();
     expect(balance.toString()).to.eq(0n.toString());
 
-    // In the case of the random address: we have transferred 100000000000000, but 20000000000000 have been deducted
+    // In the case of the random address: we have transferred 100000000000000, 
+    // but 20000000000000 have been deducted
     // for weight payment
     let randomBalance = (
       (await context.polkadotApi.query.system.account(random.address)) as any
