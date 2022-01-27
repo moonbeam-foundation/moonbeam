@@ -14037,13 +14037,13 @@ name = "xcm-transactor"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
  "orml-traits",
  "pallet-balances",
  "pallet-timestamp",
- "pallet-xcm",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -14052,7 +14052,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
 ]
