@@ -234,7 +234,7 @@ pub mod pallet {
 		}
 
 		/// Remove a given aassetId -> assetType association
-		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
+		#[pallet::weight(T::WeightInfo::remove_existing_asset_type())]
 		pub fn remove_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
