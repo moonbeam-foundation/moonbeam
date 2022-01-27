@@ -422,6 +422,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -431,6 +433,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -452,7 +456,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![];
 
@@ -484,6 +489,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_asset_manager,
 						PalletAssetManagerBench::<Runtime>
+					);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						xcm_transactor,
+						XcmTransactorBench::<Runtime>
 					);
 
 					if batches.is_empty() {
