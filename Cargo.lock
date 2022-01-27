@@ -847,7 +847,7 @@ dependencies = [
  "bp-runtime",
  "frame-support",
  "parity-scale-codec",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-runtime",
  "sp-std",
@@ -1289,7 +1289,7 @@ dependencies = [
  "gimli",
  "log",
  "regalloc",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "target-lexicon",
 ]
 
@@ -1326,7 +1326,7 @@ checksum = "e07339bd461766deb7605169de039e01954768ff730fa1254e149001884a8525"
 dependencies = [
  "cranelift-codegen",
  "log",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "target-lexicon",
 ]
 
@@ -1352,7 +1352,7 @@ dependencies = [
  "cranelift-frontend",
  "itertools",
  "log",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "wasmparser",
  "wasmtime-types",
 ]
@@ -2791,7 +2791,7 @@ dependencies = [
  "paste",
  "scale-info",
  "serde",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-arithmetic",
  "sp-core",
  "sp-core-hashing-proc-macro",
@@ -4024,7 +4024,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-arithmetic",
  "sp-authority-discovery",
@@ -4064,7 +4064,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45a3f58dc069ec0e205a27f5b45920722a46faed802a0541538241af6228f512"
 dependencies = [
  "parity-util-mem",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
 ]
 
 [[package]]
@@ -4093,7 +4093,7 @@ dependencies = [
  "parking_lot 0.11.1",
  "regex",
  "rocksdb",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
 ]
 
 [[package]]
@@ -4180,7 +4180,7 @@ dependencies = [
  "multiaddr",
  "parking_lot 0.11.1",
  "pin-project 1.0.8",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "wasm-timer",
 ]
 
@@ -4211,7 +4211,7 @@ dependencies = [
  "ring",
  "rw-stream-sink",
  "sha2 0.9.8",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "thiserror",
  "unsigned-varint 0.7.0",
  "void",
@@ -4239,7 +4239,7 @@ dependencies = [
  "futures 0.3.17",
  "libp2p-core",
  "log",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "trust-dns-resolver",
 ]
 
@@ -4258,7 +4258,7 @@ dependencies = [
  "prost",
  "prost-build",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
 ]
 
 [[package]]
@@ -4282,7 +4282,7 @@ dependencies = [
  "rand 0.7.3",
  "regex",
  "sha2 0.9.8",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
  "wasm-timer",
 ]
@@ -4300,7 +4300,7 @@ dependencies = [
  "lru 0.6.6",
  "prost",
  "prost-build",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "wasm-timer",
 ]
 
@@ -4323,7 +4323,7 @@ dependencies = [
  "prost-build",
  "rand 0.7.3",
  "sha2 0.9.8",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "uint",
  "unsigned-varint 0.7.0",
  "void",
@@ -4346,7 +4346,7 @@ dependencies = [
  "libp2p-swarm",
  "log",
  "rand 0.8.4",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "socket2 0.4.0",
  "void",
 ]
@@ -4379,7 +4379,7 @@ dependencies = [
  "nohash-hasher",
  "parking_lot 0.11.1",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
 ]
 
@@ -4468,7 +4468,7 @@ dependencies = [
  "prost",
  "prost-build",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
  "void",
  "wasm-timer",
@@ -4510,7 +4510,7 @@ dependencies = [
  "log",
  "lru 0.7.0",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
  "wasm-timer",
 ]
@@ -4526,7 +4526,7 @@ dependencies = [
  "libp2p-core",
  "log",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "void",
  "wasm-timer",
 ]
@@ -5214,6 +5214,7 @@ dependencies = [
  "serde",
  "sha3 0.8.2",
  "sha3 0.9.1",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5985,7 +5986,7 @@ dependencies = [
  "futures 0.3.17",
  "log",
  "pin-project 1.0.8",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
 ]
 
@@ -7536,7 +7537,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7773,7 +7774,7 @@ dependencies = [
  "parity-util-mem-derive",
  "parking_lot 0.11.1",
  "primitive-types",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "winapi 0.3.9",
 ]
 
@@ -7907,7 +7908,7 @@ dependencies = [
  "cloudabi",
  "libc",
  "redox_syscall 0.1.57",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "winapi 0.3.9",
 ]
 
@@ -7921,7 +7922,7 @@ dependencies = [
  "instant",
  "libc",
  "redox_syscall 0.2.9",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "winapi 0.3.9",
 ]
 
@@ -8732,7 +8733,7 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-statement-table",
  "sc-network",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "substrate-prometheus-endpoint",
  "thiserror",
 ]
@@ -8944,7 +8945,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-authority-discovery",
  "sp-block-builder",
@@ -9845,7 +9846,7 @@ checksum = "a6304468554ed921da3d32c355ea107b8d13d7b8996c3adfb7aab48d3bc321f4"
 dependencies = [
  "log",
  "rustc-hash",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
 ]
 
 [[package]]
@@ -10065,7 +10066,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-authority-discovery",
  "sp-block-builder",
@@ -10828,7 +10829,7 @@ dependencies = [
  "sc-utils",
  "serde",
  "serde_json",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-arithmetic",
  "sp-blockchain",
  "sp-consensus",
@@ -11586,9 +11587,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
+checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 
 [[package]]
 name = "smol"
@@ -12211,7 +12212,7 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.11.1",
  "rand 0.7.3",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-core",
  "sp-externalities",
  "sp-panic-handler",
@@ -13049,7 +13050,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sharded-slab",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "thread_local",
  "tracing",
  "tracing-core",
@@ -13073,7 +13074,7 @@ dependencies = [
  "hashbrown",
  "log",
  "rustc-hex",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
 ]
 
 [[package]]
@@ -13122,7 +13123,7 @@ dependencies = [
  "lazy_static",
  "log",
  "rand 0.8.4",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "thiserror",
  "tinyvec",
  "url 2.2.2",
@@ -13142,7 +13143,7 @@ dependencies = [
  "lru-cache",
  "parking_lot 0.11.1",
  "resolv-conf",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "thiserror",
  "trust-dns-proto",
 ]
@@ -13819,7 +13820,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
- "smallvec 1.7.0",
+ "smallvec 1.8.0",
  "sp-api",
  "sp-authority-discovery",
  "sp-block-builder",
