@@ -60,10 +60,11 @@ pub(crate) mod mock;
 mod tests;
 
 pub mod migrations;
-
+pub mod weights;
 #[pallet]
 pub mod pallet {
 
+	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
@@ -133,6 +134,8 @@ pub mod pallet {
 		/// T::Weigher::weight(&msg)`.
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	/// Stores the information to be able to issue a transact operation in another chain use an
@@ -201,7 +204,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::register())]
 		/// Register a derivative index for an account id. Dispatchable by
 		/// DerivativeAddressRegistrationOrigin
 		///
@@ -226,7 +229,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::deregister())]
 		/// De-Register a derivative index.
 		pub fn deregister(origin: OriginFor<T>, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
@@ -394,7 +397,7 @@ pub mod pallet {
 		}
 
 		/// Change the transact info of a location
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_transact_info())]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
 			location: Box<VersionedMultiLocation>,
@@ -418,7 +421,7 @@ pub mod pallet {
 		}
 
 		/// Remove the transact info of a location
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::remove_transact_info())]
 		pub fn remove_transact_info(
 			origin: OriginFor<T>,
 			location: Box<VersionedMultiLocation>,

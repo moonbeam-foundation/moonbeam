@@ -1,6 +1,5 @@
 // Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
-
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -44,23 +43,65 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for xcm_transactor.
-pub trait WeightInfo {	fn register() -> Weight;	fn deregister() -> Weight;	fn set_transact_info() -> Weight;	fn remove_transact_info() -> Weight;}
+pub trait WeightInfo {
+	fn register() -> Weight;
+	fn deregister() -> Weight;
+	fn set_transact_info() -> Weight;
+	fn remove_transact_info() -> Weight;
+}
 
 /// Weights for xcm_transactor using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {	fn register() -> Weight {
-		(19_613_000 as Weight)			.saturating_add(T::DbWeight::get().reads(5 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}	fn deregister() -> Weight {
-		(16_047_000 as Weight)			.saturating_add(T::DbWeight::get().reads(4 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}	fn set_transact_info() -> Weight {
-		(19_752_000 as Weight)			.saturating_add(T::DbWeight::get().reads(4 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}	fn remove_transact_info() -> Weight {
-		(18_768_000 as Weight)			.saturating_add(T::DbWeight::get().reads(4 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}}
+impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn register() -> Weight {
+		(19_613_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn deregister() -> Weight {
+		(16_047_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn set_transact_info() -> Weight {
+		(19_752_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn remove_transact_info() -> Weight {
+		(18_768_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+}
 
 // For backwards compatibility and tests
-impl WeightInfo for () {	fn register() -> Weight {
-		(19_613_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(5 as Weight))			.saturating_add(RocksDbWeight::get().writes(3 as Weight))	}	fn deregister() -> Weight {
-		(16_047_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(4 as Weight))			.saturating_add(RocksDbWeight::get().writes(3 as Weight))	}	fn set_transact_info() -> Weight {
-		(19_752_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(4 as Weight))			.saturating_add(RocksDbWeight::get().writes(3 as Weight))	}	fn remove_transact_info() -> Weight {
-		(18_768_000 as Weight)			.saturating_add(RocksDbWeight::get().reads(4 as Weight))			.saturating_add(RocksDbWeight::get().writes(3 as Weight))	}}
+impl WeightInfo for () {
+	fn register() -> Weight {
+		(19_613_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn deregister() -> Weight {
+		(16_047_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn set_transact_info() -> Weight {
+		(19_752_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn remove_transact_info() -> Weight {
+		(18_768_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+}

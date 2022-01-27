@@ -282,6 +282,7 @@ impl Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {

@@ -680,6 +680,7 @@ impl xcm_transactor::Config for Runtime {
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
+	type WeightInfo = ();
 }
 
 parameter_types! {

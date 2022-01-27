@@ -1430,6 +1430,7 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
+	type WeightInfo = xcm_transactor::weights::SubstrateWeight<Runtime>;
 }
 
 /// Maintenance mode Call filter
