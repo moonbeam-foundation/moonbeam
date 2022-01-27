@@ -39,7 +39,7 @@ const statemintLocation = {
   },
 };
 
-describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
 
@@ -103,7 +103,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
 
@@ -230,7 +230,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
 
@@ -369,7 +369,8 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) => {
+
+describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) => {
   let alith: KeyringPair;
   let random: KeyringPair;
   let paraId: ParaId;
@@ -382,9 +383,7 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) =>
     random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
 
     paraId = context.polkadotApi.createType("ParaId", 2000);
-    sovereignAddress = u8aToHex(
-      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-    ).padEnd(42, "0");
+    sovereignAddress = u8aToHex((new Uint8Array([ ... new TextEncoder().encode("sibl"), ...paraId.toU8a()]))).padEnd(42, "0");
 
     transferredBalance = new BN(100000000000000);
 
@@ -394,21 +393,17 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) =>
       alith,
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
-    let balance = (
-      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
-    ).data.free.toBigInt();
+    let balance = (await context.polkadotApi.query.system.account(sovereignAddress) as any).data.free.toBigInt();
     expect(balance.toString()).to.eq(transferredBalance.toString());
   });
 
   it("Should receive MOVR from para Id 2000", async function () {
-    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
-    // Get Pallet balances index
-    const metadata = await context.polkadotApi.rpc.state.getMetadata();
-    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
-    ).index;
+    let ownParaId = await context.polkadotApi.query.parachainInfo.parachainId() as any;
+     // Get Pallet balances index
+     const metadata = await context.polkadotApi.rpc.state.getMetadata();
+     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
+       return pallet.name === "Balances";
+     }).index;
     // We are charging 100_000_000 weight for every XCM instruction
     // We are executing 4 instructions
     // 100_000_000 * 4 * 50000 = 20000000000000
@@ -423,7 +418,10 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) =>
                 Concrete: {
                   parents: 1,
                   interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                    X2: [
+                      { Parachain: ownParaId },
+                      { PalletInstance: balancesPalletIndex },
+                    ],
                   },
                 },
               },
@@ -439,7 +437,10 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) =>
                 Concrete: {
                   parents: 1,
                   interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                    X2: [
+                      { Parachain: ownParaId },
+                      { PalletInstance: balancesPalletIndex },
+                    ],
                   },
                 },
               },
@@ -473,22 +474,21 @@ describeDevMoonbeam("Mock XCM - receive horiontal transfer of DEV", (context) =>
 
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      2000,
+      totalMessage,
+    ]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
     // We should expect sovereign balance to be 0, since we have transferred the full amount
-    let balance = (
-      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
-    ).data.free.toBigInt();
+    let balance = (await context.polkadotApi.query.system.account(sovereignAddress) as any).data.free.toBigInt();
     expect(balance.toString()).to.eq(0n.toString());
 
     // In the case of the random address: we have transferred 100000000000000, but 20000000000000 have been deducted
     // for weight payment
-    let randomBalance = (
-      (await context.polkadotApi.query.system.account(random.address)) as any
-    ).data.free.toBigInt();
+    let randomBalance = (await context.polkadotApi.query.system.account(random.address) as any).data.free.toBigInt();
     let expectedRandomBalance = 80000000000000n;
     expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
   });
