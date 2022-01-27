@@ -50,6 +50,10 @@
 use frame_support::pallet;
 
 pub use pallet::*;
+
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+
 #[cfg(test)]
 pub(crate) mod mock;
 #[cfg(test)]
@@ -103,10 +107,7 @@ pub mod pallet {
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
-
-		/// XCM executor.
-		type XcmExecutor: ExecuteXcm<Self::Call>;
-
+		
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
