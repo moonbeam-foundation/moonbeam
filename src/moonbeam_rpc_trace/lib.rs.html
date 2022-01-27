@@ -897,6 +897,47 @@
 <span id="897">897</span>
 <span id="898">898</span>
 <span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -934,7 +975,7 @@
 <span class="kw">use</span> <span class="ident">jsonrpc_core::Result</span>;
 <span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
 <span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
-<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
+<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
@@ -1329,6 +1370,7 @@
 	<span class="ident">C::Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C::Api</span>: <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C::Api</span>: <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+	<span class="ident">C::Api</span>: <span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 {
 	<span class="doccomment">/// Create a new cache task.</span>
 	<span class="doccomment">///</span>
@@ -1693,15 +1735,55 @@
 		<span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">number</span>();
 		<span class="kw">let</span> <span class="ident">substrate_parent_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::Hash</span>(<span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">parent_hash</span>());
 
+		<span class="kw">let</span> <span class="ident">api_version</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">api_version</span>)) <span class="op">=</span>
+			<span class="ident">api</span>.<span class="ident">api_version</span>::<span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
+		{
+			<span class="ident">api_version</span>
+		} <span class="kw">else</span> {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime api version call failed&quot;</span>.<span class="ident">to_string</span>()));
+		};
+
 		<span class="comment">// Get Ethereum block data.</span>
-		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="ident">api</span>
-			.<span class="ident">current_all</span>(<span class="kw-2">&amp;</span><span class="ident">BlockId::Hash</span>(<span class="ident">substrate_hash</span>))
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-				<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} : {:?}&quot;</span>,
+		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&lt;</span> <span class="number">2</span> {
+			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="ident">api</span>
+				.<span class="ident">current_all_before_version_2</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} version &lt; 2: {:?}&quot;</span>,
 					<span class="ident">substrate_hash</span>, <span class="ident">e</span>
 				))
-			})<span class="question-mark">?</span>;
+				})<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">block_v2</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">eth_block</span>) <span class="op">=</span> <span class="ident">eth_block</span> {
+				<span class="prelude-val">Some</span>(<span class="ident">eth_block</span>.<span class="ident">into</span>())
+			} <span class="kw">else</span> {
+				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
+					<span class="ident">substrate_hash</span>
+				)));
+			};
+			(<span class="ident">block_v2</span>, <span class="ident">eth_transactions</span>)
+		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&lt;</span> <span class="number">4</span> {
+			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="ident">api</span>
+				.<span class="ident">current_all_before_version_4</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} version &lt; 4: {:?}&quot;</span>,
+					<span class="ident">substrate_hash</span>, <span class="ident">e</span>
+				))
+				})<span class="question-mark">?</span>;
+			(<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>)
+		} <span class="kw">else</span> {
+			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span>
+				<span class="ident">api</span>.<span class="ident">current_all</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} : {:?}&quot;</span>,
+						<span class="ident">substrate_hash</span>, <span class="ident">e</span>
+					))
+				})<span class="question-mark">?</span>;
+			(<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>)
+		};
 
 		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">match</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) {
 			(<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; (<span class="ident">a</span>, <span class="ident">b</span>),

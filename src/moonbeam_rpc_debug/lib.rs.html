@@ -499,6 +499,29 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -531,7 +554,7 @@
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">DebugRuntimeApi</span>, <span class="ident">TracerInput</span>};
 <span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
 <span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
-<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
+<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
@@ -645,6 +668,7 @@
 	<span class="ident">C::Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C::Api</span>: <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C::Api</span>: <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+	<span class="ident">C::Api</span>: <span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 {
 	<span class="doccomment">/// Task spawned at service level that listens for messages on the rpc channel and spawns</span>
 	<span class="doccomment">/// blocking tasks using a permit pool.</span>
@@ -927,10 +951,32 @@
 		<span class="comment">// Get the extrinsics.</span>
 		<span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">blockchain</span>.<span class="ident">body</span>(<span class="ident">reference_id</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
 
+		<span class="kw">let</span> <span class="ident">api_version</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">api_version</span>)) <span class="op">=</span>
+			<span class="ident">api</span>.<span class="ident">api_version</span>::<span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>)
+		{
+			<span class="ident">api_version</span>
+		} <span class="kw">else</span> {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime api version call failed&quot;</span>.<span class="ident">to_string</span>()));
+		};
+
 		<span class="comment">// Get the block that contains the requested transaction.</span>
-		<span class="kw">let</span> <span class="ident">reference_block</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">api</span>.<span class="ident">current_block</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>,
-			<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime block call failed: {:?}&quot;</span>, <span class="ident">e</span>))),
+		<span class="kw">let</span> <span class="ident">reference_block</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+			<span class="kw">match</span> <span class="ident">api</span>.<span class="ident">current_block</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>) {
+				<span class="prelude-val">Ok</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>,
+				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+						<span class="string">&quot;Runtime block call failed (version &gt;= 2): {:?}&quot;</span>,
+						<span class="ident">e</span>
+					)))
+				}
+			}
+		} <span class="kw">else</span> {
+			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+			<span class="kw">match</span> <span class="ident">api</span>.<span class="ident">current_block_before_version_2</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>) {
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">block</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">block</span>.<span class="ident">into</span>()),
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime block call failed&quot;</span>.<span class="ident">to_string</span>())),
+				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime block call failed: {:?}&quot;</span>, <span class="ident">e</span>))),
+			}
 		};
 
 		<span class="comment">// Get the actual ethereum transaction.</span>
