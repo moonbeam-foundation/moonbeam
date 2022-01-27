@@ -1,11 +1,9 @@
 import Keyring from "@polkadot/keyring";
 import { expect } from "chai";
-import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
+import { ALITH, ALITH_PRIV_KEY, TEST_ACCOUNT } from "../util/constants";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
-
-const TEST_ACCOUNT = TEST_ACCOUNT;
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
