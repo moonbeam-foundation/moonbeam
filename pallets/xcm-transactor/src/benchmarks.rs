@@ -1,6 +1,7 @@
 use crate::{Call, Config, Pallet};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
+use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 
 benchmarks! {
