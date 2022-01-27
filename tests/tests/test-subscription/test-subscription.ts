@@ -4,7 +4,7 @@ import { BlockHeader } from "web3-eth";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
-import { COLLATOR_ACCOUNT } from "../../util/constants";
+import { COLLATOR_ACCOUNT, TEST_ACCOUNT } from "../../util/constants";
 
 describeDevMoonbeam("Subscription", (context) => {
   let web3Ws;
