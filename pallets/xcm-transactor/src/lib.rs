@@ -107,7 +107,7 @@ pub mod pallet {
 
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
-		
+
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 

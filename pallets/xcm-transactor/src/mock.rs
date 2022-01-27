@@ -18,10 +18,7 @@
 use super::*;
 use crate::{self as xcm_transactor};
 use frame_support::{construct_runtime, parameter_types};
-use frame_support::{
-	traits::{PalletInfo as PalletInfoTrait},
-	weights::Weight,
-};
+use frame_support::{traits::PalletInfo as PalletInfoTrait, weights::Weight};
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 
@@ -32,15 +29,14 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::latest::{
-	Error as XcmError,
+	Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
-	Instruction,
 };
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 use xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader, WeightBounds},
+	traits::{InvertLocation, TransactAsset, WeightBounds, WeightTrader},
 	Assets,
 };
 
@@ -162,7 +158,6 @@ use sp_std::marker::PhantomData;
 pub struct DummyWeigher<C>(PhantomData<C>);
 
 impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
-
 	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
 		Ok(0)
 	}
