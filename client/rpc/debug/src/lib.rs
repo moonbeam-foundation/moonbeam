@@ -30,7 +30,7 @@ use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -144,6 +144,7 @@ where
 	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: ApiExt<B>,
 {
 	/// Task spawned at service level that listens for messages on the rpc channel and spawns
 	/// blocking tasks using a permit pool.
@@ -426,10 +427,32 @@ where
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
 
+		let api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&reference_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err("Runtime api version call failed".to_string()));
+		};
+
 		// Get the block that contains the requested transaction.
-		let reference_block = match api.current_block(&reference_id) {
-			Ok(block) => block,
-			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+		let reference_block = if api_version >= 2 {
+			match api.current_block(&reference_id) {
+				Ok(block) => block,
+				Err(e) => {
+					return Err(internal_err(format!(
+						"Runtime block call failed (version >= 2): {:?}",
+						e
+					)))
+				}
+			}
+		} else {
+			#[allow(deprecated)]
+			match api.current_block_before_version_2(&reference_id) {
+				Ok(Some(block)) => Some(block.into()),
+				Ok(None) => return Err(internal_err("Runtime block call failed".to_string())),
+				Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+			}
 		};
 
 		// Get the actual ethereum transaction.

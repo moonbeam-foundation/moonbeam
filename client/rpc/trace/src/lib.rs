@@ -35,7 +35,7 @@ use tracing::{instrument, Instrument};
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -430,6 +430,7 @@ where
 	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: ApiExt<B>,
 {
 	/// Create a new cache task.
 	///
@@ -794,15 +795,55 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
+		let api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&substrate_block_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err("Runtime api version call failed".to_string()));
+		};
+
 		// Get Ethereum block data.
-		let (eth_block, _, eth_transactions) = api
-			.current_all(&BlockId::Hash(substrate_hash))
-			.map_err(|e| {
-				internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {} : {:?}",
+		let (eth_block, eth_transactions) = if api_version < 2 {
+			#[allow(deprecated)]
+			let (eth_block, _, eth_transactions) = api
+				.current_all_before_version_2(&substrate_block_id)
+				.map_err(|e| {
+					internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {} version < 2: {:?}",
 					substrate_hash, e
 				))
-			})?;
+				})?;
+			let block_v2 = if let Some(eth_block) = eth_block {
+				Some(eth_block.into())
+			} else {
+				return Err(internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {}",
+					substrate_hash
+				)));
+			};
+			(block_v2, eth_transactions)
+		} else if api_version < 4 {
+			#[allow(deprecated)]
+			let (eth_block, _, eth_transactions) = api
+				.current_all_before_version_4(&substrate_block_id)
+				.map_err(|e| {
+					internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {} version < 4: {:?}",
+					substrate_hash, e
+				))
+				})?;
+			(eth_block, eth_transactions)
+		} else {
+			let (eth_block, _, eth_transactions) =
+				api.current_all(&substrate_block_id).map_err(|e| {
+					internal_err(format!(
+						"Failed to get Ethereum block data for Substrate block {} : {:?}",
+						substrate_hash, e
+					))
+				})?;
+			(eth_block, eth_transactions)
+		};
 
 		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
 			(Some(a), Some(b)) => (a, b),
