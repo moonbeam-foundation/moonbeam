@@ -43,7 +43,13 @@ benchmarks! {
 		let fee_per_second = 1;
 		let max_weight = 20000000000u64;
 		let location = MultiLocation::parent();
-	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())), extra_weight, fee_per_second, max_weight)
+	}: _(
+		RawOrigin::Root,
+		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		extra_weight,
+		fee_per_second,
+		max_weight
+	)
 	verify {
 		assert_eq!(Pallet::<T>::transact_info(&location), Some(crate::RemoteTransactInfoWithMaxWeight {
 			transact_extra_weight: extra_weight,
@@ -57,7 +63,13 @@ benchmarks! {
 		let fee_per_second = 1;
 		let max_weight = 20000000000u64;
 		let location = MultiLocation::parent();
-		Pallet::<T>::set_transact_info(RawOrigin::Root.into(), Box::new(xcm::VersionedMultiLocation::V1(location.clone())), extra_weight, fee_per_second, max_weight)?;
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			extra_weight,
+			fee_per_second,
+			max_weight
+		)?;
 
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
 	verify {
