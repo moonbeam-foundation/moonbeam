@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { verifyLatestBlockFees } from "../../util/block";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE, TEST_ACCOUNT } from "../../util/constants";
 
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 import { customWeb3Request } from "../../util/providers";
 

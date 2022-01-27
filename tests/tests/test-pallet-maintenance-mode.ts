@@ -11,18 +11,16 @@ import {
   GENESIS_ACCOUNT_PRIVATE_KEY,
   GLMR,
   relayChainAddress,
+  TEST_ACCOUNT,
 } from "../util/constants";
 import { execFromAllMembersOfTechCommittee } from "../util/governance";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createBlockWithExtrinsic, createBlockWithExtrinsicParachain } from "../util/substrate-rpc";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { createTransfer } from "../util/transactions";
 import { VESTING_PERIOD } from "./test-crowdloan";
 import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20";
 import { customWeb3Request } from "../util/providers";
-import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
-
-const TEST_ACCOUNT = TEST_ACCOUNT;
 
 export const expectError = (fun): Promise<string> => {
   return new Promise(async (resolve) => {

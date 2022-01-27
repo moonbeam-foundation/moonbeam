@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { verifyLatestBlockFees } from "../../util/block";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 import { customWeb3Request } from "../../util/providers";
 

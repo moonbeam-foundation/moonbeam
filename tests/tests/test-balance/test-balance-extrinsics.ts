@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../../util/constants";
 
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Balance extrinsics", (context) => {

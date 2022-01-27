@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { AnyTuple, IEvent } from "@polkadot/types/types";
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import Keyring from "@polkadot/keyring";
 import { GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
@@ -30,16 +30,15 @@ describeDevMoonbeam("Polkadot API", (context) => {
 });
 
 describeDevMoonbeam("Polkadot API - Transfers", (context) => {
-  const testAccount = TEST_ACCOUNT;
   before("Setup: Create empty block with balance.transfer", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    await context.polkadotApi.tx.balances.transfer(testAccount, 123).signAndSend(genesisAccount);
+    await context.polkadotApi.tx.balances.transfer(TEST_ACCOUNT, 123).signAndSend(genesisAccount);
     await context.createBlock();
   });
 
   it("should be stored on chain", async function () {
-    expect(await context.web3.eth.getBalance(testAccount)).to.equal("123");
+    expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("123");
   });
 
   it("should appear in extrinsics", async function () {
