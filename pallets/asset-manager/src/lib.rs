@@ -128,6 +128,7 @@ pub mod pallet {
 		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
 		UnitsPerSecondChanged(T::AssetType, u128),
 		AssetTypeChanged(T::AssetId, T::AssetType),
+		AssetRemoved(T::AssetId, T::AssetType),
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -229,6 +230,28 @@ pub mod pallet {
 			}
 
 			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
+			Ok(())
+		}
+
+		/// Remove a given aassetId -> assetType association
+		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
+		pub fn remove_existing_asset_type(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			Self::deposit_event(Event::AssetRemoved(asset_id, asset_type));
 			Ok(())
 		}
 	}

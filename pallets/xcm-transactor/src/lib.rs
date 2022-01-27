@@ -191,9 +191,11 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
 		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
-		RegisterdDerivative(T::AccountId, u16),
+		RegisteredDerivative(T::AccountId, u16),
+		DeRegisteredDerivative(u16),
 		TransactFailed(XcmError),
 		TransactInfoChanged(MultiLocation, RemoteTransactInfoWithMaxWeight),
+		TransactInfoRemoved(MultiLocation),
 	}
 
 	#[pallet::call]
@@ -218,7 +220,21 @@ pub mod pallet {
 			IndexToAccount::<T>::insert(&index, who.clone());
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::RegisterdDerivative(who, index));
+			Self::deposit_event(Event::<T>::RegisteredDerivative(who, index));
+
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
+		/// De-Register a derivative index.
+		pub fn deregister(origin: OriginFor<T>, index: u16) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+
+			// Remove index
+			IndexToAccount::<T>::remove(&index);
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::DeRegisteredDerivative(index));
 
 			Ok(())
 		}
@@ -397,6 +413,23 @@ pub mod pallet {
 			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
 			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
+			Ok(())
+		}
+
+		/// Remove the transact info of a location
+		#[pallet::weight(0)]
+		pub fn remove_transact_info(
+			origin: OriginFor<T>,
+			location: Box<VersionedMultiLocation>,
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+			let location =
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+
+			// Remove transact info
+			TransactInfoWithWeightLimit::<T>::remove(&location);
+
+			Self::deposit_event(Event::TransactInfoRemoved(location));
 			Ok(())
 		}
 	}

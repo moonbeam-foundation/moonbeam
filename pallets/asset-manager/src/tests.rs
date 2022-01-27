@@ -450,3 +450,37 @@ fn test_asset_manager_change_statemine_prefixes() {
 		assert!(AssetManager::asset_type_units_per_second(&statemine_multilocation_3).is_none());
 	});
 }
+
+#[test]
+fn test_root_can_remove_asset_association() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into()
+		));
+
+		assert_ok!(AssetManager::remove_existing_asset_type(Origin::root(), 1,));
+
+		// Mappings are deleted
+		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
+		assert!(AssetManager::asset_id_type(1).is_none());
+
+		// Units per second removed
+		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
+
+		expect_events(vec![
+			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
+			crate::Event::AssetRemoved(1, MockAssetType::MockAsset(1)),
+		])
+	});
+}

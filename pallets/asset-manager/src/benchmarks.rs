@@ -69,6 +69,21 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(new_asset_type.clone()));
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(&new_asset_type), Some(1));
 	}
+
+	remove_existing_asset_type {
+		// does not really matter what we register
+		let asset_type = T::AssetType::default();
+		let metadata = T::AssetRegistrarMetadata::default();
+		let amount = 1u32.into();
+		let asset_id: T::AssetId = asset_type.clone().into();
+		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+		Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
+
+	}: _(RawOrigin::Root, asset_id)
+	verify {
+		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
+		assert!(Pallet::<T>::asset_type_units_per_second(&asset_type).is_none());
+	}
 }
 
 #[cfg(test)]

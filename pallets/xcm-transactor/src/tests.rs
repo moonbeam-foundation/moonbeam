@@ -41,7 +41,7 @@ fn test_register_address() {
 
 			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
-			let expected = vec![crate::Event::RegisterdDerivative(1u64, 1)];
+			let expected = vec![crate::Event::RegisteredDerivative(1u64, 1)];
 			assert_eq!(events(), expected);
 		})
 }
@@ -164,7 +164,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisterdDerivative(1u64, 1),
+				crate::Event::RegisteredDerivative(1u64, 1),
 				crate::Event::TransactInfoChanged(
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
@@ -213,7 +213,7 @@ fn test_transact_through_derivative_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisterdDerivative(1u64, 1),
+				crate::Event::RegisteredDerivative(1u64, 1),
 				crate::Event::TransactInfoChanged(
 					MultiLocation::parent(),
 					RemoteTransactInfoWithMaxWeight {
@@ -342,5 +342,66 @@ fn test_max_transact_weight_migration_works() {
 				XcmTransactor::transact_info(MultiLocation::parent()).unwrap(),
 				expected_transacted_info,
 			)
+		})
+}
+
+#[test]
+fn de_registering_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+
+			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
+
+			assert_ok!(XcmTransactor::deregister(Origin::root(), 1));
+
+			assert!(XcmTransactor::index_to_account(&1).is_none());
+
+			let expected = vec![
+				crate::Event::RegisteredDerivative(1u64, 1),
+				crate::Event::DeRegisteredDerivative(1),
+			];
+			assert_eq!(events(), expected);
+		})
+}
+
+#[test]
+fn removing_transact_info_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				1,
+				10000
+			));
+
+			// Root can remove transact info
+			assert_ok!(XcmTransactor::remove_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			));
+
+			assert!(XcmTransactor::transact_info(MultiLocation::parent()).is_none());
+
+			let expected = vec![
+				crate::Event::TransactInfoChanged(
+					MultiLocation::parent(),
+					RemoteTransactInfoWithMaxWeight {
+						transact_extra_weight: 0,
+						fee_per_second: 1,
+						max_weight: 10000,
+					},
+				),
+				crate::Event::TransactInfoRemoved(MultiLocation::parent()),
+			];
+			assert_eq!(events(), expected);
 		})
 }
