@@ -427,7 +427,19 @@ where
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
 
-		let api_version = if let Ok(Some(api_version)) =
+		// Get DebugRuntimeApi version
+		let trace_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn DebugRuntimeApi<B>>(&reference_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err(
+				"Runtime api version call failed (trace)".to_string(),
+			));
+		};
+
+		// Get EthereumRuntimeRPCApi version
+		let ethereum_api_version = if let Ok(Some(api_version)) =
 			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&reference_id)
 		{
 			api_version
@@ -436,7 +448,7 @@ where
 		};
 
 		// Get the block that contains the requested transaction.
-		let reference_block = if api_version >= 2 {
+		let reference_block = if ethereum_api_version >= 2 {
 			match api.current_block(&reference_id) {
 				Ok(block) => block,
 				Err(e) => {
@@ -463,10 +475,33 @@ where
 					api.initialize_block(&parent_block_id, &header)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
-					let _result = api
-						.trace_transaction(&parent_block_id, ext, &transaction)
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+					if trace_api_version >= 2 {
+						let _result = api
+							.trace_transaction(&parent_block_id, ext, &transaction)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+					} else {
+						// Pre-london update, legacy transactions.
+						let _result = match transaction {
+							ethereum::TransactionV2::Legacy(tx) =>
+							{
+								#[allow(deprecated)]
+								api.trace_transaction_before_version_2(&parent_block_id, ext, &tx)
+									.map_err(|e| {
+										internal_err(format!("Runtime api access error: {:?}", e))
+									})?
+									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?
+							}
+							_ => {
+								return Err(internal_err(
+									"Bug: pre-london runtime expects legacy transactions"
+										.to_string(),
+								))
+							}
+						};
+					}
 
 					Ok(moonbeam_rpc_primitives_debug::Response::Single)
 				};
