@@ -479,7 +479,10 @@ where
 						let _result = api
 							.trace_transaction(&parent_block_id, ext, &transaction)
 							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
+								internal_err(format!(
+									"Runtime api access error (version {:?}): {:?}",
+									trace_api_version, e
+								))
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 					} else {
@@ -490,7 +493,10 @@ where
 								#[allow(deprecated)]
 								api.trace_transaction_before_version_2(&parent_block_id, ext, &tx)
 									.map_err(|e| {
-										internal_err(format!("Runtime api access error: {:?}", e))
+										internal_err(format!(
+											"Runtime api access error (legacy): {:?}",
+											e
+										))
 									})?
 									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?
 							}
