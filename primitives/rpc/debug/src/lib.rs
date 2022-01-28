@@ -17,12 +17,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
-use ethereum::TransactionV2 as Transaction;
+use ethereum::{TransactionV0 as LegacyTransaction, TransactionV2 as Transaction};
 use ethereum_types::H256;
 use sp_std::vec::Vec;
 
 sp_api::decl_runtime_apis! {
+	#[api_version(2)]
 	pub trait DebugRuntimeApi {
+		#[changed_in(2)]
+		fn trace_transaction(
+			extrinsics: Vec<Block::Extrinsic>,
+			transaction: &LegacyTransaction,
+		) -> Result<(), sp_runtime::DispatchError>;
+
 		fn trace_transaction(
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
