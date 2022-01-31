@@ -18,23 +18,17 @@
 
 mod xcm_mock;
 use frame_support::{
-	assert_noop, assert_ok,
+	assert_ok,
 	traits::{PalletInfo, PalletInfoAccess},
 	weights::constants::WEIGHT_PER_SECOND,
 };
+use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
+use xcm_executor::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
-
-use xcm::latest::prelude::QueryResponse;
-use xcm::latest::{
-	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
-	Junctions::*,
-	MultiLocation, NetworkId, Response, Xcm,
-};
-use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
 
 // Send a relay asset (like DOT) to a parachain A

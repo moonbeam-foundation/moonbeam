@@ -43,7 +43,8 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
 	SovereignSignedViaLocation, TakeWeightCredit,
@@ -262,12 +263,13 @@ parameter_types! {
 	// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
-	// This is the old anchoring way
 	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
-			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			Parachain(MsgQueue::parachain_id().into()),
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
 	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
@@ -277,10 +279,11 @@ parameter_types! {
 	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
-
 	// The Locations we accept to refer to our own currency. We need to support both pre and
 	// post 0.9.16 versions, hence the reason for this being a Vec
 	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
