@@ -1896,6 +1896,8 @@
 <span id="1896">1896</span>
 <span id="1897">1897</span>
 <span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2328,6 +2330,7 @@
 <span class="macro">parameter_types!</span> {
 	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.</span>
 	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
+	<span class="kw">pub</span> <span class="ident">DefaultBaseFeePerGas</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>();
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeeThreshold</span>;
@@ -2347,6 +2350,7 @@
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Threshold</span> <span class="op">=</span> <span class="ident">BaseFeeThreshold</span>;
 	<span class="kw">type</span> <span class="ident">IsActive</span> <span class="op">=</span> <span class="ident">IsActive</span>;
+	<span class="kw">type</span> <span class="ident">DefaultBaseFeePerGas</span> <span class="op">=</span> <span class="ident">DefaultBaseFeePerGas</span>;
 }
 
 <span class="macro">parameter_types!</span> {
