@@ -16,7 +16,6 @@
   },
   "name": "@moonbeam/api-augment",
   "main": "index.js",
-  "type": "module",
   "keywords": [
     "moonbeam",
     "moonriver",
