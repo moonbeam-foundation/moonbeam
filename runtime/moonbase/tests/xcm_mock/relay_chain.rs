@@ -38,70 +38,6 @@ use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 
-
-use sp_std::marker::PhantomData;
-use xcm_executor::traits::WeightBounds;
-use frame_support::traits::Get;
-use frame_support::weights::GetDispatchInfo;
-use parity_scale_codec::Decode;
-
-pub struct LocalWeightInfoBounds<W, C, M>(PhantomData<(W, C, M)>);
-impl<W, C, M> WeightBounds<C> for LocalWeightInfoBounds<W, C, M>
-where
-	W: XcmWeightInfo<C>,
-	C: Decode + GetDispatchInfo,
-	M: Get<u32>,
-	Instruction<C>: xcm::GetWeight<W>,
-{
-	fn weight(message: &mut Xcm<C>) -> Result<Weight, ()> {
-		println!("About to weight");
-		log::trace!(target: "xcm::weight", "WeightInfoBounds message: {:?}", message);
-		let mut instructions_left = M::get();
-		println!("Instructions left {:?}", instructions_left);
-		Self::weight_with_limit(message, &mut instructions_left)
-	}
-	fn instr_weight(instruction: &Instruction<C>) -> Result<Weight, ()> {
-		Self::instr_weight_with_limit(instruction, &mut u32::max_value())
-	}
-}
-
-impl<W, C, M> LocalWeightInfoBounds<W, C, M>
-where
-	W: XcmWeightInfo<C>,
-	C: Decode + GetDispatchInfo,
-	M: Get<u32>,
-	Instruction<C>: xcm::GetWeight<W>,
-{
-	fn weight_with_limit(message: &Xcm<C>, instrs_limit: &mut u32) -> Result<Weight, ()> {
-		let mut r: Weight = 0;
-		*instrs_limit = instrs_limit.checked_sub(message.0.len() as u32).ok_or(())?;
-		for m in message.0.iter() {
-			println!("Going to analize instruction {:?}", m);
-			let weight_inst = Self::instr_weight_with_limit(m, instrs_limit)?;
-			println!("Weight of Instruction {:?} is {:?}", m, weight_inst);
-			r = r.checked_add(weight_inst).ok_or(())?;
-			println!("TOtal is {:?}", r);
-		}
-		Ok(r)
-	}
-	fn instr_weight_with_limit(
-		instruction: &Instruction<C>,
-		instrs_limit: &mut u32,
-	) -> Result<Weight, ()> {
-		use xcm::GetWeight;
-		let weight_inst = instruction.weight();
-		println!("Weight of i {:?} inside is {:?}", instruction, weight_inst);
-		weight_inst
-			.checked_add(match instruction {
-				Transact { require_weight_at_most, .. } => *require_weight_at_most,
-				SetErrorHandler(xcm) | SetAppendix(xcm) =>
-					Self::weight_with_limit(xcm, instrs_limit)?,
-				_ => 0,
-			})
-			.ok_or(())
-	}
-}
-
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 }
@@ -125,7 +61,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = frame_support::weights::constants::RocksDbWeight;
+	type DbWeight = ();
 	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
