@@ -475,11 +475,14 @@ where
 					api.initialize_block(&parent_block_id, &header)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
-					if trace_api_version >= 2 {
+					if trace_api_version >= 4 {
 						let _result = api
 							.trace_transaction(&parent_block_id, ext, &transaction)
 							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
+								internal_err(format!(
+									"Runtime api access error (version {:?}): {:?}",
+									trace_api_version, e
+								))
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 					} else {
@@ -488,9 +491,12 @@ where
 							ethereum::TransactionV2::Legacy(tx) =>
 							{
 								#[allow(deprecated)]
-								api.trace_transaction_before_version_2(&parent_block_id, ext, &tx)
+								api.trace_transaction_before_version_4(&parent_block_id, ext, &tx)
 									.map_err(|e| {
-										internal_err(format!("Runtime api access error: {:?}", e))
+										internal_err(format!(
+											"Runtime api access error (legacy): {:?}",
+											e
+										))
 									})?
 									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?
 							}
