@@ -262,7 +262,9 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
 	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
@@ -272,7 +274,9 @@ parameter_types! {
 	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
 	// The Locations we accept to refer to our own currency. We need to support both pre and
