@@ -247,8 +247,14 @@ parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
 	// We use both the old and new anchoring logics
-	pub ParaTokensPerSecondOld: (XcmAssetId, u128) = (Concrete(OldAnchoringSelfReserve::get()), 1000000000000);
-	pub ParaTokensPerSecondNew: (XcmAssetId, u128) = (Concrete(NewAnchoringSelfReserve::get()), 1000000000000);
+	pub ParaTokensPerSecondOld: (XcmAssetId, u128) = (
+		Concrete(OldAnchoringSelfReserve::get()),
+		1000000000000
+	);
+	pub ParaTokensPerSecondNew: (XcmAssetId, u128) = (
+		Concrete(NewAnchoringSelfReserve::get()),
+		1000000000000
+	);
 }
 
 parameter_types! {
