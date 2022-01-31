@@ -39,6 +39,9 @@ describeDevMoonbeam("Excessive memory allocation", (context) => {
     const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       tx.rawTransaction,
     ]);
+
+    // before this was patched, attempting to execute this transaction would cause an extremely
+    // large memory allocation and the node would crash.
     await context.createBlock();
 
     const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
