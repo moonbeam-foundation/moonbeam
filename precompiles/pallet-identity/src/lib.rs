@@ -3,6 +3,7 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::tokens::currency::Currency,
 };
+use pallet_evm::AddressMapping;
 use precompile_utils::{EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer};
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData};
@@ -96,8 +97,20 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let info: Wrapped<IdentityInfo<Runtime::MaxAdditionalFields>> = input.read(gasometer)?;
-		let info = info.0.0;
+		let info = info.0 .0;
 
-		todo!()
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::set_identity {
+			info: Box::new(info),
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 }
