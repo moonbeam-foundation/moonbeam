@@ -179,7 +179,8 @@ parameter_types! {
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
+	// Use this currency when it is a fungible asset matching any of the locations in
+	// SelfReserveRepresentations
 	(
 		ConvertedConcreteAssetId<
 			AssetId,
@@ -257,6 +258,9 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
+	// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it against our Balances pallet when we receive such a MultiLocation
+	// (Parent, Self Para Id, Self Balances pallet index)
 	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
@@ -264,12 +268,18 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
+	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it also against our Balances pallet when we receive such
+	// a MultiLocation: (Self Balances pallet index)
+	// This is the new anchoring way
 	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
+	// The Locations we accept to refer to our own currency. We need to support both pre and
+	// post 0.9.16 versions, hence the reason for this being a Vec
 	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
 		OldAnchoringSelfReserve::get(),
 		NewAnchoringSelfReserve::get()
@@ -286,6 +296,10 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	// We use three traders
+	// When we receive either representation of the self-reserve asset,
+	// When we receive a non-reserve asset, we use AssetManager to fetch how many
+	// units per second we should charge
 	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecondOld, ()>,
 		FixedRateOfFungible<ParaTokensPerSecondNew, ()>,
@@ -320,6 +334,11 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
+				// For now (and until we upgrade to 0.9.16 is adapted) we need to use
+				// the old anchoring here
+				// This is not a problem in either cases, since the view of the destination
+				// chain does not change
+				// TODO! change this to NewAnchoringSelfReserve once we uprade to 0.9.16
 				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
 			}
