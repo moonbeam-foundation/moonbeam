@@ -361,7 +361,9 @@ pub struct MultiIsConcrete<T>(PhantomData<T>);
 impl<T: Get<Vec<MultiLocation>>, B: TryFrom<u128>> MatchesFungible<B> for MultiIsConcrete<T> {
 	fn matches_fungible(a: &MultiAsset) -> Option<B> {
 		match (&a.id, &a.fun) {
-			(xcmAssetId::Concrete(ref id), Fungible(ref amount)) if T::get().contains(id) => {
+			(xcmAssetId::Concrete(ref id), Fungibility::Fungible(ref amount))
+				if T::get().contains(id) =>
+			{
 				CheckedConversion::checked_from(*amount)
 			}
 			_ => None,
