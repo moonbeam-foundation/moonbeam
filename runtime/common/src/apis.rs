@@ -226,6 +226,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					estimate: bool,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -258,6 +259,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					estimate: bool,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
 				) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -316,6 +318,16 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn elasticity() -> Option<Permill> {
 					Some(BaseFee::elasticity())
+				}
+			}
+
+			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
+				fn convert_transaction(
+					transaction: pallet_ethereum::Transaction
+				) -> <Block as BlockT>::Extrinsic {
+					UncheckedExtrinsic::new_unsigned(
+						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+					)
 				}
 			}
 

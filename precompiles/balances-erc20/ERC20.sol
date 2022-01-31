@@ -4,8 +4,9 @@ pragma solidity ^0.4.24;
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
  * @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts
- * Moonbase address : 0x0000000000000000000000000000000000000802
+ * Address :    0x0000000000000000000000000000000000000802
  */
+ 
 interface IERC20 {
   /**
    * @dev Returns the name of the token.
