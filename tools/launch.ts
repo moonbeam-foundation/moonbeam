@@ -113,6 +113,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.17.0",
   },
+  "moonbase-0.18.1": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.18.1",
+  },
   "moonbase-0.19.0": {
     relay: "rococo-9130",
     chain: "moonbase-local",
@@ -505,7 +510,7 @@ const launchTemplate = {
         configuration: {
           config: {
             validation_upgrade_frequency: 1,
-            validation_upgrade_delay: 1,
+            validation_upgrade_delay: 30,
           },
         },
       },
