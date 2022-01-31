@@ -34,7 +34,11 @@ use xcm::latest::{
 use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
 
+use sp_runtime::traits::CheckedConversion;
+use sp_std::convert::TryFrom;
 use sp_std::vec::Vec;
+use xcm::latest::Fungibility::Fungible;
+use xcm_executor::traits::MatchesFungible;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
@@ -348,6 +352,20 @@ impl<
 				target: "xcm",
 				"take revenue failed matching fungible"
 			),
+		}
+	}
+}
+
+// Multi IsConcrete Implementation. Allows us to route both pre and post 0.9.16 anchoring versions
+// of our native token to the same currency
+pub struct MultiIsConcrete<T>(PhantomData<T>);
+impl<T: Get<Vec<MultiLocation>>, B: TryFrom<u128>> MatchesFungible<B> for MultiIsConcrete<T> {
+	fn matches_fungible(a: &MultiAsset) -> Option<B> {
+		match (&a.id, &a.fun) {
+			(xcmAssetId::Concrete(ref id), Fungible(ref amount)) if T::get().contains(id) => {
+				CheckedConversion::checked_from(*amount)
+			}
+			_ => None,
 		}
 	}
 }

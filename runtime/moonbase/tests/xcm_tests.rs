@@ -35,6 +35,7 @@ use xcm::latest::{
 	Junctions::*,
 	MultiLocation, NetworkId, Response, Xcm,
 };
+use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
 // Send a relay asset (like DOT) to a parachain A
@@ -526,6 +527,118 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
+		// Weight used is 4
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 4
+		);
+	});
+}
+
+#[test]
+fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+
+	// This time we will force the new reanchoring by manually sending the
+	// Message through polkadotXCM pallet
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X1(
+			Parachain(1))
+	};
+
+	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
+
+	let message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
+		ClearOrigin,
+		BuyExecution {
+			fees: (reanchored_para_a_balances, 100).into(),
+			weight_limit: Limited(80),
+		},
+		DepositAsset {
+			assets: All.into(),
+			max_assets: 1,
+			beneficiary: MultiLocation::new(
+				0,
+				X1(AccountKey20 {
+					network: Any,
+					key: PARAALICE,
+				})
+			),
+		},
+	]));
+	ParaB::execute_with(|| {
+		// Send a message to the sovereign account in ParaA to withdraw
+		// and deposit asset
+		assert_ok!(ParachainPalletXcm::send(
+			parachain::Origin::root(),
+			Box::new(dest.into()),
+			Box::new(message),
+		));
+	});
+
+	ParaA::execute_with(|| {
 		// Weight used is 4
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
@@ -1770,7 +1883,6 @@ fn test_statemint_like() {
 #[test]
 fn test_statemint_like_prefix_change() {
 	MockNet::reset();
-
 	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
 
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
@@ -1893,6 +2005,53 @@ fn test_statemint_like_prefix_change() {
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
 	});
+}
+
+#[test]
+fn test_weigher() {
+	MockNet::reset();
+	use xcm_executor::traits::WeightBounds;
+	use xcm::latest::prelude::*;
+	let location = MultiLocation::new(0, Here);
+	// Construct MultiAsset
+	let fee = MultiAsset {
+		id: Concrete(location.clone()),
+		fun: Fungible(0),
+	};
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+		dest: para_a_account(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+
+	let mut message: Xcm<relay_chain::Call> = Xcm(vec![
+		WithdrawAsset(fee.clone().into()),
+		BuyExecution {
+			fees: fee,
+			weight_limit: WeightLimit::Limited(300000000),
+		},
+		Transact {
+			origin_type: OriginKind::SovereignAccount,
+			require_weight_at_most: 500000000,
+			call: encoded.into(),
+		},
+	]);
+	let weight = relay_chain::LocalWeightInfoBounds::<xcm_weight::WestendXcmWeight<relay_chain::Call>, relay_chain::Call, relay_chain::MaxInstructions>::weight(& mut message);
+	println!("Weight {:?}", weight);
 }
 
 use parity_scale_codec::{Decode, Encode};

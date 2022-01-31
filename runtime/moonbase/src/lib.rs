@@ -54,7 +54,7 @@ use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
+	LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
 	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
@@ -1035,6 +1035,10 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
+	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
+		OldAnchoringSelfReserve::get(),
+		NewAnchoringSelfReserve::get()
+	];
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -1073,38 +1077,22 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// The transactor for our own chain currency based on the old anchoring logic.
-pub type LocalAssetTransactorOldAnchoring = XcmCurrencyAdapter<
+/// The transactor for our own chain currency.
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<OldAnchoringSelfReserve>,
+	xcm_primitives::MultiIsConcrete<SelfReserveRepresentations>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We dont allow teleport
+	// We track our teleports in/out to keep total issuance correct.
 	(),
 >;
-
-/// The transactor for our own chain currency based on the new anchoring logic.
-pub type LocalAssetTransactorNewAnchoring = XcmCurrencyAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<NewAnchoringSelfReserve>,
-	// We can convert the MultiLocations with our converter above:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont allow teleport
-	(),
->;
-
 // We use all transactors
 pub type AssetTransactors = (
-	LocalAssetTransactorOldAnchoring,
-	LocalAssetTransactorNewAnchoring,
+	LocalAssetTransactor,
 	FungiblesTransactor,
 );
 
@@ -1459,8 +1447,11 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
+			// For now (and until we upgrade to 0.9.16 is adapted) we need to use the old anchoring here
+			// This is not a problem in either cases, since the view of the destination chain does not
+			// change
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = NewAnchoringSelfReserve::get();
+				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
