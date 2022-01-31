@@ -1021,10 +1021,16 @@ parameter_types! {
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
-	pub SelfReserve: MultiLocation = MultiLocation {
+	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)
+	};
+	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
@@ -1066,12 +1072,12 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// The transactor for our own chain currency.
-pub type LocalAssetTransactor = XcmCurrencyAdapter<
+/// The transactor for our own chain currency based on the old anchoring logic.
+pub type LocalAssetTransactorOldAnchoring = XcmCurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<SelfReserve>,
+	IsConcrete<OldAnchoringSelfReserve>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -1080,8 +1086,26 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-// We use both transactors
-pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
+/// The transactor for our own chain currency based on the new anchoring logic.
+pub type LocalAssetTransactorNewAnchoring = XcmCurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcrete<NewAnchoringSelfReserve>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont allow teleport
+	(),
+>;
+
+// We use all transactors
+pub type AssetTransactors = (
+	LocalAssetTransactorOldAnchoring,
+	LocalAssetTransactorNewAnchoring,
+	FungiblesTransactor,
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -1166,12 +1190,26 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
-	// We use two traders
-	// When we receive the self-reserve asset, we use pallet-transaction-payment
+	// We use three traders
+	// When we receive either representation of the self-reserve asset,
+	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
 	type Trader = (
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+		UsingComponents<
+			WeightToFee,
+			OldAnchoringSelfReserve,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
+		UsingComponents<
+			WeightToFee,
+			NewAnchoringSelfReserve,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
 		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
 	);
 	type ResponseHandler = PolkadotXcm;
@@ -1419,7 +1457,7 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = SelfReserve::get();
+				let multi: MultiLocation = NewAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
