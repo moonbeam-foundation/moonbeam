@@ -1090,10 +1090,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 // We use all transactors
-pub type AssetTransactors = (
-	LocalAssetTransactor,
-	FungiblesTransactor,
-);
+pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
