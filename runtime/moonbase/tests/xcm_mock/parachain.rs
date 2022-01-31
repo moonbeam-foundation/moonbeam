@@ -209,7 +209,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We track our teleports in/out to keep total issuance correct.
+	// We dont allow teleport
 	(),
 >;
 
