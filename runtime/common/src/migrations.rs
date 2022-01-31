@@ -46,9 +46,7 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// Staking split candidate state
 pub struct ParachainStakingSplitCandidateState<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration
-	for ParachainStakingIncreaseMaxDelegationsPerCandidate<T>
-{
+impl<T: ParachainStakingConfig> Migration for ParachainStakingSplitCandidateState<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Parachain_Staking_Split_Candidate_State"
 	}
