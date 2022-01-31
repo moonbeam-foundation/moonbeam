@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1966,5 +1966,15 @@ fn precompile_existance() {
 				);
 			}
 		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
 	});
 }
