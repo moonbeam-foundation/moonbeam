@@ -30,9 +30,8 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	currency::{GIGAWEI, GLMR},
-	AccountId, Balances, BlockWeights, Call, CrowdloanRewards, CurrencyId, Event, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::GLMR, AccountId, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, CurrencyId,
+	Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1978,5 +1977,15 @@ fn precompile_existance() {
 				);
 			}
 		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
 	});
 }

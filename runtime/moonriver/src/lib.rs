@@ -662,6 +662,7 @@ impl pallet_ethereum::Config for Runtime {
 parameter_types! {
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	pub IsActive: bool = false;
+	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
 }
 
 pub struct BaseFeeThreshold;
@@ -681,6 +682,7 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	type IsActive = IsActive;
+	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
 parameter_types! {
