@@ -1882,6 +1882,7 @@ fn test_statemint_like() {
 #[test]
 fn test_statemint_like_prefix_change() {
 	MockNet::reset();
+
 	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
 
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
@@ -2004,56 +2005,6 @@ fn test_statemint_like_prefix_change() {
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
 	});
-}
-
-#[test]
-fn test_weigher() {
-	MockNet::reset();
-	use xcm::latest::prelude::*;
-	use xcm_executor::traits::WeightBounds;
-	let location = MultiLocation::new(0, Here);
-	// Construct MultiAsset
-	let fee = MultiAsset {
-		id: Concrete(location.clone()),
-		fun: Fungible(0),
-	};
-
-	// Encode the call. Balances transact to para_a_account
-	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
-
-	let mut message: Xcm<relay_chain::Call> = Xcm(vec![
-		WithdrawAsset(fee.clone().into()),
-		BuyExecution {
-			fees: fee,
-			weight_limit: WeightLimit::Limited(300000000),
-		},
-		Transact {
-			origin_type: OriginKind::SovereignAccount,
-			require_weight_at_most: 500000000,
-			call: encoded.into(),
-		},
-	]);
-	let weight = relay_chain::LocalWeightInfoBounds::<
-		xcm_weight::WestendXcmWeight<relay_chain::Call>,
-		relay_chain::Call,
-		relay_chain::MaxInstructions,
-	>::weight(&mut message);
-	println!("Weight {:?}", weight);
 }
 
 use parity_scale_codec::{Decode, Encode};
