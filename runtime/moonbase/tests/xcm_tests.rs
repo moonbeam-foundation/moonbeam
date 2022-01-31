@@ -30,12 +30,12 @@ use xcm_primitives::UtilityEncodeCall;
 
 use sp_std::boxed::Box;
 use xcm::latest::prelude::QueryResponse;
+use xcm::latest::prelude::*;
 use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
 	MultiLocation, NetworkId, Response, Xcm,
 };
-use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
 // Send a relay asset (like DOT) to a parachain A
@@ -603,8 +603,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 
 	let dest = MultiLocation {
 		parents: 1,
-		interior: X1(
-			Parachain(1))
+		interior: X1(Parachain(1)),
 	};
 
 	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
@@ -624,7 +623,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 				X1(AccountKey20 {
 					network: Any,
 					key: PARAALICE,
-				})
+				}),
 			),
 		},
 	]));
@@ -2010,8 +2009,8 @@ fn test_statemint_like_prefix_change() {
 #[test]
 fn test_weigher() {
 	MockNet::reset();
-	use xcm_executor::traits::WeightBounds;
 	use xcm::latest::prelude::*;
+	use xcm_executor::traits::WeightBounds;
 	let location = MultiLocation::new(0, Here);
 	// Construct MultiAsset
 	let fee = MultiAsset {
@@ -2037,7 +2036,6 @@ fn test_weigher() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-
 	let mut message: Xcm<relay_chain::Call> = Xcm(vec![
 		WithdrawAsset(fee.clone().into()),
 		BuyExecution {
@@ -2050,7 +2048,11 @@ fn test_weigher() {
 			call: encoded.into(),
 		},
 	]);
-	let weight = relay_chain::LocalWeightInfoBounds::<xcm_weight::WestendXcmWeight<relay_chain::Call>, relay_chain::Call, relay_chain::MaxInstructions>::weight(& mut message);
+	let weight = relay_chain::LocalWeightInfoBounds::<
+		xcm_weight::WestendXcmWeight<relay_chain::Call>,
+		relay_chain::Call,
+		relay_chain::MaxInstructions,
+	>::weight(&mut message);
 	println!("Weight {:?}", weight);
 }
 
