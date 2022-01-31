@@ -37,7 +37,7 @@ use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
 use sp_std::vec::Vec;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
-/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
+/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
@@ -174,10 +174,10 @@ impl<
 					// In case the asset matches the one the trader already stored before, add
 					// to later refund
 
-					// Else we are always going to substract the weight if we can, but we latter do
+					// Else we are always going to subtract the weight if we can, but we latter do
 					// not refund it
 
-					// In short, we only refund on the asset the trader first succesfully was able
+					// In short, we only refund on the asset the trader first successfully was able
 					// to pay for an execution
 					let new_asset = match self.1.clone() {
 						Some((prev_id, prev_amount, units_per_second)) => {
@@ -275,7 +275,7 @@ impl FilterAssetLocation for MultiNativeAsset {
 	}
 }
 
-// Defines the trait to obtain a generic AssetType from a generic AssetId and viceversa
+// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa
 pub trait AssetTypeGetter<AssetId, AssetType> {
 	// Get asset type from assetId
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;

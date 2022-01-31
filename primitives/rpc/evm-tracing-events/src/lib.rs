@@ -80,13 +80,13 @@ impl Event {
 
 /// Main trait to proxy emitted messages.
 /// Used 2 times :
-/// - Inside the runtime to proxy the events throught the host functions
+/// - Inside the runtime to proxy the events throughout the host functions
 /// - Inside the client to forward those events to the client listener.
 pub trait Listener {
 	fn event(&mut self, event: Event);
 
 	/// Allow the runtime to know which data should be discarded and not cloned.
-	/// WARNING: It is only called once when the runtime tracing is instanciated to avoid
+	/// WARNING: It is only called once when the runtime tracing is instantiated to avoid
 	/// performing many ext calls.
 	fn step_event_filter(&self) -> StepEventFilter;
 }

@@ -40,7 +40,7 @@ mod tests;
 pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
 /// Return an error with provided (static) text.
-/// Using the `revert` function of `Gasometer` is prefered as erroring
+/// Using the `revert` function of `Gasometer` is preferred as erroring
 /// consumed all the gas limit and the error message is not easily
 /// retrievable.
 pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
@@ -58,7 +58,7 @@ pub struct LogsBuilder {
 
 impl LogsBuilder {
 	/// Create a new builder with no logs.
-	/// Takes the address of the precompile (usualy `context.address`).
+	/// Takes the address of the precompile (usually `context.address`).
 	pub fn new(address: H160) -> Self {
 		Self {
 			logs: vec![],
@@ -242,7 +242,7 @@ pub enum FunctionModifier {
 
 /// Custom Gasometer to record costs in precompiles.
 /// It is advised to record known costs as early as possible to
-/// avoid unecessary computations if there is an Out of Gas.
+/// avoid unnecessary computations if there is an Out of Gas.
 ///
 /// Provides functions related to reverts, as reverts takes the recorded amount
 /// of gas into account.
@@ -285,7 +285,7 @@ impl Gasometer {
 		}
 	}
 
-	/// Record cost of a log manualy.
+	/// Record cost of a log manually.
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
 	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {

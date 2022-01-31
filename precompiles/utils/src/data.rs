@@ -132,7 +132,7 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read raw bytes from the input.
-	/// Doesn't handle any alignement checks, prefer using `read` instead of possible.
+	/// Doesn't handle any alignment checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_raw_bytes(&mut self, gasometer: &mut Gasometer, len: usize) -> EvmResult<&[u8]> {
 		let range = self.move_cursor(gasometer, len)?;
