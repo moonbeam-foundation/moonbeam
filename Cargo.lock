@@ -2281,8 +2281,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.33.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "408ffdd509e16de15ea9b51f5333748f6086601f29d445d2ba53dd7e95565574"
+source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.13#450325f5aa92853ae8e83c9b798981f5728db9be"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2302,8 +2301,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dfe4f2a56c4c05a8107b8596380e2332fc2019ffcf56b8f2d01971393a30c4d"
+source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.13#450325f5aa92853ae8e83c9b798981f5728db9be"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2315,8 +2313,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c446679607eacac4e8c8738e20c97ea9b3c86eddd8b43666744b05f416037bd9"
+source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.13#450325f5aa92853ae8e83c9b798981f5728db9be"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2327,9 +2324,9 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "419e8434ac6e850a8a4bc09a19406264582d1940913b2920be2af948f4ffc49b"
+source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.13#450325f5aa92853ae8e83c9b798981f5728db9be"
 dependencies = [
+ "auto_impl",
  "environmental",
  "evm-core",
  "primitive-types",
