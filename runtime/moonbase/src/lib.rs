@@ -40,7 +40,7 @@ use frame_support::{
 	traits::{
 		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
 		Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
-		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait, PalletInfoAccess
+		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait, PalletInfoAccess,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -52,11 +52,11 @@ use frame_support::{
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	IsConcrete, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, AsPrefixedGeneralIndex
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
 
 use xcm_executor::traits::JustTry;
@@ -1106,7 +1106,11 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 /// M
 
 // We use both transactors
-pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor, LocalFungiblesTransactor);
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	ForeignFungiblesTransactor,
+	LocalFungiblesTransactor,
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -1498,13 +1502,12 @@ where
 			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
-			},
-			CurrencyId::AssetReserve(asset) => {	
-				let mut location =  LocalAssetsPalletLocation::get();
+			}
+			CurrencyId::AssetReserve(asset) => {
+				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
-
-			},
+			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
