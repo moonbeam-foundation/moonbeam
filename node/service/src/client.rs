@@ -46,13 +46,10 @@ pub trait RuntimeApiCollection:
 	+ nimbus_primitives::NimbusApi<Block>
 	+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
-where
-	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
 
-impl<Api> RuntimeApiCollection for Api
-where
+impl<Api> RuntimeApiCollection for Api where
 	Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_block_builder::BlockBuilder<Block>
@@ -67,8 +64,7 @@ where
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
 		+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
-		+ cumulus_primitives_core::CollectCollationInfo<Block>,
-	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
+		+ cumulus_primitives_core::CollectCollationInfo<Block>
 {
 }
 

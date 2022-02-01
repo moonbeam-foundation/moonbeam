@@ -1,0 +1,64 @@
+[package]
+name = "moonbeam-simnode"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+# crates.io
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+derive_more = "0.99.17"
+hex = "0.4.3"
+num-traits = "0.2.14"
+structopt = "0.3.25"
+
+# local
+account = { path = "../primitives/account" }
+moonbase-runtime = { path = "../runtime/moonbase" }
+moonbeam-cli = { path = "../node/cli" }
+moonbeam-primitives-ext = { path = "../primitives/ext" }
+moonbeam-runtime = { path = "../runtime/moonbeam" }
+moonbeam-service = { path = "../node/service" }
+moonriver-runtime = { path = "../runtime/moonriver" }
+runtime-common = { path = "../runtime/common" }
+
+# simnode
+substrate-simnode = { git = "https://github.com/librelois/substrate-simnode", branch = "moonbeam-polkadot-v0.9.13" }
+
+# cumulus
+parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sproof-builder = { package = "cumulus-test-relay-sproof-builder", git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }
+parachain-inherent = { package = "cumulus-primitives-parachain-inherent", git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }
+parachain-system = { package = "cumulus-pallet-parachain-system", git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.13" }
+
+# nimbus
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.13" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.13" }
+
+# polkadot
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13" }
+
+# substrate
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+transaction-payment = { package = "pallet-transaction-payment", git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-keyring = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-offchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-session = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+sudo = { package = "pallet-sudo", git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+support = { package = "frame-support", git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+system = { package = "frame-system", git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
