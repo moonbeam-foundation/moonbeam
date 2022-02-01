@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ use frame_support::{
 };
 use frame_system::InitKind;
 pub use moonbase_runtime::{
-	currency::{UNIT, WEI},
+	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
 	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
@@ -280,6 +280,13 @@ impl ExtBuilder {
 			&mut t,
 		)
 		.unwrap();
+
+		<pallet_base_fee::GenesisConfig<Runtime> as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_base_fee::GenesisConfig::<Runtime>::default(),
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 
 		let assets = self.assets.clone();

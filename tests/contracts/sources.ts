@@ -801,7 +801,7 @@ export const contractSources: { [key: string]: string } = {
          */
         function transact_info(
             Multilocation memory multilocation) 
-        external view  returns(uint64, uint256, uint64, uint64, uint256);
+        external view  returns(uint64, uint256, uint64);
 
         /** Transact through XCM using fee based on its multilocation
          *
@@ -852,7 +852,7 @@ export const contractSources: { [key: string]: string } = {
 
         function transact_info(
             Multilocation memory multilocation
-        ) external view override returns(uint64, uint256, uint64, uint64, uint256) {
+        ) external view override returns(uint64, uint256, uint64) {
             // We nominate our target collator with all the tokens provided
             return xcmtransactor.transact_info(multilocation);
         }
@@ -1334,5 +1334,65 @@ export const contractSources: { [key: string]: string } = {
         * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.
          */
         function note_imminent_preimage(bytes memory encoded_proposal) external;
+    }`,
+  AuthorMapping: `
+    pragma solidity >=0.8.0;
+
+    /**
+     * @title Pallet AuthorMapping Interface
+     *
+     * The interface through which solidity contracts will interact with pallet-author.mapping
+     */
+    interface AuthorMapping {
+        /**
+         * Add association
+         * Selector: aa5ac585   
+         *
+         * @param nimbus_id The nimbusId to be associated
+         */
+        function add_association(bytes32 nimbus_id) external;
+
+        /**
+         * Update existing association
+         * Selector: d9cef879
+         *
+         * @param old_nimbus_id The old nimbusId to be replaced
+         * @param new_nimbus_id The new nimbusId to be associated
+         */
+        function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id) external;
+
+        /**
+         * Clear existing associationg
+         * Selector: 7354c91d
+         *
+         * @param nimbus_id The nimbusId to be cleared
+         */
+        function clear_association(bytes32 nimbus_id) external;
+    }
+
+
+    contract AuthorMappingInstance is AuthorMapping {
+
+        /// The AuthorMapping wrapper at the known pre-compile address.
+        AuthorMapping public author_mapping = AuthorMapping(
+            0x0000000000000000000000000000000000000807
+        );
+
+            function add_association(
+                bytes32 nimbus_id
+            ) override external {
+                author_mapping.add_association(nimbus_id);
+            }
+            function update_association(
+                bytes32 old_nimbus_id,
+                bytes32 new_nimbus_id
+            ) override external {
+                author_mapping.update_association(old_nimbus_id, new_nimbus_id);
+            }
+            function clear_association(
+                bytes32 nimbus_id
+            ) override external {
+                author_mapping.clear_association(nimbus_id);
+            }
     }`,
 };

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
-use ethereum_types::{H128, H256};
+use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
@@ -30,13 +30,13 @@ use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
-use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
 	Transaction(H256),
@@ -144,6 +144,7 @@ where
 	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: ApiExt<B>,
 {
 	/// Task spawned at service level that listens for messages on the rpc channel and spawns
 	/// blocking tasks using a permit pool.
@@ -239,9 +240,11 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				let tracer = if hash == blockscout_hash {
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
+					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
+				];
+				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
+				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
 					Some(TracerInput::Blockscout)
 				} else if tracer == "callTracer" {
 					Some(TracerInput::CallTracer)
@@ -424,10 +427,44 @@ where
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
 
+		// Get DebugRuntimeApi version
+		let trace_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn DebugRuntimeApi<B>>(&reference_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err(
+				"Runtime api version call failed (trace)".to_string(),
+			));
+		};
+
+		// Get EthereumRuntimeRPCApi version
+		let ethereum_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&reference_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err("Runtime api version call failed".to_string()));
+		};
+
 		// Get the block that contains the requested transaction.
-		let reference_block = match api.current_block(&reference_id) {
-			Ok(block) => block,
-			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+		let reference_block = if ethereum_api_version >= 2 {
+			match api.current_block(&reference_id) {
+				Ok(block) => block,
+				Err(e) => {
+					return Err(internal_err(format!(
+						"Runtime block call failed (version >= 2): {:?}",
+						e
+					)))
+				}
+			}
+		} else {
+			#[allow(deprecated)]
+			match api.current_block_before_version_2(&reference_id) {
+				Ok(Some(block)) => Some(block.into()),
+				Ok(None) => return Err(internal_err("Runtime block call failed".to_string())),
+				Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+			}
 		};
 
 		// Get the actual ethereum transaction.
@@ -438,10 +475,39 @@ where
 					api.initialize_block(&parent_block_id, &header)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
-					let _result = api
-						.trace_transaction(&parent_block_id, ext, &transaction)
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+					if trace_api_version >= 4 {
+						let _result = api
+							.trace_transaction(&parent_block_id, ext, &transaction)
+							.map_err(|e| {
+								internal_err(format!(
+									"Runtime api access error (version {:?}): {:?}",
+									trace_api_version, e
+								))
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+					} else {
+						// Pre-london update, legacy transactions.
+						let _result = match transaction {
+							ethereum::TransactionV2::Legacy(tx) =>
+							{
+								#[allow(deprecated)]
+								api.trace_transaction_before_version_4(&parent_block_id, ext, &tx)
+									.map_err(|e| {
+										internal_err(format!(
+											"Runtime api access error (legacy): {:?}",
+											e
+										))
+									})?
+									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?
+							}
+							_ => {
+								return Err(internal_err(
+									"Bug: pre-london runtime expects legacy transactions"
+										.to_string(),
+								))
+							}
+						};
+					}
 
 					Ok(moonbeam_rpc_primitives_debug::Response::Single)
 				};

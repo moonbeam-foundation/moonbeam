@@ -19,7 +19,7 @@ account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-runtime-common = { path = "../common", default-features = false }
+runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 # Moonbeam pallets
@@ -35,6 +35,8 @@ xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = fal
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
+pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping", default-features = false }
+pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
@@ -165,12 +167,14 @@ std = [
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
 	"pallet-author-inherent/std",
+	"pallet-author-mapping-precompiles/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
 	"pallet-base-fee/std",
 	"pallet-collective/std",
 	"pallet-crowdloan-rewards/std",
+	"pallet-democracy-precompiles/std",
 	"pallet-democracy/std",
 	"pallet-ethereum-chain-id/std",
 	"pallet-ethereum/std",

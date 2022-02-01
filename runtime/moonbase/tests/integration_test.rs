@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -31,10 +31,11 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
+use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
@@ -42,11 +43,10 @@ use pallet_evm_precompile_assets_erc20::{
 use xtokens_precompiles::Action as XtokensAction;
 
 use pallet_transaction_payment::Multiplier;
-use parachain_staking::Bond;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{crypto::UncheckedFrom, Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
@@ -309,27 +309,12 @@ fn join_collator_candidates() {
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(ALICE),
-					amount: 1_050 * UNIT
-				}
-			);
-			assert_eq!(
-				candidates.0[1],
-				Bond {
-					owner: AccountId::from(BOB),
-					amount: 1_050 * UNIT
-				}
-			);
-			assert_eq!(
-				candidates.0[2],
-				Bond {
-					owner: AccountId::from(DAVE),
-					amount: 1_000 * UNIT
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
+			assert_eq!(candidates.0[0].amount, 1_050 * UNIT);
+			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
+			assert_eq!(candidates.0[1].amount, 1_050 * UNIT);
+			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
+			assert_eq!(candidates.0[2].amount, 1_000 * UNIT);
 		});
 }
 
@@ -388,13 +373,8 @@ fn transfer_through_evm_to_stake() {
 				0u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
-			assert_eq!(
-				candidates.0[0],
-				Bond {
-					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * UNIT
-				}
-			);
+			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
+			assert_eq!(candidates.0[0].amount, 1_000 * UNIT);
 		});
 }
 
@@ -1707,6 +1687,15 @@ fn transactor_cannot_use_more_than_max_weight() {
 				AccountId::from(ALICE),
 				0,
 			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				1,
+				20000
+			));
 
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
@@ -1714,8 +1703,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					// 12000000000 is the max
-					13000000000,
+					// 20000the max
+					17000,
 					vec![],
 				),
 				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
@@ -1726,8 +1715,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::Transactors::Relay,
 					0,
 					moonbase_runtime::CurrencyId::OtherReserve(source_id),
-					// 12000000000 is the max
-					13000000000,
+					// 20000 is the max
+					17000,
 					vec![],
 				),
 				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
@@ -1741,4 +1730,191 @@ fn account_id_32_encodes_like_32_byte_u8_slice() {
 	let account_as_account_id_32: sp_runtime::AccountId32 = [1u8; 32].into();
 	let account_as_slice = [1u8; 32];
 	assert_eq!(account_as_account_id_32.encode(), account_as_slice.encode());
+}
+
+#[test]
+fn author_mapping_precompile_associate_update_and_clear() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let author_mapping_precompile_address = H160::from_low_u64_be(2055);
+			let first_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+			let second_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
+
+			let associate_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 23761u64,
+				logs: Default::default(),
+			}));
+
+			// Associate it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::AddAssociation)
+						.write(sp_core::H256::from([1u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				associate_expected_result
+			);
+
+			let expected_associate_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
+					first_nimbus_id.clone(),
+					AccountId::from(ALICE),
+				));
+			assert_eq!(last_event(), expected_associate_event);
+
+			let update_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 22098u64,
+				logs: Default::default(),
+			}));
+
+			// Update it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::UpdateAssociation)
+						.write(sp_core::H256::from([1u8; 32]))
+						.write(sp_core::H256::from([2u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				update_expected_result
+			);
+
+			let expected_update_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
+					second_nimbus_id.clone(),
+					AccountId::from(ALICE),
+				));
+			assert_eq!(last_event(), expected_update_event);
+
+			let clear_expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Default::default(),
+				cost: 23784u64,
+				logs: Default::default(),
+			}));
+
+			// Clear it
+			assert_eq!(
+				Precompiles::new().execute(
+					author_mapping_precompile_address,
+					&EvmDataWriter::new_with_selector(AuthorMappingAction::ClearAssociation)
+						.write(sp_core::H256::from([2u8; 32]))
+						.build(),
+					None,
+					&Context {
+						address: author_mapping_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				clear_expected_result
+			);
+
+			let expected_clear_event = Event::AuthorMapping(
+				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
+			);
+			assert_eq!(last_event(), expected_clear_event);
+		});
+}
+
+#[test]
+fn precompile_existance() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let precompile_addresses: std::collections::BTreeSet<_> = vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055,
+		]
+		.into_iter()
+		.map(H160::from_low_u64_be)
+		.collect();
+
+		for i in 0..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if precompile_addresses.contains(&address) {
+				assert!(
+					precompiles.is_precompile(address),
+					"is_precompile({}) should return true",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_some(),
+					"execute({},..) should return Some(_)",
+					i
+				);
+			} else {
+				assert!(
+					!precompiles.is_precompile(address),
+					"is_precompile({}) should return false",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_none(),
+					"execute({},..) should return None",
+					i
+				);
+			}
+		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
+	});
 }

@@ -1,6 +1,13 @@
 import tcpPortUsed from "tcp-port-used";
 import { spawn, ChildProcess } from "child_process";
-import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, ETHAPI_CMD } from "./constants";
+import {
+  BINARY_PATH,
+  DISPLAY_LOG,
+  MOONBEAM_LOG,
+  SPAWNING_TIME,
+  ETHAPI_CMD,
+  WASM_RUNTIME_OVERRIDES,
+} from "./constants";
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -53,6 +60,10 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   nodeStarted = true;
   const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
+  if (process.env.FORCE_WASM_EXECUTION == "true") {
+    withWasm = true;
+  }
+
   const cmd = BINARY_PATH;
   let args = [
     withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
@@ -67,7 +78,9 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
-  if (ETHAPI_CMD != "") {
+  if (WASM_RUNTIME_OVERRIDES != "") {
+    args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);
+  } else if (ETHAPI_CMD != "") {
     args.push("--wasm-runtime-overrides=/");
   }
   debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);

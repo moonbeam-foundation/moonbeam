@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -59,7 +59,7 @@ impl<T: Ord + Copy> From<T> for Range<T> {
 	}
 }
 /// Convert an annual inflation to a round inflation
-/// round = 1 - (1+annual)^(1/rounds_per_year)
+/// round = (1+annual)^(1/rounds_per_year) - 1
 pub fn perbill_annual_to_perbill_round(
 	annual: Range<Perbill>,
 	rounds_per_year: u32,

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use ethereum::TransactionAction;
-use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
+use fp_rpc::{ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
@@ -44,9 +44,7 @@ use futures::{
 
 use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
-use service::{
-	chain_spec, rpc, Block, RuntimeApiCollection, RuntimeVariant, TransactionConverters,
-};
+use service::{chain_spec, rpc, Block, RuntimeApiCollection};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -65,7 +63,6 @@ where
 	client: Arc<FullClient<RuntimeApi, Executor>>,
 	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
-	transaction_converter: TransactionConverters, // TODO: could be generic
 
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
@@ -205,7 +202,6 @@ where
 		});
 
 		let command_sink_for_deps = command_sink.clone();
-		let runtime_variant = RuntimeVariant::from_chain_spec(&config.chain_spec);
 
 		let rpc_extensions_builder = {
 			let client = client.clone();
@@ -213,12 +209,10 @@ where
 			let backend = backend.clone();
 			let network = network.clone();
 			let max_past_logs = 1000;
-			let runtime_variant = runtime_variant.clone();
 			let fee_history_cache = fee_history_cache.clone();
 			let overrides = overrides.clone();
 
 			Box::new(move |deny_unsafe, _| {
-				let runtime_variant = runtime_variant.clone();
 				let deps = rpc::FullDeps {
 					client: client.clone(),
 					pool: pool.clone(),
@@ -235,9 +229,6 @@ where
 					max_past_logs,
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
-					transaction_converter: TransactionConverters::for_runtime_variant(
-						runtime_variant,
-					),
 					xcm_senders: None,
 				};
 				#[allow(unused_mut)]
@@ -266,7 +257,6 @@ where
 			client: client.clone(),
 			manual_seal_command_sink: command_sink.unwrap(),
 			pool: transaction_pool,
-			transaction_converter: TransactionConverters::for_runtime_variant(runtime_variant),
 			_marker1: Default::default(),
 			_marker2: Default::default(),
 		})
@@ -322,6 +312,7 @@ where
 			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -350,6 +341,7 @@ where
 			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -387,17 +379,19 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let unchecked_extrinsic = self
-			.transaction_converter
-			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
+		let block_hash = BlockId::hash(self.client.info().best_hash);
+		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", block_hash);
 
-		let hash = self.client.info().best_hash;
-		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
-		let future = self.pool.submit_one(
-			&BlockId::hash(hash),
-			TransactionSource::Local,
-			unchecked_extrinsic,
-		);
+		#[allow(deprecated)]
+		let extrinsic = self
+			.client
+			.runtime_api()
+			.convert_transaction_before_version_2(&block_hash, signed)
+			.map_err(|_| "ConvertTransactionRuntimeApi not found")?;
+
+		let future = self
+			.pool
+			.submit_one(&block_hash, TransactionSource::Local, extrinsic);
 
 		let _ = futures::executor::block_on(future);
 

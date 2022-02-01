@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,7 +22,9 @@
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{Address, EvmData, EvmDataReader, EvmResult, Gasometer, RuntimeHelper};
+use precompile_utils::{
+	Address, EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
+};
 
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
@@ -71,13 +73,15 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
 
 		match selector {
 			Action::Transfer => Self::transfer(input, gasometer, context),

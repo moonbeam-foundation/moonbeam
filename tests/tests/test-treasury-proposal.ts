@@ -209,7 +209,6 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
 
     // Verify that the proposal is approved
     let approvals = await context.polkadotApi.query.treasury.approvals();
-    console.log(JSON.stringify(approvals));
     expect(approvals.length).to.equal(1, "one proposal should have been approved");
   });
 });

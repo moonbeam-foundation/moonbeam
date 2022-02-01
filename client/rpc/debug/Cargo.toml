@@ -29,8 +29,8 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
 
 # Frontier
-ethereum = { version = "0.10.0", default-features = false, features = [ "with-codec" ] }
-ethereum-types = "0.12.0"
+ethereum = { version = "0.11.1", default-features = false, features = [ "with-codec" ] }
+ethereum-types = "0.12.1"
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.13", features = [ "rpc_binary_search_estimate" ] }

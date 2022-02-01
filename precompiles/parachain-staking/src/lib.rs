@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -30,7 +30,8 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
@@ -64,7 +65,7 @@ enum Action {
 	// DEPRECATED
 	LeaveCandidates = "leave_candidates(uint256)",
 	ScheduleLeaveCandidates = "schedule_leave_candidates(uint256)",
-	ExecuteLeaveCandidates = "execute_leave_candidates(address)",
+	ExecuteLeaveCandidates = "execute_leave_candidates(address,uint256)",
 	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
 	GoOffline = "go_offline()",
 	GoOnline = "go_online()",
@@ -116,13 +117,33 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 		let gasometer = &mut gasometer;
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::IsNominator
+				| Action::IsDelegator
+				| Action::IsCandidate
+				| Action::IsSelectedCandidate
+				| Action::Points
+				| Action::MinNomination
+				| Action::MinDelegation
+				| Action::CandidateCount
+				| Action::CollatorNominationCount
+				| Action::CandidateDelegationCount
+				| Action::NominatorNominationCount
+				| Action::DelegatorDelegationCount => FunctionModifier::View,
+				_ => FunctionModifier::NonPayable,
+			},
+		)?;
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
@@ -300,8 +321,8 @@ where
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_state(&address) {
-				let candidate_delegation_count: u32 = state.delegators.0.len() as u32;
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&address) {
+				let candidate_delegation_count: u32 = state.delegation_count;
 
 				log::trace!(
 					target: "staking-precompile",
@@ -494,10 +515,14 @@ where
 		input.expect_arguments(gasometer, 1)?;
 		let candidate = input.read::<Address>(gasometer)?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		let candidate_delegation_count = input.read(gasometer)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates { candidate };
+		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates {
+			candidate,
+			candidate_delegation_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -636,8 +661,8 @@ where
 	)> {
 		// Read input.
 		input.expect_arguments(gasometer, 4)?;
-		let collator = input.read::<Address>(gasometer)?.0;
-		let collator = Runtime::AddressMapping::into_account_id(collator);
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
 		let amount: BalanceOf<Runtime> = input.read(gasometer)?;
 		let candidate_delegation_count = input.read(gasometer)?;
 		let delegation_count = input.read(gasometer)?;
@@ -645,7 +670,7 @@ where
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::delegate {
-			collator,
+			candidate,
 			amount,
 			candidate_delegation_count,
 			delegation_count,

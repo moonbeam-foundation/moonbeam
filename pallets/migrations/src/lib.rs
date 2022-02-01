@@ -32,6 +32,8 @@ pub use pallet::*;
 #[macro_use]
 extern crate environmental;
 
+use sp_std::prelude::*;
+
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
@@ -58,12 +60,28 @@ pub trait Migration {
 	}
 }
 
+// The migration trait
+pub trait GetMigrations {
+	// Migration list Getter
+	fn get_migrations() -> Vec<Box<dyn Migration>>;
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(30)]
+impl GetMigrations for Tuple {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let mut migrations = Vec::new();
+
+		for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
+
+		migrations
+	}
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_std::prelude::*;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
@@ -75,7 +93,7 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
-		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		type MigrationsList: GetMigrations;
 	}
 
 	#[pallet::event]
@@ -121,7 +139,7 @@ pub mod pallet {
 			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
 
@@ -164,7 +182,7 @@ pub mod pallet {
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 
 				// we can't query MigrationState because on_runtime_upgrade() would have
@@ -225,7 +243,7 @@ pub mod pallet {
 		fn build(&self) {
 			// When building a new genesis, all listed migrations should be considered as already
 			// applied, they only make sense for networks that had been launched in the past.
-			for migration_name in T::MigrationsList::get()
+			for migration_name in T::MigrationsList::get_migrations()
 				.into_iter()
 				.map(|migration| migration.friendly_name().as_bytes().to_vec())
 			{
@@ -237,7 +255,7 @@ pub mod pallet {
 	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
 		let mut weight: Weight = 0u64.into();
 
-		for migration in &T::MigrationsList::get() {
+		for migration in &T::MigrationsList::get_migrations() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);
@@ -274,7 +292,7 @@ pub mod pallet {
 				));
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
-				weight += consumed_weight;
+				weight = weight.saturating_add(consumed_weight);
 				if weight > available_weight {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
