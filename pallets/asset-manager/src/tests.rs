@@ -28,7 +28,7 @@ use xcm::latest::prelude::*;
 #[test]
 fn registering_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -44,7 +44,7 @@ fn registering_works() {
 			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
 			1
 		);
-		expect_events(vec![crate::Event::AssetRegistered(
+		expect_events(vec![crate::Event::ForeignAssetRegistered(
 			1,
 			MockAssetType::MockAsset(1),
 			0u32,
@@ -55,7 +55,7 @@ fn registering_works() {
 #[test]
 fn test_asset_exists_error() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -68,7 +68,7 @@ fn test_asset_exists_error() {
 			MockAssetType::MockAsset(1)
 		);
 		assert_noop!(
-			AssetManager::register_asset(
+			AssetManager::register_foreign_asset(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
 				0u32.into(),
@@ -83,7 +83,7 @@ fn test_asset_exists_error() {
 #[test]
 fn test_root_can_change_units_per_second() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -103,7 +103,7 @@ fn test_root_can_change_units_per_second() {
 		);
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::ForeignAssetRegistered(1, MockAssetType::MockAsset(1), 0),
 			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
 		])
 	});
@@ -113,7 +113,7 @@ fn test_root_can_change_units_per_second() {
 fn test_regular_user_cannot_call_extrinsics() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			AssetManager::register_asset(
+			AssetManager::register_foreign_asset(
 				Origin::signed(1),
 				MockAssetType::MockAsset(1),
 				0u32.into(),
@@ -146,7 +146,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 #[test]
 fn test_root_can_change_asset_id_type() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -189,9 +189,9 @@ fn test_root_can_change_asset_id_type() {
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
+			crate::Event::ForeignAssetRegistered(1, MockAssetType::MockAsset(1), 0),
 			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
-			crate::Event::AssetTypeChanged(1, MockAssetType::MockAsset(2)),
+			crate::Event::ForeignAssetTypeChanged(1, MockAssetType::MockAsset(2)),
 		])
 	});
 }
@@ -227,7 +227,7 @@ fn test_asset_manager_units_with_asset_type_migration_works() {
 		use frame_support::StorageHasher;
 		use parity_scale_codec::Encode;
 
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -343,7 +343,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		);
 
 		// To mimic case 2, we can simply register the asset through the extrinsic
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			statemine_multilocation_2.clone(),
 			0u32.into(),
@@ -353,7 +353,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 
 		// To mimic case 3, we can simply register the asset through the extrinsic
 		// But we also need to set units per second
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			statemine_multilocation_3.clone(),
 			0u32.into(),

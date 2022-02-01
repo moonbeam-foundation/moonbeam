@@ -148,12 +148,22 @@ impl Into<Option<MultiLocation>> for MockAssetType {
 pub struct MockAssetPalletRegistrar;
 
 impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
-	fn create_asset(
+	fn create_foreign_asset(
 		_asset: u32,
 		_min_balance: u64,
 		_metadata: u32,
 		_is_sufficient: bool,
 	) -> Result<(), DispatchError> {
+		Ok(())
+	}
+
+	fn create_local_asset(
+		_asset: u32,
+		_min_balance: u64,
+		_metadata: u32,
+		_is_sufficient: bool,
+		_owner: u64,
+	) -> sp_runtime::DispatchResult {
 		Ok(())
 	}
 }
@@ -163,9 +173,10 @@ impl Config for Test {
 	type Balance = u64;
 	type AssetId = u32;
 	type AssetRegistrarMetadata = u32;
-	type AssetType = MockAssetType;
+	type ForeignAssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
-	type AssetModifierOrigin = EnsureRoot<u64>;
+	type ForeignAssetModifierOrigin = EnsureRoot<u64>;
+	type LocalAssetModifierOrigin = EnsureRoot<u64>;
 	type WeightInfo = ();
 }
 

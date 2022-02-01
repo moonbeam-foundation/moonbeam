@@ -87,13 +87,13 @@ pub mod pallet {
 			AssetIdType::<T>::get(asset_id)
 		}
 
-		fn get_asset_id(asset_type: T::AssetType) -> Option<T::AssetId> {
+		fn get_asset_id(asset_type: T::ForeignAssetType) -> Option<T::AssetId> {
 			AssetTypeId::<T>::get(asset_type)
 		}
 	}
 
-	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
-		fn get_units_per_second(asset_type: T::AssetType) -> Option<u128> {
+	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::ForeignAssetType> for Pallet<T> {
+		fn get_units_per_second(asset_type: T::ForeignAssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
 		}
 	}
@@ -139,8 +139,8 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		ForeignAssetRegistered(T::AssetId, T::ForeignAssetType, T::AssetRegistrarMetadata),
 		LocalAssetRegistered(T::AssetId, T::AssetRegistrarMetadata),
-		UnitsPerSecondChanged(T::AssetType, u128),
-		ForeignAssetTypeChanged(T::AssetId, T::AssetType),
+		UnitsPerSecondChanged(T::ForeignAssetType, u128),
+		ForeignAssetTypeChanged(T::AssetId, T::ForeignAssetType),
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -156,7 +156,8 @@ pub mod pallet {
 	/// the corresponding asset in which tokens should me minted.
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_id)]
-	pub type AssetTypeId<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetType, T::AssetId>;
+	pub type AssetTypeId<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, T::AssetId>;
 
 	/// Stores the units per second for local execution for a AssetType.
 	/// This is used to know how to charge for XCM execution in a particular
@@ -165,7 +166,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_units_per_second)]
 	pub type AssetTypeUnitsPerSecond<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetType, u128>;
+		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -178,7 +179,7 @@ pub mod pallet {
 			min_amount: T::Balance,
 			is_sufficient: bool,
 		) -> DispatchResult {
-			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
 			let asset_id: T::AssetId = asset.clone().into();
 			ensure!(
@@ -210,7 +211,7 @@ pub mod pallet {
 			is_sufficient: bool,
 			owner: T::AccountId,
 		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
 			T::AssetRegistrar::create_local_asset(
 				id,
@@ -229,7 +230,7 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
-			asset_type: T::AssetType,
+			asset_type: T::ForeignAssetType,
 			units_per_second: u128,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
@@ -252,9 +253,9 @@ pub mod pallet {
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
-			new_asset_type: T::AssetType,
+			new_asset_type: T::ForeignAssetType,
 		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
 			let previous_asset_type =
 				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
