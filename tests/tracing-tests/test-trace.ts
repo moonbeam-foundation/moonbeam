@@ -295,7 +295,6 @@ describeDevMoonbeamAllEthTxTypes("Trace (Blockscout v2)", (context) => {
   });
 });
 
-
 describeDevMoonbeam("Trace", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
     this.timeout(10000);
