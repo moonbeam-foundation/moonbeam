@@ -26,7 +26,7 @@ use frame_support::{
 use xcm::latest::prelude::*;
 
 #[test]
-fn registering_works() {
+fn registering_foreign_works() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
@@ -48,6 +48,25 @@ fn registering_works() {
 			1,
 			MockAssetType::MockAsset(1),
 			0u32,
+		)])
+	});
+}
+
+#[test]
+fn registering_local_works() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_local_asset(
+			Origin::root(),
+			0u32,
+			0u32.into(),
+			1u32.into(),
+			true,
+			1u64
+		));
+
+		expect_events(vec![crate::Event::LocalAssetRegistered(
+			0,
+			0,
 		)])
 	});
 }
