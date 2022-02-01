@@ -23,7 +23,7 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
-use crate::{client::RuntimeApiCollection, TransactionConverters};
+use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
@@ -95,8 +95,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub fee_history_limit: u64,
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
-	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 }
@@ -168,7 +166,6 @@ where
 		max_past_logs,
 		fee_history_limit,
 		fee_history_cache,
-		transaction_converter,
 		xcm_senders,
 	} = deps;
 
@@ -188,11 +185,22 @@ where
 		eth_log_block_cache,
 	));
 
+	enum Never {}
+	impl<T> fp_rpc::ConvertTransaction<T> for Never {
+		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			// The Never type is not instantiable, but this method requires the type to be
+			// instantiated to be called (`&self` parameter), so if the code compiles we have the
+			// guarantee that this function will never be called.
+			unreachable!()
+		}
+	}
+	let convert_transaction: Option<Never> = None;
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		transaction_converter,
+		convert_transaction,
 		network.clone(),
 		signers,
 		overrides.clone(),

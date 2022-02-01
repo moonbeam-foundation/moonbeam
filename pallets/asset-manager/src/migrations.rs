@@ -365,8 +365,18 @@ where
 						used_weight = used_weight.saturating_add(2 * db_weights.write);
 					}
 
+					// This is checked in case UnitsWithAssetType runs first
+					if let Some(units) = AssetTypeUnitsPerSecond::<T>::take(&asset_type) {
+						// We need to update AssetTypeUnitsPerSecond too
+						AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
+
+						// Update weight due to this branch
+						used_weight = used_weight.saturating_add(2 * db_weights.write);
+					}
+
 					// Update used weight
-					used_weight = used_weight.saturating_add(db_weights.write + db_weights.read);
+					used_weight =
+						used_weight.saturating_add(db_weights.write + 2 * db_weights.read);
 				}
 				_ => continue,
 			}

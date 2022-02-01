@@ -32,7 +32,10 @@ use pallet_asset_manager::{
 use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
-	migrations::{IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue},
+	migrations::{
+		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue,
+		SplitCandidateStateToDecreasePoV,
+	},
 	Config as ParachainStakingConfig,
 };
 use sp_std::{marker::PhantomData, prelude::*};
@@ -43,6 +46,30 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// Staking split candidate state
+pub struct ParachainStakingSplitCandidateState<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingSplitCandidateState<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Split_Candidate_State"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		SplitCandidateStateToDecreasePoV::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		SplitCandidateStateToDecreasePoV::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		SplitCandidateStateToDecreasePoV::<T>::post_upgrade()
+	}
+}
 
 /// Staking increase max counted delegations per collator candidate
 pub struct ParachainStakingIncreaseMaxDelegationsPerCandidate<T>(PhantomData<T>);
@@ -334,7 +361,9 @@ where
 		// let migration_parachain_staking_manual_exits =
 		// 	ParachainStakingManualExits::<Runtime>(Default::default());
 		// let migration_parachain_staking_increase_max_delegations_per_candidate =
-		//	ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
+		// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
+		let migration_parachain_staking_split_candidate_state =
+			ParachainStakingSplitCandidateState::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -349,6 +378,7 @@ where
 			// Box::new(migration_parachain_staking_manual_exits),
 			// completed in runtime 1101
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
+			Box::new(migration_parachain_staking_split_candidate_state),
 		]
 	}
 }
