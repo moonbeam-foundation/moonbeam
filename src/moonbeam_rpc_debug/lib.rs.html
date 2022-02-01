@@ -563,6 +563,8 @@
 <span id="563">563</span>
 <span id="564">564</span>
 <span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -805,17 +807,19 @@
 				<span class="ident">tracer</span>: <span class="prelude-val">Some</span>(<span class="ident">tracer</span>),
 				..
 			}) =&gt; {
-				<span class="kw">const</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span> [
-					<span class="number">148</span>, <span class="number">217</span>, <span class="number">240</span>, <span class="number">135</span>, <span class="number">150</span>, <span class="number">249</span>, <span class="number">30</span>, <span class="number">177</span>, <span class="number">58</span>, <span class="number">46</span>, <span class="number">130</span>, <span class="number">166</span>, <span class="number">6</span>, <span class="number">104</span>, <span class="number">130</span>, <span class="number">247</span>,
-				];
+				<span class="kw">const</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span>
+					<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;94d9f08796f91eb13a2e82a6066882f7&quot;</span>);
+				<span class="kw">const</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH_V2</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span>
+					<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;89db13694675692951673a1e6e18ff02&quot;</span>);
 				<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">sp_io::hashing::twox_128</span>(<span class="kw-2">&amp;</span><span class="ident">tracer</span>.<span class="ident">as_bytes</span>());
-				<span class="kw">let</span> <span class="ident">tracer</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hash</span> <span class="op">==</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">TracerInput::Blockscout</span>)
-				} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">tracer</span> <span class="op">==</span> <span class="string">&quot;callTracer&quot;</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">TracerInput::CallTracer</span>)
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				};
+				<span class="kw">let</span> <span class="ident">tracer</span> <span class="op">=</span>
+					<span class="kw">if</span> <span class="ident">hash</span> <span class="op">==</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hash</span> <span class="op">==</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH_V2</span> {
+						<span class="prelude-val">Some</span>(<span class="ident">TracerInput::Blockscout</span>)
+					} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">tracer</span> <span class="op">==</span> <span class="string">&quot;callTracer&quot;</span> {
+						<span class="prelude-val">Some</span>(<span class="ident">TracerInput::CallTracer</span>)
+					} <span class="kw">else</span> {
+						<span class="prelude-val">None</span>
+					};
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tracer</span>) <span class="op">=</span> <span class="ident">tracer</span> {
 					<span class="prelude-val">Ok</span>((<span class="ident">tracer</span>, <span class="ident">single::TraceType::CallList</span>))
 				} <span class="kw">else</span> {
