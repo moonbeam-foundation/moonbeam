@@ -240,17 +240,19 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
-					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
-				];
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
+					hex_literal::hex!("94d9f08796f91eb13a2e82a6066882f7");
+				const BLOCKSCOUT_JS_CODE_HASH_V2: [u8; 16] =
+					hex_literal::hex!("89db13694675692951673a1e6e18ff02");
 				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
-				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
-					Some(TracerInput::Blockscout)
-				} else if tracer == "callTracer" {
-					Some(TracerInput::CallTracer)
-				} else {
-					None
-				};
+				let tracer =
+					if hash == BLOCKSCOUT_JS_CODE_HASH || hash == BLOCKSCOUT_JS_CODE_HASH_V2 {
+						Some(TracerInput::Blockscout)
+					} else if tracer == "callTracer" {
+						Some(TracerInput::CallTracer)
+					} else {
+						None
+					};
 				if let Some(tracer) = tracer {
 					Ok((tracer, single::TraceType::CallList))
 				} else {

@@ -26,7 +26,7 @@ locally. You can quickly spin up a single node with no relay chain backing it us
 service.
 
 ```bash
-# Run a dev service node.
+# Run a dev service node
 docker run --network="host" purestake/moonbeam:v0.19.0 --dev
 ```
 

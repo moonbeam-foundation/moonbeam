@@ -5453,6 +5453,7 @@ dependencies = [
  "fc-rpc",
  "fp-rpc",
  "futures 0.3.17",
+ "hex-literal",
  "jsonrpc-core",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
