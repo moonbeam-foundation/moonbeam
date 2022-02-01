@@ -17,10 +17,10 @@ members = [
 ]
 
 [patch.crates-io]
+ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1-typeinfo-patch" }
 evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13-1" }
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13-1" }
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13-1" }
-ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1-typeinfo-patch" }
 
 [profile.release]
 panic = "unwind"
