@@ -271,7 +271,7 @@
 	}
 }
 <span class="doccomment">/// Convert an annual inflation to a round inflation</span>
-<span class="doccomment">/// round = 1 - (1+annual)^(1/rounds_per_year)</span>
+<span class="doccomment">/// round = (1+annual)^(1/rounds_per_year) - 1</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">perbill_annual_to_perbill_round</span>(
 	<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
 	<span class="ident">rounds_per_year</span>: <span class="ident">u32</span>,
