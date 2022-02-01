@@ -132,7 +132,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
+        run: npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
