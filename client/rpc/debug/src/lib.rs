@@ -240,13 +240,10 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
-					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
-				];
-				const BLOCKSCOUT_JS_CODE_HASH_V2: [u8; 16] = [
-					0x89, 0xdb, 0x13, 0x69, 0x46, 0x75, 0x69, 0x29, 0x51, 0x67, 0x3a, 0x1e, 0x6e,
-					0x18, 0xff, 0x02,
-				];
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
+					hex_literal::hex!("94d9f08796f91eb13a2e82a6066882f7");
+				const BLOCKSCOUT_JS_CODE_HASH_V2: [u8; 16] =
+					hex_literal::hex!("89db13694675692951673a1e6e18ff02");
 				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
 				let tracer =
 					if hash == BLOCKSCOUT_JS_CODE_HASH || hash == BLOCKSCOUT_JS_CODE_HASH_V2 {
