@@ -3,7 +3,7 @@ import { expect } from "chai";
 import fs from "fs";
 import chalk from "chalk";
 
-import { ALITH_PRIV_KEY, ALITH } from "../../util/constants";
+import { ALITH_PRIV_KEY } from "../../util/constants";
 import { getRuntimeWasm } from "../../util/para-node";
 import { describeParachain } from "../../util/setup-para-tests";
 
@@ -30,7 +30,7 @@ describeParachain(
         specName: "moonbase",
       });
       console.log(
-        `✅ runtime: ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
+        `✅ runtime ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
       );
 
       const code = fs.readFileSync(await getRuntimeWasm("moonbase", runtimeVersion)).toString();
