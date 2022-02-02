@@ -35,39 +35,6 @@ describeParachain(
 
       const code = fs.readFileSync(await getRuntimeWasm("moonbase", runtimeVersion)).toString();
 
-      let currentBlock = 0;
-      let pendingPromises = [];
-      const waitForBlock = async (blockNumber) => {
-        return new Promise<number>((resolve) => {
-          pendingPromises.push({
-            blockNumber,
-            resolve,
-          });
-        });
-      };
-
-      const subBlocks = async (api) => {
-        return api.rpc.chain.subscribeNewHeads(async (header) => {
-          currentBlock = header.number.toNumber();
-          if (currentBlock == 0) {
-            console.log(
-              `Starting to listen for new blocks. production will start in ${chalk.red(`1 minute`)}`
-            );
-          }
-
-          let i = pendingPromises.length;
-          while (i--) {
-            const pendingPromise = pendingPromises[i];
-            if (pendingPromise.blockNumber <= currentBlock) {
-              pendingPromises.splice(i, 1);
-              pendingPromise.resolve(currentBlock);
-            }
-          }
-        });
-      };
-
-      const unsub = await subBlocks(context.polkadotApiParaone);
-      await new Promise((resolve) => setTimeout(resolve, 200)); // mostly for log formatting
       process.stdout.write(
         `Sending sudo.setCode (${code.slice(0, 6)}...${code.slice(-6)} [~${Math.floor(
           code.length / 1024
@@ -82,11 +49,11 @@ describeParachain(
         )
         .signAndSend(alith);
       process.stdout.write(`✅\n`);
+      await context.waitBlocks(1);
 
-      await waitForBlock(currentBlock + 1);
       const records = await (
         await context.polkadotApiParaone.at(
-          await context.polkadotApiParaone.rpc.chain.getBlockHash(currentBlock)
+          await context.polkadotApiParaone.rpc.chain.getBlockHash(context.blockNumber)
         )
       ).query.system.events();
       process.stdout.write("Checking parachainSystem.ValidationFunctionStored...");
@@ -108,7 +75,7 @@ describeParachain(
                 `✅ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
               );
               unsub();
-              await waitForBlock(currentBlock + 1); // Wait for next block to have the new runtime applied
+              await context.waitBlocks(1); // Wait for next block to have the new runtime applied
               resolve();
             }
             isInitialVersion = false;
@@ -116,10 +83,8 @@ describeParachain(
         );
       });
 
-      unsub();
       // Uses new API to support new types
       const newApi = await context.createPolkadotApiParachain(0);
-      const unsubNew = await subBlocks(newApi);
 
       process.stdout.write("Checking on-chain runtime version 1200...");
       expect(await (await newApi.query.system.lastRuntimeUpgrade()).toJSON()).to.deep.equal({
@@ -128,9 +93,8 @@ describeParachain(
       });
       process.stdout.write("✅\n");
       process.stdout.write("Waiting extra block being produced...");
-      await waitForBlock(currentBlock + 2); // Make sure the new runtime is producing blocks
-      unsubNew();
-      process.stdout.write(`✅ total ${currentBlock} block produced\n`);
+      await context.waitBlocks(2); // Make sure the new runtime is producing blocks
+      process.stdout.write(`✅ total ${context.blockNumber} block produced\n`);
     });
   }
 );
