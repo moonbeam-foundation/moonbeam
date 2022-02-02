@@ -16,8 +16,10 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{traits::Get, BoundedVec};
-use precompile_utils::{Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer};
-use sp_core::U256;
+use precompile_utils::{
+	Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
+};
+use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -278,5 +280,34 @@ where
 		};
 
 		U256::write(writer, value);
+	}
+}
+
+pub struct Sub {
+	pub sub_account: H160,
+	pub identity_data: pallet_identity::Data,
+}
+
+impl EvmData for Sub {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let mut inner_reader = reader.read_pointer(gasometer)?;
+
+		let sub_account: Address = inner_reader.read(gasometer)?;
+		let sub_account: H160 = sub_account.0;
+		let identity_data: Wrapped<IdentityData> = inner_reader.read(gasometer)?;
+		let identity_data = identity_data.0 .0;
+
+		Ok(Sub {
+			sub_account,
+			identity_data,
+		})
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let sub_account = value.sub_account;
+
+		EvmData::write(writer, Address(sub_account));
+		let identity_data = Wrapped(IdentityData(value.identity_data));
+		EvmData::write(writer, identity_data);
 	}
 }

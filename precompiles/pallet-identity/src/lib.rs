@@ -1,12 +1,19 @@
-use fp_evm::{Context, Precompile, PrecompileOutput};
+use enumflags2::BitFlags;
+use fp_evm::{Context, ExitSucceed, Precompile, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::tokens::currency::Currency,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::{EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer};
+use pallet_identity::{IdentityField, IdentityFields};
+use precompile_utils::{
+	Address, EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
+};
 use sp_core::{H160, U256};
-use sp_std::{convert::TryFrom, marker::PhantomData};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+};
 
 // Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
@@ -77,6 +84,12 @@ where
 
 		match selector {
 			Action::SetIdentity => Self::set_identity(input, gasometer, context),
+			Action::SetSubs => Self::set_subs(input, gasometer, context),
+			Action::ClearIdentity => Self::clear_identity(input, gasometer, context),
+			Action::RequestJudgement => Self::request_judgement(input, gasometer, context),
+			Action::CancelRequest => Self::cancel_request(input, gasometer, context),
+			Action::SetFee => Self::set_fee(input, gasometer, context),
+			Action::SetAccountId => Self::set_account_id(input, gasometer, context),
 			_ => todo!(),
 		}
 	}
@@ -112,5 +125,170 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
+	}
+
+	fn set_subs(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let subs: Vec<Sub> = input.read(gasometer)?;
+		let subs: Vec<_> = subs
+			.into_iter()
+			.map(|x| {
+				(
+					Runtime::AddressMapping::into_account_id(x.sub_account),
+					x.identity_data,
+				)
+			})
+			.collect();
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::set_subs { subs };
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn clear_identity(
+		_: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::clear_identity {};
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn request_judgement(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let reg_index: u32 = input.read(gasometer)?;
+		let max_fee: U256 = input.read(gasometer)?;
+		let max_fee = Self::u256_to_amount(gasometer, max_fee)?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::request_judgement { reg_index, max_fee };
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn cancel_request(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let reg_index: u32 = input.read(gasometer)?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::cancel_request { reg_index };
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn set_fee(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let index: u32 = input.read(gasometer)?;
+		let fee: U256 = input.read(gasometer)?;
+		let fee = Self::u256_to_amount(gasometer, fee)?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::set_fee { index, fee };
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn set_account_id(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let index: u32 = input.read(gasometer)?;
+		let new: Address = input.read(gasometer)?;
+		let new = Runtime::AddressMapping::into_account_id(new.0);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_identity::Call::<Runtime>::set_account_id { index, new };
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn set_fields(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let index: u32 = input.read(gasometer)?;
+		let fields: u64 = input.read(gasometer)?;
+		let fields: BitFlags<IdentityField> = BitFlags::from_bits(fields).unwrap();
+		
+		// Not possible yet in Substrate. Openned a PR.
+		let fields = IdentityFields(fields);
+		todo!()
+
+		// let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		// let call = pallet_identity::Call::<Runtime>::set_account_id { index, new };
+
+		// RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		// Ok(PrecompileOutput {
+		// 	exit_status: ExitSucceed::Stopped,
+		// 	cost: gasometer.used_gas(),
+		// 	output: Default::default(),
+		// 	logs: Default::default(),
+		// })
+	}
+
+	fn u256_to_amount(gasometer: &mut Gasometer, value: U256) -> EvmResult<BalanceOf<Runtime>> {
+		value
+			.try_into()
+			.map_err(|_| gasometer.revert("amount is too large for balance type"))
 	}
 }

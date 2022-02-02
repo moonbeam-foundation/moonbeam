@@ -9,6 +9,7 @@ version = "0.1.0"
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 slices = "0.2.0"
+enumflags2 = { version = "0.6.4", default-features = false }
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
