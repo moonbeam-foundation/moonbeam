@@ -4,7 +4,7 @@ authors = [ "PureStake" ]
 edition = "2018"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.17.0"
+version = "0.19.0"
 
 [dependencies]
 ansi_term = "0.12.1"
@@ -32,6 +32,7 @@ trie-root = "0.15.2"
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 manual-xcm-rpc = { path = "../../client/rpc/manual-xcm" }
 moonbeam-core-primitives = { path = "../../core-primitives" }
+moonbeam-finality-rpc = { path = "../../client/rpc/finality" }
 moonbeam-primitives-ext = { path = "../../primitives/ext" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }

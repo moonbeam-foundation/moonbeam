@@ -94,8 +94,7 @@ use xcm::latest::prelude::*;
 
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
-	XcmFeesToAccount, XcmTransact,
+	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use cumulus_primitives_core::{
@@ -173,7 +172,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 1100,
+	spec_version: 1200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -663,6 +662,7 @@ impl pallet_ethereum::Config for Runtime {
 parameter_types! {
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	pub IsActive: bool = false;
+	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
 }
 
 pub struct BaseFeeThreshold;
@@ -682,6 +682,7 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	type IsActive = IsActive;
+	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
 parameter_types! {
@@ -721,8 +722,10 @@ parameter_types! {
 	pub const RewardPaymentDelay: u32 = 2;
 	/// Minimum collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum delegators counted per candidate
-	pub const MaxDelegatorsPerCandidate: u32 = 300;
+	/// Maximum top delegations per candidate
+	pub const MaxTopDelegationsPerCandidate: u32 = 300;
+	/// Maximum bottom delegations per candidate
+	pub const MaxBottomDelegationsPerCandidate: u32 = 50;
 	/// Maximum delegations per delegator
 	pub const MaxDelegationsPerDelegator: u32 = 100;
 	/// Default fixed percent a collator takes off the top of due rewards
@@ -749,7 +752,8 @@ impl parachain_staking::Config for Runtime {
 	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxDelegatorsPerCandidate = MaxDelegatorsPerCandidate;
+	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
+	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
@@ -925,11 +929,18 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		runtime_common::migrations::XcmMigrations<
+			Runtime,
+			StatemineParaId,
+			StatemineAssetPalletInstance,
+		>,
+	);
 }
 
 parameter_types! {
@@ -1040,7 +1051,7 @@ parameter_types! {
 /// This is the struct that will handle the revenue from xcm fees
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
-pub type XcmFeesToAccount_ = XcmFeesToAccount<
+pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	Assets,
 	(
 		ConvertedConcreteAssetId<
@@ -1069,7 +1080,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type Weigher = XcmWeigher;
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>;
+	type Trader = FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -1163,6 +1174,13 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	// Statemine ParaId in kusama
+	pub StatemineParaId: u32 = 1000;
+	// Assets Pallet instance in Statemine kusama
+	pub StatemineAssetPalletInstance: u8 = 50;
+}
+
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -1176,10 +1194,25 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map the previous location to the new one so that the assetId is well retrieved
+			MultiLocation {
+				parents: 1,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemineParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemineAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
+			_ => Self::Xcm(location),
+		}
 	}
 }
-
 impl Into<Option<MultiLocation>> for AssetType {
 	fn into(self: Self) -> Option<MultiLocation> {
 		match self {
@@ -1864,9 +1897,10 @@ mod tests {
 	}
 
 	#[test]
-	// Required migration is parachain_staking::migrations::IncreaseMaxDelegatorsPerCandidate
+	// Required migration is parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
-		assert_eq!(MaxDelegatorsPerCandidate::get(), 300);
+		assert_eq!(MaxTopDelegationsPerCandidate::get(), 300);
+		assert_eq!(MaxBottomDelegationsPerCandidate::get(), 50);
 	}
 }

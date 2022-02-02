@@ -179,7 +179,7 @@ impl SubstrateCli for RelayChainCli {
 		match id {
 			#[cfg(feature = "westend-native")]
 			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v8.json")[..],
+				&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.

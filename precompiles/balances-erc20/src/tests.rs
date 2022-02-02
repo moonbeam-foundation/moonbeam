@@ -190,6 +190,67 @@ fn approve() {
 }
 
 #[test]
+fn approve_saturating() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::MAX)
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(true).build(),
+					cost: 1756u64,
+					logs: LogsBuilder::new(Account::Precompile.into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::MAX).build(),
+						)
+						.build(),
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(u128::MAX)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+		});
+}
+
+#[test]
 fn check_allowance_existing() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000)])

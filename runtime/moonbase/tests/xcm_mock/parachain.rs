@@ -273,7 +273,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<AssetId, AssetType, AssetManager, XcmFeesToAccount_>,
+		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 
 	type ResponseHandler = PolkadotXcm;
@@ -573,6 +573,11 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = XcmVersioner;
 }
 
+parameter_types! {
+	pub StatemintParaId: u32 = 4;
+	pub StatemintAssetPalletInstance: u8 = 5;
+}
+
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -586,7 +591,23 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		Self::Xcm(location)
+		match location {
+			// Change https://github.com/paritytech/cumulus/pull/831
+			// This avoids interrumption once they upgrade
+			// We map the previous location to the new one so that the assetId is well retrieved
+			MultiLocation {
+				parents: 1,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if id == StatemintParaId::get() => Self::Xcm(MultiLocation {
+				parents: 1,
+				interior: X3(
+					Parachain(id),
+					PalletInstance(StatemintAssetPalletInstance::get()),
+					GeneralIndex(index),
+				),
+			}),
+			_ => Self::Xcm(location),
+		}
 	}
 }
 

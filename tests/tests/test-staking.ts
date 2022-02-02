@@ -26,11 +26,10 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 
   it("should have collator state as defined in the specs", async function () {
-    const collator = await context.polkadotApi.query.parachainStaking.candidateState(
+    const collator = await context.polkadotApi.query.parachainStaking.candidateInfo(
       COLLATOR_ACCOUNT
     );
-    expect(collator.toHuman()["id"]).equal(COLLATOR_ACCOUNT);
-    expect(collator.toHuman()["state"]).equal("Active");
+    expect(collator.toHuman()["status"]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
