@@ -1,16 +1,20 @@
+import "@polkadot/api-augment";
 import { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import { provideWeb3Api, provideEthersApi, providePolkadotApi, EnhancedWeb3 } from "./providers";
 import { DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+import fs from "fs";
 import chalk from "chalk";
 import {
+  getRuntimeWasm,
   NodePorts,
   ParachainOptions,
   ParachainPorts,
   startParachainNodes,
   stopParachainNodes,
 } from "./para-node";
+import { KeyringPair } from "@substrate/txwrapper-core";
 const debug = require("debug")("test:setup");
 
 export interface ParaTestContext {
@@ -20,6 +24,11 @@ export interface ParaTestContext {
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
   waitBlocks: (count: number) => Promise<number>; // returns current block when the promise resolves
+  upgradeRuntime: (
+    from: KeyringPair,
+    runtimeName: "moonbase" | "moonriver" | "moonbeam",
+    runtimeVersion: string
+  ) => Promise<void>;
   blockNumber: number;
 
   // We also provided singleton providers for simplicity
@@ -143,7 +152,6 @@ export function describeParachain(
       };
 
       let pendingPromises = [];
-      let unsubNewBlock = null;
       const subBlocks = async (api) => {
         return api.rpc.chain.subscribeNewHeads(async (header) => {
           context.blockNumber = header.number.toNumber();
@@ -167,26 +175,54 @@ export function describeParachain(
       context.polkadotApiParaone = await context.createPolkadotApiParachains();
       subBlocks(context.polkadotApiParaone);
 
-      let isInitialVersion = true;
-      context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(async (version) => {
-        if (!isInitialVersion) {
-          console.log(
-            `☸ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
-          );
-          // We have to reload the polkadotjs api otherwise it fails to perform more queries
-          unsubNewBlock();
-          context.polkadotApiParaone = await context.createPolkadotApiParachains();
-          unsubNewBlock = await subBlocks(context.polkadotApiParaone);
-        }
-        isInitialVersion = false;
-      });
-
       context.waitBlocks = async (count: number) => {
         return new Promise<number>((resolve) => {
           pendingPromises.push({
             blockNumber: context.blockNumber + count,
             resolve,
           });
+        });
+      };
+
+      context.upgradeRuntime = async (
+        from: KeyringPair,
+        runtimeName: "moonbase" | "moonriver" | "moonbeam",
+        runtimeVersion: string
+      ) => {
+        return new Promise<void>(async (resolve) => {
+          const code = fs
+            .readFileSync(await getRuntimeWasm(runtimeName, runtimeVersion))
+            .toString();
+
+          process.stdout.write(
+            `Sending sudo.setCode (${code.slice(0, 6)}...${code.slice(-6)} [~${Math.floor(
+              code.length / 1024
+            )} kb])...`
+          );
+          await context.polkadotApiParaone.tx.sudo
+            .sudoUncheckedWeight(
+              await context.polkadotApiParaone.tx.system.setCodeWithoutChecks(code),
+              1
+            )
+            .signAndSend(from);
+          process.stdout.write(`✅\n`);
+
+          process.stdout.write(`Waiting to apply new runtime (${chalk.red(`~4min`)})...`);
+          let isInitialVersion = true;
+          const unsub = await context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(
+            async (version) => {
+              if (!isInitialVersion) {
+                console.log(
+                  `✅ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
+                );
+                unsub();
+                await context.waitBlocks(1); // Wait for next block to have the new runtime applied
+                resolve();
+              }
+              isInitialVersion = false;
+            }
+          );
+          process.stdout.write(`✅\n`);
         });
       };
       context.web3 = await context.createWeb3();

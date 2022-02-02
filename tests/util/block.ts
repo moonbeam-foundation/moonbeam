@@ -3,7 +3,6 @@ import {
   BlockHash,
   DispatchError,
   DispatchInfo,
-  EventRecord,
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
@@ -12,7 +11,9 @@ import type { TxWithEvent } from "@polkadot/api-derive/types";
 import Debug from "debug";
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 const debug = Debug("blocks");
+import "@polkadot/api-augment";
 
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -51,7 +52,7 @@ export interface BlockDetails {
 
 export function mapExtrinsics(
   extrinsics: Extrinsic[],
-  records: EventRecord[],
+  records: FrameSystemEventRecord[],
   fees?: RuntimeDispatchInfo[]
 ): TxWithEventAndFee[] {
   return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
@@ -63,14 +64,14 @@ export function mapExtrinsics(
       .map(({ event }) => {
         if (event.section === "system") {
           if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as DispatchInfo;
+            dispatchInfo = event.data[0] as any as DispatchInfo;
           } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as DispatchError;
-            dispatchInfo = event.data[1] as DispatchInfo;
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
           }
         }
 
-        return event;
+        return event as any;
       });
 
     return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
@@ -82,7 +83,7 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<B
 
   const [{ block }, records] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
-    api.query.system.events.at(blockHash),
+    await (await api.at(blockHash)).query.system.events(),
   ]);
 
   const fees = await Promise.all(
