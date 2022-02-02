@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { createTransfer } from "../util/transactions";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { TEST_ACCOUNT } from "../util/constants";
 
 describeDevMoonbeam("Transaction Index", (context) => {
   before("Setup: Create block with transaction", async () => {
-    const testAccount = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
-      transactions: [await createTransfer(context, testAccount, 0)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 0)],
     });
   });
   it("should get transaction by index", async function () {
