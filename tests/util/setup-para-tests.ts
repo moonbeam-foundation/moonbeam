@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { provideWeb3Api, provideEthersApi, providePolkadotApi, EnhancedWeb3 } from "./providers";
 import { DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+import chalk from "chalk";
 import {
   NodePorts,
   ParachainOptions,
@@ -15,8 +16,11 @@ const debug = require("debug")("test:setup");
 export interface ParaTestContext {
   createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
+  createPolkadotApiParachain: (parachainNumber) => Promise<ApiPromise>;
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
+  waitBlocks: (count: number) => Promise<number>; // returns current block when the promise resolves
+  blockNumber: number;
 
   // We also provided singleton providers for simplicity
   web3: EnhancedWeb3;
@@ -84,6 +88,14 @@ export function describeParachain(
         return provider;
       };
       context.createEthers = async () => provideEthersApi(init.paraPorts[0].ports[0].rpcPort);
+      context.createPolkadotApiParachain = async (parachainNumber: number) => {
+        const promise = providePolkadotApi(init.paraPorts[parachainNumber].ports[0].wsPort);
+        context._polkadotApiParachains.push({
+          parachainId: init.paraPorts[parachainNumber].parachainId,
+          apis: [await promise],
+        });
+        return promise;
+      };
       context.createPolkadotApiParachains = async () => {
         const apiPromises = await Promise.all(
           init.paraPorts.map(async (parachain: ParachainPorts) => {
@@ -130,8 +142,53 @@ export function describeParachain(
         return apiPromises[0];
       };
 
+      let pendingPromises = [];
+      let unsubNewBlock = null;
+      const subBlocks = async (api) => {
+        return api.rpc.chain.subscribeNewHeads(async (header) => {
+          context.blockNumber = header.number.toNumber();
+          if (context.blockNumber == 0) {
+            console.log(
+              `Starting to listen for new blocks. production will start in ${chalk.red(`1 minute`)}`
+            );
+          }
+
+          let i = pendingPromises.length;
+          while (i--) {
+            const pendingPromise = pendingPromises[i];
+            if (pendingPromise.blockNumber <= context.blockNumber) {
+              pendingPromises.splice(i, 1);
+              pendingPromise.resolve(context.blockNumber);
+            }
+          }
+        });
+      };
+
       context.polkadotApiParaone = await context.createPolkadotApiParachains();
-      await context.createPolkadotApiRelaychains();
+      subBlocks(context.polkadotApiParaone);
+
+      let isInitialVersion = true;
+      context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(async (version) => {
+        if (!isInitialVersion) {
+          console.log(
+            `☸ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
+          );
+          // We have to reload the polkadotjs api otherwise it fails to perform more queries
+          unsubNewBlock();
+          context.polkadotApiParaone = await context.createPolkadotApiParachains();
+          unsubNewBlock = await subBlocks(context.polkadotApiParaone);
+        }
+        isInitialVersion = false;
+      });
+
+      context.waitBlocks = async (count: number) => {
+        return new Promise<number>((resolve) => {
+          pendingPromises.push({
+            blockNumber: context.blockNumber + count,
+            resolve,
+          });
+        });
+      };
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
       debug(

@@ -1,13 +1,9 @@
 import tcpPortUsed from "tcp-port-used";
 import path from "path";
+import fs from "fs";
+import child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import {
-  BINARY_PATH,
-  RELAY_BINARY_PATH,
-  DISPLAY_LOG,
-  SPAWNING_TIME,
-  RELAY_CHAIN_NODE_NAMES,
-} from "./constants";
+import { BINARY_PATH, RELAY_BINARY_PATH, RELAY_CHAIN_NODE_NAMES } from "./constants";
 const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts(parachainCount: number = 1) {
@@ -62,6 +58,12 @@ export type ParachainOptions = {
     | "moonriver"
     | "moonbeam";
   relaychain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
+  // specify the version of the binary using tag. Ex: "v0.18.1"
+  // "local" uses target/release/moonbeam binary
+  binary?: "local" | string;
+  // specify the version of the runtime using tag. Ex: "runtime-1103"
+  // "local" uses target/release/wbuild/<runtime>-runtime/<runtime>_runtime.compact.compressed.wasm
+  runtime?: "local" | string;
   numberOfParachains?: number;
 };
 
@@ -74,6 +76,97 @@ export interface NodePorts {
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
+}
+
+const RUNTIME_DIRECTORY = "../runtimes/";
+const BINARY_DIRECTORY = "../binaries/";
+const SPECS_DIRECTORY = "../specs/";
+
+// Downloads the runtime and return the filepath
+export async function getRuntimeWasm(
+  runtimeName: "moonbase" | "moonriver" | "moonbeam",
+  runtimeTag: string
+): Promise<string> {
+  const runtimePath = path.join(__dirname, RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
+
+  if (runtimeTag == "local") {
+    const builtRuntimePath = path.join(
+      __dirname,
+      `../../target/release/wbuild/${runtimeName}-runtime/`,
+      `${runtimeName}_runtime.compact.compressed.wasm`
+    );
+
+    const code = fs.readFileSync(builtRuntimePath);
+    fs.writeFileSync(runtimePath, `0x${code.toString("hex")}`);
+  } else if (!fs.existsSync(runtimePath)) {
+    console.log(`     Missing ${runtimePath} locally, downloading it...`);
+    child_process.execSync(
+      `mkdir -p ${path.dirname(runtimePath)} && ` +
+        `wget https://github.com/PureStake/moonbeam/releases/` +
+        `download/${runtimeTag}/${runtimeName}-${runtimeTag}.wasm ` +
+        `-O ${runtimePath}`
+    );
+    console.log(`${runtimePath} downloaded !`);
+  }
+  return runtimePath;
+}
+
+// Downloads the binary and return the filepath
+export async function getMoonbeamReleaseBinary(binaryTag: string): Promise<string> {
+  const binaryPath = path.join(__dirname, BINARY_DIRECTORY, `moonbeam-${binaryTag}`);
+  if (!fs.existsSync(binaryPath)) {
+    console.log(`     Missing ${binaryPath} locally, downloading it...`);
+    child_process.execSync(
+      `mkdir -p ${path.dirname(binaryPath)} &&` +
+        ` wget https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam` +
+        ` -O ${binaryPath} &&` +
+        ` chmod u+x ${binaryPath}`
+    );
+    console.log(`${binaryPath} downloaded !`);
+  }
+  return binaryPath;
+}
+
+export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string> {
+  const sha = child_process.execSync(`git rev-list -1 ${binaryTag}`);
+  if (!sha) {
+    console.error(`Invalid runtime tag ${binaryTag}`);
+    return;
+  }
+  const sha8 = sha.slice(0, 8);
+
+  const binaryPath = path.join(__dirname, BINARY_DIRECTORY, `moonbeam-${sha8}`);
+  if (!fs.existsSync(binaryPath)) {
+    if (process.platform != "linux") {
+      console.error(`docker binaries are only supported on linux.`);
+      process.exit(1);
+    }
+    const dockerImage = `purestake/moonbeam:sha-${sha8}`;
+
+    console.log(`     Missing ${binaryPath} locally, downloading it...`);
+    child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
+        docker create --name moonbeam-tmp ${dockerImage} && \
+        docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
+        docker rm moonbeam-tmp`);
+    console.log(`${binaryPath} downloaded !`);
+  }
+  return binaryPath;
+}
+
+export async function getRawSpecsFromTag(
+  runtimeName: "moonbase" | "moonriver" | "moonbeam",
+  tag: string
+) {
+  const specPath = path.join(__dirname, SPECS_DIRECTORY, `${runtimeName}-${tag}-raw-specs.json`);
+  if (!fs.existsSync(specPath)) {
+    const binaryPath = await getMoonbeamDockerBinary(tag);
+
+    child_process.execSync(
+      `mkdir -p ${path.dirname(specPath)} && ` +
+        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+    );
+  }
+  return specPath;
 }
 
 // This will start a parachain node, only 1 at a time (check every 100ms).
@@ -91,11 +184,9 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   }
   const relaychain = options.relaychain || "rococo-local";
   // For now we only support one, two or three parachains
-  const numberOfParachains =
-    (options.numberOfParachains < 4 &&
-      options.numberOfParachains > 0 &&
-      options.numberOfParachains) ||
-    1;
+  const numberOfParachains = [1, 2, 3].includes(options.numberOfParachains)
+    ? options.numberOfParachains
+    : 1;
   const parachainArray = new Array(numberOfParachains).fill(0);
   nodeStarted = true;
   // Each node will have 3 ports. There are 2 nodes per parachain, and as many relaychain nodes.
@@ -119,6 +210,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     });
   });
 
+  const chain = options.chain || "moonbase-local";
+  const specs =
+    !options.runtime || options.runtime == "local"
+      ? chain
+      : await getRawSpecsFromTag(chain.split("-")[0] as any, options.runtime);
+  const paraBinary =
+    !options.binary || options.binary == "local"
+      ? BINARY_PATH
+      : await getMoonbeamReleaseBinary(options.binary);
+
+  console.log(specs);
   // Build launchConfig
   const launchConfig = {
     relaychain: {
@@ -138,7 +240,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             configuration: {
               config: {
                 validation_upgrade_frequency: 1,
-                validation_upgrade_delay: 1,
+                validation_upgrade_delay: 30,
               },
             },
           },
@@ -147,8 +249,8 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
     },
     parachains: parachainArray.map((_, i) => {
       return {
-        bin: BINARY_PATH,
-        chain: options.chain,
+        bin: paraBinary,
+        chain: specs,
         nodes: [
           {
             port: ports[i * 2 + numberOfParachains + 1].p2pPort,
@@ -158,9 +260,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             flags: [
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
+              "--no-mdns",
+              "--no-prometheus",
+              "--no-telemetry",
+              "--no-private-ipv4",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--no-mdns",
+              "--no-prometheus",
+              "--no-telemetry",
+              "--no-private-ipv4",
             ],
           },
           {
@@ -171,9 +281,17 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             flags: [
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
+              "--no-mdns",
+              "--no-prometheus",
+              "--no-telemetry",
+              "--no-private-ipv4",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--no-mdns",
+              "--no-prometheus",
+              "--no-telemetry",
+              "--no-private-ipv4",
             ],
           },
         ],
@@ -229,8 +347,8 @@ export async function stopParachainNodes() {
   killAll();
   await new Promise((resolve) => {
     // TODO: improve, make killAll async https://github.com/paritytech/polkadot-launch/issues/139
-    console.log("Waiting 10 seconds for processes to shut down...");
-    setTimeout(resolve, 10000);
+    console.log("Waiting 5 seconds for processes to shut down...");
+    setTimeout(resolve, 5000);
     nodeStarted = false;
     console.log("... done");
   });
