@@ -389,6 +389,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          fetch-depth: 0
       - uses: actions/download-artifact@v2
         with:
           name: moonbeam
@@ -415,7 +416,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'para-tests/**/test-*.ts'
+          node_modules/.bin/mocha -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
