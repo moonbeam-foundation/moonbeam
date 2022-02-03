@@ -103,7 +103,10 @@ use xcm::latest::prelude::*;
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::{MoonbasePrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
+use precompiles::{
+	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+};
 
 use smallvec::smallvec;
 use xcm_primitives::{
@@ -425,7 +428,9 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
+		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
+		{
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
 			Some(asset_id)
@@ -435,9 +440,9 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	}
 
 	// The opposite conversion
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
 		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
+		data[0..4].copy_from_slice(prefix);
 		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
 		AccountId::from(data)
 	}
@@ -1028,8 +1033,13 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
-	pub LocalAssetsPalletLocation: MultiLocation =
-		PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8).into();
+	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -1083,7 +1093,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-/// Means for transacting assets besides the native currency on this chain.
+/// Means for transacting local assets besides the native currency on this chain.
 pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
@@ -1103,7 +1113,6 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// The account to use for tracking teleports.
 	(),
 >;
-/// M
 
 // We use both transactors
 pub type AssetTransactors = (
@@ -1402,7 +1411,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// TODO uncomment when we feel comfortable
 		/*
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
@@ -1422,31 +1431,37 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
 	fn create_local_asset(
 		asset: AssetId,
+		creator: AccountId,
 		min_balance: Balance,
-		metadata: AssetRegistrarMetadata,
 		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
-		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
 
 		// TODO uncomment when we feel comfortable
 		/*
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
 		);*/
+		Ok(())
+	}
+}
 
-		// Lastly, the metadata
-		LocalAssets::force_set_metadata(
-			Origin::root(),
-			asset,
-			metadata.name,
-			metadata.symbol,
-			metadata.decimals,
-			metadata.is_frozen,
-		)
+pub struct LocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
+	fn create_asset_id_from_account(account: AccountId) -> AssetId {
+		// Our means of converting a creator to an assetId
+		// We basically hash nonce+account
+		let mut result: [u8; 16] = [0u8; 16];
+		let account_info = System::account(account);
+		let mut to_hash = account.encode();
+		to_hash.append(&mut account_info.nonce.encode());
+		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+		u128::from_le_bytes(result)
 	}
 }
 
@@ -1467,6 +1482,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetRegistrar = AssetRegistrar;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1474,8 +1490,8 @@ impl pallet_asset_manager::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	AssetReserve(AssetId),
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
+	LocalAssetReserve(AssetId),
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -1485,7 +1501,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
 			_ => Runtime::account_to_asset_id(account)
-				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
+				.map(|asset_id| CurrencyId::ForeignAsset(asset_id)),
 		}
 	}
 }
@@ -1503,12 +1519,12 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::AssetReserve(asset) => {
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
 }
@@ -1600,6 +1616,7 @@ impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
 			Call::ForeignAssets(_) => false,
+			Call::LocalAssets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
@@ -1631,6 +1648,10 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::transfer_approved { .. } => true,
 				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
+			},
+			Call::LocalAssets(method) => match method {
+				pallet_assets::Call::create { .. } => false,
+				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis

@@ -78,7 +78,7 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 	fn account_to_asset_id(account: Account) -> Option<AssetId>;
 
 	// Get AccountId from AssetId
-	fn asset_id_to_account(asset_id: AssetId) -> Account;
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
 }
 
 /// The following distribution has been decided for the precompiles

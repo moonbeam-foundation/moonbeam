@@ -64,10 +64,7 @@ fn registering_local_works() {
 			1u64
 		));
 
-		expect_events(vec![crate::Event::LocalAssetRegistered(
-			0,
-			0,
-		)])
+		expect_events(vec![crate::Event::LocalAssetRegistered(0, 0)])
 	});
 }
 

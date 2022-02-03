@@ -288,7 +288,7 @@ where
 	T: AssetManagerConfig,
 	StatemineParaIdInfo: Get<u32>,
 	StatemineAssetsPalletInfo: Get<u8>,
-	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
+	T::ForeignAssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_Asset_Manager_ChangeStateminePrefixes"
@@ -370,7 +370,7 @@ where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	StatemineParaIdInfo: Get<u32> + 'static,
 	StatemineAssetsInstanceInfo: Get<u8> + 'static,
-	<Runtime as pallet_asset_manager::Config>::AssetType:
+	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {

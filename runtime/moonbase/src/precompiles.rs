@@ -64,7 +64,8 @@ impl Erc20Metadata for NativeErc20Metadata {
 
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet
-pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
@@ -101,6 +102,7 @@ where
 	// We require PrecompileSet here because indeed we are dealing with a set of precompiles
 	// This precompile set does additional checks, e.g., total supply not being 0
 	Erc20AssetsPrecompileSet<R, pallet_assets::Instance1>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, pallet_assets::Instance2>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
@@ -165,8 +167,13 @@ where
 				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, pallet_assets::Instance1>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, pallet_assets::Instance2>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -177,6 +184,7 @@ where
 			.find(|x| x == &R::AddressMapping::into_account_id(address))
 			.is_some() || Erc20AssetsPrecompileSet::<R, pallet_assets::Instance1>::new()
 			.is_precompile(address)
+			|| Erc20AssetsPrecompileSet::<R, pallet_assets::Instance2>::new().is_precompile(address)
 	}
 }
 
