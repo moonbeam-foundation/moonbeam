@@ -23,8 +23,6 @@ describeParachain(
       const keyring = new Keyring({ type: "ethereum" });
       const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      const code = fs.readFileSync(await getRuntimeWasm("moonbase", runtimeVersion)).toString();
-
       const maxTopDelegations = 360;
 
       // Creating delegator accounts
@@ -93,38 +91,7 @@ describeParachain(
       expect(candidateStatePreMigration.bottomDelegations).to.be.length(60);
       process.stdout.write(`✅: ${candidateStatePreMigration.delegators.length} delegators\n`);
 
-      process.stdout.write(
-        `Sending sudo.setCode (${code.slice(0, 6)}...${code.slice(-6)} [~${Math.floor(
-          code.length / 1024
-        )} kb])...`
-      );
-      await context.polkadotApiParaone.tx.sudo
-        .sudoUncheckedWeight(
-          await context.polkadotApiParaone.tx.system.setCode(
-            fs.readFileSync(await getRuntimeWasm("moonbase", "local")).toString()
-          ),
-          1
-        )
-        .signAndSend(alith);
-      process.stdout.write(`✅\n`);
-
-      process.stdout.write(`Waiting to apply new runtime (${chalk.red(`~4min`)})...`);
-      await new Promise<void>(async (resolve) => {
-        let isInitialVersion = true;
-        const unsub = await context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(
-          async (version) => {
-            if (!isInitialVersion) {
-              console.log(
-                `✅ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
-              );
-              unsub();
-              await context.waitBlocks(1); // Wait for next block to have the new runtime applied
-              resolve();
-            }
-            isInitialVersion = false;
-          }
-        );
-      });
+      await context.upgradeRuntime(alith, "moonbase", "local");
 
       // Uses new API to support new types
       const newApi = await context.createPolkadotApiParachain(0);

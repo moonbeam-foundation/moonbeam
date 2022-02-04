@@ -3,7 +3,12 @@ import path from "path";
 import fs from "fs";
 import child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
-import { BINARY_PATH, RELAY_BINARY_PATH, RELAY_CHAIN_NODE_NAMES } from "./constants";
+import {
+  BINARY_PATH,
+  OVERRIDE_RUNTIME_PATH,
+  RELAY_BINARY_PATH,
+  RELAY_CHAIN_NODE_NAMES,
+} from "./constants";
 const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts(parachainCount: number = 1) {
@@ -78,21 +83,20 @@ export interface NodePorts {
   wsPort: number;
 }
 
-const RUNTIME_DIRECTORY = "../runtimes/";
-const BINARY_DIRECTORY = "../binaries/";
-const SPECS_DIRECTORY = "../specs/";
+const RUNTIME_DIRECTORY = "runtimes";
+const BINARY_DIRECTORY = "binaries";
+const SPECS_DIRECTORY = "specs";
 
 // Downloads the runtime and return the filepath
 export async function getRuntimeWasm(
   runtimeName: "moonbase" | "moonriver" | "moonbeam",
   runtimeTag: string
 ): Promise<string> {
-  const runtimePath = path.join(__dirname, RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
+  const runtimePath = path.join(RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
 
   if (runtimeTag == "local") {
     const builtRuntimePath = path.join(
-      __dirname,
-      `../../target/release/wbuild/${runtimeName}-runtime/`,
+      OVERRIDE_RUNTIME_PATH || `../target/release/wbuild/${runtimeName}-runtime/`,
       `${runtimeName}_runtime.compact.compressed.wasm`
     );
 
@@ -113,7 +117,7 @@ export async function getRuntimeWasm(
 
 // Downloads the binary and return the filepath
 export async function getMoonbeamReleaseBinary(binaryTag: string): Promise<string> {
-  const binaryPath = path.join(__dirname, BINARY_DIRECTORY, `moonbeam-${binaryTag}`);
+  const binaryPath = path.join(BINARY_DIRECTORY, `moonbeam-${binaryTag}`);
   if (!fs.existsSync(binaryPath)) {
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(
@@ -135,7 +139,7 @@ export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string
   }
   const sha8 = sha.slice(0, 8);
 
-  const binaryPath = path.join(__dirname, BINARY_DIRECTORY, `moonbeam-${sha8}`);
+  const binaryPath = path.join(BINARY_DIRECTORY, `moonbeam-${sha8}`);
   if (!fs.existsSync(binaryPath)) {
     if (process.platform != "linux") {
       console.error(`docker binaries are only supported on linux.`);
@@ -157,7 +161,7 @@ export async function getRawSpecsFromTag(
   runtimeName: "moonbase" | "moonriver" | "moonbeam",
   tag: string
 ) {
-  const specPath = path.join(__dirname, SPECS_DIRECTORY, `${runtimeName}-${tag}-raw-specs.json`);
+  const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-${tag}-raw-specs.json`);
   if (!fs.existsSync(specPath)) {
     const binaryPath = await getMoonbeamDockerBinary(tag);
 
@@ -312,7 +316,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
 
-  await run(path.join(__dirname, "../"), launchConfig);
+  await run("", launchConfig);
 
   return {
     relayPorts: new Array(numberOfParachains + 1).fill(0).map((_, i) => {
