@@ -6,6 +6,7 @@ members = [
 	"client/rpc/manual-xcm",
 	"client/vrf",
 	"node",
+	"triplet",
 	"node/cli",
 	"node/service",
 	"pallets/maintenance-mode",
