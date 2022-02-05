@@ -13104,6 +13104,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "triplet"
+version = "0.12.3"
+dependencies = [
+ "log",
+ "parity-scale-codec",
+ "safe-mix",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "trust-dns-proto"
 version = "0.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
