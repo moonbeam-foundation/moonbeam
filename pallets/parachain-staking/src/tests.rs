@@ -1650,7 +1650,7 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 		});
 }
 
-// NOMINATE
+// DELEGATE
 
 #[test]
 fn delegate_event_emits_correctly() {
@@ -1751,6 +1751,77 @@ fn can_delegate_if_revoking() {
 				1
 			));
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 4, 10, 0, 2));
+		});
+}
+
+#[test]
+fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 10),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::delegate(Origin::signed(11), 1, 10, 8, 0),
+				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull
+			);
+		});
+}
+
+#[test]
+fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 11),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegate(Origin::signed(11), 1, 11, 8, 0));
+			assert_event_emitted!(Event::DelegationKicked(10, 1, 10));
+			assert_event_emitted!(Event::DelegatorLeft(10, 10));
 		});
 }
 

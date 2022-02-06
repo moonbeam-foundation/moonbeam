@@ -546,7 +546,7 @@ pub mod pallet {
 						if matches!(self.bottom_capacity, CapacityStatus::Full) {
 							ensure!(
 								delegation.amount.into() > self.lowest_bottom_delegation_amount,
-								Error::<T>::CannotDelegateLessThanLowestBottomWhenBottomIsFull
+								Error::<T>::CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull
 							);
 							// need to subtract from total staked
 							less_total_staked = Some(self.lowest_bottom_delegation_amount);
@@ -1934,7 +1934,7 @@ pub mod pallet {
 		PendingDelegationRequestDNE,
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
-		CannotDelegateLessThanLowestBottomWhenBottomIsFull,
+		CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull,
 	}
 
 	#[pallet::event]
@@ -2789,8 +2789,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
-			// will_be_in_top: bool // weight hint
-			// look into returning weight in DispatchResult
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
