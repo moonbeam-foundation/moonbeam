@@ -546,7 +546,7 @@ pub mod pallet {
 						if matches!(self.bottom_capacity, CapacityStatus::Full) {
 							ensure!(
 								delegation.amount.into() > self.lowest_bottom_delegation_amount,
-								Error::<T>::CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull
+								Error::<T>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 							);
 							// need to subtract from total staked
 							less_total_staked = Some(self.lowest_bottom_delegation_amount);
@@ -1934,7 +1934,7 @@ pub mod pallet {
 		PendingDelegationRequestDNE,
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
-		CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull,
+		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
 	}
 
 	#[pallet::event]

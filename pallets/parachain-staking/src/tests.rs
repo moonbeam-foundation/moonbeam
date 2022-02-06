@@ -1785,7 +1785,7 @@ fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom()
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::delegate(Origin::signed(11), 1, 10, 8, 0),
-				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenBottomIsFull
+				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 			);
 		});
 }
