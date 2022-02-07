@@ -1166,6 +1166,26 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 					if output == b"unknown selector"
 				);
 			};
+			{
+				assert_matches!(
+					precompiles().execute(
+						Account::ForeignAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Burn)
+							.write(Address(Account::Bob.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::ForeignAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output, .. }))
+					if output == b"unknown selector"
+				);
+			};
 		});
 }
 
@@ -1244,6 +1264,89 @@ fn mint_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(U256::from(400)).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn burn_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Burn)
+							.write(Address(Account::Alice.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 55760756u64, // 1 weight => 1 gas in mock
+						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
+							.log3(
+								SELECTOR_LOG_TRANSFER,
+								Account::Alice,
+								Account::Zero,
+								EvmDataWriter::new().write(U256::from(400)).build(),
+							)
+							.build(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::BalanceOf)
+							.write(Address(Account::Alice.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(U256::from(600)).build(),
 						cost: Default::default(),
 						logs: Default::default(),
 					}))
