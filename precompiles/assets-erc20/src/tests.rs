@@ -1354,3 +1354,835 @@ fn burn_local_assets() {
 			};
 		});
 }
+
+#[test]
+fn freeze_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Bob.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Freeze)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 32845000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_matches!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Transfer)
+							.write(Address(Account::Alice.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output: str, ..}))
+						if from_utf8(&str).unwrap()
+							.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&str).unwrap().contains("Frozen")
+				);
+			};
+		});
+}
+
+#[test]
+fn thaw_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Bob.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Freeze)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 32845000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Thaw)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 33303000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Transfer)
+							.write(Address(Account::Alice.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 83206756u64, // 1 weight => 1 gas in mock
+						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
+							.log3(
+								SELECTOR_LOG_TRANSFER,
+								Account::Bob,
+								Account::Alice,
+								EvmDataWriter::new().write(U256::from(400)).build(),
+							)
+							.build(),
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn freeze_asset_local_asset() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Bob.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 23434000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_matches!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Transfer)
+							.write(Address(Account::Alice.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output: str, ..}))
+						if from_utf8(&str).unwrap()
+							.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&str).unwrap().contains("Frozen")
+				);
+			};
+		});
+}
+
+#[test]
+fn thaw_asset_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Bob.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 23434000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::ThawAsset).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 24173000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Transfer)
+							.write(Address(Account::Alice.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 83206756u64, // 1 weight => 1 gas in mock
+						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
+							.log3(
+								SELECTOR_LOG_TRANSFER,
+								Account::Bob,
+								Account::Alice,
+								EvmDataWriter::new().write(U256::from(400)).build(),
+							)
+							.build(),
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn transfer_ownership_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::TransferOwnership)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 27466000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				// Now Bob should be able to change ownership, and not Alice
+				assert_matches!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::TransferOwnership)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output: str, ..}))
+						if from_utf8(&str).unwrap()
+							.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&str).unwrap().contains("NoPermission")
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::TransferOwnership)
+							.write(Address(Account::Alice.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 27466000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn set_team_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::SetTeam)
+							.write(Address(Account::Bob.into()))
+							.write(Address(Account::Bob.into()))
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 24608000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				// Now Bob should be able to mint, and not Alice
+				assert_matches!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Mint)
+							.write(Address(Account::Bob.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output: str, ..}))
+						if from_utf8(&str).unwrap()
+							.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&str).unwrap().contains("NoPermission")
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Mint)
+							.write(Address(Account::Bob.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 47914756u64, // 1 weight => 1 gas in mock
+						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
+							.log3(
+								SELECTOR_LOG_TRANSFER,
+								Account::Zero,
+								Account::Bob,
+								EvmDataWriter::new().write(U256::from(400)).build(),
+							)
+							.build(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::BalanceOf)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(U256::from(400)).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn set_metadata() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::SetMetadata)
+							.write::<Bytes>("TestToken".into())
+							.write::<Bytes>("Test".into())
+							.write::<u8>(12)
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 49548000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Name).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new()
+							.write::<Bytes>("TestToken".into())
+							.build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write::<Bytes>("Test".into()).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							// Alice sending transferFrom herself, no need for allowance.
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(12u8).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn clear_metadata() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::SetMetadata)
+							.write::<Bytes>("TestToken".into())
+							.write::<Bytes>("Test".into())
+							.write::<u8>(12)
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 49548000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::ClearMetadata).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 48163000u64, // 1 weight => 1 gas in mock
+						logs: vec![],
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Name).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write::<Bytes>("".into()).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write::<Bytes>("".into()).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(0u8).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
+			};
+		});
+}
