@@ -1395,7 +1395,7 @@ export const contractSources: { [key: string]: string } = {
                 author_mapping.clear_association(nimbus_id);
             }
     }`,
-  LocalAssetExtendedErc20: `
+  LocalAssetExtendedErc20Instance: `
     pragma solidity ^0.8.0;
 
     /**
@@ -1590,11 +1590,11 @@ export const contractSources: { [key: string]: string } = {
     );
     }
 
-    contract LocalAssetERC20Instance is LocalAssetExtendedErc20 {
+    contract LocalAssetExtendedErc20Instance is LocalAssetExtendedErc20 {
 
         /// The ierc20 at the known pre-compile address.
-        LocalAssetExtendedErc20 public localasseterc20 = LocalAssetExtendedErc20(0xFffFfFFE1FCacBD218EDc0ebA20Fc2308C778080);
-        address localasseterc20address = 0xFffFfFFE1FCacBD218EDc0ebA20Fc2308C778080;
+        LocalAssetExtendedErc20 public localasseterc20 = LocalAssetExtendedErc20(0xfffFFffEAFc30AfB95B7B8425a4Ae7a98D9941E1);
+        address localasseterc20address = 0xfffFFffEAFc30AfB95B7B8425a4Ae7a98D9941E1;
 
             receive() external payable {
             // React to receiving ether
