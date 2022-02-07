@@ -19,7 +19,7 @@
 //!
 //! This pallet allows to register new assets if certain conditions are met
 //! The main goal of this pallet is to allow moonbeam to register XCM assets
-//! The assumption is we work with AssetTypes, which can then be compered to AssetIds
+//! The assumption is we work with AssetTypes, which can then be compared to AssetIds
 //!
 //! This pallet has three storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should be
