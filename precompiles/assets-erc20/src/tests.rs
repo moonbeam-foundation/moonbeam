@@ -1226,6 +1226,28 @@ fn mint_local_assets() {
 							.build(),
 					}))
 				);
+
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::BalanceOf)
+							.write(Address(Account::Bob.into()))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Bob.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(U256::from(400)).build(),
+						cost: Default::default(),
+						logs: Default::default(),
+					}))
+				);
 			};
 		});
 }
