@@ -38,6 +38,14 @@ pub type BlockNumber = u64;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
 
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet
+pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
+
 /// A simple account type.
 #[derive(
 	Eq,
@@ -59,7 +67,8 @@ pub enum Account {
 	Bob,
 	Charlie,
 	Bogus,
-	AssetId(AssetId),
+	ForeignAssetId(AssetId),
+	LocalAssetId(AssetId),
 }
 
 impl Default for Account {
@@ -80,7 +89,11 @@ impl AddressMapping<Account> for Account {
 				if prefix_part == &[255u8; 4] {
 					data.copy_from_slice(id_part);
 
-					return Self::AssetId(u128::from_be_bytes(data));
+					return Self::ForeignAssetId(u128::from_be_bytes(data));
+				} else if prefix_part == &[255u8, 255u8, 255u8, 254u8] {
+					data.copy_from_slice(id_part);
+
+					return Self::LocalAssetId(u128::from_be_bytes(data));
 				}
 				Self::Bogus
 			}
@@ -94,13 +107,19 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
 		match account {
-			Account::AssetId(asset_id) => Some(asset_id),
+			Account::ForeignAssetId(asset_id) => Some(asset_id),
+			Account::LocalAssetId(asset_id) => Some(asset_id),
 			_ => None,
 		}
 	}
 
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
-		Account::AssetId(asset_id)
+	// Not used for now
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
+		if prefix == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX {
+			Account::LocalAssetId(asset_id)
+		} else {
+			Account::ForeignAssetId(asset_id)
+		}
 	}
 }
 
@@ -110,10 +129,17 @@ impl From<Account> for H160 {
 			Account::Alice => H160::repeat_byte(0xAA),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::AssetId(asset_id) => {
+			Account::ForeignAssetId(asset_id) => {
 				let mut data = [0u8; 20];
 				let id_as_bytes = asset_id.to_be_bytes();
 				data[0..4].copy_from_slice(&[255u8; 4]);
+				data[4..20].copy_from_slice(&id_as_bytes);
+				H160::from_slice(&data)
+			}
+			Account::LocalAssetId(asset_id) => {
+				let mut data = [0u8; 20];
+				let id_as_bytes = asset_id.to_be_bytes();
+				data[0..4].copy_from_slice(&[255u8, 255u8, 255u8, 254u8]);
 				data[4..20].copy_from_slice(&id_as_bytes);
 				H160::from_slice(&data)
 			}
@@ -188,8 +214,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PrecompilesValue: Erc20AssetsPrecompileSet<Runtime> =
-		Erc20AssetsPrecompileSet(PhantomData);
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -201,7 +226,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = Erc20AssetsPrecompileSet<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
@@ -209,6 +234,9 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
+
+type ForeignAssetInstance = pallet_assets::Instance1;
+type LocalAssetInstance = pallet_assets::Instance2;
 
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
@@ -220,7 +248,23 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = 0;
 }
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -245,9 +289,10 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		ForeignAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>}
 	}
 );
 
@@ -282,5 +327,52 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+}
+
+/// Implement `Get<bool>` using the given const.
+/// to be replaced by frame_support::traits::ConstBool
+pub struct ConstBool<const T: bool>;
+
+impl<const T: bool> Get<bool> for ConstBool<T> {
+	fn get() -> bool {
+		T
+	}
+}
+
+#[derive(Default)]
+pub struct Precompiles<R>(PhantomData<R>);
+
+impl<R> PrecompileSet for Precompiles<R>
+where
+	Erc20AssetsPrecompileSet<R, ConstBool<false>, pallet_assets::Instance1>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, ConstBool<true>, pallet_assets::Instance2>: PrecompileSet,
+{
+	fn execute(
+		&self,
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
+		match address {
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
+			_ => None,
+		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+			.is_precompile(address)
 	}
 }

@@ -25,21 +25,21 @@ use pallet_evm::PrecompileSet;
 use precompile_utils::{EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 
-fn precompiles() -> Erc20AssetsPrecompileSet<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Assets::force_create(
+		assert_ok!(ForeignAssets::force_create(
 			Origin::root(),
 			0u128,
 			Account::Alice.into(),
 			true,
 			1
 		));
-		assert_ok!(Assets::mint(
+		assert_ok!(ForeignAssets::mint(
 			Origin::signed(Account::Alice),
 			0u128,
 			Account::Alice.into(),
@@ -50,11 +50,11 @@ fn selector_less_than_four_bytes() {
 
 		assert_matches!(
 			precompiles().execute(
-				Account::AssetId(0u128).into(),
+				Account::ForeignAssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&Context {
-					address: Account::AssetId(1u128).into(),
+					address: Account::ForeignAssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0u32),
 				},
@@ -69,14 +69,14 @@ fn selector_less_than_four_bytes() {
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Assets::force_create(
+		assert_ok!(ForeignAssets::force_create(
 			Origin::root(),
 			0u128,
 			Account::Alice.into(),
 			true,
 			1
 		));
-		assert_ok!(Assets::mint(
+		assert_ok!(ForeignAssets::mint(
 			Origin::signed(Account::Alice),
 			0u128,
 			Account::Alice.into(),
@@ -86,11 +86,11 @@ fn no_selector_exists_but_length_is_right() {
 
 		assert_matches!(
 			precompiles().execute(
-				Account::AssetId(0u128).into(),
+				Account::ForeignAssetId(0u128).into(),
 				&bogus_selector,
 				None,
 				&Context {
-					address: Account::AssetId(1u128).into(),
+					address: Account::ForeignAssetId(1u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0u32),
 				},
@@ -131,14 +131,14 @@ fn get_total_supply() {
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -146,11 +146,11 @@ fn get_total_supply() {
 			));
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -172,14 +172,14 @@ fn get_balances_known_user() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -187,13 +187,13 @@ fn get_balances_known_user() {
 			));
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -215,14 +215,14 @@ fn get_balances_unknown_user() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -230,13 +230,13 @@ fn get_balances_unknown_user() {
 			));
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -258,14 +258,14 @@ fn approve() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -274,14 +274,14 @@ fn approve() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -291,7 +291,7 @@ fn approve() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
 							Account::Alice,
@@ -310,14 +310,14 @@ fn approve_saturating() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -326,14 +326,14 @@ fn approve_saturating() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::MAX)
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -343,7 +343,7 @@ fn approve_saturating() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
 							Account::Alice,
@@ -356,14 +356,14 @@ fn approve_saturating() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -385,14 +385,14 @@ fn check_allowance_existing() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -400,14 +400,14 @@ fn check_allowance_existing() {
 			));
 
 			precompiles().execute(
-				Account::AssetId(0u128).into(),
+				Account::ForeignAssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
 					.build(),
 				None,
 				&Context {
-					address: Account::AssetId(0u128).into(),
+					address: Account::ForeignAssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
@@ -416,14 +416,14 @@ fn check_allowance_existing() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -445,14 +445,14 @@ fn check_allowance_not_existing() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -460,14 +460,14 @@ fn check_allowance_not_existing() {
 			));
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Allowance)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -489,14 +489,14 @@ fn transfer() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -505,14 +505,14 @@ fn transfer() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(400))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -522,7 +522,7 @@ fn transfer() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
 							Account::Alice,
@@ -535,13 +535,13 @@ fn transfer() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
@@ -557,13 +557,13 @@ fn transfer() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -585,14 +585,14 @@ fn transfer_not_enough_founds() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -601,14 +601,14 @@ fn transfer_not_enough_founds() {
 
 			assert_matches!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(Account::Charlie.into()))
 						.write(U256::from(50))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -628,14 +628,14 @@ fn transfer_from() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -643,14 +643,14 @@ fn transfer_from() {
 			));
 
 			precompiles().execute(
-				Account::AssetId(0u128).into(),
+				Account::ForeignAssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(500))
 					.build(),
 				None,
 				&Context {
-					address: Account::AssetId(0u128).into(),
+					address: Account::ForeignAssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
@@ -659,7 +659,7 @@ fn transfer_from() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Charlie.into()))
@@ -667,7 +667,7 @@ fn transfer_from() {
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
@@ -677,7 +677,7 @@ fn transfer_from() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 107172756u64, // 1 weight => 1 gas in mock
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
 							Account::Alice,
@@ -690,13 +690,13 @@ fn transfer_from() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -712,13 +712,13 @@ fn transfer_from() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Bob.into(),
 						apparent_value: From::from(0),
 					},
@@ -734,13 +734,13 @@ fn transfer_from() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Charlie.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Charlie.into(),
 						apparent_value: From::from(0),
 					},
@@ -762,14 +762,14 @@ fn transfer_from_non_incremental_approval() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -779,14 +779,14 @@ fn transfer_from_non_incremental_approval() {
 			// We first approve 500
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(500))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -796,7 +796,7 @@ fn transfer_from_non_incremental_approval() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 56999756u64,
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
 							Account::Alice,
@@ -813,14 +813,14 @@ fn transfer_from_non_incremental_approval() {
 			// need to clear the previous one
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::Approve)
 						.write(Address(Account::Bob.into()))
 						.write(U256::from(300))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -830,7 +830,7 @@ fn transfer_from_non_incremental_approval() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 114357756u64,
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
 							Account::Alice,
@@ -844,7 +844,7 @@ fn transfer_from_non_incremental_approval() {
 			// This should fail, as now the new approved quantity is 300
 			assert_matches!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
@@ -852,7 +852,7 @@ fn transfer_from_non_incremental_approval() {
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
@@ -872,14 +872,14 @@ fn transfer_from_above_allowance() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -887,14 +887,14 @@ fn transfer_from_above_allowance() {
 			));
 
 			precompiles().execute(
-				Account::AssetId(0u128).into(),
+				Account::ForeignAssetId(0u128).into(),
 				&EvmDataWriter::new_with_selector(Action::Approve)
 					.write(Address(Account::Bob.into()))
 					.write(U256::from(300))
 					.build(),
 				None,
 				&Context {
-					address: Account::AssetId(0u128).into(),
+					address: Account::ForeignAssetId(0u128).into(),
 					caller: Account::Alice.into(),
 					apparent_value: From::from(0),
 				},
@@ -903,7 +903,7 @@ fn transfer_from_above_allowance() {
 
 			assert_matches!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
@@ -911,7 +911,7 @@ fn transfer_from_above_allowance() {
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Bob.into(), // Bob is the one sending transferFrom!
 						apparent_value: From::from(0),
 					},
@@ -931,14 +931,14 @@ fn transfer_from_self() {
 		.with_balances(vec![(Account::Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -947,7 +947,7 @@ fn transfer_from_self() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::TransferFrom)
 						.write(Address(Account::Alice.into()))
 						.write(Address(Account::Bob.into()))
@@ -955,7 +955,7 @@ fn transfer_from_self() {
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						// Alice sending transferFrom herself, no need for allowance.
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
@@ -966,7 +966,7 @@ fn transfer_from_self() {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 83206756u64, // 1 weight => 1 gas in mock
-					logs: LogsBuilder::new(Account::AssetId(0u128).into())
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
 							Account::Alice,
@@ -979,13 +979,13 @@ fn transfer_from_self() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Alice.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -1001,13 +1001,13 @@ fn transfer_from_self() {
 
 			assert_eq!(
 				precompiles().execute(
-					Account::AssetId(0u128).into(),
+					Account::ForeignAssetId(0u128).into(),
 					&EvmDataWriter::new_with_selector(Action::BalanceOf)
 						.write(Address(Account::Bob.into()))
 						.build(),
 					None,
 					&Context {
-						address: Account::AssetId(0u128).into(),
+						address: Account::ForeignAssetId(0u128).into(),
 						caller: Account::Alice.into(),
 						apparent_value: From::from(0),
 					},
@@ -1029,14 +1029,14 @@ fn get_metadata() {
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Assets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				Origin::root(),
 				0u128,
 				Account::Alice.into(),
 				true,
 				1
 			));
-			assert_ok!(Assets::force_set_metadata(
+			assert_ok!(ForeignAssets::force_set_metadata(
 				Origin::root(),
 				0u128,
 				b"TestToken".to_vec(),
@@ -1044,7 +1044,7 @@ fn get_metadata() {
 				12,
 				false
 			));
-			assert_ok!(Assets::mint(
+			assert_ok!(ForeignAssets::mint(
 				Origin::signed(Account::Alice),
 				0u128,
 				Account::Alice.into(),
@@ -1053,11 +1053,11 @@ fn get_metadata() {
 			{
 				assert_eq!(
 					precompiles().execute(
-						Account::AssetId(0u128).into(),
+						Account::ForeignAssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Name).build(),
 						None,
 						&Context {
-							address: Account::AssetId(0u128).into(),
+							address: Account::ForeignAssetId(0u128).into(),
 							// Alice sending transferFrom herself, no need for allowance.
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
@@ -1076,11 +1076,11 @@ fn get_metadata() {
 
 				assert_eq!(
 					precompiles().execute(
-						Account::AssetId(0u128).into(),
+						Account::ForeignAssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Symbol).build(),
 						None,
 						&Context {
-							address: Account::AssetId(0u128).into(),
+							address: Account::ForeignAssetId(0u128).into(),
 							// Alice sending transferFrom herself, no need for allowance.
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
@@ -1097,11 +1097,11 @@ fn get_metadata() {
 
 				assert_eq!(
 					precompiles().execute(
-						Account::AssetId(0u128).into(),
+						Account::ForeignAssetId(0u128).into(),
 						&EvmDataWriter::new_with_selector(Action::Decimals).build(),
 						None,
 						&Context {
-							address: Account::AssetId(0u128).into(),
+							address: Account::ForeignAssetId(0u128).into(),
 							// Alice sending transferFrom herself, no need for allowance.
 							caller: Account::Alice.into(),
 							apparent_value: From::from(0),
@@ -1114,6 +1114,56 @@ fn get_metadata() {
 						cost: Default::default(),
 						logs: Default::default(),
 					}))
+				);
+			};
+		});
+}
+
+#[test]
+fn local_functions_cannot_be_accessed_by_foreign_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(ForeignAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(ForeignAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_matches!(
+					precompiles().execute(
+						Account::ForeignAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Mint)
+							.write(Address(Account::Bob.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::ForeignAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Err(PrecompileFailure::Revert { output, .. }))
+					if output == b"unknown selector"
 				);
 			};
 		});

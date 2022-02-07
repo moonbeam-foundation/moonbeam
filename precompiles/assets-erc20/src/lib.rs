@@ -21,7 +21,7 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
-use frame_support::traits::OriginTrait;
+use frame_support::traits::{Get, OriginTrait};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
@@ -69,6 +69,7 @@ pub enum Action {
 	Name = "name()",
 	Symbol = "symbol()",
 	Decimals = "decimals()",
+	Mint = "mint(address,uint256)",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -95,11 +96,12 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 
 /// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
 /// but the probability for this to happen is 2^-32 for random addresses
-pub struct Erc20AssetsPrecompileSet<Runtime, Instance: 'static = ()>(
-	PhantomData<(Runtime, Instance)>,
+pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
+	PhantomData<(Runtime, IsLocal, Instance)>,
 );
 
-impl<Runtime, Instance> PrecompileSet for Erc20AssetsPrecompileSet<Runtime, Instance>
+impl<Runtime, IsLocal, Instance> PrecompileSet
+	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -109,6 +111,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	IsLocal: Get<bool>,
 {
 	fn execute(
 		&self,
@@ -154,6 +157,7 @@ where
 					}
 
 					match selector {
+						// Local and Foreign common
 						Action::TotalSupply => Self::total_supply(asset_id, input, gasometer),
 						Action::BalanceOf => Self::balance_of(asset_id, input, gasometer),
 						Action::Allowance => Self::allowance(asset_id, input, gasometer),
@@ -165,6 +169,7 @@ where
 						Action::Name => Self::name(asset_id, gasometer),
 						Action::Symbol => Self::symbol(asset_id, gasometer),
 						Action::Decimals => Self::decimals(asset_id, gasometer),
+						Action::Mint => Self::mint(asset_id, input, gasometer, context),
 					}
 				};
 				return Some(result);
@@ -191,13 +196,13 @@ where
 	}
 }
 
-impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance> {
+impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance> {
 	pub fn new() -> Self {
 		Self(PhantomData)
 	}
 }
 
-impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance>
+impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -207,6 +212,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	IsLocal: Get<bool>,
 {
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
@@ -520,6 +526,58 @@ where
 				))
 				.build(),
 			logs: Default::default(),
+		})
+	}
+
+	// From here: only for locals, we need to check whether we are in local assets otherwise fail
+	fn mint(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		gasometer.record_log_costs_manual(3, 32)?;
+
+		// Parse input.
+		input.expect_arguments(gasometer, 2)?;
+
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::mint {
+					id: asset_id,
+					beneficiary: Runtime::Lookup::unlookup(to),
+					amount,
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_TRANSFER,
+					H160::default(),
+					to,
+					EvmDataWriter::new().write(amount).build(),
+				)
+				.build(),
 		})
 	}
 }
