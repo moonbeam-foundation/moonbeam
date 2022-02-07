@@ -23,10 +23,10 @@ interface XcmTransactor {
 
     /** Get transact info of a multilocation
      * Selector f87f493f
-     * @param index The index of which we want to retrieve the account
+     * @param multilocation The MultiLocation from which we want to retrieve the transact information
      */
     function transact_info(Multilocation memory multilocation) external view 
-        returns(uint64, uint256, uint64, uint64, uint256);
+        returns(uint64, uint256, uint64);
 
     /** Transact through XCM using fee based on its multilocation
     * Selector 9f89f03e
