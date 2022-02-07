@@ -69,6 +69,7 @@ pub enum Account {
 	Bogus,
 	ForeignAssetId(AssetId),
 	LocalAssetId(AssetId),
+	Zero,
 }
 
 impl Default for Account {
@@ -83,6 +84,7 @@ impl AddressMapping<Account> for Account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::repeat_byte(0x00) => Self::Zero,
 			_ => {
 				let mut data = [0u8; 16];
 				let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
@@ -129,6 +131,7 @@ impl From<Account> for H160 {
 			Account::Alice => H160::repeat_byte(0xAA),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Zero => H160::repeat_byte(0x00),
 			Account::ForeignAssetId(asset_id) => {
 				let mut data = [0u8; 20];
 				let id_as_bytes = asset_id.to_be_bytes();

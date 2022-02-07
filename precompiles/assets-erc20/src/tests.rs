@@ -1168,3 +1168,64 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 			};
 		});
 }
+
+#[test]
+fn mint_local_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			{
+				assert_eq!(
+					precompiles().execute(
+						Account::LocalAssetId(0u128).into(),
+						&EvmDataWriter::new_with_selector(Action::Mint)
+							.write(Address(Account::Bob.into()))
+							.write(U256::from(400))
+							.build(),
+						None,
+						&Context {
+							address: Account::LocalAssetId(0u128).into(),
+							caller: Account::Alice.into(),
+							apparent_value: From::from(0),
+						},
+						false,
+					),
+					Some(Ok(PrecompileOutput {
+						exit_status: ExitSucceed::Returned,
+						output: EvmDataWriter::new().write(true).build(),
+						cost: 47914756u64, // 1 weight => 1 gas in mock
+						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
+							.log3(
+								SELECTOR_LOG_TRANSFER,
+								Account::Zero,
+								Account::Bob,
+								EvmDataWriter::new().write(U256::from(400)).build(),
+							)
+							.build(),
+					}))
+				);
+			};
+		});
+}
