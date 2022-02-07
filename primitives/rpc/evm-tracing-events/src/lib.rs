@@ -80,7 +80,7 @@ impl Event {
 
 /// Main trait to proxy emitted messages.
 /// Used 2 times :
-/// - Inside the runtime to proxy the events throughout the host functions
+/// - Inside the runtime to proxy the events through the host functions
 /// - Inside the client to forward those events to the client listener.
 pub trait Listener {
 	fn event(&mut self, event: Event);
