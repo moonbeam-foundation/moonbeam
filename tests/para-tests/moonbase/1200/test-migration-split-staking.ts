@@ -78,6 +78,7 @@ describeParachain(
         )
       );
       await sendAllStreamAndWaitLast(context.polkadotApiParaone, bondBatches);
+      await context.waitBlocks(1);
       process.stdout.write(`✅: ${bondBatches.length} extrinsics\n`);
 
       process.stdout.write(`Verifying candidate state pre-migration...`);
@@ -93,22 +94,26 @@ describeParachain(
 
       await context.upgradeRuntime(alith, "moonbase", "local");
 
-      // Uses new API to support new types
-      const newApi = await context.createPolkadotApiParachain(0);
-
       process.stdout.write("Checking candidateState post-migration is empty...");
-      expect(await newApi.query.parachainStaking.candidateState.entries()).to.be.length(0);
+      expect(
+        await context.polkadotApiParaone.query.parachainStaking.candidateState.entries()
+      ).to.be.length(0);
       process.stdout.write("✅\n");
 
       process.stdout.write("Checking candidateInfo post-migration...");
-      const candidateInfo = await newApi.query.parachainStaking.candidateInfo.entries();
+      const candidateInfo =
+        await context.polkadotApiParaone.query.parachainStaking.candidateInfo.entries();
       expect(candidateInfo).to.be.length(2);
       const topDelegations = (
-        (await newApi.query.parachainStaking.topDelegations(alith.address)) as any
+        (await context.polkadotApiParaone.query.parachainStaking.topDelegations(
+          alith.address
+        )) as any
       ).unwrap();
       expect(topDelegations.delegations).to.be.length(300);
       const bottomDelegations = (
-        (await newApi.query.parachainStaking.bottomDelegations(alith.address)) as any
+        (await context.polkadotApiParaone.query.parachainStaking.bottomDelegations(
+          alith.address
+        )) as any
       ).unwrap();
       expect(bottomDelegations.delegations).to.be.length(50); // new runtime only allow 50 bottom
       process.stdout.write(`✅\n`);

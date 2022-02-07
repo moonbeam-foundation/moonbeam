@@ -48,7 +48,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^7.6.2-5",
+    "@polkadot/api": "^7.6.2-8",
     "@substrate/txwrapper-core": "^1.3.2",
     "@substrate/txwrapper-registry": "^1.3.2",
     "@substrate/txwrapper-substrate": "^1.3.2",

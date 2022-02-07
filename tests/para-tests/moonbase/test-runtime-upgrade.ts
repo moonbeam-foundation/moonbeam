@@ -31,10 +31,11 @@ describeParachain(
       );
 
       await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);
-      const newApi = await context.createPolkadotApiParachain(0);
 
       process.stdout.write("Checking on-chain runtime version 1200...");
-      expect(await (await newApi.query.system.lastRuntimeUpgrade()).toJSON()).to.deep.equal({
+      expect(
+        await (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()).toJSON()
+      ).to.deep.equal({
         specVersion: 1200,
         specName: "moonbase",
       });
