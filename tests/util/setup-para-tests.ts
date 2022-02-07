@@ -23,7 +23,7 @@ export interface ParaTestContext {
   createPolkadotApiParachain: (parachainNumber) => Promise<ApiPromise>;
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
-  waitBlocks: (count: number) => Promise<number>; // returns current block when the promise resolves
+  waitBlocks: (count: number) => Promise<number>; // return current block when the promise resolves
   upgradeRuntime: (
     from: KeyringPair,
     runtimeName: "moonbase" | "moonriver" | "moonbeam",
@@ -157,7 +157,7 @@ export function describeParachain(
           context.blockNumber = header.number.toNumber();
           if (context.blockNumber == 0) {
             console.log(
-              `Starting to listen for new blocks. production will start in ${chalk.red(`1 minute`)}`
+              `Start listening for new blocks. Production will start in ${chalk.red(`1 minute`)}`
             );
           }
 
@@ -213,7 +213,7 @@ export function describeParachain(
             async (version) => {
               if (!isInitialVersion) {
                 console.log(
-                  `✅ New runtime: ${version.implName.toString()} ${version.specVersion.toString()}`
+                  `✅ New runtime ${version.implName.toString()} ${version.specVersion.toString()}`
                 );
                 unsub();
                 await context.waitBlocks(1); // Wait for next block to have the new runtime applied
