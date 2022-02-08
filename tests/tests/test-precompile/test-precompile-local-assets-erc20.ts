@@ -48,7 +48,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.authorizeLocalAssset(
             baltatharAccount.address,
             baltatharAccount.address,
-            new BN(1),
+            new BN(1)
           )
         )
       );
@@ -59,7 +59,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
-
 
       // Look for assetId in events
       eventsRegister.forEach((e) => {
@@ -73,32 +72,22 @@ describeDevMoonbeamAllEthTxTypes(
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.setMetadata(
-          assetId,
-          "Local",
-          "Local",
-          new BN(12),
-        )
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
 
       // mint asset
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(
-          assetId,
-          baltatharAccount.address,
-          100000000000000
-        )
+        context.polkadotApi.tx.localAssets.mint(assetId, baltatharAccount.address, 100000000000000)
       );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
       ).balance as BN;
-      let sup = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([ ...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+        .balance as BN;
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -247,7 +236,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.authorizeLocalAssset(
             baltatharAccount.address,
             baltatharAccount.address,
-            new BN(1),
+            new BN(1)
           )
         )
       );
@@ -258,7 +247,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
-
 
       // Look for assetId in events
       eventsRegister.forEach((e) => {
@@ -272,32 +260,22 @@ describeDevMoonbeamAllEthTxTypes(
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.setMetadata(
-          assetId,
-          "Local",
-          "Local",
-          new BN(12),
-        )
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
 
       // mint asset
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(
-          assetId,
-          sudoAccount.address,
-          100000000000000
-        )
+        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
       ).balance as BN;
-      let sup = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([ ...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+        .balance as BN;
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -330,7 +308,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
       expect(receipt.logs.length).to.eq(1);
-      expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress)
+      expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
       expect(receipt.logs[0].topics.length).to.eq(3);
       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
       let approvals = (await context.polkadotApi.query.localAssets.approvals(
@@ -384,7 +362,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.authorizeLocalAssset(
             baltatharAccount.address,
             baltatharAccount.address,
-            new BN(1),
+            new BN(1)
           )
         )
       );
@@ -395,7 +373,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
-
 
       // Look for assetId in events
       eventsRegister.forEach((e) => {
@@ -409,32 +386,22 @@ describeDevMoonbeamAllEthTxTypes(
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.setMetadata(
-          assetId,
-          "Local",
-          "Local",
-          new BN(12),
-        )
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
 
       // mint asset
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(
-          assetId,
-          sudoAccount.address,
-          100000000000000
-        )
+        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
       ).balance as BN;
-      let sup = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([ ...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+        .balance as BN;
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -535,7 +502,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.authorizeLocalAssset(
             baltatharAccount.address,
             baltatharAccount.address,
-            new BN(1),
+            new BN(1)
           )
         )
       );
@@ -546,7 +513,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
-
 
       // Look for assetId in events
       eventsRegister.forEach((e) => {
@@ -560,32 +526,22 @@ describeDevMoonbeamAllEthTxTypes(
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.setMetadata(
-          assetId,
-          "Local",
-          "Local",
-          new BN(12),
-        )
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
 
       // mint asset
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(
-          assetId,
-          sudoAccount.address,
-          100000000000000
-        )
+        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
 
       let beforeAssetBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
       ).balance as BN;
-      let sup = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([ ...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+        .balance as BN;
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -631,77 +587,66 @@ describeDevMoonbeamAllEthTxTypes(
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
   let sudoAccount, baltatharAccount, assetId, iFace, assetAddress, contractInstanceAddress;
-    before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+  before("Setup contract and mock balance", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
-      await createBlockWithExtrinsic(
-        context,
-        sudoAccount,
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
-            baltatharAccount.address,
-            baltatharAccount.address,
-            new BN(1),
-          )
+    // registerAsset
+    await createBlockWithExtrinsic(
+      context,
+      sudoAccount,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          baltatharAccount.address,
+          baltatharAccount.address,
+          new BN(1)
         )
-      );
+      )
+    );
 
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
-      );
+    // registerAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.assetManager.registerLocalAsset()
+    );
 
-
-      // Look for assetId in events
-      eventsRegister.forEach((e) => {
-        if (e.section.toString() === "assetManager") {
-          assetId = e.data[0].toHex();
-        }
-      });
-      assetId = assetId.replace(/,/g, "");
-
-      // registerAsset
-      await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.localAssets.setMetadata(
-          assetId,
-          "Local",
-          "Local",
-          new BN(12),
-        )
-      );
-
-      // mint asset
-      await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(
-          assetId,
-          sudoAccount.address,
-          100000000000000
-        )
-      );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      ).balance as BN;
-      let sup = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([ ...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
-
-      const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-      contractInstanceAddress = contract.options.address;
-      await context.createBlock({ transactions: [rawTx] });
+    // Look for assetId in events
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
     });
+    assetId = assetId.replace(/,/g, "");
+
+    // registerAsset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
+    );
+
+    // mint asset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
+    );
+
+    let beforeAssetBalance = (
+      (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
+    ).balance as BN;
+    let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+      .balance as BN;
+    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+    const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
+    contractInstanceAddress = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+  });
   it("allows to approve transfer and use transferFrom through delegateCalls", async function () {
     // Create approval
     let data = iFace.encodeFunctionData(
@@ -786,38 +731,75 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(approvals.isNone).to.eq(true);
 
     // Charleth balance is 1000
-    let charletBalance = (await context.polkadotApi.query.localAssets.account(assetId, CHARLETH)) as any;
+    let charletBalance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      CHARLETH
+    )) as any;
     expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
   });
 });
-/*
+
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace, contractInstanceAddress;
+    let sudoAccount, baltatharAccount, assetId, iFace, assetAddress, contractInstanceAddress;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-      // And we need relay tokens for issuing a transaction to be executed in the relay
-      const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
-        balance: balance,
-      });
+      baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
+      // registerAsset
+      await createBlockWithExtrinsic(
+        context,
+        sudoAccount,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+            baltatharAccount.address,
+            baltatharAccount.address,
+            new BN(1)
+          )
+        )
       );
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
+
+      // registerAsset
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.assetManager.registerLocalAsset()
+      );
+
+      // Look for assetId in events
+      eventsRegister.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetId = e.data[0].toHex();
+        }
       });
+      assetId = assetId.replace(/,/g, "");
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+      // registerAsset
+      await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
+      );
 
-      const contractData = await getCompiled("ERC20Instance");
+      // mint asset
+      await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
+      );
+
+      let beforeAssetBalance = (
+        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
+      ).balance as BN;
+      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+        .balance as BN;
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
       contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
     });
@@ -847,7 +829,7 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000
-      let baltatharBalance = (await context.polkadotApi.query.assets.account(
+      let baltatharBalance = (await context.polkadotApi.query.localAssets.account(
         assetId,
         BALTATHAR
       )) as any;
@@ -858,40 +840,68 @@ describeDevMoonbeamAllEthTxTypes(
 );
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
-  let sudoAccount, assetId, iFace, contractInstanceAddress;
+  let sudoAccount, baltatharAccount, assetId, iFace, assetAddress, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-    // And we need relay tokens for issuing a transaction to be executed in the relay
-    const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
-      balance: balance,
-    });
+    baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-    assetId = context.polkadotApi.createType(
-      "u128",
-      new BN("42259045809535163221576417993425387648")
-    );
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
-    });
-
-    const contractData = await getCompiled("ERC20Instance");
-    iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context, "ERC20Instance");
-    contractInstanceAddress = contract.options.address;
-    // We fund the contract address with this test
-    await mockAssetBalance(
+    // registerAsset
+    await createBlockWithExtrinsic(
       context,
-      assetBalance,
-      assetDetails,
       sudoAccount,
-      assetId,
-      contractInstanceAddress
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          baltatharAccount.address,
+          baltatharAccount.address,
+          new BN(1)
+        )
+      )
     );
 
+    // registerAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.assetManager.registerLocalAsset()
+    );
+
+    // Look for assetId in events
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
+    });
+    assetId = assetId.replace(/,/g, "");
+
+    // registerAsset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
+    );
+
+    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+    const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
+    contractInstanceAddress = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+
+    // before we mint asset, since these are non-sufficient, we need to transfer native balance
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.balances.transfer(contractInstanceAddress, 1000)
+    );
+
+    // mint asset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.mint(assetId, contractInstanceAddress, 100000000000000)
+    );
   });
   it("allows to approve transfer and use transferFrom from contract calls", async function () {
     // Create approval
@@ -900,6 +910,17 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       "approve",
       [BALTATHAR, 1000]
     );
+
+    const tx_call = await customWeb3Request(context.web3, "eth_call", [
+      {
+        from: ALITH,
+        value: "0x0",
+        gas: "0x10000",
+        gasPrice: GAS_PRICE,
+        to: contractInstanceAddress,
+        data: data,
+      },
+    ]);
 
     let tx = await createTransaction(context, {
       from: ALITH,
@@ -919,11 +940,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     expect(receipt.status).to.equal(true);
     expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
 
-    let approvals = (await context.polkadotApi.query.assets.approvals(
+    let approvals = (await context.polkadotApi.query.localAssets.approvals(
       assetId,
       contractInstanceAddress,
       BALTATHAR
@@ -953,13 +974,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
     expect(receipt.status).to.equal(true);
 
     // approvals are untouched
-    approvals = (await context.polkadotApi.query.assets.approvals(
+    approvals = (await context.polkadotApi.query.localAssets.approvals(
       assetId,
       contractInstanceAddress,
       BALTATHAR
@@ -973,7 +994,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       value: "0x0",
       gas: "0x200000",
       gasPrice: GAS_PRICE,
-      to: ADDRESS_ERC20,
+      to: assetAddress,
       data: data,
     });
     block = await context.createBlock({
@@ -981,13 +1002,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
     expect(receipt.status).to.equal(true);
 
     // Approve amount is null now
-    approvals = (await context.polkadotApi.query.assets.approvals(
+    approvals = (await context.polkadotApi.query.localAssets.approvals(
       assetId,
       contractInstanceAddress,
       BALTATHAR
@@ -995,38 +1016,74 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(approvals.isNone).to.eq(true);
 
     // Charleth balance is 2000
-    let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
+    let charletBalance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      CHARLETH
+    )) as any;
     expect(charletBalance.balance.eq(new BN(2000))).to.equal(true);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
-  let sudoAccount, assetId, iFace, contractInstanceAddress;
+  let sudoAccount, baltatharAccount, assetId, iFace, assetAddress, contractInstanceAddress;
   before("Setup contract and mock balance", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-    // And we need relay tokens for issuing a transaction to be executed in the relay
-    const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
-      balance: balance,
-    });
+    baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-    assetId = context.polkadotApi.createType(
-      "u128",
-      new BN("42259045809535163221576417993425387648")
+    // registerAsset
+    await createBlockWithExtrinsic(
+      context,
+      sudoAccount,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          baltatharAccount.address,
+          baltatharAccount.address,
+          new BN(1)
+        )
+      )
     );
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
+
+    // registerAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.assetManager.registerLocalAsset()
+    );
+
+    // Look for assetId in events
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
     });
+    assetId = assetId.replace(/,/g, "");
 
-    const contractData = await getCompiled("ERC20Instance");
+    // registerAsset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
+    );
+
+    // mint asset
+    await createBlockWithExtrinsic(
+      context,
+      baltatharAccount,
+      context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
+    );
+
+    let beforeAssetBalance = (
+      (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
+    ).balance as BN;
+    let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
+      .balance as BN;
+    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+    const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context, "ERC20Instance");
+    const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
     contractInstanceAddress = contract.options.address;
-    // We fund Alith with this test
-    await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
-
     await context.createBlock({ transactions: [rawTx] });
   });
   it("Bob approves contract and use transferFrom from contract calls", async function () {
@@ -1043,7 +1100,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       value: "0x0",
       gas: "0x200000",
       gasPrice: GAS_PRICE,
-      to: ADDRESS_ERC20,
+      to: assetAddress,
       data: data,
     });
 
@@ -1055,11 +1112,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     expect(receipt.status).to.equal(true);
     expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
 
-    let approvals = (await context.polkadotApi.query.assets.approvals(
+    let approvals = (await context.polkadotApi.query.localAssets.approvals(
       assetId,
       ALITH,
       contractInstanceAddress
@@ -1088,13 +1145,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
     expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
     expect(receipt.status).to.equal(true);
 
     // Approve amount is null now
-    approvals = (await context.polkadotApi.query.assets.approvals(
+    approvals = (await context.polkadotApi.query.localAssets.approvals(
       assetId,
       ALITH,
       contractInstanceAddress
@@ -1102,7 +1159,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(approvals.isNone).to.eq(true);
 
     // Charleth balance is 1000
-    let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
+    let charletBalance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      CHARLETH
+    )) as any;
     expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
   });
 });
@@ -1110,39 +1170,68 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace, contractInstanceAddress;
+    let sudoAccount, baltatharAccount, assetId, iFace, assetAddress, contractInstanceAddress;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-      // And we need relay tokens for issuing a transaction to be executed in the relay
-      const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
-        balance: balance,
-      });
+      baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
-
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context, "ERC20Instance");
-      contractInstanceAddress = contract.options.address;
-      await mockAssetBalance(
+      // registerAsset
+      await createBlockWithExtrinsic(
         context,
-        assetBalance,
-        assetDetails,
         sudoAccount,
-        assetId,
-        contractInstanceAddress
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+            baltatharAccount.address,
+            baltatharAccount.address,
+            new BN(1)
+          )
+        )
       );
 
+      // registerAsset
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.assetManager.registerLocalAsset()
+      );
+
+      // Look for assetId in events
+      eventsRegister.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetId = e.data[0].toHex();
+        }
+      });
+      assetId = assetId.replace(/,/g, "");
+
+      // registerAsset
+      await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
+      );
+
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
+      iFace = new ethers.utils.Interface(contractData.contract.abi);
+      const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
+      contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
+
+      // before we mint asset, since these are non-sufficient, we need to transfer native balance
+      await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.balances.transfer(contractInstanceAddress, 1000)
+      );
+
+      // mint asset
+      await createBlockWithExtrinsic(
+        context,
+        baltatharAccount,
+        context.polkadotApi.tx.localAssets.mint(assetId, contractInstanceAddress, 100000000000000)
+      );
     });
     it("allows to transfer through call from SC ", async function () {
       // Create approval
@@ -1170,7 +1259,7 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000
-      let baltatharBalance = (await context.polkadotApi.query.assets.account(
+      let baltatharBalance = (await context.polkadotApi.query.localAssets.account(
         assetId,
         BALTATHAR
       )) as any;
@@ -1179,4 +1268,3 @@ describeDevMoonbeamAllEthTxTypes(
   },
   true
 );
-*/
