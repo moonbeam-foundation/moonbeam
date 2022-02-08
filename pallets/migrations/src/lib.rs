@@ -85,6 +85,7 @@ pub mod pallet {
 
 	/// Pallet for migrations
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet.
