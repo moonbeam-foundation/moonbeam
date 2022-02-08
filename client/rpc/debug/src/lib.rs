@@ -453,11 +453,16 @@ where
 		let reference_block = if ethereum_api_version >= 2 {
 			match api.current_block(&reference_id) {
 				Ok(block) => block,
-				Err(e) => {
-					return Err(internal_err(format!(
-						"Runtime block call failed (version >= 2): {:?}",
-						e
-					)))
+				Err(_) => {
+					// It is possible that the current_block in the onchain storage is a BlockV0
+					// even if the ethereum api is in version 2, in case of error we have to try
+					// again with the api in version 1
+					#[allow(deprecated)]
+					match api.current_block_before_version_2(&reference_id) {
+						Ok(Some(block)) => Some(block.into()),
+						Ok(None) => return Err(internal_err("Runtime block call failed".to_string())),
+						Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+					}
 				}
 			}
 		} else {
