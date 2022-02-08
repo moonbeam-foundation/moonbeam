@@ -2241,7 +2241,7 @@ dependencies = [
 [[package]]
 name = "ethereum"
 version = "0.11.1"
-source = "git+https://github.com/purestake/ethereum?branch=tgm-0.11.1-typeinfo-patch#42ee428264e27773da5e93f264f0aa7daf1a8a7f"
+source = "git+https://github.com/purestake/ethereum?branch=moonbeam-v0.9.13#456030fd418ba275a78ab678612cc1de82f8e0b3"
 dependencies = [
  "bytes 1.0.1",
  "ethereum-types",
