@@ -344,14 +344,20 @@ where
 			}
 		};
 
-		// Get the extrinsics.
-		let ext = blockchain.body(reference_id).unwrap().unwrap();
 		// Known ethereum transaction hashes.
-		let eth_tx_hashes = statuses
+		let eth_tx_hashes: Vec<_> = statuses
 			.unwrap()
 			.iter()
 			.map(|t| t.transaction_hash)
 			.collect();
+
+		// If there are no ethereum transactions in the block return empty trace right away.
+		if eth_tx_hashes.is_empty() {
+			return Ok(Response::Block(vec![]));
+		}
+
+		// Get the extrinsics.
+		let ext = blockchain.body(reference_id).unwrap().unwrap();
 
 		// Trace the block.
 		let f = || -> RpcResult<_> {
