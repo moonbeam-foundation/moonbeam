@@ -22,7 +22,6 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use frame_system::InitKind;
 pub use moonbeam_runtime::{
 	currency::{GIGAWEI, GLMR, SUPPLY_FACTOR, WEI},
 	AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets, AuthorInherent,
@@ -65,11 +64,11 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
+				System::reset_events();
 				System::initialize(
 					&(System::block_number() + 1),
 					&System::parent_hash(),
 					&pre_digest,
-					InitKind::Full,
 				);
 			}
 			None => {
