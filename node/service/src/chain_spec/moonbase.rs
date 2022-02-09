@@ -28,8 +28,7 @@ use moonbase_runtime::{
 	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
-	WASM_BINARY,
+	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -78,15 +77,22 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				1281,               //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -145,15 +151,22 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				1280, //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "westend-local".into(),
 			para_id: para_id.into(),
@@ -221,7 +234,9 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig {
+			key: Some(root_key),
+		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
@@ -245,12 +260,11 @@ pub fn testnet_genesis(
 		},
 		ethereum: EthereumConfig {},
 		base_fee: BaseFeeConfig::new(
-			U256::from(1_000_000_000),
+			U256::from(1_000_000_000u64),
 			false,
 			Permill::from_parts(125_000),
 		),
 		democracy: DemocracyConfig::default(),
-		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()

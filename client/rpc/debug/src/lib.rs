@@ -240,17 +240,19 @@ where
 				tracer: Some(tracer),
 				..
 			}) => {
-				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] = [
-					148, 217, 240, 135, 150, 249, 30, 177, 58, 46, 130, 166, 6, 104, 130, 247,
-				];
+				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
+					hex_literal::hex!("94d9f08796f91eb13a2e82a6066882f7");
+				const BLOCKSCOUT_JS_CODE_HASH_V2: [u8; 16] =
+					hex_literal::hex!("89db13694675692951673a1e6e18ff02");
 				let hash = sp_io::hashing::twox_128(&tracer.as_bytes());
-				let tracer = if hash == BLOCKSCOUT_JS_CODE_HASH {
-					Some(TracerInput::Blockscout)
-				} else if tracer == "callTracer" {
-					Some(TracerInput::CallTracer)
-				} else {
-					None
-				};
+				let tracer =
+					if hash == BLOCKSCOUT_JS_CODE_HASH || hash == BLOCKSCOUT_JS_CODE_HASH_V2 {
+						Some(TracerInput::Blockscout)
+					} else if tracer == "callTracer" {
+						Some(TracerInput::CallTracer)
+					} else {
+						None
+					};
 				if let Some(tracer) = tracer {
 					Ok((tracer, single::TraceType::CallList))
 				} else {
@@ -475,11 +477,14 @@ where
 					api.initialize_block(&parent_block_id, &header)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
-					if trace_api_version >= 2 {
+					if trace_api_version >= 4 {
 						let _result = api
 							.trace_transaction(&parent_block_id, ext, &transaction)
 							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
+								internal_err(format!(
+									"Runtime api access error (version {:?}): {:?}",
+									trace_api_version, e
+								))
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 					} else {
@@ -488,9 +493,12 @@ where
 							ethereum::TransactionV2::Legacy(tx) =>
 							{
 								#[allow(deprecated)]
-								api.trace_transaction_before_version_2(&parent_block_id, ext, &tx)
+								api.trace_transaction_before_version_4(&parent_block_id, ext, &tx)
 									.map_err(|e| {
-										internal_err(format!("Runtime api access error: {:?}", e))
+										internal_err(format!(
+											"Runtime api access error (legacy): {:?}",
+											e
+										))
 									})?
 									.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?
 							}

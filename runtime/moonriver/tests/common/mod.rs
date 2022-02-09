@@ -24,7 +24,7 @@ use frame_support::{
 };
 use frame_system::InitKind;
 pub use moonriver_runtime::{
-	currency::{MOVR, WEI},
+	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets, AuthorInherent,
 	Balance, Balances, Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice,
 	InflationInfo, ParachainStaking, Range, Runtime, System, TransactionConverter,
@@ -277,6 +277,12 @@ impl ExtBuilder {
 			&pallet_xcm::GenesisConfig {
 				safe_xcm_version: self.safe_xcm_version,
 			},
+			&mut t,
+		)
+		.unwrap();
+
+		<pallet_base_fee::GenesisConfig<Runtime> as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_base_fee::GenesisConfig::<Runtime>::default(),
 			&mut t,
 		)
 		.unwrap();

@@ -22,9 +22,17 @@ use ethereum_types::H256;
 use sp_std::vec::Vec;
 
 sp_api::decl_runtime_apis! {
-	#[api_version(2)]
+	// Api version is virtually 4.
+	//
+	// We realized that even using runtime overrides, using the ApiExt interface reads the api
+	// versions from the state runtime, meaning we cannot just reset the versioning as we see fit.
+	//
+	// In order to be able to use ApiExt as part of the RPC handler logic we need to be always
+	// above the version that exists on chain for this Api, even if this Api is only meant
+	// to be used overriden.
+	#[api_version(4)]
 	pub trait DebugRuntimeApi {
-		#[changed_in(2)]
+		#[changed_in(4)]
 		fn trace_transaction(
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &LegacyTransaction,
