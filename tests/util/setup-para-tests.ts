@@ -15,6 +15,7 @@ import {
   stopParachainNodes,
 } from "./para-node";
 import { KeyringPair } from "@substrate/txwrapper-core";
+import { sha256 } from "ethers/lib/utils";
 const debug = require("debug")("test:setup");
 
 export interface ParaTestContext {
@@ -27,8 +28,9 @@ export interface ParaTestContext {
   upgradeRuntime: (
     from: KeyringPair,
     runtimeName: "moonbase" | "moonriver" | "moonbeam",
-    runtimeVersion: string
-  ) => Promise<void>;
+    runtimeVersion: string,
+    waitMigration?: boolean
+  ) => Promise<number>;
   blockNumber: number;
 
   // We also provided singleton providers for simplicity
@@ -154,6 +156,7 @@ export function describeParachain(
       let pendingPromises = [];
       const subBlocks = async (api) => {
         return api.rpc.chain.subscribeNewHeads(async (header) => {
+          console.log(`new ${header.number.toNumber()}`);
           context.blockNumber = header.number.toNumber();
           if (context.blockNumber == 0) {
             console.log(
@@ -165,6 +168,7 @@ export function describeParachain(
           while (i--) {
             const pendingPromise = pendingPromises[i];
             if (pendingPromise.blockNumber <= context.blockNumber) {
+              console.log(`executing ${context.blockNumber}`);
               pendingPromises.splice(i, 1);
               pendingPromise.resolve(context.blockNumber);
             }
@@ -176,6 +180,7 @@ export function describeParachain(
       subBlocks(context.polkadotApiParaone);
 
       context.waitBlocks = async (count: number) => {
+        console.log(`Waiting for ${count} to ${context.blockNumber + count}`);
         return new Promise<number>((resolve) => {
           pendingPromises.push({
             blockNumber: context.blockNumber + count,
@@ -187,15 +192,16 @@ export function describeParachain(
       context.upgradeRuntime = async (
         from: KeyringPair,
         runtimeName: "moonbase" | "moonriver" | "moonbeam",
-        runtimeVersion: string
+        runtimeVersion: string,
+        waitMigration: boolean = true
       ) => {
-        return new Promise<void>(async (resolve) => {
+        return new Promise<number>(async (resolve) => {
           const code = fs
             .readFileSync(await getRuntimeWasm(runtimeName, runtimeVersion))
             .toString();
 
           process.stdout.write(
-            `Sending sudo.setCode (${code.slice(0, 6)}...${code.slice(-6)} [~${Math.floor(
+            `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
               code.length / 1024
             )} kb])...`
           );
@@ -212,12 +218,15 @@ export function describeParachain(
           const unsub = await context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(
             async (version) => {
               if (!isInitialVersion) {
+                const blockNumber = context.blockNumber;
                 console.log(
-                  `✅ New runtime ${version.implName.toString()} ${version.specVersion.toString()}`
+                  `✅ New runtime ${version.implName} ${version.specVersion} [#${blockNumber}]`
                 );
                 unsub();
-                await context.waitBlocks(1); // Wait for next block to have the new runtime applied
-                resolve();
+                if (waitMigration) {
+                  await context.waitBlocks(1); // Wait for next block to have the new runtime applied
+                }
+                resolve(blockNumber);
               }
               isInitialVersion = false;
             }

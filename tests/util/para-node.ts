@@ -108,8 +108,10 @@ export async function getRuntimeWasm(
       `mkdir -p ${path.dirname(runtimePath)} && ` +
         `wget https://github.com/PureStake/moonbeam/releases/` +
         `download/${runtimeTag}/${runtimeName}-${runtimeTag}.wasm ` +
-        `-O ${runtimePath}`
+        `-O ${runtimePath}.bin`
     );
+    const code = fs.readFileSync(`${runtimePath}.bin`);
+    fs.writeFileSync(runtimePath, `0x${code.toString("hex")}`);
     console.log(`${runtimePath} downloaded !`);
   }
   return runtimePath;
@@ -262,12 +264,11 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[i * 2 + numberOfParachains + 1].wsPort,
             name: "alice",
             flags: [
-              "--log=info,rpc=trace,evm=trace,ethereum=trace",
+              "--log=info,rpc=trace,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
-              "--no-mdns",
+              "--execution=wasm",
               "--no-prometheus",
               "--no-telemetry",
-              "--no-private-ipv4",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
@@ -283,12 +284,11 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             wsPort: ports[i * 2 + numberOfParachains + 2].wsPort,
             name: "bob",
             flags: [
-              "--log=info,rpc=trace,evm=trace,ethereum=trace",
+              "--log=info,rpc=trace,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
-              "--no-mdns",
+              "--execution=wasm",
               "--no-prometheus",
               "--no-telemetry",
-              "--no-private-ipv4",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
