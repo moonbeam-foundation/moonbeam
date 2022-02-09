@@ -33,17 +33,17 @@ use tokio::{
 use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
-use sc_client_api::backend::Backend;
+use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_utils::mpsc::TracingUnboundedSender;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 
 use ethereum_types::H256;
-use fc_rpc::internal_err;
+use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
@@ -422,7 +422,9 @@ pub struct CacheTask<B, C, BE> {
 impl<B, C, BE> CacheTask<B, C, BE>
 where
 	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<B>,
+	C: StorageProvider<B, BE>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
@@ -441,6 +443,7 @@ where
 		backend: Arc<BE>,
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
 		let (requester_tx, mut requester_rx) =
@@ -475,7 +478,7 @@ where
 						match request {
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks})
-								=> inner.request_start_batch(&blocking_tx, sender, blocks),
+								=> inner.request_start_batch(&blocking_tx, sender, blocks, overrides.clone()),
 							Some(CacheRequest::GetTraces {sender, block})
 								=> inner.request_get_traces(sender, block),
 							Some(CacheRequest::StopBatch {batch_id}) => {
@@ -515,12 +518,13 @@ where
 
 	/// Handle the creation of a batch.
 	/// Will start the tracing process for blocks that are not already in the cache.
-	#[instrument(skip(self, blocking_tx, sender, blocks))]
+	#[instrument(skip(self, blocking_tx, sender, blocks, overrides))]
 	fn request_start_batch(
 		&mut self,
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
 		sender: oneshot::Sender<CacheBatchId>,
 		blocks: Vec<H256>,
+		overrides: Arc<OverrideHandle<B>>,
 	) {
 		tracing::trace!("Starting batch {}", self.next_batch_id);
 		self.batches.insert(self.next_batch_id, blocks.clone());
@@ -544,6 +548,7 @@ where
 				let client = Arc::clone(&self.client);
 				let backend = Arc::clone(&self.backend);
 				let blocking_tx = blocking_tx.clone();
+				let overrides = overrides.clone();
 
 				// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.
@@ -571,7 +576,7 @@ where
 						// Perform block tracing in a tokio blocking task.
 						let result = async {
 							tokio::task::spawn_blocking(move || {
-								Self::cache_block(client, backend, block)
+								Self::cache_block(client, backend, block, overrides.clone())
 							})
 							.await
 							.map_err(|e| {
@@ -770,11 +775,12 @@ where
 	}
 
 	/// (In blocking task) Use the Runtime API to trace the block.
-	#[instrument(skip(client, backend))]
+	#[instrument(skip(client, backend, overrides))]
 	fn cache_block(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		substrate_hash: H256,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> Result<Vec<TransactionTrace>> {
 		let substrate_block_id = BlockId::Hash(substrate_hash);
 
@@ -795,62 +801,29 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		let api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&substrate_block_id)
-		{
-			api_version
-		} else {
-			return Err(internal_err("Runtime api version call failed".to_string()));
-		};
+		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
+			client.as_ref(),
+			substrate_block_id,
+		);
 
 		// Get Ethereum block data.
-		let (eth_block, eth_transactions) = if api_version < 2 {
-			#[allow(deprecated)]
-			let (eth_block, _, eth_transactions) = api
-				.current_all_before_version_2(&substrate_block_id)
-				.map_err(|e| {
-					internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {} version < 2: {:?}",
-					substrate_hash, e
-				))
-				})?;
-			let block_v2 = if let Some(eth_block) = eth_block {
-				Some(eth_block.into())
-			} else {
-				return Err(internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {}",
-					substrate_hash
-				)));
-			};
-			(block_v2, eth_transactions)
-		} else if api_version < 4 {
-			#[allow(deprecated)]
-			let (eth_block, _, eth_transactions) = api
-				.current_all_before_version_4(&substrate_block_id)
-				.map_err(|e| {
-					internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {} version < 4: {:?}",
-					substrate_hash, e
-				))
-				})?;
-			(eth_block, eth_transactions)
-		} else {
-			let (eth_block, _, eth_transactions) =
-				api.current_all(&substrate_block_id).map_err(|e| {
-					internal_err(format!(
-						"Failed to get Ethereum block data for Substrate block {} : {:?}",
-						substrate_hash, e
-					))
-				})?;
-			(eth_block, eth_transactions)
-		};
-
-		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
-			(Some(a), Some(b)) => (a, b),
+		let (eth_block, eth_transactions) = match overrides.schemas.get(&schema) {
+			Some(schema) => match (
+				schema.current_block(&substrate_block_id),
+				schema.current_transaction_statuses(&substrate_block_id),
+			) {
+				(Some(a), Some(b)) => (a, b),
+				_ => {
+					return Err(internal_err(format!(
+						"Failed to get Ethereum block data for Substrate block {}",
+						substrate_block_id
+					)))
+				}
+			},
 			_ => {
 				return Err(internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {}",
-					substrate_hash
+					"No storage override at {:?}",
+					substrate_block_id
 				)))
 			}
 		};
