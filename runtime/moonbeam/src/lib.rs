@@ -34,9 +34,9 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
-		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
-		PalletInfo as PalletInfoTrait, EnsureOneOf,
+		Contains, EnsureOneOf, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter,
+		Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},

@@ -38,9 +38,9 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
-		Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
-		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait, EnsureOneOf
+		Contains, Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, Everything, FindAuthor,
+		Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
+		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},

@@ -30,8 +30,7 @@ use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConf
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage,
-		SplitCandidateStateToDecreasePoV,
+		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, SplitCandidateStateToDecreasePoV,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -362,8 +361,7 @@ where
 		let migration_parachain_staking_split_candidate_state =
 			ParachainStakingSplitCandidateState::<Runtime>(Default::default());
 
-		let migration_scheduler_v3 =
-			SchedulerMigrationV3::<Runtime>(Default::default());
+		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
