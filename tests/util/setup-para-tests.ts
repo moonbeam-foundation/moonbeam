@@ -156,7 +156,6 @@ export function describeParachain(
       let pendingPromises = [];
       const subBlocks = async (api) => {
         return api.rpc.chain.subscribeNewHeads(async (header) => {
-          console.log(`new ${header.number.toNumber()}`);
           context.blockNumber = header.number.toNumber();
           if (context.blockNumber == 0) {
             console.log(
@@ -168,7 +167,6 @@ export function describeParachain(
           while (i--) {
             const pendingPromise = pendingPromises[i];
             if (pendingPromise.blockNumber <= context.blockNumber) {
-              console.log(`executing ${context.blockNumber}`);
               pendingPromises.splice(i, 1);
               pendingPromise.resolve(context.blockNumber);
             }
@@ -180,7 +178,6 @@ export function describeParachain(
       subBlocks(context.polkadotApiParaone);
 
       context.waitBlocks = async (count: number) => {
-        console.log(`Waiting for ${count} to ${context.blockNumber + count}`);
         return new Promise<number>((resolve) => {
           pendingPromises.push({
             blockNumber: context.blockNumber + count,

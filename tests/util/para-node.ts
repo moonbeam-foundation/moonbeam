@@ -226,7 +226,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
       ? BINARY_PATH
       : await getMoonbeamReleaseBinary(options.binary);
 
-  console.log(specs);
   // Build launchConfig
   const launchConfig = {
     relaychain: {
@@ -351,9 +350,9 @@ export async function stopParachainNodes() {
   killAll();
   await new Promise((resolve) => {
     // TODO: improve, make killAll async https://github.com/paritytech/polkadot-launch/issues/139
-    console.log("Waiting 5 seconds for processes to shut down...");
+    process.stdout.write("Waiting 5 seconds for processes to shut down...");
     setTimeout(resolve, 5000);
     nodeStarted = false;
-    console.log("... done");
+    console.log(" done");
   });
 }

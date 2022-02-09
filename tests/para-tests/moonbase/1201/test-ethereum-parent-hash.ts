@@ -44,7 +44,6 @@ describeParachain(
       // the extrinsics included
 
       while (!hasMoreBlockPassed) {
-        console.log(`send tx`);
         const tx = await context.web3.eth.accounts.signTransaction(
           {
             from: baltathar.address,
