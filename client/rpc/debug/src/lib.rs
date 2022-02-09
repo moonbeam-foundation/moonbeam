@@ -23,19 +23,19 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, internal_err};
+use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
-use sc_client_api::backend::Backend;
+use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_utils::mpsc::TracingUnboundedSender;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT, UniqueSaturatedInto};
 use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
@@ -137,7 +137,9 @@ pub struct DebugHandler<B: BlockT, C, BE>(PhantomData<(B, C, BE)>);
 impl<B, C, BE> DebugHandler<B, C, BE>
 where
 	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<B>,
+	C: StorageProvider<B, BE>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
@@ -153,6 +155,7 @@ where
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		permit_pool: Arc<Semaphore>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
 			sc_utils::mpsc::tracing_unbounded("debug-requester");
@@ -168,6 +171,7 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
+						let overrides = overrides.clone();
 
 						tokio::task::spawn(async move {
 							let _ = response_tx.send(
@@ -180,6 +184,7 @@ where
 											frontier_backend.clone(),
 											transaction_hash,
 											params,
+											overrides.clone(),
 										)
 									})
 									.await
@@ -199,6 +204,7 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
+						let overrides = overrides.clone();
 
 						tokio::task::spawn(async move {
 							let _ = response_tx.send(
@@ -212,6 +218,7 @@ where
 											frontier_backend.clone(),
 											request_block_id,
 											params,
+											overrides.clone(),
 										)
 									})
 									.await
@@ -287,6 +294,7 @@ where
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -319,14 +327,22 @@ where
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		let statuses = api
-			.current_transaction_statuses(&reference_id)
-			.map_err(|e| {
-				internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {:?} : {:?}",
-					request_block_id, e
-				))
-			})?;
+		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
+			client.as_ref(),
+			reference_id,
+		);
+
+		// Using storage overrides we align with `:ethereum_schema` which will result in proper
+		// SCALE decoding in case of migration.
+		let statuses = match overrides.schemas.get(&schema) {
+			Some(schema) => schema.current_transaction_statuses(&reference_id),
+			_ => {
+				return Err(internal_err(format!(
+					"No storage override at {:?}",
+					reference_id
+				)))
+			}
+		};
 
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
@@ -397,6 +413,7 @@ where
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -440,32 +457,20 @@ where
 			));
 		};
 
-		// Get EthereumRuntimeRPCApi version
-		let ethereum_api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&reference_id)
-		{
-			api_version
-		} else {
-			return Err(internal_err("Runtime api version call failed".to_string()));
-		};
+		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
+			client.as_ref(),
+			reference_id,
+		);
 
-		// Get the block that contains the requested transaction.
-		let reference_block = if ethereum_api_version >= 2 {
-			match api.current_block(&reference_id) {
-				Ok(block) => block,
-				Err(e) => {
-					return Err(internal_err(format!(
-						"Runtime block call failed (version >= 2): {:?}",
-						e
-					)))
-				}
-			}
-		} else {
-			#[allow(deprecated)]
-			match api.current_block_before_version_2(&reference_id) {
-				Ok(Some(block)) => Some(block.into()),
-				Ok(None) => return Err(internal_err("Runtime block call failed".to_string())),
-				Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+		// Get the block that contains the requested transaction. Using storage overrides we align
+		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
+		let reference_block = match overrides.schemas.get(&schema) {
+			Some(schema) => schema.current_block(&reference_id),
+			_ => {
+				return Err(internal_err(format!(
+					"No storage override at {:?}",
+					reference_id
+				)))
 			}
 		};
 
