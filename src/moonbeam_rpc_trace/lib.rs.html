@@ -911,33 +911,6 @@
 <span id="911">911</span>
 <span id="912">912</span>
 <span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
-<span id="933">933</span>
-<span id="934">934</span>
-<span id="935">935</span>
-<span id="936">936</span>
-<span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -973,17 +946,17 @@
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">instrument</span>, <span class="ident">Instrument</span>};
 
 <span class="kw">use</span> <span class="ident">jsonrpc_core::Result</span>;
-<span class="kw">use</span> <span class="ident">sc_client_api::backend::Backend</span>;
+<span class="kw">use</span> <span class="ident">sc_client_api::backend</span>::{<span class="ident">Backend</span>, <span class="ident">StateBackend</span>, <span class="ident">StorageProvider</span>};
 <span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::traits::Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>};
 
 <span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
-<span class="kw">use</span> <span class="ident">fc_rpc::internal_err</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">frontier_backend_client</span>, <span class="ident">internal_err</span>, <span class="ident">OverrideHandle</span>};
 <span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
 
 <span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing</span>::{
@@ -1362,7 +1335,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="ident">CacheTask</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+	<span class="ident">BE::State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+	<span class="ident">C</span>: <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1381,6 +1356,7 @@
 		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 		<span class="ident">cache_duration</span>: <span class="ident">Duration</span>,
 		<span class="ident">blocking_permits</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Semaphore</span><span class="op">&gt;</span>,
+		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	) -&gt; (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>, <span class="ident">CacheRequester</span>) {
 		<span class="comment">// Communication with the outside world :</span>
 		<span class="kw">let</span> (<span class="ident">requester_tx</span>, <span class="kw-2">mut</span> <span class="ident">requester_rx</span>) <span class="op">=</span>
@@ -1415,7 +1391,7 @@
 						<span class="kw">match</span> <span class="ident">request</span> {
 							<span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
 							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::StartBatch</span> {<span class="ident">sender</span>, <span class="ident">blocks</span>})
-								=&gt; <span class="ident">inner</span>.<span class="ident">request_start_batch</span>(<span class="kw-2">&amp;</span><span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>),
+								=&gt; <span class="ident">inner</span>.<span class="ident">request_start_batch</span>(<span class="kw-2">&amp;</span><span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>, <span class="ident">overrides</span>.<span class="ident">clone</span>()),
 							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::GetTraces</span> {<span class="ident">sender</span>, <span class="ident">block</span>})
 								=&gt; <span class="ident">inner</span>.<span class="ident">request_get_traces</span>(<span class="ident">sender</span>, <span class="ident">block</span>),
 							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::StopBatch</span> {<span class="ident">batch_id</span>}) =&gt; {
@@ -1455,12 +1431,13 @@
 
 	<span class="doccomment">/// Handle the creation of a batch.</span>
 	<span class="doccomment">/// Will start the tracing process for blocks that are not already in the cache.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>))]</span>
+	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>, <span class="ident">overrides</span>))]</span>
 	<span class="kw">fn</span> <span class="ident">request_start_batch</span>(
 		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 		<span class="ident">blocking_tx</span>: <span class="kw-2">&amp;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">BlockingTaskMessage</span><span class="op">&gt;</span>,
 		<span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">CacheBatchId</span><span class="op">&gt;</span>,
 		<span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	) {
 		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Starting batch {}&quot;</span>, <span class="self">self</span>.<span class="ident">next_batch_id</span>);
 		<span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">next_batch_id</span>, <span class="ident">blocks</span>.<span class="ident">clone</span>());
@@ -1484,6 +1461,7 @@
 				<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>);
 				<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">backend</span>);
 				<span class="kw">let</span> <span class="ident">blocking_tx</span> <span class="op">=</span> <span class="ident">blocking_tx</span>.<span class="ident">clone</span>();
+				<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">overrides</span>.<span class="ident">clone</span>();
 
 				<span class="comment">// Spawn all block caching asynchronously.</span>
 				<span class="comment">// It will wait to obtain a permit, then spawn a blocking task.</span>
@@ -1511,7 +1489,7 @@
 						<span class="comment">// Perform block tracing in a tokio blocking task.</span>
 						<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">async</span> {
 							<span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-								<span class="ident"><span class="self">Self</span>::cache_block</span>(<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">block</span>)
+								<span class="ident"><span class="self">Self</span>::cache_block</span>(<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">block</span>, <span class="ident">overrides</span>.<span class="ident">clone</span>())
 							})
 							.<span class="kw">await</span>
 							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -1710,11 +1688,12 @@
 	}
 
 	<span class="doccomment">/// (In blocking task) Use the Runtime API to trace the block.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">client</span>, <span class="ident">backend</span>))]</span>
+	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">overrides</span>))]</span>
 	<span class="kw">fn</span> <span class="ident">cache_block</span>(
 		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
 		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 		<span class="ident">substrate_hash</span>: <span class="ident">H256</span>,
+		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">substrate_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="ident">substrate_hash</span>);
 
@@ -1735,62 +1714,29 @@
 		<span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">number</span>();
 		<span class="kw">let</span> <span class="ident">substrate_parent_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::Hash</span>(<span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">parent_hash</span>());
 
-		<span class="kw">let</span> <span class="ident">api_version</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">api_version</span>)) <span class="op">=</span>
-			<span class="ident">api</span>.<span class="ident">api_version</span>::<span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
-		{
-			<span class="ident">api_version</span>
-		} <span class="kw">else</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime api version call failed&quot;</span>.<span class="ident">to_string</span>()));
-		};
+		<span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">frontier_backend_client::onchain_storage_schema</span>::<span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(
+			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
+			<span class="ident">substrate_block_id</span>,
+		);
 
 		<span class="comment">// Get Ethereum block data.</span>
-		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&lt;</span> <span class="number">2</span> {
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="ident">api</span>
-				.<span class="ident">current_all_before_version_2</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} version &lt; 2: {:?}&quot;</span>,
-					<span class="ident">substrate_hash</span>, <span class="ident">e</span>
-				))
-				})<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">block_v2</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">eth_block</span>) <span class="op">=</span> <span class="ident">eth_block</span> {
-				<span class="prelude-val">Some</span>(<span class="ident">eth_block</span>.<span class="ident">into</span>())
-			} <span class="kw">else</span> {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
-					<span class="ident">substrate_hash</span>
-				)));
-			};
-			(<span class="ident">block_v2</span>, <span class="ident">eth_transactions</span>)
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">api_version</span> <span class="op">&lt;</span> <span class="number">4</span> {
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="ident">api</span>
-				.<span class="ident">current_all_before_version_4</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} version &lt; 4: {:?}&quot;</span>,
-					<span class="ident">substrate_hash</span>, <span class="ident">e</span>
-				))
-				})<span class="question-mark">?</span>;
-			(<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>)
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="kw">_</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span>
-				<span class="ident">api</span>.<span class="ident">current_all</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {} : {:?}&quot;</span>,
-						<span class="ident">substrate_hash</span>, <span class="ident">e</span>
-					))
-				})<span class="question-mark">?</span>;
-			(<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>)
-		};
-
-		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">match</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) {
-			(<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; (<span class="ident">a</span>, <span class="ident">b</span>),
+		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">overrides</span>.<span class="ident">schemas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">schema</span>) {
+			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="kw">match</span> (
+				<span class="ident">schema</span>.<span class="ident">current_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>),
+				<span class="ident">schema</span>.<span class="ident">current_transaction_statuses</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>),
+			) {
+				(<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; (<span class="ident">a</span>, <span class="ident">b</span>),
+				<span class="kw">_</span> =&gt; {
+					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
+						<span class="ident">substrate_block_id</span>
+					)))
+				}
+			},
 			<span class="kw">_</span> =&gt; {
 				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
-					<span class="ident">substrate_hash</span>
+					<span class="string">&quot;No storage override at {:?}&quot;</span>,
+					<span class="ident">substrate_block_id</span>
 				)))
 			}
 		};
