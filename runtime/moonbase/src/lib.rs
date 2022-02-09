@@ -40,7 +40,7 @@ use frame_support::{
 	traits::{
 		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
 		Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
-		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait, EnsureOneOf
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -61,7 +61,7 @@ use xcm_builder::{
 
 use xcm_executor::traits::JustTry;
 
-use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
+use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -179,6 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
+	state_version: 0,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -244,6 +245,7 @@ impl frame_system::Config for Runtime {
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -531,6 +533,8 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type PreimageProvider = ();
+	type NoPreimagePostponement = ();
 }
 
 parameter_types! {
@@ -617,13 +621,11 @@ impl pallet_democracy::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>;
 	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EnsureOneOf<
-		AccountId,
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 	>;
 	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EnsureOneOf<
-		AccountId,
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>,
 	>;
@@ -652,13 +654,11 @@ parameter_types! {
 }
 
 type TreasuryApproveOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 >;
 
 type TreasuryRejectOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -681,6 +681,7 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = MaxApprovals;
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
+	type ProposalBondMaximum = ();
 }
 
 parameter_types! {
@@ -696,12 +697,10 @@ parameter_types! {
 }
 
 type IdentityForceOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 type IdentityRegistrarOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -757,7 +756,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = ();
+	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
 	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
@@ -1225,6 +1224,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -1242,11 +1242,11 @@ parameter_types! {
 	pub const MetadataDepositBase: Balance = 0;
 	pub const MetadataDepositPerByte: Balance = 0;
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
+	pub const AssetAccountDeposit: Balance = currency::deposit(1, 18);
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -1264,6 +1264,7 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1429,6 +1430,8 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const MaxAssetsForTransfer: usize = 2;
+
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
 	pub SelfLocation: MultiLocation = MultiLocation {
@@ -1451,6 +1454,7 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = XcmWeigher;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future
@@ -1701,7 +1705,7 @@ construct_runtime! {
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
+		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,

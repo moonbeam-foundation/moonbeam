@@ -10233,6 +10233,7 @@ dependencies = [
  "pallet-collective",
  "pallet-evm",
  "pallet-migrations",
+ "pallet-scheduler",
  "parachain-staking",
  "sp-core",
  "sp-runtime",

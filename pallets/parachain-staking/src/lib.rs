@@ -1757,19 +1757,19 @@ pub mod pallet {
 		pub status: DelegatorStatus,
 	}
 
-	/// Temporary function to migrate state
-	pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
-		id: T::AccountId,
-		nominator: Nominator2<T::AccountId, BalanceOf<T>>,
-	) -> Delegator<T::AccountId, BalanceOf<T>> {
-		Delegator {
-			id,
-			delegations: nominator.delegations,
-			total: nominator.total,
-			requests: PendingDelegationRequests::new(),
-			status: nominator.status,
-		}
-	}
+	// /// Temporary function to migrate state
+	// pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
+	// 	id: T::AccountId,
+	// 	nominator: Nominator2<T::AccountId, BalanceOf<T>>,
+	// ) -> Delegator<T::AccountId, BalanceOf<T>> {
+	// 	Delegator {
+	// 		id,
+	// 		delegations: nominator.delegations,
+	// 		total: nominator.total,
+	// 		requests: PendingDelegationRequests::new(),
+	// 		status: nominator.status,
+	// 	}
+	// }
 
 	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The current round index and transition information
